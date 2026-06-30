@@ -1,6 +1,6 @@
 {
   "name": "crypto-launch-intelligence",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "AI-powered crypto launch intelligence platform for discovering early momentum shifts, launch opportunities, smart money accumulation, and emerging crypto narratives.",
   "type": "module",
   "main": "src/index.js",
@@ -10,21 +10,17 @@
   },
   "scripts": {
     "start": "node src/index.js",
-
     "scan": "node src/liveMarketScanner.js",
     "scan:live": "node src/liveMarketScanner.js",
     "scan:test": "node src/index.js",
     "scan:json": "node src/reportRunner.js",
     "scan:watchlist": "node src/watchlistScanner.js",
-
     "tokens": "node src/showTokens.js",
     "discover": "node src/showTokens.js",
-
+    "discovery": "node src/discoveryManager.js",
     "dashboard": "node src/dashboard.js",
     "report": "node src/reportRunner.js",
-
     "alerts": "node src/alertEngine.js",
-
     "dev": "node --watch src/index.js"
   },
   "engines": {
