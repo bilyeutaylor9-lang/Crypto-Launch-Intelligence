@@ -9,6 +9,8 @@
  * becomes a full intelligence profile.
  */
 
+import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
+
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
 import { analyzeDeveloperActivityBatch } from "./engines/developerActivityEngine.js";
 import { analyzeGithubBatch } from "./engines/githubQualityEngine.js";
@@ -44,6 +46,8 @@ import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 export function runIntelligencePipeline(projects = []) {
   let results = [...projects];
 
+  results = analyzeRichTokenIntelligenceBatch(results);
+
   results = analyzeNarratives(results);
   results = analyzeDeveloperActivityBatch(results);
   results = analyzeGithubBatch(results);
@@ -78,11 +82,13 @@ export function runIntelligencePipeline(projects = []) {
 
   return results.sort((a, b) => {
     const scoreA =
+      Number(a.richTokenScore || 0) +
       Number(a.momentumShiftScore || 0) +
       Number(a.narrativeScore || 0) +
       Number(a.liquidityScore || 0);
 
     const scoreB =
+      Number(b.richTokenScore || 0) +
       Number(b.momentumShiftScore || 0) +
       Number(b.narrativeScore || 0) +
       Number(b.liquidityScore || 0);
@@ -95,6 +101,7 @@ export function summarizePipelineResults(results = []) {
   return {
     scannedProjects: results.length,
     topProject: results[0] || null,
+    highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
     highMomentumCount: results.filter(p => p.momentumShiftScore >= 70).length,
     strongNarrativeCount: results.filter(p => p.narrativeScore >= 70).length,
     strongLiquidityCount: results.filter(p => p.liquidityScore >= 70).length,
