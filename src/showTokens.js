@@ -1,6 +1,7 @@
 // src/showTokens.js
 
 import { runDiscoveryManager } from "./discoveryManager.js";
+import { applyProjectQualityGate } from "./engines/projectQualityGateEngine.js";
 
 function formatMoney(value = 0) {
   const number = Number(value || 0);
@@ -14,10 +15,11 @@ function formatMoney(value = 0) {
 
 function scoreToken(token = {}) {
   return Math.round(
-    Number(token.momentumShiftScore || 0) * 0.35 +
-    Number(token.liquidityExpansionScore || 0) * 0.20 +
-    Number(token.earlyBreakoutScore || 0) * 0.20 +
-    Number(token.relativeStrengthScore || 0) * 0.15 +
+    Number(token.richTokenScore || 0) * 0.25 +
+    Number(token.momentumShiftScore || 0) * 0.25 +
+    Number(token.liquidityExpansionScore || 0) * 0.15 +
+    Number(token.earlyBreakoutScore || 0) * 0.15 +
+    Number(token.relativeStrengthScore || 0) * 0.10 +
     Number(token.buyPressureScore || 0) * 0.10
   );
 }
@@ -30,7 +32,7 @@ function confidenceLabel(score = 0) {
   return "★ Low";
 }
 
-function printHeader(discovery) {
+function printHeader(discovery, qualityGate) {
   console.clear();
 
   console.log("═══════════════════════════════════════════════════════════════");
@@ -39,8 +41,10 @@ function printHeader(discovery) {
   console.log(`Scanned At: ${discovery.scannedAt}`);
   console.log(`Sources: ${discovery.sourcesUsed.join(", ")}`);
   console.log(`Discovered: ${discovery.discoveredCount}`);
-  console.log(`Accepted: ${discovery.acceptedCount}`);
-  console.log(`Rejected: ${discovery.rejectedCount}`);
+  console.log(`Discovery Accepted: ${discovery.acceptedCount}`);
+  console.log(`Discovery Rejected: ${discovery.rejectedCount}`);
+  console.log(`Quality Accepted: ${qualityGate.acceptedCount}`);
+  console.log(`Quality Rejected: ${qualityGate.rejectedCount}`);
   console.log("---------------------------------------------------------------");
 }
 
@@ -57,6 +61,8 @@ function printToken(token, index) {
   console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
   console.log(`24h Price Change............ ${token.priceChange24h || 0}%`);
+  console.log(`Rich Token Score............ ${token.richTokenScore || 0}`);
+  console.log(`Rich Token Level............ ${token.richTokenLevel || "unknown"}`);
   console.log(`Momentum Shift.............. ${token.momentumShiftScore || 0}`);
   console.log(`Liquidity Expansion......... ${token.liquidityExpansionScore || 0}`);
   console.log(`Early Breakout.............. ${token.earlyBreakoutScore || 0}`);
@@ -78,23 +84,38 @@ function printToken(token, index) {
 }
 
 const discovery = await runDiscoveryManager({
-  maxTokens: Number(process.env.MAX_TOKENS || 50),
-  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 50)
+  maxTokens: Number(process.env.MAX_TOKENS || 75),
+  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 75)
 });
 
-const ranked = [...discovery.candidates]
-  .map(token => ({
-    ...token,
-    overallOpportunityScore: scoreToken(token)
-  }))
-  .sort((a, b) => b.overallOpportunityScore - a.overallOpportunityScore);
+const scored = [...discovery.candidates].map(token => ({
+  ...token,
+  overallOpportunityScore: scoreToken(token)
+}));
 
-printHeader(discovery);
+const qualityGate = applyProjectQualityGate(scored, {
+  minLiquidityUsd: Number(process.env.MIN_QUALITY_LIQUIDITY || 50000),
+  minVolume24h: Number(process.env.MIN_QUALITY_VOLUME || 100000),
+  minBuyTransactions24h: Number(process.env.MIN_QUALITY_BUYS || 25),
+  minRichTokenScore: Number(process.env.MIN_RICH_TOKEN_SCORE || 30)
+});
 
-console.log("\n🏆 TOP MULTI-SOURCE OPPORTUNITIES");
+const ranked = [...qualityGate.accepted].sort(
+  (a, b) => b.overallOpportunityScore - a.overallOpportunityScore
+);
+
+printHeader(discovery, qualityGate);
+
+console.log("\n🏆 TOP QUALITY OPPORTUNITIES");
 console.log("---------------------------------------------------------------");
 
-ranked.slice(0, 25).forEach(printToken);
+if (ranked.length === 0) {
+  console.log("No projects passed the quality gate.");
+  console.log("Try lowering filters:");
+  console.log("MIN_QUALITY_LIQUIDITY=10000 MIN_QUALITY_VOLUME=25000 npm run tokens");
+} else {
+  ranked.slice(0, 25).forEach(printToken);
+}
 
 console.log("\n═══════════════════════════════════════════════════════════════");
 console.log("Research tool only. Not financial advice.");
