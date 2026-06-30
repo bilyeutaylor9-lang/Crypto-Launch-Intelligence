@@ -1,71 +1,71 @@
 // src/engines/relativeStrengthEngine.js
 
 /**
- * Relative Strength Engine
+ * Relative Strength Engine v2
  *
  * Purpose:
- * Measures whether a project is outperforming its chain,
- * sector, narrative, or broader crypto market.
+ * Measures how strongly a token is outperforming
+ * normal market movement.
  */
 
-export function calculateRelativeStrength(project = {}) {
-  const projectChange24h = Number(project.priceChange24h || 0);
-  const marketChange24h = Number(project.marketChange24h || 0);
-  const sectorChange24h = Number(project.sectorChange24h || 0);
-  const chainChange24h = Number(project.chainChange24h || 0);
-  const narrativeChange24h = Number(project.narrativeChange24h || 0);
-
-  return {
-    vsMarket: projectChange24h - marketChange24h,
-    vsSector: projectChange24h - sectorChange24h,
-    vsChain: projectChange24h - chainChange24h,
-    vsNarrative: projectChange24h - narrativeChange24h
-  };
+function num(value = 0) {
+  return Number(value || 0);
 }
 
-export function scoreRelativeStrength(project = {}) {
-  const rs = calculateRelativeStrength(project);
-
+export function calculateRelativeStrengthScore(project = {}) {
   let score = 0;
 
-  if (rs.vsMarket > 0) score += 20;
-  if (rs.vsMarket > 10) score += 10;
-  if (rs.vsSector > 0) score += 20;
-  if (rs.vsChain > 0) score += 20;
-  if (rs.vsNarrative > 0) score += 20;
-  if (project.buyPressureScore >= 60) score += 10;
+  const priceChange1h = num(project.priceChange1h);
+  const priceChange6h = num(project.priceChange6h);
+  const priceChange24h = num(project.priceChange24h);
+  const volume24h = num(project.volume24h);
+  const liquidityUsd = num(project.liquidityUsd);
 
-  return Math.max(0, Math.min(100, score));
+  if (priceChange1h >= 3) score += 10;
+  if (priceChange1h >= 10) score += 10;
+
+  if (priceChange6h >= 10) score += 15;
+  if (priceChange6h >= 25) score += 15;
+
+  if (priceChange24h >= 20) score += 15;
+  if (priceChange24h >= 50) score += 15;
+  if (priceChange24h >= 100) score += 10;
+
+  if (volume24h >= 100000) score += 10;
+  if (volume24h >= 500000) score += 10;
+
+  if (liquidityUsd >= 50000) score += 5;
+  if (liquidityUsd >= 250000) score += 5;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 export function analyzeRelativeStrength(project = {}) {
-  const relativeStrength = calculateRelativeStrength(project);
-  const relativeStrengthScore = scoreRelativeStrength(project);
+  const relativeStrengthScore = calculateRelativeStrengthScore(project);
 
   return {
     ...project,
-    relativeStrength,
     relativeStrengthScore,
-
     relativeStrengthLevel:
       relativeStrengthScore >= 85 ? "market leader" :
-      relativeStrengthScore >= 65 ? "strong outperformer" :
-      relativeStrengthScore >= 45 ? "early outperformer" :
-      "weak or neutral",
+      relativeStrengthScore >= 70 ? "strong outperformer" :
+      relativeStrengthScore >= 50 ? "outperforming" :
+      relativeStrengthScore >= 30 ? "early strength" :
+      "weak",
 
     evidence: [
       ...(project.evidence || []),
       {
-        engine: "Relative Strength Engine",
-        signal: "Relative outperformance",
+        engine: "Relative Strength Engine v2",
+        signal: "Relative market strength",
         confidence: Math.min(relativeStrengthScore / 100, 1),
-        impact: relativeStrengthScore >= 60 ? "Positive" : "Neutral"
+        impact: relativeStrengthScore >= 50 ? "Positive" : "Neutral"
       }
     ],
 
     alerts: [
       ...(project.alerts || []),
-      ...(relativeStrengthScore >= 80
+      ...(relativeStrengthScore >= 70
         ? ["Relative strength leadership detected."]
         : [])
     ]
