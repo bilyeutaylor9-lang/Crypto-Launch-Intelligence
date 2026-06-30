@@ -1,6 +1,6 @@
 // src/showTokens.js
 
-import { scanLiveMarket } from "./liveMarketScanner.js";
+import { runDiscoveryManager } from "./discoveryManager.js";
 
 function formatMoney(value = 0) {
   const number = Number(value || 0);
@@ -30,27 +30,31 @@ function confidenceLabel(score = 0) {
   return "★ Low";
 }
 
-function printHeader(report) {
+function printHeader(discovery) {
   console.clear();
 
   console.log("═══════════════════════════════════════════════════════════════");
   console.log("           🚀 CRYPTO LAUNCH INTELLIGENCE");
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log(`Scanned At: ${report.scannedAt}`);
-  console.log(`Source: ${report.source}`);
-  console.log(`Token Pairs Scanned: ${report.scannedTokens || report.results.length}`);
+  console.log(`Scanned At: ${discovery.scannedAt}`);
+  console.log(`Sources: ${discovery.sourcesUsed.join(", ")}`);
+  console.log(`Discovered: ${discovery.discoveredCount}`);
+  console.log(`Accepted: ${discovery.acceptedCount}`);
+  console.log(`Rejected: ${discovery.rejectedCount}`);
   console.log("---------------------------------------------------------------");
 }
 
 function printToken(token, index) {
   const overallScore = scoreToken(token);
+  const sources = token.discoverySources?.join(", ") || token.source || "unknown";
 
   console.log(`\n#${index + 1} ${token.name} (${token.symbol})`);
   console.log("---------------------------------------------------------------");
+  console.log(`Sources..................... ${sources}`);
   console.log(`Chain....................... ${token.chain}`);
   console.log(`DEX......................... ${token.dex || "unknown"}`);
   console.log(`Price....................... $${token.priceUsd}`);
-  console.log(`Liquidity................... ${formatMoney(token.liquidityUsd)}`);
+  console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
   console.log(`24h Price Change............ ${token.priceChange24h || 0}%`);
   console.log(`Momentum Shift.............. ${token.momentumShiftScore || 0}`);
@@ -62,7 +66,7 @@ function printToken(token, index) {
   console.log(`Confidence.................. ${confidenceLabel(overallScore)}`);
 
   if (token.url) {
-    console.log(`Chart....................... ${token.url}`);
+    console.log(`Chart / Source.............. ${token.url}`);
   }
 
   if (token.alerts?.length) {
@@ -73,21 +77,24 @@ function printToken(token, index) {
   }
 }
 
-const report = await scanLiveMarket({ maxTokens: Number(process.env.MAX_TOKENS || 25) });
+const discovery = await runDiscoveryManager({
+  maxTokens: Number(process.env.MAX_TOKENS || 50),
+  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 50)
+});
 
-const ranked = [...report.results]
+const ranked = [...discovery.candidates]
   .map(token => ({
     ...token,
     overallOpportunityScore: scoreToken(token)
   }))
   .sort((a, b) => b.overallOpportunityScore - a.overallOpportunityScore);
 
-printHeader(report);
+printHeader(discovery);
 
-console.log("\n🏆 TOP OPPORTUNITIES");
+console.log("\n🏆 TOP MULTI-SOURCE OPPORTUNITIES");
 console.log("---------------------------------------------------------------");
 
-ranked.slice(0, 15).forEach(printToken);
+ranked.slice(0, 25).forEach(printToken);
 
 console.log("\n═══════════════════════════════════════════════════════════════");
 console.log("Research tool only. Not financial advice.");
