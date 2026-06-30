@@ -1,0 +1,11 @@
+{
+  "name": "crypto-launch-intelligence",
+  "version": "0.1.0",
+  "description": "AI-powered crypto launch intelligence platform for discovering early momentum shifts in blockchain projects.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "license": "MIT"
+}
