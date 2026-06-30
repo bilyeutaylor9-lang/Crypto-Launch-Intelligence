@@ -2,25 +2,27 @@
 
 /**
  * Crypto Launch Intelligence
- * High Rating Filter Engine
+ * High Rating Filter Engine v2
  *
  * Purpose:
- * Only allows stronger projects into the final ranked report.
- * This removes weak meme dust, thin liquidity, low-volume tokens,
- * and low-confidence opportunities.
+ * Soft-ranks stronger projects without rejecting good market-wide
+ * projects just because some DEX-only fields are missing.
  */
 
 export const DEFAULT_HIGH_RATING_RULES = {
-  minLiquidityUsd: 100000,
-  minVolume24h: 250000,
-  minRichTokenScore: 50,
-  minMomentumShiftScore: 20,
-  minOverallOpportunityScore: 40,
+  minLiquidityUsd: 50000,
+  minVolume24h: 100000,
+  minOverallOpportunityScore: 35,
+  minMarketRankScore: 45,
   preferMultipleSources: false
 };
 
 function num(value = 0) {
   return Number(value || 0);
+}
+
+function hasRealValue(value) {
+  return value !== undefined && value !== null && value !== "";
 }
 
 function hasMultipleSources(project = {}) {
@@ -29,34 +31,61 @@ function hasMultipleSources(project = {}) {
 
 export function evaluateHighRating(project = {}, rules = DEFAULT_HIGH_RATING_RULES) {
   const reasons = [];
+  let bonusScore = 0;
 
-  if (num(project.liquidityUsd) < rules.minLiquidityUsd) {
-    reasons.push(`Liquidity under $${rules.minLiquidityUsd}`);
+  const liquidity = num(project.liquidityUsd || project.marketCap || project.tvl);
+  const volume = num(project.volume24h);
+  const overall = num(project.overallOpportunityScore);
+  const marketRank = num(project.marketRankScore);
+
+  if (liquidity < rules.minLiquidityUsd) {
+    reasons.push(`Liquidity/market cap under $${rules.minLiquidityUsd}`);
+  } else {
+    bonusScore += 20;
   }
 
-  if (num(project.volume24h) < rules.minVolume24h) {
+  if (volume < rules.minVolume24h) {
     reasons.push(`24h volume under $${rules.minVolume24h}`);
+  } else {
+    bonusScore += 20;
   }
 
-  if (num(project.richTokenScore) < rules.minRichTokenScore) {
-    reasons.push(`Rich token score under ${rules.minRichTokenScore}`);
+  if (hasRealValue(project.marketRankScore)) {
+    if (marketRank < rules.minMarketRankScore) {
+      reasons.push(`Market rank under ${rules.minMarketRankScore}`);
+    } else {
+      bonusScore += 25;
+    }
   }
 
-  if (num(project.momentumShiftScore) < rules.minMomentumShiftScore) {
-    reasons.push(`Momentum score under ${rules.minMomentumShiftScore}`);
+  if (hasRealValue(project.overallOpportunityScore)) {
+    if (overall < rules.minOverallOpportunityScore) {
+      reasons.push(`Overall opportunity under ${rules.minOverallOpportunityScore}`);
+    } else {
+      bonusScore += 20;
+    }
   }
 
-  if (num(project.overallOpportunityScore) < rules.minOverallOpportunityScore) {
-    reasons.push(`Overall opportunity under ${rules.minOverallOpportunityScore}`);
+  if (hasRealValue(project.richTokenScore) && num(project.richTokenScore) >= 50) {
+    bonusScore += 10;
+  }
+
+  if (hasRealValue(project.momentumShiftScore) && num(project.momentumShiftScore) >= 50) {
+    bonusScore += 10;
   }
 
   if (rules.preferMultipleSources && !hasMultipleSources(project)) {
     reasons.push("Only found on one source");
+  } else if (hasMultipleSources(project)) {
+    bonusScore += 10;
   }
 
+  const passed = bonusScore >= 45 && reasons.length <= 2;
+
   return {
-    passed: reasons.length === 0,
-    reasons
+    passed,
+    reasons,
+    bonusScore
   };
 }
 
@@ -75,7 +104,8 @@ export function applyHighRatingFilter(projects = [], customRules = {}) {
     const enriched = {
       ...project,
       highRatingPassed: rating.passed,
-      highRatingReasons: rating.reasons
+      highRatingReasons: rating.reasons,
+      highRatingBonusScore: rating.bonusScore
     };
 
     if (rating.passed) {
