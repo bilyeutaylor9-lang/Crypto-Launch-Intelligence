@@ -2,7 +2,7 @@
 
 /**
  * Crypto Launch Intelligence
- * Discovery Manager v2
+ * Discovery Manager v3
  *
  * Purpose:
  * Combines live discovery sources into one clean candidate pool.
@@ -10,6 +10,7 @@
 
 import { scanLiveMarket } from "./liveMarketScanner.js";
 import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
+import { getCoinGeckoCandidates } from "./data/coinGeckoConnector.js";
 
 function dedupeByPair(projects = []) {
   const seen = new Map();
@@ -55,17 +56,33 @@ export async function runDiscoveryManager(options = {}) {
     console.warn(`GeckoTerminal skipped: ${error.message}`);
   }
 
+  let coinGeckoProjects = [];
+
+  try {
+    coinGeckoProjects = await getCoinGeckoCandidates({
+      perPage: Number(options.coinGeckoPerPage || 50)
+    });
+
+    coinGeckoProjects = coinGeckoProjects.map(project =>
+      enrichDiscoverySource(project, "coingecko")
+    );
+  } catch (error) {
+    console.warn(`CoinGecko skipped: ${error.message}`);
+  }
+
   const candidatePool = dedupeByPair([
     ...dexProjects,
-    ...geckoProjects
+    ...geckoProjects,
+    ...coinGeckoProjects
   ]);
 
   return {
     scannedAt: new Date().toISOString(),
-    sourcesUsed: ["dexscreener", "geckoterminal"],
+    sourcesUsed: ["dexscreener", "geckoterminal", "coingecko"],
     discoveredCount:
       Number(dexReport.discoveredTokens || dexReport.scannedTokens || 0) +
-      geckoProjects.length,
+      geckoProjects.length +
+      coinGeckoProjects.length,
     acceptedCount: candidatePool.length,
     rejectedCount: dexReport.rejectedTokens || 0,
     candidates: candidatePool,
@@ -77,6 +94,9 @@ export async function runDiscoveryManager(options = {}) {
       },
       geckoterminal: {
         scannedTokens: geckoProjects.length
+      },
+      coingecko: {
+        scannedTokens: coinGeckoProjects.length
       }
     }
   };
