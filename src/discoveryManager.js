@@ -2,15 +2,14 @@
 
 /**
  * Crypto Launch Intelligence
- * Discovery Manager v1
+ * Discovery Manager v2
  *
  * Purpose:
  * Combines live discovery sources into one clean candidate pool.
- * v1 starts with DexScreener and is designed so CoinGecko,
- * DefiLlama, GitHub, GoPlus, and RugCheck can plug in next.
  */
 
 import { scanLiveMarket } from "./liveMarketScanner.js";
+import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
 
 function dedupeByPair(projects = []) {
   const seen = new Map();
@@ -28,7 +27,7 @@ function dedupeByPair(projects = []) {
   return [...seen.values()];
 }
 
-function enrichDiscoverySource(project = {}, source = "dexscreener") {
+function enrichDiscoverySource(project = {}, source = "unknown") {
   return {
     ...project,
     discoverySources: [...new Set([...(project.discoverySources || []), source])],
@@ -45,14 +44,28 @@ export async function runDiscoveryManager(options = {}) {
     enrichDiscoverySource(project, "dexscreener")
   );
 
+  let geckoProjects = [];
+
+  try {
+    geckoProjects = await getGeckoTerminalCandidates();
+    geckoProjects = geckoProjects.map(project =>
+      enrichDiscoverySource(project, "geckoterminal")
+    );
+  } catch (error) {
+    console.warn(`GeckoTerminal skipped: ${error.message}`);
+  }
+
   const candidatePool = dedupeByPair([
-    ...dexProjects
+    ...dexProjects,
+    ...geckoProjects
   ]);
 
   return {
     scannedAt: new Date().toISOString(),
-    sourcesUsed: ["dexscreener"],
-    discoveredCount: dexReport.discoveredTokens || dexReport.scannedTokens || 0,
+    sourcesUsed: ["dexscreener", "geckoterminal"],
+    discoveredCount:
+      Number(dexReport.discoveredTokens || dexReport.scannedTokens || 0) +
+      geckoProjects.length,
     acceptedCount: candidatePool.length,
     rejectedCount: dexReport.rejectedTokens || 0,
     candidates: candidatePool,
@@ -61,6 +74,9 @@ export async function runDiscoveryManager(options = {}) {
         scannedTokens: dexReport.scannedTokens,
         rejectedTokens: dexReport.rejectedTokens,
         filters: dexReport.filters
+      },
+      geckoterminal: {
+        scannedTokens: geckoProjects.length
       }
     }
   };
@@ -68,6 +84,5 @@ export async function runDiscoveryManager(options = {}) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const discovery = await runDiscoveryManager();
-
   console.log(JSON.stringify(discovery, null, 2));
 }
