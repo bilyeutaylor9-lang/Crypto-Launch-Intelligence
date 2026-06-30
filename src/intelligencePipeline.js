@@ -2,7 +2,7 @@
 
 /**
  * Crypto Launch Intelligence
- * Master Intelligence Pipeline
+ * Self-Learning Intelligence Pipeline
  *
  * Purpose:
  * Runs all active engines in the correct order so every project
@@ -10,6 +10,8 @@
  */
 
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
+import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
+import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
 
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
 import { analyzeDeveloperActivityBatch } from "./engines/developerActivityEngine.js";
@@ -43,12 +45,26 @@ import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEn
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 
+function calculatePipelineScore(project = {}) {
+  return (
+    Number(project.marketRankScore || 0) * 1.5 +
+    Number(project.richTokenScore || 0) +
+    Number(project.infrastructureNarrativeScore || 0) +
+    Number(project.momentumShiftScore || 0) +
+    Number(project.narrativeScore || 0) +
+    Number(project.liquidityScore || 0) +
+    Number(project.relativeStrengthScore || 0) +
+    Number(project.buyPressureScore || 0)
+  );
+}
+
 export function runIntelligencePipeline(projects = []) {
   let results = [...projects];
 
   results = analyzeRichTokenIntelligenceBatch(results);
-
   results = analyzeNarratives(results);
+  results = analyzeInfrastructureNarrativeBatch(results);
+
   results = analyzeDeveloperActivityBatch(results);
   results = analyzeGithubBatch(results);
   results = analyzeCommunityGrowthBatch(results);
@@ -80,29 +96,26 @@ export function runIntelligencePipeline(projects = []) {
   results = analyzeLiquidityExpansionBatch(results);
   results = analyzeMomentumShiftBatch(results);
 
-  return results.sort((a, b) => {
-    const scoreA =
-      Number(a.richTokenScore || 0) +
-      Number(a.momentumShiftScore || 0) +
-      Number(a.narrativeScore || 0) +
-      Number(a.liquidityScore || 0);
+  results = analyzeMarketRankBatch(results);
 
-    const scoreB =
-      Number(b.richTokenScore || 0) +
-      Number(b.momentumShiftScore || 0) +
-      Number(b.narrativeScore || 0) +
-      Number(b.liquidityScore || 0);
-
-    return scoreB - scoreA;
-  });
+  return results
+    .map(project => ({
+      ...project,
+      pipelineScore: calculatePipelineScore(project)
+    }))
+    .sort((a, b) => b.pipelineScore - a.pipelineScore);
 }
 
 export function summarizePipelineResults(results = []) {
   return {
     scannedProjects: results.length,
     topProject: results[0] || null,
+    highMarketRankCount: results.filter(p => p.marketRankScore >= 70).length,
     highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
     highMomentumCount: results.filter(p => p.momentumShiftScore >= 70).length,
+    strongInfrastructureNarrativeCount: results.filter(
+      p => p.infrastructureNarrativeScore >= 70
+    ).length,
     strongNarrativeCount: results.filter(p => p.narrativeScore >= 70).length,
     strongLiquidityCount: results.filter(p => p.liquidityScore >= 70).length,
     alerts: results.flatMap(project =>
