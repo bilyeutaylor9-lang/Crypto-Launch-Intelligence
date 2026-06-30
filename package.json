@@ -1,15 +1,31 @@
 {
   "name": "crypto-launch-intelligence",
-  "version": "0.2.0",
-  "description": "AI-powered crypto launch intelligence platform for discovering early momentum shifts in blockchain projects.",
+  "version": "0.3.0",
+  "description": "AI-powered crypto launch intelligence platform for discovering early momentum shifts, launch opportunities, smart money accumulation, and emerging crypto narratives.",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "cli": "./src/cli.js",
+    "crypto-launch": "./src/cli.js"
+  },
   "scripts": {
     "start": "node src/index.js",
+
+    "scan": "node src/liveMarketScanner.js",
     "scan:live": "node src/liveMarketScanner.js",
     "scan:test": "node src/index.js",
     "scan:json": "node src/reportRunner.js",
-    "scan:watchlist": "node src/watchlistScanner.js"
+    "scan:watchlist": "node src/watchlistScanner.js",
+
+    "tokens": "node src/showTokens.js",
+    "discover": "node src/showTokens.js",
+
+    "dashboard": "node src/dashboard.js",
+    "report": "node src/reportRunner.js",
+
+    "alerts": "node src/alertEngine.js",
+
+    "dev": "node --watch src/index.js"
   },
   "engines": {
     "node": ">=20"
@@ -21,10 +37,27 @@
     "scanner",
     "market-intelligence",
     "dexscreener",
+    "coingecko",
+    "defillama",
     "launch",
+    "launchpad",
     "analytics",
-    "web3"
+    "alpha",
+    "web3",
+    "smart-money",
+    "onchain",
+    "trading"
   ],
   "author": "Taylor Bilyeu",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/issues"
+  },
+  "homepage": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence",
+  "dependencies": {},
+  "devDependencies": {}
 }
