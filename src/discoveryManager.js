@@ -2,7 +2,7 @@
 
 /**
  * Crypto Launch Intelligence
- * Discovery Manager v3
+ * Discovery Manager v4
  *
  * Purpose:
  * Combines live discovery sources into one clean candidate pool.
@@ -11,6 +11,7 @@
 import { scanLiveMarket } from "./liveMarketScanner.js";
 import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
 import { getCoinGeckoCandidates } from "./data/coinGeckoConnector.js";
+import { getBirdeyeCandidates } from "./data/birdeyeConnector.js";
 
 function dedupeByPair(projects = []) {
   const seen = new Map();
@@ -70,19 +71,35 @@ export async function runDiscoveryManager(options = {}) {
     console.warn(`CoinGecko skipped: ${error.message}`);
   }
 
+  let birdeyeProjects = [];
+
+  try {
+    birdeyeProjects = await getBirdeyeCandidates({
+      limit: Number(options.birdeyeLimit || process.env.BIRDEYE_LIMIT || 50)
+    });
+
+    birdeyeProjects = birdeyeProjects.map(project =>
+      enrichDiscoverySource(project, "birdeye")
+    );
+  } catch (error) {
+    console.warn(`Birdeye skipped: ${error.message}`);
+  }
+
   const candidatePool = dedupeByPair([
     ...dexProjects,
     ...geckoProjects,
-    ...coinGeckoProjects
+    ...coinGeckoProjects,
+    ...birdeyeProjects
   ]);
 
   return {
     scannedAt: new Date().toISOString(),
-    sourcesUsed: ["dexscreener", "geckoterminal", "coingecko"],
+    sourcesUsed: ["dexscreener", "geckoterminal", "coingecko", "birdeye"],
     discoveredCount:
       Number(dexReport.discoveredTokens || dexReport.scannedTokens || 0) +
       geckoProjects.length +
-      coinGeckoProjects.length,
+      coinGeckoProjects.length +
+      birdeyeProjects.length,
     acceptedCount: candidatePool.length,
     rejectedCount: dexReport.rejectedTokens || 0,
     candidates: candidatePool,
@@ -97,6 +114,10 @@ export async function runDiscoveryManager(options = {}) {
       },
       coingecko: {
         scannedTokens: coinGeckoProjects.length
+      },
+      birdeye: {
+        scannedTokens: birdeyeProjects.length,
+        enabled: Boolean(process.env.BIRDEYE_API_KEY)
       }
     }
   };
