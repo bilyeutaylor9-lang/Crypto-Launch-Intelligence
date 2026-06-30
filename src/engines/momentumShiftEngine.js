@@ -1,42 +1,48 @@
 // src/engines/momentumShiftEngine.js
 
 /**
- * Momentum Shift Engine
+ * Momentum Shift Engine v2
  *
  * Purpose:
- * Combines the Momentum Intelligence Layer into one master signal.
- * Detects whether a project may be entering an early momentum phase.
+ * Detects early momentum even when some engines are still missing data.
  */
 
-const MOMENTUM_WEIGHTS = {
-  velocityScore: 0.10,
-  accelerationScore: 0.12,
-  trendChangeScore: 0.10,
-  momentumCompressionScore: 0.10,
-  capitalFlowScore: 0.12,
-  buyPressureScore: 0.10,
-  relativeStrengthScore: 0.10,
-  smartMoneyRotationScore: 0.10,
-  opportunityTimingScore: 0.08,
-  earlyBreakoutScore: 0.08,
-  liquidityExpansionScore: 0.06,
-  volatilityExpansionScore: 0.04
-};
+function num(value = 0) {
+  return Number(value || 0);
+}
 
 export function calculateMomentumShiftScore(project = {}) {
   let score = 0;
 
-  for (const [key, weight] of Object.entries(MOMENTUM_WEIGHTS)) {
-    score += Number(project[key] || 0) * weight;
-  }
+  const priceChange24h = num(project.priceChange24h);
+  const volume24h = num(project.volume24h);
+  const liquidityUsd = num(project.liquidityUsd);
+  const buys = num(project.buyTransactions24h);
+  const sells = num(project.sellTransactions24h);
+  const richTokenScore = num(project.richTokenScore);
+  const earlyBreakoutScore = num(project.earlyBreakoutScore);
+  const relativeStrengthScore = num(project.relativeStrengthScore);
+  const buyPressureScore = num(project.buyPressureScore);
 
-  if (Number(project.sellPressureScore || 0) >= 70) {
-    score -= 15;
-  }
+  if (priceChange24h >= 10) score += 10;
+  if (priceChange24h >= 25) score += 10;
+  if (priceChange24h >= 50) score += 10;
+  if (priceChange24h >= 100) score += 10;
 
-  if (Number(project.riskScore || 0) >= 75) {
-    score -= 20;
-  }
+  if (volume24h >= 50_000) score += 10;
+  if (volume24h >= 250_000) score += 10;
+  if (volume24h >= 1_000_000) score += 10;
+
+  if (liquidityUsd >= 25_000) score += 5;
+  if (liquidityUsd >= 100_000) score += 5;
+
+  if (buys > sells && buys >= 25) score += 10;
+  if (buys >= 100) score += 10;
+
+  if (richTokenScore >= 40) score += 10;
+  if (earlyBreakoutScore >= 50) score += 10;
+  if (relativeStrengthScore >= 50) score += 10;
+  if (buyPressureScore >= 50) score += 10;
 
   return Math.max(0, Math.min(100, Math.round(score)));
 }
@@ -45,34 +51,32 @@ export function classifyMomentumShift(score = 0) {
   if (score >= 85) return "major early momentum shift";
   if (score >= 70) return "confirmed momentum shift";
   if (score >= 55) return "developing momentum shift";
-  if (score >= 40) return "early watch";
+  if (score >= 35) return "early watch";
   return "no clear shift";
 }
 
 export function analyzeMomentumShift(project = {}) {
   const momentumShiftScore = calculateMomentumShiftScore(project);
-  const momentumShiftLevel = classifyMomentumShift(momentumShiftScore);
 
   return {
     ...project,
-
     momentumShiftScore,
-    momentumShiftLevel,
+    momentumShiftLevel: classifyMomentumShift(momentumShiftScore),
 
     evidence: [
       ...(project.evidence || []),
       {
-        engine: "Momentum Shift Engine",
+        engine: "Momentum Shift Engine v2",
         signal: "Composite early momentum shift",
         confidence: Math.min(momentumShiftScore / 100, 1),
-        impact: momentumShiftScore >= 70 ? "Positive" : "Neutral"
+        impact: momentumShiftScore >= 55 ? "Positive" : "Neutral"
       }
     ],
 
     alerts: [
       ...(project.alerts || []),
-      ...(momentumShiftScore >= 80
-        ? ["Major early momentum shift detected."]
+      ...(momentumShiftScore >= 70
+        ? ["Strong early momentum shift detected."]
         : [])
     ]
   };
