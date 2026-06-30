@@ -1,150 +1,89 @@
 // src/engines/liquidityExpansionEngine.js
 
 /**
- * Crypto Launch Intelligence
- * Liquidity Expansion Engine
+ * Liquidity Expansion Engine v2
  *
  * Purpose:
- * Detect whether liquidity is expanding
- * fast enough to support sustainable growth.
+ * Detects liquidity quality and expansion potential even when
+ * previous liquidity snapshots are not yet available.
  */
 
+function num(value = 0) {
+  return Number(value || 0);
+}
+
 export function calculateLiquidityExpansion(project = {}) {
+  const currentLiquidity = num(project.liquidityUsd);
+  const previousLiquidity = num(project.previousLiquidityUsd);
 
-    const currentLiquidity =
-        Number(project.liquidityUsd || 0);
+  const expansionRate =
+    previousLiquidity > 0
+      ? ((currentLiquidity - previousLiquidity) / previousLiquidity) * 100
+      : 0;
 
-    const previousLiquidity =
-        Number(project.previousLiquidityUsd || 0);
-
-    const expansionRate =
-        previousLiquidity > 0
-            ? ((currentLiquidity - previousLiquidity) /
-                previousLiquidity) * 100
-            : 0;
-
-    return {
-
-        currentLiquidity,
-
-        previousLiquidity,
-
-        expansionRate
-
-    };
-
+  return {
+    currentLiquidity,
+    previousLiquidity,
+    expansionRate
+  };
 }
 
-export function scoreLiquidityExpansion(project={}){
+export function scoreLiquidityExpansion(project = {}) {
+  const liquidity = calculateLiquidityExpansion(project);
+  let score = 0;
 
-    const liquidity =
-        calculateLiquidityExpansion(project);
+  if (liquidity.currentLiquidity >= 25000) score += 10;
+  if (liquidity.currentLiquidity >= 100000) score += 20;
+  if (liquidity.currentLiquidity >= 250000) score += 20;
+  if (liquidity.currentLiquidity >= 1000000) score += 20;
 
-    let score = 0;
+  if (liquidity.expansionRate >= 10) score += 10;
+  if (liquidity.expansionRate >= 25) score += 10;
+  if (liquidity.expansionRate >= 50) score += 10;
 
-    if(liquidity.expansionRate >= 10)
-        score += 20;
+  if (num(project.volume24h) >= 250000 && liquidity.currentLiquidity >= 50000) {
+    score += 10;
+  }
 
-    if(liquidity.expansionRate >= 25)
-        score += 20;
-
-    if(liquidity.expansionRate >= 50)
-        score += 20;
-
-    if(project.capitalFlowScore >= 60)
-        score += 20;
-
-    if(project.smartMoneyRotationScore >= 60)
-        score += 10;
-
-    if(project.buyPressureScore >= 60)
-        score += 10;
-
-    return Math.min(score,100);
-
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-export function analyzeLiquidityExpansion(project={}){
+export function analyzeLiquidityExpansion(project = {}) {
+  const liquidityExpansion = calculateLiquidityExpansion(project);
+  const liquidityExpansionScore = scoreLiquidityExpansion(project);
 
-    const liquidityExpansion =
-        calculateLiquidityExpansion(project);
+  return {
+    ...project,
+    liquidityExpansion,
+    liquidityExpansionScore,
+    liquidityExpansionLevel:
+      liquidityExpansionScore >= 85 ? "institutional liquidity" :
+      liquidityExpansionScore >= 70 ? "strong liquidity" :
+      liquidityExpansionScore >= 50 ? "developing liquidity" :
+      liquidityExpansionScore >= 30 ? "early liquidity" :
+      "thin liquidity",
 
-    const liquidityExpansionScore =
-        scoreLiquidityExpansion(project);
+    evidence: [
+      ...(project.evidence || []),
+      {
+        engine: "Liquidity Expansion Engine v2",
+        signal: "Liquidity quality and expansion",
+        confidence: Math.min(liquidityExpansionScore / 100, 1),
+        impact: liquidityExpansionScore >= 50 ? "Positive" : "Neutral"
+      }
+    ],
 
-    return{
-
-        ...project,
-
-        liquidityExpansion,
-
-        liquidityExpansionScore,
-
-        liquidityExpansionLevel:
-
-            liquidityExpansionScore>=85
-                ? "Institutional Expansion"
-
-            : liquidityExpansionScore>=65
-                ? "Strong Expansion"
-
-            : liquidityExpansionScore>=45
-                ? "Growing"
-
-            : "Stable",
-
-        evidence:[
-
-            ...(project.evidence||[]),
-
-            {
-
-                engine:"Liquidity Expansion Engine",
-
-                signal:"Liquidity Growth",
-
-                confidence:
-                    Math.min(
-                        liquidityExpansionScore/100,
-                        1
-                    ),
-
-                impact:
-                    liquidityExpansionScore>=60
-                        ? "Positive"
-                        : "Neutral"
-
-            }
-
-        ],
-
-        alerts:[
-
-            ...(project.alerts||[]),
-
-            ...(liquidityExpansionScore>=80
-
-                ? ["Rapid liquidity expansion detected."]
-
-                : [])
-
-        ]
-
-    };
-
+    alerts: [
+      ...(project.alerts || []),
+      ...(liquidityExpansionScore >= 70
+        ? ["Strong liquidity profile detected."]
+        : [])
+    ]
+  };
 }
 
-export function analyzeLiquidityExpansionBatch(projects=[]){
-
-    return projects
-
-        .map(analyzeLiquidityExpansion)
-
-        .sort((a,b)=>
-
-            b.liquidityExpansionScore-
-            a.liquidityExpansionScore
-
-        );
-
+export function analyzeLiquidityExpansionBatch(projects = []) {
+  return projects
+    .map(analyzeLiquidityExpansion)
+    .sort((a, b) => b.liquidityExpansionScore - a.liquidityExpansionScore);
 }
