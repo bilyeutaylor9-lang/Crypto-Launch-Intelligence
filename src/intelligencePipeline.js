@@ -6,7 +6,8 @@
  *
  * Purpose:
  * Runs all active engines in the correct order so every project
- * becomes a full intelligence profile.
+ * becomes a full intelligence profile and stores scan history
+ * for future learning.
  */
 
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
@@ -45,6 +46,8 @@ import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEn
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 
+import { saveScanMemory } from "./learning/scanMemoryStore.js";
+
 function calculatePipelineScore(project = {}) {
   return (
     Number(project.marketRankScore || 0) * 1.5 +
@@ -58,7 +61,7 @@ function calculatePipelineScore(project = {}) {
   );
 }
 
-export function runIntelligencePipeline(projects = []) {
+export function runIntelligencePipeline(projects = [], options = {}) {
   let results = [...projects];
 
   results = analyzeRichTokenIntelligenceBatch(results);
@@ -98,12 +101,18 @@ export function runIntelligencePipeline(projects = []) {
 
   results = analyzeMarketRankBatch(results);
 
-  return results
+  results = results
     .map(project => ({
       ...project,
       pipelineScore: calculatePipelineScore(project)
     }))
     .sort((a, b) => b.pipelineScore - a.pipelineScore);
+
+  if (options.saveMemory !== false) {
+    saveScanMemory(results);
+  }
+
+  return results;
 }
 
 export function summarizePipelineResults(results = []) {
