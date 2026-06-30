@@ -1,12 +1,19 @@
 // src/liveMarketScanner.js
 
-import { runIntelligencePipeline, summarizePipelineResults } from "./intelligencePipeline.js";
+import {
+  runIntelligencePipeline,
+  summarizePipelineResults
+} from "./intelligencePipeline.js";
 
 const DEXSCREENER_BASE = "https://api.dexscreener.com";
 
 async function fetchJson(url) {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Request failed: ${response.status} ${url}`);
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status} ${url}`);
+  }
+
   return response.json();
 }
 
@@ -19,7 +26,9 @@ async function fetchBoostedTokens() {
 }
 
 async function fetchTokenPairs(chainId, tokenAddress) {
-  return fetchJson(`${DEXSCREENER_BASE}/token-pairs/v1/${chainId}/${tokenAddress}`);
+  return fetchJson(
+    `${DEXSCREENER_BASE}/token-pairs/v1/${chainId}/${tokenAddress}`
+  );
 }
 
 function normalizeDexScreenerPair(pair = {}) {
@@ -31,22 +40,37 @@ function normalizeDexScreenerPair(pair = {}) {
     pairAddress: pair.pairAddress || null,
     dex: pair.dexId || "unknown",
     url: pair.url || null,
+
     priceUsd: Number(pair.priceUsd || 0),
     liquidityUsd: Number(pair.liquidity?.usd || 0),
     volume24h: Number(pair.volume?.h24 || 0),
+    volume6h: Number(pair.volume?.h6 || 0),
+    volume1h: Number(pair.volume?.h1 || 0),
+
     priceChange24h: Number(pair.priceChange?.h24 || 0),
     priceChange6h: Number(pair.priceChange?.h6 || 0),
+    priceChange1h: Number(pair.priceChange?.h1 || 0),
+
     buyTransactions24h: Number(pair.txns?.h24?.buys || 0),
     sellTransactions24h: Number(pair.txns?.h24?.sells || 0),
-    pairCreatedAt: pair.pairCreatedAt ? new Date(pair.pairCreatedAt).toISOString() : null,
-    description: [pair.baseToken?.name, pair.baseToken?.symbol, pair.chainId, pair.dexId]
+
+    pairCreatedAt: pair.pairCreatedAt
+      ? new Date(pair.pairCreatedAt).toISOString()
+      : null,
+
+    description: [
+      pair.baseToken?.name,
+      pair.baseToken?.symbol,
+      pair.chainId,
+      pair.dexId
+    ]
       .filter(Boolean)
       .join(" ")
   };
 }
 
-async function scanLiveMarket(options = {}) {
-  const maxTokens = options.maxTokens || 25;
+export async function scanLiveMarket(options = {}) {
+  const maxTokens = Number(options.maxTokens || 25);
 
   const profiles = await fetchLatestTokenProfiles();
   const boosted = await fetchBoostedTokens();
@@ -78,17 +102,10 @@ async function scanLiveMarket(options = {}) {
   };
 }
 
-const liveReport = await scanLiveMarket({ maxTokens: 25 });
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const report = await scanLiveMarket({
+    maxTokens: Number(process.env.MAX_TOKENS || 25)
+  });
 
-console.log("\nTOKENS FOUND");
-console.log("============");
-
-liveReport.results.slice(0, 25).forEach((token, index) => {
-  console.log(
-    `${index + 1}. ${token.name} (${token.symbol}) | ${token.chain} | $${token.priceUsd} | Liquidity: $${token.liquidityUsd} | Volume 24h: $${token.volume24h} | Momentum: ${token.momentumShiftScore}`
-  );
-});
-
-console.log("\nFULL REPORT");
-console.log("===========");
-console.log(JSON.stringify(liveReport, null, 2));
+  console.log(JSON.stringify(report, null, 2));
+}
