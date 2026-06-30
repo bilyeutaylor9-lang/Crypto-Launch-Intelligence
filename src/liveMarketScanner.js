@@ -5,6 +5,8 @@ import {
   summarizePipelineResults
 } from "./intelligencePipeline.js";
 
+import { filterDiscoveryCandidates } from "./engines/discoveryFilterEngine.js";
+
 const DEXSCREENER_BASE = "https://api.dexscreener.com";
 
 async function fetchJson(url) {
@@ -70,7 +72,7 @@ function normalizeDexScreenerPair(pair = {}) {
 }
 
 export async function scanLiveMarket(options = {}) {
-  const maxTokens = Number(options.maxTokens || 25);
+  const maxTokens = Number(options.maxTokens || 50);
 
   const profiles = await fetchLatestTokenProfiles();
   const boosted = await fetchBoostedTokens();
@@ -90,21 +92,32 @@ export async function scanLiveMarket(options = {}) {
     }
   }
 
-  const results = runIntelligencePipeline(allPairs);
+  const discovery = filterDiscoveryCandidates(allPairs, {
+    minLiquidityUsd: Number(process.env.MIN_LIQUIDITY_USD || 10000),
+    minVolume24h: Number(process.env.MIN_VOLUME_24H || 1000),
+    minBuyTransactions24h: Number(process.env.MIN_BUYS_24H || 5),
+    maxSellPressureRatio: Number(process.env.MAX_SELL_PRESSURE || 0.85)
+  });
+
+  const results = runIntelligencePipeline(discovery.accepted);
   const summary = summarizePipelineResults(results);
 
   return {
     scannedAt: new Date().toISOString(),
     source: "DEX Screener",
-    scannedTokens: allPairs.length,
+    discoveredTokens: allPairs.length,
+    scannedTokens: discovery.acceptedCount,
+    rejectedTokens: discovery.rejectedCount,
+    filters: discovery.filters,
     summary,
-    results
+    results,
+    rejected: discovery.rejected.slice(0, 25)
   };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const report = await scanLiveMarket({
-    maxTokens: Number(process.env.MAX_TOKENS || 25)
+    maxTokens: Number(process.env.MAX_TOKENS || 50)
   });
 
   console.log(JSON.stringify(report, null, 2));
