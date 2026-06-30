@@ -2,6 +2,7 @@
 
 import { runDiscoveryManager } from "./discoveryManager.js";
 import { applyProjectQualityGate } from "./engines/projectQualityGateEngine.js";
+import { applyHighRatingFilter } from "./engines/highRatingFilterEngine.js";
 
 function formatMoney(value = 0) {
   const number = Number(value || 0);
@@ -32,7 +33,7 @@ function confidenceLabel(score = 0) {
   return "★ Low";
 }
 
-function printHeader(discovery, qualityGate) {
+function printHeader(discovery, qualityGate, highRating) {
   console.clear();
 
   console.log("═══════════════════════════════════════════════════════════════");
@@ -45,6 +46,8 @@ function printHeader(discovery, qualityGate) {
   console.log(`Discovery Rejected: ${discovery.rejectedCount}`);
   console.log(`Quality Accepted: ${qualityGate.acceptedCount}`);
   console.log(`Quality Rejected: ${qualityGate.rejectedCount}`);
+  console.log(`High Rating Accepted: ${highRating.acceptedCount}`);
+  console.log(`High Rating Rejected: ${highRating.rejectedCount}`);
   console.log("---------------------------------------------------------------");
 }
 
@@ -84,8 +87,8 @@ function printToken(token, index) {
 }
 
 const discovery = await runDiscoveryManager({
-  maxTokens: Number(process.env.MAX_TOKENS || 75),
-  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 75)
+  maxTokens: Number(process.env.MAX_TOKENS || 100),
+  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 100)
 });
 
 const scored = [...discovery.candidates].map(token => ({
@@ -100,19 +103,29 @@ const qualityGate = applyProjectQualityGate(scored, {
   minRichTokenScore: Number(process.env.MIN_RICH_TOKEN_SCORE || 30)
 });
 
-const ranked = [...qualityGate.accepted].sort(
+const highRating = applyHighRatingFilter(qualityGate.accepted, {
+  minLiquidityUsd: Number(process.env.MIN_HIGH_LIQUIDITY || 100000),
+  minVolume24h: Number(process.env.MIN_HIGH_VOLUME || 250000),
+  minRichTokenScore: Number(process.env.MIN_HIGH_RICH_SCORE || 50),
+  minMomentumShiftScore: Number(process.env.MIN_HIGH_MOMENTUM || 20),
+  minOverallOpportunityScore: Number(process.env.MIN_HIGH_OPPORTUNITY || 40),
+  preferMultipleSources: process.env.PREFER_MULTIPLE_SOURCES === "true"
+});
+
+const ranked = [...highRating.accepted].sort(
   (a, b) => b.overallOpportunityScore - a.overallOpportunityScore
 );
 
-printHeader(discovery, qualityGate);
+printHeader(discovery, qualityGate, highRating);
 
-console.log("\n🏆 TOP QUALITY OPPORTUNITIES");
+console.log("\n🏆 TOP HIGH-RATING OPPORTUNITIES");
 console.log("---------------------------------------------------------------");
 
 if (ranked.length === 0) {
-  console.log("No projects passed the quality gate.");
-  console.log("Try lowering filters:");
-  console.log("MIN_QUALITY_LIQUIDITY=10000 MIN_QUALITY_VOLUME=25000 npm run tokens");
+  console.log("No projects passed the high-rating filter.");
+  console.log("");
+  console.log("Try softer filters:");
+  console.log("MIN_HIGH_LIQUIDITY=50000 MIN_HIGH_VOLUME=100000 MIN_HIGH_RICH_SCORE=30 MIN_HIGH_MOMENTUM=0 npm run tokens");
 } else {
   ranked.slice(0, 25).forEach(printToken);
 }
