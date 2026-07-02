@@ -46,10 +46,17 @@ import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEn
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 
+import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
+
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 
 function calculatePipelineScore(project = {}) {
-  return (
+  const prePumpScore = Number(project.prePump?.score || 0);
+  const alreadyPumped =
+    project.prePump?.status === "ALREADY_PUMPED" ||
+    project.prePump?.status === "LATE_CHASE";
+
+  const baseScore =
     Number(project.marketRankScore || 0) * 1.5 +
     Number(project.richTokenScore || 0) +
     Number(project.infrastructureNarrativeScore || 0) +
@@ -57,8 +64,12 @@ function calculatePipelineScore(project = {}) {
     Number(project.narrativeScore || 0) +
     Number(project.liquidityScore || 0) +
     Number(project.relativeStrengthScore || 0) +
-    Number(project.buyPressureScore || 0)
-  );
+    Number(project.buyPressureScore || 0) +
+    prePumpScore * 1.75;
+
+  const alreadyPumpedPenalty = alreadyPumped ? 60 : 0;
+
+  return Math.max(0, baseScore - alreadyPumpedPenalty);
 }
 
 export function runIntelligencePipeline(projects = [], options = {}) {
@@ -99,6 +110,9 @@ export function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeLiquidityExpansionBatch(results);
   results = analyzeMomentumShiftBatch(results);
 
+  // Finds tokens before the big move and penalizes late chases.
+  results = prePumpDetectionEngine(results, options.prePump || {});
+
   results = analyzeMarketRankBatch(results);
 
   results = results
@@ -116,17 +130,44 @@ export function runIntelligencePipeline(projects = [], options = {}) {
 }
 
 export function summarizePipelineResults(results = []) {
+  const prePumpOpportunities = results.filter(
+    p =>
+      Number(p.prePump?.score || 0) >= 70 &&
+      p.prePump?.status !== "ALREADY_PUMPED" &&
+      p.prePump?.status !== "LATE_CHASE"
+  );
+
   return {
     scannedProjects: results.length,
     topProject: results[0] || null,
+
     highMarketRankCount: results.filter(p => p.marketRankScore >= 70).length,
     highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
     highMomentumCount: results.filter(p => p.momentumShiftScore >= 70).length,
+
+    highPrePumpCount: prePumpOpportunities.length,
+    alreadyPumpedCount: results.filter(
+      p => p.prePump?.status === "ALREADY_PUMPED"
+    ).length,
+    lateChaseCount: results.filter(
+      p => p.prePump?.status === "LATE_CHASE"
+    ).length,
+
     strongInfrastructureNarrativeCount: results.filter(
       p => p.infrastructureNarrativeScore >= 70
     ).length,
     strongNarrativeCount: results.filter(p => p.narrativeScore >= 70).length,
     strongLiquidityCount: results.filter(p => p.liquidityScore >= 70).length,
+
+    bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map(project => ({
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      prePumpScore: project.prePump?.score || 0,
+      prePumpStatus: project.prePump?.status || "UNKNOWN",
+      pipelineScore: project.pipelineScore || 0,
+      reasons: project.prePump?.reasons || []
+    })),
+
     alerts: results.flatMap(project =>
       (project.alerts || []).map(alert => ({
         project: project.name || project.symbol || "Unknown",
