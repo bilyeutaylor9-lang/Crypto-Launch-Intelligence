@@ -2,7 +2,7 @@
 
 import { runDiscoveryManager } from "./discoveryManager.js";
 import { filterMemes } from "./engines/memeFilterEngine.js";
-import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
+import { runIntelligencePipeline } from "./intelligencePipeline.js";
 
 function formatMoney(value = 0) {
   const number = Number(value || 0);
@@ -23,6 +23,18 @@ function confidenceLabel(score = 0) {
   return "Low Priority";
 }
 
+function prePumpLabel(token = {}) {
+  const status = token.prePump?.status || "UNKNOWN";
+  const score = Number(token.prePump?.score || 0);
+
+  if (status === "ALREADY_PUMPED") return "🚫 Already Pumped";
+  if (status === "LATE_CHASE") return "⚠️ Late Chase";
+  if (score >= 80) return "🔥 Early High Conviction";
+  if (score >= 65) return "👀 Early Watchlist";
+  if (score >= 50) return "Neutral";
+  return "Low Priority";
+}
+
 function printHeader(discovery, memeGate, ranked) {
   console.clear();
 
@@ -30,7 +42,7 @@ function printHeader(discovery, memeGate, ranked) {
   console.log("           🚀 CRYPTO LAUNCH INTELLIGENCE");
   console.log("═══════════════════════════════════════════════════════════════");
   console.log(`Scanned At: ${discovery.scannedAt}`);
-  console.log(`Sources: ${discovery.sourcesUsed.join(", ")}`);
+  console.log(`Sources: ${discovery.sourcesUsed?.join(", ") || "unknown"}`);
   console.log(`Discovered: ${discovery.discoveredCount}`);
   console.log(`Discovery Accepted: ${discovery.acceptedCount}`);
   console.log(`Discovery Rejected: ${discovery.rejectedCount}`);
@@ -40,28 +52,49 @@ function printHeader(discovery, memeGate, ranked) {
   console.log("---------------------------------------------------------------");
 }
 
+function printReasons(token) {
+  const reasons = token.prePump?.reasons || [];
+
+  if (!reasons.length) return;
+
+  console.log("\nPre-Pump Reasons:");
+  reasons.slice(0, 5).forEach(reason => {
+    console.log(`✓ ${reason}`);
+  });
+}
+
 function printToken(token, index) {
   const sources = token.discoverySources?.join(", ") || token.source || "unknown";
 
-  console.log(`\n#${index + 1} ${token.name} (${token.symbol})`);
+  console.log(`\n#${index + 1} ${token.name || "Unknown"} (${token.symbol || "UNKNOWN"})`);
   console.log("---------------------------------------------------------------");
   console.log(`Sources..................... ${sources}`);
-  console.log(`Chain....................... ${token.chain}`);
+  console.log(`Chain....................... ${token.chain || "unknown"}`);
   console.log(`DEX / Venue................. ${token.dex || "unknown"}`);
   console.log(`Price....................... $${token.priceUsd || 0}`);
   console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd || token.marketCap)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
   console.log(`24h Price Change............ ${token.priceChange24h || 0}%`);
-  console.log(`Market Rank Score........... ${token.marketRankScore}/100`);
-  console.log(`Market Rank Level........... ${token.marketRankLevel}`);
+
+  console.log(`Pipeline Score.............. ${Number(token.pipelineScore || 0).toFixed(2)}`);
+  console.log(`Market Rank Score........... ${token.marketRankScore || 0}/100`);
+  console.log(`Market Rank Level........... ${token.marketRankLevel || "unknown"}`);
+
+  console.log(`Pre-Pump Score.............. ${Number(token.prePump?.score || 0).toFixed(2)}/100`);
+  console.log(`Pre-Pump Status............. ${prePumpLabel(token)}`);
+
   console.log(`Rich Token Score............ ${token.richTokenScore || 0}`);
   console.log(`Momentum Shift.............. ${token.momentumShiftScore || 0}`);
   console.log(`Relative Strength........... ${token.relativeStrengthScore || 0}`);
   console.log(`Buy Pressure................ ${token.buyPressureScore || 0}`);
-  console.log(`Confidence.................. ${confidenceLabel(token.marketRankScore)}`);
+  console.log(`Liquidity Score............. ${token.liquidityScore || 0}`);
+  console.log(`Narrative Score............. ${token.narrativeScore || 0}`);
+  console.log(`Confidence.................. ${confidenceLabel(token.marketRankScore || token.pipelineScore || 0)}`);
+
+  printReasons(token);
 
   if (token.url) {
-    console.log(`Chart / Source.............. ${token.url}`);
+    console.log(`\nChart / Source.............. ${token.url}`);
   }
 
   if (token.alerts?.length) {
@@ -88,11 +121,13 @@ const memeGate =
       }
     : filterMemes(discovery.candidates);
 
-const ranked = analyzeMarketRankBatch(memeGate.accepted);
+const ranked = runIntelligencePipeline(memeGate.accepted, {
+  saveMemory: false
+});
 
 printHeader(discovery, memeGate, ranked);
 
-console.log("\n🏆 TOP MARKET-WIDE RANKED PROJECTS");
+console.log("\n🏆 TOP FULL-PIPELINE RANKED PROJECTS");
 console.log("---------------------------------------------------------------");
 
 ranked.slice(0, 25).forEach(printToken);
