@@ -5,13 +5,15 @@ import { filterMemes } from "./engines/memeFilterEngine.js";
 import { runIntelligencePipeline } from "./intelligencePipeline.js";
 
 function formatMoney(value = 0) {
-  const number = Number(value || 0);
+  const n = Number(value || 0);
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
 
-  if (number >= 1_000_000_000) return `$${(number / 1_000_000_000).toFixed(2)}B`;
-  if (number >= 1_000_000) return `$${(number / 1_000_000).toFixed(2)}M`;
-  if (number >= 1_000) return `$${(number / 1_000).toFixed(2)}K`;
-
-  return `$${number.toFixed(2)}`;
+function formatNumber(value = 0) {
+  return Number(value || 0).toFixed(2);
 }
 
 function confidenceLabel(score = 0) {
@@ -41,23 +43,21 @@ function printHeader(discovery, memeGate, ranked) {
   console.log("═══════════════════════════════════════════════════════════════");
   console.log("           🚀 CRYPTO LAUNCH INTELLIGENCE");
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log(`Scanned At: ${discovery.scannedAt}`);
-  console.log(`Sources: ${discovery.sourcesUsed?.join(", ") || "unknown"}`);
-  console.log(`Discovered: ${discovery.discoveredCount}`);
-  console.log(`Discovery Accepted: ${discovery.acceptedCount}`);
-  console.log(`Discovery Rejected: ${discovery.rejectedCount}`);
-  console.log(`Meme Filter Accepted: ${memeGate.acceptedCount}`);
-  console.log(`Meme Filter Rejected: ${memeGate.rejectedCount}`);
-  console.log(`Ranked Projects: ${ranked.length}`);
+  console.log(`Scanned At................. ${discovery.scannedAt}`);
+  console.log(`Sources.................... ${discovery.sourcesUsed?.join(", ") || "unknown"}`);
+  console.log(`Discovered................. ${discovery.discoveredCount}`);
+  console.log(`Discovery Accepted......... ${discovery.acceptedCount}`);
+  console.log(`Discovery Rejected......... ${discovery.rejectedCount}`);
+  console.log(`Meme Filter Accepted....... ${memeGate.acceptedCount}`);
+  console.log(`Meme Filter Rejected....... ${memeGate.rejectedCount}`);
+  console.log(`Ranked Projects............ ${ranked.length}`);
   console.log("---------------------------------------------------------------");
 }
 
-function printReasons(token) {
-  const reasons = token.prePump?.reasons || [];
-
+function printReasons(title, reasons = []) {
   if (!reasons.length) return;
 
-  console.log("\nPre-Pump Reasons:");
+  console.log(`\n${title}:`);
   reasons.slice(0, 5).forEach(reason => {
     console.log(`✓ ${reason}`);
   });
@@ -65,22 +65,24 @@ function printReasons(token) {
 
 function printToken(token, index) {
   const sources = token.discoverySources?.join(", ") || token.source || "unknown";
+  const score = token.marketRankScore || token.pipelineScore || 0;
 
   console.log(`\n#${index + 1} ${token.name || "Unknown"} (${token.symbol || "UNKNOWN"})`);
   console.log("---------------------------------------------------------------");
+
   console.log(`Sources..................... ${sources}`);
   console.log(`Chain....................... ${token.chain || "unknown"}`);
   console.log(`DEX / Venue................. ${token.dex || "unknown"}`);
   console.log(`Price....................... $${token.priceUsd || 0}`);
   console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd || token.marketCap)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
-  console.log(`24h Price Change............ ${token.priceChange24h || 0}%`);
+  console.log(`24h Price Change............ ${formatNumber(token.priceChange24h)}%`);
 
-  console.log(`Pipeline Score.............. ${Number(token.pipelineScore || 0).toFixed(2)}`);
+  console.log(`Pipeline Score.............. ${formatNumber(token.pipelineScore)}`);
   console.log(`Market Rank Score........... ${token.marketRankScore || 0}/100`);
   console.log(`Market Rank Level........... ${token.marketRankLevel || "unknown"}`);
 
-  console.log(`Pre-Pump Score.............. ${Number(token.prePump?.score || 0).toFixed(2)}/100`);
+  console.log(`Pre-Pump Score.............. ${formatNumber(token.prePump?.score)}/100`);
   console.log(`Pre-Pump Status............. ${prePumpLabel(token)}`);
 
   console.log(`Rich Token Score............ ${token.richTokenScore || 0}`);
@@ -89,49 +91,60 @@ function printToken(token, index) {
   console.log(`Buy Pressure................ ${token.buyPressureScore || 0}`);
   console.log(`Liquidity Score............. ${token.liquidityScore || 0}`);
   console.log(`Narrative Score............. ${token.narrativeScore || 0}`);
-  console.log(`Confidence.................. ${confidenceLabel(token.marketRankScore || token.pipelineScore || 0)}`);
+  console.log(`Confidence.................. ${confidenceLabel(score)}`);
 
-  printReasons(token);
+  if (token.masterIntelligence?.market) {
+    const market = token.masterIntelligence.market;
+
+    console.log("\nMarket Data Health:");
+    console.log(`Status...................... ${market.status || "unknown"}`);
+    console.log(`Source...................... ${market.source || "unknown"}`);
+    console.log(`Confidence.................. ${market.confidence || 0}`);
+    console.log(`Cache Hit................... ${market.cacheHit ? "yes" : "no"}`);
+  }
+
+  printReasons("Pre-Pump Reasons", token.prePump?.reasons || []);
+  printReasons("Alerts", token.alerts || []);
 
   if (token.url) {
     console.log(`\nChart / Source.............. ${token.url}`);
   }
-
-  if (token.alerts?.length) {
-    console.log("\nAlerts:");
-    token.alerts.slice(0, 5).forEach(alert => {
-      console.log(`✓ ${alert}`);
-    });
-  }
 }
 
-const discovery = await runDiscoveryManager({
-  maxTokens: Number(process.env.MAX_TOKENS || 300),
-  coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 250),
-  freeLimit: Number(process.env.FREE_SOURCE_LIMIT || 200)
+async function main() {
+  const discovery = await runDiscoveryManager({
+    maxTokens: Number(process.env.MAX_TOKENS || 300),
+    coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 250),
+    freeLimit: Number(process.env.FREE_SOURCE_LIMIT || 200)
+  });
+
+  const memeGate =
+    process.env.EXCLUDE_MEMES === "false"
+      ? {
+          accepted: discovery.candidates,
+          rejected: [],
+          acceptedCount: discovery.candidates.length,
+          rejectedCount: 0
+        }
+      : filterMemes(discovery.candidates);
+
+  const ranked = await runIntelligencePipeline(memeGate.accepted, {
+    saveMemory: false
+  });
+
+  printHeader(discovery, memeGate, ranked);
+
+  console.log("\n🏆 TOP FULL-PIPELINE RANKED PROJECTS");
+  console.log("---------------------------------------------------------------");
+
+  ranked.slice(0, 25).forEach(printToken);
+
+  console.log("\n═══════════════════════════════════════════════════════════════");
+  console.log("Research tool only. Not financial advice.");
+  console.log("═══════════════════════════════════════════════════════════════");
+}
+
+main().catch(error => {
+  console.error("❌ showTokens failed:", error.message);
+  process.exit(1);
 });
-
-const memeGate =
-  process.env.EXCLUDE_MEMES === "false"
-    ? {
-        accepted: discovery.candidates,
-        rejected: [],
-        acceptedCount: discovery.candidates.length,
-        rejectedCount: 0
-      }
-    : filterMemes(discovery.candidates);
-
-const ranked = runIntelligencePipeline(memeGate.accepted, {
-  saveMemory: false
-});
-
-printHeader(discovery, memeGate, ranked);
-
-console.log("\n🏆 TOP FULL-PIPELINE RANKED PROJECTS");
-console.log("---------------------------------------------------------------");
-
-ranked.slice(0, 25).forEach(printToken);
-
-console.log("\n═══════════════════════════════════════════════════════════════");
-console.log("Research tool only. Not financial advice.");
-console.log("═══════════════════════════════════════════════════════════════");
