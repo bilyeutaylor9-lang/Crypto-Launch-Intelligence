@@ -3,11 +3,6 @@
 /**
  * Crypto Launch Intelligence
  * Self-Learning Intelligence Pipeline
- *
- * Purpose:
- * Runs all active engines in the correct order so every project
- * becomes a full intelligence profile and stores scan history
- * for future learning.
  */
 
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
@@ -15,6 +10,8 @@ import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNar
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
 
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
+import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
+
 import { analyzeDeveloperActivityBatch } from "./engines/developerActivityEngine.js";
 import { analyzeGithubBatch } from "./engines/githubQualityEngine.js";
 import { analyzeCommunityGrowthBatch } from "./engines/communityGrowthEngine.js";
@@ -23,8 +20,11 @@ import { analyzeLiquidityBatch } from "./engines/liquidityIntelligenceEngine.js"
 import { analyzeHolderGrowthBatch } from "./engines/holderGrowthEngine.js";
 import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
 import { analyzeSmartWalletBatch } from "./engines/smartWalletEngine.js";
+import { analyzeSmartWalletPerformanceBatch } from "./engines/smartWalletPerformanceEngine.js";
+import { analyzeSmartMoneyAccumulationBatch } from "./engines/smartMoneyAccumulationEngine.js";
 import { analyzeExchangeProbabilityBatch } from "./engines/exchangeProbabilityEngine.js";
 import { analyzeCatalystsBatch } from "./engines/catalystEngine.js";
+import { analyzeCatalystCalendarBatch } from "./engines/catalystCalendarEngine.js";
 import { analyzeTokenomicsBatch } from "./engines/tokenomicsEngine.js";
 import { analyzeFundingBackersBatch } from "./engines/fundingBackerEngine.js";
 import { analyzePartnershipsBatch } from "./engines/partnershipEngine.js";
@@ -52,6 +52,7 @@ import { saveScanMemory } from "./learning/scanMemoryStore.js";
 
 function calculatePipelineScore(project = {}) {
   const prePumpScore = Number(project.prePump?.score || 0);
+
   const alreadyPumped =
     project.prePump?.status === "ALREADY_PUMPED" ||
     project.prePump?.status === "LATE_CHASE";
@@ -60,11 +61,15 @@ function calculatePipelineScore(project = {}) {
     Number(project.marketRankScore || 0) * 1.5 +
     Number(project.richTokenScore || 0) +
     Number(project.infrastructureNarrativeScore || 0) +
-    Number(project.momentumShiftScore || 0) +
     Number(project.narrativeScore || 0) +
+    Number(project.narrativeForecastScore || 0) * 1.3 +
     Number(project.liquidityScore || 0) +
     Number(project.relativeStrengthScore || 0) +
     Number(project.buyPressureScore || 0) +
+    Number(project.momentumShiftScore || 0) +
+    Number(project.smartWalletPerformanceScore || 0) * 1.25 +
+    Number(project.smartMoneyAccumulationScore || 0) * 1.4 +
+    Number(project.catalystCalendarScore || 0) * 1.2 +
     prePumpScore * 1.75;
 
   const alreadyPumpedPenalty = alreadyPumped ? 60 : 0;
@@ -76,7 +81,9 @@ export function runIntelligencePipeline(projects = [], options = {}) {
   let results = [...projects];
 
   results = analyzeRichTokenIntelligenceBatch(results);
+
   results = analyzeNarratives(results);
+  results = analyzeNarrativeForecastBatch(results);
   results = analyzeInfrastructureNarrativeBatch(results);
 
   results = analyzeDeveloperActivityBatch(results);
@@ -86,9 +93,16 @@ export function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeLiquidityBatch(results);
   results = analyzeHolderGrowthBatch(results);
   results = analyzeWhaleActivityBatch(results);
+
   results = analyzeSmartWalletBatch(results);
+  results = analyzeSmartWalletPerformanceBatch(results);
+  results = analyzeSmartMoneyAccumulationBatch(results);
+
   results = analyzeExchangeProbabilityBatch(results);
+
   results = analyzeCatalystsBatch(results);
+  results = analyzeCatalystCalendarBatch(results);
+
   results = analyzeTokenomicsBatch(results);
   results = analyzeFundingBackersBatch(results);
   results = analyzePartnershipsBatch(results);
@@ -110,7 +124,6 @@ export function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeLiquidityExpansionBatch(results);
   results = analyzeMomentumShiftBatch(results);
 
-  // Finds tokens before the big move and penalizes late chases.
   results = prePumpDetectionEngine(results, options.prePump || {});
 
   results = analyzeMarketRankBatch(results);
@@ -144,8 +157,21 @@ export function summarizePipelineResults(results = []) {
     highMarketRankCount: results.filter(p => p.marketRankScore >= 70).length,
     highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
     highMomentumCount: results.filter(p => p.momentumShiftScore >= 70).length,
-
     highPrePumpCount: prePumpOpportunities.length,
+
+    strongSmartMoneyAccumulationCount: results.filter(
+      p => p.smartMoneyAccumulationScore >= 70
+    ).length,
+    strongSmartWalletPerformanceCount: results.filter(
+      p => p.smartWalletPerformanceScore >= 70
+    ).length,
+    strongNarrativeForecastCount: results.filter(
+      p => p.narrativeForecastScore >= 70
+    ).length,
+    strongCatalystCalendarCount: results.filter(
+      p => p.catalystCalendarScore >= 70
+    ).length,
+
     alreadyPumpedCount: results.filter(
       p => p.prePump?.status === "ALREADY_PUMPED"
     ).length,
@@ -164,6 +190,10 @@ export function summarizePipelineResults(results = []) {
       symbol: project.symbol || "Unknown",
       prePumpScore: project.prePump?.score || 0,
       prePumpStatus: project.prePump?.status || "UNKNOWN",
+      smartMoneyAccumulationScore: project.smartMoneyAccumulationScore || 0,
+      smartWalletPerformanceScore: project.smartWalletPerformanceScore || 0,
+      catalystCalendarScore: project.catalystCalendarScore || 0,
+      narrativeForecastScore: project.narrativeForecastScore || 0,
       pipelineScore: project.pipelineScore || 0,
       reasons: project.prePump?.reasons || []
     })),
