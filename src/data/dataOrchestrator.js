@@ -1,59 +1,62 @@
-import { getFreeMarketData } from "./freeMarketDataConnector.js";
+import { getFreeMarketDataCandidates } from "./freeMarketDataConnector.js";
 
 const cache = new Map();
 
-export async function getTokenData(token) {
-  const key = `${token.chain || "unknown"}:${token.address || token.symbol}`;
+export async function getTokenData(token = {}) {
+  const key = `${token.chain || "any"}:${token.address || token.symbol || token.name || "unknown"}`;
 
   if (cache.has(key)) {
-    return {
-      ...cache.get(key),
-      cacheHit: true
-    };
+    return { ...cache.get(key), cacheHit: true };
   }
 
   const startedAt = Date.now();
 
   try {
-    const market = await getFreeMarketData(token);
+    const candidates = await getFreeMarketDataCandidates({ limit: 200 });
+
+    const search = String(token.symbol || token.name || token.address || "")
+      .toUpperCase();
+
+    const match =
+      candidates.find(c => String(c.symbol || "").toUpperCase() === search) ||
+      candidates.find(c => String(c.name || "").toUpperCase() === search) ||
+      candidates.find(c => String(c.pairAddress || "").toUpperCase() === search) ||
+      candidates[0];
 
     const result = {
-      status: "SUCCESS",
+      status: match ? "SUCCESS" : "NO_DATA",
       token,
-      source: market?.source || "freeMarketDataConnector",
+      source: match?.source || "freeMarketDataConnector",
       cacheHit: false,
-      dataReceived: Boolean(market),
+      dataReceived: Boolean(match),
       executionTimeMs: Date.now() - startedAt,
 
-      priceUsd: market?.priceUsd ?? null,
-      liquidityUsd: market?.liquidityUsd ?? null,
-      volume24h: market?.volume24h ?? null,
-      volume6h: market?.volume6h ?? null,
-      volume1h: market?.volume1h ?? null,
-      priceChange24h: market?.priceChange24h ?? null,
-      priceChange6h: market?.priceChange6h ?? null,
-      priceChange1h: market?.priceChange1h ?? null,
-      buyTransactions24h: market?.buyTransactions24h ?? null,
-      sellTransactions24h: market?.sellTransactions24h ?? null,
-      pairCreatedAt: market?.pairCreatedAt ?? null,
-      url: market?.url ?? null,
+      name: match?.name || token.name || null,
+      symbol: match?.symbol || token.symbol || null,
+      chain: match?.chain || token.chain || null,
+      address: match?.address || token.address || null,
+      pairAddress: match?.pairAddress || null,
+      url: match?.url || null,
+
+      priceUsd: match?.priceUsd ?? null,
+      liquidityUsd: match?.liquidityUsd ?? null,
+      volume24h: match?.volume24h ?? null,
+      priceChange24h: match?.priceChange24h ?? null,
+      marketCap: match?.marketCap ?? null,
+      tvl: match?.tvl ?? null,
 
       health: {
-        passed: true,
+        passed: Boolean(match),
         missingFields: []
       }
     };
 
-    result.health.missingFields = Object.entries(result)
-      .filter(([key, value]) =>
-        [
-          "priceUsd",
-          "liquidityUsd",
-          "volume24h",
-          "priceChange24h"
-        ].includes(key) && value === null
-      )
-      .map(([key]) => key);
+    result.health.missingFields = [
+      "priceUsd",
+      "liquidityUsd",
+      "volume24h",
+      "priceChange24h"
+    ].filter(field => result[field] === null);
 
     cache.set(key, result);
     return result;
