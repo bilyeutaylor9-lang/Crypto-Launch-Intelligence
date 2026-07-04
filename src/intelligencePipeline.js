@@ -1,16 +1,18 @@
-// src/intelligencePipeline.js
+src/intelligencePipeline.js
 
 /**
  * Crypto Launch Intelligence
  * Self-Learning Intelligence Pipeline
  *
- * Upgrade:
+ * Production Upgrade:
  * - Safe engine execution
  * - Supports sync or async engines
+ * - Accepts array output or wrapped outputs: { results }, { projects }, { data }
  * - Does not crash if one engine fails
  * - Adds institutional scoring
  * - Adds tier labels
  * - Saves scan memory safely
+ * - Protects summary from non-array input
  */
 
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
@@ -67,26 +69,39 @@ function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
+function normalizeEngineOutput(output, fallback = []) {
+  if (Array.isArray(output)) return output;
+  if (Array.isArray(output?.results)) return output.results;
+  if (Array.isArray(output?.projects)) return output.projects;
+  if (Array.isArray(output?.data)) return output.data;
+  if (Array.isArray(output?.tokens)) return output.tokens;
+  if (Array.isArray(output?.candidates)) return output.candidates;
+
+  return fallback;
+}
+
 async function runEngine(name, engine, projects, options = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []);
+
   try {
     if (typeof engine !== "function") {
-      console.log(`⚠️ Skipping ${name}: engine not found`);
-      return projects;
+      console.log(`â ï¸ Skipping ${name}: engine not found`);
+      return safeProjects;
     }
 
-    console.log(`🧠 Running ${name}...`);
+    console.log(`ð§  Running ${name}...`);
 
-    const output = await engine(projects, options);
+    const output = await engine(safeProjects, options);
+    const normalizedOutput = normalizeEngineOutput(output, safeProjects);
 
     if (!Array.isArray(output)) {
-      console.log(`⚠️ ${name} returned invalid output. Keeping previous results.`);
-      return projects;
+      console.log(`â ï¸ ${name} returned wrapped or invalid output. Normalized safely.`);
     }
 
-    return output;
+    return normalizedOutput;
   } catch (error) {
-    console.log(`❌ ${name} failed: ${error.message}`);
-    return projects;
+    console.log(`â ${name} failed: ${error.message}`);
+    return safeProjects;
   }
 }
 
@@ -142,11 +157,14 @@ function classifyProject(project = {}) {
   if (score >= 70) return "Strong Watchlist";
   if (score >= 60) return "Early Watchlist";
   if (score >= 45) return "Speculative";
+
   return "Weak";
 }
 
 function addFinalScoring(projects = []) {
-  return projects
+  const safeProjects = Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []);
+
+  return safeProjects
     .map(project => {
       const pipelineScore = calculatePipelineScore(project);
 
@@ -163,7 +181,7 @@ function addFinalScoring(projects = []) {
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
-  let results = Array.isArray(projects) ? [...projects] : [];
+  let results = Array.isArray(projects) ? [...projects] : normalizeEngineOutput(projects, []);
 
   results = await runEngine("Rich Token Intelligence", analyzeRichTokenIntelligenceBatch, results);
   results = await runEngine("Narrative Intelligence", analyzeNarratives, results);
@@ -216,7 +234,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     try {
       await saveScanMemory(results);
     } catch (error) {
-      console.log(`⚠️ Scan memory save failed: ${error.message}`);
+      console.log(`â ï¸ Scan memory save failed: ${error.message}`);
     }
   }
 
@@ -224,7 +242,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
 }
 
 export function summarizePipelineResults(results = []) {
-  const prePumpOpportunities = results.filter(
+  const safeResults = Array.isArray(results)
+    ? results
+    : normalizeEngineOutput(results, []);
+
+  const prePumpOpportunities = safeResults.filter(
     p =>
       num(p.prePump?.score) >= 70 &&
       p.prePump?.status !== "ALREADY_PUMPED" &&
@@ -232,39 +254,39 @@ export function summarizePipelineResults(results = []) {
   );
 
   return {
-    scannedProjects: results.length,
-    topProject: results[0] || null,
+    scannedProjects: safeResults.length,
+    topProject: safeResults[0] || null,
 
-    institutionalAlphaCount: results.filter(p => p.pipelineScore >= 90).length,
-    aPlusOpportunityCount: results.filter(p => p.pipelineScore >= 80).length,
-    strongWatchlistCount: results.filter(p => p.pipelineScore >= 70).length,
+    institutionalAlphaCount: safeResults.filter(p => p.pipelineScore >= 90).length,
+    aPlusOpportunityCount: safeResults.filter(p => p.pipelineScore >= 80).length,
+    strongWatchlistCount: safeResults.filter(p => p.pipelineScore >= 70).length,
 
-    highMarketRankCount: results.filter(p => p.marketRankScore >= 70).length,
-    highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
-    highMomentumCount: results.filter(p => p.momentumShiftScore >= 70).length,
+    highMarketRankCount: safeResults.filter(p => p.marketRankScore >= 70).length,
+    highRichTokenCount: safeResults.filter(p => p.richTokenScore >= 70).length,
+    highMomentumCount: safeResults.filter(p => p.momentumShiftScore >= 70).length,
     highPrePumpCount: prePumpOpportunities.length,
 
-    strongSmartMoneyAccumulationCount: results.filter(
+    strongSmartMoneyAccumulationCount: safeResults.filter(
       p => p.smartMoneyAccumulationScore >= 70
     ).length,
 
-    strongSmartWalletPerformanceCount: results.filter(
+    strongSmartWalletPerformanceCount: safeResults.filter(
       p => p.smartWalletPerformanceScore >= 70
     ).length,
 
-    strongNarrativeForecastCount: results.filter(
+    strongNarrativeForecastCount: safeResults.filter(
       p => p.narrativeForecastScore >= 70
     ).length,
 
-    strongCatalystCalendarCount: results.filter(
+    strongCatalystCalendarCount: safeResults.filter(
       p => p.catalystCalendarScore >= 70
     ).length,
 
-    alreadyPumpedCount: results.filter(
+    alreadyPumpedCount: safeResults.filter(
       p => p.prePump?.status === "ALREADY_PUMPED"
     ).length,
 
-    lateChaseCount: results.filter(
+    lateChaseCount: safeResults.filter(
       p => p.prePump?.status === "LATE_CHASE"
     ).length,
 
@@ -282,7 +304,7 @@ export function summarizePipelineResults(results = []) {
       reasons: project.prePump?.reasons || []
     })),
 
-    alerts: results.flatMap(project =>
+    alerts: safeResults.flatMap(project =>
       (project.alerts || []).map(alert => ({
         project: project.name || project.symbol || "Unknown",
         alert
