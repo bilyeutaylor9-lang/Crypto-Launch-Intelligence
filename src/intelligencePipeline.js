@@ -3,6 +3,14 @@
 /**
  * Crypto Launch Intelligence
  * Self-Learning Intelligence Pipeline
+ *
+ * Upgrade:
+ * - Safe engine execution
+ * - Supports sync or async engines
+ * - Does not crash if one engine fails
+ * - Adds institutional scoring
+ * - Adds tier labels
+ * - Saves scan memory safely
  */
 
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
@@ -22,6 +30,7 @@ import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
 import { analyzeSmartWalletBatch } from "./engines/smartWalletEngine.js";
 import { analyzeSmartWalletPerformanceBatch } from "./engines/smartWalletPerformanceEngine.js";
 import { analyzeSmartMoneyAccumulationBatch } from "./engines/smartMoneyAccumulationEngine.js";
+
 import { analyzeExchangeProbabilityBatch } from "./engines/exchangeProbabilityEngine.js";
 import { analyzeCatalystsBatch } from "./engines/catalystEngine.js";
 import { analyzeCatalystCalendarBatch } from "./engines/catalystCalendarEngine.js";
@@ -50,93 +59,165 @@ import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 
+function num(value) {
+  return Number(value || 0);
+}
+
+function clamp(value, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, value));
+}
+
+async function runEngine(name, engine, projects, options = {}) {
+  try {
+    if (typeof engine !== "function") {
+      console.log(`⚠️ Skipping ${name}: engine not found`);
+      return projects;
+    }
+
+    console.log(`🧠 Running ${name}...`);
+
+    const output = await engine(projects, options);
+
+    if (!Array.isArray(output)) {
+      console.log(`⚠️ ${name} returned invalid output. Keeping previous results.`);
+      return projects;
+    }
+
+    return output;
+  } catch (error) {
+    console.log(`❌ ${name} failed: ${error.message}`);
+    return projects;
+  }
+}
+
 function calculatePipelineScore(project = {}) {
-  const prePumpScore = Number(project.prePump?.score || 0);
+  const prePumpScore = num(project.prePump?.score);
 
   const alreadyPumped =
     project.prePump?.status === "ALREADY_PUMPED" ||
     project.prePump?.status === "LATE_CHASE";
 
   const baseScore =
-    Number(project.marketRankScore || 0) * 1.5 +
-    Number(project.richTokenScore || 0) +
-    Number(project.infrastructureNarrativeScore || 0) +
-    Number(project.narrativeScore || 0) +
-    Number(project.narrativeForecastScore || 0) * 1.3 +
-    Number(project.liquidityScore || 0) +
-    Number(project.relativeStrengthScore || 0) +
-    Number(project.buyPressureScore || 0) +
-    Number(project.momentumShiftScore || 0) +
-    Number(project.smartWalletPerformanceScore || 0) * 1.25 +
-    Number(project.smartMoneyAccumulationScore || 0) * 1.4 +
-    Number(project.catalystCalendarScore || 0) * 1.2 +
+    num(project.marketRankScore) * 1.5 +
+    num(project.richTokenScore) * 1.1 +
+    num(project.infrastructureNarrativeScore) * 1.15 +
+    num(project.narrativeScore) +
+    num(project.narrativeForecastScore) * 1.3 +
+    num(project.developerScore) +
+    num(project.githubScore) +
+    num(project.communityScore) +
+    num(project.socialAccelerationScore) +
+    num(project.liquidityScore) +
+    num(project.holderGrowthScore) +
+    num(project.whaleScore) +
+    num(project.smartWalletScore) +
+    num(project.relativeStrengthScore) +
+    num(project.buyPressureScore) +
+    num(project.momentumShiftScore) * 1.35 +
+    num(project.smartWalletPerformanceScore) * 1.25 +
+    num(project.smartMoneyAccumulationScore) * 1.4 +
+    num(project.exchangeProbabilityScore) * 1.1 +
+    num(project.catalystScore) +
+    num(project.catalystCalendarScore) * 1.2 +
+    num(project.tokenomicsScore) +
+    num(project.fundingBackerScore) +
+    num(project.partnershipScore) +
+    num(project.ecosystemIntegrationScore) +
     prePumpScore * 1.75;
 
-  const alreadyPumpedPenalty = alreadyPumped ? 60 : 0;
+  const normalizedScore = baseScore / 26;
+  const penalty = alreadyPumped ? 25 : 0;
 
-  return Math.max(0, baseScore - alreadyPumpedPenalty);
+  return Math.round(clamp(normalizedScore - penalty));
 }
 
-export function runIntelligencePipeline(projects = [], options = {}) {
-  let results = [...projects];
+function classifyProject(project = {}) {
+  const score = num(project.pipelineScore);
 
-  results = analyzeRichTokenIntelligenceBatch(results);
+  if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
+  if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
 
-  results = analyzeNarratives(results);
-  results = analyzeNarrativeForecastBatch(results);
-  results = analyzeInfrastructureNarrativeBatch(results);
+  if (score >= 90) return "Institutional Alpha";
+  if (score >= 80) return "A+ Opportunity";
+  if (score >= 70) return "Strong Watchlist";
+  if (score >= 60) return "Early Watchlist";
+  if (score >= 45) return "Speculative";
+  return "Weak";
+}
 
-  results = analyzeDeveloperActivityBatch(results);
-  results = analyzeGithubBatch(results);
-  results = analyzeCommunityGrowthBatch(results);
-  results = analyzeSocialAccelerationBatch(results);
-  results = analyzeLiquidityBatch(results);
-  results = analyzeHolderGrowthBatch(results);
-  results = analyzeWhaleActivityBatch(results);
+function addFinalScoring(projects = []) {
+  return projects
+    .map(project => {
+      const pipelineScore = calculatePipelineScore(project);
 
-  results = analyzeSmartWalletBatch(results);
-  results = analyzeSmartWalletPerformanceBatch(results);
-  results = analyzeSmartMoneyAccumulationBatch(results);
+      return {
+        ...project,
+        pipelineScore,
+        pipelineTier: classifyProject({
+          ...project,
+          pipelineScore
+        })
+      };
+    })
+    .sort((a, b) => num(b.pipelineScore) - num(a.pipelineScore));
+}
 
-  results = analyzeExchangeProbabilityBatch(results);
+export async function runIntelligencePipeline(projects = [], options = {}) {
+  let results = Array.isArray(projects) ? [...projects] : [];
 
-  results = analyzeCatalystsBatch(results);
-  results = analyzeCatalystCalendarBatch(results);
+  results = await runEngine("Rich Token Intelligence", analyzeRichTokenIntelligenceBatch, results);
+  results = await runEngine("Narrative Intelligence", analyzeNarratives, results);
+  results = await runEngine("Narrative Forecast", analyzeNarrativeForecastBatch, results);
+  results = await runEngine("Infrastructure Narrative", analyzeInfrastructureNarrativeBatch, results);
 
-  results = analyzeTokenomicsBatch(results);
-  results = analyzeFundingBackersBatch(results);
-  results = analyzePartnershipsBatch(results);
-  results = analyzeEcosystemIntegrationBatch(results);
+  results = await runEngine("Developer Activity", analyzeDeveloperActivityBatch, results);
+  results = await runEngine("GitHub Quality", analyzeGithubBatch, results);
+  results = await runEngine("Community Growth", analyzeCommunityGrowthBatch, results);
+  results = await runEngine("Social Acceleration", analyzeSocialAccelerationBatch, results);
+  results = await runEngine("Liquidity Intelligence", analyzeLiquidityBatch, results);
+  results = await runEngine("Holder Growth", analyzeHolderGrowthBatch, results);
+  results = await runEngine("Whale Activity", analyzeWhaleActivityBatch, results);
 
-  results = analyzeBaselineBatch(results);
-  results = analyzeVelocityBatch(results);
-  results = analyzeAccelerationBatch(results);
-  results = analyzeTrendChangeBatch(results);
-  results = analyzeMomentumCompressionBatch(results);
-  results = analyzeCapitalFlowBatch(results);
-  results = analyzeBuyPressureBatch(results);
-  results = analyzeSellPressureBatch(results);
-  results = analyzeRelativeStrengthBatch(results);
-  results = analyzeSmartMoneyRotationBatch(results);
-  results = analyzeOpportunityTimingBatch(results);
-  results = analyzeEarlyBreakoutBatch(results);
-  results = analyzeVolatilityExpansionBatch(results);
-  results = analyzeLiquidityExpansionBatch(results);
-  results = analyzeMomentumShiftBatch(results);
+  results = await runEngine("Smart Wallet", analyzeSmartWalletBatch, results);
+  results = await runEngine("Smart Wallet Performance", analyzeSmartWalletPerformanceBatch, results);
+  results = await runEngine("Smart Money Accumulation", analyzeSmartMoneyAccumulationBatch, results);
 
-  results = prePumpDetectionEngine(results, options.prePump || {});
+  results = await runEngine("Exchange Probability", analyzeExchangeProbabilityBatch, results);
+  results = await runEngine("Catalysts", analyzeCatalystsBatch, results);
+  results = await runEngine("Catalyst Calendar", analyzeCatalystCalendarBatch, results);
 
-  results = analyzeMarketRankBatch(results);
+  results = await runEngine("Tokenomics", analyzeTokenomicsBatch, results);
+  results = await runEngine("Funding Backers", analyzeFundingBackersBatch, results);
+  results = await runEngine("Partnerships", analyzePartnershipsBatch, results);
+  results = await runEngine("Ecosystem Integration", analyzeEcosystemIntegrationBatch, results);
 
-  results = results
-    .map(project => ({
-      ...project,
-      pipelineScore: calculatePipelineScore(project)
-    }))
-    .sort((a, b) => b.pipelineScore - a.pipelineScore);
+  results = await runEngine("Baseline", analyzeBaselineBatch, results);
+  results = await runEngine("Velocity", analyzeVelocityBatch, results);
+  results = await runEngine("Acceleration", analyzeAccelerationBatch, results);
+  results = await runEngine("Trend Change", analyzeTrendChangeBatch, results);
+  results = await runEngine("Momentum Compression", analyzeMomentumCompressionBatch, results);
+  results = await runEngine("Capital Flow", analyzeCapitalFlowBatch, results);
+  results = await runEngine("Buy Pressure", analyzeBuyPressureBatch, results);
+  results = await runEngine("Sell Pressure", analyzeSellPressureBatch, results);
+  results = await runEngine("Relative Strength", analyzeRelativeStrengthBatch, results);
+  results = await runEngine("Smart Money Rotation", analyzeSmartMoneyRotationBatch, results);
+  results = await runEngine("Opportunity Timing", analyzeOpportunityTimingBatch, results);
+  results = await runEngine("Early Breakout", analyzeEarlyBreakoutBatch, results);
+  results = await runEngine("Volatility Expansion", analyzeVolatilityExpansionBatch, results);
+  results = await runEngine("Liquidity Expansion", analyzeLiquidityExpansionBatch, results);
+  results = await runEngine("Momentum Shift", analyzeMomentumShiftBatch, results);
+
+  results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
+  results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
+
+  results = addFinalScoring(results);
 
   if (options.saveMemory !== false) {
-    saveScanMemory(results);
+    try {
+      await saveScanMemory(results);
+    } catch (error) {
+      console.log(`⚠️ Scan memory save failed: ${error.message}`);
+    }
   }
 
   return results;
@@ -145,7 +226,7 @@ export function runIntelligencePipeline(projects = [], options = {}) {
 export function summarizePipelineResults(results = []) {
   const prePumpOpportunities = results.filter(
     p =>
-      Number(p.prePump?.score || 0) >= 70 &&
+      num(p.prePump?.score) >= 70 &&
       p.prePump?.status !== "ALREADY_PUMPED" &&
       p.prePump?.status !== "LATE_CHASE"
   );
@@ -153,6 +234,10 @@ export function summarizePipelineResults(results = []) {
   return {
     scannedProjects: results.length,
     topProject: results[0] || null,
+
+    institutionalAlphaCount: results.filter(p => p.pipelineScore >= 90).length,
+    aPlusOpportunityCount: results.filter(p => p.pipelineScore >= 80).length,
+    strongWatchlistCount: results.filter(p => p.pipelineScore >= 70).length,
 
     highMarketRankCount: results.filter(p => p.marketRankScore >= 70).length,
     highRichTokenCount: results.filter(p => p.richTokenScore >= 70).length,
@@ -162,12 +247,15 @@ export function summarizePipelineResults(results = []) {
     strongSmartMoneyAccumulationCount: results.filter(
       p => p.smartMoneyAccumulationScore >= 70
     ).length,
+
     strongSmartWalletPerformanceCount: results.filter(
       p => p.smartWalletPerformanceScore >= 70
     ).length,
+
     strongNarrativeForecastCount: results.filter(
       p => p.narrativeForecastScore >= 70
     ).length,
+
     strongCatalystCalendarCount: results.filter(
       p => p.catalystCalendarScore >= 70
     ).length,
@@ -175,26 +263,22 @@ export function summarizePipelineResults(results = []) {
     alreadyPumpedCount: results.filter(
       p => p.prePump?.status === "ALREADY_PUMPED"
     ).length,
+
     lateChaseCount: results.filter(
       p => p.prePump?.status === "LATE_CHASE"
     ).length,
 
-    strongInfrastructureNarrativeCount: results.filter(
-      p => p.infrastructureNarrativeScore >= 70
-    ).length,
-    strongNarrativeCount: results.filter(p => p.narrativeScore >= 70).length,
-    strongLiquidityCount: results.filter(p => p.liquidityScore >= 70).length,
-
     bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map(project => ({
       name: project.name || "Unknown",
       symbol: project.symbol || "Unknown",
+      pipelineTier: project.pipelineTier || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
       prePumpScore: project.prePump?.score || 0,
       prePumpStatus: project.prePump?.status || "UNKNOWN",
       smartMoneyAccumulationScore: project.smartMoneyAccumulationScore || 0,
       smartWalletPerformanceScore: project.smartWalletPerformanceScore || 0,
       catalystCalendarScore: project.catalystCalendarScore || 0,
       narrativeForecastScore: project.narrativeForecastScore || 0,
-      pipelineScore: project.pipelineScore || 0,
       reasons: project.prePump?.reasons || []
     })),
 
@@ -206,3 +290,5 @@ export function summarizePipelineResults(results = []) {
     )
   };
 }
+
+export default runIntelligencePipeline;
