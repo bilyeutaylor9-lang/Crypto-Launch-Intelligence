@@ -1,4 +1,4 @@
-src/intelligencePipeline.js
+// src/intelligencePipeline.js
 
 /**
  * Crypto Launch Intelligence
@@ -81,26 +81,28 @@ function normalizeEngineOutput(output, fallback = []) {
 }
 
 async function runEngine(name, engine, projects, options = {}) {
-  const safeProjects = Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []);
+  const safeProjects = Array.isArray(projects)
+    ? projects
+    : normalizeEngineOutput(projects, []);
 
   try {
     if (typeof engine !== "function") {
-      console.log(`â ï¸ Skipping ${name}: engine not found`);
+      console.log(`Skipping ${name}: engine not found`);
       return safeProjects;
     }
 
-    console.log(`ð§  Running ${name}...`);
+    console.log(`Running ${name}...`);
 
     const output = await engine(safeProjects, options);
     const normalizedOutput = normalizeEngineOutput(output, safeProjects);
 
     if (!Array.isArray(output)) {
-      console.log(`â ï¸ ${name} returned wrapped or invalid output. Normalized safely.`);
+      console.log(`${name} returned wrapped or invalid output. Normalized safely.`);
     }
 
     return normalizedOutput;
   } catch (error) {
-    console.log(`â ${name} failed: ${error.message}`);
+    console.log(`${name} failed: ${error.message}`);
     return safeProjects;
   }
 }
@@ -162,7 +164,9 @@ function classifyProject(project = {}) {
 }
 
 function addFinalScoring(projects = []) {
-  const safeProjects = Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []);
+  const safeProjects = Array.isArray(projects)
+    ? projects
+    : normalizeEngineOutput(projects, []);
 
   return safeProjects
     .map(project => {
@@ -181,7 +185,9 @@ function addFinalScoring(projects = []) {
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
-  let results = Array.isArray(projects) ? [...projects] : normalizeEngineOutput(projects, []);
+  let results = Array.isArray(projects)
+    ? [...projects]
+    : normalizeEngineOutput(projects, []);
 
   results = await runEngine("Rich Token Intelligence", analyzeRichTokenIntelligenceBatch, results);
   results = await runEngine("Narrative Intelligence", analyzeNarratives, results);
@@ -234,7 +240,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     try {
       await saveScanMemory(results);
     } catch (error) {
-      console.log(`â ï¸ Scan memory save failed: ${error.message}`);
+      console.log(`Scan memory save failed: ${error.message}`);
     }
   }
 
