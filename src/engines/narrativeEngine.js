@@ -1,11 +1,9 @@
 // src/engines/narrativeEngine.js
 
 /**
- * Narrative Engine
+ * Narrative Engine v2
  *
- * Purpose:
- * Detects which crypto narratives a project belongs to
- * and scores narrative strength.
+ * Detects crypto narratives and scores narrative strength.
  */
 
 const NARRATIVES = {
@@ -34,23 +32,40 @@ const HOT_NARRATIVE_BONUS = {
   privacy: 8
 };
 
-export function detectNarratives(project = {}) {
-  const text = [
+function clamp(value, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function normalizeText(value) {
+  return Array.isArray(value)
+    ? value.join(" ")
+    : String(value || "");
+}
+
+function buildSearchText(project = {}) {
+  return [
     project.name,
     project.symbol,
     project.description,
     project.website,
     project.docs,
     project.tags,
-    project.ecosystem
+    project.ecosystem,
+    project.twitterBio
   ]
-    .flat()
+    .map(normalizeText)
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+export function detectNarratives(project = {}) {
+  const text = buildSearchText(project);
 
   return Object.entries(NARRATIVES)
-    .filter(([, keywords]) => keywords.some(keyword => text.includes(keyword)))
+    .filter(([, keywords]) =>
+      keywords.some(keyword => text.includes(keyword))
+    )
     .map(([narrative]) => narrative);
 }
 
@@ -65,34 +80,64 @@ export function scoreNarrative(project = {}) {
   }
 
   if (narratives.length >= 2) score += 10;
-  if (project.narrativeMentions24h > 50) score += 10;
-  if (project.narrativeMentions24h > 250) score += 10;
+  if (narratives.length >= 3) score += 10;
 
-  return Math.max(0, Math.min(100, score));
+  if (Number(project.narrativeMentions24h || 0) > 50) score += 10;
+  if (Number(project.narrativeMentions24h || 0) > 250) score += 10;
+
+  return Math.round(clamp(score));
 }
 
 export function analyzeNarrative(project = {}) {
   const narratives = detectNarratives(project);
   const narrativeScore = scoreNarrative(project);
 
+  const narrativeStrength =
+    narrativeScore >= 80 ? "strong" :
+    narrativeScore >= 60 ? "promising" :
+    narrativeScore >= 40 ? "emerging" :
+    "weak";
+
   return {
     ...project,
     narratives,
     narrativeScore,
-    narrativeStrength:
-      narrativeScore >= 80 ? "strong" :
-      narrativeScore >= 60 ? "promising" :
-      narrativeScore >= 40 ? "emerging" :
-      "weak",
+    narrativeStrength,
     intelligenceReason:
       narratives.length
         ? `Project maps to active narratives: ${narratives.join(", ")}.`
-        : "No strong narrative match detected."
+        : "No strong narrative match detected.",
+
+    evidence: [
+      ...(project.evidence || []),
+      {
+        engine: "Narrative Engine v2",
+        signal: "Narrative alignment",
+        score: narrativeScore,
+        confidence: Math.min(narrativeScore / 100, 1),
+        impact:
+          narrativeScore >= 80 ? "Strong Positive" :
+          narrativeScore >= 60 ? "Positive" :
+          narrativeScore >= 40 ? "Early" :
+          "Neutral"
+      }
+    ],
+
+    alerts: [
+      ...(project.alerts || []),
+      ...(narrativeScore >= 80
+        ? [`Strong narrative alignment detected: ${narratives.join(", ")}.`]
+        : [])
+    ]
   };
 }
 
 export function analyzeNarratives(projects = []) {
+  if (!Array.isArray(projects)) return [];
+
   return projects
     .map(analyzeNarrative)
     .sort((a, b) => b.narrativeScore - a.narrativeScore);
 }
+
+export default analyzeNarratives;
