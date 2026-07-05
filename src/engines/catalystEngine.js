@@ -1,25 +1,5 @@
 // src/engines/catalystEngine.js
 
-/**
- * Catalyst Engine v3
- *
- * Purpose:
- * Detects and scores catalysts that may drive attention, adoption,
- * liquidity, listings, community activity, or momentum.
- *
- * Upgrades from v2:
- * - Time-weighted catalyst scoring
- * - Source confidence weighting
- * - Narrative alignment bonus
- * - Exchange quality weighting
- * - Catalyst stack / synergy bonus
- * - Countdown to next catalyst
- * - Institutional impact classification
- * - Historical-learning hook support
- * - Rich evidence and alerts
- * - Backward compatible outputs
- */
-
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 const CATALYST_GROUPS = {
@@ -32,7 +12,7 @@ const CATALYST_GROUPS = {
     "beta",
     "public beta",
     "alpha release",
-    "genesis"
+    "genesis",
   ],
 
   token: [
@@ -45,7 +25,7 @@ const CATALYST_GROUPS = {
     "migration",
     "token migration",
     "rewards",
-    "emissions"
+    "emissions",
   ],
 
   market: [
@@ -57,7 +37,7 @@ const CATALYST_GROUPS = {
     "liquidity pool",
     "dex listing",
     "spot trading",
-    "futures listing"
+    "futures listing",
   ],
 
   growth: [
@@ -70,7 +50,7 @@ const CATALYST_GROUPS = {
     "hackathon",
     "developer program",
     "incubator",
-    "accelerator"
+    "accelerator",
   ],
 
   governance: [
@@ -80,7 +60,7 @@ const CATALYST_GROUPS = {
     "vote",
     "snapshot",
     "treasury",
-    "delegation"
+    "delegation",
   ],
 
   product: [
@@ -93,7 +73,7 @@ const CATALYST_GROUPS = {
     "protocol upgrade",
     "v2",
     "v3",
-    "upgrade"
+    "upgrade",
   ],
 
   institutional: [
@@ -106,8 +86,8 @@ const CATALYST_GROUPS = {
     "etf",
     "real world asset",
     "rwa",
-    "tokenized asset"
-  ]
+    "tokenized asset",
+  ],
 };
 
 const CATALYST_WEIGHTS = {
@@ -117,7 +97,7 @@ const CATALYST_WEIGHTS = {
   growth: 16,
   governance: 10,
   product: 15,
-  institutional: 24
+  institutional: 24,
 };
 
 const EXCHANGE_WEIGHTS = {
@@ -139,7 +119,7 @@ const EXCHANGE_WEIGHTS = {
   raydium: 8,
   aerodrome: 8,
   camelot: 7,
-  unknown: 5
+  unknown: 5,
 };
 
 const SOURCE_CONFIDENCE = {
@@ -155,7 +135,7 @@ const SOURCE_CONFIDENCE = {
   news_article: 0.72,
   community: 0.45,
   rumor: 0.3,
-  unknown: 0.6
+  unknown: 0.6,
 };
 
 const NARRATIVE_KEYWORDS = {
@@ -168,15 +148,15 @@ const NARRATIVE_KEYWORDS = {
   modular: ["modular", "rollup", "data availability", "da", "sequencer"],
   privacy: ["privacy", "zk", "zero knowledge", "confidential"],
   solana: ["solana", "jupiter", "raydium", "pump", "jito"],
-  base: ["base", "coinbase", "aerodrome", "onchain summer"]
+  base: ["base", "coinbase", "aerodrome", "onchain summer"],
 };
 
 function num(value = 0) {
-  return Number(value || 0);
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
 function clamp(value, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
+  return Math.max(min, Math.min(max, num(value)));
 }
 
 function normalizeText(value) {
@@ -201,7 +181,7 @@ function buildSearchText(project = {}) {
     project.narrative,
     project.narratives,
     project.category,
-    project.categories
+    project.categories,
   ]
     .map(normalizeText)
     .filter(Boolean)
@@ -211,17 +191,13 @@ function buildSearchText(project = {}) {
 
 function parseDate(value) {
   if (!value) return null;
-
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date;
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function daysUntil(dateValue, now = new Date()) {
   const date = parseDate(dateValue);
   if (!date) return null;
-
   return Math.ceil((date.getTime() - now.getTime()) / MS_PER_DAY);
 }
 
@@ -282,11 +258,11 @@ function getKnownCatalystDates(project = {}) {
     { type: "Unlock", date: project.unlockDate, group: "token" },
     { type: "Partnership", date: project.partnershipDate, group: "growth" },
     { type: "Product Launch", date: project.productLaunchDate, group: "product" },
-    { type: "Governance Vote", date: project.governanceDate, group: "governance" }
+    { type: "Governance Vote", date: project.governanceDate, group: "governance" },
   ];
 
   return entries
-    .map(entry => {
+    .map((entry) => {
       const date = parseDate(entry.date);
       if (!date) return null;
 
@@ -297,7 +273,7 @@ function getKnownCatalystDates(project = {}) {
         date: date.toISOString(),
         daysUntil: days,
         urgency: urgencyFromDays(days),
-        timeWeight: timeWeightFromDays(days)
+        timeWeight: timeWeightFromDays(days),
       };
     })
     .filter(Boolean);
@@ -315,7 +291,11 @@ function detectExchangeCatalyst(project = {}) {
   for (const [exchange, weight] of Object.entries(EXCHANGE_WEIGHTS)) {
     const readable = exchange.replaceAll("_", " ");
 
-    if (exchangeName.includes(exchange) || text.includes(exchange) || text.includes(readable)) {
+    if (
+      exchangeName.includes(exchange) ||
+      text.includes(exchange) ||
+      text.includes(readable)
+    ) {
       detected.push({ exchange, weight });
     }
   }
@@ -333,10 +313,7 @@ function detectNarratives(project = {}) {
   const detected = new Set();
 
   for (const [narrative, keywords] of Object.entries(NARRATIVE_KEYWORDS)) {
-    if (
-      explicit.includes(narrative) ||
-      keywords.some(keyword => text.includes(keyword))
-    ) {
+    if (explicit.includes(narrative) || keywords.some((keyword) => text.includes(keyword))) {
       detected.add(narrative);
     }
   }
@@ -349,7 +326,7 @@ function calculateNarrativeAlignmentBonus(project = {}, detectedCatalysts = []) 
   if (!narratives.length || !detectedCatalysts.length) return 0;
 
   const catalystText = detectedCatalysts
-    .flatMap(catalyst => catalyst.keywords || [])
+    .flatMap((catalyst) => catalyst.keywords || [])
     .join(" ")
     .toLowerCase();
 
@@ -357,17 +334,14 @@ function calculateNarrativeAlignmentBonus(project = {}, detectedCatalysts = []) 
 
   for (const narrative of narratives) {
     const keywords = NARRATIVE_KEYWORDS[narrative] || [];
-
-    if (keywords.some(keyword => catalystText.includes(keyword))) {
-      bonus += 8;
-    }
+    if (keywords.some((keyword) => catalystText.includes(keyword))) bonus += 8;
   }
 
-  if (detectedCatalysts.some(c => c.group === "institutional") && narratives.includes("rwa")) {
+  if (detectedCatalysts.some((c) => c.group === "institutional") && narratives.includes("rwa")) {
     bonus += 10;
   }
 
-  if (detectedCatalysts.some(c => c.group === "product") && narratives.includes("ai")) {
+  if (detectedCatalysts.some((c) => c.group === "product") && narratives.includes("ai")) {
     bonus += 6;
   }
 
@@ -407,18 +381,68 @@ function classifyCatalystImpact({ catalystScore = 0, detectedGroups = [], exchan
   return "General Catalyst";
 }
 
+function levelForScore(score = 0) {
+  if (score >= 90) return "institutional catalyst cluster";
+  if (score >= 85) return "major catalyst cluster";
+  if (score >= 70) return "strong catalyst setup";
+  if (score >= 50) return "developing catalyst setup";
+  if (score >= 30) return "early catalyst signal";
+  return "limited catalyst signal";
+}
+
+function buildReasons({
+  flatCatalysts = [],
+  nextCatalyst = null,
+  exchangeCatalysts = [],
+  narrativeAlignmentBonus = 0,
+  historicalBonus = 0,
+}) {
+  const reasons = [];
+
+  if (flatCatalysts.length) {
+    reasons.push(
+      `Detected catalyst signals: ${flatCatalysts
+        .slice(0, 8)
+        .map((c) => c.keyword)
+        .join(", ")}.`
+    );
+  }
+
+  if (nextCatalyst) {
+    reasons.push(
+      `Next known catalyst: ${nextCatalyst.type} with ${nextCatalyst.urgency} urgency.`
+    );
+  }
+
+  if (exchangeCatalysts[0]) {
+    reasons.push(`Exchange catalyst detected: ${exchangeCatalysts[0].exchange}.`);
+  }
+
+  if (narrativeAlignmentBonus > 0) {
+    reasons.push("Catalyst is aligned with active project narrative.");
+  }
+
+  if (historicalBonus > 0) {
+    reasons.push("Historical catalyst performance supports this setup.");
+  }
+
+  if (!reasons.length) reasons.push("No major catalyst signal detected yet.");
+
+  return reasons;
+}
+
 export function detectCatalysts(project = {}) {
   const text = buildSearchText(project);
   const detected = [];
 
   for (const [group, keywords] of Object.entries(CATALYST_GROUPS)) {
-    const matches = keywords.filter(keyword => text.includes(keyword));
+    const matches = keywords.filter((keyword) => text.includes(keyword));
 
     if (matches.length) {
       detected.push({
         group,
         keywords: [...new Set(matches)],
-        weight: CATALYST_WEIGHTS[group] || 5
+        weight: CATALYST_WEIGHTS[group] || 5,
       });
     }
   }
@@ -444,23 +468,13 @@ export function scoreCatalysts(project = {}) {
   if (project.listingDate) rawScore += 12;
   if (project.airdropDate || project.claimDate) rawScore += 10;
 
-  if (Array.isArray(project.partnerships) && project.partnerships.length) {
-    rawScore += Math.min(18, project.partnerships.length * 6);
-  }
+  if (Array.isArray(project.partnerships)) rawScore += Math.min(18, project.partnerships.length * 6);
+  if (Array.isArray(project.integrations)) rawScore += Math.min(18, project.integrations.length * 6);
+  if (Array.isArray(project.grants)) rawScore += Math.min(12, project.grants.length * 4);
 
-  if (Array.isArray(project.integrations) && project.integrations.length) {
-    rawScore += Math.min(18, project.integrations.length * 6);
-  }
+  if (exchangeCatalysts.length) rawScore += exchangeCatalysts[0].weight;
 
-  if (Array.isArray(project.grants) && project.grants.length) {
-    rawScore += Math.min(12, project.grants.length * 4);
-  }
-
-  if (exchangeCatalysts.length) {
-    rawScore += exchangeCatalysts[0].weight;
-  }
-
-  const uniqueGroups = new Set(detected.map(catalyst => catalyst.group));
+  const uniqueGroups = new Set(detected.map((catalyst) => catalyst.group));
 
   if (uniqueGroups.size >= 2) rawScore += 8;
   if (uniqueGroups.size >= 3) rawScore += 15;
@@ -470,14 +484,12 @@ export function scoreCatalysts(project = {}) {
   rawScore += historicalLearningBonus(project);
 
   const sourceConfidence = inferSourceConfidence(project);
-  const confidenceAdjustedScore = rawScore * sourceConfidence;
-
-  return Math.round(clamp(confidenceAdjustedScore));
+  return Math.round(clamp(rawScore * sourceConfidence));
 }
 
 export function getNextCatalyst(project = {}) {
   const catalystDates = getKnownCatalystDates(project)
-    .filter(catalyst => catalyst.daysUntil !== null)
+    .filter((catalyst) => catalyst.daysUntil !== null)
     .sort((a, b) => Math.abs(a.daysUntil) - Math.abs(b.daysUntil));
 
   return catalystDates[0] || null;
@@ -494,47 +506,52 @@ export function analyzeCatalysts(project = {}) {
   const narrativeAlignmentBonus = calculateNarrativeAlignmentBonus(project, detectedCatalysts);
   const historicalBonus = historicalLearningBonus(project);
 
-  const flatCatalysts = detectedCatalysts.flatMap(catalyst =>
-    catalyst.keywords.map(keyword => ({
+  const flatCatalysts = detectedCatalysts.flatMap((catalyst) =>
+    catalyst.keywords.map((keyword) => ({
       group: catalyst.group,
       keyword,
-      weight: catalyst.weight
+      weight: catalyst.weight,
     }))
   );
 
-  const detectedGroups = [...new Set(detectedCatalysts.map(catalyst => catalyst.group))];
+  const detectedGroups = [...new Set(detectedCatalysts.map((catalyst) => catalyst.group))];
 
-  const catalystLevel =
-    catalystScore >= 90 ? "institutional catalyst cluster" :
-    catalystScore >= 85 ? "major catalyst cluster" :
-    catalystScore >= 70 ? "strong catalyst setup" :
-    catalystScore >= 50 ? "developing catalyst setup" :
-    catalystScore >= 30 ? "early catalyst signal" :
-    "limited catalyst signal";
+  const catalystLevel = levelForScore(catalystScore);
 
   const catalystImpactType = classifyCatalystImpact({
     catalystScore,
     detectedGroups,
-    exchangeCatalysts
+    exchangeCatalysts,
   });
 
   const catalystStackBonus =
-    detectedGroups.length >= 4 ? 22 :
-    detectedGroups.length >= 3 ? 15 :
-    detectedGroups.length >= 2 ? 8 :
-    0;
+    detectedGroups.length >= 4
+      ? 22
+      : detectedGroups.length >= 3
+      ? 15
+      : detectedGroups.length >= 2
+      ? 8
+      : 0;
+
+  const catalystReasons = buildReasons({
+    flatCatalysts,
+    nextCatalyst,
+    exchangeCatalysts,
+    narrativeAlignmentBonus,
+    historicalBonus,
+  });
 
   const alerts = [];
 
-  if (catalystScore >= 90) {
-    alerts.push("Institutional-grade catalyst cluster detected.");
-  } else if (catalystScore >= 85) {
-    alerts.push("Major catalyst cluster detected.");
-  } else if (catalystScore >= 70) {
-    alerts.push("Strong catalyst setup detected.");
-  }
+  if (catalystScore >= 90) alerts.push("Institutional-grade catalyst cluster detected.");
+  else if (catalystScore >= 85) alerts.push("Major catalyst cluster detected.");
+  else if (catalystScore >= 70) alerts.push("Strong catalyst setup detected.");
 
-  if (nextCatalyst?.daysUntil !== null && nextCatalyst?.daysUntil >= 0 && nextCatalyst?.daysUntil <= 7) {
+  if (
+    nextCatalyst?.daysUntil !== null &&
+    nextCatalyst?.daysUntil >= 0 &&
+    nextCatalyst?.daysUntil <= 7
+  ) {
     alerts.push(`${nextCatalyst.type} catalyst is within ${nextCatalyst.daysUntil} day(s).`);
   }
 
@@ -548,7 +565,7 @@ export function analyzeCatalysts(project = {}) {
 
   const catalystSummary =
     flatCatalysts.length > 0
-      ? `Detected catalyst signals: ${flatCatalysts.map(c => c.keyword).join(", ")}.`
+      ? `Detected catalyst signals: ${flatCatalysts.map((c) => c.keyword).join(", ")}.`
       : "No major catalyst signal detected yet.";
 
   return {
@@ -564,6 +581,7 @@ export function analyzeCatalysts(project = {}) {
     catalystImpactType,
     catalystConfidence: Number(sourceConfidence.toFixed(2)),
     catalystSummary,
+    catalystReasons,
 
     catalystAnalytics: {
       score: catalystScore,
@@ -576,23 +594,44 @@ export function analyzeCatalysts(project = {}) {
       historicalBonus,
       catalystStackBonus,
       exchangeCatalysts,
-      nextCatalyst
+      nextCatalyst,
+      reasons: catalystReasons,
+    },
+
+    intelligenceSignals: {
+      ...(project.intelligenceSignals || {}),
+      catalyst: {
+        score: catalystScore,
+        level: catalystLevel,
+        impactType: catalystImpactType,
+        sourceConfidence: Number(sourceConfidence.toFixed(2)),
+        detectedGroups,
+        detectedNarratives: narratives,
+        exchangeCatalysts,
+        nextCatalyst,
+        reasons: catalystReasons,
+      },
     },
 
     evidence: [
       ...(project.evidence || []),
       {
-        engine: "Catalyst Engine v3",
+        engine: "Catalyst Engine v4",
         signal: "Project catalyst activity",
         score: catalystScore,
-        confidence: Math.min(catalystScore / 100, 1),
+        confidence: clamp(catalystScore / 100, 0, 1),
         sourceConfidence: Number(sourceConfidence.toFixed(2)),
         impact:
-          catalystScore >= 85 ? "Very Strong Positive" :
-          catalystScore >= 70 ? "Strong Positive" :
-          catalystScore >= 50 ? "Positive" :
-          catalystScore >= 30 ? "Early" :
-          "Neutral",
+          catalystScore >= 85
+            ? "Very Strong Positive"
+            : catalystScore >= 70
+            ? "Strong Positive"
+            : catalystScore >= 50
+            ? "Positive"
+            : catalystScore >= 30
+            ? "Early"
+            : "Neutral",
+        reasons: catalystReasons,
         details: {
           catalystLevel,
           catalystImpactType,
@@ -600,19 +639,19 @@ export function analyzeCatalysts(project = {}) {
           nextCatalyst,
           exchangeCatalysts,
           narrativeAlignmentBonus,
-          historicalBonus
-        }
-      }
+          historicalBonus,
+        },
+      },
     ],
 
-    alerts: [...(project.alerts || []), ...alerts]
+    alerts: [...(project.alerts || []), ...alerts],
   };
 }
 
 export function analyzeCatalystsBatch(projects = []) {
   return projects
     .map(analyzeCatalysts)
-    .sort((a, b) => b.catalystScore - a.catalystScore);
+    .sort((a, b) => Number(b.catalystScore || 0) - Number(a.catalystScore || 0));
 }
 
 export default analyzeCatalystsBatch;
