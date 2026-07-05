@@ -1,20 +1,5 @@
 // src/intelligencePipeline.js
 
-/**
- * Crypto Launch Intelligence
- * Self-Learning Intelligence Pipeline
- *
- * Production Upgrade:
- * - Safe engine execution
- * - Supports sync or async engines
- * - Accepts array output or wrapped outputs: { results }, { projects }, { data }
- * - Does not crash if one engine fails
- * - Adds institutional scoring
- * - Adds tier labels
- * - Saves scan memory safely
- * - Protects summary from non-array input
- */
-
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
 import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
@@ -61,12 +46,12 @@ import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 
-function num(value) {
-  return Number(value || 0);
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
-function clamp(value, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, num(value)));
 }
 
 function normalizeEngineOutput(output, fallback = []) {
@@ -76,7 +61,6 @@ function normalizeEngineOutput(output, fallback = []) {
   if (Array.isArray(output?.data)) return output.data;
   if (Array.isArray(output?.tokens)) return output.tokens;
   if (Array.isArray(output?.candidates)) return output.candidates;
-
   return fallback;
 }
 
@@ -94,58 +78,88 @@ async function runEngine(name, engine, projects, options = {}) {
     console.log(`Running ${name}...`);
 
     const output = await engine(safeProjects, options);
-    const normalizedOutput = normalizeEngineOutput(output, safeProjects);
-
-    if (!Array.isArray(output)) {
-      console.log(`${name} returned wrapped or invalid output. Normalized safely.`);
-    }
-
-    return normalizedOutput;
+    return normalizeEngineOutput(output, safeProjects);
   } catch (error) {
     console.log(`${name} failed: ${error.message}`);
     return safeProjects;
   }
 }
 
-function calculatePipelineScore(project = {}) {
+function weightedInstitutionalScore(project = {}) {
   const prePumpScore = num(project.prePump?.score);
 
-  const alreadyPumped =
-    project.prePump?.status === "ALREADY_PUMPED" ||
-    project.prePump?.status === "LATE_CHASE";
+  const weights = [
+    { score: project.marketRankScore, weight: 1.2 },
+    { score: project.richTokenScore, weight: 0.9 },
+    { score: project.infrastructureNarrativeScore, weight: 0.9 },
+    { score: project.narrativeScore, weight: 0.8 },
+    { score: project.narrativeForecastScore, weight: 1.0 },
+    { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
+    { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
+    { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
+    { score: project.socialAccelerationScore, weight: 0.7 },
+    { score: project.liquidityScore, weight: 0.9 },
+    { score: project.liquidityExpansionScore, weight: 0.8 },
+    { score: project.holderGrowthScore, weight: 0.8 },
+    { score: project.whaleScore ?? project.whaleActivityScore, weight: 0.8 },
+    { score: project.smartWalletScore, weight: 0.8 },
+    { score: project.smartWalletPerformanceScore, weight: 0.9 },
+    { score: project.smartMoneyAccumulationScore, weight: 1.1 },
+    { score: project.smartMoneyRotationScore, weight: 0.9 },
+    { score: project.exchangeProbabilityScore, weight: 0.8 },
+    { score: project.catalystScore, weight: 0.9 },
+    { score: project.catalystCalendarScore, weight: 0.8 },
+    { score: project.tokenomicsScore, weight: 0.6 },
+    { score: project.fundingBackerScore, weight: 0.6 },
+    { score: project.partnershipScore, weight: 0.5 },
+    { score: project.ecosystemIntegrationScore, weight: 0.6 },
+    { score: project.baselineScore, weight: 0.8 },
+    { score: project.velocityScore, weight: 0.8 },
+    { score: project.accelerationScore, weight: 0.9 },
+    { score: project.trendChangeScore, weight: 0.7 },
+    { score: project.momentumCompressionScore, weight: 0.7 },
+    { score: project.capitalFlowScore, weight: 1.0 },
+    { score: project.buyPressureScore, weight: 0.9 },
+    { score: project.relativeStrengthScore, weight: 0.8 },
+    { score: project.opportunityTimingScore, weight: 0.8 },
+    { score: project.earlyBreakoutScore, weight: 0.9 },
+    { score: project.volatilityExpansionScore, weight: 0.6 },
+    { score: project.momentumShiftScore, weight: 1.1 },
+    { score: prePumpScore, weight: 1.4 },
+  ];
 
-  const baseScore =
-    num(project.marketRankScore) * 1.5 +
-    num(project.richTokenScore) * 1.1 +
-    num(project.infrastructureNarrativeScore) * 1.15 +
-    num(project.narrativeScore) +
-    num(project.narrativeForecastScore) * 1.3 +
-    num(project.developerScore) +
-    num(project.githubScore) +
-    num(project.communityScore) +
-    num(project.socialAccelerationScore) +
-    num(project.liquidityScore) +
-    num(project.holderGrowthScore) +
-    num(project.whaleScore) +
-    num(project.smartWalletScore) +
-    num(project.relativeStrengthScore) +
-    num(project.buyPressureScore) +
-    num(project.momentumShiftScore) * 1.35 +
-    num(project.smartWalletPerformanceScore) * 1.25 +
-    num(project.smartMoneyAccumulationScore) * 1.4 +
-    num(project.exchangeProbabilityScore) * 1.1 +
-    num(project.catalystScore) +
-    num(project.catalystCalendarScore) * 1.2 +
-    num(project.tokenomicsScore) +
-    num(project.fundingBackerScore) +
-    num(project.partnershipScore) +
-    num(project.ecosystemIntegrationScore) +
-    prePumpScore * 1.75;
+  const active = weights.filter((item) => num(item.score) > 0);
 
-  const normalizedScore = baseScore / 26;
-  const penalty = alreadyPumped ? 25 : 0;
+  if (!active.length) return 0;
 
-  return Math.round(clamp(normalizedScore - penalty));
+  const weightedTotal = active.reduce(
+    (sum, item) => sum + num(item.score) * item.weight,
+    0
+  );
+
+  const weightTotal = active.reduce((sum, item) => sum + item.weight, 0);
+
+  let score = weightedTotal / weightTotal;
+
+  if (project.prePump?.status === "ALREADY_PUMPED") score -= 25;
+  if (project.prePump?.status === "LATE_CHASE") score -= 18;
+  if (num(project.sellPressureScore) >= 75) score -= 8;
+  if (num(project.riskScore) >= 70) score -= 12;
+  if (num(project.riskScore) >= 85) score -= 20;
+
+  if (num(project.smartMoneyAccumulationScore) >= 80 && prePumpScore >= 70) {
+    score += 5;
+  }
+
+  if (num(project.catalystScore) >= 70 && num(project.narrativeForecastScore) >= 70) {
+    score += 4;
+  }
+
+  if (num(project.buyPressureScore) >= 70 && num(project.capitalFlowScore) >= 70) {
+    score += 4;
+  }
+
+  return Math.round(clamp(score));
 }
 
 function classifyProject(project = {}) {
@@ -154,13 +168,23 @@ function classifyProject(project = {}) {
   if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
   if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
 
-  if (score >= 90) return "Institutional Alpha";
-  if (score >= 80) return "A+ Opportunity";
-  if (score >= 70) return "Strong Watchlist";
-  if (score >= 60) return "Early Watchlist";
-  if (score >= 45) return "Speculative";
+  if (score >= 95) return "Institutional Alpha";
+  if (score >= 90) return "Elite Opportunity";
+  if (score >= 85) return "A+ Opportunity";
+  if (score >= 80) return "Strong Watchlist";
+  if (score >= 70) return "Watchlist";
+  if (score >= 55) return "Early Candidate";
+  return "Low Priority";
+}
 
-  return "Weak";
+function confidenceForProject(project = {}) {
+  const evidenceCount = Array.isArray(project.evidence) ? project.evidence.length : 0;
+  const score = num(project.pipelineScore);
+
+  if (score >= 85 && evidenceCount >= 8) return "High";
+  if (score >= 70 && evidenceCount >= 5) return "Medium";
+  if (score >= 55) return "Developing";
+  return "Low";
 }
 
 function addFinalScoring(projects = []) {
@@ -169,16 +193,20 @@ function addFinalScoring(projects = []) {
     : normalizeEngineOutput(projects, []);
 
   return safeProjects
-    .map(project => {
-      const pipelineScore = calculatePipelineScore(project);
+    .map((project) => {
+      const pipelineScore = weightedInstitutionalScore(project);
+      const pipelineTier = classifyProject({ ...project, pipelineScore });
+      const pipelineConfidence = confidenceForProject({ ...project, pipelineScore });
 
       return {
         ...project,
         pipelineScore,
-        pipelineTier: classifyProject({
-          ...project,
-          pipelineScore
-        })
+        opportunityScore: pipelineScore,
+        score: pipelineScore,
+        pipelineTier,
+        tier: pipelineTier,
+        pipelineConfidence,
+        confidence: pipelineConfidence,
       };
     })
     .sort((a, b) => num(b.pipelineScore) - num(a.pipelineScore));
@@ -253,7 +281,7 @@ export function summarizePipelineResults(results = []) {
     : normalizeEngineOutput(results, []);
 
   const prePumpOpportunities = safeResults.filter(
-    p =>
+    (p) =>
       num(p.prePump?.score) >= 70 &&
       p.prePump?.status !== "ALREADY_PUMPED" &&
       p.prePump?.status !== "LATE_CHASE"
@@ -263,40 +291,42 @@ export function summarizePipelineResults(results = []) {
     scannedProjects: safeResults.length,
     topProject: safeResults[0] || null,
 
-    institutionalAlphaCount: safeResults.filter(p => p.pipelineScore >= 90).length,
-    aPlusOpportunityCount: safeResults.filter(p => p.pipelineScore >= 80).length,
-    strongWatchlistCount: safeResults.filter(p => p.pipelineScore >= 70).length,
+    institutionalAlphaCount: safeResults.filter((p) => p.pipelineScore >= 95).length,
+    eliteOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 90).length,
+    aPlusOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 85).length,
+    strongWatchlistCount: safeResults.filter((p) => p.pipelineScore >= 80).length,
+    watchlistCount: safeResults.filter((p) => p.pipelineScore >= 70).length,
 
-    highMarketRankCount: safeResults.filter(p => p.marketRankScore >= 70).length,
-    highRichTokenCount: safeResults.filter(p => p.richTokenScore >= 70).length,
-    highMomentumCount: safeResults.filter(p => p.momentumShiftScore >= 70).length,
+    highMarketRankCount: safeResults.filter((p) => p.marketRankScore >= 70).length,
+    highRichTokenCount: safeResults.filter((p) => p.richTokenScore >= 70).length,
+    highMomentumCount: safeResults.filter((p) => p.momentumShiftScore >= 70).length,
     highPrePumpCount: prePumpOpportunities.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
-      p => p.smartMoneyAccumulationScore >= 70
+      (p) => p.smartMoneyAccumulationScore >= 70
     ).length,
 
     strongSmartWalletPerformanceCount: safeResults.filter(
-      p => p.smartWalletPerformanceScore >= 70
+      (p) => p.smartWalletPerformanceScore >= 70
     ).length,
 
     strongNarrativeForecastCount: safeResults.filter(
-      p => p.narrativeForecastScore >= 70
+      (p) => p.narrativeForecastScore >= 70
     ).length,
 
     strongCatalystCalendarCount: safeResults.filter(
-      p => p.catalystCalendarScore >= 70
+      (p) => p.catalystCalendarScore >= 70
     ).length,
 
     alreadyPumpedCount: safeResults.filter(
-      p => p.prePump?.status === "ALREADY_PUMPED"
+      (p) => p.prePump?.status === "ALREADY_PUMPED"
     ).length,
 
     lateChaseCount: safeResults.filter(
-      p => p.prePump?.status === "LATE_CHASE"
+      (p) => p.prePump?.status === "LATE_CHASE"
     ).length,
 
-    bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map(project => ({
+    bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map((project) => ({
       name: project.name || "Unknown",
       symbol: project.symbol || "Unknown",
       pipelineTier: project.pipelineTier || "Unknown",
@@ -307,15 +337,15 @@ export function summarizePipelineResults(results = []) {
       smartWalletPerformanceScore: project.smartWalletPerformanceScore || 0,
       catalystCalendarScore: project.catalystCalendarScore || 0,
       narrativeForecastScore: project.narrativeForecastScore || 0,
-      reasons: project.prePump?.reasons || []
+      reasons: project.prePump?.reasons || [],
     })),
 
-    alerts: safeResults.flatMap(project =>
-      (project.alerts || []).map(alert => ({
+    alerts: safeResults.flatMap((project) =>
+      (project.alerts || []).map((alert) => ({
         project: project.name || project.symbol || "Unknown",
-        alert
+        alert,
       }))
-    )
+    ),
   };
 }
 
