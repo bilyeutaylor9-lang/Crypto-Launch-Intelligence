@@ -1,27 +1,25 @@
+// src/data/dataOrchestrator.js
 
 /**
  * Crypto Launch Intelligence
- * Data Orchestrator v2
+ * Data Orchestrator v3
  *
  * Purpose:
  * Creates one trusted market-data layer for all engines.
  *
- * What this does:
- * - Pulls free market candidates from freeMarketDataConnector
- * - Matches tokens safely using address, pair, chain, symbol, and name
- * - Prevents bad fallback matches like Solana ACT becoming Kraken ACT
- * - Scores candidate confidence
- * - Adds match reasons
- * - Normalizes output for every engine
- * - Caches results so engines do not refetch the same token repeatedly
- * - Reports health, missing fields, execution time, and cache stats
+ * Upgrade:
+ * - Increases default scan limit
+ * - Fetches market candidates once per batch instead of once per token
+ * - Improves performance for larger scans
+ * - Keeps safe matching logic to avoid bad symbol-only matches
+ * - Preserves cache, confidence scoring, health reporting, and diagnostics
  */
 
 import { getFreeMarketDataCandidates } from "./freeMarketDataConnector.js";
 
 const cache = new Map();
 
-const DEFAULT_LIMIT = 250;
+const DEFAULT_LIMIT = 1000;
 const DEFAULT_MIN_CONFIDENCE = 70;
 
 const SOURCE_PRIORITY = {
@@ -29,6 +27,7 @@ const SOURCE_PRIORITY = {
   geckoterminal: 95,
   birdeye: 90,
   coingecko: 80,
+  "coingecko-trending": 82,
   coinpaprika: 75,
   defillama: 70,
   "defillama-chain": 65,
@@ -58,10 +57,6 @@ function numberOrNull(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-function same(a, b) {
-  return Boolean(normalize(a) && normalize(b) && normalize(a) === normalize(b));
-}
-
 function buildCacheKey(token = {}) {
   return [
     normalize(token.chain || "any"),
@@ -79,6 +74,7 @@ function scoreCandidate(candidate = {}, token = {}) {
   const reasons = [];
 
   const candidateSource = normalizeSource(candidate.source);
+
   const tokenAddress = normalize(token.address);
   const tokenPairAddress = normalize(token.pairAddress);
   const tokenChain = normalize(token.chain);
@@ -174,7 +170,15 @@ function scoreCandidate(candidate = {}, token = {}) {
     tokenChain !== candidateChain &&
     candidateChain !== "MARKET" &&
     candidateChain !== "CEX" &&
-    !["BINANCE", "KUCOIN", "COINBASE", "KRAKEN", "COINPAPRIKA"].includes(candidateChain);
+    ![
+      "BINANCE",
+      "KUCOIN",
+      "COINBASE",
+      "KRAKEN",
+      "COINPAPRIKA",
+      "COINGECKO",
+      "COINGECKO-TRENDING"
+    ].includes(candidateChain);
 
   if (chainConflict) {
     score -= 80;
@@ -256,9 +260,12 @@ function normalizeMarketData(matchResult = {}, token = {}, startedAt = Date.now(
     volume24h: numberOrNull(candidate?.volume24h),
     volume6h: numberOrNull(candidate?.volume6h),
     volume1h: numberOrNull(candidate?.volume1h),
+
     priceChange24h: numberOrNull(candidate?.priceChange24h),
     priceChange6h: numberOrNull(candidate?.priceChange6h),
     priceChange1h: numberOrNull(candidate?.priceChange1h),
+    priceChange7d: numberOrNull(candidate?.priceChange7d),
+
     marketCap: numberOrNull(candidate?.marketCap),
     fdv: numberOrNull(candidate?.fdv),
     tvl: numberOrNull(candidate?.tvl),
@@ -294,6 +301,21 @@ function normalizeMarketData(matchResult = {}, token = {}, startedAt = Date.now(
   return result;
 }
 
+function buildTopCandidates(matchResult = {}) {
+  return (matchResult.scored || [])
+    .slice(0, 5)
+    .map(item => ({
+      source: item.candidate?.source || null,
+      name: item.candidate?.name || null,
+      symbol: item.candidate?.symbol || null,
+      chain: item.candidate?.chain || null,
+      address: item.candidate?.address || null,
+      pairAddress: item.candidate?.pairAddress || null,
+      confidence: item.confidence,
+      reasons: item.reasons
+    }));
+}
+
 export async function getTokenData(token = {}, options = {}) {
   const key = buildCacheKey(token);
   const useCache = options.useCache !== false;
@@ -318,25 +340,13 @@ export async function getTokenData(token = {}, options = {}) {
     const result = normalizeMarketData(matchResult, token, startedAt);
 
     result.totalCandidatesChecked = candidates.length;
-
-    result.topCandidates = (matchResult.scored || [])
-      .slice(0, 5)
-      .map(item => ({
-        source: item.candidate?.source || null,
-        name: item.candidate?.name || null,
-        symbol: item.candidate?.symbol || null,
-        chain: item.candidate?.chain || null,
-        pairAddress: item.candidate?.pairAddress || null,
-        confidence: item.confidence,
-        reasons: item.reasons
-      }));
+    result.topCandidates = buildTopCandidates(matchResult);
 
     if (useCache) {
       cache.set(key, result);
     }
 
     return result;
-
   } catch (err) {
     return {
       status: "FAIL_SOFT",
@@ -365,9 +375,66 @@ export async function getTokenData(token = {}, options = {}) {
 
 export async function getTokenDataBatch(tokens = [], options = {}) {
   const results = [];
+  const limit = Number(options.limit || DEFAULT_LIMIT);
+  const minConfidence = Number(options.minConfidence || DEFAULT_MIN_CONFIDENCE);
+  const useCache = options.useCache !== false;
+  const batchStartedAt = Date.now();
+
+  let candidates = [];
+
+  try {
+    candidates = await getFreeMarketDataCandidates({ limit });
+  } catch (err) {
+    return tokens.map(token => ({
+      status: "FAIL_SOFT",
+
+      token,
+
+      source: "dataOrchestrator",
+      confidence: 0,
+      matchReasons: [],
+
+      cacheHit: false,
+      dataReceived: false,
+      executionTimeMs: Date.now() - batchStartedAt,
+
+      error: err.message,
+
+      health: {
+        passed: false,
+        failed: true,
+        missingFields: REQUIRED_FIELDS,
+        warnings: [err.message]
+      }
+    }));
+  }
 
   for (const token of tokens) {
-    const result = await getTokenData(token, options);
+    const tokenStartedAt = Date.now();
+    const key = buildCacheKey(token);
+
+    if (useCache && cache.has(key)) {
+      results.push({
+        ...cache.get(key),
+        cacheHit: true
+      });
+      continue;
+    }
+
+    const matchResult = findBestCandidate(candidates, token, {
+      minConfidence
+    });
+
+    const result = normalizeMarketData(matchResult, token, tokenStartedAt);
+
+    result.totalCandidatesChecked = candidates.length;
+    result.batchExecutionTimeMs = Date.now() - batchStartedAt;
+    result.topCandidates = buildTopCandidates(matchResult);
+
+    if (useCache) {
+      cache.set(key, result);
+    }
+
     results.push(result);
   }
 
@@ -406,7 +473,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   };
 
   const result = await getTokenData(token, {
-    limit: 250,
+    limit: 1000,
     minConfidence: 70,
     useCache: false
   });
