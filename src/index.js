@@ -9,6 +9,89 @@ import {
 
 import { generateReports } from "./reports/reportOrchestrator.js";
 
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, num(value)));
+}
+
+function weightedScore(project = {}) {
+  const score =
+    num(project.marketRankScore) * 0.12 +
+    num(project.richTokenScore) * 0.08 +
+    num(project.prePump?.score) * 0.13 +
+    num(project.momentumShiftScore) * 0.08 +
+    num(project.relativeStrengthScore) * 0.07 +
+    num(project.buyPressureScore) * 0.08 +
+    num(project.capitalFlowScore) * 0.1 +
+    num(project.liquidityScore) * 0.08 +
+    num(project.narrativeScore) * 0.08 +
+    num(project.narrativeForecastScore) * 0.07 +
+    num(project.smartMoneyAccumulationScore) * 0.08 +
+    num(project.smartWalletPerformanceScore) * 0.07 +
+    num(project.catalystScore) * 0.07 +
+    num(project.catalystCalendarScore) * 0.06 +
+    num(project.communityGrowthScore) * 0.04 +
+    num(project.developerActivityScore) * 0.04 -
+    num(project.riskScore) * 0.08;
+
+  return clamp(score);
+}
+
+function tierForScore(score = 0) {
+  if (score >= 95) return "Institutional Alpha";
+  if (score >= 90) return "Elite";
+  if (score >= 85) return "A+ Opportunity";
+  if (score >= 80) return "Strong Watchlist";
+  if (score >= 70) return "Watchlist";
+  if (score >= 55) return "Early Candidate";
+  return "Low Priority";
+}
+
+function confidenceForScore(score = 0) {
+  if (score >= 85) return "High";
+  if (score >= 70) return "Medium";
+  if (score >= 55) return "Developing";
+  return "Low";
+}
+
+function scoreOf(project = {}) {
+  const existing = num(project.opportunityScore ?? project.pipelineScore ?? project.score);
+  const fused = weightedScore(project);
+  return Math.max(existing, fused);
+}
+
+function normalizeForReports(projects = []) {
+  return [...projects]
+    .map((project) => {
+      const score = scoreOf(project);
+      const tier = project.pipelineTier || project.tier || tierForScore(score);
+
+      return {
+        ...project,
+        opportunityScore: score,
+        pipelineScore: score,
+        score,
+        tier,
+        pipelineTier: tier,
+        confidence: project.confidence || project.pipelineConfidence || confidenceForScore(score),
+        pipelineConfidence: project.pipelineConfidence || confidenceForScore(score),
+        riskScore: project.riskScore ?? project.risk?.score ?? 0,
+        narrative:
+          project.narrative ||
+          project.primaryNarrative ||
+          project.narrativeForecast?.narrative ||
+          "",
+        volume24h: project.volume24h ?? project.volume ?? "",
+        marketCap: project.marketCap ?? project.fdv ?? "",
+        liquidity: project.liquidityUsd ?? project.liquidity ?? "",
+      };
+    })
+    .sort((a, b) => scoreOf(b) - scoreOf(a));
+}
+
 function printBanner() {
   console.clear();
   console.log("");
@@ -39,31 +122,6 @@ function printSummary(summary) {
   console.log(`Already Pumped: ${summary.alreadyPumpedCount}`);
   console.log(`Late Chase: ${summary.lateChaseCount}`);
   console.log("============================================");
-}
-
-function scoreOf(project = {}) {
-  return Number(project.opportunityScore ?? project.pipelineScore ?? project.score ?? 0);
-}
-
-function normalizeForReports(projects = []) {
-  return [...projects]
-    .map((project) => ({
-      ...project,
-      opportunityScore: scoreOf(project),
-      score: scoreOf(project),
-      tier: project.pipelineTier || project.tier || "Unknown",
-      confidence: project.confidence || project.pipelineConfidence || "",
-      riskScore: project.riskScore ?? project.risk?.score ?? 0,
-      narrative:
-        project.narrative ||
-        project.primaryNarrative ||
-        project.narrativeForecast?.narrative ||
-        "",
-      volume24h: project.volume24h ?? project.volume ?? "",
-      marketCap: project.marketCap ?? project.fdv ?? "",
-      liquidity: project.liquidity ?? project.liquidityUsd ?? "",
-    }))
-    .sort((a, b) => scoreOf(b) - scoreOf(a));
 }
 
 function printTopProjects(results) {
@@ -123,12 +181,16 @@ async function main() {
 
     const discoveredProjects = await runDiscoveryManager();
 
-    console.log(`✓ Found ${discoveredProjects.length} projects`);
+    const discoveredList = Array.isArray(discoveredProjects)
+      ? discoveredProjects
+      : discoveredProjects.candidates || [];
+
+    console.log(`✓ Found ${discoveredList.length} projects`);
 
     console.log("");
     console.log("Running intelligence pipeline...\n");
 
-    const pipelineResults = await runIntelligencePipeline(discoveredProjects, {
+    const pipelineResults = await runIntelligencePipeline(discoveredList, {
       saveMemory: true,
     });
 
@@ -138,9 +200,10 @@ async function main() {
     const reportPaths = generateReports(results, {
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
-      discoveredProjects: discoveredProjects.length,
+      discoveredProjects: discoveredList.length,
       scannedProjects: results.length,
       engineMode: "full",
+      scoringMode: "institutional-weighted-fallback",
       platform: "Crypto Launch Intelligence",
     });
 
