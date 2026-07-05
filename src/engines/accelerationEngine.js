@@ -1,16 +1,77 @@
 // src/engines/accelerationEngine.js
 
 /**
- * Acceleration Engine
+ * Acceleration Engine v2
  *
- * Purpose:
- * Detects whether project growth is speeding up.
- * Velocity measures change.
- * Acceleration measures whether that change is increasing.
+ * Detects whether project growth is speeding up across:
+ * - volume
+ * - liquidity
+ * - holders
+ * - followers
+ * - developer activity
+ * - smart wallet activity
  */
 
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function calculateAcceleration(currentVelocity = 0, previousVelocity = 0) {
-  return currentVelocity - previousVelocity;
+  return num(currentVelocity) - num(previousVelocity);
+}
+
+function scoreAcceleration(value = 0, weight = 1) {
+  const n = num(value);
+
+  if (n <= 0) return 0;
+  if (n >= 50) return 20 * weight;
+  if (n >= 25) return 16 * weight;
+  if (n >= 10) return 12 * weight;
+  if (n >= 5) return 8 * weight;
+
+  return 4 * weight;
+}
+
+function accelerationLabel(score = 0) {
+  if (score >= 85) return "explosive acceleration";
+  if (score >= 70) return "strong acceleration";
+  if (score >= 50) return "early acceleration";
+  if (score >= 30) return "mild acceleration";
+  return "stable";
+}
+
+function buildReasons(acceleration = {}) {
+  const reasons = [];
+
+  if (acceleration.volumeAcceleration > 0) {
+    reasons.push("Volume velocity is increasing.");
+  }
+
+  if (acceleration.liquidityAcceleration > 0) {
+    reasons.push("Liquidity growth is accelerating.");
+  }
+
+  if (acceleration.holderAcceleration > 0) {
+    reasons.push("Holder growth is speeding up.");
+  }
+
+  if (acceleration.followerAcceleration > 0) {
+    reasons.push("Social follower growth is accelerating.");
+  }
+
+  if (acceleration.developerAcceleration > 0) {
+    reasons.push("Developer activity is increasing.");
+  }
+
+  if (acceleration.smartWalletAcceleration > 0) {
+    reasons.push("Smart wallet activity is accelerating.");
+  }
+
+  return reasons;
 }
 
 export function analyzeAcceleration(project = {}) {
@@ -18,74 +79,91 @@ export function analyzeAcceleration(project = {}) {
 
   const acceleration = {
     volumeAcceleration: calculateAcceleration(
-      Number(velocity.volumeVelocity || 0),
-      Number(project.previousVolumeVelocity || 0)
+      velocity.volumeVelocity,
+      project.previousVolumeVelocity
     ),
 
     liquidityAcceleration: calculateAcceleration(
-      Number(velocity.liquidityVelocity || 0),
-      Number(project.previousLiquidityVelocity || 0)
+      velocity.liquidityVelocity,
+      project.previousLiquidityVelocity
     ),
 
     holderAcceleration: calculateAcceleration(
-      Number(velocity.holderVelocity || 0),
-      Number(project.previousHolderVelocity || 0)
+      velocity.holderVelocity,
+      project.previousHolderVelocity
     ),
 
     followerAcceleration: calculateAcceleration(
-      Number(velocity.followerVelocity || 0),
-      Number(project.previousFollowerVelocity || 0)
+      velocity.followerVelocity,
+      project.previousFollowerVelocity
     ),
 
     developerAcceleration: calculateAcceleration(
-      Number(velocity.developerVelocity || 0),
-      Number(project.previousDeveloperVelocity || 0)
+      velocity.developerVelocity,
+      project.previousDeveloperVelocity
     ),
 
     smartWalletAcceleration: calculateAcceleration(
-      Number(velocity.smartWalletVelocity || 0),
-      Number(project.previousSmartWalletVelocity || 0)
-    )
+      velocity.smartWalletVelocity,
+      project.previousSmartWalletVelocity
+    ),
   };
 
-  let score = 0;
+  const score = clamp(
+    scoreAcceleration(acceleration.volumeAcceleration, 1.25) +
+      scoreAcceleration(acceleration.liquidityAcceleration, 1.15) +
+      scoreAcceleration(acceleration.holderAcceleration, 1.1) +
+      scoreAcceleration(acceleration.followerAcceleration, 0.85) +
+      scoreAcceleration(acceleration.developerAcceleration, 1.0) +
+      scoreAcceleration(acceleration.smartWalletAcceleration, 1.35)
+  );
 
-  Object.values(acceleration).forEach(value => {
-    if (value > 0) score += 10;
-    if (value > 10) score += 5;
-  });
-
-  score = Math.max(0, Math.min(100, score));
+  const reasons = buildReasons(acceleration);
+  const level = accelerationLabel(score);
 
   return {
     ...project,
+
     acceleration,
     accelerationScore: score,
-    accelerationLevel:
-      score >= 85 ? "explosive acceleration" :
-      score >= 65 ? "strong acceleration" :
-      score >= 45 ? "early acceleration" :
-      "stable",
+    accelerationLevel: level,
+    accelerationReasons: reasons,
+
+    intelligenceSignals: {
+      ...(project.intelligenceSignals || {}),
+      acceleration: {
+        score,
+        level,
+        reasons,
+        acceleration,
+      },
+    },
 
     evidence: [
       ...(project.evidence || []),
       {
         engine: "Acceleration Engine",
         signal: "Growth acceleration",
-        confidence: Math.min(score / 100, 1),
-        impact: score >= 60 ? "Positive" : "Neutral"
-      }
+        score,
+        confidence: clamp(score / 100, 0, 1),
+        impact: score >= 70 ? "Strong Positive" : score >= 45 ? "Positive" : "Neutral",
+        reasons,
+      },
     ],
 
     alerts: [
       ...(project.alerts || []),
-      ...(score >= 75 ? ["Acceleration spike detected."] : [])
-    ]
+      ...(score >= 85
+        ? ["Explosive acceleration detected."]
+        : score >= 70
+        ? ["Strong acceleration detected."]
+        : []),
+    ],
   };
 }
 
 export function analyzeAccelerationBatch(projects = []) {
   return projects
     .map(analyzeAcceleration)
-    .sort((a, b) => b.accelerationScore - a.accelerationScore);
+    .sort((a, b) => Number(b.accelerationScore || 0) - Number(a.accelerationScore || 0));
 }
