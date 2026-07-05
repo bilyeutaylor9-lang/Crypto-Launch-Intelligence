@@ -4,16 +4,16 @@ import { runDiscoveryManager } from "./discoveryManager.js";
 import { filterMemes } from "./engines/memeFilterEngine.js";
 import {
   runIntelligencePipeline,
-  summarizePipelineResults
+  summarizePipelineResults,
 } from "./intelligencePipeline.js";
+
+import { generateReports } from "./reports/reportOrchestrator.js";
 
 function formatMoney(value = 0) {
   const n = Number(value || 0);
-
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
-
   return `$${n.toFixed(2)}`;
 }
 
@@ -21,15 +21,17 @@ function formatNumber(value = 0, decimals = 2) {
   return Number(value || 0).toFixed(decimals);
 }
 
+function getMainScore(token = {}) {
+  return Number(token.pipelineScore || token.marketRankScore || token.score || 0);
+}
+
 function confidenceLabel(score = 0) {
   const n = Number(score || 0);
-
   if (n >= 90) return "★★★★★ Institutional";
   if (n >= 80) return "★★★★ A Grade";
   if (n >= 70) return "★★★ B Grade";
   if (n >= 60) return "★★ Watchlist";
   if (n >= 45) return "★ Early Candidate";
-
   return "Low Priority";
 }
 
@@ -42,7 +44,6 @@ function prePumpLabel(token = {}) {
   if (score >= 80) return "🔥 Early High Conviction";
   if (score >= 65) return "👀 Early Watchlist";
   if (score >= 50) return "Neutral";
-
   return "Low Priority";
 }
 
@@ -50,12 +51,32 @@ function getSources(token = {}) {
   if (Array.isArray(token.discoverySources) && token.discoverySources.length) {
     return token.discoverySources.join(", ");
   }
-
   return token.source || "unknown";
 }
 
-function getMainScore(token = {}) {
-  return Number(token.pipelineScore || token.marketRankScore || 0);
+function normalizeForReports(tokens = []) {
+  return [...tokens]
+    .map((token) => {
+      const score = getMainScore(token);
+
+      return {
+        ...token,
+        opportunityScore: score,
+        score,
+        tier: token.pipelineTier || token.tier || confidenceLabel(score),
+        confidence: confidenceLabel(score),
+        riskScore: token.riskScore ?? token.risk?.score ?? 0,
+        narrative:
+          token.narrative ||
+          token.primaryNarrative ||
+          token.narrativeForecast?.narrative ||
+          "",
+        volume24h: token.volume24h ?? token.volume ?? "",
+        marketCap: token.marketCap ?? token.fdv ?? "",
+        liquidity: token.liquidityUsd ?? token.liquidity ?? "",
+      };
+    })
+    .sort((a, b) => getMainScore(b) - getMainScore(a));
 }
 
 function printHeader(discovery = {}, memeGate = {}, ranked = [], summary = {}) {
@@ -72,7 +93,6 @@ function printHeader(discovery = {}, memeGate = {}, ranked = [], summary = {}) {
   console.log(`Meme Filter Accepted....... ${memeGate.acceptedCount || 0}`);
   console.log(`Meme Filter Rejected....... ${memeGate.rejectedCount || 0}`);
   console.log(`Ranked Projects............ ${ranked.length}`);
-
   console.log("---------------------------------------------------------------");
   console.log(`Institutional Alpha........ ${summary.institutionalAlphaCount || 0}`);
   console.log(`A+ Opportunities........... ${summary.aPlusOpportunityCount || 0}`);
@@ -88,7 +108,7 @@ function printReasons(title, reasons = []) {
 
   console.log(`\n${title}:`);
 
-  reasons.slice(0, 5).forEach(reason => {
+  reasons.slice(0, 5).forEach((reason) => {
     console.log(`✓ ${reason}`);
   });
 }
@@ -98,7 +118,6 @@ function printToken(token = {}, index = 0) {
 
   console.log(`\n#${index + 1} ${token.name || "Unknown"} (${token.symbol || "UNKNOWN"})`);
   console.log("---------------------------------------------------------------");
-
   console.log(`Sources..................... ${getSources(token)}`);
   console.log(`Chain....................... ${token.chain || "unknown"}`);
   console.log(`DEX / Venue................. ${token.dex || token.exchange || "unknown"}`);
@@ -106,15 +125,12 @@ function printToken(token = {}, index = 0) {
   console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd || token.marketCap)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
   console.log(`24h Price Change............ ${formatNumber(token.priceChange24h)}%`);
-
-  console.log(`Pipeline Score.............. ${formatNumber(token.pipelineScore)}`);
+  console.log(`Pipeline Score.............. ${formatNumber(token.pipelineScore || score)}`);
   console.log(`Pipeline Tier............... ${token.pipelineTier || "Unknown"}`);
   console.log(`Market Rank Score........... ${token.marketRankScore || 0}/100`);
   console.log(`Market Rank Level........... ${token.marketRankLevel || "unknown"}`);
-
   console.log(`Pre-Pump Score.............. ${formatNumber(token.prePump?.score)}/100`);
   console.log(`Pre-Pump Status............. ${prePumpLabel(token)}`);
-
   console.log(`Rich Token Score............ ${token.richTokenScore || 0}`);
   console.log(`Momentum Shift.............. ${token.momentumShiftScore || 0}`);
   console.log(`Relative Strength........... ${token.relativeStrengthScore || 0}`);
@@ -128,7 +144,6 @@ function printToken(token = {}, index = 0) {
 
   if (token.masterIntelligence?.market) {
     const market = token.masterIntelligence.market;
-
     console.log("\nMarket Data Health:");
     console.log(`Status...................... ${market.status || "unknown"}`);
     console.log(`Source...................... ${market.source || "unknown"}`);
@@ -144,15 +159,33 @@ function printToken(token = {}, index = 0) {
   }
 }
 
+function printReportPaths(paths = {}) {
+  console.log("\n📊 REPORTS GENERATED");
+  console.log("---------------------------------------------------------------");
+  console.log(`HTML Dashboard.............. ${paths.htmlPath}`);
+  console.log(`JSON Report................. ${paths.jsonPath}`);
+  console.log(`CSV Export.................. ${paths.csvPath}`);
+  console.log(`Watchlist................... ${paths.watchlistPath}`);
+  console.log(`Summary..................... ${paths.summaryPath}`);
+  console.log(`Watchlist Count............. ${paths.watchlistCount}`);
+  console.log("---------------------------------------------------------------");
+  console.log("Open dashboard:");
+  console.log("open reports/report.html");
+}
+
 async function main() {
+  const startedAt = new Date();
+
   const discovery = await runDiscoveryManager({
     maxTokens: Number(process.env.MAX_TOKENS || 300),
     coinGeckoPerPage: Number(process.env.COINGECKO_PER_PAGE || 250),
-    freeLimit: Number(process.env.FREE_SOURCE_LIMIT || 200)
+    freeLimit: Number(process.env.FREE_SOURCE_LIMIT || 200),
   });
 
   const candidates = Array.isArray(discovery.candidates)
     ? discovery.candidates
+    : Array.isArray(discovery)
+    ? discovery
     : [];
 
   const memeGate =
@@ -161,15 +194,27 @@ async function main() {
           accepted: candidates,
           rejected: [],
           acceptedCount: candidates.length,
-          rejectedCount: 0
+          rejectedCount: 0,
         }
       : filterMemes(candidates);
 
-  const ranked = await runIntelligencePipeline(memeGate.accepted, {
-    saveMemory: false
+  const pipelineResults = await runIntelligencePipeline(memeGate.accepted, {
+    saveMemory: true,
   });
 
+  const ranked = normalizeForReports(pipelineResults);
   const summary = summarizePipelineResults(ranked);
+
+  const reportPaths = generateReports(ranked, {
+    startedAt: startedAt.toISOString(),
+    completedAt: new Date().toISOString(),
+    discoveredCount: candidates.length,
+    memeAccepted: memeGate.acceptedCount,
+    memeRejected: memeGate.rejectedCount,
+    rankedProjects: ranked.length,
+    platform: "Crypto Launch Intelligence",
+    mode: "showTokens",
+  });
 
   printHeader(discovery, memeGate, ranked, summary);
 
@@ -178,12 +223,14 @@ async function main() {
 
   ranked.slice(0, 25).forEach(printToken);
 
+  printReportPaths(reportPaths);
+
   console.log("\n═══════════════════════════════════════════════════════════════");
   console.log("Research tool only. Not financial advice.");
   console.log("═══════════════════════════════════════════════════════════════");
 }
 
-main().catch(error => {
-  console.error("❌ showTokens failed:", error.message);
+main().catch((error) => {
+  console.error("❌ showTokens failed:", error);
   process.exit(1);
 });
