@@ -1,26 +1,18 @@
 // src/engines/projectQualityGateEngine.js
 
-/**
- * Crypto Launch Intelligence
- * Project Quality Gate Engine
- *
- * Purpose:
- * Rejects weak, thin, noisy, or unsafe-looking projects before
- * they reach the final opportunity ranking.
- */
-
 export const DEFAULT_PROJECT_QUALITY_RULES = {
-  minLiquidityUsd: 50000,
-  minVolume24h: 100000,
-  minBuyTransactions24h: 25,
+  minLiquidityUsd: 25000,
+  minVolume24h: 50000,
+  minBuyTransactions24h: 10,
   maxSellPressureRatio: 0.8,
-  minRichTokenScore: 40,
-  requireChart: true,
-  requirePairAddress: true
+  minRichTokenScore: 25,
+  requireChart: false,
+  requirePairAddress: false,
+  allowMissingTransactionData: true,
 };
 
 function num(value = 0) {
-  return Number(value || 0);
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
 function sellPressureRatio(project = {}) {
@@ -28,30 +20,44 @@ function sellPressureRatio(project = {}) {
   const sells = num(project.sellTransactions24h);
   const total = buys + sells;
 
-  if (total <= 0) return 0;
+  if (total <= 0) return null;
   return sells / total;
 }
 
-export function evaluateProjectQuality(project = {}, rules = DEFAULT_PROJECT_QUALITY_RULES) {
-  const reasons = [];
+function hasTransactionData(project = {}) {
+  return num(project.buyTransactions24h) > 0 || num(project.sellTransactions24h) > 0;
+}
 
-  if (num(project.liquidityUsd) < rules.minLiquidityUsd) {
+export function evaluateProjectQuality(
+  project = {},
+  rules = DEFAULT_PROJECT_QUALITY_RULES
+) {
+  const reasons = [];
+  const warnings = [];
+  const ratio = sellPressureRatio(project);
+  const txDataAvailable = hasTransactionData(project);
+
+  if (num(project.liquidityUsd ?? project.liquidity) < rules.minLiquidityUsd) {
     reasons.push(`Liquidity under $${rules.minLiquidityUsd}`);
   }
 
-  if (num(project.volume24h) < rules.minVolume24h) {
+  if (num(project.volume24h ?? project.volume) < rules.minVolume24h) {
     reasons.push(`24h volume under $${rules.minVolume24h}`);
   }
 
-  if (num(project.buyTransactions24h) < rules.minBuyTransactions24h) {
-    reasons.push(`Buy transactions under ${rules.minBuyTransactions24h}`);
+  if (!txDataAvailable && rules.allowMissingTransactionData) {
+    warnings.push("Transaction data missing; buy/sell checks skipped.");
+  } else {
+    if (num(project.buyTransactions24h) < rules.minBuyTransactions24h) {
+      reasons.push(`Buy transactions under ${rules.minBuyTransactions24h}`);
+    }
+
+    if (ratio !== null && ratio > rules.maxSellPressureRatio) {
+      reasons.push("Sell pressure too high");
+    }
   }
 
-  if (sellPressureRatio(project) > rules.maxSellPressureRatio) {
-    reasons.push("Sell pressure too high");
-  }
-
-  if (num(project.richTokenScore) < rules.minRichTokenScore) {
+  if (num(project.richTokenScore) > 0 && num(project.richTokenScore) < rules.minRichTokenScore) {
     reasons.push(`Rich token score under ${rules.minRichTokenScore}`);
   }
 
@@ -63,17 +69,21 @@ export function evaluateProjectQuality(project = {}, rules = DEFAULT_PROJECT_QUA
     reasons.push("Missing pair address");
   }
 
+  const passed = reasons.length === 0;
+
   return {
-    passed: reasons.length === 0,
+    passed,
     reasons,
-    sellPressureRatio: sellPressureRatio(project)
+    warnings,
+    sellPressureRatio: ratio,
+    transactionDataAvailable: txDataAvailable,
   };
 }
 
 export function applyProjectQualityGate(projects = [], customRules = {}) {
   const rules = {
     ...DEFAULT_PROJECT_QUALITY_RULES,
-    ...customRules
+    ...customRules,
   };
 
   const accepted = [];
@@ -86,14 +96,37 @@ export function applyProjectQualityGate(projects = [], customRules = {}) {
       ...project,
       projectQualityPassed: quality.passed,
       projectQualityReasons: quality.reasons,
-      projectSellPressureRatio: quality.sellPressureRatio
+      projectQualityWarnings: quality.warnings,
+      projectSellPressureRatio: quality.sellPressureRatio,
+      projectTransactionDataAvailable: quality.transactionDataAvailable,
+
+      intelligenceSignals: {
+        ...(project.intelligenceSignals || {}),
+        projectQualityGate: {
+          passed: quality.passed,
+          reasons: quality.reasons,
+          warnings: quality.warnings,
+          sellPressureRatio: quality.sellPressureRatio,
+        },
+      },
+
+      evidence: [
+        ...(project.evidence || []),
+        {
+          engine: "Project Quality Gate Engine",
+          signal: "Minimum quality filter",
+          score: quality.passed ? 100 : 0,
+          confidence: 1,
+          impact: quality.passed ? "Positive" : "Risk",
+          reasons: quality.passed
+            ? ["Project passed minimum quality gate."]
+            : quality.reasons,
+        },
+      ],
     };
 
-    if (quality.passed) {
-      accepted.push(enriched);
-    } else {
-      rejected.push(enriched);
-    }
+    if (quality.passed) accepted.push(enriched);
+    else rejected.push(enriched);
   }
 
   return {
@@ -101,6 +134,11 @@ export function applyProjectQualityGate(projects = [], customRules = {}) {
     accepted,
     rejected,
     acceptedCount: accepted.length,
-    rejectedCount: rejected.length
+    rejectedCount: rejected.length,
   };
+}
+
+export function analyzeProjectQualityGateBatch(projects = [], rules = {}) {
+  const result = applyProjectQualityGate(projects, rules);
+  return result.accepted;
 }
