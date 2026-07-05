@@ -2,68 +2,153 @@
 
 /**
  * Crypto Launch Intelligence
- * CoinGecko Connector
+ * CoinGecko Connector v2
  *
- * Purpose:
- * Pulls trending crypto market data from CoinGecko.
- * This expands discovery beyond DEX-only data.
+ * Upgrade:
+ * - Scans trending coins
+ * - Scans top volume market pages
+ * - Scans multiple CoinGecko categories
+ * - Supports higher perPage/page depth
+ * - Adds deduplication
+ * - Adds safer fetch timeout
  */
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    headers: {
-      accept: "application/json"
-    }
-  });
+const DEFAULT_CATEGORIES = [
+  "artificial-intelligence",
+  "real-world-assets-rwa",
+  "gaming",
+  "depin",
+  "base-ecosystem",
+  "solana-ecosystem",
+  "ethereum-ecosystem",
+  "layer-1",
+  "layer-2",
+  "meme-token",
+  "zero-knowledge-zk"
+];
 
-  if (!response.ok) {
-    throw new Error(`CoinGecko request failed: ${response.status} ${url}`);
+function sleep(ms = 750) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJson(url, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || 15000);
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        accept: "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko request failed: ${response.status} ${url}`);
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function safeNumber(value = 0) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function keyForCoin(project = {}) {
+  return String(project.pairAddress || project.symbol || project.name || "")
+    .toLowerCase()
+    .trim();
+}
+
+function dedupeProjects(projects = []) {
+  const seen = new Map();
+
+  for (const project of projects) {
+    const key = keyForCoin(project);
+    if (!key) continue;
+
+    if (!seen.has(key)) {
+      seen.set(key, project);
+      continue;
+    }
+
+    const existing = seen.get(key);
+
+    seen.set(key, {
+      ...existing,
+      ...project,
+      sources: Array.from(
+        new Set([...(existing.sources || []), ...(project.sources || [])])
+      )
+    });
   }
 
-  return response.json();
+  return Array.from(seen.values());
 }
 
 export async function getTrendingCoins() {
   return fetchJson(`${COINGECKO_BASE}/search/trending`);
 }
 
-export async function getTopMarkets(options = {}) {
+export async function getMarkets(options = {}) {
   const currency = options.currency || "usd";
-  const perPage = Number(options.perPage || 50);
+  const perPage = Number(options.perPage || 250);
+  const page = Number(options.page || 1);
+  const category = options.category || "";
 
-  return fetchJson(
-    `${COINGECKO_BASE}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false&price_change_percentage=24h`
-  );
+  const params = new URLSearchParams({
+    vs_currency: currency,
+    order: options.order || "volume_desc",
+    per_page: String(perPage),
+    page: String(page),
+    sparkline: "false",
+    price_change_percentage: "1h,24h,7d"
+  });
+
+  if (category) params.set("category", category);
+
+  return fetchJson(`${COINGECKO_BASE}/coins/markets?${params.toString()}`);
 }
 
-export function normalizeCoinGeckoMarket(coin = {}) {
+export function normalizeCoinGeckoMarket(coin = {}, meta = {}) {
   return {
     name: coin.name || "Unknown",
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
-    chain: "coingecko",
+    chain: meta.category || "coingecko",
     address: null,
     pairAddress: coin.id || null,
-    dex: "market",
-    url: `https://www.coingecko.com/en/coins/${coin.id}`,
+    dex: meta.category ? `category:${meta.category}` : "market",
+    url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
 
-    priceUsd: Number(coin.current_price || 0),
-    liquidityUsd: Number(coin.market_cap || 0),
-    volume24h: Number(coin.total_volume || 0),
+    priceUsd: safeNumber(coin.current_price),
+    liquidityUsd: safeNumber(coin.market_cap),
+    volume24h: safeNumber(coin.total_volume),
 
-    priceChange24h: Number(coin.price_change_percentage_24h || 0),
+    priceChange1h: safeNumber(coin.price_change_percentage_1h_in_currency),
+    priceChange24h: safeNumber(coin.price_change_percentage_24h),
+    priceChange7d: safeNumber(coin.price_change_percentage_7d_in_currency),
 
-    marketCap: Number(coin.market_cap || 0),
-    fdv: Number(coin.fully_diluted_valuation || 0),
-    circulatingSupply: Number(coin.circulating_supply || 0),
-    totalSupply: Number(coin.total_supply || 0),
+    marketCap: safeNumber(coin.market_cap),
+    fdv: safeNumber(coin.fully_diluted_valuation),
+    circulatingSupply: safeNumber(coin.circulating_supply),
+    totalSupply: safeNumber(coin.total_supply),
+    marketCapRank: safeNumber(coin.market_cap_rank),
 
     source: "coingecko",
+    sources: ["coingecko"],
 
     description: [
       coin.name,
       coin.symbol,
+      meta.category,
       "coingecko market data"
     ]
       .filter(Boolean)
@@ -77,19 +162,20 @@ export function normalizeCoinGeckoTrending(item = {}) {
   return {
     name: coin.name || "Unknown",
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
-    chain: "coingecko",
+    chain: "coingecko-trending",
     address: null,
     pairAddress: coin.id || null,
     dex: "trending",
-    url: `https://www.coingecko.com/en/coins/${coin.id}`,
+    url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
 
-    priceUsd: Number(coin.data?.price || 0),
-    liquidityUsd: Number(coin.data?.market_cap || 0),
-    volume24h: Number(coin.data?.total_volume || 0),
+    priceUsd: safeNumber(coin.data?.price),
+    liquidityUsd: safeNumber(coin.data?.market_cap),
+    volume24h: safeNumber(coin.data?.total_volume),
 
-    marketCapRank: Number(coin.market_cap_rank || 0),
+    marketCapRank: safeNumber(coin.market_cap_rank),
 
     source: "coingecko-trending",
+    sources: ["coingecko-trending"],
 
     description: [
       coin.name,
@@ -102,35 +188,66 @@ export function normalizeCoinGeckoTrending(item = {}) {
 }
 
 export async function getCoinGeckoCandidates(options = {}) {
-  const perPage = Number(options.perPage || 50);
+  const perPage = Number(options.perPage || 250);
+  const pages = Number(options.pages || 3);
+  const categories = options.categories || DEFAULT_CATEGORIES;
+  const delayMs = Number(options.delayMs || 900);
 
   const candidates = [];
 
   try {
     const trending = await getTrendingCoins();
     const trendingCoins = trending.coins || [];
-
-    candidates.push(
-      ...trendingCoins.map(normalizeCoinGeckoTrending)
-    );
+    candidates.push(...trendingCoins.map(normalizeCoinGeckoTrending));
   } catch (error) {
     console.warn(`CoinGecko trending skipped: ${error.message}`);
   }
 
-  try {
-    const markets = await getTopMarkets({ perPage });
+  for (let page = 1; page <= pages; page++) {
+    try {
+      const markets = await getMarkets({ perPage, page });
+      candidates.push(
+        ...markets.map((coin) =>
+          normalizeCoinGeckoMarket(coin, { category: "top-volume" })
+        )
+      );
+    } catch (error) {
+      console.warn(`CoinGecko market page ${page} skipped: ${error.message}`);
+    }
 
-    candidates.push(
-      ...markets.map(normalizeCoinGeckoMarket)
-    );
-  } catch (error) {
-    console.warn(`CoinGecko markets skipped: ${error.message}`);
+    await sleep(delayMs);
   }
 
-  return candidates;
+  for (const category of categories) {
+    try {
+      const markets = await getMarkets({
+        perPage,
+        page: 1,
+        category,
+        order: "volume_desc"
+      });
+
+      candidates.push(
+        ...markets.map((coin) =>
+          normalizeCoinGeckoMarket(coin, { category })
+        )
+      );
+    } catch (error) {
+      console.warn(`CoinGecko category ${category} skipped: ${error.message}`);
+    }
+
+    await sleep(delayMs);
+  }
+
+  return dedupeProjects(candidates);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const candidates = await getCoinGeckoCandidates();
+  const candidates = await getCoinGeckoCandidates({
+    perPage: 250,
+    pages: 3
+  });
+
+  console.log(`CoinGecko candidates: ${candidates.length}`);
   console.log(JSON.stringify(candidates.slice(0, 25), null, 2));
 }
