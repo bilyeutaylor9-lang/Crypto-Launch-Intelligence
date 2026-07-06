@@ -1,7 +1,11 @@
 // src/ml/trainOnline.js
 import { fetchTrainingRows } from "../storage/db.js";
 import fs from "fs";
-import { LogisticRegression } from "ml-logistic-regression";
+
+// ml-logistic-regression is CommonJS, so grab the default
+import mlLogReg from "ml-logistic-regression";
+const { LogisticRegression } = mlLogReg;
+
 import { Matrix } from "ml-matrix";
 
 const MODEL_PATH = "models/priceUp.json";
@@ -15,11 +19,7 @@ export async function trainOnline() {
   }
 
   // X matrix (features) and Y vector (labels)
-  const X = rows.map((r) => [
-    r.priceUsd,
-    r.liquidityUsd,
-    r.volume24h,
-  ]);
+  const X = rows.map((r) => [r.priceUsd, r.liquidityUsd, r.volume24h]);
   const Y = rows.map((r) => (r.priceChange24h >= 5 ? 1 : 0));
 
   const logreg = new LogisticRegression({
@@ -28,7 +28,7 @@ export async function trainOnline() {
   });
   logreg.train(new Matrix(X), Matrix.columnVector(Y));
 
-  // save model params
+  // Save model parameters
   fs.writeFileSync(MODEL_PATH, JSON.stringify(logreg.toJSON(), null, 2));
   console.log(
     `✅ Logistic-regression model trained on ${rows.length} samples → ${MODEL_PATH}`
