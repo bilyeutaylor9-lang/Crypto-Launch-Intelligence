@@ -59,6 +59,11 @@
     "url": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/issues"
   },
   "homepage": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence",
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "node-cron": "^4.6.0",
+    "prettier": "^3.9.4",
+    "sqlite3": "^6.0.1",
+    "vowpal-wabbit": "^0.0.3"
+  }
 }
