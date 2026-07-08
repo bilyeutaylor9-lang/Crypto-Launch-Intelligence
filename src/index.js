@@ -113,6 +113,12 @@ function printSummary(summary) {
   console.log(`High Rich Token: ${summary.highRichTokenCount}`);
   console.log(`High Momentum: ${summary.highMomentumCount}`);
   console.log(`High Pre-Pump: ${summary.highPrePumpCount}`);
+  console.log(`High Launch/Staking: ${summary.highNarrativeLaunchStakingCount}`);
+  console.log("");
+  console.log(`High Conviction: ${summary.highConvictionCount}`);
+  console.log(`Smart Money + Flow: ${summary.smartMoneyFlowSetupCount}`);
+  console.log(`Narrative + Momentum: ${summary.narrativeMomentumSetupCount}`);
+  console.log(`Defensive / Avoid: ${summary.defensiveCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -135,8 +141,13 @@ function printTopProjects(results) {
     console.log(`   Chain: ${project.chain || "-"}`);
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
+    console.log(`   Conviction: ${project.conviction || "Unknown"}`);
+    console.log(`   Action: ${project.executionPlan?.action || "Unknown"}`);
     console.log(`   Pre-Pump: ${project.prePump?.score || 0}`);
     console.log(`   Status: ${project.prePump?.status || "UNKNOWN"}`);
+    if (project.alphaTags?.length) {
+      console.log(`   Tags: ${project.alphaTags.slice(0, 4).join(", ")}`);
+    }
     console.log("");
   });
 }

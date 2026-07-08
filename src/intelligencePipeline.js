@@ -173,12 +173,279 @@ function weightedInstitutionalScore(project = {}) {
   return Math.round(clamp(score));
 }
 
+function weightedAverage(items = []) {
+  const active = items.filter((item) => num(item.score) > 0);
+
+  if (!active.length) return 0;
+
+  const weightedTotal = active.reduce(
+    (sum, item) => sum + num(item.score) * item.weight,
+    0
+  );
+  const weightTotal = active.reduce((sum, item) => sum + item.weight, 0);
+
+  return Math.round(clamp(weightedTotal / weightTotal));
+}
+
+function buildSignalProfile(project = {}) {
+  const prePumpScore = num(project.prePump?.score);
+
+  const clusters = {
+    narrative: weightedAverage([
+      { score: project.narrativeScore, weight: 0.9 },
+      { score: project.narrativeForecastScore, weight: 1.1 },
+      { score: project.infrastructureNarrativeScore, weight: 0.9 },
+      { score: project.narrativeLaunchStakingScore, weight: 1.0 },
+    ]),
+    launch: weightedAverage([
+      { score: project.launchReadinessScore, weight: 1.1 },
+      { score: project.stakingMomentumScore, weight: 0.8 },
+      { score: project.exchangeProbabilityScore, weight: 0.8 },
+      { score: project.catalystCalendarScore, weight: 0.9 },
+    ]),
+    market: weightedAverage([
+      { score: project.marketRankScore, weight: 1.2 },
+      { score: project.richTokenScore, weight: 0.8 },
+      { score: project.relativeStrengthScore, weight: 0.9 },
+      { score: prePumpScore, weight: 1.0 },
+    ]),
+    momentum: weightedAverage([
+      { score: project.velocityScore, weight: 0.8 },
+      { score: project.accelerationScore, weight: 1.0 },
+      { score: project.trendChangeScore, weight: 0.8 },
+      { score: project.momentumCompressionScore, weight: 0.8 },
+      { score: project.momentumShiftScore, weight: 1.2 },
+      { score: project.earlyBreakoutScore, weight: 1.0 },
+      { score: project.volatilityExpansionScore, weight: 0.7 },
+    ]),
+    flows: weightedAverage([
+      { score: project.capitalFlowScore, weight: 1.1 },
+      { score: project.buyPressureScore, weight: 1.0 },
+      { score: project.liquidityScore, weight: 0.9 },
+      { score: project.liquidityExpansionScore, weight: 0.8 },
+    ]),
+    smartMoney: weightedAverage([
+      { score: project.whaleScore ?? project.whaleActivityScore, weight: 0.9 },
+      { score: project.smartWalletScore, weight: 0.9 },
+      { score: project.smartWalletPerformanceScore, weight: 1.0 },
+      { score: project.smartMoneyAccumulationScore, weight: 1.2 },
+      { score: project.smartMoneyRotationScore, weight: 0.9 },
+    ]),
+    fundamentals: weightedAverage([
+      { score: project.tokenomicsScore, weight: 0.9 },
+      { score: project.fundingBackerScore, weight: 0.8 },
+      { score: project.partnershipScore, weight: 0.7 },
+      { score: project.ecosystemIntegrationScore, weight: 0.9 },
+      { score: project.baselineScore, weight: 0.8 },
+    ]),
+    devCommunity: weightedAverage([
+      { score: project.developerActivityScore ?? project.developerScore, weight: 0.9 },
+      { score: project.githubScore ?? project.githubQualityScore, weight: 0.7 },
+      { score: project.communityGrowthScore ?? project.communityScore, weight: 0.9 },
+      { score: project.socialAccelerationScore, weight: 0.9 },
+      { score: project.holderGrowthScore, weight: 0.8 },
+    ]),
+    risk: weightedAverage([
+      { score: project.riskScore, weight: 1.2 },
+      { score: project.sellPressureScore, weight: 0.9 },
+      { score: project.stakingRiskScore, weight: 0.8 },
+    ]),
+  };
+
+  const rankedClusters = Object.entries(clusters)
+    .filter(([name, score]) => name !== "risk" && score > 0)
+    .map(([name, score]) => ({ name, score }))
+    .sort((a, b) => b.score - a.score);
+
+  return {
+    ...clusters,
+    rankedClusters,
+    strongestCluster: rankedClusters[0]?.name || "none",
+    activeClusterCount: rankedClusters.filter((cluster) => cluster.score >= 55).length,
+    eliteClusterCount: rankedClusters.filter((cluster) => cluster.score >= 75).length,
+  };
+}
+
+function buildAlphaTags(project = {}, profile = {}) {
+  const tags = [];
+
+  if (profile.narrative >= 75) tags.push("Narrative Leader");
+  if (profile.launch >= 70) tags.push("Launch Window");
+  if (profile.market >= 75) tags.push("Market Ranked");
+  if (profile.momentum >= 70) tags.push("Momentum Shift");
+  if (profile.flows >= 70) tags.push("Capital Flow");
+  if (profile.smartMoney >= 70) tags.push("Smart Money");
+  if (profile.fundamentals >= 70) tags.push("Fundamental Support");
+  if (profile.devCommunity >= 70) tags.push("Builder/Community Strength");
+  if (num(project.prePump?.score) >= 70) tags.push("Pre-Pump Candidate");
+  if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
+
+  return tags;
+}
+
+function buildRiskFlags(project = {}, profile = {}) {
+  const risks = [];
+
+  if (project.prePump?.status === "ALREADY_PUMPED") risks.push("Already pumped");
+  if (project.prePump?.status === "LATE_CHASE") risks.push("Late chase setup");
+  if (num(project.riskScore) >= 85) risks.push("Extreme aggregate risk");
+  else if (num(project.riskScore) >= 70) risks.push("High aggregate risk");
+  if (num(project.sellPressureScore) >= 75) risks.push("Heavy sell pressure");
+  if (num(project.stakingRiskScore) >= 70) risks.push("High staking risk");
+  if (profile.risk >= 70) risks.push("Risk cluster elevated");
+  if (num(project.liquidityScore) > 0 && num(project.liquidityScore) < 35) {
+    risks.push("Weak liquidity support");
+  }
+
+  return [...new Set(risks)];
+}
+
+function gradeForScore(score = 0) {
+  if (score >= 85) return "A";
+  if (score >= 75) return "B";
+  if (score >= 60) return "C";
+  if (score >= 40) return "D";
+  return "F";
+}
+
+function buildSignalGrades(profile = {}) {
+  return Object.fromEntries(
+    Object.entries(profile)
+      .filter(([, value]) => typeof value === "number")
+      .map(([name, score]) => [name, gradeForScore(score)])
+  );
+}
+
+function convictionLevel(score = 0, density = 0, riskFlags = []) {
+  if (riskFlags.length >= 3 || riskFlags.includes("Already pumped")) return "Defensive";
+  if (score >= 88 && density >= 70 && riskFlags.length <= 1) return "Institutional";
+  if (score >= 78 && density >= 55) return "High";
+  if (score >= 65 && density >= 40) return "Medium";
+  if (score >= 50 || density >= 30) return "Speculative";
+  return "Low";
+}
+
+function buildExecutionPlan(score = 0, conviction = "Low", risks = []) {
+  if (risks.includes("Already pumped") || risks.includes("Late chase setup")) {
+    return {
+      action: "Avoid Chase",
+      sizing: "No new position until reset",
+      reviewTrigger: "Re-score after momentum cools or risk flags clear",
+    };
+  }
+
+  if (risks.length >= 3) {
+    return {
+      action: "Watch Only",
+      sizing: "Research only",
+      reviewTrigger: "Wait for risk compression and stronger liquidity confirmation",
+    };
+  }
+
+  if (conviction === "Institutional" || (conviction === "High" && score >= 80)) {
+    return {
+      action: "Priority Watch",
+      sizing: "Full research allocation",
+      reviewTrigger: "Monitor for catalyst confirmation and sell-pressure expansion",
+    };
+  }
+
+  if (conviction === "Medium") {
+    return {
+      action: "Watchlist",
+      sizing: "Small exploratory allocation only after confirmation",
+      reviewTrigger: "Re-score after next catalyst, listing, or liquidity expansion",
+    };
+  }
+
+  if (conviction === "Speculative") {
+    return {
+      action: "Speculative Monitor",
+      sizing: "Tiny or paper-trade only",
+      reviewTrigger: "Needs more cross-signal confirmation",
+    };
+  }
+
+  return {
+    action: "Ignore",
+    sizing: "No allocation",
+    reviewTrigger: "Needs material signal improvement",
+  };
+}
+
+function buildOpportunityThesis(project = {}, profile = {}, tags = [], risks = []) {
+  const name = project.name || project.symbol || "This project";
+  const strengths = profile.rankedClusters
+    .slice(0, 3)
+    .map((cluster) => `${cluster.name} ${cluster.score}`)
+    .join(", ");
+
+  if (!strengths) {
+    return `${name} has limited confirmed signal density and should remain low priority until more evidence appears.`;
+  }
+
+  const tagText = tags.length ? ` Key tags: ${tags.slice(0, 4).join(", ")}.` : "";
+  const riskText = risks.length ? ` Main risk: ${risks[0]}.` : " Main risk: none elevated by the current scoring layer.";
+
+  return `${name} is led by ${strengths}.${tagText}${riskText}`;
+}
+
+function advancedScoreBreakdown(project = {}) {
+  const baseScore = weightedInstitutionalScore(project);
+  const profile = buildSignalProfile(project);
+  const tags = buildAlphaTags(project, profile);
+  const risks = buildRiskFlags(project, profile);
+
+  let bonus = 0;
+  let penalty = 0;
+
+  if (profile.eliteClusterCount >= 3) bonus += 5;
+  if (profile.activeClusterCount >= 5) bonus += 4;
+  if (profile.narrative >= 70 && profile.launch >= 60 && profile.momentum >= 60) bonus += 5;
+  if (profile.smartMoney >= 70 && profile.flows >= 65) bonus += 4;
+  if (profile.fundamentals >= 65 && profile.devCommunity >= 65) bonus += 3;
+  if (num(project.prePump?.score) >= 70 && profile.risk < 55) bonus += 4;
+
+  if (profile.risk >= 85) penalty += 18;
+  else if (profile.risk >= 70) penalty += 10;
+  else if (profile.risk >= 55) penalty += 4;
+  if (project.prePump?.status === "ALREADY_PUMPED") penalty += 16;
+  if (project.prePump?.status === "LATE_CHASE") penalty += 10;
+  if (num(project.sellPressureScore) >= 85) penalty += 8;
+  if (num(project.stakingRiskScore) >= 70) penalty += 8;
+
+  const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
+  const riskAdjustedScore = Math.round(clamp(baseScore + bonus - penalty));
+  const signalGrades = buildSignalGrades(profile);
+  const conviction = convictionLevel(riskAdjustedScore, signalDensityScore, risks);
+  const executionPlan = buildExecutionPlan(riskAdjustedScore, conviction, risks);
+  const thesis = buildOpportunityThesis(project, profile, tags, risks);
+
+  return {
+    baseScore,
+    bonus,
+    penalty,
+    riskAdjustedScore,
+    signalDensityScore: Math.round(signalDensityScore),
+    signalProfile: profile,
+    signalGrades,
+    alphaTags: tags,
+    riskFlags: risks,
+    conviction,
+    executionPlan,
+    opportunityThesis: thesis,
+  };
+}
+
 function classifyProject(project = {}) {
   const score = num(project.pipelineScore);
 
   if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
   if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
   if (num(project.stakingRiskScore) >= 70) return "High Staking Risk";
+  if (num(project.riskAdjustedScore) >= 85 && num(project.signalDensityScore) >= 60) {
+    return "High Conviction";
+  }
 
   if (score >= 95) return "Institutional Alpha";
   if (score >= 90) return "Elite Opportunity";
@@ -192,10 +459,12 @@ function classifyProject(project = {}) {
 function confidenceForProject(project = {}) {
   const evidenceCount = Array.isArray(project.evidence) ? project.evidence.length : 0;
   const score = num(project.pipelineScore);
+  const density = num(project.signalDensityScore);
+  const riskFlags = Array.isArray(project.riskFlags) ? project.riskFlags.length : 0;
 
-  if (score >= 85 && evidenceCount >= 8) return "High";
-  if (score >= 70 && evidenceCount >= 5) return "Medium";
-  if (score >= 55) return "Developing";
+  if (score >= 85 && density >= 65 && evidenceCount >= 8 && riskFlags <= 1) return "High";
+  if (score >= 70 && density >= 45 && evidenceCount >= 5) return "Medium";
+  if (score >= 55 || density >= 35) return "Developing";
   return "Low";
 }
 
@@ -204,17 +473,23 @@ function addFinalScoring(projects = []) {
     ? projects
     : normalizeEngineOutput(projects, []);
 
-  return safeProjects
+  const scoredProjects = safeProjects
     .map((project) => {
-      const pipelineScore = weightedInstitutionalScore(project);
-      const pipelineTier = classifyProject({ ...project, pipelineScore });
-      const pipelineConfidence = confidenceForProject({ ...project, pipelineScore });
-
-      return {
+      const breakdown = advancedScoreBreakdown(project);
+      const pipelineScore = breakdown.riskAdjustedScore;
+      const enrichedProject = {
         ...project,
+        ...breakdown,
+        rawPipelineScore: breakdown.baseScore,
         pipelineScore,
         opportunityScore: pipelineScore,
         score: pipelineScore,
+      };
+      const pipelineTier = classifyProject(enrichedProject);
+      const pipelineConfidence = confidenceForProject(enrichedProject);
+
+      return {
+        ...enrichedProject,
         pipelineTier,
         tier: pipelineTier,
         pipelineConfidence,
@@ -222,6 +497,15 @@ function addFinalScoring(projects = []) {
       };
     })
     .sort((a, b) => num(b.pipelineScore) - num(a.pipelineScore));
+
+  const total = scoredProjects.length;
+
+  return scoredProjects.map((project, index) => ({
+    ...project,
+    pipelineRank: index + 1,
+    pipelinePercentile:
+      total <= 1 ? 100 : Math.round(((total - index) / total) * 100),
+  }));
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
@@ -309,6 +593,22 @@ export function summarizePipelineResults(results = []) {
       num(p.narrativeLaunchStakingScore) >= 70 &&
       num(p.stakingRiskScore) < 70
   );
+  const highConvictionOpportunities = safeResults.filter(
+    (p) => ["Institutional", "High"].includes(p.conviction) && num(p.pipelineScore) >= 70
+  );
+  const defensiveProjects = safeResults.filter((p) => p.conviction === "Defensive");
+  const smartMoneyFlowSetups = safeResults.filter(
+    (p) =>
+      num(p.signalProfile?.smartMoney) >= 65 &&
+      num(p.signalProfile?.flows) >= 65 &&
+      num(p.signalProfile?.risk) < 70
+  );
+  const narrativeMomentumSetups = safeResults.filter(
+    (p) =>
+      num(p.signalProfile?.narrative) >= 65 &&
+      num(p.signalProfile?.momentum) >= 65 &&
+      num(p.signalProfile?.risk) < 70
+  );
 
   return {
     scannedProjects: safeResults.length,
@@ -326,6 +626,10 @@ export function summarizePipelineResults(results = []) {
     highPrePumpCount: prePumpOpportunities.length,
     highNarrativeLaunchStakingCount: launchStakingOpportunities.length,
     highStakingRiskCount: safeResults.filter((p) => p.stakingRiskScore >= 70).length,
+    highConvictionCount: highConvictionOpportunities.length,
+    defensiveCount: defensiveProjects.length,
+    smartMoneyFlowSetupCount: smartMoneyFlowSetups.length,
+    narrativeMomentumSetupCount: narrativeMomentumSetups.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -366,6 +670,44 @@ export function summarizePipelineResults(results = []) {
         launchSignals: project.launchSignals || [],
         stakingSignals: project.stakingSignals || [],
       })),
+
+    bestHighConvictionOpportunities: highConvictionOpportunities
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.pipelineRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        pipelineScore: project.pipelineScore || 0,
+        rawPipelineScore: project.rawPipelineScore || 0,
+        conviction: project.conviction || "Unknown",
+        action: project.executionPlan?.action || "Unknown",
+        sizing: project.executionPlan?.sizing || "Unknown",
+        alphaTags: project.alphaTags || [],
+        riskFlags: project.riskFlags || [],
+        thesis: project.opportunityThesis || "",
+      })),
+
+    bestSmartMoneyFlowSetups: smartMoneyFlowSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      smartMoneyScore: project.signalProfile?.smartMoney || 0,
+      flowsScore: project.signalProfile?.flows || 0,
+      riskScore: project.signalProfile?.risk || 0,
+      action: project.executionPlan?.action || "Unknown",
+    })),
+
+    bestNarrativeMomentumSetups: narrativeMomentumSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      narrativeScore: project.signalProfile?.narrative || 0,
+      momentumScore: project.signalProfile?.momentum || 0,
+      riskScore: project.signalProfile?.risk || 0,
+      action: project.executionPlan?.action || "Unknown",
+    })),
 
     bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map((project) => ({
       name: project.name || "Unknown",
