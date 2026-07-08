@@ -70,6 +70,11 @@ export function writeSummaryReport(projects = []) {
       Number(p.opportunityScore ?? p.score ?? 0) >= 70 &&
       ["Low", "Developing"].includes(p.dataConfidence || p.confidence)
   );
+  const institutionalVNext = ranked.filter((p) => Number(p.institutionalVNextScore || 0) >= 70);
+  const institutionalConfidence = ranked.filter((p) =>
+    ["Institutional", "High"].includes(p.institutionalConfidenceLevel)
+  );
+  const highVestingPressure = ranked.filter((p) => Number(p.vestingPressureScore || 0) >= 65);
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -114,6 +119,12 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - breakout match ${p.prePumpPatternMatchPct || 0}%, trap match ${p.trapPatternMatchPct || 0}%, confidence ${p.prePumpPatternConfidence || "Unknown"}`;
     })
     .join("\n");
+  const topInstitutionalVNext = institutionalVNext
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - vNext ${p.institutionalVNextScore || 0}, confidence ${p.institutionalConfidenceLevel || "Unknown"} - ${p.explainabilitySummary || "No explainability summary"}`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -151,6 +162,9 @@ External confirmations: ${externalConfirmed.length}
 Pre-breakout pattern matches: ${preBreakoutPatternMatches.length}
 Trap-pattern warnings: ${trapPatternWarnings.length}
 High score / low data confidence: ${lowConfidenceHighScores.length}
+Institutional vNext setups: ${institutionalVNext.length}
+Institutional confidence setups: ${institutionalConfidence.length}
+High vesting pressure setups: ${highVestingPressure.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -179,6 +193,9 @@ ${topAIAnalyst || "None"}
 Top pre-breakout pattern matches:
 ${topPrePumpPatterns || "None"}
 
+Top institutional vNext setups:
+${topInstitutionalVNext || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
@@ -186,6 +203,7 @@ Files generated:
 - reports/quantum-field.json
 - reports/outcome-calibration.json
 - reports/pre-pump-patterns.json
+- reports/institutional-vnext.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();

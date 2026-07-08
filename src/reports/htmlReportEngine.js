@@ -52,6 +52,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.executionPlan?.action || "")}</td>
           <td>${esc(tier)}</td>
           <td>${esc(p.aiDecision || "")}</td>
+          <td>${esc(p.institutionalVNextScore ?? "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
           <td>${esc(p.externalSignalScore ?? "")}</td>
           <td>${esc(p.learningEdgeScore ?? "")}</td>
@@ -63,7 +64,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
           <td>${esc(p.riskScore ?? "")}</td>
-          <td>${esc(p.aiThesis?.memo || p.opportunityThesis || "")}</td>
+          <td>${esc(p.explainabilitySummary || p.aiThesis?.memo || p.opportunityThesis || "")}</td>
         </tr>
       `;
     })
@@ -193,6 +194,7 @@ export function writeHtmlReport(projects = []) {
         <th>Action</th>
         <th>Tier</th>
         <th>AI Decision</th>
+        <th>vNext</th>
         <th>X Social</th>
         <th>External</th>
         <th>Learning</th>

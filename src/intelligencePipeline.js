@@ -49,6 +49,7 @@ import { analyzeSignalCombinationsBatch } from "./engines/signalCombinationEngin
 import { analyzeOutcomeCalibrationBatch } from "./engines/outcomeCalibrationEngine.js";
 import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEngine.js";
 import { analyzeAIResearchAnalystBatch } from "./engines/aiResearchAnalystEngine.js";
+import { analyzeInstitutionalVNextBatch } from "./engines/institutionalVNextEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -117,6 +118,8 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.calibrationScore, weight: 0.7 },
     { score: project.quantumOpportunityScore, weight: 0.9 },
     { score: project.aiAnalystScore, weight: 0.9 },
+    { score: project.institutionalVNextScore, weight: 1.2 },
+    { score: project.institutionalConfidenceScore, weight: 0.9 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -297,6 +300,11 @@ function buildSignalProfile(project = {}) {
       { score: project.aiAnalystScore, weight: 1.0 },
       { score: project.aiDecision === "Priority Watch" ? 85 : project.aiDecision === "Reject" ? 20 : 50, weight: 0.5 },
     ]),
+    institutionalVNext: weightedAverage([
+      { score: project.institutionalVNextScore, weight: 1.1 },
+      { score: project.institutionalConfidenceScore, weight: 0.9 },
+      { score: project.evidenceQualityScore, weight: 0.7 },
+    ]),
     quantumField: weightedAverage([
       { score: project.quantumOpportunityScore, weight: 1.0 },
       { score: project.quantumOutcomeField?.positiveProbability, weight: 0.7 },
@@ -341,6 +349,9 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (num(project.calibrationAdjustment) >= 5) tags.push("Calibrated Edge");
   if (num(project.externalSignalScore) >= 65) tags.push("External Confirmation");
   if (project.aiDecision === "Priority Watch") tags.push("AI Analyst Priority");
+  if (num(project.institutionalVNextScore) >= 75) tags.push("Institutional vNext Edge");
+  if (project.institutionalConfidenceLevel === "Institutional") tags.push("Institutional Confidence");
+  if (num(project.smartMoneyConvictionScore) >= 70) tags.push("Smart Money Conviction");
   if (num(project.institutionalWatchScore) >= 65) tags.push("Institutional Attention");
   if (num(project.learningEdgeScore) >= 70) tags.push("Learning Edge");
   if (num(project.outcomeLearningScore) >= 70) tags.push("Outcome-Memory Winner Fit");
@@ -379,6 +390,11 @@ function buildRiskFlags(project = {}, profile = {}) {
   if (num(project.calibrationAdjustment) <= -5) risks.push("Negative outcome calibration");
   if (num(project.externalRiskScore) >= 45) risks.push("External risk language");
   if (project.aiDecision === "Reject") risks.push("AI analyst rejection");
+  if (num(project.vestingPressureScore) >= 65) risks.push("High vesting pressure");
+  if (num(project.tokenUnlockRiskScore) >= 65) risks.push("Token unlock risk");
+  if (num(project.evidenceQualityScore) > 0 && num(project.evidenceQualityScore) < 35) {
+    risks.push("Thin evidence quality");
+  }
   if (profile.risk >= 70) risks.push("Risk cluster elevated");
   if (num(project.liquidityScore) > 0 && num(project.liquidityScore) < 35) {
     risks.push("Weak liquidity support");
@@ -490,6 +506,9 @@ function buildResearchChecklist(project = {}, profile = {}) {
   if (project.prePumpPattern?.matchedFeatures?.length) {
     checklist.push("Compare matched pre-pump pattern features against current liquidity, social, and wallet evidence.");
   }
+  if (project.institutionalVNext?.modules?.explainability?.summary) {
+    checklist.push("Review vNext explainability summary against raw evidence.");
+  }
   if (project.aiThesis?.nextResearchSteps?.length) {
     checklist.push(...project.aiThesis.nextResearchSteps.slice(0, 3));
   }
@@ -533,6 +552,9 @@ function buildInvalidationSignals(project = {}, profile = {}) {
   }
   if (project.aiDecision && project.aiDecision !== "Pass For Now") {
     invalidations.push("AI analyst decision downgrades after fresh X/news evidence.");
+  }
+  if (num(project.institutionalVNextScore) >= 60) {
+    invalidations.push("Institutional vNext score drops below 50 or evidence quality deteriorates.");
   }
   if (profile.launch >= 55) {
     invalidations.push("Launch or staking terms reveal high dilution, lockup risk, or weak demand.");
@@ -709,6 +731,10 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.externalSignalScore) >= 65 && num(project.externalRiskScore) < 35) bonus += 4;
   if (project.aiDecision === "Priority Watch") bonus += 5;
   if (project.aiDecision === "Watchlist") bonus += 3;
+  if (num(project.institutionalVNextScore) >= 75 && num(project.evidenceQualityScore) >= 50) bonus += 7;
+  else if (num(project.institutionalVNextScore) >= 60) bonus += 4;
+  if (project.institutionalConfidenceLevel === "Institutional") bonus += 5;
+  if (num(project.smartMoneyConvictionScore) >= 70 && num(project.liquidityMigrationScore) >= 60) bonus += 5;
   if (profile.quantumField >= 70 && num(project.quantumOutcomeField?.collapseProbability) < 25) bonus += 4;
   if (num(project.institutionalWatchScore) >= 70) bonus += 3;
   if (num(project.learningEdgeScore) >= 75) bonus += 3;
@@ -732,9 +758,24 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.calibrationAdjustment) < 0) penalty += Math.min(12, Math.abs(num(project.calibrationAdjustment)));
   if (num(project.externalRiskScore) >= 45) penalty += 6;
   if (project.aiDecision === "Reject") penalty += 10;
+  if (num(project.vestingPressureScore) >= 70) penalty += 8;
+  if (num(project.tokenUnlockRiskScore) >= 70) penalty += 7;
+  if (num(project.evidenceQualityScore) > 0 && num(project.evidenceQualityScore) < 35) penalty += 5;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
-  const riskAdjustedScore = Math.round(clamp(baseScore + bonus - penalty));
+  const dynamicWeightAdjustment = project.dynamicEngineWeights
+    ? Math.round(
+        clamp(
+          (num(project.dynamicEngineWeights.wallet) - 1) * 8 +
+            (num(project.dynamicEngineWeights.liquidity) - 1) * 7 +
+            (num(project.dynamicEngineWeights.risk) - 1) * -7 +
+            (num(project.dynamicEngineWeights.launch) - 1) * 5,
+          -8,
+          8
+        )
+      )
+    : 0;
+  const riskAdjustedScore = Math.round(clamp(baseScore + bonus + dynamicWeightAdjustment - penalty));
   const signalGrades = buildSignalGrades(profile);
   const conviction = convictionLevel(riskAdjustedScore, signalDensityScore, risks);
   const executionPlan = buildExecutionPlan(riskAdjustedScore, conviction, risks);
@@ -744,6 +785,7 @@ function advancedScoreBreakdown(project = {}) {
     baseScore,
     bonus,
     penalty,
+    dynamicWeightAdjustment,
     riskAdjustedScore,
     signalDensityScore: Math.round(signalDensityScore),
     signalProfile: profile,
@@ -961,6 +1003,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Quantum Outcome Field", analyzeQuantumOutcomeFieldBatch, results, options.quantumField || {});
   results = await runEngine("Outcome Calibration", analyzeOutcomeCalibrationBatch, results);
   results = await runEngine("AI Research Analyst", analyzeAIResearchAnalystBatch, results);
+  results = await runEngine("Institutional vNext", analyzeInstitutionalVNextBatch, results);
 
   results = addFinalScoring(results);
 
@@ -1061,6 +1104,11 @@ export function summarizePipelineResults(results = []) {
   const lowConfidenceHighScores = safeResults.filter(
     (p) => num(p.pipelineScore) >= 70 && ["Low", "Developing"].includes(p.dataConfidence)
   );
+  const institutionalVNextSetups = safeResults.filter((p) => num(p.institutionalVNextScore) >= 70);
+  const institutionalConfidenceSetups = safeResults.filter(
+    (p) => ["Institutional", "High"].includes(p.institutionalConfidenceLevel)
+  );
+  const highVestingPressureSetups = safeResults.filter((p) => num(p.vestingPressureScore) >= 65);
 
   return {
     scannedProjects: safeResults.length,
@@ -1105,6 +1153,9 @@ export function summarizePipelineResults(results = []) {
     preBreakoutPatternCount: preBreakoutPatternSetups.length,
     trapPatternCount: trapPatternSetups.length,
     lowConfidenceHighScoreCount: lowConfidenceHighScores.length,
+    institutionalVNextCount: institutionalVNextSetups.length,
+    institutionalConfidenceCount: institutionalConfidenceSetups.length,
+    highVestingPressureCount: highVestingPressureSetups.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -1267,6 +1318,22 @@ export function summarizePipelineResults(results = []) {
       patternConfidence: project.prePumpPatternConfidence || "Unknown",
       matchedFeatures: project.prePumpPattern?.matchedFeatures || [],
       summary: project.prePumpPattern?.summary || "",
+    })),
+
+    bestInstitutionalVNextSetups: institutionalVNextSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      institutionalVNextScore: project.institutionalVNextScore || 0,
+      institutionalConfidenceScore: project.institutionalConfidenceScore || 0,
+      institutionalConfidenceLevel: project.institutionalConfidenceLevel || "Unknown",
+      evidenceQualityScore: project.evidenceQualityScore || 0,
+      monteCarloV2Score: project.monteCarloV2Score || 0,
+      smartMoneyConvictionScore: project.smartMoneyConvictionScore || 0,
+      liquidityMigrationScore: project.liquidityMigrationScore || 0,
+      vestingPressureScore: project.vestingPressureScore || 0,
+      explainabilitySummary: project.explainabilitySummary || "",
     })),
 
     highScoreLowConfidenceWarnings: lowConfidenceHighScores.slice(0, 10).map((project) => ({

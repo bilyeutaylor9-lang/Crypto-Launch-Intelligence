@@ -6,6 +6,7 @@ import { writeHtmlReport } from "./htmlReportEngine.js";
 import { writeQuantumFieldReport } from "./quantumFieldReportEngine.js";
 import { writeCalibrationReport } from "./calibrationReportEngine.js";
 import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
+import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -16,6 +17,7 @@ export function generateReports(projects = [], meta = {}) {
   const quantumFieldPath = writeQuantumFieldReport(projects);
   const calibrationPath = writeCalibrationReport();
   const prePumpPatternPath = writePrePumpPatternReport();
+  const institutionalVNextPath = writeInstitutionalVNextReport(projects);
 
   return {
     htmlPath,
@@ -24,6 +26,7 @@ export function generateReports(projects = [], meta = {}) {
     quantumFieldPath,
     calibrationPath,
     prePumpPatternPath,
+    institutionalVNextPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,

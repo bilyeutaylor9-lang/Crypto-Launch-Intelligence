@@ -187,6 +187,7 @@ function printReportPaths(paths) {
   console.log(`Quantum Field:  ${paths.quantumFieldPath}`);
   console.log(`Patterns:       ${paths.prePumpPatternPath}`);
   console.log(`Calibration:    ${paths.calibrationPath}`);
+  console.log(`vNext:          ${paths.institutionalVNextPath}`);
   console.log(`Watchlist:      ${paths.watchlistPath}`);
   console.log(`Summary:        ${paths.summaryPath}`);
   console.log(`Watchlist Count: ${paths.watchlistCount}`);
