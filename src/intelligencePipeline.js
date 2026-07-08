@@ -42,11 +42,13 @@ import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEn
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 import { analyzeInstitutionalLearningBatch } from "./engines/institutionalLearningEngine.js";
+import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
+import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -102,6 +104,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.xSocialScore, weight: 0.8 },
     { score: project.institutionalWatchScore, weight: 0.9 },
     { score: project.learningEdgeScore, weight: 0.7 },
+    { score: project.quantumOpportunityScore, weight: 0.9 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -262,6 +265,11 @@ function buildSignalProfile(project = {}) {
       { score: project.learningEdgeScore, weight: 1.0 },
       { score: project.institutionalLearning?.learningEdgeScore, weight: 1.0 },
     ]),
+    quantumField: weightedAverage([
+      { score: project.quantumOpportunityScore, weight: 1.0 },
+      { score: project.quantumOutcomeField?.positiveProbability, weight: 0.7 },
+      { score: project.quantumOutcomeField?.doubleProbability, weight: 0.5 },
+    ]),
     risk: weightedAverage([
       { score: project.riskScore, weight: 1.2 },
       { score: project.sellPressureScore, weight: 0.9 },
@@ -298,6 +306,7 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (profile.socialIntelligence >= 70) tags.push("X/Social Acceleration");
   if (num(project.institutionalWatchScore) >= 65) tags.push("Institutional Attention");
   if (num(project.learningEdgeScore) >= 70) tags.push("Learning Edge");
+  if (num(project.quantumOpportunityScore) >= 70) tags.push("Quantum Upside Field");
   if (num(project.prePump?.score) >= 70) tags.push("Pre-Pump Candidate");
   if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
 
@@ -316,6 +325,9 @@ function buildRiskFlags(project = {}, profile = {}) {
   if (num(project.xBotRiskScore) >= 55) risks.push("Social/bot risk");
   if (num(project.learningEdgeScore) > 0 && num(project.learningEdgeScore) <= 35) {
     risks.push("Negative learning trend");
+  }
+  if (num(project.quantumOutcomeField?.collapseProbability) >= 35) {
+    risks.push("High quantum downside field");
   }
   if (profile.risk >= 70) risks.push("Risk cluster elevated");
   if (num(project.liquidityScore) > 0 && num(project.liquidityScore) < 35) {
@@ -613,6 +625,7 @@ function advancedScoreBreakdown(project = {}) {
   if (profile.smartMoney >= 70 && profile.flows >= 65) bonus += 4;
   if (profile.fundamentals >= 65 && profile.devCommunity >= 65) bonus += 3;
   if (profile.socialIntelligence >= 70 && profile.learning >= 60) bonus += 4;
+  if (profile.quantumField >= 70 && num(project.quantumOutcomeField?.collapseProbability) < 25) bonus += 4;
   if (num(project.institutionalWatchScore) >= 70) bonus += 3;
   if (num(project.learningEdgeScore) >= 75) bonus += 3;
   if (num(project.prePump?.score) >= 70 && profile.risk < 55) bonus += 4;
@@ -626,6 +639,7 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.stakingRiskScore) >= 70) penalty += 8;
   if (num(project.xBotRiskScore) >= 55) penalty += 6;
   if (num(project.learningEdgeScore) > 0 && num(project.learningEdgeScore) <= 35) penalty += 6;
+  if (num(project.quantumOutcomeField?.collapseProbability) >= 35) penalty += 8;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const riskAdjustedScore = Math.round(clamp(baseScore + bonus - penalty));
@@ -786,6 +800,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
   results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
   results = await runEngine("Institutional Learning", analyzeInstitutionalLearningBatch, results);
+  results = await runEngine("Quantum Outcome Field", analyzeQuantumOutcomeFieldBatch, results, options.quantumField || {});
 
   results = addFinalScoring(results);
 
@@ -800,6 +815,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       await saveProjectWatchlist(results);
     } catch (error) {
       console.log(`Project watchlist save failed: ${error.message}`);
+    }
+
+    try {
+      await saveOutcomeSnapshots(results);
+    } catch (error) {
+      console.log(`Outcome snapshot save failed: ${error.message}`);
     }
   }
 
@@ -850,6 +871,16 @@ export function summarizePipelineResults(results = []) {
       p.projectWatchChange?.scoreTrend === "accelerating" ||
       p.institutionalLearning?.scoreDelta >= 8
   );
+  const quantumUpsideSetups = safeResults.filter(
+    (p) =>
+      num(p.quantumOpportunityScore) >= 70 &&
+      num(p.quantumOutcomeField?.collapseProbability) < 35
+  );
+  const quantumFragileSetups = safeResults.filter(
+    (p) =>
+      p.quantumFieldState === "Fragile Field" ||
+      num(p.quantumOutcomeField?.collapseProbability) >= 35
+  );
 
   return {
     scannedProjects: safeResults.length,
@@ -880,6 +911,8 @@ export function summarizePipelineResults(results = []) {
     socialAccelerationSetupCount: socialAccelerationSetups.length,
     positiveLearningSetupCount: positiveLearningSetups.length,
     acceleratingWatchedProjectCount: acceleratingWatchedProjects.length,
+    quantumUpsideSetupCount: quantumUpsideSetups.length,
+    quantumFragileSetupCount: quantumFragileSetups.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -960,6 +993,22 @@ export function summarizePipelineResults(results = []) {
       scoreDelta: project.institutionalLearning?.scoreDelta || 0,
       scanCount: project.institutionalLearning?.scanCount || 0,
       summary: project.institutionalLearning?.summary || "",
+    })),
+
+    bestQuantumOutcomeFields: quantumUpsideSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      quantumOpportunityScore: project.quantumOpportunityScore || 0,
+      fieldState: project.quantumFieldState || "Unknown",
+      expectedReturnPct: project.quantumOutcomeField?.expectedReturnPct || 0,
+      bestCaseReturnPct: project.quantumOutcomeField?.bestCaseReturnPct || 0,
+      baseCaseReturnPct: project.quantumOutcomeField?.baseCaseReturnPct || 0,
+      worstCaseReturnPct: project.quantumOutcomeField?.worstCaseReturnPct || 0,
+      positiveProbability: project.quantumOutcomeField?.positiveProbability || 0,
+      collapseProbability: project.quantumOutcomeField?.collapseProbability || 0,
+      asymmetryRatio: project.quantumOutcomeField?.asymmetryRatio || 0,
     })),
 
     bestSmartMoneyFlowSetups: smartMoneyFlowSetups.slice(0, 10).map((project) => ({

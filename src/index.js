@@ -128,6 +128,8 @@ function printSummary(summary) {
   console.log(`X/Social Setups: ${summary.socialAccelerationSetupCount}`);
   console.log(`Positive Learning Edge: ${summary.positiveLearningSetupCount}`);
   console.log(`Accelerating Watched: ${summary.acceleratingWatchedProjectCount}`);
+  console.log(`Quantum Upside Fields: ${summary.quantumUpsideSetupCount}`);
+  console.log(`Quantum Fragile Fields: ${summary.quantumFragileSetupCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -181,6 +183,7 @@ function printReportPaths(paths) {
   console.log(`HTML Dashboard: ${paths.htmlPath}`);
   console.log(`JSON Report:    ${paths.jsonPath}`);
   console.log(`CSV Export:     ${paths.csvPath}`);
+  console.log(`Quantum Field:  ${paths.quantumFieldPath}`);
   console.log(`Watchlist:      ${paths.watchlistPath}`);
   console.log(`Summary:        ${paths.summaryPath}`);
   console.log(`Watchlist Count: ${paths.watchlistCount}`);

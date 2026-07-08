@@ -41,6 +41,17 @@ export function writeSummaryReport(projects = []) {
       p.projectWatchChange?.scoreTrend === "accelerating" ||
       Number(p.institutionalLearning?.scoreDelta || 0) >= 8
   );
+  const quantumUpside = ranked.filter(
+    (p) =>
+      Number(p.quantumOpportunityScore || 0) >= 70 &&
+      Number(p.quantumOutcomeField?.collapseProbability || 0) < 35
+  );
+  const topQuantum = quantumUpside
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - field ${p.quantumOpportunityScore || 0}, expected ${p.quantumOutcomeField?.expectedReturnPct || 0}%, best ${p.quantumOutcomeField?.bestCaseReturnPct || 0}%`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -65,6 +76,7 @@ Defensive / avoid candidates: ${defensive.length}
 X/social acceleration setups: ${socialSetups.length}
 Positive learning-edge setups: ${learningSetups.length}
 Accelerating watched projects: ${acceleratingWatched.length}
+Quantum upside fields: ${quantumUpside.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -75,10 +87,14 @@ ${topProject ? Number(topProject.opportunityScore ?? topProject.score ?? 0).toFi
 Top research queue:
 ${researchQueue || "None"}
 
+Top quantum fields:
+${topQuantum || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
 - reports/opportunities.csv
+- reports/quantum-field.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();

@@ -24,6 +24,8 @@
     "html": "open reports/report.html",
     "json": "cat reports/report.json",
     "csv": "open reports/opportunities.csv",
+    "quantum": "cat reports/quantum-field.json",
+    "backtest": "node src/outcomeBacktest.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",
     "dev": "node --watch src/index.js"
