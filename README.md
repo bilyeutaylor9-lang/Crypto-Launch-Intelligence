@@ -1,5 +1,7 @@
 # Crypto Launch Intelligence
 
+## v0.5.0 - Watchtower Alpha
+
 Institutional-style crypto launch intelligence for discovering early momentum, launch catalysts, smart-money accumulation, narrative strength, and watchlist changes before they become obvious.
 
 Crypto Launch Intelligence is not a price prediction tool. It is a research system that scans crypto projects, scores them across many independent signals, remembers what it has seen before, and builds a continuously improving watchlist.
@@ -13,6 +15,9 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Maintains persistent scan memory and project watch history.
 - Tracks whether watched projects are improving, fading, or stable.
 - Produces ranked reports, watchlists, research checklists, risk flags, and opportunity theses.
+- Runs an autonomous Watchtower layer for high-conviction alerts and daily briefs.
+- Connects external X/news intelligence when API keys are available.
+- Adds AI analyst review, institutional vNext scoring, pre-pump pattern matching, and data confidence.
 
 ## Core Idea
 
@@ -103,6 +108,60 @@ It tracks:
 
 This gives the pipeline memory. A project can be marked as improving, fading, stable, or newly watched.
 
+### Watchtower Alpha
+
+The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
+
+It can flag:
+
+- New priority candidates
+- Score spikes or deterioration
+- Watchlist priority escalation
+- Social/X and news acceleration
+- Liquidity migration
+- Pre-breakout pattern matches
+- Smart-money conviction
+- Vesting, unlock, external, or AI analyst risk escalation
+- AI thesis changes
+
+Watchtower outputs:
+
+- `reports/alerts.json`
+- `reports/daily-brief.json`
+- `data/watchtower-alerts.json`
+- `data/watchtower-brief.json`
+
+Run once:
+
+```bash
+npm run watchtower
+```
+
+Run continuously:
+
+```bash
+npm run watchtower:daemon
+```
+
+Default daemon schedule is every 30 minutes. Override it with:
+
+```bash
+WATCHTOWER_CRON="*/10 * * * *" npm run watchtower:daemon
+```
+
+### AI and External Intelligence
+
+When connected, the scanner can use X/news intelligence to strengthen social, catalyst, and risk detection.
+
+Optional keys:
+
+```bash
+export X_BEARER_TOKEN="your_x_bearer_token"
+export CRYPTOPANIC_API_KEY="your_cryptopanic_key"
+```
+
+Without these keys, the scanner still runs in safe fallback mode using local project text and existing signal data.
+
 ## Advanced Outputs
 
 Each project can receive:
@@ -123,6 +182,16 @@ Each project can receive:
 - `xSocialScore`
 - `institutionalWatchScore`
 - `learningEdgeScore`
+- `externalSignalScore`
+- `externalRiskScore`
+- `aiAnalystScore`
+- `aiDecision`
+- `aiThesis`
+- `institutionalVNextScore`
+- `institutionalConfidenceScore`
+- `prePumpPatternMatchPct`
+- `trapPatternMatchPct`
+- `dataConfidence`
 
 Example allocation buckets:
 
@@ -140,6 +209,12 @@ Running the scanner creates:
 - `reports/report.html`
 - `reports/report.json`
 - `reports/opportunities.csv`
+- `reports/alerts.json`
+- `reports/daily-brief.json`
+- `reports/quantum-field.json`
+- `reports/outcome-calibration.json`
+- `reports/pre-pump-patterns.json`
+- `reports/institutional-vnext.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
 
@@ -147,6 +222,11 @@ Persistent learning files are saved under:
 
 - `data/scan-history.json`
 - `data/project-watchlist.json`
+- `data/outcome-snapshots.json`
+- `data/outcome-calibration.json`
+- `data/pre-pump-patterns.json`
+- `data/watchtower-alerts.json`
+- `data/watchtower-brief.json`
 
 These files are local runtime memory and should usually not be committed.
 
@@ -184,6 +264,22 @@ View generated outputs:
 npm run summary
 npm run json
 npm run watchlist
+npm run alerts
+npm run brief
+```
+
+Run learning and pattern updates:
+
+```bash
+npm run calibrate
+npm run patterns
+```
+
+Run Watchtower:
+
+```bash
+npm run watchtower
+npm run watchtower:daemon
 ```
 
 ## Optional API Keys
