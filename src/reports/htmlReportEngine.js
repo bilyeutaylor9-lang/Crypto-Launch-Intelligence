@@ -50,7 +50,9 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.allocationBucket || "")}</td>
           <td>${esc(p.executionPlan?.action || "")}</td>
           <td>${esc(tier)}</td>
+          <td>${esc(p.aiDecision || "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
+          <td>${esc(p.externalSignalScore ?? "")}</td>
           <td>${esc(p.learningEdgeScore ?? "")}</td>
           <td>${esc(p.outcomeLearningScore ?? "")}</td>
           <td>${esc(p.signalCombinationScore ?? "")}</td>
@@ -59,7 +61,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
           <td>${esc(p.riskScore ?? "")}</td>
-          <td>${esc(p.opportunityThesis || "")}</td>
+          <td>${esc(p.aiThesis?.memo || p.opportunityThesis || "")}</td>
         </tr>
       `;
     })
@@ -187,7 +189,9 @@ export function writeHtmlReport(projects = []) {
         <th>Bucket</th>
         <th>Action</th>
         <th>Tier</th>
+        <th>AI Decision</th>
         <th>X Social</th>
+        <th>External</th>
         <th>Learning</th>
         <th>Outcome</th>
         <th>Combos</th>
@@ -196,7 +200,7 @@ export function writeHtmlReport(projects = []) {
         <th>Field</th>
         <th>Narrative</th>
         <th>Risk</th>
-        <th>Thesis</th>
+        <th>AI Thesis</th>
       </tr>
     </thead>
     <tbody>

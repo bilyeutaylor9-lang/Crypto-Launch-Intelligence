@@ -279,10 +279,10 @@ export const SOURCE_STATUS = {
   },
 
   xTwitter: {
-    enabled: Boolean(process.env.X_API_KEY || process.env.TWITTER_API_KEY),
+    enabled: Boolean(process.env.X_API_KEY || process.env.TWITTER_API_KEY || process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN),
     requiresKey: true,
-    envKey: "X_API_KEY",
-    alternateEnvKeys: ["TWITTER_API_KEY"],
+    envKey: "X_BEARER_TOKEN",
+    alternateEnvKeys: ["TWITTER_BEARER_TOKEN", "X_API_KEY", "TWITTER_API_KEY"],
     tier: 1,
     priority: 92,
     category: "social",

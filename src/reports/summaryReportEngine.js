@@ -58,6 +58,9 @@ export function writeSummaryReport(projects = []) {
   const trapCombos = ranked.filter((p) => (p.trapSignalCombinations || []).length > 0);
   const calibratedEdges = ranked.filter((p) => Number(p.calibrationAdjustment || 0) >= 5);
   const calibratedWarnings = ranked.filter((p) => Number(p.calibrationAdjustment || 0) <= -5);
+  const aiPriority = ranked.filter((p) => p.aiDecision === "Priority Watch");
+  const aiRejected = ranked.filter((p) => p.aiDecision === "Reject");
+  const externalConfirmed = ranked.filter((p) => Number(p.externalSignalScore || 0) >= 65);
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -88,6 +91,12 @@ export function writeSummaryReport(projects = []) {
         .slice(0, 2)
         .join(" + ");
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - adjustment +${p.calibrationAdjustment || 0}${support ? ` - ${support}` : ""}`;
+    })
+    .join("\n");
+  const topAIAnalyst = aiPriority
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - AI ${p.aiAnalystScore || 0} - ${p.aiThesis?.memo || "No memo"}`;
     })
     .join("\n");
   const researchQueue = priorityResearch
@@ -121,6 +130,9 @@ Winning signal combinations: ${winningCombos.length}
 Trap signal combinations: ${trapCombos.length}
 Calibrated edges: ${calibratedEdges.length}
 Calibrated warnings: ${calibratedWarnings.length}
+AI priority watches: ${aiPriority.length}
+AI rejections: ${aiRejected.length}
+External confirmations: ${externalConfirmed.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -142,6 +154,9 @@ ${topSignalCombos || "None"}
 
 Top calibrated edges:
 ${topCalibratedEdges || "None"}
+
+Top AI analyst theses:
+${topAIAnalyst || "None"}
 
 Files generated:
 - reports/report.html
