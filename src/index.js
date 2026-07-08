@@ -125,6 +125,9 @@ function printSummary(summary) {
   console.log(`Core Watch: ${summary.coreWatchCount}`);
   console.log(`Starter Watch: ${summary.starterWatchCount}`);
   console.log(`Speculative Lab: ${summary.speculativeLabCount}`);
+  console.log(`X/Social Setups: ${summary.socialAccelerationSetupCount}`);
+  console.log(`Positive Learning Edge: ${summary.positiveLearningSetupCount}`);
+  console.log(`Accelerating Watched: ${summary.acceleratingWatchedProjectCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);

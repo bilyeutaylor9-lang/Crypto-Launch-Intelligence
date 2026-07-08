@@ -50,6 +50,8 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.allocationBucket || "")}</td>
           <td>${esc(p.executionPlan?.action || "")}</td>
           <td>${esc(tier)}</td>
+          <td>${esc(p.xSocialScore ?? "")}</td>
+          <td>${esc(p.learningEdgeScore ?? "")}</td>
           <td>${esc(p.narrative || "")}</td>
           <td>${esc(p.riskScore ?? "")}</td>
           <td>${esc(p.opportunityThesis || "")}</td>
@@ -180,6 +182,8 @@ export function writeHtmlReport(projects = []) {
         <th>Bucket</th>
         <th>Action</th>
         <th>Tier</th>
+        <th>X Social</th>
+        <th>Learning</th>
         <th>Narrative</th>
         <th>Risk</th>
         <th>Thesis</th>

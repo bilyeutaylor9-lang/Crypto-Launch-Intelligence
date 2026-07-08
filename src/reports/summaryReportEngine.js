@@ -34,6 +34,13 @@ export function writeSummaryReport(projects = []) {
     ["Institutional", "High"].includes(p.conviction)
   );
   const defensive = ranked.filter((p) => p.conviction === "Defensive");
+  const socialSetups = ranked.filter((p) => Number(p.xSocialScore || 0) >= 65);
+  const learningSetups = ranked.filter((p) => Number(p.learningEdgeScore || 0) >= 70);
+  const acceleratingWatched = ranked.filter(
+    (p) =>
+      p.projectWatchChange?.scoreTrend === "accelerating" ||
+      Number(p.institutionalLearning?.scoreDelta || 0) >= 8
+  );
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -55,6 +62,9 @@ Strong buy candidates: ${strongBuy.length}
 High-conviction candidates: ${highConviction.length}
 Priority research queue: ${priorityResearch.length}
 Defensive / avoid candidates: ${defensive.length}
+X/social acceleration setups: ${socialSetups.length}
+Positive learning-edge setups: ${learningSetups.length}
+Accelerating watched projects: ${acceleratingWatched.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
