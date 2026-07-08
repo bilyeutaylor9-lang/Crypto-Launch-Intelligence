@@ -152,6 +152,7 @@ function printTopProjects(results) {
     console.log(`   Chain: ${project.chain || "-"}`);
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
+    console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
     console.log(`   Conviction: ${project.conviction || "Unknown"}`);
     console.log(`   Action: ${project.executionPlan?.action || "Unknown"}`);
     console.log(`   Pre-Pump: ${project.prePump?.score || 0}`);
@@ -184,6 +185,8 @@ function printReportPaths(paths) {
   console.log(`JSON Report:    ${paths.jsonPath}`);
   console.log(`CSV Export:     ${paths.csvPath}`);
   console.log(`Quantum Field:  ${paths.quantumFieldPath}`);
+  console.log(`Patterns:       ${paths.prePumpPatternPath}`);
+  console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`Watchlist:      ${paths.watchlistPath}`);
   console.log(`Summary:        ${paths.summaryPath}`);
   console.log(`Watchlist Count: ${paths.watchlistCount}`);

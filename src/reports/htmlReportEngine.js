@@ -46,6 +46,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.chain || "")}</td>
           <td><strong>${score.toFixed(1)}</strong></td>
           <td>${esc(p.confidence || "")}</td>
+          <td>${esc(p.dataConfidence || "")}</td>
           <td>${esc(p.conviction || "")}</td>
           <td>${esc(p.allocationBucket || "")}</td>
           <td>${esc(p.executionPlan?.action || "")}</td>
@@ -55,6 +56,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.externalSignalScore ?? "")}</td>
           <td>${esc(p.learningEdgeScore ?? "")}</td>
           <td>${esc(p.outcomeLearningScore ?? "")}</td>
+          <td>${esc(p.prePumpPatternMatchPct ?? "")}</td>
           <td>${esc(p.signalCombinationScore ?? "")}</td>
           <td>${esc(p.calibrationAdjustment ?? "")}</td>
           <td>${esc(p.quantumOpportunityScore ?? "")}</td>
@@ -185,6 +187,7 @@ export function writeHtmlReport(projects = []) {
         <th>Chain</th>
         <th>Score</th>
         <th>Confidence</th>
+        <th>Data</th>
         <th>Conviction</th>
         <th>Bucket</th>
         <th>Action</th>
@@ -194,6 +197,7 @@ export function writeHtmlReport(projects = []) {
         <th>External</th>
         <th>Learning</th>
         <th>Outcome</th>
+        <th>Pattern</th>
         <th>Combos</th>
         <th>Calibration</th>
         <th>Quantum</th>

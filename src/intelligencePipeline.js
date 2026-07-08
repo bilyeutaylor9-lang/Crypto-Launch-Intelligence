@@ -44,6 +44,7 @@ import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngi
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 import { analyzeInstitutionalLearningBatch } from "./engines/institutionalLearningEngine.js";
 import { analyzeOutcomeLearningBatch } from "./engines/outcomeLearningEngine.js";
+import { analyzePrePumpPatternBatch } from "./engines/prePumpPatternEngine.js";
 import { analyzeSignalCombinationsBatch } from "./engines/signalCombinationEngine.js";
 import { analyzeOutcomeCalibrationBatch } from "./engines/outcomeCalibrationEngine.js";
 import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEngine.js";
@@ -111,6 +112,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.institutionalWatchScore, weight: 0.9 },
     { score: project.learningEdgeScore, weight: 0.7 },
     { score: project.outcomeLearningScore, weight: 0.9 },
+    { score: project.prePumpPatternScore, weight: 1.0 },
     { score: project.signalCombinationScore, weight: 1.0 },
     { score: project.calibrationScore, weight: 0.7 },
     { score: project.quantumOpportunityScore, weight: 0.9 },
@@ -276,6 +278,12 @@ function buildSignalProfile(project = {}) {
       { score: project.learningEdgeScore, weight: 1.0 },
       { score: project.institutionalLearning?.learningEdgeScore, weight: 1.0 },
       { score: project.outcomeLearningScore, weight: 1.2 },
+      { score: project.prePumpPatternScore, weight: 1.2 },
+    ]),
+    prePumpPattern: weightedAverage([
+      { score: project.prePumpPatternScore, weight: 1.0 },
+      { score: project.prePumpPatternMatchPct, weight: 0.8 },
+      { score: 50 + num(project.prePumpPatternEdge), weight: 0.7 },
     ]),
     signalCombos: weightedAverage([
       { score: project.signalCombinationScore, weight: 1.2 },
@@ -336,6 +344,7 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (num(project.institutionalWatchScore) >= 65) tags.push("Institutional Attention");
   if (num(project.learningEdgeScore) >= 70) tags.push("Learning Edge");
   if (num(project.outcomeLearningScore) >= 70) tags.push("Outcome-Memory Winner Fit");
+  if (num(project.prePumpPatternEdge) >= 12) tags.push("Pre-Breakout Pattern Match");
   if (num(project.quantumOpportunityScore) >= 70) tags.push("Quantum Upside Field");
   if (num(project.prePump?.score) >= 70) tags.push("Pre-Pump Candidate");
   if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
@@ -360,6 +369,9 @@ function buildRiskFlags(project = {}, profile = {}) {
     risks.push("High quantum downside field");
   }
   if (num(project.outcomeTrapRisk) >= 55) risks.push("Resembles prior outcome traps");
+  if (num(project.trapPatternMatchPct) >= 65 && num(project.prePumpPatternEdge) <= -8) {
+    risks.push("Matches prior dump/trap pattern");
+  }
   if ((project.trapSignalCombinations || []).length >= 2) risks.push("Multiple trap signal recipes");
   if (num(project.signalCombinationScore) > 0 && num(project.signalCombinationScore) <= 35) {
     risks.push("Negative signal combination");
@@ -475,6 +487,9 @@ function buildResearchChecklist(project = {}, profile = {}) {
   if (num(project.calibrationAdjustment) !== 0) {
     checklist.push("Review calibrated support and warning signals against the current thesis.");
   }
+  if (project.prePumpPattern?.matchedFeatures?.length) {
+    checklist.push("Compare matched pre-pump pattern features against current liquidity, social, and wallet evidence.");
+  }
   if (project.aiThesis?.nextResearchSteps?.length) {
     checklist.push(...project.aiThesis.nextResearchSteps.slice(0, 3));
   }
@@ -512,6 +527,9 @@ function buildInvalidationSignals(project = {}, profile = {}) {
   }
   if (num(project.calibrationAdjustment) > 0) {
     invalidations.push("Calibration support fades or flips negative on the next scan.");
+  }
+  if (num(project.prePumpPatternEdge) > 0) {
+    invalidations.push("Pre-pump pattern edge flips negative or trap match rises above breakout match.");
   }
   if (project.aiDecision && project.aiDecision !== "Pass For Now") {
     invalidations.push("AI analyst decision downgrades after fresh X/news evidence.");
@@ -682,6 +700,8 @@ function advancedScoreBreakdown(project = {}) {
   if (profile.fundamentals >= 65 && profile.devCommunity >= 65) bonus += 3;
   if (profile.socialIntelligence >= 70 && profile.learning >= 60) bonus += 4;
   if (profile.signalCombos >= 70 && num(project.outcomeLearningScore) >= 60) bonus += 5;
+  if (num(project.prePumpPatternEdge) >= 15 && num(project.prePumpPatternScore) >= 65) bonus += 6;
+  else if (num(project.prePumpPatternEdge) >= 8) bonus += 3;
   if ((project.winningSignalCombinations || []).length >= 2 && (project.trapSignalCombinations || []).length === 0) {
     bonus += 4;
   }
@@ -705,6 +725,8 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.learningEdgeScore) > 0 && num(project.learningEdgeScore) <= 35) penalty += 6;
   if (num(project.quantumOutcomeField?.collapseProbability) >= 35) penalty += 8;
   if (num(project.outcomeTrapRisk) >= 60) penalty += 8;
+  if (num(project.prePumpPatternEdge) <= -15) penalty += 9;
+  else if (num(project.prePumpPatternEdge) <= -8) penalty += 5;
   if ((project.trapSignalCombinations || []).length >= 2) penalty += 9;
   if (num(project.signalCombinationScore) > 0 && num(project.signalCombinationScore) <= 35) penalty += 7;
   if (num(project.calibrationAdjustment) < 0) penalty += Math.min(12, Math.abs(num(project.calibrationAdjustment)));
@@ -758,11 +780,71 @@ function confidenceForProject(project = {}) {
   const score = num(project.pipelineScore);
   const density = num(project.signalDensityScore);
   const riskFlags = Array.isArray(project.riskFlags) ? project.riskFlags.length : 0;
+  const dataConfidenceScore = num(project.dataConfidenceScore);
 
-  if (score >= 85 && density >= 65 && evidenceCount >= 8 && riskFlags <= 1) return "High";
-  if (score >= 70 && density >= 45 && evidenceCount >= 5) return "Medium";
-  if (score >= 55 || density >= 35) return "Developing";
+  if (score >= 85 && density >= 65 && evidenceCount >= 8 && riskFlags <= 1 && dataConfidenceScore >= 70) return "High";
+  if (score >= 70 && density >= 45 && evidenceCount >= 5 && dataConfidenceScore >= 50) return "Medium";
+  if (score >= 55 || density >= 35 || dataConfidenceScore >= 35) return "Developing";
   return "Low";
+}
+
+function confidenceLabel(score = 0) {
+  if (score >= 80) return "High";
+  if (score >= 58) return "Medium";
+  if (score >= 35) return "Developing";
+  return "Low";
+}
+
+function buildDataConfidence(project = {}, breakdown = {}) {
+  const evidenceCount = Array.isArray(project.evidence) ? project.evidence.length : 0;
+  const liveMarket =
+    num(project.priceUsd ?? project.price) > 0 ||
+    num(project.liquidityUsd ?? project.liquidity) > 0 ||
+    num(project.volume24h ?? project.volume) > 0;
+  const externalConnected =
+    project.externalIntelligence?.status?.x === "SUCCESS" ||
+    project.externalIntelligence?.status?.news === "SUCCESS";
+  const patternExamples = num(project.prePumpPattern?.databaseExamples);
+  const calibrationExamples = num(project.outcomeCalibration?.totalExamples);
+  const historicalExamples = Math.max(patternExamples, calibrationExamples, num(project.outcomeLearning?.sampleSize));
+  const sourceCount = [
+    liveMarket,
+    externalConnected,
+    num(project.developerActivityScore ?? project.developerScore) > 0,
+    num(project.liquidityScore) > 0,
+    num(project.xSocialScore) > 0,
+    num(project.smartMoneyAccumulationScore) > 0,
+    num(project.catalystScore) > 0,
+    historicalExamples >= 8,
+  ].filter(Boolean).length;
+  const penalty =
+    project.prePumpPatternConfidence === "Cold Start" && historicalExamples < 8
+      ? 8
+      : 0;
+  const score = Math.round(
+    clamp(
+      sourceCount * 10 +
+        Math.min(20, evidenceCount * 1.4) +
+        Math.min(20, historicalExamples / 5) +
+        num(breakdown.signalDensityScore) * 0.15 -
+        penalty
+    )
+  );
+
+  return {
+    dataConfidenceScore: score,
+    dataConfidence: confidenceLabel(score),
+    dataConfidenceBreakdown: {
+      sourceCount,
+      evidenceCount,
+      liveMarket,
+      externalConnected,
+      historicalExamples,
+      patternExamples,
+      calibrationExamples,
+      signalDensityScore: breakdown.signalDensityScore || 0,
+    },
+  };
 }
 
 function addFinalScoring(projects = []) {
@@ -773,10 +855,12 @@ function addFinalScoring(projects = []) {
   const scoredProjects = safeProjects
     .map((project) => {
       const breakdown = advancedScoreBreakdown(project);
+      const dataConfidence = buildDataConfidence(project, breakdown);
       const pipelineScore = breakdown.riskAdjustedScore;
       const enrichedProject = {
         ...project,
         ...breakdown,
+        ...dataConfidence,
         rawPipelineScore: breakdown.baseScore,
         pipelineScore,
         opportunityScore: pipelineScore,
@@ -872,6 +956,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
   results = await runEngine("Institutional Learning", analyzeInstitutionalLearningBatch, results);
   results = await runEngine("Outcome Learning", analyzeOutcomeLearningBatch, results);
+  results = await runEngine("Pre-Pump Pattern Database", analyzePrePumpPatternBatch, results);
   results = await runEngine("Signal Combination Learning", analyzeSignalCombinationsBatch, results);
   results = await runEngine("Quantum Outcome Field", analyzeQuantumOutcomeFieldBatch, results, options.quantumField || {});
   results = await runEngine("Outcome Calibration", analyzeOutcomeCalibrationBatch, results);
@@ -969,6 +1054,13 @@ export function summarizePipelineResults(results = []) {
   const aiPrioritySetups = safeResults.filter((p) => p.aiDecision === "Priority Watch");
   const aiRejectedSetups = safeResults.filter((p) => p.aiDecision === "Reject");
   const externalConfirmedSetups = safeResults.filter((p) => num(p.externalSignalScore) >= 65);
+  const preBreakoutPatternSetups = safeResults.filter((p) => num(p.prePumpPatternEdge) >= 12);
+  const trapPatternSetups = safeResults.filter(
+    (p) => num(p.trapPatternMatchPct) >= 65 && num(p.prePumpPatternEdge) <= -8
+  );
+  const lowConfidenceHighScores = safeResults.filter(
+    (p) => num(p.pipelineScore) >= 70 && ["Low", "Developing"].includes(p.dataConfidence)
+  );
 
   return {
     scannedProjects: safeResults.length,
@@ -1010,6 +1102,9 @@ export function summarizePipelineResults(results = []) {
     aiPriorityCount: aiPrioritySetups.length,
     aiRejectedCount: aiRejectedSetups.length,
     externalConfirmedCount: externalConfirmedSetups.length,
+    preBreakoutPatternCount: preBreakoutPatternSetups.length,
+    trapPatternCount: trapPatternSetups.length,
+    lowConfidenceHighScoreCount: lowConfidenceHighScores.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -1156,6 +1251,33 @@ export function summarizePipelineResults(results = []) {
       bullCase: project.aiThesis?.bullCase || [],
       bearCase: project.aiThesis?.bearCase || [],
       memo: project.aiThesis?.memo || "",
+    })),
+
+    bestPreBreakoutPatternSetups: preBreakoutPatternSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      confidence: project.confidence || "Unknown",
+      dataConfidence: project.dataConfidence || "Unknown",
+      prePumpPatternScore: project.prePumpPatternScore || 0,
+      breakoutMatchPct: project.prePumpPatternMatchPct || 0,
+      trapMatchPct: project.trapPatternMatchPct || 0,
+      edge: project.prePumpPatternEdge || 0,
+      patternConfidence: project.prePumpPatternConfidence || "Unknown",
+      matchedFeatures: project.prePumpPattern?.matchedFeatures || [],
+      summary: project.prePumpPattern?.summary || "",
+    })),
+
+    highScoreLowConfidenceWarnings: lowConfidenceHighScores.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      confidence: project.confidence || "Unknown",
+      dataConfidence: project.dataConfidence || "Unknown",
+      dataConfidenceScore: project.dataConfidenceScore || 0,
+      breakdown: project.dataConfidenceBreakdown || {},
     })),
 
     bestSmartMoneyFlowSetups: smartMoneyFlowSetups.slice(0, 10).map((project) => ({

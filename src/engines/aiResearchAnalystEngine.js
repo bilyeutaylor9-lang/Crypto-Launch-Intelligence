@@ -28,6 +28,9 @@ function signalReasons(project = {}) {
   if (num(project.xSocialScore) >= 65) reasons.push("X/social acceleration");
   if (num(project.externalSignalScore) >= 60) reasons.push("external source confirmation");
   if (num(project.outcomeLearningScore) >= 65) reasons.push("resembles prior winners");
+  if (num(project.prePumpPatternEdge) >= 12) {
+    reasons.push(`${project.prePumpPatternMatchPct || 0}% pre-breakout pattern match`);
+  }
   if (num(project.signalCombinationScore) >= 65) reasons.push("positive signal recipe");
   if (num(project.calibrationAdjustment) >= 5) reasons.push("historically calibrated edge");
   if (num(project.quantumOpportunityScore) >= 65) reasons.push("positive outcome field");
@@ -46,6 +49,9 @@ function riskReasons(project = {}) {
   if (num(project.stakingRiskScore) >= 60) risks.push("staking/yield risk needs review");
   if (num(project.xBotRiskScore) >= 45) risks.push("social quality or bot risk");
   if (num(project.outcomeTrapRisk) >= 55) risks.push("resembles prior trap outcomes");
+  if (num(project.trapPatternMatchPct) >= 65 && num(project.prePumpPatternEdge) <= -8) {
+    risks.push(`${project.trapPatternMatchPct}% trap-pattern match`);
+  }
   if ((project.trapSignalCombinations || []).length) risks.push("active trap signal recipe");
   if (num(project.calibrationAdjustment) <= -5) risks.push("negative historical calibration");
   if (num(project.quantumOutcomeField?.collapseProbability) >= 30) risks.push("downside field is elevated");

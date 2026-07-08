@@ -28,6 +28,7 @@
     "backtest": "node src/outcomeBacktest.js",
     "learn": "node src/outcomeBacktest.js",
     "calibrate": "node src/outcomeBacktest.js",
+    "patterns": "node src/prePumpPatterns.js",
     "sources": "node src/data/dataSourceManager.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",

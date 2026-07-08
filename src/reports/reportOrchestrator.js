@@ -5,6 +5,7 @@ import { writeSummaryReport } from "./summaryReportEngine.js";
 import { writeHtmlReport } from "./htmlReportEngine.js";
 import { writeQuantumFieldReport } from "./quantumFieldReportEngine.js";
 import { writeCalibrationReport } from "./calibrationReportEngine.js";
+import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -14,6 +15,7 @@ export function generateReports(projects = [], meta = {}) {
   const htmlPath = writeHtmlReport(projects);
   const quantumFieldPath = writeQuantumFieldReport(projects);
   const calibrationPath = writeCalibrationReport();
+  const prePumpPatternPath = writePrePumpPatternReport();
 
   return {
     htmlPath,
@@ -21,6 +23,7 @@ export function generateReports(projects = [], meta = {}) {
     csvPath,
     quantumFieldPath,
     calibrationPath,
+    prePumpPatternPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,

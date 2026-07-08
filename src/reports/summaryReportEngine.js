@@ -61,6 +61,15 @@ export function writeSummaryReport(projects = []) {
   const aiPriority = ranked.filter((p) => p.aiDecision === "Priority Watch");
   const aiRejected = ranked.filter((p) => p.aiDecision === "Reject");
   const externalConfirmed = ranked.filter((p) => Number(p.externalSignalScore || 0) >= 65);
+  const preBreakoutPatternMatches = ranked.filter((p) => Number(p.prePumpPatternEdge || 0) >= 12);
+  const trapPatternWarnings = ranked.filter(
+    (p) => Number(p.trapPatternMatchPct || 0) >= 65 && Number(p.prePumpPatternEdge || 0) <= -8
+  );
+  const lowConfidenceHighScores = ranked.filter(
+    (p) =>
+      Number(p.opportunityScore ?? p.score ?? 0) >= 70 &&
+      ["Low", "Developing"].includes(p.dataConfidence || p.confidence)
+  );
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -99,6 +108,12 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - AI ${p.aiAnalystScore || 0} - ${p.aiThesis?.memo || "No memo"}`;
     })
     .join("\n");
+  const topPrePumpPatterns = preBreakoutPatternMatches
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - breakout match ${p.prePumpPatternMatchPct || 0}%, trap match ${p.trapPatternMatchPct || 0}%, confidence ${p.prePumpPatternConfidence || "Unknown"}`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -133,6 +148,9 @@ Calibrated warnings: ${calibratedWarnings.length}
 AI priority watches: ${aiPriority.length}
 AI rejections: ${aiRejected.length}
 External confirmations: ${externalConfirmed.length}
+Pre-breakout pattern matches: ${preBreakoutPatternMatches.length}
+Trap-pattern warnings: ${trapPatternWarnings.length}
+High score / low data confidence: ${lowConfidenceHighScores.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -158,12 +176,16 @@ ${topCalibratedEdges || "None"}
 Top AI analyst theses:
 ${topAIAnalyst || "None"}
 
+Top pre-breakout pattern matches:
+${topPrePumpPatterns || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
 - reports/opportunities.csv
 - reports/quantum-field.json
 - reports/outcome-calibration.json
+- reports/pre-pump-patterns.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();
