@@ -1,0 +1,14 @@
+import fs from "fs";
+import path from "path";
+import { loadOutcomeCalibrationReport } from "../learning/outcomeCalibrationEngine.js";
+
+export function writeCalibrationReport() {
+  const reportsDir = path.resolve("reports");
+  fs.mkdirSync(reportsDir, { recursive: true });
+
+  const report = loadOutcomeCalibrationReport();
+  const filePath = path.join(reportsDir, "outcome-calibration.json");
+  fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
+
+  return filePath;
+}

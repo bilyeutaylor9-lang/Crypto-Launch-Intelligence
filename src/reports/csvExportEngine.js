@@ -34,6 +34,11 @@ export function writeCsvReport(projects = []) {
     "outcomeTrapRisk",
     "signalCombinationScore",
     "signalCombinationEdge",
+    "calibrationScore",
+    "calibrationAdjustment",
+    "calibrationConfidence",
+    "calibrationSupportSignals",
+    "calibrationWarningSignals",
     "winningCombinations",
     "trapCombinations",
     "scoreTrend",
@@ -78,6 +83,15 @@ export function writeCsvReport(projects = []) {
     p.outcomeTrapRisk ?? "",
     p.signalCombinationScore ?? "",
     p.signalCombinationEdge ?? "",
+    p.calibrationScore ?? "",
+    p.calibrationAdjustment ?? "",
+    p.calibrationConfidence ?? "",
+    Array.isArray(p.calibrationSignals)
+      ? p.calibrationSignals.map((signal) => signal.label).join("; ")
+      : "",
+    Array.isArray(p.calibrationRiskSignals)
+      ? p.calibrationRiskSignals.map((signal) => signal.label).join("; ")
+      : "",
     Array.isArray(p.winningSignalCombinations)
       ? p.winningSignalCombinations.map((combo) => combo.name).join("; ")
       : "",

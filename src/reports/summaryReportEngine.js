@@ -56,6 +56,8 @@ export function writeSummaryReport(projects = []) {
       (p.winningSignalCombinations || []).length > (p.trapSignalCombinations || []).length
   );
   const trapCombos = ranked.filter((p) => (p.trapSignalCombinations || []).length > 0);
+  const calibratedEdges = ranked.filter((p) => Number(p.calibrationAdjustment || 0) >= 5);
+  const calibratedWarnings = ranked.filter((p) => Number(p.calibrationAdjustment || 0) <= -5);
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -76,6 +78,16 @@ export function writeSummaryReport(projects = []) {
         .slice(0, 2)
         .join(" + ");
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - combo ${p.signalCombinationScore || 0}${combos ? ` - ${combos}` : ""}`;
+    })
+    .join("\n");
+  const topCalibratedEdges = calibratedEdges
+    .slice(0, 5)
+    .map((p, index) => {
+      const support = (p.calibrationSignals || [])
+        .map((signal) => signal.label)
+        .slice(0, 2)
+        .join(" + ");
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - adjustment +${p.calibrationAdjustment || 0}${support ? ` - ${support}` : ""}`;
     })
     .join("\n");
   const researchQueue = priorityResearch
@@ -107,6 +119,8 @@ Outcome-memory winner fits: ${outcomeMemoryWinners.length}
 Outcome-memory trap fits: ${trapMemoryFits.length}
 Winning signal combinations: ${winningCombos.length}
 Trap signal combinations: ${trapCombos.length}
+Calibrated edges: ${calibratedEdges.length}
+Calibrated warnings: ${calibratedWarnings.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -126,11 +140,15 @@ ${topOutcomeLearning || "None"}
 Top signal-combination setups:
 ${topSignalCombos || "None"}
 
+Top calibrated edges:
+${topCalibratedEdges || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
 - reports/opportunities.csv
 - reports/quantum-field.json
+- reports/outcome-calibration.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();

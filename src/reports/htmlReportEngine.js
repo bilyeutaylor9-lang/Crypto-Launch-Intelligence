@@ -54,6 +54,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.learningEdgeScore ?? "")}</td>
           <td>${esc(p.outcomeLearningScore ?? "")}</td>
           <td>${esc(p.signalCombinationScore ?? "")}</td>
+          <td>${esc(p.calibrationAdjustment ?? "")}</td>
           <td>${esc(p.quantumOpportunityScore ?? "")}</td>
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
@@ -190,6 +191,7 @@ export function writeHtmlReport(projects = []) {
         <th>Learning</th>
         <th>Outcome</th>
         <th>Combos</th>
+        <th>Calibration</th>
         <th>Quantum</th>
         <th>Field</th>
         <th>Narrative</th>
