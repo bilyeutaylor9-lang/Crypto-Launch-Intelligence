@@ -1,3 +1,103 @@
+import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
+import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
+import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
+
+import { analyzeNarratives } from "./engines/narrativeEngine.js";
+import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
+import { analyzeNarrativeLaunchStakingBatch } from "./engines/narrativeLaunchStakingEngine.js";
+
+import { analyzeDeveloperActivityBatch } from "./engines/developerActivityEngine.js";
+import { analyzeGithubBatch } from "./engines/githubQualityEngine.js";
+import { analyzeCommunityGrowthBatch } from "./engines/communityGrowthEngine.js";
+import { analyzeSocialAccelerationBatch } from "./engines/socialAccelerationEngine.js";
+import { analyzeLiquidityBatch } from "./engines/liquidityIntelligenceEngine.js";
+import { analyzeHolderGrowthBatch } from "./engines/holderGrowthEngine.js";
+import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
+import { analyzeSmartWalletBatch } from "./engines/smartWalletEngine.js";
+import { analyzeSmartWalletPerformanceBatch } from "./engines/smartWalletPerformanceEngine.js";
+import { analyzeSmartMoneyAccumulationBatch } from "./engines/smartMoneyAccumulationEngine.js";
+
+import { analyzeExchangeProbabilityBatch } from "./engines/exchangeProbabilityEngine.js";
+import { analyzeCatalystsBatch } from "./engines/catalystEngine.js";
+import { analyzeCatalystCalendarBatch } from "./engines/catalystCalendarEngine.js";
+import { analyzeTokenomicsBatch } from "./engines/tokenomicsEngine.js";
+import { analyzeFundingBackersBatch } from "./engines/fundingBackerEngine.js";
+import { analyzePartnershipsBatch } from "./engines/partnershipEngine.js";
+import { analyzeEcosystemIntegrationBatch } from "./engines/ecosystemIntegrationEngine.js";
+
+import { analyzeBaselineBatch } from "./engines/baselineEngine.js";
+import { analyzeVelocityBatch } from "./engines/velocityEngine.js";
+import { analyzeAccelerationBatch } from "./engines/accelerationEngine.js";
+import { analyzeTrendChangeBatch } from "./engines/trendChangeEngine.js";
+import { analyzeMomentumCompressionBatch } from "./engines/momentumCompressionEngine.js";
+import { analyzeCapitalFlowBatch } from "./engines/capitalFlowEngine.js";
+import { analyzeBuyPressureBatch } from "./engines/buyPressureEngine.js";
+import { analyzeSellPressureBatch } from "./engines/sellPressureEngine.js";
+import { analyzeRelativeStrengthBatch } from "./engines/relativeStrengthEngine.js";
+import { analyzeSmartMoneyRotationBatch } from "./engines/smartMoneyRotationEngine.js";
+import { analyzeOpportunityTimingBatch } from "./engines/opportunityTimingEngine.js";
+import { analyzeEarlyBreakoutBatch } from "./engines/earlyBreakoutEngine.js";
+import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEngine.js";
+import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
+import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
+
+import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
+
+import { saveScanMemory } from "./learning/scanMemoryStore.js";
+
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, num(value)));
+}
+
+function normalizeEngineOutput(output, fallback = []) {
+  if (Array.isArray(output)) return output;
+  if (Array.isArray(output?.results)) return output.results;
+  if (Array.isArray(output?.projects)) return output.projects;
+  if (Array.isArray(output?.data)) return output.data;
+  if (Array.isArray(output?.tokens)) return output.tokens;
+  if (Array.isArray(output?.candidates)) return output.candidates;
+  return fallback;
+}
+
+async function runEngine(name, engine, projects, options = {}) {
+  const safeProjects = Array.isArray(projects)
+    ? projects
+    : normalizeEngineOutput(projects, []);
+
+  try {
+    if (typeof engine !== "function") {
+      console.log(`Skipping ${name}: engine not found`);
+      return safeProjects;
+    }
+
+    console.log(`Running ${name}...`);
+
+    const output = await engine(safeProjects, options);
+    return normalizeEngineOutput(output, safeProjects);
+  } catch (error) {
+    console.log(`${name} failed: ${error.message}`);
+    return safeProjects;
+  }
+}
+
+function weightedInstitutionalScore(project = {}) {
+  const prePumpScore = num(project.prePump?.score);
+
+  const weights = [
+    { score: project.marketRankScore, weight: 1.2 },
+    { score: project.richTokenScore, weight: 0.9 },
+    { score: project.infrastructureNarrativeScore, weight: 0.9 },
+    { score: project.narrativeScore, weight: 0.8 },
+    { score: project.narrativeForecastScore, weight: 1.0 },
+    { score: project.narrativeLaunchStakingScore, weight: 1.0 },
+    { score: project.launchReadinessScore, weight: 0.7 },
+    { score: project.stakingMomentumScore, weight: 0.7 },
+    { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
+    { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
     { score: project.socialAccelerationScore, weight: 0.7 },
     { score: project.liquidityScore, weight: 0.9 },
@@ -248,3 +348,46 @@ export function summarizePipelineResults(results = []) {
     ).length,
 
     lateChaseCount: safeResults.filter(
+      (p) => p.prePump?.status === "LATE_CHASE"
+    ).length,
+
+    bestNarrativeLaunchStakingOpportunities: launchStakingOpportunities
+      .slice(0, 10)
+      .map((project) => ({
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        pipelineTier: project.pipelineTier || "Unknown",
+        pipelineScore: project.pipelineScore || 0,
+        narrativeLaunchStakingScore: project.narrativeLaunchStakingScore || 0,
+        narrativeLaunchStakingTier: project.narrativeLaunchStakingTier || "Unknown",
+        launchReadinessScore: project.launchReadinessScore || 0,
+        stakingMomentumScore: project.stakingMomentumScore || 0,
+        stakingRiskScore: project.stakingRiskScore || 0,
+        launchSignals: project.launchSignals || [],
+        stakingSignals: project.stakingSignals || [],
+      })),
+
+    bestPrePumpOpportunities: prePumpOpportunities.slice(0, 10).map((project) => ({
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineTier: project.pipelineTier || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      prePumpScore: project.prePump?.score || 0,
+      prePumpStatus: project.prePump?.status || "UNKNOWN",
+      smartMoneyAccumulationScore: project.smartMoneyAccumulationScore || 0,
+      smartWalletPerformanceScore: project.smartWalletPerformanceScore || 0,
+      catalystCalendarScore: project.catalystCalendarScore || 0,
+      narrativeForecastScore: project.narrativeForecastScore || 0,
+      reasons: project.prePump?.reasons || [],
+    })),
+
+    alerts: safeResults.flatMap((project) =>
+      (project.alerts || []).map((alert) => ({
+        project: project.name || project.symbol || "Unknown",
+        alert,
+      }))
+    ),
+  };
+}
+
+export default runIntelligencePipeline;
