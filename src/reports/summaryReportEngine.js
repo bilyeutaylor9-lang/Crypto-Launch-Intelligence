@@ -1,11 +1,14 @@
 import fs from "fs";
 import path from "path";
+import { loadWatchtowerAlerts, loadWatchtowerBrief } from "../learning/watchtowerStore.js";
 
 export function writeSummaryReport(projects = []) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const total = projects.length;
+  const watchtowerAlerts = loadWatchtowerAlerts().alerts.filter((alert) => alert.status !== "archived");
+  const watchtowerBrief = loadWatchtowerBrief().brief;
 
   const ranked = [...projects].sort((a, b) => {
     const aScore = Number(a.opportunityScore ?? a.score ?? 0);
@@ -165,6 +168,9 @@ High score / low data confidence: ${lowConfidenceHighScores.length}
 Institutional vNext setups: ${institutionalVNext.length}
 Institutional confidence setups: ${institutionalConfidence.length}
 High vesting pressure setups: ${highVestingPressure.length}
+Watchtower alerts: ${watchtowerAlerts.length}
+Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
+Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -204,6 +210,8 @@ Files generated:
 - reports/outcome-calibration.json
 - reports/pre-pump-patterns.json
 - reports/institutional-vnext.json
+- reports/alerts.json
+- reports/daily-brief.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();

@@ -76,9 +76,17 @@ function compactWatchRecord(project = {}) {
     institutionalWatchScore: Number(project.institutionalWatchScore || 0),
     signalDensityScore: Number(project.signalDensityScore || 0),
     riskScore: Number(project.signalProfile?.risk || project.riskScore || 0),
+    liquidityUsd: Number(project.liquidityUsd || project.liquidity || 0),
+    volume24h: Number(project.volume24h || project.volume || 0),
+    prePumpPatternMatchPct: Number(project.prePumpPatternMatchPct || 0),
+    trapPatternMatchPct: Number(project.trapPatternMatchPct || 0),
+    liquidityMigrationScore: Number(project.liquidityMigrationScore || 0),
+    smartMoneyConvictionScore: Number(project.smartMoneyConvictionScore || 0),
+    vestingPressureScore: Number(project.vestingPressureScore || 0),
+    aiDecision: project.aiDecision || null,
     alphaTags: project.alphaTags || [],
     riskFlags: project.riskFlags || [],
-    thesis: project.opportunityThesis || "",
+    thesis: project.aiThesis?.memo || project.opportunityThesis || "",
   };
 }
 

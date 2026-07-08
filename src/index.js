@@ -188,9 +188,13 @@ function printReportPaths(paths) {
   console.log(`Patterns:       ${paths.prePumpPatternPath}`);
   console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
+  console.log(`Alerts:         ${paths.alertsPath}`);
+  console.log(`Daily Brief:    ${paths.briefPath}`);
   console.log(`Watchlist:      ${paths.watchlistPath}`);
   console.log(`Summary:        ${paths.summaryPath}`);
   console.log(`Watchlist Count: ${paths.watchlistCount}`);
+  console.log(`Alerts: ${paths.alertCount} total / ${paths.highAlertCount} high / ${paths.criticalAlertCount} critical`);
+  if (paths.dailyBrief) console.log(`Brief: ${paths.dailyBrief}`);
   console.log("=============================================");
   console.log("");
   console.log("Open dashboard with:");

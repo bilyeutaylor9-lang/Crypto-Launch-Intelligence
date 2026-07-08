@@ -30,6 +30,10 @@
     "calibrate": "node src/outcomeBacktest.js",
     "patterns": "node src/prePumpPatterns.js",
     "sources": "node src/data/dataSourceManager.js",
+    "watchtower": "node src/watchtower.js",
+    "watchtower:daemon": "node src/watchtowerDaemon.js",
+    "alerts": "cat reports/alerts.json",
+    "brief": "cat reports/daily-brief.json",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",
     "dev": "node --watch src/index.js"

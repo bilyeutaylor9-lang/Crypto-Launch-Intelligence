@@ -7,6 +7,7 @@ import { writeQuantumFieldReport } from "./quantumFieldReportEngine.js";
 import { writeCalibrationReport } from "./calibrationReportEngine.js";
 import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
+import { writeWatchtowerReports } from "./watchtowerReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -18,6 +19,12 @@ export function generateReports(projects = [], meta = {}) {
   const calibrationPath = writeCalibrationReport();
   const prePumpPatternPath = writePrePumpPatternReport();
   const institutionalVNextPath = writeInstitutionalVNextReport(projects);
+  const {
+    alertsPath,
+    briefPath,
+    alerts,
+    brief,
+  } = writeWatchtowerReports(projects);
 
   return {
     htmlPath,
@@ -27,8 +34,14 @@ export function generateReports(projects = [], meta = {}) {
     calibrationPath,
     prePumpPatternPath,
     institutionalVNextPath,
+    alertsPath,
+    briefPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,
+    alertCount: alerts.length,
+    criticalAlertCount: alerts.filter((alert) => alert.severity === "Critical").length,
+    highAlertCount: alerts.filter((alert) => alert.severity === "High").length,
+    dailyBrief: brief.brief,
   };
 }
