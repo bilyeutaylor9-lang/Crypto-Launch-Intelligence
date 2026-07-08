@@ -1,103 +1,3 @@
-import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
-import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
-import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
-
-import { analyzeNarratives } from "./engines/narrativeEngine.js";
-import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
-import { analyzeNarrativeLaunchStakingBatch } from "./engines/narrativeLaunchStakingEngine.js";
-
-import { analyzeDeveloperActivityBatch } from "./engines/developerActivityEngine.js";
-import { analyzeGithubBatch } from "./engines/githubQualityEngine.js";
-import { analyzeCommunityGrowthBatch } from "./engines/communityGrowthEngine.js";
-import { analyzeSocialAccelerationBatch } from "./engines/socialAccelerationEngine.js";
-import { analyzeLiquidityBatch } from "./engines/liquidityIntelligenceEngine.js";
-import { analyzeHolderGrowthBatch } from "./engines/holderGrowthEngine.js";
-import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
-import { analyzeSmartWalletBatch } from "./engines/smartWalletEngine.js";
-import { analyzeSmartWalletPerformanceBatch } from "./engines/smartWalletPerformanceEngine.js";
-import { analyzeSmartMoneyAccumulationBatch } from "./engines/smartMoneyAccumulationEngine.js";
-
-import { analyzeExchangeProbabilityBatch } from "./engines/exchangeProbabilityEngine.js";
-import { analyzeCatalystsBatch } from "./engines/catalystEngine.js";
-import { analyzeCatalystCalendarBatch } from "./engines/catalystCalendarEngine.js";
-import { analyzeTokenomicsBatch } from "./engines/tokenomicsEngine.js";
-import { analyzeFundingBackersBatch } from "./engines/fundingBackerEngine.js";
-import { analyzePartnershipsBatch } from "./engines/partnershipEngine.js";
-import { analyzeEcosystemIntegrationBatch } from "./engines/ecosystemIntegrationEngine.js";
-
-import { analyzeBaselineBatch } from "./engines/baselineEngine.js";
-import { analyzeVelocityBatch } from "./engines/velocityEngine.js";
-import { analyzeAccelerationBatch } from "./engines/accelerationEngine.js";
-import { analyzeTrendChangeBatch } from "./engines/trendChangeEngine.js";
-import { analyzeMomentumCompressionBatch } from "./engines/momentumCompressionEngine.js";
-import { analyzeCapitalFlowBatch } from "./engines/capitalFlowEngine.js";
-import { analyzeBuyPressureBatch } from "./engines/buyPressureEngine.js";
-import { analyzeSellPressureBatch } from "./engines/sellPressureEngine.js";
-import { analyzeRelativeStrengthBatch } from "./engines/relativeStrengthEngine.js";
-import { analyzeSmartMoneyRotationBatch } from "./engines/smartMoneyRotationEngine.js";
-import { analyzeOpportunityTimingBatch } from "./engines/opportunityTimingEngine.js";
-import { analyzeEarlyBreakoutBatch } from "./engines/earlyBreakoutEngine.js";
-import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEngine.js";
-import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
-import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
-
-import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
-
-import { saveScanMemory } from "./learning/scanMemoryStore.js";
-
-function num(value = 0) {
-  return Number.isFinite(Number(value)) ? Number(value) : 0;
-}
-
-function clamp(value = 0, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, num(value)));
-}
-
-function normalizeEngineOutput(output, fallback = []) {
-  if (Array.isArray(output)) return output;
-  if (Array.isArray(output?.results)) return output.results;
-  if (Array.isArray(output?.projects)) return output.projects;
-  if (Array.isArray(output?.data)) return output.data;
-  if (Array.isArray(output?.tokens)) return output.tokens;
-  if (Array.isArray(output?.candidates)) return output.candidates;
-  return fallback;
-}
-
-async function runEngine(name, engine, projects, options = {}) {
-  const safeProjects = Array.isArray(projects)
-    ? projects
-    : normalizeEngineOutput(projects, []);
-
-  try {
-    if (typeof engine !== "function") {
-      console.log(`Skipping ${name}: engine not found`);
-      return safeProjects;
-    }
-
-    console.log(`Running ${name}...`);
-
-    const output = await engine(safeProjects, options);
-    return normalizeEngineOutput(output, safeProjects);
-  } catch (error) {
-    console.log(`${name} failed: ${error.message}`);
-    return safeProjects;
-  }
-}
-
-function weightedInstitutionalScore(project = {}) {
-  const prePumpScore = num(project.prePump?.score);
-
-  const weights = [
-    { score: project.marketRankScore, weight: 1.2 },
-    { score: project.richTokenScore, weight: 0.9 },
-    { score: project.infrastructureNarrativeScore, weight: 0.9 },
-    { score: project.narrativeScore, weight: 0.8 },
-    { score: project.narrativeForecastScore, weight: 1.0 },
-    { score: project.narrativeLaunchStakingScore, weight: 1.0 },
-    { score: project.launchReadinessScore, weight: 0.7 },
-    { score: project.stakingMomentumScore, weight: 0.7 },
-    { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
-    { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
     { score: project.socialAccelerationScore, weight: 0.7 },
     { score: project.liquidityScore, weight: 0.9 },
@@ -248,3 +148,103 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Whale Activity", analyzeWhaleActivityBatch, results);
 
   results = await runEngine("Smart Wallet", analyzeSmartWalletBatch, results);
+  results = await runEngine("Smart Wallet Performance", analyzeSmartWalletPerformanceBatch, results);
+  results = await runEngine("Smart Money Accumulation", analyzeSmartMoneyAccumulationBatch, results);
+
+  results = await runEngine("Exchange Probability", analyzeExchangeProbabilityBatch, results);
+  results = await runEngine("Catalysts", analyzeCatalystsBatch, results);
+  results = await runEngine("Catalyst Calendar", analyzeCatalystCalendarBatch, results);
+
+  results = await runEngine("Tokenomics", analyzeTokenomicsBatch, results);
+  results = await runEngine("Funding Backers", analyzeFundingBackersBatch, results);
+  results = await runEngine("Partnerships", analyzePartnershipsBatch, results);
+  results = await runEngine("Ecosystem Integration", analyzeEcosystemIntegrationBatch, results);
+
+  results = await runEngine("Baseline", analyzeBaselineBatch, results);
+  results = await runEngine("Velocity", analyzeVelocityBatch, results);
+  results = await runEngine("Acceleration", analyzeAccelerationBatch, results);
+  results = await runEngine("Trend Change", analyzeTrendChangeBatch, results);
+  results = await runEngine("Momentum Compression", analyzeMomentumCompressionBatch, results);
+  results = await runEngine("Capital Flow", analyzeCapitalFlowBatch, results);
+  results = await runEngine("Buy Pressure", analyzeBuyPressureBatch, results);
+  results = await runEngine("Sell Pressure", analyzeSellPressureBatch, results);
+  results = await runEngine("Relative Strength", analyzeRelativeStrengthBatch, results);
+  results = await runEngine("Smart Money Rotation", analyzeSmartMoneyRotationBatch, results);
+  results = await runEngine("Opportunity Timing", analyzeOpportunityTimingBatch, results);
+  results = await runEngine("Early Breakout", analyzeEarlyBreakoutBatch, results);
+  results = await runEngine("Volatility Expansion", analyzeVolatilityExpansionBatch, results);
+  results = await runEngine("Liquidity Expansion", analyzeLiquidityExpansionBatch, results);
+  results = await runEngine("Momentum Shift", analyzeMomentumShiftBatch, results);
+
+  results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
+  results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
+
+  results = addFinalScoring(results);
+
+  if (options.saveMemory !== false) {
+    try {
+      await saveScanMemory(results);
+    } catch (error) {
+      console.log(`Scan memory save failed: ${error.message}`);
+    }
+  }
+
+  return results;
+}
+
+export function summarizePipelineResults(results = []) {
+  const safeResults = Array.isArray(results)
+    ? results
+    : normalizeEngineOutput(results, []);
+
+  const prePumpOpportunities = safeResults.filter(
+    (p) =>
+      num(p.prePump?.score) >= 70 &&
+      p.prePump?.status !== "ALREADY_PUMPED" &&
+      p.prePump?.status !== "LATE_CHASE"
+  );
+
+  const launchStakingOpportunities = safeResults.filter(
+    (p) =>
+      num(p.narrativeLaunchStakingScore) >= 70 &&
+      num(p.stakingRiskScore) < 70
+  );
+
+  return {
+    scannedProjects: safeResults.length,
+    topProject: safeResults[0] || null,
+
+    institutionalAlphaCount: safeResults.filter((p) => p.pipelineScore >= 95).length,
+    eliteOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 90).length,
+    aPlusOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 85).length,
+    strongWatchlistCount: safeResults.filter((p) => p.pipelineScore >= 80).length,
+    watchlistCount: safeResults.filter((p) => p.pipelineScore >= 70).length,
+
+    highMarketRankCount: safeResults.filter((p) => p.marketRankScore >= 70).length,
+    highRichTokenCount: safeResults.filter((p) => p.richTokenScore >= 70).length,
+    highMomentumCount: safeResults.filter((p) => p.momentumShiftScore >= 70).length,
+    highPrePumpCount: prePumpOpportunities.length,
+    highNarrativeLaunchStakingCount: launchStakingOpportunities.length,
+    highStakingRiskCount: safeResults.filter((p) => p.stakingRiskScore >= 70).length,
+
+    strongSmartMoneyAccumulationCount: safeResults.filter(
+      (p) => p.smartMoneyAccumulationScore >= 70
+    ).length,
+
+    strongSmartWalletPerformanceCount: safeResults.filter(
+      (p) => p.smartWalletPerformanceScore >= 70
+    ).length,
+
+    strongNarrativeForecastCount: safeResults.filter(
+      (p) => p.narrativeForecastScore >= 70
+    ).length,
+
+    strongCatalystCalendarCount: safeResults.filter(
+      (p) => p.catalystCalendarScore >= 70
+    ).length,
+
+    alreadyPumpedCount: safeResults.filter(
+      (p) => p.prePump?.status === "ALREADY_PUMPED"
+    ).length,
+
+    lateChaseCount: safeResults.filter(
