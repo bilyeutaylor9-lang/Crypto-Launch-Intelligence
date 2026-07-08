@@ -26,20 +26,44 @@ export function writeSummaryReport(projects = []) {
   const strongBuy = ranked.filter(
     (p) => Number(p.opportunityScore ?? p.score ?? 0) >= 80
   );
+  const marketContext = ranked[0]?.marketContext || {};
+  const priorityResearch = ranked.filter((p) =>
+    ["Core Watch", "Priority Research"].includes(p.allocationBucket)
+  );
+  const highConviction = ranked.filter((p) =>
+    ["Institutional", "High"].includes(p.conviction)
+  );
+  const defensive = ranked.filter((p) => p.conviction === "Defensive");
+  const researchQueue = priorityResearch
+    .slice(0, 8)
+    .map((p, index) => {
+      const score = Number(p.opportunityScore ?? p.score ?? 0).toFixed(1);
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - ${score} - ${p.allocationBucket || "Unbucketed"} - ${p.executionPlan?.action || "Review"}`;
+    })
+    .join("\n");
 
   const summary = `
 CRYPTO LAUNCH INTELLIGENCE REPORT
 Generated: ${new Date().toLocaleString()}
 
 Projects scanned: ${total}
+Market regime: ${marketContext.regime || "Unknown"}
+Healthy breadth: ${marketContext.healthyBreadth ?? "N/A"}%
+High-conviction breadth: ${marketContext.highConvictionBreadth ?? "N/A"}%
 Average opportunity score: ${avgScore.toFixed(2)}
 Strong buy candidates: ${strongBuy.length}
+High-conviction candidates: ${highConviction.length}
+Priority research queue: ${priorityResearch.length}
+Defensive / avoid candidates: ${defensive.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
 
 Top score:
 ${topProject ? Number(topProject.opportunityScore ?? topProject.score ?? 0).toFixed(2) : "N/A"}
+
+Top research queue:
+${researchQueue || "None"}
 
 Files generated:
 - reports/report.html

@@ -105,6 +105,8 @@ function printSummary(summary) {
   console.log("");
   console.log("============= PIPELINE SUMMARY =============");
   console.log(`Projects Scanned: ${summary.scannedProjects}`);
+  console.log(`Market Regime: ${summary.marketRegime || "Unknown"}`);
+  console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "N/A"}%`);
   console.log(`Institutional Alpha: ${summary.institutionalAlphaCount}`);
   console.log(`A+ Opportunities: ${summary.aPlusOpportunityCount}`);
   console.log(`Strong Watchlist: ${summary.strongWatchlistCount}`);
@@ -119,6 +121,10 @@ function printSummary(summary) {
   console.log(`Smart Money + Flow: ${summary.smartMoneyFlowSetupCount}`);
   console.log(`Narrative + Momentum: ${summary.narrativeMomentumSetupCount}`);
   console.log(`Defensive / Avoid: ${summary.defensiveCount}`);
+  console.log(`Priority Research: ${summary.priorityResearchCount}`);
+  console.log(`Core Watch: ${summary.coreWatchCount}`);
+  console.log(`Starter Watch: ${summary.starterWatchCount}`);
+  console.log(`Speculative Lab: ${summary.speculativeLabCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);

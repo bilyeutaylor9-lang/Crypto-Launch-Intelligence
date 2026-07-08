@@ -373,6 +373,180 @@ function buildExecutionPlan(score = 0, conviction = "Low", risks = []) {
   };
 }
 
+function buildResearchChecklist(project = {}, profile = {}) {
+  const checklist = [];
+
+  if (profile.narrative >= 60) {
+    checklist.push("Validate narrative quality against current sector leaders.");
+  }
+  if (profile.launch >= 55) {
+    checklist.push("Confirm launch dates, token unlocks, staking rules, and exchange/listing timing.");
+  }
+  if (profile.flows >= 55) {
+    checklist.push("Review liquidity depth, pool concentration, and buy/sell transaction mix.");
+  }
+  if (profile.smartMoney >= 55) {
+    checklist.push("Inspect top smart-wallet entries, holding time, and prior wallet hit rate.");
+  }
+  if (profile.fundamentals < 45) {
+    checklist.push("Manually review tokenomics, backers, audits, and roadmap quality.");
+  }
+  if (profile.devCommunity < 45) {
+    checklist.push("Check GitHub, social growth, community quality, and founder credibility.");
+  }
+  if (num(project.stakingRiskScore) > 0) {
+    checklist.push("Review staking lockups, withdrawal rules, slashing exposure, and APY sustainability.");
+  }
+  if (!checklist.length) {
+    checklist.push("Wait for stronger cross-signal confirmation before deeper research.");
+  }
+
+  return checklist;
+}
+
+function buildInvalidationSignals(project = {}, profile = {}) {
+  const invalidations = [
+    "Pipeline score drops below 55 on the next scan.",
+    "Liquidity contracts while sell pressure rises.",
+    "Primary catalyst is delayed, cancelled, or already priced in.",
+  ];
+
+  if (profile.smartMoney >= 55) {
+    invalidations.push("Smart-wallet net flow flips materially negative.");
+  }
+  if (profile.launch >= 55) {
+    invalidations.push("Launch or staking terms reveal high dilution, lockup risk, or weak demand.");
+  }
+  if (num(project.prePump?.score) >= 55) {
+    invalidations.push("Pre-pump status changes to late chase or already pumped.");
+  }
+
+  return invalidations;
+}
+
+function allocationBucket(score = 0, conviction = "Low", risks = []) {
+  if (risks.length >= 3 || conviction === "Defensive") return "Avoid";
+  if (conviction === "Institutional" && score >= 88) return "Core Watch";
+  if (conviction === "High" && score >= 78) return "Priority Research";
+  if (conviction === "Medium" && score >= 65) return "Starter Watch";
+  if (conviction === "Speculative") return "Speculative Lab";
+  return "Ignore";
+}
+
+function buildMarketContext(projects = []) {
+  const total = projects.length || 1;
+  const average = (selector) =>
+    Math.round(
+      projects.reduce((sum, project) => sum + num(selector(project)), 0) / total
+    );
+  const count = (predicate) => projects.filter(predicate).length;
+
+  const avgPipelineScore = average((project) => project.pipelineScore);
+  const avgRiskScore = average((project) => project.signalProfile?.risk);
+  const highConvictionCount = count((project) =>
+    ["Institutional", "High"].includes(project.conviction)
+  );
+  const defensiveCount = count((project) => project.conviction === "Defensive");
+  const healthyBreadthCount = count((project) => num(project.pipelineScore) >= 55);
+  const launchBreadthCount = count((project) => num(project.signalProfile?.launch) >= 60);
+  const smartMoneyBreadthCount = count((project) => num(project.signalProfile?.smartMoney) >= 60);
+
+  const healthyBreadth = Math.round((healthyBreadthCount / total) * 100);
+  const highConvictionBreadth = Math.round((highConvictionCount / total) * 100);
+  const defensiveBreadth = Math.round((defensiveCount / total) * 100);
+
+  let regime = "Selective";
+  if (avgRiskScore >= 65 || defensiveBreadth >= 20) regime = "Risk-Off";
+  else if (healthyBreadth >= 30 && highConvictionBreadth >= 5) regime = "Risk-On";
+  else if (healthyBreadth < 10 && highConvictionBreadth < 2) regime = "Thin";
+
+  return {
+    regime,
+    avgPipelineScore,
+    avgRiskScore,
+    healthyBreadth,
+    highConvictionBreadth,
+    defensiveBreadth,
+    launchBreadth: Math.round((launchBreadthCount / total) * 100),
+    smartMoneyBreadth: Math.round((smartMoneyBreadthCount / total) * 100),
+  };
+}
+
+function marketAdjustment(project = {}, context = {}) {
+  let adjustment = 0;
+
+  if (context.regime === "Risk-On") {
+    if (num(project.signalDensityScore) >= 55) adjustment += 3;
+    if (["Institutional", "High"].includes(project.conviction)) adjustment += 2;
+  }
+
+  if (context.regime === "Selective") {
+    if (num(project.signalDensityScore) < 35) adjustment -= 2;
+    if (num(project.signalProfile?.risk) < 45 && num(project.signalDensityScore) >= 55) {
+      adjustment += 2;
+    }
+  }
+
+  if (context.regime === "Thin") {
+    if (!["Institutional", "High"].includes(project.conviction)) adjustment -= 4;
+    if (num(project.signalDensityScore) >= 65) adjustment += 2;
+  }
+
+  if (context.regime === "Risk-Off") {
+    adjustment -= 6;
+    if (num(project.signalProfile?.risk) >= 60) adjustment -= 5;
+    if (["Institutional", "High"].includes(project.conviction)) adjustment += 3;
+  }
+
+  return adjustment;
+}
+
+function enrichWithMarketContext(projects = []) {
+  const context = buildMarketContext(projects);
+
+  return projects
+    .map((project) => {
+      const adjustment = marketAdjustment(project, context);
+      const marketAdjustedScore = Math.round(clamp(num(project.pipelineScore) + adjustment));
+      const conviction = convictionLevel(
+        marketAdjustedScore,
+        num(project.signalDensityScore),
+        project.riskFlags || []
+      );
+      const executionPlan = buildExecutionPlan(
+        marketAdjustedScore,
+        conviction,
+        project.riskFlags || []
+      );
+      const watchlistPriority = Math.round(
+        clamp(
+          marketAdjustedScore * 0.65 +
+            num(project.signalDensityScore) * 0.25 -
+            num(project.signalProfile?.risk) * 0.1
+        )
+      );
+
+      return {
+        ...project,
+        marketContext: context,
+        marketRegime: context.regime,
+        marketAdjustment: adjustment,
+        marketAdjustedScore,
+        pipelineScore: marketAdjustedScore,
+        opportunityScore: marketAdjustedScore,
+        score: marketAdjustedScore,
+        relativeScoreDelta: Math.round(marketAdjustedScore - context.avgPipelineScore),
+        conviction,
+        executionPlan,
+        watchlistPriority,
+        allocationBucket: allocationBucket(marketAdjustedScore, conviction, project.riskFlags || []),
+        researchChecklist: buildResearchChecklist(project, project.signalProfile || {}),
+        invalidationSignals: buildInvalidationSignals(project, project.signalProfile || {}),
+      };
+    })
+    .sort((a, b) => num(b.pipelineScore) - num(a.pipelineScore));
+}
+
 function buildOpportunityThesis(project = {}, profile = {}, tags = [], risks = []) {
   const name = project.name || project.symbol || "This project";
   const strengths = profile.rankedClusters
@@ -498,14 +672,23 @@ function addFinalScoring(projects = []) {
     })
     .sort((a, b) => num(b.pipelineScore) - num(a.pipelineScore));
 
-  const total = scoredProjects.length;
+  const marketAdjustedProjects = enrichWithMarketContext(scoredProjects);
+  const total = marketAdjustedProjects.length;
 
-  return scoredProjects.map((project, index) => ({
-    ...project,
-    pipelineRank: index + 1,
-    pipelinePercentile:
-      total <= 1 ? 100 : Math.round(((total - index) / total) * 100),
-  }));
+  return marketAdjustedProjects
+    .map((project, index) => ({
+      ...project,
+      pipelineRank: index + 1,
+      pipelinePercentile:
+        total <= 1 ? 100 : Math.round(((total - index) / total) * 100),
+    }))
+    .map((project) => ({
+      ...project,
+      pipelineTier: classifyProject(project),
+      tier: classifyProject(project),
+      pipelineConfidence: confidenceForProject(project),
+      confidence: confidenceForProject(project),
+    }));
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
@@ -609,10 +792,16 @@ export function summarizePipelineResults(results = []) {
       num(p.signalProfile?.momentum) >= 65 &&
       num(p.signalProfile?.risk) < 70
   );
+  const marketContext = safeResults[0]?.marketContext || buildMarketContext(safeResults);
+  const priorityResearch = safeResults.filter(
+    (p) => ["Core Watch", "Priority Research"].includes(p.allocationBucket)
+  );
 
   return {
     scannedProjects: safeResults.length,
     topProject: safeResults[0] || null,
+    marketContext,
+    marketRegime: marketContext.regime,
 
     institutionalAlphaCount: safeResults.filter((p) => p.pipelineScore >= 95).length,
     eliteOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 90).length,
@@ -630,6 +819,10 @@ export function summarizePipelineResults(results = []) {
     defensiveCount: defensiveProjects.length,
     smartMoneyFlowSetupCount: smartMoneyFlowSetups.length,
     narrativeMomentumSetupCount: narrativeMomentumSetups.length,
+    priorityResearchCount: priorityResearch.length,
+    coreWatchCount: safeResults.filter((p) => p.allocationBucket === "Core Watch").length,
+    starterWatchCount: safeResults.filter((p) => p.allocationBucket === "Starter Watch").length,
+    speculativeLabCount: safeResults.filter((p) => p.allocationBucket === "Speculative Lab").length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -686,6 +879,20 @@ export function summarizePipelineResults(results = []) {
         riskFlags: project.riskFlags || [],
         thesis: project.opportunityThesis || "",
       })),
+
+    priorityResearchQueue: priorityResearch.slice(0, 15).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      watchlistPriority: project.watchlistPriority || 0,
+      allocationBucket: project.allocationBucket || "Unknown",
+      conviction: project.conviction || "Unknown",
+      action: project.executionPlan?.action || "Unknown",
+      reviewTrigger: project.executionPlan?.reviewTrigger || "",
+      checklist: project.researchChecklist || [],
+      invalidationSignals: project.invalidationSignals || [],
+    })),
 
     bestSmartMoneyFlowSetups: smartMoneyFlowSetups.slice(0, 10).map((project) => ({
       rank: project.pipelineRank || 0,

@@ -46,9 +46,13 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.chain || "")}</td>
           <td><strong>${score.toFixed(1)}</strong></td>
           <td>${esc(p.confidence || "")}</td>
+          <td>${esc(p.conviction || "")}</td>
+          <td>${esc(p.allocationBucket || "")}</td>
+          <td>${esc(p.executionPlan?.action || "")}</td>
           <td>${esc(tier)}</td>
           <td>${esc(p.narrative || "")}</td>
           <td>${esc(p.riskScore ?? "")}</td>
+          <td>${esc(p.opportunityThesis || "")}</td>
         </tr>
       `;
     })
@@ -172,9 +176,13 @@ export function writeHtmlReport(projects = []) {
         <th>Chain</th>
         <th>Score</th>
         <th>Confidence</th>
+        <th>Conviction</th>
+        <th>Bucket</th>
+        <th>Action</th>
         <th>Tier</th>
         <th>Narrative</th>
         <th>Risk</th>
+        <th>Thesis</th>
       </tr>
     </thead>
     <tbody>
