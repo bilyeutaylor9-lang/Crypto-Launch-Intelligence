@@ -29,6 +29,13 @@ export function writeCsvReport(projects = []) {
     "xSocialScore",
     "institutionalWatchScore",
     "learningEdgeScore",
+    "outcomeLearningScore",
+    "outcomeWinRate",
+    "outcomeTrapRisk",
+    "signalCombinationScore",
+    "signalCombinationEdge",
+    "winningCombinations",
+    "trapCombinations",
     "scoreTrend",
     "quantumOpportunityScore",
     "quantumFieldState",
@@ -66,6 +73,17 @@ export function writeCsvReport(projects = []) {
     p.xSocialScore ?? "",
     p.institutionalWatchScore ?? "",
     p.learningEdgeScore ?? "",
+    p.outcomeLearningScore ?? "",
+    p.outcomeLearning?.estimatedWinRate ?? p.outcomeWinRate ?? "",
+    p.outcomeTrapRisk ?? "",
+    p.signalCombinationScore ?? "",
+    p.signalCombinationEdge ?? "",
+    Array.isArray(p.winningSignalCombinations)
+      ? p.winningSignalCombinations.map((combo) => combo.name).join("; ")
+      : "",
+    Array.isArray(p.trapSignalCombinations)
+      ? p.trapSignalCombinations.map((combo) => combo.name).join("; ")
+      : "",
     p.projectWatchChange?.scoreTrend ?? p.institutionalLearning?.scoreTrend ?? "",
     p.quantumOpportunityScore ?? "",
     p.quantumFieldState ?? "",

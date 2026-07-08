@@ -42,6 +42,8 @@ import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEn
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
 import { analyzeMomentumShiftBatch } from "./engines/momentumShiftEngine.js";
 import { analyzeInstitutionalLearningBatch } from "./engines/institutionalLearningEngine.js";
+import { analyzeOutcomeLearningBatch } from "./engines/outcomeLearningEngine.js";
+import { analyzeSignalCombinationsBatch } from "./engines/signalCombinationEngine.js";
 import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
@@ -104,6 +106,8 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.xSocialScore, weight: 0.8 },
     { score: project.institutionalWatchScore, weight: 0.9 },
     { score: project.learningEdgeScore, weight: 0.7 },
+    { score: project.outcomeLearningScore, weight: 0.9 },
+    { score: project.signalCombinationScore, weight: 1.0 },
     { score: project.quantumOpportunityScore, weight: 0.9 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
@@ -264,6 +268,11 @@ function buildSignalProfile(project = {}) {
     learning: weightedAverage([
       { score: project.learningEdgeScore, weight: 1.0 },
       { score: project.institutionalLearning?.learningEdgeScore, weight: 1.0 },
+      { score: project.outcomeLearningScore, weight: 1.2 },
+    ]),
+    signalCombos: weightedAverage([
+      { score: project.signalCombinationScore, weight: 1.2 },
+      { score: 50 + num(project.signalCombinationEdge), weight: 0.8 },
     ]),
     quantumField: weightedAverage([
       { score: project.quantumOpportunityScore, weight: 1.0 },
@@ -304,8 +313,10 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (profile.fundamentals >= 70) tags.push("Fundamental Support");
   if (profile.devCommunity >= 70) tags.push("Builder/Community Strength");
   if (profile.socialIntelligence >= 70) tags.push("X/Social Acceleration");
+  if (profile.signalCombos >= 70) tags.push("Winning Signal Recipe");
   if (num(project.institutionalWatchScore) >= 65) tags.push("Institutional Attention");
   if (num(project.learningEdgeScore) >= 70) tags.push("Learning Edge");
+  if (num(project.outcomeLearningScore) >= 70) tags.push("Outcome-Memory Winner Fit");
   if (num(project.quantumOpportunityScore) >= 70) tags.push("Quantum Upside Field");
   if (num(project.prePump?.score) >= 70) tags.push("Pre-Pump Candidate");
   if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
@@ -328,6 +339,11 @@ function buildRiskFlags(project = {}, profile = {}) {
   }
   if (num(project.quantumOutcomeField?.collapseProbability) >= 35) {
     risks.push("High quantum downside field");
+  }
+  if (num(project.outcomeTrapRisk) >= 55) risks.push("Resembles prior outcome traps");
+  if ((project.trapSignalCombinations || []).length >= 2) risks.push("Multiple trap signal recipes");
+  if (num(project.signalCombinationScore) > 0 && num(project.signalCombinationScore) <= 35) {
+    risks.push("Negative signal combination");
   }
   if (profile.risk >= 70) risks.push("Risk cluster elevated");
   if (num(project.liquidityScore) > 0 && num(project.liquidityScore) < 35) {
@@ -429,7 +445,10 @@ function buildResearchChecklist(project = {}, profile = {}) {
     checklist.push("Review official X posts, founder posts, influencer mentions, and bot/spam quality.");
   }
   if (profile.learning >= 60) {
-    checklist.push("Compare current thesis against prior watchlist history and score changes.");
+    checklist.push("Compare current thesis against prior watchlist history, outcome matches, and score changes.");
+  }
+  if (profile.signalCombos >= 60) {
+    checklist.push("Validate that active signal combinations are supported by real liquidity, catalysts, and wallet flow.");
   }
   if (profile.fundamentals < 45) {
     checklist.push("Manually review tokenomics, backers, audits, and roadmap quality.");
@@ -459,6 +478,9 @@ function buildInvalidationSignals(project = {}, profile = {}) {
   }
   if (profile.socialIntelligence >= 55) {
     invalidations.push("Social acceleration fades without matching liquidity, holder, or catalyst confirmation.");
+  }
+  if (profile.signalCombos >= 55) {
+    invalidations.push("Winning signal recipe breaks down or flips into a trap recipe.");
   }
   if (profile.launch >= 55) {
     invalidations.push("Launch or staking terms reveal high dilution, lockup risk, or weak demand.");
@@ -625,6 +647,10 @@ function advancedScoreBreakdown(project = {}) {
   if (profile.smartMoney >= 70 && profile.flows >= 65) bonus += 4;
   if (profile.fundamentals >= 65 && profile.devCommunity >= 65) bonus += 3;
   if (profile.socialIntelligence >= 70 && profile.learning >= 60) bonus += 4;
+  if (profile.signalCombos >= 70 && num(project.outcomeLearningScore) >= 60) bonus += 5;
+  if ((project.winningSignalCombinations || []).length >= 2 && (project.trapSignalCombinations || []).length === 0) {
+    bonus += 4;
+  }
   if (profile.quantumField >= 70 && num(project.quantumOutcomeField?.collapseProbability) < 25) bonus += 4;
   if (num(project.institutionalWatchScore) >= 70) bonus += 3;
   if (num(project.learningEdgeScore) >= 75) bonus += 3;
@@ -640,6 +666,9 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.xBotRiskScore) >= 55) penalty += 6;
   if (num(project.learningEdgeScore) > 0 && num(project.learningEdgeScore) <= 35) penalty += 6;
   if (num(project.quantumOutcomeField?.collapseProbability) >= 35) penalty += 8;
+  if (num(project.outcomeTrapRisk) >= 60) penalty += 8;
+  if ((project.trapSignalCombinations || []).length >= 2) penalty += 9;
+  if (num(project.signalCombinationScore) > 0 && num(project.signalCombinationScore) <= 35) penalty += 7;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const riskAdjustedScore = Math.round(clamp(baseScore + bonus - penalty));
@@ -800,6 +829,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
   results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
   results = await runEngine("Institutional Learning", analyzeInstitutionalLearningBatch, results);
+  results = await runEngine("Outcome Learning", analyzeOutcomeLearningBatch, results);
+  results = await runEngine("Signal Combination Learning", analyzeSignalCombinationsBatch, results);
   results = await runEngine("Quantum Outcome Field", analyzeQuantumOutcomeFieldBatch, results, options.quantumField || {});
 
   results = addFinalScoring(results);
@@ -881,6 +912,14 @@ export function summarizePipelineResults(results = []) {
       p.quantumFieldState === "Fragile Field" ||
       num(p.quantumOutcomeField?.collapseProbability) >= 35
   );
+  const outcomeMemoryWinners = safeResults.filter((p) => num(p.outcomeLearningScore) >= 70);
+  const outcomeMemoryTraps = safeResults.filter((p) => num(p.outcomeTrapRisk) >= 55);
+  const winningComboSetups = safeResults.filter(
+    (p) =>
+      num(p.signalCombinationScore) >= 70 &&
+      (p.winningSignalCombinations || []).length > (p.trapSignalCombinations || []).length
+  );
+  const trapComboSetups = safeResults.filter((p) => (p.trapSignalCombinations || []).length > 0);
 
   return {
     scannedProjects: safeResults.length,
@@ -913,6 +952,10 @@ export function summarizePipelineResults(results = []) {
     acceleratingWatchedProjectCount: acceleratingWatchedProjects.length,
     quantumUpsideSetupCount: quantumUpsideSetups.length,
     quantumFragileSetupCount: quantumFragileSetups.length,
+    outcomeMemoryWinnerFitCount: outcomeMemoryWinners.length,
+    outcomeMemoryTrapFitCount: outcomeMemoryTraps.length,
+    winningSignalCombinationCount: winningComboSetups.length,
+    trapSignalCombinationCount: trapComboSetups.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
@@ -1009,6 +1052,30 @@ export function summarizePipelineResults(results = []) {
       positiveProbability: project.quantumOutcomeField?.positiveProbability || 0,
       collapseProbability: project.quantumOutcomeField?.collapseProbability || 0,
       asymmetryRatio: project.quantumOutcomeField?.asymmetryRatio || 0,
+    })),
+
+    bestOutcomeLearningSetups: outcomeMemoryWinners.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      outcomeLearningScore: project.outcomeLearningScore || 0,
+      estimatedWinRate: project.outcomeLearning?.estimatedWinRate || 0,
+      trapRisk: project.outcomeTrapRisk || 0,
+      summary: project.outcomeLearning?.summary || "",
+      topMatches: project.outcomeLearning?.topMatches || [],
+    })),
+
+    bestSignalCombinationSetups: winningComboSetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      signalCombinationScore: project.signalCombinationScore || 0,
+      edge: project.signalCombinationEdge || 0,
+      winningCombinations: (project.winningSignalCombinations || []).map((combo) => combo.name),
+      trapCombinations: (project.trapSignalCombinations || []).map((combo) => combo.name),
+      summary: project.signalCombinations?.summary || "",
     })),
 
     bestSmartMoneyFlowSetups: smartMoneyFlowSetups.slice(0, 10).map((project) => ({

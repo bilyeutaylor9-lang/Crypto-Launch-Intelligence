@@ -46,10 +46,36 @@ export function writeSummaryReport(projects = []) {
       Number(p.quantumOpportunityScore || 0) >= 70 &&
       Number(p.quantumOutcomeField?.collapseProbability || 0) < 35
   );
+  const outcomeMemoryWinners = ranked.filter(
+    (p) => Number(p.outcomeLearningScore || 0) >= 70
+  );
+  const trapMemoryFits = ranked.filter((p) => Number(p.outcomeTrapRisk || 0) >= 55);
+  const winningCombos = ranked.filter(
+    (p) =>
+      Number(p.signalCombinationScore || 0) >= 70 &&
+      (p.winningSignalCombinations || []).length > (p.trapSignalCombinations || []).length
+  );
+  const trapCombos = ranked.filter((p) => (p.trapSignalCombinations || []).length > 0);
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - field ${p.quantumOpportunityScore || 0}, expected ${p.quantumOutcomeField?.expectedReturnPct || 0}%, best ${p.quantumOutcomeField?.bestCaseReturnPct || 0}%`;
+    })
+    .join("\n");
+  const topOutcomeLearning = outcomeMemoryWinners
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - outcome ${p.outcomeLearningScore || 0}, win fit ${p.outcomeLearning?.estimatedWinRate || p.outcomeWinRate || 0}%, trap ${p.outcomeTrapRisk || 0}%`;
+    })
+    .join("\n");
+  const topSignalCombos = winningCombos
+    .slice(0, 5)
+    .map((p, index) => {
+      const combos = (p.winningSignalCombinations || [])
+        .map((combo) => combo.name)
+        .slice(0, 2)
+        .join(" + ");
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - combo ${p.signalCombinationScore || 0}${combos ? ` - ${combos}` : ""}`;
     })
     .join("\n");
   const researchQueue = priorityResearch
@@ -77,6 +103,10 @@ X/social acceleration setups: ${socialSetups.length}
 Positive learning-edge setups: ${learningSetups.length}
 Accelerating watched projects: ${acceleratingWatched.length}
 Quantum upside fields: ${quantumUpside.length}
+Outcome-memory winner fits: ${outcomeMemoryWinners.length}
+Outcome-memory trap fits: ${trapMemoryFits.length}
+Winning signal combinations: ${winningCombos.length}
+Trap signal combinations: ${trapCombos.length}
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -89,6 +119,12 @@ ${researchQueue || "None"}
 
 Top quantum fields:
 ${topQuantum || "None"}
+
+Top outcome-learning fits:
+${topOutcomeLearning || "None"}
+
+Top signal-combination setups:
+${topSignalCombos || "None"}
 
 Files generated:
 - reports/report.html

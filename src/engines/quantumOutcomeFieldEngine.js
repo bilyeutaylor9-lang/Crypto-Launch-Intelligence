@@ -98,7 +98,12 @@ function scoreSignalProfile(project = {}) {
         num(project.institutionalWatchScore) * 0.2
   );
   const learning = clamp(
-    num(project.signalProfile?.learning) || num(project.learningEdgeScore)
+    num(project.signalProfile?.learning) ||
+      num(project.learningEdgeScore) * 0.45 +
+        num(project.outcomeLearningScore) * 0.55
+  );
+  const signalCombination = clamp(
+    num(project.signalProfile?.signalCombos) || num(project.signalCombinationScore)
   );
   const risk = clamp(
     num(project.signalProfile?.risk) ||
@@ -116,6 +121,7 @@ function scoreSignalProfile(project = {}) {
     smartMoney,
     social,
     learning,
+    signalCombination,
     risk,
   };
 }
@@ -129,6 +135,7 @@ function baseDrift(profile = {}, project = {}) {
     profile.smartMoney * 0.14 +
     profile.social * 0.1 +
     profile.learning * 0.08 +
+    profile.signalCombination * 0.1 +
     num(project.prePump?.score) * 0.1 -
     profile.risk * 0.18
   );
