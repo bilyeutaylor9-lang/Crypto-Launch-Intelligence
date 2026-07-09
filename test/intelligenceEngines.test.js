@@ -7,6 +7,8 @@ import { analyzeTrapRisk } from "../src/engines/trapRiskEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "../src/engines/confidenceAdjustedRankEngine.js";
 import { analyzeWebResearchAgentBatch } from "../src/engines/webResearchAgentEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "../src/engines/aiEcosystemCouncilEngine.js";
+import { analyzeResearchOperatingSystem } from "../src/engines/researchOperatingSystemEngine.js";
+import { analyzeAutonomousAlphaLab } from "../src/engines/autonomousAlphaLabEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -216,4 +218,43 @@ test("AI ecosystem council grants true strong buy only when evidence gate clears
   assert.equal(result.aiEcosystemVerdict, "AI Strong Buy");
   assert.equal(result.strongBuyEvidenceGate.readyForTrueStrongBuy, true);
   assert.match(result.aiDebate.moderator, /clears the evidence gate/);
+});
+
+test("research operating system builds lifecycle, scenarios, tasks, and red-team review", () => {
+  const result = analyzeResearchOperatingSystem({
+    name: "ResearchOS",
+    aiEcosystemVerdict: "Best Available Strong Buy Candidate",
+    confidenceAdjustedScore: 62,
+    narrativeHeatScore: 82,
+    webResearchPriority: 72,
+    proofScore: 42,
+    trapRiskScore: 18,
+    liquidityScore: 36,
+    aiEcosystemCouncil: {
+      agents: [
+        { name: "Narrative Scout", score: 78, stance: "bullish" },
+        { name: "Risk Officer", score: 82, stance: "cleared" },
+        { name: "Flow Analyst", score: 38, stance: "cautious" },
+      ],
+    },
+  });
+
+  assert.equal(result.strongBuyLifecycleStage, "Pre-Strong Buy");
+  assert.ok(result.multiTimeframeIntelligence.bestHorizon);
+  assert.ok(result.scenarioPlan.bullCase.score >= result.scenarioPlan.bearCase.score);
+  assert.ok(result.autonomousResearchTasks.some((task) => task.priority === "High"));
+  assert.ok(["Clear", "Challenge", "Block"].includes(result.redTeamReview.status));
+});
+
+test("autonomous alpha lab matches strategy hypotheses without requiring live outcomes", () => {
+  const result = analyzeAutonomousAlphaLab({
+    name: "AlphaLab",
+    narrativeHeatScore: 88,
+    trapRiskScore: 12,
+    confidenceAdjustedScore: 58,
+  });
+
+  assert.ok(result.alphaLabStrategies.length > 0);
+  assert.ok(result.alphaLabBestStrategy);
+  assert.ok(["Cold Start", "Paper Test", "Promote"].includes(result.alphaLabStatus));
 });

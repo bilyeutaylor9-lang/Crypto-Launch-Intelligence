@@ -20,6 +20,8 @@ const PUBLIC_REPORTS = [
   "state-of-art-signals.json",
   "ai-council.json",
   "agent-performance.json",
+  "research-os.json",
+  "alpha-lab.json",
 ];
 
 function copyIfExists(fileName = "") {

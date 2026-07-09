@@ -88,6 +88,11 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.trapRiskLevel || "")}</td>
           <td>${esc(p.aiEcosystemScore ?? "")}</td>
           <td>${esc(p.aiEcosystemVerdict || "")}</td>
+          <td>${esc(p.strongBuyLifecycleStage || "")}</td>
+          <td>${esc(p.multiTimeframeIntelligence?.bestHorizon || "")}</td>
+          <td>${esc(p.redTeamReview?.status || "")}</td>
+          <td>${esc(p.aiDisagreement?.level || "")}</td>
+          <td>${esc(p.alphaLabStatus || "")}</td>
           <td>${esc(p.institutionalVNextScore ?? "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
           <td>${esc(p.externalSignalScore ?? "")}</td>
@@ -127,6 +132,8 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.trapRiskScore ?? "")}</td>
           <td>${esc(p.trapRiskLevel || "")}</td>
           <td>${esc(p.aiEcosystemVerdict || "")}</td>
+          <td>${esc(p.strongBuyLifecycleStage || "")}</td>
+          <td>${esc(p.multiTimeframeIntelligence?.bestHorizon || "")}</td>
         </tr>
       `
     )
@@ -265,6 +272,8 @@ export function writeHtmlReport(projects = []) {
         <th>Trap</th>
         <th>Trap Level</th>
         <th>AI Council</th>
+        <th>Lifecycle</th>
+        <th>Horizon</th>
       </tr>
     </thead>
     <tbody>
@@ -300,6 +309,11 @@ export function writeHtmlReport(projects = []) {
         <th>Trap Level</th>
         <th>AI Score</th>
         <th>AI Council</th>
+        <th>Lifecycle</th>
+        <th>Horizon</th>
+        <th>Red Team</th>
+        <th>Disagree</th>
+        <th>Alpha Lab</th>
         <th>vNext</th>
         <th>X Social</th>
         <th>External</th>

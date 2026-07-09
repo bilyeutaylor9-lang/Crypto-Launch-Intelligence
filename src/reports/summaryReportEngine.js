@@ -91,6 +91,10 @@ export function writeSummaryReport(projects = []) {
   const aiStrongBuyCandidates = ranked.filter((p) =>
     ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
   );
+  const preStrongBuy = ranked.filter((p) => p.strongBuyLifecycleStage === "Pre-Strong Buy");
+  const highDisagreement = ranked.filter((p) => p.aiDisagreement?.level === "High");
+  const redTeamBlocks = ranked.filter((p) => p.redTeamReview?.status === "Block");
+  const alphaLabMatches = ranked.filter((p) => (p.alphaLabStrategies || []).length > 0);
   const confidenceAdjusted = [...ranked].sort(
     (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
   );
@@ -227,6 +231,10 @@ Improving projects: ${improvingProjects.length}
 Reliable source setups: ${reliableSources.length}
 High trap-risk setups: ${highTrapRisk.length}
 AI strong-buy candidates: ${aiStrongBuyCandidates.length}
+Pre-strong-buy lifecycle setups: ${preStrongBuy.length}
+High AI-disagreement setups: ${highDisagreement.length}
+Red-team blocks: ${redTeamBlocks.length}
+Alpha Lab strategy matches: ${alphaLabMatches.length}
 Watchtower alerts: ${watchtowerAlerts.length}
 Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
 Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
@@ -291,6 +299,8 @@ Files generated:
 - reports/state-of-art-signals.json
 - reports/ai-council.json
 - reports/agent-performance.json
+- reports/research-os.json
+- reports/alpha-lab.json
 - reports/alerts.json
 - reports/daily-brief.json
 - reports/watchtower-performance.json

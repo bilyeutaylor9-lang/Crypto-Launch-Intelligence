@@ -26,6 +26,8 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Adds an autonomous web research agent that budgets free web/RSS/Google News searches toward the highest-priority candidates.
 - Adds an AI ecosystem council where specialist agents debate narrative, quant, flow, research quality, learning memory, and risk before assigning a final verdict.
 - Adds agent performance memory so the AI council can track agent behavior and adjust weights over time.
+- Adds a Research OS layer with multi-timeframe intelligence, scenario planning, autonomous research tasks, red-team review, disagreement detection, and strong-buy lifecycle tracking.
+- Adds an Autonomous Alpha Lab that discovers strategy matches, paper-tests them against memory, and lets the meta-council decide whether they should influence live scoring.
 
 ## Core Idea
 
@@ -185,6 +187,32 @@ WEB_RESEARCH_AGENT_LIMIT=250 npm run scan:wide
 DISCOVERY_SCAN_LIMIT=10000 WIDE_SCAN_LIMIT=10000 npm run scan
 ```
 
+### Research OS and Alpha Lab
+
+The Research OS turns each scan into a lifecycle-managed research workflow.
+
+It adds:
+
+- Multi-timeframe intelligence across `1h`, `24h`, `7d`, `30d`, and `90d`
+- Bull/base/bear scenario planning
+- Autonomous research tasks
+- Red-team thesis attack
+- AI disagreement scoring
+- Strong-buy promotion ladder
+- Alpha Lab strategy matching
+- Meta-council strategy recommendations
+
+Lifecycle stages:
+
+- `Candidate`
+- `Watch`
+- `Priority Watch`
+- `Pre-Strong Buy`
+- `AI Strong Buy`
+- `Invalidated`
+
+The Alpha Lab treats strategies as hypotheses first. Cold-start strategies stay in research mode, paper-tested strategies are watched, and promoted strategies can influence live scoring after enough memory exists.
+
 ### Watchtower Alpha
 
 The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
@@ -301,6 +329,14 @@ Each project can receive:
 - `strongBuyEvidenceGate`
 - `aiDebate`
 - `whyNow`
+- `strongBuyLifecycleStage`
+- `multiTimeframeIntelligence`
+- `scenarioPlan`
+- `autonomousResearchTasks`
+- `redTeamReview`
+- `aiDisagreement`
+- `alphaLabScore`
+- `alphaLabStrategies`
 
 Example allocation buckets:
 
@@ -327,6 +363,8 @@ Running the scanner creates:
 - `reports/state-of-art-signals.json`
 - `reports/ai-council.json`
 - `reports/agent-performance.json`
+- `reports/research-os.json`
+- `reports/alpha-lab.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
 
@@ -434,6 +472,8 @@ npm run state-signals
 npm run ai-council
 npm run agent-performance
 npm run agent-memory
+npm run research-os
+npm run alpha-lab
 ```
 
 Inspect expanded source candidates:

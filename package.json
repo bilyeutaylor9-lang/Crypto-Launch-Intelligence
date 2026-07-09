@@ -47,6 +47,8 @@
     "ai-council": "cat reports/ai-council.json",
     "agent-performance": "cat reports/agent-performance.json",
     "agent-memory": "node src/learning/agentPerformanceMemoryStore.js",
+    "research-os": "cat reports/research-os.json",
+    "alpha-lab": "cat reports/alpha-lab.json",
     "publish:dashboard": "node src/reports/githubPagesPublisher.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",

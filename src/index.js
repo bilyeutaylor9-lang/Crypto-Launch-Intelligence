@@ -149,6 +149,10 @@ function printSummary(summary) {
   console.log(`High Trap Risk: ${summary.highTrapRiskCount}`);
   console.log(`Reliable Source Setups: ${summary.reliableSourceCount}`);
   console.log(`AI Strong Buy Candidates: ${summary.aiStrongBuyCount}`);
+  console.log(`Pre-Strong Buy: ${summary.preStrongBuyCount}`);
+  console.log(`High AI Disagreement: ${summary.highDisagreementCount}`);
+  console.log(`Red-Team Blocks: ${summary.redTeamBlockCount}`);
+  console.log(`Alpha Lab Matches: ${summary.alphaLabMatchCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -219,6 +223,8 @@ function printReportPaths(paths) {
   console.log(`State Signals:  ${paths.stateOfArtPath}`);
   console.log(`AI Council:     ${paths.aiCouncilPath}`);
   console.log(`Agent Memory:   ${paths.agentPerformancePath}`);
+  console.log(`Research OS:    ${paths.researchOSPath}`);
+  console.log(`Alpha Lab:      ${paths.alphaLabPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
   console.log(`Performance:    ${paths.watchtowerPerformancePath}`);

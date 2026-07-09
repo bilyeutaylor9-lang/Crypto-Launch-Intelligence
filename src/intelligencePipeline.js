@@ -58,6 +58,8 @@ import { analyzeTrapRiskBatch } from "./engines/trapRiskEngine.js";
 import { analyzeSourceReliabilityBatch } from "./engines/sourceReliabilityEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
+import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
+import { analyzeAutonomousAlphaLabBatch } from "./engines/autonomousAlphaLabEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1040,6 +1042,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeTrapRiskBatch(results);
   results = analyzeConfidenceAdjustedRankBatch(results);
   results = analyzeAIEcosystemCouncilBatch(results);
+  results = analyzeResearchOperatingSystemBatch(results);
+  results = analyzeAutonomousAlphaLabBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1168,6 +1172,10 @@ export function summarizePipelineResults(results = []) {
   const aiStrongBuySetups = safeResults.filter((p) =>
     ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
   );
+  const preStrongBuySetups = safeResults.filter((p) => p.strongBuyLifecycleStage === "Pre-Strong Buy");
+  const highDisagreementSetups = safeResults.filter((p) => p.aiDisagreement?.level === "High");
+  const redTeamBlocks = safeResults.filter((p) => p.redTeamReview?.status === "Block");
+  const alphaLabMatches = safeResults.filter((p) => (p.alphaLabStrategies || []).length > 0);
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1225,6 +1233,10 @@ export function summarizePipelineResults(results = []) {
     highTrapRiskCount: highTrapRiskSetups.length,
     reliableSourceCount: reliableSourceSetups.length,
     aiStrongBuyCount: aiStrongBuySetups.length,
+    preStrongBuyCount: preStrongBuySetups.length,
+    highDisagreementCount: highDisagreementSetups.length,
+    redTeamBlockCount: redTeamBlocks.length,
+    alphaLabMatchCount: alphaLabMatches.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1248,6 +1260,19 @@ export function summarizePipelineResults(results = []) {
       aiEcosystemVerdict: project.aiEcosystemVerdict || "Unknown",
       caveat: project.aiEcosystemCaveat || "",
       conversation: project.aiEcosystemCouncil?.conversation || [],
+      whyNow: project.whyNow || {},
+      strongBuyEvidenceGate: project.strongBuyEvidenceGate || {},
+    })),
+    topResearchOSSetups: safeResults.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      lifecycleStage: project.strongBuyLifecycleStage || "Unknown",
+      bestHorizon: project.multiTimeframeIntelligence?.bestHorizon || "Unknown",
+      redTeamStatus: project.redTeamReview?.status || "Unknown",
+      disagreement: project.aiDisagreement?.level || "Unknown",
+      alphaLabStatus: project.alphaLabStatus || "Unknown",
+      scenarioPlan: project.scenarioPlan || {},
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
