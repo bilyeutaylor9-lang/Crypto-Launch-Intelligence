@@ -16,6 +16,7 @@ import { analyzeSelfTrainingMarketSimulationBrainBatch } from "../src/engines/se
 import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOutcomeJudgeEngine.js";
 import { analyzeLiveCatalystRadarBatch } from "../src/engines/liveCatalystRadarEngine.js";
 import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
+import { buildCandidateRescueExpansion } from "../src/data/candidateRescueExpansionEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -516,4 +517,32 @@ test("live catalyst radar detects why-now events and urgency", () => {
   assert.ok(["Critical", "High"].includes(result.liveCatalystUrgency));
   assert.ok(result.liveCatalystEvents.length >= 3);
   assert.ok(result.liveCatalystRadar.summary.length > 0);
+});
+
+test("candidate rescue expansion backfills thin discovery pools with clustered candidates", () => {
+  const rescue = buildCandidateRescueExpansion(
+    [
+      {
+        name: "ThinAI",
+        symbol: "TAI",
+        chain: "base",
+        description: "AI agent launchpad on Base",
+        liquidityUsd: 10000,
+        volume24h: 2500,
+        discoverySources: ["test"],
+      },
+    ],
+    {
+      sourceReports: {
+        coingecko: { status: "FAILED" },
+        binance: { status: "FAILED" },
+      },
+    },
+    { rescueThreshold: 50, rescueLimit: 20 }
+  );
+
+  assert.equal(rescue.report.status, "USED");
+  assert.ok(rescue.candidates.length > 0);
+  assert.ok(rescue.report.topClusters.length > 0);
+  assert.ok(rescue.candidates.some((candidate) => candidate.source === "candidate-rescue"));
 });

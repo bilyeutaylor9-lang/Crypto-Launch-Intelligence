@@ -8,6 +8,7 @@ import { getFreeMarketDataCandidates } from "./data/freeMarketDataConnector.js";
 import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnector.js";
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
+import { buildCandidateRescueExpansion } from "./data/candidateRescueExpansionEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -246,6 +247,8 @@ export async function runDiscoveryManager(options = {}) {
       process.env.RESEARCH_SEED_SUPPLEMENT_THRESHOLD ||
       (wideScan ? 1000 : 150)
   );
+  const candidateRescueEnabled =
+    options.candidateRescue?.enabled ?? process.env.DISABLE_CANDIDATE_RESCUE !== "true";
 
   const dex = await safeSource("DexScreener", () => scanLiveMarket({ maxTokens }));
   const gecko = await safeSource("GeckoTerminal", () => getGeckoTerminalCandidates());
@@ -298,9 +301,41 @@ export async function runDiscoveryManager(options = {}) {
     fallbackSeedsEnabled && liveDedupedPool.length < seedSupplementThreshold
       ? getFallbackResearchSeedCandidates({ limit: options.seedLimit })
       : [];
-  const dedupedPool = dedupeAndMerge([
+  const seedSupplementedPool = dedupeAndMerge([
     ...liveDedupedPool,
     ...fallbackSeedResults.map((p) => enrichDiscoverySource(p, "research-seed")),
+  ]);
+  const rescueExpansion = candidateRescueEnabled
+    ? buildCandidateRescueExpansion(
+        seedSupplementedPool,
+        {
+          sourceReports: {
+            dexscreener: dex,
+            geckoterminal: gecko,
+            coingecko: coinGecko,
+            birdeye,
+            freeMarketData: freeMarket,
+            expandedMarketData: expandedMarket,
+            googleNewsDiscovery: googleNews,
+          },
+        },
+        options.candidateRescue || {}
+      )
+    : {
+        candidates: [],
+        report: {
+          status: "DISABLED",
+          reasons: ["candidate rescue disabled"],
+          originalCount: seedSupplementedPool.length,
+          expandedCount: seedSupplementedPool.length,
+          addedCount: 0,
+          failedSources: [],
+          clusters: [],
+        },
+      };
+  const dedupedPool = dedupeAndMerge([
+    ...seedSupplementedPool,
+    ...(rescueExpansion.candidates || []).map((p) => enrichDiscoverySource(p, "candidate-rescue")),
   ]);
   const qualityGate = applyQualityGate(dedupedPool, options);
   const candidateRanking = rankAndLimitCandidates(qualityGate.accepted, options);
@@ -340,6 +375,7 @@ export async function runDiscoveryManager(options = {}) {
       "dexscreener-boosts",
       "google-news",
       "research-seed-supplement",
+      "candidate-rescue",
     ],
 
     discoveredCount:
@@ -350,12 +386,14 @@ export async function runDiscoveryManager(options = {}) {
       freeMarketResults.length +
       expandedMarketResults.length +
       googleNewsResults.length +
-      fallbackSeedResults.length,
+      fallbackSeedResults.length +
+      (rescueExpansion.candidates?.length || 0),
 
     rawCount: rawPool.length,
     liveDedupedCount: liveDedupedPool.length,
     seedSupplementCount: fallbackSeedResults.length,
     seedSupplementThreshold,
+    candidateRescueCount: rescueExpansion.candidates?.length || 0,
     dedupedCount: dedupedPool.length,
     acceptedCount: candidatePool.length,
     acceptedBeforeLimitCount: qualityGate.accepted.length,
@@ -470,7 +508,15 @@ export async function runDiscoveryManager(options = {}) {
           ? `Live discovery returned fewer than ${seedSupplementThreshold} deduped candidates, so research seeds were added.`
           : "Live source candidate count was above the supplement threshold or seeds were disabled.",
       },
+
+      candidateRescue: {
+        status: rescueExpansion.report?.status || "UNKNOWN",
+        scannedTokens: rescueExpansion.candidates?.length || 0,
+        enabled: Boolean(candidateRescueEnabled),
+        report: rescueExpansion.report,
+      },
     },
+    candidateRescue: rescueExpansion.report,
   };
 }
 

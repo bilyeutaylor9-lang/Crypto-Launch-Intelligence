@@ -111,6 +111,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
   console.log(
     `Discovery Mode: ${discovery.mode || "standard"} | Raw: ${discovery.rawCount || 0} | Deduped: ${discovery.dedupedCount || 0} | Accepted Before Cap: ${discovery.acceptedBeforeLimitCount ?? discovery.acceptedCount ?? discoveredList.length} | Scan Cap: ${discovery.scanLimit || "none"}`
   );
+  if (discovery.candidateRescue) {
+    console.log(
+      `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`
+    );
+  }
 }
 
 function printSummary(summary) {
@@ -277,6 +282,7 @@ async function main() {
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
       discoveredProjects: discoveredList.length,
+      discovery,
       scannedProjects: results.length,
       engineMode: "full",
       scoringMode: "institutional-weighted-fallback",

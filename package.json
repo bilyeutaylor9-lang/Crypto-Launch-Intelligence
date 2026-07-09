@@ -15,6 +15,7 @@
     "scan": "node src/index.js",
     "scan:full": "node src/index.js",
     "scan:wide": "WIDE_SCAN=true WIDE_SCAN_LIMIT=10000 DISCOVERY_SCAN_LIMIT=10000 FREE_SOURCE_LIMIT=10000 EXPANDED_SOURCE_LIMIT=10000 INTERNET_RESEARCH_PROJECT_LIMIT=100 WEB_RESEARCH_AGENT_LIMIT=100 npm run scan",
+    "scan:rescue": "CANDIDATE_RESCUE_THRESHOLD=1500 CANDIDATE_RESCUE_LIMIT=500 RESEARCH_SEED_SUPPLEMENT_THRESHOLD=500 npm run scan",
     "scan:test": "node src/index.js",
     "test": "node --test test/*.test.js",
     "tokens": "node src/showTokens.js",

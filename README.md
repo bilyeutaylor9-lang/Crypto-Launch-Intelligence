@@ -244,6 +244,7 @@ Strong-buy gate checks include council score, agent agreement, data confidence, 
 The wide scan is built as a staged funnel:
 
 - Collect up to 10,000 candidates from free/no-key market, DEX, CEX, DeFi, Google News, and research-seed sources.
+- Rescue thin scans with narrative/chain expansion when providers fail, rate-limit, or return too few candidates.
 - Deduplicate and cheap-rank the full candidate pool.
 - Spend web research only on the highest-priority slice using `WEB_RESEARCH_AGENT_LIMIT`.
 - Run the full scoring stack and produce confidence-adjusted rankings.
@@ -255,8 +256,10 @@ Useful wide-scan controls:
 
 ```bash
 npm run scan:wide
+npm run scan:rescue
 WEB_RESEARCH_AGENT_LIMIT=250 npm run scan:wide
 DISCOVERY_SCAN_LIMIT=10000 WIDE_SCAN_LIMIT=10000 npm run scan
+CANDIDATE_RESCUE_THRESHOLD=1500 CANDIDATE_RESCUE_LIMIT=500 npm run scan:wide
 ```
 
 ### Research OS and Alpha Lab
@@ -750,7 +753,10 @@ INTERNET_RESEARCH_PROJECT_LIMIT=50 npm run scan
 DISCOVERY_SCAN_LIMIT=1500 npm run scan
 WIDE_SCAN=true WIDE_SCAN_LIMIT=10000 DISCOVERY_SCAN_LIMIT=10000 npm run scan
 COINGECKO_PER_PAGE=100 COINGECKO_PAGES=1 COINGECKO_CATEGORY_LIMIT=4 COINGECKO_DELAY_MS=3500 npm run scan
+CANDIDATE_RESCUE_THRESHOLD=500 CANDIDATE_RESCUE_LIMIT=250 npm run scan
+RESEARCH_SEED_SUPPLEMENT_THRESHOLD=500 npm run scan
 DISABLE_RESEARCH_SEEDS=true npm run scan
+DISABLE_CANDIDATE_RESCUE=true npm run scan
 ```
 
 If CoinGecko returns `429`, the scanner pauses that source for the rest of the run and continues with the other providers. This is expected on free public endpoints.
