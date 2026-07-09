@@ -218,6 +218,49 @@ Running the scanner creates:
 - `reports/watchlist.json`
 - `reports/summary.txt`
 
+## Live GitHub Dashboard
+
+This repo includes a GitHub Pages workflow that publishes a public dashboard people can view in a browser.
+
+The workflow:
+
+- Runs the scanner on every push to `main`.
+- Runs again every 6 hours.
+- Can be started manually from the GitHub Actions tab.
+- Publishes `reports/report.html` plus JSON, alerts, watchlist, Watchtower performance, and summary files to GitHub Pages.
+
+After pushing this version to GitHub:
+
+1. Open the repository on GitHub.
+2. Go to `Settings` -> `Pages`.
+3. Set the source to `GitHub Actions`.
+4. Go to `Actions` -> `Live Dashboard`.
+5. Run the workflow or wait for the next scheduled run.
+
+Your public dashboard URL will look like:
+
+```txt
+https://bilyeutaylor9-lang.github.io/Crypto-Launch-Intelligence/
+```
+
+Local dashboard publishing:
+
+```bash
+npm run scan
+npm run publish:dashboard
+open docs/index.html
+```
+
+Optional GitHub repository secrets:
+
+```txt
+BIRDEYE_API_KEY
+X_BEARER_TOKEN
+CRYPTOPANIC_API_KEY
+```
+
+The dashboard still publishes without these keys, but paid or authenticated data sources may be skipped.
+
 Persistent learning files are saved under:
 
 - `data/scan-history.json`

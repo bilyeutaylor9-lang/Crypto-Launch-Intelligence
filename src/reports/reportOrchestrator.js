@@ -8,6 +8,7 @@ import { writeCalibrationReport } from "./calibrationReportEngine.js";
 import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
 import { writeWatchtowerReports } from "./watchtowerReportEngine.js";
+import { writeWatchtowerPerformanceReport } from "./watchtowerPerformanceReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -25,6 +26,10 @@ export function generateReports(projects = [], meta = {}) {
     alerts,
     brief,
   } = writeWatchtowerReports(projects);
+  const {
+    filePath: watchtowerPerformancePath,
+    report: watchtowerPerformance,
+  } = writeWatchtowerPerformanceReport();
 
   return {
     htmlPath,
@@ -36,6 +41,7 @@ export function generateReports(projects = [], meta = {}) {
     institutionalVNextPath,
     alertsPath,
     briefPath,
+    watchtowerPerformancePath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,
@@ -43,5 +49,8 @@ export function generateReports(projects = [], meta = {}) {
     criticalAlertCount: alerts.filter((alert) => alert.severity === "Critical").length,
     highAlertCount: alerts.filter((alert) => alert.severity === "High").length,
     dailyBrief: brief.brief,
+    watchtowerHitRate: watchtowerPerformance.hitRate,
+    watchtowerEvaluatedAlerts: watchtowerPerformance.evaluatedAlerts,
+    watchtowerPendingAlerts: watchtowerPerformance.pendingAlerts,
   };
 }

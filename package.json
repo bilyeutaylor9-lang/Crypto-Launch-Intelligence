@@ -32,8 +32,11 @@
     "sources": "node src/data/dataSourceManager.js",
     "watchtower": "node src/watchtower.js",
     "watchtower:daemon": "node src/watchtowerDaemon.js",
+    "watchtower:performance": "node src/watchtowerPerformance.js",
     "alerts": "cat reports/alerts.json",
     "brief": "cat reports/daily-brief.json",
+    "alert-performance": "cat reports/watchtower-performance.json",
+    "publish:dashboard": "node src/reports/githubPagesPublisher.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",
     "dev": "node --watch src/index.js"

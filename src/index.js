@@ -190,10 +190,12 @@ function printReportPaths(paths) {
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
+  console.log(`Performance:    ${paths.watchtowerPerformancePath}`);
   console.log(`Watchlist:      ${paths.watchlistPath}`);
   console.log(`Summary:        ${paths.summaryPath}`);
   console.log(`Watchlist Count: ${paths.watchlistCount}`);
   console.log(`Alerts: ${paths.alertCount} total / ${paths.highAlertCount} high / ${paths.criticalAlertCount} critical`);
+  console.log(`Watchtower Hit Rate: ${paths.watchtowerHitRate}% (${paths.watchtowerEvaluatedAlerts} evaluated, ${paths.watchtowerPendingAlerts} pending)`);
   if (paths.dailyBrief) console.log(`Brief: ${paths.dailyBrief}`);
   console.log("=============================================");
   console.log("");

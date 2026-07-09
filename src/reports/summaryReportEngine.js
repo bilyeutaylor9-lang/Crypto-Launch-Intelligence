@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { loadWatchtowerAlerts, loadWatchtowerBrief } from "../learning/watchtowerStore.js";
+import { loadWatchtowerPerformanceReport } from "../learning/watchtowerPerformanceEngine.js";
 
 export function writeSummaryReport(projects = []) {
   const reportsDir = path.resolve("reports");
@@ -9,6 +10,7 @@ export function writeSummaryReport(projects = []) {
   const total = projects.length;
   const watchtowerAlerts = loadWatchtowerAlerts().alerts.filter((alert) => alert.status !== "archived");
   const watchtowerBrief = loadWatchtowerBrief().brief;
+  const watchtowerPerformance = loadWatchtowerPerformanceReport();
 
   const ranked = [...projects].sort((a, b) => {
     const aScore = Number(a.opportunityScore ?? a.score ?? 0);
@@ -171,6 +173,7 @@ High vesting pressure setups: ${highVestingPressure.length}
 Watchtower alerts: ${watchtowerAlerts.length}
 Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
 Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
+Watchtower hit rate: ${watchtowerPerformance.hitRate || 0}% (${watchtowerPerformance.evaluatedAlerts || 0} evaluated, ${watchtowerPerformance.pendingAlerts || 0} pending)
 
 Top project:
 ${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
@@ -212,6 +215,7 @@ Files generated:
 - reports/institutional-vnext.json
 - reports/alerts.json
 - reports/daily-brief.json
+- reports/watchtower-performance.json
 - reports/watchlist.json
 - reports/summary.txt
 `.trim();
