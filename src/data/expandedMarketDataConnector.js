@@ -22,6 +22,10 @@ function n(value = 0) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function sleep(ms = 200) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function normalizeSymbol(symbol = "") {
   return String(symbol || "")
     .replace(/^X/, "")
@@ -118,9 +122,28 @@ export async function getCoinCapCandidates(options = {}) {
 
 export async function getCoinLoreCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const response = await fetchJson(`https://api.coinlore.net/api/tickers/?start=0&limit=${limit}`);
+  const pageSize = Math.min(100, Number(options.pageSize || process.env.COINLORE_PAGE_SIZE || 100));
+  const maxPages = Number(
+    options.maxPages ||
+      process.env.COINLORE_MAX_PAGES ||
+      Math.ceil(limit / pageSize)
+  );
+  const all = [];
 
-  return (response.data || []).map((asset) =>
+  for (let page = 0; page < maxPages && all.length < limit; page++) {
+    const start = page * pageSize;
+    const response = await fetchJson(
+      `https://api.coinlore.net/api/tickers/?start=${start}&limit=${pageSize}`
+    );
+    const data = response.data || [];
+
+    if (!data.length) break;
+
+    all.push(...data);
+    await sleep(Number(options.delayMs || process.env.COINLORE_DELAY_MS || 150));
+  }
+
+  return all.slice(0, limit).map((asset) =>
     candidate({
       name: asset.name,
       symbol: asset.symbol,

@@ -101,6 +101,18 @@ function printBanner() {
   console.log("");
 }
 
+function printDiscoveryStats(discovery = {}, discoveredList = []) {
+  if (!discovery || Array.isArray(discovery)) {
+    console.log(`✓ Found ${discoveredList.length} projects`);
+    return;
+  }
+
+  console.log(`✓ Found ${discoveredList.length} projects`);
+  console.log(
+    `Discovery Mode: ${discovery.mode || "standard"} | Raw: ${discovery.rawCount || 0} | Deduped: ${discovery.dedupedCount || 0} | Accepted Before Cap: ${discovery.acceptedBeforeLimitCount ?? discovery.acceptedCount ?? discoveredList.length} | Scan Cap: ${discovery.scanLimit || "none"}`
+  );
+}
+
 function printSummary(summary) {
   console.log("");
   console.log("============= PIPELINE SUMMARY =============");
@@ -220,7 +232,7 @@ async function main() {
       ? discoveredProjects
       : discoveredProjects.candidates || [];
 
-    console.log(`✓ Found ${discoveredList.length} projects`);
+    printDiscoveryStats(discoveredProjects, discoveredList);
 
     console.log("");
     console.log("Running intelligence pipeline...\n");

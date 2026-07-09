@@ -7,6 +7,7 @@ import { getBirdeyeCandidates } from "./data/birdeyeConnector.js";
 import { getFreeMarketDataCandidates } from "./data/freeMarketDataConnector.js";
 import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnector.js";
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
+import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -205,7 +206,13 @@ function discoveryPriority(project = {}) {
 }
 
 function rankAndLimitCandidates(projects = [], options = {}) {
-  const limit = num(options.maxCandidates || process.env.DISCOVERY_SCAN_LIMIT || 1000);
+  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
+  const wideLimit = num(options.wideLimit || process.env.WIDE_SCAN_LIMIT || 10000);
+  const limit = num(
+    options.maxCandidates ||
+      process.env.DISCOVERY_SCAN_LIMIT ||
+      (wideScan ? wideLimit : 1000)
+  );
   const ranked = [...projects]
     .map((project) => ({
       ...project,
@@ -222,10 +229,17 @@ function rankAndLimitCandidates(projects = [], options = {}) {
 
 export async function runDiscoveryManager(options = {}) {
   const startedAt = Date.now();
+  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
+  const wideLimit = num(options.wideLimit || process.env.WIDE_SCAN_LIMIT || 10000);
 
-  const maxTokens = num(options.maxTokens || process.env.MAX_TOKENS || 200);
-  const freeLimit = num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || 100);
-  const expandedLimit = num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || 100);
+  const maxTokens = num(options.maxTokens || process.env.MAX_TOKENS || (wideScan ? 750 : 200));
+  const freeLimit = num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || (wideScan ? wideLimit : 100));
+  const expandedLimit = num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || (wideScan ? wideLimit : 100));
+  const googleNewsLimit = num(
+    options.googleNewsLimit ||
+      process.env.GOOGLE_NEWS_DISCOVERY_LIMIT ||
+      (wideScan ? 500 : 120)
+  );
   const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
 
   const dex = await safeSource("DexScreener", () => scanLiveMarket({ maxTokens }));
@@ -233,8 +247,12 @@ export async function runDiscoveryManager(options = {}) {
   const coinGecko = await safeSource("CoinGecko", () =>
     getCoinGeckoCandidates({
       perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
-      pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || 1),
-      categoryLimit: num(options.coinGeckoCategoryLimit || process.env.COINGECKO_CATEGORY_LIMIT || 4),
+      pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || (wideScan ? 2 : 1)),
+      categoryLimit: num(
+        options.coinGeckoCategoryLimit ||
+          process.env.COINGECKO_CATEGORY_LIMIT ||
+          (wideScan ? 8 : 4)
+      ),
     })
   );
   const birdeye = await safeSource("Birdeye", () =>
@@ -248,6 +266,9 @@ export async function runDiscoveryManager(options = {}) {
   const expandedMarket = await safeSource("ExpandedMarketData", () =>
     getExpandedMarketDataCandidates({ limit: expandedLimit })
   );
+  const googleNews = await safeSource("GoogleNewsDiscovery", () =>
+    getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit })
+  );
 
   const dexResults = normalizeResults(dex.output, []);
   const geckoResults = normalizeResults(gecko.output, []);
@@ -255,6 +276,7 @@ export async function runDiscoveryManager(options = {}) {
   const birdeyeResults = normalizeResults(birdeye.output, []);
   const freeMarketResults = normalizeResults(freeMarket.output, []);
   const expandedMarketResults = normalizeResults(expandedMarket.output, []);
+  const googleNewsResults = normalizeResults(googleNews.output, []);
 
   const rawPool = [
     ...dexResults.map((p) => enrichDiscoverySource(p, "dexscreener")),
@@ -263,6 +285,7 @@ export async function runDiscoveryManager(options = {}) {
     ...birdeyeResults.map((p) => enrichDiscoverySource(p, "birdeye")),
     ...freeMarketResults.map((p) => enrichDiscoverySource(p, p.source || "free-market")),
     ...expandedMarketResults.map((p) => enrichDiscoverySource(p, p.source || "expanded-market")),
+    ...googleNewsResults.map((p) => enrichDiscoverySource(p, "google-news")),
   ];
 
   const liveDedupedPool = dedupeAndMerge(rawPool);
@@ -289,6 +312,7 @@ export async function runDiscoveryManager(options = {}) {
   return {
     scannedAt: new Date().toISOString(),
     durationMs: Date.now() - startedAt,
+    mode: wideScan ? "wide" : "standard",
 
     sourcesUsed: [
       "dexscreener",
@@ -307,6 +331,7 @@ export async function runDiscoveryManager(options = {}) {
       "defillama-yields",
       "defillama-stablecoins",
       "dexscreener-search",
+      "google-news",
       "research-seed-fallback",
     ],
 
@@ -317,6 +342,7 @@ export async function runDiscoveryManager(options = {}) {
       birdeyeResults.length +
       freeMarketResults.length +
       expandedMarketResults.length +
+      googleNewsResults.length +
       fallbackSeedResults.length,
 
     rawCount: rawPool.length,
@@ -324,6 +350,7 @@ export async function runDiscoveryManager(options = {}) {
     acceptedCount: candidatePool.length,
     acceptedBeforeLimitCount: qualityGate.accepted.length,
     scanLimit: candidateRanking.limit,
+    wideLimit,
     rejectedCount: dexRejectedTokens + qualityGate.rejected.length,
 
     qualityGate: {
@@ -413,6 +440,14 @@ export async function runDiscoveryManager(options = {}) {
           "bitstamp",
           "gemini",
         ],
+      },
+
+      googleNewsDiscovery: {
+        status: googleNews.status,
+        durationMs: googleNews.durationMs,
+        scannedTokens: googleNewsResults.length,
+        enabled: true,
+        error: googleNews.error,
       },
 
       researchSeeds: {

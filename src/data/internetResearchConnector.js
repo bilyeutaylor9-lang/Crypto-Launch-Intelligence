@@ -188,6 +188,40 @@ async function fetchFeedArticles(options = {}) {
   return { articles, status };
 }
 
+async function fetchGoogleNewsForProject(project = {}, options = {}) {
+  const terms = projectTerms(project).slice(0, 3).join(" ");
+
+  if (!terms) {
+    return {
+      status: "NO_QUERY",
+      articles: [],
+    };
+  }
+
+  try {
+    const params = new URLSearchParams({
+      q: `${terms} crypto`,
+      hl: "en-US",
+      gl: "US",
+      ceid: "US:en",
+    });
+    const xml = await fetchText(`https://news.google.com/rss/search?${params}`, options);
+
+    return {
+      status: "SUCCESS",
+      articles: parseRssItems(xml, "Google News").slice(
+        0,
+        Number(options.googleNewsArticles || process.env.GOOGLE_NEWS_PROJECT_ARTICLES || 8)
+      ),
+    };
+  } catch (error) {
+    return {
+      status: `FAILED: ${error.message}`,
+      articles: [],
+    };
+  }
+}
+
 async function fetchProjectPage(project = {}, options = {}) {
   const url = project.website || project.homepage || project.url;
 
@@ -274,8 +308,9 @@ export async function getInternetProjectResearchBatch(projects = [], options = {
 
   for (const project of safeProjects) {
     const pageResearch = await fetchProjectPage(project, options);
+    const googleNews = await fetchGoogleNewsForProject(project, options);
     const scored = scoreResearch({
-      articles: feedResearch.articles,
+      articles: [...feedResearch.articles, ...googleNews.articles],
       pages: pageResearch.pages,
       project,
     });
@@ -285,6 +320,7 @@ export async function getInternetProjectResearchBatch(projects = [], options = {
       status: {
         feeds: feedResearch.status,
         projectPage: pageResearch.status,
+        googleNews: googleNews.status,
       },
       ...scored,
     });

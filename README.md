@@ -10,7 +10,7 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 
 - Discovers crypto projects from live market and launch sources.
 - Pulls from DexScreener, GeckoTerminal, CoinGecko, Birdeye, CoinPaprika, DeFiLlama, Binance, KuCoin, Coinbase, Kraken, CoinCap, CoinLore, CryptoCompare, DeFiLlama yields/stablecoins, narrative DexScreener search, OKX, Bybit, Gate.io, MEXC, Bitget, HTX, Bitfinex, Bitstamp, and Gemini.
-- Researches public internet sources including crypto RSS feeds and project pages, then saves research memory for future scans.
+- Researches public internet sources including crypto RSS feeds, Google News RSS search, and project pages, then saves research memory for future scans.
 - Uses research seed fallback candidates when every live source returns zero results, so local/offline scans still exercise the intelligence pipeline.
 - Scores projects across narrative, liquidity, momentum, developer, community, catalyst, smart-wallet, whale, and market-rank signals.
 - Detects launch, staking, restaking, TGE, mainnet, airdrop, and listing setups.
@@ -315,6 +315,14 @@ npm run scan:full
 npm run report
 ```
 
+Wide free-source scan:
+
+```bash
+npm run scan:wide
+```
+
+`scan:wide` targets up to 10,000 ranked free candidates using the no-key source pack. It still ranks candidates before the heavy intelligence pipeline runs, so the best discovered projects are scanned first.
+
 Open the dashboard after a run:
 
 ```bash
@@ -338,6 +346,7 @@ npm run sources:expanded
 npm run sources:seeds
 npm run research:internet
 npm run research:memory
+npm run discover:wide
 ```
 
 Discovery tuning:
@@ -346,6 +355,7 @@ Discovery tuning:
 FREE_SOURCE_LIMIT=200 EXPANDED_SOURCE_LIMIT=200 npm run scan
 INTERNET_RESEARCH_PROJECT_LIMIT=50 npm run scan
 DISCOVERY_SCAN_LIMIT=1500 npm run scan
+WIDE_SCAN=true WIDE_SCAN_LIMIT=10000 DISCOVERY_SCAN_LIMIT=10000 npm run scan
 COINGECKO_PER_PAGE=100 COINGECKO_PAGES=1 COINGECKO_CATEGORY_LIMIT=4 COINGECKO_DELAY_MS=3500 npm run scan
 DISABLE_RESEARCH_SEEDS=true npm run scan
 ```
