@@ -28,6 +28,7 @@ The demo scans built-in research seed projects and generates:
 - Research OS tasks
 - Simulation Brain market-memory paths
 - Outcome Judge reality grading
+- Project Dossier Swarm research packets
 - Alpha Lab strategy report
 - Engine audit
 - HTML dashboard
@@ -41,6 +42,7 @@ cat examples/ai-council.json
 cat examples/research-os.json
 cat examples/simulation-brain.json
 cat examples/outcome-judge.json
+cat examples/dossier-swarm.json
 ```
 
 ## Why It Is Different
@@ -55,6 +57,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Models bull/base/bear/black-swan futures with a Quantum Brain.
 - Simulates future paths with a Market Memory Twin and engine tournament.
 - Grades old predictions against reality with an Autonomous Outcome Judge.
+- Builds specialist-agent research dossiers for the best candidates.
 - Builds project/narrative/chain relationships with a World Model.
 - Creates research tasks and promotion/downgrade lifecycle states.
 - Learns from scan memory, outcome memory, and agent performance.
@@ -87,6 +90,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
 - Adds a Self-Training Market Simulation Brain that compares projects to historical archetypes, simulates 7d/30d/90d paths, mutation-tests signals, runs engine tournaments, and ranks opportunities against the full scan universe.
 - Adds an Autonomous Outcome Judge that compares old calls against realized outcomes, finds false positives and missed winners, scores engine reliability, and adjusts confidence with accountability.
+- Adds a Project Dossier Swarm where specialist agents review tokenomics, liquidity, narrative, developer strength, wallets, risk, outcomes, and final PM fit before creating an inspectable project research packet.
 - Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
 ## Core Idea
@@ -355,6 +359,37 @@ Trusted signals: liquidityExpansion, narrativeHeat
 Noisy signals: none
 ```
 
+### Project Dossier Swarm
+
+The Dossier Swarm turns high-potential projects into research packets.
+
+It adds:
+
+- Tokenomics Agent
+- Liquidity Agent
+- Narrative Agent
+- Developer Agent
+- Wallet Agent
+- Risk Agent
+- Outcome Agent
+- Final PM Agent
+- Agent consensus
+- Key bull and bear case
+- Must-verify checklist
+- Promotion triggers
+- Invalidation signals
+
+Example output:
+
+```text
+Dossier Swarm: Research Priority
+Consensus: 3 approve / 3 watch / 1 reject / 1 clear / 0 challenge / 0 block
+Key bull case: Narrative momentum is strong enough to deserve attention.
+Key bear case: no direct outcome history yet
+Must verify: liquidity depth, unlocks, wallet concentration
+Promotion trigger: proof score rises above 60
+```
+
 ### Watchtower Alpha
 
 The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
@@ -496,6 +531,10 @@ Each project can receive:
 - `outcomeRealityAdjustment`
 - `outcomeAdjustedConfidence`
 - `outcomeJudgement`
+- `dossierSwarmScore`
+- `dossierSwarmDecision`
+- `dossierSwarmConsensus`
+- `projectDossierSwarm`
 
 Example allocation buckets:
 
@@ -639,6 +678,7 @@ npm run research-os
 npm run alpha-lab
 npm run simulation-brain
 npm run outcome-judge
+npm run dossier-swarm
 npm run engine:audit:json
 ```
 
@@ -650,6 +690,7 @@ node src/cli.js scan
 node src/cli.js wide
 node src/cli.js simulation
 node src/cli.js outcome
+node src/cli.js dossier
 node src/cli.js explain AKT
 ```
 

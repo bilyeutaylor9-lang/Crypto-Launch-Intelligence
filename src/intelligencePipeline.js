@@ -65,6 +65,7 @@ import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js"
 import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTrainingMarketSimulationBrainEngine.js";
 import { analyzeAutonomousOutcomeJudgeBatch } from "./engines/autonomousOutcomeJudgeEngine.js";
+import { analyzeProjectDossierSwarmBatch } from "./engines/projectDossierSwarmEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1054,6 +1055,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutonomousMarketScientistBatch(results);
   results = analyzeSelfTrainingMarketSimulationBrainBatch(results);
   results = analyzeAutonomousOutcomeJudgeBatch(results, options.outcomeJudge || {});
+  results = analyzeProjectDossierSwarmBatch(results, options.dossierSwarm || {});
 
   if (options.saveMemory !== false) {
     try {
@@ -1198,6 +1200,9 @@ export function summarizePipelineResults(results = []) {
   const trackedOutcomeJudgements = safeResults.filter((p) => p.outcomeJudgeStatus === "Tracked");
   const outcomeUpgrades = safeResults.filter((p) => num(p.outcomeRealityAdjustment) > 0);
   const outcomeDowngrades = safeResults.filter((p) => num(p.outcomeRealityAdjustment) < 0);
+  const dossieredProjects = safeResults.filter((p) => p.projectDossierSwarm);
+  const dossierPrioritySetups = safeResults.filter((p) => p.dossierSwarmDecision === "Dossier Priority");
+  const researchPriorityDossiers = safeResults.filter((p) => p.dossierSwarmDecision === "Research Priority");
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1265,6 +1270,9 @@ export function summarizePipelineResults(results = []) {
     trackedOutcomeJudgementCount: trackedOutcomeJudgements.length,
     outcomeUpgradeCount: outcomeUpgrades.length,
     outcomeDowngradeCount: outcomeDowngrades.length,
+    dossieredProjectCount: dossieredProjects.length,
+    dossierPriorityCount: dossierPrioritySetups.length,
+    researchPriorityDossierCount: researchPriorityDossiers.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1331,6 +1339,21 @@ export function summarizePipelineResults(results = []) {
         outcomeRealityAdjustment: project.outcomeRealityAdjustment || 0,
         outcomeAdjustedConfidence: project.outcomeAdjustedConfidence || "Unknown",
         summary: project.outcomeJudgement?.summary || "",
+      })),
+    topDossierSwarmSetups: [...safeResults]
+      .filter((project) => project.projectDossierSwarm)
+      .sort((a, b) => num(b.dossierSwarmScore) - num(a.dossierSwarmScore))
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.pipelineRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        dossierSwarmScore: project.dossierSwarmScore || 0,
+        dossierSwarmDecision: project.dossierSwarmDecision || "Unknown",
+        consensus: project.dossierSwarmConsensus || "",
+        keyBullCase: project.projectDossierSwarm?.keyBullCase || "",
+        keyBearCase: project.projectDossierSwarm?.keyBearCase || "",
+        mustVerify: project.projectDossierSwarm?.mustVerify || [],
       })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

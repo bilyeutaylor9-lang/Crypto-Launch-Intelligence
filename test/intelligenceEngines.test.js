@@ -14,6 +14,7 @@ import { analyzeWorldModelBrainBatch } from "../src/engines/worldModelBrainEngin
 import { analyzeAutonomousMarketScientist } from "../src/engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "../src/engines/selfTrainingMarketSimulationBrainEngine.js";
 import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOutcomeJudgeEngine.js";
+import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -444,4 +445,53 @@ test("autonomous outcome judge grades prior calls and adjusts confidence", () =>
   assert.ok(result.outcomeJudgement.outcome.priceChangePct > 0);
   assert.ok(result.outcomeJudgement.grade.label.length > 0);
   assert.ok(result.outcomeAdjustedConfidenceScore >= 0);
+});
+
+test("project dossier swarm builds specialist agent research packet", () => {
+  const [result] = analyzeProjectDossierSwarmBatch(
+    [
+      {
+        name: "DossierCoin",
+        symbol: "DOS",
+        pipelineRank: 1,
+        pipelineScore: 78,
+        simulationBrainScore: 66,
+        aiEcosystemScore: 68,
+        outcomeJudgeScore: 58,
+        proofScore: 64,
+        tokenomicsScore: 72,
+        fundingBackerScore: 60,
+        vestingPressureScore: 20,
+        tokenUnlockRiskScore: 18,
+        liquidityScore: 70,
+        liquidityExpansionScore: 68,
+        capitalFlowScore: 66,
+        buyPressureScore: 64,
+        sellPressureScore: 18,
+        narrativeHeatScore: 82,
+        narrativeForecastScore: 78,
+        xSocialScore: 70,
+        developerActivityScore: 62,
+        githubScore: 58,
+        worldModelScore: 60,
+        smartMoneyAccumulationScore: 66,
+        smartWalletPerformanceScore: 62,
+        holderGrowthScore: 64,
+        trapRiskScore: 14,
+        riskScore: 18,
+        falsePositiveSimilarity: 22,
+        outcomeLearningScore: 58,
+        prePumpPatternScore: 60,
+        signalCombinationScore: 62,
+      },
+    ],
+    { limit: 1 }
+  );
+
+  assert.ok(result.dossierSwarmScore > 0);
+  assert.notEqual(result.dossierSwarmDecision, "Not Dossiered");
+  assert.ok(result.projectDossierSwarm.agents.length >= 8);
+  assert.ok(result.projectDossierSwarm.mustVerify.length > 0);
+  assert.ok(result.projectDossierSwarm.promotionTriggers.length > 0);
+  assert.ok(result.projectDossierSwarm.finalMemo.includes("DossierCoin"));
 });

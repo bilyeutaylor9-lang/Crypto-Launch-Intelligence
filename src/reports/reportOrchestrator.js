@@ -15,6 +15,7 @@ import { writeResearchOSReports } from "./researchOSReportEngine.js";
 import { writeEngineAuditReport } from "./engineAuditReportEngine.js";
 import { writeSimulationBrainReport } from "./simulationBrainReportEngine.js";
 import { writeOutcomeJudgeReport } from "./outcomeJudgeReportEngine.js";
+import { writeDossierSwarmReport } from "./dossierSwarmReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -41,6 +42,9 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: outcomeJudgePath,
   } = writeOutcomeJudgeReport(projects);
+  const {
+    filePath: dossierSwarmPath,
+  } = writeDossierSwarmReport(projects);
   const {
     filePath: engineAuditPath,
   } = writeEngineAuditReport();
@@ -70,6 +74,7 @@ export function generateReports(projects = [], meta = {}) {
     alphaLabPath,
     simulationBrainPath,
     outcomeJudgePath,
+    dossierSwarmPath,
     engineAuditPath,
     alertsPath,
     briefPath,

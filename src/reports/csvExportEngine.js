@@ -89,6 +89,12 @@ export function writeCsvReport(projects = []) {
     "outcomeAdjustedConfidence",
     "outcomePriceChangePct",
     "outcomeGrade",
+    "dossierSwarmScore",
+    "dossierSwarmDecision",
+    "dossierSwarmConsensus",
+    "dossierKeyBullCase",
+    "dossierKeyBearCase",
+    "dossierMustVerify",
     "whyThisMatters",
     "topEvidence",
     "topRisks",
@@ -220,6 +226,14 @@ export function writeCsvReport(projects = []) {
     p.outcomeAdjustedConfidence ?? "",
     p.outcomeJudgement?.outcome?.priceChangePct ?? "",
     p.outcomeJudgement?.grade?.label ?? "",
+    p.dossierSwarmScore ?? "",
+    p.dossierSwarmDecision ?? "",
+    p.dossierSwarmConsensus ?? "",
+    p.projectDossierSwarm?.keyBullCase ?? "",
+    p.projectDossierSwarm?.keyBearCase ?? "",
+    Array.isArray(p.projectDossierSwarm?.mustVerify)
+      ? p.projectDossierSwarm.mustVerify.join("; ")
+      : "",
     p.whyThisMatters ?? "",
     Array.isArray(p.topEvidence)
       ? p.topEvidence.map((item) => item.text || item.label || item.summary).filter(Boolean).join("; ")

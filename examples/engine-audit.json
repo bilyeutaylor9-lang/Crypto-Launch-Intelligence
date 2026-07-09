@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-09T16:31:36.333Z",
-  "totalEngines": 88,
-  "wiredIntoPipeline": 64,
-  "stateOfArtReady": 71,
+  "generatedAt": "2026-07-09T16:40:45.144Z",
+  "totalEngines": 89,
+  "wiredIntoPipeline": 65,
+  "stateOfArtReady": 72,
   "readinessScore": 87,
   "categoryCounts": {
-    "intelligence": 37,
+    "intelligence": 38,
     "ai": 10,
     "learning": 9,
     "market-flow": 5,
@@ -1430,6 +1430,20 @@
       "category": "intelligence",
       "exports": [
         "analyzeProjectChangeBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "projectDossierSwarmEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeProjectDossierSwarm",
+        "analyzeProjectDossierSwarmBatch"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
