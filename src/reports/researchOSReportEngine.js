@@ -47,6 +47,10 @@ function compact(project = {}) {
     outcomeJudgeVerdict: project.outcomeJudgeVerdict || "Unknown",
     outcomeAdjustedConfidence: project.outcomeAdjustedConfidence || "Unknown",
     outcomeJudgement: project.outcomeJudgement || {},
+    liveCatalystRadarScore: project.liveCatalystRadarScore || 0,
+    liveCatalystUrgency: project.liveCatalystUrgency || "Low",
+    liveCatalystAction: project.liveCatalystAction || "No immediate action",
+    liveCatalystEvents: project.liveCatalystEvents || [],
     dossierSwarmScore: project.dossierSwarmScore || 0,
     dossierSwarmDecision: project.dossierSwarmDecision || "Unknown",
     dossierSwarmConsensus: project.dossierSwarmConsensus || "",
@@ -122,6 +126,11 @@ export function writeResearchOSReports(projects = []) {
     outcomeJudge: projects
       .slice()
       .sort((a, b) => num(b.outcomeJudgeScore) - num(a.outcomeJudgeScore))
+      .slice(0, 25)
+      .map(compact),
+    catalystRadar: projects
+      .filter((project) => num(project.liveCatalystRadarScore) > 0)
+      .sort((a, b) => num(b.liveCatalystRadarScore) - num(a.liveCatalystRadarScore))
       .slice(0, 25)
       .map(compact),
     dossierSwarm: projects

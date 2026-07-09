@@ -128,6 +128,7 @@ export function createScanRecord(project = {}) {
       marketScientist: num(project.marketScientistScore),
       simulationBrain: num(project.simulationBrainScore),
       outcomeJudge: num(project.outcomeJudgeScore),
+      liveCatalystRadar: num(project.liveCatalystRadarScore),
       dossierSwarm: num(project.dossierSwarmScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
@@ -216,6 +217,8 @@ export function createScanRecord(project = {}) {
       falsePositiveAutopsy: project.falsePositiveAutopsy || {},
       selfTrainingMarketSimulationBrain: project.selfTrainingMarketSimulationBrain || {},
       outcomeJudgement: project.outcomeJudgement || {},
+      liveCatalystRadar: project.liveCatalystRadar || {},
+      liveCatalystEvents: project.liveCatalystEvents || [],
       projectDossierSwarm: project.projectDossierSwarm || null,
     },
 

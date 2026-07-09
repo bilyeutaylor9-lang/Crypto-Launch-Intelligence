@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-07-09T16:40:45.144Z",
-  "totalEngines": 89,
-  "wiredIntoPipeline": 65,
-  "stateOfArtReady": 72,
+  "generatedAt": "2026-07-09T16:49:42.301Z",
+  "totalEngines": 90,
+  "wiredIntoPipeline": 66,
+  "stateOfArtReady": 73,
   "readinessScore": 87,
   "categoryCounts": {
     "intelligence": 38,
     "ai": 10,
     "learning": 9,
     "market-flow": 5,
-    "narrative-launch": 7,
+    "narrative-launch": 8,
     "discovery": 13,
     "risk": 2,
     "wallet-flow": 5
@@ -1115,6 +1115,20 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 1,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "liveCatalystRadarEngine.js",
+      "category": "narrative-launch",
+      "exports": [
+        "analyzeLiveCatalystRadar",
+        "analyzeLiveCatalystRadarBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

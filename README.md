@@ -28,7 +28,9 @@ The demo scans built-in research seed projects and generates:
 - Research OS tasks
 - Simulation Brain market-memory paths
 - Outcome Judge reality grading
+- Catalyst Radar why-now alerts
 - Project Dossier Swarm research packets
+- 8-month execution roadmap
 - Alpha Lab strategy report
 - Engine audit
 - HTML dashboard
@@ -42,7 +44,9 @@ cat examples/ai-council.json
 cat examples/research-os.json
 cat examples/simulation-brain.json
 cat examples/outcome-judge.json
+cat examples/catalyst-radar.json
 cat examples/dossier-swarm.json
+cat examples/roadmap.json
 ```
 
 ## Why It Is Different
@@ -57,6 +61,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Models bull/base/bear/black-swan futures with a Quantum Brain.
 - Simulates future paths with a Market Memory Twin and engine tournament.
 - Grades old predictions against reality with an Autonomous Outcome Judge.
+- Detects why-now catalysts, urgency windows, and event-driven actions.
 - Builds specialist-agent research dossiers for the best candidates.
 - Builds project/narrative/chain relationships with a World Model.
 - Creates research tasks and promotion/downgrade lifecycle states.
@@ -90,7 +95,9 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
 - Adds a Self-Training Market Simulation Brain that compares projects to historical archetypes, simulates 7d/30d/90d paths, mutation-tests signals, runs engine tournaments, and ranks opportunities against the full scan universe.
 - Adds an Autonomous Outcome Judge that compares old calls against realized outcomes, finds false positives and missed winners, scores engine reliability, and adjusts confidence with accountability.
+- Adds a Live Catalyst Radar that detects listings, launches, airdrops, governance votes, staking changes, unlock risk, release signals, liquidity expansion, social acceleration, and smart-money movement.
 - Adds a Project Dossier Swarm where specialist agents review tokenomics, liquidity, narrative, developer strength, wallets, risk, outcomes, and final PM fit before creating an inspectable project research packet.
+- Adds an 8-month public roadmap with JSON output for dashboard publishing.
 - Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
 ## Core Idea
@@ -359,6 +366,30 @@ Trusted signals: liquidityExpansion, narrativeHeat
 Noisy signals: none
 ```
 
+### Live Catalyst Radar
+
+The Catalyst Radar detects time-sensitive why-now events before slower ranking layers fully react.
+
+It adds:
+
+- Mainnet and testnet detection
+- Airdrop and points campaign detection
+- Exchange listing watch
+- Governance vote detection
+- Staking and restaking change detection
+- Migration, rebrand, and release detection
+- Liquidity, social, developer, and smart-money event spikes
+- Urgency labels and action recommendations
+
+Example output:
+
+```text
+Catalyst Radar: High
+Top event: Liquidity Expansion
+Window: 24h-7d
+Action: Run deep research verification
+```
+
 ### Project Dossier Swarm
 
 The Dossier Swarm turns high-potential projects into research packets.
@@ -531,6 +562,10 @@ Each project can receive:
 - `outcomeRealityAdjustment`
 - `outcomeAdjustedConfidence`
 - `outcomeJudgement`
+- `liveCatalystRadarScore`
+- `liveCatalystUrgency`
+- `liveCatalystAction`
+- `liveCatalystEvents`
 - `dossierSwarmScore`
 - `dossierSwarmDecision`
 - `dossierSwarmConsensus`
@@ -678,7 +713,9 @@ npm run research-os
 npm run alpha-lab
 npm run simulation-brain
 npm run outcome-judge
+npm run catalyst-radar
 npm run dossier-swarm
+npm run roadmap
 npm run engine:audit:json
 ```
 

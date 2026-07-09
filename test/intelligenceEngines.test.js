@@ -14,6 +14,7 @@ import { analyzeWorldModelBrainBatch } from "../src/engines/worldModelBrainEngin
 import { analyzeAutonomousMarketScientist } from "../src/engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "../src/engines/selfTrainingMarketSimulationBrainEngine.js";
 import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOutcomeJudgeEngine.js";
+import { analyzeLiveCatalystRadarBatch } from "../src/engines/liveCatalystRadarEngine.js";
 import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
@@ -494,4 +495,25 @@ test("project dossier swarm builds specialist agent research packet", () => {
   assert.ok(result.projectDossierSwarm.mustVerify.length > 0);
   assert.ok(result.projectDossierSwarm.promotionTriggers.length > 0);
   assert.ok(result.projectDossierSwarm.finalMemo.includes("DossierCoin"));
+});
+
+test("live catalyst radar detects why-now events and urgency", () => {
+  const [result] = analyzeLiveCatalystRadarBatch([
+    {
+      name: "CatalystCoin",
+      symbol: "CAT",
+      description:
+        "Upcoming mainnet launch with airdrop claim, governance vote, staking rewards, and exchange listing rumors.",
+      liquidityExpansionScore: 72,
+      socialAccelerationScore: 70,
+      smartMoneyAccumulationScore: 66,
+      catalystCalendarScore: 76,
+      narrativeHeatScore: 80,
+    },
+  ]);
+
+  assert.ok(result.liveCatalystRadarScore > 0);
+  assert.ok(["Critical", "High"].includes(result.liveCatalystUrgency));
+  assert.ok(result.liveCatalystEvents.length >= 3);
+  assert.ok(result.liveCatalystRadar.summary.length > 0);
 });

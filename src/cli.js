@@ -49,6 +49,7 @@ function explain(symbol = "") {
   console.log(`Quantum: ${project.quantumDecisionState || "Unknown"} | Bull ${project.quantumBullProbability || 0}% / Bear ${project.quantumBearProbability || 0}%`);
   console.log(`Simulation: ${project.simulationDecision || "Unknown"} (${project.simulationBrainScore || 0}) | Breakout ${project.breakoutProbability30d || 0}% | 30d ${project.expectedReturn30dPct || 0}%`);
   console.log(`Outcome Judge: ${project.outcomeJudgeVerdict || "Unknown"} (${project.outcomeJudgeScore || 0}) | ${project.outcomeAdjustedConfidence || "Unknown"} confidence`);
+  console.log(`Catalyst Radar: ${project.liveCatalystUrgency || "Low"} (${project.liveCatalystRadarScore || 0}) | ${project.liveCatalystEvents?.[0]?.type || "No catalyst"}`);
   console.log(`Dossier Swarm: ${project.dossierSwarmDecision || "Unknown"} (${project.dossierSwarmScore || 0}) | ${project.dossierSwarmConsensus || "No consensus"}`);
   console.log(`Lifecycle: ${project.strongBuyLifecycleStage || "Unknown"}`);
   console.log(`Why now: ${(project.whyNow?.whyThisProject || []).join(" ") || "No why-now summary."}`);
@@ -69,7 +70,9 @@ Commands:
   crypto-launch alpha-lab         Print Alpha Lab report
   crypto-launch simulation        Print Simulation Brain report
   crypto-launch outcome           Print Outcome Judge report
+  crypto-launch catalysts         Print Live Catalyst Radar report
   crypto-launch dossier           Print Dossier Swarm report
+  crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch audit             Run engine import health check
   crypto-launch explain SYMBOL    Explain a project from the latest report
 `);
@@ -105,9 +108,16 @@ switch (command) {
   case "outcome-judge":
     runNpm("outcome-judge", args);
     break;
+  case "catalysts":
+  case "catalyst-radar":
+    runNpm("catalyst-radar", args);
+    break;
   case "dossier":
   case "dossier-swarm":
     runNpm("dossier-swarm", args);
+    break;
+  case "roadmap":
+    runNpm("roadmap", args);
     break;
   case "audit":
     runNpm("engine:audit", args);

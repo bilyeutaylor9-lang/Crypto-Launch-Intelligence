@@ -24,7 +24,9 @@ const PUBLIC_REPORTS = [
   "alpha-lab.json",
   "simulation-brain.json",
   "outcome-judge.json",
+  "catalyst-radar.json",
   "dossier-swarm.json",
+  "roadmap.json",
   "engine-audit.json",
 ];
 
@@ -57,6 +59,7 @@ function writeLandingPage(copiedFiles = []) {
   const researchOS = readJsonReport("research-os.json") || {};
   const simulationBrain = readJsonReport("simulation-brain.json") || {};
   const outcomeJudge = readJsonReport("outcome-judge.json") || {};
+  const catalystRadar = readJsonReport("catalyst-radar.json") || {};
   const dossierSwarm = readJsonReport("dossier-swarm.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
@@ -73,6 +76,7 @@ function writeLandingPage(copiedFiles = []) {
     ["Simulation", topSimulation.symbol || topProject.symbol || "N/A"],
     ["Breakout %", topSimulation.breakoutProbability30d ?? topProject.breakoutProbability30d ?? "N/A"],
     ["Outcome Judged", outcomeJudge.trackedProjects ?? topProject.outcomeJudgeStatus ?? "N/A"],
+    ["Catalysts", catalystRadar.activeCatalystProjects ?? "N/A"],
     ["Dossiers", dossierSwarm.dossieredProjects ?? "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
@@ -310,6 +314,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Research OS:</strong> lifecycle, scenarios, red-team review, and research tasks.</li>
           <li><strong>Simulation Brain:</strong> market-memory analogs, future paths, mutation tests, and engine tournaments.</li>
           <li><strong>Outcome Judge:</strong> grades old calls against reality and adjusts confidence.</li>
+          <li><strong>Catalyst Radar:</strong> detects why-now events, urgency, and action windows.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
@@ -325,7 +330,9 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./research-os.json">Research OS</a>
         <a class="button" href="./simulation-brain.json">Simulation Brain</a>
         <a class="button" href="./outcome-judge.json">Outcome Judge</a>
+        <a class="button" href="./catalyst-radar.json">Catalyst Radar</a>
         <a class="button" href="./dossier-swarm.json">Dossier Swarm</a>
+        <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./alerts.json">Alerts</a>
       </div>

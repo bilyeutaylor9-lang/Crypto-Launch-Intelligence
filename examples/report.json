@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-09T16:40:43.012Z",
+  "generatedAt": "2026-07-09T16:49:40.073Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-09T16:40:20.337Z",
-    "completedAt": "2026-07-09T16:40:43.012Z",
+    "startedAt": "2026-07-09T16:49:17.057Z",
+    "completedAt": "2026-07-09T16:49:40.073Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required."
   },
@@ -30,7 +30,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -538,6 +538,17 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 60,
+          "confidence": 0.54,
+          "impact": "Positive",
+          "reasons": [
+            "Airdrop / Points Catalyst: airdrop, points, claim, or snapshot language detected",
+            "Staking Change: staking or restaking language detected"
           ]
         },
         {
@@ -2663,7 +2674,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:40:43.003Z",
+          "timestamp": "2026-07-09T16:49:40.063Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -2685,6 +2696,65 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 60,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "liveCatalystEvents": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 60,
+        "urgency": "High",
+        "action": "Run deep research verification",
+        "eventCount": 2,
+        "topEvent": {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        "events": [
+          {
+            "type": "Airdrop / Points Catalyst",
+            "score": 68,
+            "window": "72h-30d",
+            "urgency": "High",
+            "reasons": [
+              "airdrop, points, claim, or snapshot language detected"
+            ]
+          },
+          {
+            "type": "Staking Change",
+            "score": 55,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "staking or restaking language detected"
+            ]
+          }
+        ],
+        "summary": "High: Airdrop / Points Catalyst is the leading catalyst. Run deep research verification."
       },
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
@@ -2958,7 +3028,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -3469,6 +3539,16 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 49,
+          "confidence": 0.54,
+          "impact": "Neutral",
+          "reasons": [
+            "Staking Change: staking or restaking language detected"
           ]
         },
         {
@@ -5629,7 +5709,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -5651,6 +5731,47 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 49,
+        "urgency": "Medium",
+        "action": "Watch for confirmation",
+        "eventCount": 1,
+        "topEvent": {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        },
+        "events": [
+          {
+            "type": "Staking Change",
+            "score": 55,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "staking or restaking language detected"
+            ]
+          }
+        ],
+        "summary": "Medium: Staking Change is the leading catalyst. Watch for confirmation."
       },
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
@@ -5923,7 +6044,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -6464,6 +6585,18 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 83,
+          "confidence": 0.68,
+          "impact": "Positive",
+          "reasons": [
+            "Catalyst Calendar Alert: catalyst calendar score elevated",
+            "Mainnet Launch: mainnet language detected",
+            "Staking Change: staking or restaking language detected"
           ]
         },
         {
@@ -8785,7 +8918,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -8807,6 +8940,83 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 83,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystAction": "Run deep research verification",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 83,
+        "urgency": "Critical",
+        "action": "Run deep research verification",
+        "eventCount": 3,
+        "topEvent": {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        "events": [
+          {
+            "type": "Catalyst Calendar Alert",
+            "score": 88,
+            "window": "24h-30d",
+            "urgency": "High",
+            "reasons": [
+              "catalyst calendar score elevated"
+            ]
+          },
+          {
+            "type": "Mainnet Launch",
+            "score": 76,
+            "window": "7d-30d",
+            "urgency": "High",
+            "reasons": [
+              "mainnet language detected"
+            ]
+          },
+          {
+            "type": "Staking Change",
+            "score": 55,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "staking or restaking language detected"
+            ]
+          }
+        ],
+        "summary": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
       },
       "dossierSwarmScore": 21,
       "dossierSwarmDecision": "Do Not Promote",
@@ -9081,7 +9291,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -9591,6 +9801,14 @@
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
           ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 16,
+          "confidence": 0.32,
+          "impact": "Neutral",
+          "reasons": []
         },
         {
           "engine": "Project Dossier Swarm",
@@ -11689,7 +11907,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -11711,6 +11929,19 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 16,
+      "liveCatalystUrgency": "Low",
+      "liveCatalystAction": "No immediate action",
+      "liveCatalystEvents": [],
+      "liveCatalystRadar": {
+        "score": 16,
+        "urgency": "Low",
+        "action": "No immediate action",
+        "eventCount": 0,
+        "topEvent": null,
+        "events": [],
+        "summary": "No immediate catalyst detected."
       },
       "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
@@ -11983,7 +12214,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -12486,6 +12717,16 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 49,
+          "confidence": 0.54,
+          "impact": "Neutral",
+          "reasons": [
+            "Staking Change: staking or restaking language detected"
           ]
         },
         {
@@ -14687,7 +14928,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -14709,6 +14950,47 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 49,
+        "urgency": "Medium",
+        "action": "Watch for confirmation",
+        "eventCount": 1,
+        "topEvent": {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        },
+        "events": [
+          {
+            "type": "Staking Change",
+            "score": 55,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "staking or restaking language detected"
+            ]
+          }
+        ],
+        "summary": "Medium: Staking Change is the leading catalyst. Watch for confirmation."
       },
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
@@ -14982,7 +15264,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.338Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -15504,6 +15786,16 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 56,
+          "confidence": 0.54,
+          "impact": "Neutral",
+          "reasons": [
+            "Staking Change: staking or restaking language detected"
           ]
         },
         {
@@ -17747,7 +18039,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -17769,6 +18061,47 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 56,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 56,
+        "urgency": "Medium",
+        "action": "Watch for confirmation",
+        "eventCount": 1,
+        "topEvent": {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        },
+        "events": [
+          {
+            "type": "Staking Change",
+            "score": 55,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "staking or restaking language detected"
+            ]
+          }
+        ],
+        "summary": "Medium: Staking Change is the leading catalyst. Watch for confirmation."
       },
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
@@ -18042,7 +18375,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -18543,6 +18876,16 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 48,
+          "confidence": 0.54,
+          "impact": "Neutral",
+          "reasons": [
+            "Migration / Release: migration, release, or upgrade language detected"
           ]
         },
         {
@@ -20746,7 +21089,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -20768,6 +21111,47 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 48,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "liveCatalystEvents": [
+        {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 48,
+        "urgency": "Medium",
+        "action": "Watch for confirmation",
+        "eventCount": 1,
+        "topEvent": {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
+          ]
+        },
+        "events": [
+          {
+            "type": "Migration / Release",
+            "score": 54,
+            "window": "7d-30d",
+            "urgency": "Medium",
+            "reasons": [
+              "migration, release, or upgrade language detected"
+            ]
+          }
+        ],
+        "summary": "Medium: Migration / Release is the leading catalyst. Watch for confirmation."
       },
       "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
@@ -21041,7 +21425,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:40:20.339Z",
+      "discoveredAt": "2026-07-09T16:49:17.058Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -21572,6 +21956,16 @@
           "reasons": [
             "Cold start: no prior snapshot.",
             "Trusted signals: 0; noisy signals: 0."
+          ]
+        },
+        {
+          "engine": "Live Catalyst Radar",
+          "signal": "time-sensitive catalyst and event detection",
+          "score": 67,
+          "confidence": 0.54,
+          "impact": "Positive",
+          "reasons": [
+            "Catalyst Calendar Alert: catalyst calendar score elevated"
           ]
         },
         {
@@ -23778,7 +24172,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -23800,6 +24194,47 @@
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 67,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 70,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        }
+      ],
+      "liveCatalystRadar": {
+        "score": 67,
+        "urgency": "High",
+        "action": "Run deep research verification",
+        "eventCount": 1,
+        "topEvent": {
+          "type": "Catalyst Calendar Alert",
+          "score": 70,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        "events": [
+          {
+            "type": "Catalyst Calendar Alert",
+            "score": 70,
+            "window": "24h-30d",
+            "urgency": "High",
+            "reasons": [
+              "catalyst calendar score elevated"
+            ]
+          }
+        ],
+        "summary": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
       },
       "dossierSwarmScore": 16,
       "dossierSwarmDecision": "Do Not Promote",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T16:40:43.064Z",
+  "generatedAt": "2026-07-09T16:49:40.131Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
@@ -264,7 +264,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:40:43.003Z",
+          "timestamp": "2026-07-09T16:49:40.063Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -287,6 +287,28 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 60,
+      "liveCatalystUrgency": "High",
+      "liveCatalystEvents": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -802,7 +824,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:40:43.003Z",
+          "timestamp": "2026-07-09T16:49:40.063Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -825,6 +847,28 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 60,
+      "liveCatalystUrgency": "High",
+      "liveCatalystEvents": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -1348,7 +1392,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -1371,6 +1415,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -1904,7 +1961,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -1927,6 +1984,37 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 83,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 21,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -2433,7 +2521,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -2456,6 +2544,9 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 16,
+      "liveCatalystUrgency": "Low",
+      "liveCatalystEvents": [],
       "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -2977,7 +3068,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -3000,6 +3091,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -3524,7 +3628,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -3547,6 +3651,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 56,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -4078,7 +4195,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -4101,6 +4218,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 48,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -4613,7 +4743,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -4636,6 +4766,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 67,
+      "liveCatalystUrgency": "High",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 70,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        }
+      ],
       "dossierSwarmScore": 16,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -5161,7 +5304,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -5184,6 +5327,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -5708,7 +5864,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -5731,6 +5887,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 56,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -6262,7 +6431,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.065Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -6285,6 +6454,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 48,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -6821,7 +7003,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -6844,6 +7026,37 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 83,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 21,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
@@ -7368,7 +7581,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:40:43.004Z",
+          "timestamp": "2026-07-09T16:49:40.064Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -7391,6 +7604,19 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystEvents": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {

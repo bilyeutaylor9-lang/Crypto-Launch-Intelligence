@@ -1,0 +1,436 @@
+{
+  "generatedAt": "2026-07-09T16:49:42.250Z",
+  "totalProjects": 8,
+  "activeCatalystProjects": 8,
+  "counts": {
+    "critical": 1,
+    "high": 2,
+    "riskCritical": 0,
+    "medium": 4
+  },
+  "urgentFeed": [
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "liveCatalystRadarScore": 83,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Catalyst Calendar Alert",
+        "score": 88,
+        "window": "24h-30d",
+        "urgency": "High",
+        "reasons": [
+          "catalyst calendar score elevated"
+        ]
+      },
+      "events": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 5,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 1,
+      "liveCatalystRadarScore": 67,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Catalyst Calendar Alert",
+        "score": 70,
+        "window": "24h-30d",
+        "urgency": "High",
+        "reasons": [
+          "catalyst calendar score elevated"
+        ]
+      },
+      "events": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 70,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 6,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "liveCatalystRadarScore": 60,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Airdrop / Points Catalyst",
+        "score": 68,
+        "window": "72h-30d",
+        "urgency": "High",
+        "reasons": [
+          "airdrop, points, claim, or snapshot language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Reject For Now",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    }
+  ],
+  "allCatalysts": [
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "liveCatalystRadarScore": 83,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Catalyst Calendar Alert",
+        "score": 88,
+        "window": "24h-30d",
+        "urgency": "High",
+        "reasons": [
+          "catalyst calendar score elevated"
+        ]
+      },
+      "events": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 5,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 1,
+      "liveCatalystRadarScore": 67,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Catalyst Calendar Alert",
+        "score": 70,
+        "window": "24h-30d",
+        "urgency": "High",
+        "reasons": [
+          "catalyst calendar score elevated"
+        ]
+      },
+      "events": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 70,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 6,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "liveCatalystRadarScore": 60,
+      "liveCatalystUrgency": "High",
+      "liveCatalystAction": "Run deep research verification",
+      "topEvent": {
+        "type": "Airdrop / Points Catalyst",
+        "score": 68,
+        "window": "72h-30d",
+        "urgency": "High",
+        "reasons": [
+          "airdrop, points, claim, or snapshot language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Reject For Now",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 4,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 3,
+      "liveCatalystRadarScore": 56,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 7,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 0,
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 2,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 3,
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 3,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineScore": 3,
+      "liveCatalystRadarScore": 48,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Migration / Release",
+        "score": 54,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "migration, release, or upgrade language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 8,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "pipelineScore": 0,
+      "liveCatalystRadarScore": 16,
+      "liveCatalystUrgency": "Low",
+      "liveCatalystAction": "No immediate action",
+      "topEvent": null,
+      "events": [],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    }
+  ],
+  "eventTypeCounts": [
+    {
+      "type": "Staking Change",
+      "count": 5
+    },
+    {
+      "type": "Catalyst Calendar Alert",
+      "count": 2
+    },
+    {
+      "type": "Airdrop / Points Catalyst",
+      "count": 1
+    },
+    {
+      "type": "Mainnet Launch",
+      "count": 1
+    },
+    {
+      "type": "Migration / Release",
+      "count": 1
+    }
+  ]
+}

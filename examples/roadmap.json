@@ -1,0 +1,233 @@
+{
+  "generatedAt": "2026-07-09T16:49:42.253Z",
+  "product": "Crypto Launch Intelligence",
+  "vision": "A self-learning AI research desk: discover, research, score, debate, simulate, dossier, alert, track outcome, and learn.",
+  "horizonMonths": 8,
+  "currentPhase": {
+    "month": 1,
+    "title": "Live Catalyst Radar",
+    "theme": "Time-sensitive event detection",
+    "objective": "Detect why-now events before the normal scoring stack fully reacts.",
+    "deliverables": [
+      "Catalyst event feed",
+      "Unlock, listing, launch, airdrop, governance, staking, release, TVL, liquidity, X, and news event detectors",
+      "Urgency scoring with 24h, 72h, 7d, and 30d windows",
+      "Watchtower alert integration",
+      "Dossier Swarm promotion triggers"
+    ],
+    "successMetrics": [
+      "Every high-priority alert includes a catalyst reason",
+      "Dashboard shows current catalyst feed",
+      "False catalyst rate is reviewed by Outcome Judge"
+    ],
+    "commands": [
+      "npm run scan",
+      "npm run alerts",
+      "npm run dossier-swarm"
+    ]
+  },
+  "roadmap": [
+    {
+      "month": 1,
+      "title": "Live Catalyst Radar",
+      "theme": "Time-sensitive event detection",
+      "objective": "Detect why-now events before the normal scoring stack fully reacts.",
+      "deliverables": [
+        "Catalyst event feed",
+        "Unlock, listing, launch, airdrop, governance, staking, release, TVL, liquidity, X, and news event detectors",
+        "Urgency scoring with 24h, 72h, 7d, and 30d windows",
+        "Watchtower alert integration",
+        "Dossier Swarm promotion triggers"
+      ],
+      "successMetrics": [
+        "Every high-priority alert includes a catalyst reason",
+        "Dashboard shows current catalyst feed",
+        "False catalyst rate is reviewed by Outcome Judge"
+      ],
+      "commands": [
+        "npm run scan",
+        "npm run alerts",
+        "npm run dossier-swarm"
+      ]
+    },
+    {
+      "month": 2,
+      "title": "Real-Time Watchtower Dashboard",
+      "theme": "Command-center experience",
+      "objective": "Turn the public dashboard into a live intelligence surface that people can inspect quickly.",
+      "deliverables": [
+        "Catalyst feed",
+        "Top dossier cards",
+        "AI Council panel",
+        "Outcome Judge performance panel",
+        "Project, chain, narrative, and urgency filters",
+        "Why-now event timeline"
+      ],
+      "successMetrics": [
+        "A visitor can understand the top opportunities in under 60 seconds",
+        "Every top candidate links to raw JSON evidence",
+        "Dashboard is mobile-readable"
+      ],
+      "commands": [
+        "npm run demo",
+        "npm run publish:dashboard"
+      ]
+    },
+    {
+      "month": 3,
+      "title": "Historical Backtesting Lab",
+      "theme": "Proof and credibility",
+      "objective": "Measure which engines, narratives, and regimes actually produced follow-through.",
+      "deliverables": [
+        "Backtest by engine",
+        "Backtest by narrative",
+        "Backtest by market regime",
+        "Strong-buy hit rate",
+        "False-positive rate",
+        "Missed-winner analysis",
+        "Strategy leaderboard"
+      ],
+      "successMetrics": [
+        "Reports include hit rate and sample size",
+        "No high-conviction claim appears without historical context",
+        "Weak engines are visible, not hidden"
+      ],
+      "commands": [
+        "npm run backtest",
+        "npm run outcome-judge"
+      ]
+    },
+    {
+      "month": 4,
+      "title": "Agent Learning System v2",
+      "theme": "Self-improving AI agents",
+      "objective": "Make every agent accountable for its calls and dynamically adjust trust.",
+      "deliverables": [
+        "Agent-specific hit rates",
+        "Agent trust weights",
+        "Agent disagreement scoring",
+        "Correct-agent attribution",
+        "Automatic noisy-agent demotion",
+        "Automatic reliable-agent promotion"
+      ],
+      "successMetrics": [
+        "AI Council displays agent trust weights",
+        "Dossier Swarm agents include performance history",
+        "Outcome Judge can explain which agents were right"
+      ],
+      "commands": [
+        "npm run agent-performance",
+        "npm run agent-memory"
+      ]
+    },
+    {
+      "month": 5,
+      "title": "Deep Internet Research Mode",
+      "theme": "Analyst-grade evidence collection",
+      "objective": "Research projects from official and public sources with citations and freshness scoring.",
+      "deliverables": [
+        "Official docs parsing",
+        "Blog and news parsing",
+        "GitHub release reading",
+        "Governance forum scanning",
+        "Whitepaper summaries",
+        "Tokenomics extraction",
+        "Claim-level source citations",
+        "Research freshness score"
+      ],
+      "successMetrics": [
+        "Every top dossier includes sourced claims",
+        "Research age is visible",
+        "Unverified claims reduce confidence"
+      ],
+      "commands": [
+        "npm run research:internet",
+        "npm run research:memory"
+      ]
+    },
+    {
+      "month": 6,
+      "title": "Portfolio Intelligence Layer",
+      "theme": "Opportunity selection and risk allocation",
+      "objective": "Move from best-token ranking to portfolio-aware research decisions.",
+      "deliverables": [
+        "Sector exposure",
+        "Chain exposure",
+        "Correlation risk",
+        "Conviction buckets",
+        "Risk-adjusted basket builder",
+        "Rotation detection",
+        "Watchlist rebalancing",
+        "Capital allocation guidance"
+      ],
+      "successMetrics": [
+        "Top opportunities are compared against each other",
+        "Dashboard shows concentration risk",
+        "Portfolio suggestions include invalidation logic"
+      ],
+      "commands": [
+        "npm run watchlist",
+        "npm run dossier-swarm"
+      ]
+    },
+    {
+      "month": 7,
+      "title": "Public Product Polish",
+      "theme": "Adoption and trust",
+      "objective": "Make the GitHub repo feel polished enough that visitors want to star, fork, and run it.",
+      "deliverables": [
+        "Hosted dashboard polish",
+        "Screenshots or GIFs",
+        "Quickstart CLI",
+        "Architecture diagram",
+        "Issue templates",
+        "Release notes",
+        "GitHub Actions badges",
+        "Demo workflow"
+      ],
+      "successMetrics": [
+        "New users can run the demo without help",
+        "README shows real outputs",
+        "Repo has clear contribution paths"
+      ],
+      "commands": [
+        "npm run demo",
+        "npm run engine:audit"
+      ]
+    },
+    {
+      "month": 8,
+      "title": "Autonomous Research Desk",
+      "theme": "Self-running intelligence loop",
+      "objective": "Tie discovery, research, scoring, alerts, outcomes, and learning into one recurring research desk.",
+      "deliverables": [
+        "Scheduled scans",
+        "Automatic catalyst alerts",
+        "Daily and weekly research briefs",
+        "Self-review loop",
+        "Agent performance report",
+        "Dashboard publishing",
+        "Top 10 opportunities this week",
+        "Biggest risks this week",
+        "What changed since last scan"
+      ],
+      "successMetrics": [
+        "The system can run unattended",
+        "Every alert is later outcome-graded",
+        "Weekly brief explains what changed and why"
+      ],
+      "commands": [
+        "npm run watchtower:daemon",
+        "npm run brief",
+        "npm run publish:dashboard"
+      ]
+    }
+  ],
+  "executionPrinciples": [
+    "Prefer measurable outputs over hype.",
+    "Every high-conviction claim should have evidence, confidence, and invalidation.",
+    "Every alert should be outcome-graded later.",
+    "Free data sources remain first-class; paid APIs are optional accelerators.",
+    "The public demo should always run without keys."
+  ]
+}
