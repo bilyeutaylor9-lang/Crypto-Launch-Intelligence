@@ -5,6 +5,8 @@ import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
 import { getCoinGeckoCandidates } from "./data/coinGeckoConnector.js";
 import { getBirdeyeCandidates } from "./data/birdeyeConnector.js";
 import { getFreeMarketDataCandidates } from "./data/freeMarketDataConnector.js";
+import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnector.js";
+import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -170,6 +172,8 @@ export async function runDiscoveryManager(options = {}) {
 
   const maxTokens = num(options.maxTokens || process.env.MAX_TOKENS || 200);
   const freeLimit = num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || 100);
+  const expandedLimit = num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || 100);
+  const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
 
   const dex = await safeSource("DexScreener", () => scanLiveMarket({ maxTokens }));
   const gecko = await safeSource("GeckoTerminal", () => getGeckoTerminalCandidates());
@@ -186,12 +190,16 @@ export async function runDiscoveryManager(options = {}) {
   const freeMarket = await safeSource("FreeMarketData", () =>
     getFreeMarketDataCandidates({ limit: freeLimit })
   );
+  const expandedMarket = await safeSource("ExpandedMarketData", () =>
+    getExpandedMarketDataCandidates({ limit: expandedLimit })
+  );
 
   const dexResults = normalizeResults(dex.output, []);
   const geckoResults = normalizeResults(gecko.output, []);
   const coinGeckoResults = normalizeResults(coinGecko.output, []);
   const birdeyeResults = normalizeResults(birdeye.output, []);
   const freeMarketResults = normalizeResults(freeMarket.output, []);
+  const expandedMarketResults = normalizeResults(expandedMarket.output, []);
 
   const rawPool = [
     ...dexResults.map((p) => enrichDiscoverySource(p, "dexscreener")),
@@ -199,9 +207,18 @@ export async function runDiscoveryManager(options = {}) {
     ...coinGeckoResults.map((p) => enrichDiscoverySource(p, "coingecko")),
     ...birdeyeResults.map((p) => enrichDiscoverySource(p, "birdeye")),
     ...freeMarketResults.map((p) => enrichDiscoverySource(p, p.source || "free-market")),
+    ...expandedMarketResults.map((p) => enrichDiscoverySource(p, p.source || "expanded-market")),
   ];
 
-  const dedupedPool = dedupeAndMerge(rawPool);
+  const liveDedupedPool = dedupeAndMerge(rawPool);
+  const fallbackSeedResults =
+    fallbackSeedsEnabled && liveDedupedPool.length === 0
+      ? getFallbackResearchSeedCandidates({ limit: options.seedLimit })
+      : [];
+  const dedupedPool = dedupeAndMerge([
+    ...liveDedupedPool,
+    ...fallbackSeedResults.map((p) => enrichDiscoverySource(p, "research-seed")),
+  ]);
   const qualityGate = applyQualityGate(dedupedPool, options);
   const candidatePool = qualityGate.accepted;
 
@@ -228,6 +245,13 @@ export async function runDiscoveryManager(options = {}) {
       "kucoin",
       "coinbase",
       "kraken",
+      "coincap",
+      "coinlore",
+      "cryptocompare",
+      "defillama-yields",
+      "defillama-stablecoins",
+      "dexscreener-search",
+      "research-seed-fallback",
     ],
 
     discoveredCount:
@@ -235,7 +259,9 @@ export async function runDiscoveryManager(options = {}) {
       geckoResults.length +
       coinGeckoResults.length +
       birdeyeResults.length +
-      freeMarketResults.length,
+      freeMarketResults.length +
+      expandedMarketResults.length +
+      fallbackSeedResults.length,
 
     rawCount: rawPool.length,
     dedupedCount: dedupedPool.length,
@@ -303,6 +329,40 @@ export async function runDiscoveryManager(options = {}) {
         enabled: true,
         error: freeMarket.error,
         sources: ["coinpaprika", "defillama", "binance", "kucoin", "coinbase", "kraken"],
+      },
+
+      expandedMarketData: {
+        status: expandedMarket.status,
+        durationMs: expandedMarket.durationMs,
+        scannedTokens: expandedMarketResults.length,
+        enabled: true,
+        error: expandedMarket.error,
+        sources: [
+          "coincap",
+          "coinlore",
+          "cryptocompare",
+          "defillama-yields",
+          "defillama-stablecoins",
+          "dexscreener-search",
+          "okx",
+          "bybit",
+          "gate",
+          "mexc",
+          "bitget",
+          "htx",
+          "bitfinex",
+          "bitstamp",
+          "gemini",
+        ],
+      },
+
+      researchSeeds: {
+        status: fallbackSeedResults.length ? "USED" : "SKIPPED",
+        scannedTokens: fallbackSeedResults.length,
+        enabled: Boolean(fallbackSeedsEnabled),
+        reason: fallbackSeedResults.length
+          ? "All live sources returned zero deduped candidates."
+          : "Live source candidates were available or fallback seeds were disabled.",
       },
     },
   };

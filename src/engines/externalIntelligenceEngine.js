@@ -1,5 +1,6 @@
 import { getXProjectIntelligenceBatch } from "../data/xIntelligenceConnector.js";
 import { getNewsProjectIntelligenceBatch } from "../data/newsIntelligenceConnector.js";
+import { getInternetProjectResearchBatch } from "../data/internetResearchConnector.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -66,40 +67,46 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
   const safeProjects = Array.isArray(projects) ? projects : [];
   const xMap = await getXProjectIntelligenceBatch(safeProjects, options.x || {});
   const newsMap = await getNewsProjectIntelligenceBatch(safeProjects, options.news || {});
+  const internetMap = await getInternetProjectResearchBatch(safeProjects, options.internet || {});
 
   return safeProjects.map((project) => {
     const key = projectKey(project);
     const x = xMap.get(key) || {};
     const news = newsMap.get(key) || {};
+    const internet = internetMap.get(key) || {};
     const local = localTextSignals(project);
     const externalSignalScore = Math.round(
       clamp(
-        num(x.signalScore) * 0.45 +
-          num(news.signalScore) * 0.35 +
-          local.score * 0.2
+        num(x.signalScore) * 0.3 +
+          num(news.signalScore) * 0.25 +
+          num(internet.signalScore) * 0.3 +
+          local.score * 0.15
       )
     );
     const externalRiskScore = Math.round(
       clamp(
-        Math.max(num(x.riskScore), num(news.riskScore), local.riskScore)
+        Math.max(num(x.riskScore), num(news.riskScore), num(internet.riskScore), local.riskScore)
       )
     );
     const catalystHits = [
       ...(x.announcementHits || []),
       ...(news.catalystHits || []),
+      ...(internet.catalystHits || []),
       ...local.catalystHits,
     ];
     const riskHits = [
       ...(x.riskHits || []),
       ...(news.riskHits || []),
+      ...(internet.riskHits || []),
       ...local.riskHits,
     ];
     const status = {
       x: x.status || "NOT_RUN",
       news: news.status || "NOT_RUN",
+      internet: internet.status || "NOT_RUN",
     };
     const confidence =
-      status.x === "SUCCESS" || status.news === "SUCCESS"
+      status.x === "SUCCESS" || status.news === "SUCCESS" || num(internet.sourceCount) > 0
         ? 0.75
         : catalystHits.length || riskHits.length
         ? 0.45
@@ -113,8 +120,10 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
         status,
         x,
         news,
+        internet,
         local,
         catalystHits: [...new Set(catalystHits)],
+        narrativeHits: [...new Set(internet.narrativeHits || [])],
         riskHits: [...new Set(riskHits)],
         summary:
           externalSignalScore >= 65
@@ -137,7 +146,7 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
               ? "Negative"
               : "Neutral",
           reasons: [
-            `X status: ${status.x}. News status: ${status.news}.`,
+            `X status: ${status.x}. News status: ${status.news}. Internet sources: ${num(internet.sourceCount)}.`,
             `${[...new Set(catalystHits)].length} catalyst terms and ${[...new Set(riskHits)].length} risk terms detected.`,
           ],
         },

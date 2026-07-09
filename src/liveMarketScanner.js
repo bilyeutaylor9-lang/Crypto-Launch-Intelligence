@@ -99,7 +99,7 @@ export async function scanLiveMarket(options = {}) {
     maxSellPressureRatio: Number(process.env.MAX_SELL_PRESSURE || 0.85)
   });
 
-  const results = runIntelligencePipeline(discovery.accepted);
+  const results = await runIntelligencePipeline(discovery.accepted);
   const summary = summarizePipelineResults(results);
 
   return {

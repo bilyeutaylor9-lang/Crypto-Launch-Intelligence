@@ -9,6 +9,9 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 ## What It Does
 
 - Discovers crypto projects from live market and launch sources.
+- Pulls from DexScreener, GeckoTerminal, CoinGecko, Birdeye, CoinPaprika, DeFiLlama, Binance, KuCoin, Coinbase, Kraken, CoinCap, CoinLore, CryptoCompare, DeFiLlama yields/stablecoins, narrative DexScreener search, OKX, Bybit, Gate.io, MEXC, Bitget, HTX, Bitfinex, Bitstamp, and Gemini.
+- Researches public internet sources including crypto RSS feeds and project pages, then saves research memory for future scans.
+- Uses research seed fallback candidates when every live source returns zero results, so local/offline scans still exercise the intelligence pipeline.
 - Scores projects across narrative, liquidity, momentum, developer, community, catalyst, smart-wallet, whale, and market-rank signals.
 - Detects launch, staking, restaking, TGE, mainnet, airdrop, and listing setups.
 - Adds X/social and institutional-attention intelligence from available social/project text.
@@ -326,6 +329,23 @@ npm run json
 npm run watchlist
 npm run alerts
 npm run brief
+```
+
+Inspect expanded source candidates:
+
+```bash
+npm run sources:expanded
+npm run sources:seeds
+npm run research:internet
+npm run research:memory
+```
+
+Discovery tuning:
+
+```bash
+FREE_SOURCE_LIMIT=200 EXPANDED_SOURCE_LIMIT=200 npm run scan
+INTERNET_RESEARCH_PROJECT_LIMIT=50 npm run scan
+DISABLE_RESEARCH_SEEDS=true npm run scan
 ```
 
 Run tests:

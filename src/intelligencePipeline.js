@@ -57,6 +57,7 @@ import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
 import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
+import { saveInternetResearchMemory } from "./learning/internetResearchMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1025,6 +1026,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       await saveOutcomeSnapshots(results);
     } catch (error) {
       console.log(`Outcome snapshot save failed: ${error.message}`);
+    }
+
+    try {
+      saveInternetResearchMemory(results);
+    } catch (error) {
+      console.log(`Internet research memory save failed: ${error.message}`);
     }
   }
 
