@@ -225,6 +225,11 @@ function printReportPaths(paths) {
   console.log(`Agent Memory:   ${paths.agentPerformancePath}`);
   console.log(`Research OS:    ${paths.researchOSPath}`);
   console.log(`Alpha Lab:      ${paths.alphaLabPath}`);
+  console.log(`Simulation:     ${paths.simulationBrainPath}`);
+  console.log(`Outcome Judge:  ${paths.outcomeJudgePath}`);
+  console.log(`Catalyst Radar: ${paths.catalystRadarPath}`);
+  console.log(`Dossier Swarm:  ${paths.dossierSwarmPath}`);
+  console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);

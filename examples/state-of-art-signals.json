@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T16:49:40.131Z",
+  "generatedAt": "2026-07-09T17:04:05.435Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
@@ -264,7 +264,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:49:40.063Z",
+          "timestamp": "2026-07-09T17:04:05.319Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -824,7 +824,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:49:40.063Z",
+          "timestamp": "2026-07-09T17:04:05.319Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -1392,7 +1392,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -1961,7 +1961,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -2521,7 +2521,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -3068,7 +3068,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -3628,7 +3628,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -4195,7 +4195,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -4743,7 +4743,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -5304,7 +5304,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -5864,7 +5864,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -6431,7 +6431,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -7003,7 +7003,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -7581,7 +7581,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",

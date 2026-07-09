@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-09T16:49:40.073Z",
+  "generatedAt": "2026-07-09T17:04:05.330Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-09T16:49:17.057Z",
-    "completedAt": "2026-07-09T16:49:40.073Z",
+    "startedAt": "2026-07-09T17:03:41.769Z",
+    "completedAt": "2026-07-09T17:04:05.330Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required."
   },
@@ -30,7 +30,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -2674,7 +2674,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-09T16:49:40.063Z",
+          "timestamp": "2026-07-09T17:04:05.319Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -3028,7 +3028,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -5709,7 +5709,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -6044,7 +6044,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -8918,7 +8918,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -9291,7 +9291,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -11907,7 +11907,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -12214,7 +12214,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -14928,7 +14928,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-09T16:49:40.064Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -15264,7 +15264,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -18039,7 +18039,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -18375,7 +18375,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -21089,7 +21089,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -21425,7 +21425,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-09T16:49:17.058Z",
+      "discoveredAt": "2026-07-09T17:03:41.771Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -24172,7 +24172,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-09T16:49:40.065Z",
+          "timestamp": "2026-07-09T17:04:05.320Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",

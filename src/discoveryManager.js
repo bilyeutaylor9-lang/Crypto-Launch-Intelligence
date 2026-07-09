@@ -241,6 +241,11 @@ export async function runDiscoveryManager(options = {}) {
       (wideScan ? 500 : 120)
   );
   const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
+  const seedSupplementThreshold = num(
+    options.seedSupplementThreshold ||
+      process.env.RESEARCH_SEED_SUPPLEMENT_THRESHOLD ||
+      (wideScan ? 1000 : 150)
+  );
 
   const dex = await safeSource("DexScreener", () => scanLiveMarket({ maxTokens }));
   const gecko = await safeSource("GeckoTerminal", () => getGeckoTerminalCandidates());
@@ -290,7 +295,7 @@ export async function runDiscoveryManager(options = {}) {
 
   const liveDedupedPool = dedupeAndMerge(rawPool);
   const fallbackSeedResults =
-    fallbackSeedsEnabled && liveDedupedPool.length === 0
+    fallbackSeedsEnabled && liveDedupedPool.length < seedSupplementThreshold
       ? getFallbackResearchSeedCandidates({ limit: options.seedLimit })
       : [];
   const dedupedPool = dedupeAndMerge([
@@ -331,8 +336,10 @@ export async function runDiscoveryManager(options = {}) {
       "defillama-yields",
       "defillama-stablecoins",
       "dexscreener-search",
+      "dexscreener-profiles",
+      "dexscreener-boosts",
       "google-news",
-      "research-seed-fallback",
+      "research-seed-supplement",
     ],
 
     discoveredCount:
@@ -346,6 +353,9 @@ export async function runDiscoveryManager(options = {}) {
       fallbackSeedResults.length,
 
     rawCount: rawPool.length,
+    liveDedupedCount: liveDedupedPool.length,
+    seedSupplementCount: fallbackSeedResults.length,
+    seedSupplementThreshold,
     dedupedCount: dedupedPool.length,
     acceptedCount: candidatePool.length,
     acceptedBeforeLimitCount: qualityGate.accepted.length,
@@ -430,6 +440,8 @@ export async function runDiscoveryManager(options = {}) {
           "defillama-yields",
           "defillama-stablecoins",
           "dexscreener-search",
+          "dexscreener-profiles",
+          "dexscreener-boosts",
           "okx",
           "bybit",
           "gate",
@@ -455,8 +467,8 @@ export async function runDiscoveryManager(options = {}) {
         scannedTokens: fallbackSeedResults.length,
         enabled: Boolean(fallbackSeedsEnabled),
         reason: fallbackSeedResults.length
-          ? "All live sources returned zero deduped candidates."
-          : "Live source candidates were available or fallback seeds were disabled.",
+          ? `Live discovery returned fewer than ${seedSupplementThreshold} deduped candidates, so research seeds were added.`
+          : "Live source candidate count was above the supplement threshold or seeds were disabled.",
       },
     },
   };

@@ -72,8 +72,9 @@ Crypto Launch Intelligence runs an AI research workflow:
 
 - Discovers crypto projects from live market and launch sources.
 - Pulls from DexScreener, GeckoTerminal, CoinGecko, Birdeye, CoinPaprika, DeFiLlama, Binance, KuCoin, Coinbase, Kraken, CoinCap, CoinLore, CryptoCompare, DeFiLlama yields/stablecoins, narrative DexScreener search, OKX, Bybit, Gate.io, MEXC, Bitget, HTX, Bitfinex, Bitstamp, and Gemini.
+- Adds DexScreener latest token profiles and token boosts as free launch-discovery sources.
 - Researches public internet sources including crypto RSS feeds, Google News RSS search, and project pages, then saves research memory for future scans.
-- Uses research seed fallback candidates when every live source returns zero results, so local/offline scans still exercise the intelligence pipeline.
+- Uses research seed supplement candidates when live discovery is thin, so API rate limits or regional blocks do not leave the intelligence pipeline empty.
 - Scores projects across narrative, liquidity, momentum, developer, community, catalyst, smart-wallet, whale, and market-rank signals.
 - Detects launch, staking, restaking, TGE, mainnet, airdrop, and listing setups.
 - Adds X/social and institutional-attention intelligence from available social/project text.

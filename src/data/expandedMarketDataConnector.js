@@ -303,6 +303,75 @@ export async function getDexScreenerSearchCandidates(options = {}) {
   return all.slice(0, limit);
 }
 
+export async function getDexScreenerTokenProfileCandidates(options = {}) {
+  const limit = Number(options.limit || 100);
+  const profiles = await fetchJson("https://api.dexscreener.com/token-profiles/latest/v1");
+
+  return (profiles || []).slice(0, limit).map((profile) =>
+    candidate({
+      name: profile.header || profile.description || profile.tokenAddress,
+      symbol: profile.header || profile.tokenAddress,
+      chain: profile.chainId,
+      address: profile.tokenAddress,
+      pairAddress: profile.tokenAddress,
+      dex: "token-profile",
+      url: profile.url,
+      priceUsd: 0,
+      liquidityUsd: 0,
+      volume24h: 0,
+      priceChange24h: 0,
+      category: "new token profile discovery",
+      source: "dexscreener-profiles",
+      description: [
+        profile.header,
+        profile.description,
+        "latest DexScreener token profile launch discovery",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    })
+  );
+}
+
+export async function getDexScreenerBoostCandidates(options = {}) {
+  const limit = Number(options.limit || 100);
+  const [latest, top] = await Promise.allSettled([
+    fetchJson("https://api.dexscreener.com/token-boosts/latest/v1"),
+    fetchJson("https://api.dexscreener.com/token-boosts/top/v1"),
+  ]);
+  const rows = [
+    ...(latest.status === "fulfilled" ? latest.value || [] : []),
+    ...(top.status === "fulfilled" ? top.value || [] : []),
+  ];
+
+  return rows.slice(0, limit).map((boost) =>
+    candidate({
+      name: boost.header || boost.description || boost.tokenAddress,
+      symbol: boost.header || boost.tokenAddress,
+      chain: boost.chainId,
+      address: boost.tokenAddress,
+      pairAddress: boost.tokenAddress,
+      dex: "token-boost",
+      url: boost.url,
+      priceUsd: 0,
+      liquidityUsd: n(boost.totalAmount) * 1000,
+      volume24h: 0,
+      priceChange24h: 0,
+      category: "boosted token launch marketing discovery",
+      source: "dexscreener-boosts",
+      description: [
+        boost.header,
+        boost.description,
+        `boost amount ${boost.amount || 0}`,
+        `total boost ${boost.totalAmount || 0}`,
+        "DexScreener token boost discovery",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    })
+  );
+}
+
 export async function getOkxTickerCandidates(options = {}) {
   const limit = Number(options.limit || 100);
   const response = await fetchJson("https://www.okx.com/api/v5/market/tickers?instType=SPOT");
@@ -571,6 +640,8 @@ export async function getExpandedMarketDataCandidates(options = {}) {
     ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit })],
     ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit })],
     ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit })],
+    ["dexscreener-profiles", () => getDexScreenerTokenProfileCandidates({ limit })],
+    ["dexscreener-boosts", () => getDexScreenerBoostCandidates({ limit })],
     ["okx", () => getOkxTickerCandidates({ limit })],
     ["bybit", () => getBybitTickerCandidates({ limit })],
     ["gate", () => getGateTickerCandidates({ limit })],
