@@ -22,6 +22,7 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Runs an autonomous Watchtower layer for high-conviction alerts and daily briefs.
 - Connects external X/news intelligence when API keys are available.
 - Adds AI analyst review, institutional vNext scoring, pre-pump pattern matching, and data confidence.
+- Adds a state-of-art ranking layer with narrative heat, source reliability, project-change detection, trap-risk scoring, and confidence-adjusted institutional rank.
 
 ## Core Idea
 
@@ -111,6 +112,20 @@ It tracks:
 - Learning edge score
 
 This gives the pipeline memory. A project can be marked as improving, fading, stable, or newly watched.
+
+### State-of-Art Scanner Layer
+
+This layer is designed to separate real opportunity from noisy hype.
+
+It adds:
+
+- Narrative Heat Index: detects whether a project sits inside a hot market narrative.
+- Project Change Detector: compares the latest scan against prior memory to catch improving or fading projects.
+- Source Reliability Engine: scores whether a candidate came from historically useful discovery sources.
+- Trap Risk Engine: flags thin liquidity, noisy social signals, sell pressure, weak proof, and trap-pattern behavior.
+- Confidence-Adjusted Ranking: produces a second ranking that blends opportunity, confidence, proof, source quality, narrative heat, improvement, and trap risk.
+
+The goal is not just to find high scores. The goal is to find high scores that deserve trust.
 
 ### Watchtower Alpha
 
@@ -212,6 +227,12 @@ Each project can receive:
 - `prePumpPatternMatchPct`
 - `trapPatternMatchPct`
 - `dataConfidence`
+- `confidenceAdjustedRank`
+- `confidenceAdjustedScore`
+- `narrativeHeatScore`
+- `projectChangeScore`
+- `sourceReliabilityScore`
+- `trapRiskScore`
 
 Example allocation buckets:
 
@@ -235,6 +256,7 @@ Running the scanner creates:
 - `reports/outcome-calibration.json`
 - `reports/pre-pump-patterns.json`
 - `reports/institutional-vnext.json`
+- `reports/state-of-art-signals.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
 
@@ -337,6 +359,7 @@ npm run json
 npm run watchlist
 npm run alerts
 npm run brief
+npm run state-signals
 ```
 
 Inspect expanded source candidates:

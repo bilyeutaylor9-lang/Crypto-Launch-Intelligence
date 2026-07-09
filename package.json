@@ -43,6 +43,7 @@
     "alerts": "cat reports/alerts.json",
     "brief": "cat reports/daily-brief.json",
     "alert-performance": "cat reports/watchtower-performance.json",
+    "state-signals": "cat reports/state-of-art-signals.json",
     "publish:dashboard": "node src/reports/githubPagesPublisher.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",

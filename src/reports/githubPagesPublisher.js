@@ -17,6 +17,7 @@ const PUBLIC_REPORTS = [
   "outcome-calibration.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
+  "state-of-art-signals.json",
 ];
 
 function copyIfExists(fileName = "") {

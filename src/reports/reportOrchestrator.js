@@ -9,6 +9,7 @@ import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
 import { writeWatchtowerReports } from "./watchtowerReportEngine.js";
 import { writeWatchtowerPerformanceReport } from "./watchtowerPerformanceReportEngine.js";
+import { writeStateOfArtReport } from "./stateOfArtReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -20,6 +21,7 @@ export function generateReports(projects = [], meta = {}) {
   const calibrationPath = writeCalibrationReport();
   const prePumpPatternPath = writePrePumpPatternReport();
   const institutionalVNextPath = writeInstitutionalVNextReport(projects);
+  const stateOfArtPath = writeStateOfArtReport(projects);
   const {
     alertsPath,
     briefPath,
@@ -39,6 +41,7 @@ export function generateReports(projects = [], meta = {}) {
     calibrationPath,
     prePumpPatternPath,
     institutionalVNextPath,
+    stateOfArtPath,
     alertsPath,
     briefPath,
     watchtowerPerformancePath,

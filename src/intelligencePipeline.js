@@ -51,6 +51,11 @@ import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEn
 import { analyzeAIResearchAnalystBatch } from "./engines/aiResearchAnalystEngine.js";
 import { analyzeInstitutionalVNextBatch } from "./engines/institutionalVNextEngine.js";
 import { analyzeOpportunityProofBatch } from "./engines/opportunityProofEngine.js";
+import { analyzeNarrativeHeatIndexBatch } from "./engines/narrativeHeatIndexEngine.js";
+import { analyzeProjectChangeBatch } from "./engines/projectChangeDetectionEngine.js";
+import { analyzeTrapRiskBatch } from "./engines/trapRiskEngine.js";
+import { analyzeSourceReliabilityBatch } from "./engines/sourceReliabilityEngine.js";
+import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -108,6 +113,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.narrativeScore, weight: 0.8 },
     { score: project.narrativeForecastScore, weight: 1.0 },
     { score: project.narrativeLaunchStakingScore, weight: 1.0 },
+    { score: project.narrativeHeatScore, weight: 0.8 },
     { score: project.launchReadinessScore, weight: 0.7 },
     { score: project.stakingMomentumScore, weight: 0.7 },
     { score: project.xSocialScore, weight: 0.8 },
@@ -122,6 +128,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.aiAnalystScore, weight: 0.9 },
     { score: project.institutionalVNextScore, weight: 1.2 },
     { score: project.institutionalConfidenceScore, weight: 0.9 },
+    { score: project.sourceReliabilityScore, weight: 0.4 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -173,6 +180,7 @@ function weightedInstitutionalScore(project = {}) {
   if (project.prePump?.status === "LATE_CHASE") score -= 18;
   if (num(project.sellPressureScore) >= 75) score -= 8;
   if (num(project.stakingRiskScore) >= 70) score -= 10;
+  if (num(project.trapRiskScore) >= 60) score -= 10;
   if (num(project.riskScore) >= 70) score -= 12;
   if (num(project.riskScore) >= 85) score -= 20;
 
@@ -222,6 +230,7 @@ function buildSignalProfile(project = {}) {
       { score: project.narrativeForecastScore, weight: 1.1 },
       { score: project.infrastructureNarrativeScore, weight: 0.9 },
       { score: project.narrativeLaunchStakingScore, weight: 1.0 },
+      { score: project.narrativeHeatScore, weight: 0.9 },
     ]),
     launch: weightedAverage([
       { score: project.launchReadinessScore, weight: 1.1 },
@@ -284,6 +293,7 @@ function buildSignalProfile(project = {}) {
       { score: project.institutionalLearning?.learningEdgeScore, weight: 1.0 },
       { score: project.outcomeLearningScore, weight: 1.2 },
       { score: project.prePumpPatternScore, weight: 1.2 },
+      { score: project.projectChangeScore, weight: 0.8 },
     ]),
     prePumpPattern: weightedAverage([
       { score: project.prePumpPatternScore, weight: 1.0 },
@@ -316,6 +326,7 @@ function buildSignalProfile(project = {}) {
       { score: project.riskScore, weight: 1.2 },
       { score: project.sellPressureScore, weight: 0.9 },
       { score: project.stakingRiskScore, weight: 0.8 },
+      { score: project.trapRiskScore, weight: 1.2 },
       { score: project.xBotRiskScore, weight: 0.6 },
       { score: project.externalRiskScore, weight: 0.7 },
     ]),
@@ -361,6 +372,8 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (num(project.quantumOpportunityScore) >= 70) tags.push("Quantum Upside Field");
   if (num(project.prePump?.score) >= 70) tags.push("Pre-Pump Candidate");
   if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
+  if (num(project.narrativeHeatScore) >= 65) tags.push("Narrative Heat");
+  if (["accelerating", "improving"].includes(project.projectChangeState)) tags.push("Improving Since Last Scan");
 
   return tags;
 }
@@ -374,6 +387,7 @@ function buildRiskFlags(project = {}, profile = {}) {
   else if (num(project.riskScore) >= 70) risks.push("High aggregate risk");
   if (num(project.sellPressureScore) >= 75) risks.push("Heavy sell pressure");
   if (num(project.stakingRiskScore) >= 70) risks.push("High staking risk");
+  if (num(project.trapRiskScore) >= 60) risks.push("High trap risk");
   if (num(project.xBotRiskScore) >= 55) risks.push("Social/bot risk");
   if (num(project.learningEdgeScore) > 0 && num(project.learningEdgeScore) <= 35) {
     risks.push("Negative learning trend");
@@ -741,6 +755,9 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.institutionalWatchScore) >= 70) bonus += 3;
   if (num(project.learningEdgeScore) >= 75) bonus += 3;
   if (num(project.prePump?.score) >= 70 && profile.risk < 55) bonus += 4;
+  if (num(project.narrativeHeatScore) >= 70) bonus += 4;
+  if (["accelerating", "improving"].includes(project.projectChangeState)) bonus += 3;
+  if (num(project.sourceReliabilityScore) >= 70) bonus += 2;
 
   if (profile.risk >= 85) penalty += 18;
   else if (profile.risk >= 70) penalty += 10;
@@ -763,6 +780,9 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.vestingPressureScore) >= 70) penalty += 8;
   if (num(project.tokenUnlockRiskScore) >= 70) penalty += 7;
   if (num(project.evidenceQualityScore) > 0 && num(project.evidenceQualityScore) < 35) penalty += 5;
+  if (num(project.trapRiskScore) >= 80) penalty += 14;
+  else if (num(project.trapRiskScore) >= 60) penalty += 8;
+  if (num(project.sourceReliabilityScore) > 0 && num(project.sourceReliabilityScore) < 40) penalty += 4;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const dynamicWeightAdjustment = project.dynamicEngineWeights
@@ -806,6 +826,7 @@ function classifyProject(project = {}) {
   if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
   if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
   if (num(project.stakingRiskScore) >= 70) return "High Staking Risk";
+  if (num(project.trapRiskScore) >= 70) return "High Trap Risk";
   if (num(project.riskAdjustedScore) >= 85 && num(project.signalDensityScore) >= 60) {
     return "High Conviction";
   }
@@ -1004,10 +1025,16 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Signal Combination Learning", analyzeSignalCombinationsBatch, results);
   results = await runEngine("Quantum Outcome Field", analyzeQuantumOutcomeFieldBatch, results, options.quantumField || {});
   results = await runEngine("Outcome Calibration", analyzeOutcomeCalibrationBatch, results);
+  results = await runEngine("Narrative Heat Index", analyzeNarrativeHeatIndexBatch, results);
   results = await runEngine("AI Research Analyst", analyzeAIResearchAnalystBatch, results);
   results = await runEngine("Institutional vNext", analyzeInstitutionalVNextBatch, results);
+  results = await runEngine("Source Reliability", analyzeSourceReliabilityBatch, results);
 
-  results = analyzeOpportunityProofBatch(addFinalScoring(results));
+  results = addFinalScoring(results);
+  results = analyzeProjectChangeBatch(results);
+  results = analyzeOpportunityProofBatch(results);
+  results = analyzeTrapRiskBatch(results);
+  results = analyzeConfidenceAdjustedRankBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1121,6 +1148,15 @@ export function summarizePipelineResults(results = []) {
   const thinProofSetups = safeResults.filter((p) =>
     ["Thin", "Developing"].includes(p.proofStrength)
   );
+  const hotNarrativeSetups = safeResults.filter((p) => num(p.narrativeHeatScore) >= 65);
+  const improvingProjects = safeResults.filter((p) =>
+    ["accelerating", "improving"].includes(p.projectChangeState)
+  );
+  const highTrapRiskSetups = safeResults.filter((p) => num(p.trapRiskScore) >= 60);
+  const reliableSourceSetups = safeResults.filter((p) => num(p.sourceReliabilityScore) >= 70);
+  const topConfidenceAdjusted = [...safeResults]
+    .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
+    .slice(0, 10);
 
   return {
     scannedProjects: safeResults.length,
@@ -1170,6 +1206,23 @@ export function summarizePipelineResults(results = []) {
     highVestingPressureCount: highVestingPressureSetups.length,
     proofBackedCount: proofBackedSetups.length,
     thinProofCount: thinProofSetups.length,
+    hotNarrativeCount: hotNarrativeSetups.length,
+    improvingProjectCount: improvingProjects.length,
+    highTrapRiskCount: highTrapRiskSetups.length,
+    reliableSourceCount: reliableSourceSetups.length,
+
+    topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
+    topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
+      rank: project.confidenceAdjustedRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
+      sourceReliabilityScore: project.sourceReliabilityScore || 0,
+      trapRiskScore: project.trapRiskScore || 0,
+      narrativeHeatScore: project.narrativeHeatScore || 0,
+      projectChangeState: project.projectChangeState || "unknown",
+    })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70

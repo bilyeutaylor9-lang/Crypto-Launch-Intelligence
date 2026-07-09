@@ -144,6 +144,10 @@ function printSummary(summary) {
   console.log(`Quantum Fragile Fields: ${summary.quantumFragileSetupCount}`);
   console.log(`Proof-Backed Setups: ${summary.proofBackedCount}`);
   console.log(`Thin Proof Setups: ${summary.thinProofCount}`);
+  console.log(`Hot Narrative Setups: ${summary.hotNarrativeCount}`);
+  console.log(`Improving Projects: ${summary.improvingProjectCount}`);
+  console.log(`High Trap Risk: ${summary.highTrapRiskCount}`);
+  console.log(`Reliable Source Setups: ${summary.reliableSourceCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -165,10 +169,16 @@ function printTopProjects(results) {
     console.log(`   Symbol: ${project.symbol || "-"}`);
     console.log(`   Chain: ${project.chain || "-"}`);
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
+    if (project.confidenceAdjustedScore) {
+      console.log(`   Confidence-Adjusted: ${project.confidenceAdjustedScore} (#${project.confidenceAdjustedRank || "-"})`);
+    }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
     console.log(`   Conviction: ${project.conviction || "Unknown"}`);
     console.log(`   Action: ${project.executionPlan?.action || "Unknown"}`);
+    if (project.narrativeHeatScore || project.trapRiskScore || project.sourceReliabilityScore) {
+      console.log(`   Heat/Source/Trap: ${project.narrativeHeatScore || 0} / ${project.sourceReliabilityScore || 0} / ${project.trapRiskScore || 0}`);
+    }
     console.log(`   Pre-Pump: ${project.prePump?.score || 0}`);
     console.log(`   Status: ${project.prePump?.status || "UNKNOWN"}`);
     if (project.alphaTags?.length) {
@@ -202,6 +212,7 @@ function printReportPaths(paths) {
   console.log(`Patterns:       ${paths.prePumpPatternPath}`);
   console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
+  console.log(`State Signals:  ${paths.stateOfArtPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
   console.log(`Performance:    ${paths.watchtowerPerformancePath}`);

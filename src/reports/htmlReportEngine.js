@@ -39,6 +39,9 @@ export function writeHtmlReport(projects = []) {
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const ranked = [...projects].sort((a, b) => scoreOf(b) - scoreOf(a));
+  const confidenceRanked = [...projects].sort(
+    (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
+  );
   const top = ranked[0];
   const avg =
     ranked.length === 0
@@ -75,6 +78,14 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.aiDecision || "")}</td>
           <td>${esc(p.proofScore ?? "")}</td>
           <td>${esc(p.proofVerdict || "")}</td>
+          <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
+          <td>${esc(p.confidenceAdjustedScore ?? "")}</td>
+          <td>${esc(p.narrativeHeatScore ?? "")}</td>
+          <td>${esc(p.narrativeHeatState || "")}</td>
+          <td>${esc(p.projectChangeState || "")}</td>
+          <td>${esc(p.sourceReliabilityScore ?? "")}</td>
+          <td>${esc(p.trapRiskScore ?? "")}</td>
+          <td>${esc(p.trapRiskLevel || "")}</td>
           <td>${esc(p.institutionalVNextScore ?? "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
           <td>${esc(p.externalSignalScore ?? "")}</td>
@@ -95,6 +106,27 @@ export function writeHtmlReport(projects = []) {
         </tr>
       `;
     })
+    .join("");
+
+  const intelligenceRows = confidenceRanked
+    .slice(0, 12)
+    .map(
+      (p) => `
+        <tr>
+          <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
+          <td>${esc(p.name || "Unknown")}</td>
+          <td>${esc(p.symbol || "")}</td>
+          <td><strong>${esc(p.confidenceAdjustedScore ?? "")}</strong></td>
+          <td>${esc(p.pipelineScore ?? p.opportunityScore ?? "")}</td>
+          <td>${esc(p.dataConfidence || "")}</td>
+          <td>${esc(p.narrativeHeatScore ?? "")}</td>
+          <td>${esc(p.projectChangeState || "")}</td>
+          <td>${esc(p.sourceReliabilityScore ?? "")}</td>
+          <td>${esc(p.trapRiskScore ?? "")}</td>
+          <td>${esc(p.trapRiskLevel || "")}</td>
+        </tr>
+      `
+    )
     .join("");
 
   const html = `
@@ -153,6 +185,13 @@ export function writeHtmlReport(projects = []) {
       background: #0c1624;
       border-radius: 12px;
       overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    h2.section-title {
+      margin: 30px 0 12px;
+      color: #e8f6ff;
+      font-size: 20px;
     }
 
     th {
@@ -207,6 +246,29 @@ export function writeHtmlReport(projects = []) {
     </div>
   </div>
 
+  <h2 class="section-title">Institutional Confidence Ranking</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Adj Rank</th>
+        <th>Project</th>
+        <th>Symbol</th>
+        <th>Adj Score</th>
+        <th>Score</th>
+        <th>Data</th>
+        <th>Heat</th>
+        <th>Change</th>
+        <th>Source</th>
+        <th>Trap</th>
+        <th>Trap Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${intelligenceRows}
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Full Scanner Results</h2>
   <table>
     <thead>
       <tr>
@@ -224,6 +286,14 @@ export function writeHtmlReport(projects = []) {
         <th>AI Decision</th>
         <th>Proof</th>
         <th>Proof Verdict</th>
+        <th>Adj Rank</th>
+        <th>Adj Score</th>
+        <th>Heat</th>
+        <th>Heat State</th>
+        <th>Change</th>
+        <th>Source</th>
+        <th>Trap</th>
+        <th>Trap Level</th>
         <th>vNext</th>
         <th>X Social</th>
         <th>External</th>

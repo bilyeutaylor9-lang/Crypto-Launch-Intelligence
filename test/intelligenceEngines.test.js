@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import { analyzeNarrativeLaunchStaking } from "../src/engines/narrativeLaunchStakingEngine.js";
 import { analyzeOpportunityProof } from "../src/engines/opportunityProofEngine.js";
+import { analyzeTrapRisk } from "../src/engines/trapRiskEngine.js";
+import { analyzeConfidenceAdjustedRankBatch } from "../src/engines/confidenceAdjustedRankEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -64,4 +66,53 @@ test("opportunity proof engine produces evidence, risks, breakdown, and summary"
   assert.ok(result.scoreBreakdown.narrative >= 80);
   assert.match(result.whyThisMatters, /ProofNet/);
   assert.ok(result.opportunityProof.summary.length > 0);
+});
+
+test("trap risk engine flags thin-liquidity hype setups", () => {
+  const result = analyzeTrapRisk({
+    name: "HypeThin",
+    liquidityUsd: 12000,
+    volume24h: 350000,
+    sellPressureScore: 78,
+    trapPatternMatchPct: 72,
+    outcomeTrapRisk: 61,
+    proofScore: 28,
+    dataConfidenceScore: 31,
+  });
+
+  assert.ok(result.trapRiskScore >= 60);
+  assert.ok(["High", "Extreme"].includes(result.trapRiskLevel));
+  assert.ok(result.riskFlags.some((flag) => flag.includes("trap risk")));
+  assert.ok(result.trapRisk.reasons.length > 0);
+});
+
+test("confidence-adjusted ranking rewards strong evidence and penalizes traps", () => {
+  const results = analyzeConfidenceAdjustedRankBatch([
+    {
+      name: "CleanSetup",
+      pipelineScore: 82,
+      dataConfidenceScore: 78,
+      sourceReliabilityScore: 72,
+      proofScore: 76,
+      narrativeHeatScore: 68,
+      projectChangeScore: 70,
+      trapRiskScore: 8,
+      riskScore: 20,
+    },
+    {
+      name: "NoisySetup",
+      pipelineScore: 88,
+      dataConfidenceScore: 38,
+      sourceReliabilityScore: 30,
+      proofScore: 34,
+      narrativeHeatScore: 80,
+      projectChangeScore: 55,
+      trapRiskScore: 76,
+      riskScore: 65,
+    },
+  ]);
+
+  assert.equal(results[0].name, "CleanSetup");
+  assert.equal(results[0].confidenceAdjustedRank, 1);
+  assert.ok(results[0].confidenceAdjustedScore > results[1].confidenceAdjustedScore);
 });

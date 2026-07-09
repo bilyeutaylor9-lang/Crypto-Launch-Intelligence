@@ -82,6 +82,15 @@ export function writeSummaryReport(projects = []) {
   const highVestingPressure = ranked.filter((p) => Number(p.vestingPressureScore || 0) >= 65);
   const proofBacked = ranked.filter((p) => Number(p.proofScore || 0) >= 70);
   const thinProof = ranked.filter((p) => ["Thin", "Developing"].includes(p.proofStrength));
+  const hotNarratives = ranked.filter((p) => Number(p.narrativeHeatScore || 0) >= 65);
+  const improvingProjects = ranked.filter((p) =>
+    ["accelerating", "improving"].includes(p.projectChangeState)
+  );
+  const reliableSources = ranked.filter((p) => Number(p.sourceReliabilityScore || 0) >= 70);
+  const highTrapRisk = ranked.filter((p) => Number(p.trapRiskScore || 0) >= 60);
+  const confidenceAdjusted = [...ranked].sort(
+    (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
+  );
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -138,6 +147,30 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - proof ${p.proofScore || 0}, ${p.proofVerdict || "Unknown"} - ${p.whyThisMatters || "No proof summary"}`;
     })
     .join("\n");
+  const topConfidenceAdjusted = confidenceAdjusted
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - adjusted ${p.confidenceAdjustedScore || 0}, source ${p.sourceReliabilityScore || 0}, trap ${p.trapRiskScore || 0}`;
+    })
+    .join("\n");
+  const topNarrativeHeat = hotNarratives
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - heat ${p.narrativeHeatScore || 0}, ${p.narrativeHeatState || "unknown"}`;
+    })
+    .join("\n");
+  const topImprovingProjects = improvingProjects
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - change ${p.projectChangeScore || 0}, ${p.projectChangeState || "unknown"}`;
+    })
+    .join("\n");
+  const topTrapRisks = highTrapRisk
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - trap ${p.trapRiskScore || 0}, ${p.trapRiskLevel || "unknown"}`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -180,6 +213,10 @@ Institutional confidence setups: ${institutionalConfidence.length}
 High vesting pressure setups: ${highVestingPressure.length}
 Proof-backed setups: ${proofBacked.length}
 Thin/developing proof setups: ${thinProof.length}
+Hot narrative setups: ${hotNarratives.length}
+Improving projects: ${improvingProjects.length}
+Reliable source setups: ${reliableSources.length}
+High trap-risk setups: ${highTrapRisk.length}
 Watchtower alerts: ${watchtowerAlerts.length}
 Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
 Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
@@ -218,6 +255,18 @@ ${topInstitutionalVNext || "None"}
 Top proof-backed setups:
 ${topProofBacked || "None"}
 
+Top confidence-adjusted setups:
+${topConfidenceAdjusted || "None"}
+
+Top narrative heat setups:
+${topNarrativeHeat || "None"}
+
+Top improving projects:
+${topImprovingProjects || "None"}
+
+Top trap-risk warnings:
+${topTrapRisks || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
@@ -226,6 +275,7 @@ Files generated:
 - reports/outcome-calibration.json
 - reports/pre-pump-patterns.json
 - reports/institutional-vnext.json
+- reports/state-of-art-signals.json
 - reports/alerts.json
 - reports/daily-brief.json
 - reports/watchtower-performance.json
