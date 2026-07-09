@@ -123,6 +123,9 @@ export function createScanRecord(project = {}) {
       trapRisk: num(project.trapRiskScore),
       alphaLab: num(project.alphaLabScore),
       aiEcosystem: num(project.aiEcosystemScore),
+      quantumBrain: num(project.quantumBrainScore),
+      worldModel: num(project.worldModelScore),
+      marketScientist: num(project.marketScientistScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -201,6 +204,13 @@ export function createScanRecord(project = {}) {
       aiDisagreement: project.aiDisagreement || {},
       alphaLabStrategies: project.alphaLabStrategies || [],
       multiTimeframeIntelligence: project.multiTimeframeIntelligence || {},
+      quantumReasoningBrain: project.quantumReasoningBrain || {},
+      knowledgeGraph: project.knowledgeGraph || {},
+      marketRegimeGovernor: project.marketRegimeGovernor || {},
+      autonomousMarketScientist: project.autonomousMarketScientist || {},
+      causalHypotheses: project.causalHypotheses || [],
+      counterfactualAnalysis: project.counterfactualAnalysis || [],
+      falsePositiveAutopsy: project.falsePositiveAutopsy || {},
     },
 
     futureOutcomes: {

@@ -60,6 +60,9 @@ import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjusted
 import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
 import { analyzeAutonomousAlphaLabBatch } from "./engines/autonomousAlphaLabEngine.js";
+import { analyzeQuantumReasoningBrainBatch } from "./engines/quantumReasoningBrainEngine.js";
+import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js";
+import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1044,6 +1047,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAIEcosystemCouncilBatch(results);
   results = analyzeResearchOperatingSystemBatch(results);
   results = analyzeAutonomousAlphaLabBatch(results);
+  results = analyzeQuantumReasoningBrainBatch(results);
+  results = analyzeWorldModelBrainBatch(results);
+  results = analyzeAutonomousMarketScientistBatch(results);
 
   if (options.saveMemory !== false) {
     try {

@@ -9,6 +9,9 @@ import { analyzeWebResearchAgentBatch } from "../src/engines/webResearchAgentEng
 import { analyzeAIEcosystemCouncilBatch } from "../src/engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystem } from "../src/engines/researchOperatingSystemEngine.js";
 import { analyzeAutonomousAlphaLab } from "../src/engines/autonomousAlphaLabEngine.js";
+import { analyzeQuantumReasoningBrain } from "../src/engines/quantumReasoningBrainEngine.js";
+import { analyzeWorldModelBrainBatch } from "../src/engines/worldModelBrainEngine.js";
+import { analyzeAutonomousMarketScientist } from "../src/engines/autonomousMarketScientistEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -257,4 +260,80 @@ test("autonomous alpha lab matches strategy hypotheses without requiring live ou
   assert.ok(result.alphaLabStrategies.length > 0);
   assert.ok(result.alphaLabBestStrategy);
   assert.ok(["Cold Start", "Paper Test", "Promote"].includes(result.alphaLabStatus));
+});
+
+test("quantum reasoning brain produces probabilities, entropy, and collapse triggers", () => {
+  const result = analyzeQuantumReasoningBrain({
+    name: "QuantumSetup",
+    confidenceAdjustedScore: 68,
+    narrativeHeatScore: 84,
+    aiEcosystemScore: 70,
+    dataConfidenceScore: 62,
+    proofScore: 48,
+    sourceReliabilityScore: 52,
+    trapRiskScore: 22,
+    redTeamReview: { score: 18 },
+    multiTimeframeIntelligence: { "7d": 66 },
+  });
+
+  assert.ok(result.quantumBrainScore >= 0);
+  assert.equal(
+    result.quantumBullProbability +
+      result.quantumBaseProbability +
+      result.quantumBearProbability +
+      result.quantumBlackSwanProbability,
+    100
+  );
+  assert.ok(result.collapseTriggers.length > 0);
+  assert.ok(result.quantumReasoningBrain.summary.length > 0);
+});
+
+test("world model brain builds narrative graph and regime context", () => {
+  const [result] = analyzeWorldModelBrainBatch([
+    {
+      name: "BaseAI",
+      symbol: "BAI",
+      chain: "base",
+      description: "Base AI agent token",
+      confidenceAdjustedScore: 62,
+      narrativeHeatScore: 88,
+      proofScore: 55,
+      trapRiskScore: 12,
+    },
+    {
+      name: "BaseRWA",
+      symbol: "BRWA",
+      chain: "base",
+      description: "Base RWA tokenized treasury",
+      confidenceAdjustedScore: 58,
+      narrativeHeatScore: 70,
+    },
+  ]);
+
+  assert.ok(result.worldModelScore >= 0);
+  assert.ok(result.knowledgeGraph.nodes.narratives.includes("ai"));
+  assert.ok(result.contagionMap.relatedProjects.length > 0);
+  assert.ok(result.marketRegimeGovernor.regime);
+});
+
+test("autonomous market scientist adds causal, counterfactual, autopsy, and preference reasoning", () => {
+  const result = analyzeAutonomousMarketScientist({
+    name: "ScientistSetup",
+    confidenceAdjustedScore: 64,
+    quantumBrainScore: 60,
+    worldModelScore: 58,
+    alphaLabScore: 55,
+    narrativeHeatScore: 80,
+    liquidityScore: 40,
+    proofScore: 42,
+    sourceReliabilityScore: 38,
+    trapRiskScore: 24,
+    redTeamReview: { status: "Challenge" },
+  });
+
+  assert.ok(result.marketScientistScore >= 0);
+  assert.ok(result.causalHypotheses.length > 0);
+  assert.ok(result.counterfactualAnalysis.length > 0);
+  assert.ok(result.falsePositiveAutopsy.falsePositiveRisk >= 0);
+  assert.ok(result.humanPreferenceFit.score >= 0);
 });

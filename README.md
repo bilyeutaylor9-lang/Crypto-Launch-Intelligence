@@ -28,6 +28,9 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Adds agent performance memory so the AI council can track agent behavior and adjust weights over time.
 - Adds a Research OS layer with multi-timeframe intelligence, scenario planning, autonomous research tasks, red-team review, disagreement detection, and strong-buy lifecycle tracking.
 - Adds an Autonomous Alpha Lab that discovers strategy matches, paper-tests them against memory, and lets the meta-council decide whether they should influence live scoring.
+- Adds a Quantum Reasoning Brain that tracks bull/base/bear/black-swan probabilities, entropy, signal entanglement, and collapse triggers.
+- Adds a World Model Brain that builds project/narrative/chain/source relationship graphs and applies market-regime reasoning.
+- Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
 
 ## Core Idea
 
@@ -213,6 +216,34 @@ Lifecycle stages:
 
 The Alpha Lab treats strategies as hypotheses first. Cold-start strategies stay in research mode, paper-tested strategies are watched, and promoted strategies can influence live scoring after enough memory exists.
 
+### Quantum Brain, World Model, and Market Scientist
+
+The scanner now models uncertainty and market structure instead of relying on one flat score.
+
+The Quantum Brain adds:
+
+- Bull/base/bear/black-swan probabilities
+- Conviction entropy
+- Entangled signal pairs
+- Collapse triggers
+- Quantum decision state
+
+The World Model adds:
+
+- Project-to-chain relationships
+- Project-to-narrative relationships
+- Related-project contagion maps
+- Narrative rotation state
+- Market-regime governor
+
+The Autonomous Market Scientist adds:
+
+- Causal hypotheses
+- Counterfactual analysis
+- False-positive autopsy
+- Alpha-decay detector
+- Human preference fit
+
 ### Watchtower Alpha
 
 The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
@@ -337,6 +368,12 @@ Each project can receive:
 - `aiDisagreement`
 - `alphaLabScore`
 - `alphaLabStrategies`
+- `quantumBrainScore`
+- `quantumReasoningBrain`
+- `worldModelScore`
+- `knowledgeGraph`
+- `marketScientistScore`
+- `autonomousMarketScientist`
 
 Example allocation buckets:
 

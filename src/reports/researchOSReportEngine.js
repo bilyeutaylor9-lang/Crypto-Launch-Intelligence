@@ -26,6 +26,18 @@ function compact(project = {}) {
     alphaLabStatus: project.alphaLabStatus || "Unknown",
     alphaLabBestStrategy: project.alphaLabBestStrategy || null,
     metaCouncil: project.metaCouncil || {},
+    quantumReasoningBrain: project.quantumReasoningBrain || {},
+    quantumBrainScore: project.quantumBrainScore || 0,
+    worldModelScore: project.worldModelScore || 0,
+    knowledgeGraph: project.knowledgeGraph || {},
+    marketRegimeGovernor: project.marketRegimeGovernor || {},
+    marketScientistScore: project.marketScientistScore || 0,
+    autonomousMarketScientist: project.autonomousMarketScientist || {},
+    causalHypotheses: project.causalHypotheses || [],
+    counterfactualAnalysis: project.counterfactualAnalysis || [],
+    falsePositiveAutopsy: project.falsePositiveAutopsy || {},
+    alphaDecayDetector: project.alphaDecayDetector || {},
+    humanPreferenceFit: project.humanPreferenceFit || {},
   };
 }
 
@@ -68,6 +80,21 @@ export function writeResearchOSReports(projects = []) {
     researchQueue: projects
       .filter((project) => (project.autonomousResearchTasks || []).some((task) => task.priority === "High"))
       .slice(0, 50)
+      .map(compact),
+    quantumBrain: projects
+      .slice()
+      .sort((a, b) => num(b.quantumBrainScore) - num(a.quantumBrainScore))
+      .slice(0, 25)
+      .map(compact),
+    worldModel: projects
+      .slice()
+      .sort((a, b) => num(b.worldModelScore) - num(a.worldModelScore))
+      .slice(0, 25)
+      .map(compact),
+    marketScientist: projects
+      .slice()
+      .sort((a, b) => num(b.marketScientistScore) - num(a.marketScientistScore))
+      .slice(0, 25)
       .map(compact),
   };
   const alphaLab = summarizeAlphaLab(projects);
