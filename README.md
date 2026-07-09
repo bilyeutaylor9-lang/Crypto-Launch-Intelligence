@@ -27,6 +27,7 @@ The demo scans built-in research seed projects and generates:
 - Quantum Brain probabilities
 - Research OS tasks
 - Simulation Brain market-memory paths
+- Outcome Judge reality grading
 - Alpha Lab strategy report
 - Engine audit
 - HTML dashboard
@@ -39,6 +40,7 @@ open examples/report.html
 cat examples/ai-council.json
 cat examples/research-os.json
 cat examples/simulation-brain.json
+cat examples/outcome-judge.json
 ```
 
 ## Why It Is Different
@@ -52,6 +54,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Red-teams every strong thesis.
 - Models bull/base/bear/black-swan futures with a Quantum Brain.
 - Simulates future paths with a Market Memory Twin and engine tournament.
+- Grades old predictions against reality with an Autonomous Outcome Judge.
 - Builds project/narrative/chain relationships with a World Model.
 - Creates research tasks and promotion/downgrade lifecycle states.
 - Learns from scan memory, outcome memory, and agent performance.
@@ -83,6 +86,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds a World Model Brain that builds project/narrative/chain/source relationship graphs and applies market-regime reasoning.
 - Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
 - Adds a Self-Training Market Simulation Brain that compares projects to historical archetypes, simulates 7d/30d/90d paths, mutation-tests signals, runs engine tournaments, and ranks opportunities against the full scan universe.
+- Adds an Autonomous Outcome Judge that compares old calls against realized outcomes, finds false positives and missed winners, scores engine reliability, and adjusts confidence with accountability.
 - Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
 ## Core Idea
@@ -326,6 +330,31 @@ Adversary: Challenge
 Closest analog: AI infrastructure breakout
 ```
 
+### Autonomous Outcome Judge
+
+The Outcome Judge makes the system accountable after the scan.
+
+It adds:
+
+- Prediction grading against saved outcome snapshots
+- False-positive detection
+- Missed-winner detection
+- Engine reliability scoring
+- Trusted/noisy signal labels
+- Reality-adjusted confidence
+- Outcome-aware promotion and downgrade context
+
+Example output:
+
+```text
+Outcome Judge: Maintain Positive Thesis
+Reality adjustment: +5
+Outcome-adjusted confidence: Medium
+Grade: Correct Positive
+Trusted signals: liquidityExpansion, narrativeHeat
+Noisy signals: none
+```
+
 ### Watchtower Alpha
 
 The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
@@ -462,6 +491,11 @@ Each project can receive:
 - `expectedReturn30dPct`
 - `engineTournament`
 - `adversarialSimulationReview`
+- `outcomeJudgeScore`
+- `outcomeJudgeVerdict`
+- `outcomeRealityAdjustment`
+- `outcomeAdjustedConfidence`
+- `outcomeJudgement`
 
 Example allocation buckets:
 
@@ -604,6 +638,7 @@ npm run agent-memory
 npm run research-os
 npm run alpha-lab
 npm run simulation-brain
+npm run outcome-judge
 npm run engine:audit:json
 ```
 
@@ -614,6 +649,7 @@ node src/cli.js demo
 node src/cli.js scan
 node src/cli.js wide
 node src/cli.js simulation
+node src/cli.js outcome
 node src/cli.js explain AKT
 ```
 

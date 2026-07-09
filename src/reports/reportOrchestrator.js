@@ -14,6 +14,7 @@ import { writeAICouncilReports } from "./aiCouncilReportEngine.js";
 import { writeResearchOSReports } from "./researchOSReportEngine.js";
 import { writeEngineAuditReport } from "./engineAuditReportEngine.js";
 import { writeSimulationBrainReport } from "./simulationBrainReportEngine.js";
+import { writeOutcomeJudgeReport } from "./outcomeJudgeReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -37,6 +38,9 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: simulationBrainPath,
   } = writeSimulationBrainReport(projects);
+  const {
+    filePath: outcomeJudgePath,
+  } = writeOutcomeJudgeReport(projects);
   const {
     filePath: engineAuditPath,
   } = writeEngineAuditReport();
@@ -65,6 +69,7 @@ export function generateReports(projects = [], meta = {}) {
     researchOSPath,
     alphaLabPath,
     simulationBrainPath,
+    outcomeJudgePath,
     engineAuditPath,
     alertsPath,
     briefPath,

@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-09T16:22:14.114Z",
-  "totalEngines": 87,
-  "wiredIntoPipeline": 63,
-  "stateOfArtReady": 70,
-  "readinessScore": 86,
+  "generatedAt": "2026-07-09T16:31:36.333Z",
+  "totalEngines": 88,
+  "wiredIntoPipeline": 64,
+  "stateOfArtReady": 71,
+  "readinessScore": 87,
   "categoryCounts": {
     "intelligence": 37,
     "ai": 10,
-    "learning": 8,
+    "learning": 9,
     "market-flow": 5,
     "narrative-launch": 7,
     "discovery": 13,
@@ -114,6 +114,21 @@
       "exports": [
         "analyzeAutonomousMarketScientist",
         "analyzeAutonomousMarketScientistBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousOutcomeJudgeEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousOutcomeJudge",
+        "analyzeAutonomousOutcomeJudgeBatch",
+        "summarizeOutcomeJudge"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
@@ -307,22 +322,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "fundingBackerEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "detectStrongBackers",
-        "scoreFundingBackers",
-        "analyzeFundingBackers",
-        "analyzeFundingBackersBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 1,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -679,6 +678,21 @@
       "exports": [
         "analyzeAutonomousMarketScientist",
         "analyzeAutonomousMarketScientistBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousOutcomeJudgeEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousOutcomeJudge",
+        "analyzeAutonomousOutcomeJudgeBatch",
+        "summarizeOutcomeJudge"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,

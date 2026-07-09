@@ -13,6 +13,7 @@ import { analyzeQuantumReasoningBrain } from "../src/engines/quantumReasoningBra
 import { analyzeWorldModelBrainBatch } from "../src/engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientist } from "../src/engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "../src/engines/selfTrainingMarketSimulationBrainEngine.js";
+import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOutcomeJudgeEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -382,4 +383,65 @@ test("self-training market simulation brain builds analogs, scenarios, and tourn
   assert.ok(result.engineTournament.agents.length > 0);
   assert.equal(result.simulationPortfolioRank, 1);
   assert.ok(result.selfTrainingMarketSimulationBrain.summary.length > 0);
+});
+
+test("autonomous outcome judge grades prior calls and adjusts confidence", () => {
+  const snapshots = [
+    {
+      key: "base:judge",
+      timestamp: "2026-07-01T00:00:00.000Z",
+      name: "JudgeCoin",
+      symbol: "JUDGE",
+      chain: "base",
+      priceUsd: 1,
+      marketCap: 1000000,
+      liquidityUsd: 100000,
+      volume24h: 50000,
+      score: 74,
+      riskScore: 20,
+      tier: "Watchlist",
+      action: null,
+    },
+  ];
+  const memory = [
+    {
+      id: "base:judge",
+      scannedAt: "2026-07-01T00:00:00.000Z",
+      market: { priceUsd: 1 },
+      scores: { narrativeHeat: 82, liquidityExpansion: 76, trapRisk: 10 },
+    },
+    {
+      id: "base:judge",
+      scannedAt: "2026-07-02T00:00:00.000Z",
+      market: { priceUsd: 1.3 },
+      scores: { narrativeHeat: 80, liquidityExpansion: 78, trapRisk: 12 },
+    },
+  ];
+  const [result] = analyzeAutonomousOutcomeJudgeBatch(
+    [
+      {
+        name: "JudgeCoin",
+        symbol: "JUDGE",
+        chain: "base",
+        priceUsd: 1.35,
+        marketCap: 1300000,
+        liquidityUsd: 140000,
+        volume24h: 80000,
+        pipelineScore: 76,
+        simulationBrainScore: 64,
+        aiEcosystemScore: 62,
+        simulationConfidenceScore: 65,
+        narrativeHeatScore: 80,
+        liquidityExpansionScore: 78,
+        trapRiskScore: 12,
+      },
+    ],
+    { snapshots, memory }
+  );
+
+  assert.equal(result.outcomeJudgeStatus, "Tracked");
+  assert.ok(result.outcomeJudgeScore > 0);
+  assert.ok(result.outcomeJudgement.outcome.priceChangePct > 0);
+  assert.ok(result.outcomeJudgement.grade.label.length > 0);
+  assert.ok(result.outcomeAdjustedConfidenceScore >= 0);
 });

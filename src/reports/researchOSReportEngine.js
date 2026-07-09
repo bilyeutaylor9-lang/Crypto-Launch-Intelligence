@@ -43,6 +43,10 @@ function compact(project = {}) {
     closestMarketAnalogs: project.closestMarketAnalogs || [],
     engineTournament: project.engineTournament || {},
     portfolioBrain: project.portfolioBrain || {},
+    outcomeJudgeScore: project.outcomeJudgeScore || 0,
+    outcomeJudgeVerdict: project.outcomeJudgeVerdict || "Unknown",
+    outcomeAdjustedConfidence: project.outcomeAdjustedConfidence || "Unknown",
+    outcomeJudgement: project.outcomeJudgement || {},
     causalHypotheses: project.causalHypotheses || [],
     counterfactualAnalysis: project.counterfactualAnalysis || [],
     falsePositiveAutopsy: project.falsePositiveAutopsy || {},
@@ -109,6 +113,11 @@ export function writeResearchOSReports(projects = []) {
     simulationBrain: projects
       .slice()
       .sort((a, b) => num(b.simulationBrainScore) - num(a.simulationBrainScore))
+      .slice(0, 25)
+      .map(compact),
+    outcomeJudge: projects
+      .slice()
+      .sort((a, b) => num(b.outcomeJudgeScore) - num(a.outcomeJudgeScore))
       .slice(0, 25)
       .map(compact),
   };

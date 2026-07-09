@@ -126,6 +126,8 @@ export function createScanRecord(project = {}) {
       quantumBrain: num(project.quantumBrainScore),
       worldModel: num(project.worldModelScore),
       marketScientist: num(project.marketScientistScore),
+      simulationBrain: num(project.simulationBrainScore),
+      outcomeJudge: num(project.outcomeJudgeScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -211,6 +213,8 @@ export function createScanRecord(project = {}) {
       causalHypotheses: project.causalHypotheses || [],
       counterfactualAnalysis: project.counterfactualAnalysis || [],
       falsePositiveAutopsy: project.falsePositiveAutopsy || {},
+      selfTrainingMarketSimulationBrain: project.selfTrainingMarketSimulationBrain || {},
+      outcomeJudgement: project.outcomeJudgement || {},
     },
 
     futureOutcomes: {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T16:22:14.092Z",
+  "generatedAt": "2026-07-09T16:31:34.267Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
@@ -250,6 +250,42 @@
         "percentile": 75,
         "relativeEdgeVsTop10Cutoff": 9,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 43,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 43,
+        "realityAdjustment": -8,
+        "confidenceScore": 53,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-pendle",
+          "timestamp": "2026-07-09T16:31:34.211Z",
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 0,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Best Available AI Candidate"
@@ -503,6 +539,42 @@
         "percentile": 75,
         "relativeEdgeVsTop10Cutoff": 9,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 43,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 43,
+        "realityAdjustment": -8,
+        "confidenceScore": 53,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-pendle",
+          "timestamp": "2026-07-09T16:31:34.211Z",
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 0,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Best Available AI Candidate"
@@ -764,6 +836,42 @@
         "percentile": 100,
         "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
+      },
+      "outcomeJudgeScore": 44,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 44,
+        "realityAdjustment": -8,
+        "confidenceScore": 55,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "celestia:research-seed-tia",
+          "timestamp": "2026-07-09T16:31:34.212Z",
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 2,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [],
       "riskFlags": [
@@ -1037,6 +1145,42 @@
         "relativeEdgeVsTop10Cutoff": 5,
         "allocationView": "Below current opportunity cut"
       },
+      "outcomeJudgeScore": 39,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 39,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-eigen",
+          "timestamp": "2026-07-09T16:31:34.212Z",
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "score": 9,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 3,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -1279,6 +1423,42 @@
         "percentile": 88,
         "relativeEdgeVsTop10Cutoff": 12,
         "allocationView": "Research basket candidate"
+      },
+      "outcomeJudgeScore": 44,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 44,
+        "realityAdjustment": -8,
+        "confidenceScore": 55,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "solana:research-seed-jup",
+          "timestamp": "2026-07-09T16:31:34.212Z",
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 117500,
+          "volume24h": 33750,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 0,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [],
       "riskFlags": [
@@ -1539,6 +1719,42 @@
         "percentile": 25,
         "relativeEdgeVsTop10Cutoff": 0,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 38,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 38,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "cosmos:research-seed-akt",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Akash Network",
+          "symbol": "AKT",
+          "chain": "cosmos",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Narrative Heat"
@@ -1801,6 +2017,42 @@
         "percentile": 63,
         "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 41,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 41,
+        "realityAdjustment": -8,
+        "confidenceScore": 50,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "bittensor:research-seed-tao",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Narrative Heat"
@@ -2071,6 +2323,42 @@
         "relativeEdgeVsTop10Cutoff": 0,
         "allocationView": "Below current opportunity cut"
       },
+      "outcomeJudgeScore": 38,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 38,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "solana:research-seed-rndr",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Render",
+          "symbol": "RNDR",
+          "chain": "solana",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -2320,6 +2608,42 @@
         "percentile": 38,
         "relativeEdgeVsTop10Cutoff": 5,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 39,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 39,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-ondo",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 107500,
+          "volume24h": 28750,
+          "score": 1,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [],
       "riskFlags": [
@@ -2583,6 +2907,42 @@
         "relativeEdgeVsTop10Cutoff": 0,
         "allocationView": "Below current opportunity cut"
       },
+      "outcomeJudgeScore": 38,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 38,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "cosmos:research-seed-akt",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Akash Network",
+          "symbol": "AKT",
+          "chain": "cosmos",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -2844,6 +3204,42 @@
         "percentile": 63,
         "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 41,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 41,
+        "realityAdjustment": -8,
+        "confidenceScore": 50,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "bittensor:research-seed-tao",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Narrative Heat"
@@ -3113,6 +3509,42 @@
         "percentile": 13,
         "relativeEdgeVsTop10Cutoff": 0,
         "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 38,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 38,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "solana:research-seed-rndr",
+          "timestamp": "2026-07-09T16:31:34.213Z",
+          "name": "Render",
+          "symbol": "RNDR",
+          "chain": "solana",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "score": 3,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 1,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [
         "Narrative Heat"
@@ -3388,6 +3820,42 @@
         "relativeEdgeVsTop10Cutoff": 5,
         "allocationView": "Below current opportunity cut"
       },
+      "outcomeJudgeScore": 39,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 39,
+        "realityAdjustment": -8,
+        "confidenceScore": 48,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-eigen",
+          "timestamp": "2026-07-09T16:31:34.212Z",
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "score": 9,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 3,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -3648,6 +4116,42 @@
         "percentile": 100,
         "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
+      },
+      "outcomeJudgeScore": 44,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 44,
+        "realityAdjustment": -8,
+        "confidenceScore": 55,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "celestia:research-seed-tia",
+          "timestamp": "2026-07-09T16:31:34.212Z",
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 2,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
       },
       "alphaTags": [],
       "riskFlags": [

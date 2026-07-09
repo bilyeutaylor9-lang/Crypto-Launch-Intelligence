@@ -64,6 +64,7 @@ import { analyzeQuantumReasoningBrainBatch } from "./engines/quantumReasoningBra
 import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTrainingMarketSimulationBrainEngine.js";
+import { analyzeAutonomousOutcomeJudgeBatch } from "./engines/autonomousOutcomeJudgeEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1052,6 +1053,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeWorldModelBrainBatch(results);
   results = analyzeAutonomousMarketScientistBatch(results);
   results = analyzeSelfTrainingMarketSimulationBrainBatch(results);
+  results = analyzeAutonomousOutcomeJudgeBatch(results, options.outcomeJudge || {});
 
   if (options.saveMemory !== false) {
     try {
@@ -1193,6 +1195,9 @@ export function summarizePipelineResults(results = []) {
   const adversarialSimulationBlocks = safeResults.filter(
     (p) => p.adversarialSimulationReview?.status === "Block"
   );
+  const trackedOutcomeJudgements = safeResults.filter((p) => p.outcomeJudgeStatus === "Tracked");
+  const outcomeUpgrades = safeResults.filter((p) => num(p.outcomeRealityAdjustment) > 0);
+  const outcomeDowngrades = safeResults.filter((p) => num(p.outcomeRealityAdjustment) < 0);
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1257,6 +1262,9 @@ export function summarizePipelineResults(results = []) {
     simulationStrongBuyCount: simulationStrongBuySetups.length,
     simulationPriorityCount: simulationPrioritySetups.length,
     adversarialSimulationBlockCount: adversarialSimulationBlocks.length,
+    trackedOutcomeJudgementCount: trackedOutcomeJudgements.length,
+    outcomeUpgradeCount: outcomeUpgrades.length,
+    outcomeDowngradeCount: outcomeDowngrades.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1309,6 +1317,20 @@ export function summarizePipelineResults(results = []) {
         closestMarketAnalogs: project.closestMarketAnalogs || [],
         tournamentConsensus: project.engineTournament?.consensus || "Unknown",
         adversarialStatus: project.adversarialSimulationReview?.status || "Unknown",
+      })),
+    topOutcomeJudgeSetups: [...safeResults]
+      .sort((a, b) => num(b.outcomeJudgeScore) - num(a.outcomeJudgeScore))
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.pipelineRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        outcomeJudgeScore: project.outcomeJudgeScore || 0,
+        outcomeJudgeStatus: project.outcomeJudgeStatus || "Unknown",
+        outcomeJudgeVerdict: project.outcomeJudgeVerdict || "Unknown",
+        outcomeRealityAdjustment: project.outcomeRealityAdjustment || 0,
+        outcomeAdjustedConfidence: project.outcomeAdjustedConfidence || "Unknown",
+        summary: project.outcomeJudgement?.summary || "",
       })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
