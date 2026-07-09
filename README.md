@@ -12,6 +12,7 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Scores projects across narrative, liquidity, momentum, developer, community, catalyst, smart-wallet, whale, and market-rank signals.
 - Detects launch, staking, restaking, TGE, mainnet, airdrop, and listing setups.
 - Adds X/social and institutional-attention intelligence from available social/project text.
+- Builds proof-backed explanations showing why a project scored well or why it should be avoided.
 - Maintains persistent scan memory and project watch history.
 - Tracks whether watched projects are improving, fading, or stable.
 - Produces ranked reports, watchlists, research checklists, risk flags, and opportunity theses.
@@ -148,6 +149,22 @@ Default daemon schedule is every 30 minutes. Override it with:
 ```bash
 WATCHTOWER_CRON="*/10 * * * *" npm run watchtower:daemon
 ```
+
+### Proof Engine
+
+The Proof Engine turns raw scanner scores into a readable evidence trail for each project.
+
+It produces:
+
+- `proofScore`
+- `proofStrength`
+- `proofVerdict`
+- `topEvidence`
+- `topRisks`
+- `scoreBreakdown`
+- `whyThisMatters`
+
+This makes each high score easier to audit. Instead of only showing that a token ranked highly, the reports explain which signals supported the ranking and which risks still need manual review.
 
 ### AI and External Intelligence
 
@@ -309,6 +326,12 @@ npm run json
 npm run watchlist
 npm run alerts
 npm run brief
+```
+
+Run tests:
+
+```bash
+npm test
 ```
 
 Run learning and pattern updates:

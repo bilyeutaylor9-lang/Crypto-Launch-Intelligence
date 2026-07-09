@@ -13,6 +13,7 @@
     "scan": "node src/index.js",
     "scan:full": "node src/index.js",
     "scan:test": "node src/index.js",
+    "test": "node --test test/*.test.js",
     "tokens": "node src/showTokens.js",
     "discover": "node src/showTokens.js",
     "discovery": "node src/discoveryManager.js",

@@ -80,6 +80,8 @@ export function writeSummaryReport(projects = []) {
     ["Institutional", "High"].includes(p.institutionalConfidenceLevel)
   );
   const highVestingPressure = ranked.filter((p) => Number(p.vestingPressureScore || 0) >= 65);
+  const proofBacked = ranked.filter((p) => Number(p.proofScore || 0) >= 70);
+  const thinProof = ranked.filter((p) => ["Thin", "Developing"].includes(p.proofStrength));
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
@@ -130,6 +132,12 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - vNext ${p.institutionalVNextScore || 0}, confidence ${p.institutionalConfidenceLevel || "Unknown"} - ${p.explainabilitySummary || "No explainability summary"}`;
     })
     .join("\n");
+  const topProofBacked = proofBacked
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - proof ${p.proofScore || 0}, ${p.proofVerdict || "Unknown"} - ${p.whyThisMatters || "No proof summary"}`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -170,6 +178,8 @@ High score / low data confidence: ${lowConfidenceHighScores.length}
 Institutional vNext setups: ${institutionalVNext.length}
 Institutional confidence setups: ${institutionalConfidence.length}
 High vesting pressure setups: ${highVestingPressure.length}
+Proof-backed setups: ${proofBacked.length}
+Thin/developing proof setups: ${thinProof.length}
 Watchtower alerts: ${watchtowerAlerts.length}
 Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
 Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
@@ -204,6 +214,9 @@ ${topPrePumpPatterns || "None"}
 
 Top institutional vNext setups:
 ${topInstitutionalVNext || "None"}
+
+Top proof-backed setups:
+${topProofBacked || "None"}
 
 Files generated:
 - reports/report.html

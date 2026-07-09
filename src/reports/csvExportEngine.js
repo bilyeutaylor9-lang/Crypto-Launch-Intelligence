@@ -33,6 +33,12 @@ export function writeCsvReport(projects = []) {
     "aiDecision",
     "aiConfidence",
     "aiMemo",
+    "proofScore",
+    "proofStrength",
+    "proofVerdict",
+    "whyThisMatters",
+    "topEvidence",
+    "topRisks",
     "dataConfidence",
     "dataConfidenceScore",
     "institutionalVNextScore",
@@ -105,6 +111,16 @@ export function writeCsvReport(projects = []) {
     p.aiDecision ?? "",
     p.aiConfidence ?? "",
     p.aiThesis?.memo ?? "",
+    p.proofScore ?? "",
+    p.proofStrength ?? "",
+    p.proofVerdict ?? "",
+    p.whyThisMatters ?? "",
+    Array.isArray(p.topEvidence)
+      ? p.topEvidence.map((item) => item.text || item.label || item.summary).filter(Boolean).join("; ")
+      : "",
+    Array.isArray(p.topRisks)
+      ? p.topRisks.map((item) => item.text || item.label || item.summary).filter(Boolean).join("; ")
+      : "",
     p.dataConfidence ?? "",
     p.dataConfidenceScore ?? "",
     p.institutionalVNextScore ?? "",

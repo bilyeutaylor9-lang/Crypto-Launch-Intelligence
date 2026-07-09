@@ -130,6 +130,8 @@ function printSummary(summary) {
   console.log(`Accelerating Watched: ${summary.acceleratingWatchedProjectCount}`);
   console.log(`Quantum Upside Fields: ${summary.quantumUpsideSetupCount}`);
   console.log(`Quantum Fragile Fields: ${summary.quantumFragileSetupCount}`);
+  console.log(`Proof-Backed Setups: ${summary.proofBackedCount}`);
+  console.log(`Thin Proof Setups: ${summary.thinProofCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);

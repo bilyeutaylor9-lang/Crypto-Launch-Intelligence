@@ -13,6 +13,27 @@ function scoreOf(project = {}) {
   return Number(project.opportunityScore ?? project.score ?? 0);
 }
 
+function listText(items = []) {
+  return items
+    .slice(0, 4)
+    .map((item) => (typeof item === "string" ? item : item.text || item.label || item.summary || ""))
+    .filter(Boolean)
+    .map(esc)
+    .join("<br />");
+}
+
+function scoreBreakdownText(project = {}) {
+  const breakdown = project.scoreBreakdown || {};
+  const entries = Object.entries(breakdown)
+    .filter(([, value]) => Number(value) > 0)
+    .sort(([, a], [, b]) => Number(b) - Number(a))
+    .slice(0, 5);
+
+  return entries
+    .map(([key, value]) => `${esc(key)} ${esc(value)}`)
+    .join("<br />");
+}
+
 export function writeHtmlReport(projects = []) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -52,6 +73,8 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.executionPlan?.action || "")}</td>
           <td>${esc(tier)}</td>
           <td>${esc(p.aiDecision || "")}</td>
+          <td>${esc(p.proofScore ?? "")}</td>
+          <td>${esc(p.proofVerdict || "")}</td>
           <td>${esc(p.institutionalVNextScore ?? "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
           <td>${esc(p.externalSignalScore ?? "")}</td>
@@ -64,6 +87,10 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
           <td>${esc(p.riskScore ?? "")}</td>
+          <td>${listText(p.topEvidence || [])}</td>
+          <td>${listText(p.topRisks || [])}</td>
+          <td>${scoreBreakdownText(p)}</td>
+          <td>${esc(p.whyThisMatters || "")}</td>
           <td>${esc(p.explainabilitySummary || p.aiThesis?.memo || p.opportunityThesis || "")}</td>
         </tr>
       `;
@@ -140,6 +167,7 @@ export function writeHtmlReport(projects = []) {
       padding: 12px;
       border-bottom: 1px solid #1d344d;
       font-size: 13px;
+      vertical-align: top;
     }
 
     tr:hover {
@@ -194,6 +222,8 @@ export function writeHtmlReport(projects = []) {
         <th>Action</th>
         <th>Tier</th>
         <th>AI Decision</th>
+        <th>Proof</th>
+        <th>Proof Verdict</th>
         <th>vNext</th>
         <th>X Social</th>
         <th>External</th>
@@ -206,6 +236,10 @@ export function writeHtmlReport(projects = []) {
         <th>Field</th>
         <th>Narrative</th>
         <th>Risk</th>
+        <th>Top Evidence</th>
+        <th>Top Risks</th>
+        <th>Breakdown</th>
+        <th>Why It Matters</th>
         <th>AI Thesis</th>
       </tr>
     </thead>

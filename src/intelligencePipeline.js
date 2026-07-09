@@ -50,6 +50,7 @@ import { analyzeOutcomeCalibrationBatch } from "./engines/outcomeCalibrationEngi
 import { analyzeQuantumOutcomeFieldBatch } from "./engines/quantumOutcomeFieldEngine.js";
 import { analyzeAIResearchAnalystBatch } from "./engines/aiResearchAnalystEngine.js";
 import { analyzeInstitutionalVNextBatch } from "./engines/institutionalVNextEngine.js";
+import { analyzeOpportunityProofBatch } from "./engines/opportunityProofEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1005,7 +1006,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("AI Research Analyst", analyzeAIResearchAnalystBatch, results);
   results = await runEngine("Institutional vNext", analyzeInstitutionalVNextBatch, results);
 
-  results = addFinalScoring(results);
+  results = analyzeOpportunityProofBatch(addFinalScoring(results));
 
   if (options.saveMemory !== false) {
     try {
@@ -1109,6 +1110,10 @@ export function summarizePipelineResults(results = []) {
     (p) => ["Institutional", "High"].includes(p.institutionalConfidenceLevel)
   );
   const highVestingPressureSetups = safeResults.filter((p) => num(p.vestingPressureScore) >= 65);
+  const proofBackedSetups = safeResults.filter((p) => num(p.proofScore) >= 70);
+  const thinProofSetups = safeResults.filter((p) =>
+    ["Thin", "Developing"].includes(p.proofStrength)
+  );
 
   return {
     scannedProjects: safeResults.length,
@@ -1156,6 +1161,8 @@ export function summarizePipelineResults(results = []) {
     institutionalVNextCount: institutionalVNextSetups.length,
     institutionalConfidenceCount: institutionalConfidenceSetups.length,
     highVestingPressureCount: highVestingPressureSetups.length,
+    proofBackedCount: proofBackedSetups.length,
+    thinProofCount: thinProofSetups.length,
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70
