@@ -167,6 +167,59 @@ function applyQualityGate(projects = [], options = {}) {
   return { accepted, rejected };
 }
 
+function discoveryPriority(project = {}) {
+  const sources = Array.isArray(project.discoverySources) ? project.discoverySources.length : 0;
+  const liquidity = Math.log10(Math.max(1, num(project.liquidityUsd)));
+  const volume = Math.log10(Math.max(1, num(project.volume24h)));
+  const marketCap = Math.log10(Math.max(1, num(project.marketCap)));
+  const text = [
+    project.name,
+    project.symbol,
+    project.description,
+    project.category,
+    project.source,
+    ...(project.discoverySources || []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const narrativeHits = [
+    "ai",
+    "agent",
+    "rwa",
+    "depin",
+    "stablecoin",
+    "prediction",
+    "zk",
+    "perp",
+    "modular",
+    "restaking",
+    "launch",
+    "airdrop",
+    "mainnet",
+  ].filter((word) => text.includes(word)).length;
+  const sourceBoost = sources * 8;
+  const seedPenalty = project.researchSeed ? 35 : 0;
+
+  return Math.round(liquidity * 12 + volume * 11 + marketCap * 4 + narrativeHits * 9 + sourceBoost - seedPenalty);
+}
+
+function rankAndLimitCandidates(projects = [], options = {}) {
+  const limit = num(options.maxCandidates || process.env.DISCOVERY_SCAN_LIMIT || 1000);
+  const ranked = [...projects]
+    .map((project) => ({
+      ...project,
+      discoveryPriorityScore: discoveryPriority(project),
+    }))
+    .sort((a, b) => b.discoveryPriorityScore - a.discoveryPriorityScore);
+
+  return {
+    ranked,
+    limited: limit > 0 ? ranked.slice(0, limit) : ranked,
+    limit,
+  };
+}
+
 export async function runDiscoveryManager(options = {}) {
   const startedAt = Date.now();
 
@@ -179,7 +232,9 @@ export async function runDiscoveryManager(options = {}) {
   const gecko = await safeSource("GeckoTerminal", () => getGeckoTerminalCandidates());
   const coinGecko = await safeSource("CoinGecko", () =>
     getCoinGeckoCandidates({
-      perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 250),
+      perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
+      pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || 1),
+      categoryLimit: num(options.coinGeckoCategoryLimit || process.env.COINGECKO_CATEGORY_LIMIT || 4),
     })
   );
   const birdeye = await safeSource("Birdeye", () =>
@@ -220,7 +275,8 @@ export async function runDiscoveryManager(options = {}) {
     ...fallbackSeedResults.map((p) => enrichDiscoverySource(p, "research-seed")),
   ]);
   const qualityGate = applyQualityGate(dedupedPool, options);
-  const candidatePool = qualityGate.accepted;
+  const candidateRanking = rankAndLimitCandidates(qualityGate.accepted, options);
+  const candidatePool = candidateRanking.limited;
 
   const dexScannedTokens = getReportNumber(dex.output, [
     "discoveredTokens",
@@ -266,6 +322,8 @@ export async function runDiscoveryManager(options = {}) {
     rawCount: rawPool.length,
     dedupedCount: dedupedPool.length,
     acceptedCount: candidatePool.length,
+    acceptedBeforeLimitCount: qualityGate.accepted.length,
+    scanLimit: candidateRanking.limit,
     rejectedCount: dexRejectedTokens + qualityGate.rejected.length,
 
     qualityGate: {
@@ -277,6 +335,7 @@ export async function runDiscoveryManager(options = {}) {
         Boolean(process.env.MIN_VOLUME_24H) ||
         Boolean(process.env.MAX_MARKET_CAP),
       acceptedCount: qualityGate.accepted.length,
+      acceptedAfterLimitCount: candidatePool.length,
       rejectedCount: qualityGate.rejected.length,
       rules: {
         minLiquidity: num(options.minLiquidity ?? process.env.MIN_LIQUIDITY ?? 0),

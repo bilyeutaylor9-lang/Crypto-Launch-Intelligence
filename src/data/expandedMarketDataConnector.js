@@ -57,7 +57,12 @@ async function fetchJson(url, options = {}) {
       },
     });
 
-    if (!response.ok) throw new Error(`Request failed: ${response.status} ${url}`);
+    if (!response.ok) {
+      const error = new Error(`Request failed: ${response.status} ${url}`);
+      error.status = response.status;
+      error.url = url;
+      throw error;
+    }
 
     return response.json();
   } finally {
@@ -135,9 +140,21 @@ export async function getCoinLoreCandidates(options = {}) {
 
 export async function getCryptoCompareCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const response = await fetchJson(
-    `https://min-api.cryptocompare.com/data/top/mktcapfull?limit=${limit}&tsym=USD`
-  );
+  const apiKey = process.env.CRYPTOCOMPARE_API_KEY || "";
+  const allowNoKey = process.env.CRYPTOCOMPARE_ALLOW_NO_KEY === "true";
+
+  if (!apiKey && !allowNoKey) {
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    tsym: "USD",
+  });
+
+  if (apiKey) params.set("api_key", apiKey);
+
+  const response = await fetchJson(`https://min-api.cryptocompare.com/data/top/mktcapfull?${params}`);
 
   return (response.Data || []).map((row) => {
     const coin = row.CoinInfo || {};
@@ -216,9 +233,16 @@ export async function getDexScreenerSearchCandidates(options = {}) {
   const limit = Number(options.limit || 120);
   const terms = options.terms || HOT_SEARCH_TERMS;
   const perTerm = Math.max(5, Math.ceil(limit / terms.length));
+  const maxFailures = Number(options.maxFailures || process.env.DEXSCREENER_SEARCH_MAX_FAILURES || 3);
   const all = [];
+  let failures = 0;
 
   for (const term of terms) {
+    if (failures >= maxFailures) {
+      console.warn(`dexscreener-search paused after ${failures} failed term requests.`);
+      break;
+    }
+
     try {
       const response = await fetchJson(
         `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(term)}`
@@ -246,7 +270,10 @@ export async function getDexScreenerSearchCandidates(options = {}) {
         )
       );
     } catch (error) {
-      console.warn(`dexscreener-search ${term} skipped: ${error.message}`);
+      failures += 1;
+      if (failures === 1) {
+        console.warn(`dexscreener-search unavailable: ${error.message}`);
+      }
     }
   }
 
@@ -537,7 +564,11 @@ export async function getExpandedMarketDataCandidates(options = {}) {
     try {
       all.push(...(await fn()));
     } catch (error) {
-      console.warn(`${name} skipped: ${error.message}`);
+      const blocked = [401, 403, 451].includes(Number(error.status));
+      const suffix = blocked
+        ? `provider unavailable in this environment or requires access (${error.status})`
+        : error.message;
+      console.warn(`${name} skipped: ${suffix}`);
     }
   }
 

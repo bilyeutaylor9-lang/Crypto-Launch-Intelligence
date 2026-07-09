@@ -33,6 +33,15 @@ function sleep(ms = 750) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+class CoinGeckoRateLimitError extends Error {
+  constructor(message, retryAfterMs = 0) {
+    super(message);
+    this.name = "CoinGeckoRateLimitError";
+    this.rateLimited = true;
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
 async function fetchJson(url, options = {}) {
   const timeoutMs = Number(options.timeoutMs || 15000);
   const controller = new AbortController();
@@ -46,6 +55,14 @@ async function fetchJson(url, options = {}) {
         accept: "application/json"
       }
     });
+
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get("retry-after") || 0);
+      throw new CoinGeckoRateLimitError(
+        `CoinGecko rate limited this scan. Retry later or lower COINGECKO_* limits.`,
+        retryAfter > 0 ? retryAfter * 1000 : Number(options.rateLimitPauseMs || 60000)
+      );
+    }
 
     if (!response.ok) {
       throw new Error(`CoinGecko request failed: ${response.status} ${url}`);
@@ -188,22 +205,30 @@ export function normalizeCoinGeckoTrending(item = {}) {
 }
 
 export async function getCoinGeckoCandidates(options = {}) {
-  const perPage = Number(options.perPage || 250);
-  const pages = Number(options.pages || 3);
-  const categories = options.categories || DEFAULT_CATEGORIES;
-  const delayMs = Number(options.delayMs || 900);
+  const perPage = Number(options.perPage || process.env.COINGECKO_PER_PAGE || 100);
+  const pages = Number(options.pages || process.env.COINGECKO_PAGES || 1);
+  const categoryLimit = Number(options.categoryLimit || process.env.COINGECKO_CATEGORY_LIMIT || 4);
+  const categories = (options.categories || DEFAULT_CATEGORIES).slice(0, categoryLimit);
+  const delayMs = Number(options.delayMs || process.env.COINGECKO_DELAY_MS || 3500);
+  const stopOnRateLimit = options.stopOnRateLimit ?? process.env.COINGECKO_STOP_ON_429 !== "false";
 
   const candidates = [];
+  let rateLimited = false;
 
   try {
     const trending = await getTrendingCoins();
     const trendingCoins = trending.coins || [];
     candidates.push(...trendingCoins.map(normalizeCoinGeckoTrending));
   } catch (error) {
-    console.warn(`CoinGecko trending skipped: ${error.message}`);
+    if (error.rateLimited) {
+      rateLimited = true;
+      console.warn(`CoinGecko paused: ${error.message}`);
+    } else {
+      console.warn(`CoinGecko trending skipped: ${error.message}`);
+    }
   }
 
-  for (let page = 1; page <= pages; page++) {
+  for (let page = 1; page <= pages && !rateLimited; page++) {
     try {
       const markets = await getMarkets({ perPage, page });
       candidates.push(
@@ -212,13 +237,20 @@ export async function getCoinGeckoCandidates(options = {}) {
         )
       );
     } catch (error) {
-      console.warn(`CoinGecko market page ${page} skipped: ${error.message}`);
+      if (error.rateLimited && stopOnRateLimit) {
+        rateLimited = true;
+        console.warn(`CoinGecko paused after page ${page}: ${error.message}`);
+      } else {
+        console.warn(`CoinGecko market page ${page} skipped: ${error.message}`);
+      }
     }
 
     await sleep(delayMs);
   }
 
   for (const category of categories) {
+    if (rateLimited) break;
+
     try {
       const markets = await getMarkets({
         perPage,
@@ -233,7 +265,12 @@ export async function getCoinGeckoCandidates(options = {}) {
         )
       );
     } catch (error) {
-      console.warn(`CoinGecko category ${category} skipped: ${error.message}`);
+      if (error.rateLimited && stopOnRateLimit) {
+        rateLimited = true;
+        console.warn(`CoinGecko paused before remaining categories: ${error.message}`);
+      } else {
+        console.warn(`CoinGecko category ${category} skipped: ${error.message}`);
+      }
     }
 
     await sleep(delayMs);

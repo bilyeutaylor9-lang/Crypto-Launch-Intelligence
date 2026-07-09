@@ -345,8 +345,12 @@ Discovery tuning:
 ```bash
 FREE_SOURCE_LIMIT=200 EXPANDED_SOURCE_LIMIT=200 npm run scan
 INTERNET_RESEARCH_PROJECT_LIMIT=50 npm run scan
+DISCOVERY_SCAN_LIMIT=1500 npm run scan
+COINGECKO_PER_PAGE=100 COINGECKO_PAGES=1 COINGECKO_CATEGORY_LIMIT=4 COINGECKO_DELAY_MS=3500 npm run scan
 DISABLE_RESEARCH_SEEDS=true npm run scan
 ```
+
+If CoinGecko returns `429`, the scanner pauses that source for the rest of the run and continues with the other providers. This is expected on free public endpoints.
 
 Run tests:
 
