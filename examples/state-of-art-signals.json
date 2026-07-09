@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T16:06:08.510Z",
+  "generatedAt": "2026-07-09T16:22:14.092Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
@@ -7,7 +7,8 @@
     "improvingProjects": 0,
     "highTrapRisk": 0,
     "reliableSources": 0,
-    "aiStrongBuyCandidates": 1
+    "aiStrongBuyCandidates": 1,
+    "simulationBrainCandidates": 0
   },
   "aiStrongBuyCandidates": [
     {
@@ -209,6 +210,47 @@
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 38. Do not promote until the failure modes are resolved."
       },
+      "simulationBrainScore": 36,
+      "simulationDecision": "Reject For Now",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -39,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 74,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 70,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 63,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 3,
+        "percentile": 75,
+        "relativeEdgeVsTop10Cutoff": 9,
+        "allocationView": "Below current opportunity cut"
+      },
       "alphaTags": [
         "Best Available AI Candidate"
       ],
@@ -220,6 +262,7 @@
       "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
     }
   ],
+  "simulationBrainCandidates": [],
   "topConfidenceAdjusted": [
     {
       "rank": 6,
@@ -419,6 +462,47 @@
         "score": 38,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 38. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 36,
+      "simulationDecision": "Reject For Now",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -39,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 74,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 70,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 63,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 3,
+        "percentile": 75,
+        "relativeEdgeVsTop10Cutoff": 9,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [
         "Best Available AI Candidate"
@@ -639,6 +723,47 @@
         "score": 40,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 40,
+      "simulationDecision": "Simulation Watch",
+      "breakoutProbability30d": 31,
+      "expectedReturn30dPct": 17,
+      "bearCaseDrawdownPct": -36,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 72,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 68,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 64,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 1,
+        "percentile": 100,
+        "relativeEdgeVsTop10Cutoff": 13,
+        "allocationView": "Research basket candidate"
       },
       "alphaTags": [],
       "riskFlags": [
@@ -871,6 +996,47 @@
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
       },
+      "simulationBrainScore": 32,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 77,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 73,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 68,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 5,
+        "percentile": 50,
+        "relativeEdgeVsTop10Cutoff": 5,
+        "allocationView": "Below current opportunity cut"
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -1072,6 +1238,47 @@
         "score": 38,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 38. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 39,
+      "simulationDecision": "Simulation Watch",
+      "breakoutProbability30d": 30,
+      "expectedReturn30dPct": 16,
+      "bearCaseDrawdownPct": -35,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 69,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 65,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 60,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 2,
+        "percentile": 88,
+        "relativeEdgeVsTop10Cutoff": 12,
+        "allocationView": "Research basket candidate"
       },
       "alphaTags": [],
       "riskFlags": [
@@ -1291,6 +1498,47 @@
         "score": 40,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 27,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 72,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 67,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 7,
+        "percentile": 25,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [
         "Narrative Heat"
@@ -1512,6 +1760,47 @@
         "score": 40,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 35,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 31,
+      "expectedReturn30dPct": 16,
+      "bearCaseDrawdownPct": -34,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 73,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 70,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 66,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 4,
+        "percentile": 63,
+        "relativeEdgeVsTop10Cutoff": 8,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [
         "Narrative Heat"
@@ -1741,6 +2030,47 @@
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
       },
+      "simulationBrainScore": 27,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 71,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 66,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -1949,6 +2279,47 @@
         "score": 36,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 36. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 32,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 28,
+      "expectedReturn30dPct": 13,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 71,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 65,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 5,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [],
       "riskFlags": [
@@ -2171,6 +2542,47 @@
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
       },
+      "simulationBrainScore": 27,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 72,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 67,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 7,
+        "percentile": 25,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -2391,6 +2803,47 @@
         "score": 40,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 35,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 31,
+      "expectedReturn30dPct": 16,
+      "bearCaseDrawdownPct": -34,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 73,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 70,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 66,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 4,
+        "percentile": 63,
+        "relativeEdgeVsTop10Cutoff": 8,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [
         "Narrative Heat"
@@ -2619,6 +3072,47 @@
         "score": 39,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 27,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 71,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 66,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
       },
       "alphaTags": [
         "Narrative Heat"
@@ -2853,6 +3347,47 @@
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
       },
+      "simulationBrainScore": 32,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 29,
+      "expectedReturn30dPct": 14,
+      "bearCaseDrawdownPct": -38,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 77,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 73,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 68,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 5,
+        "percentile": 50,
+        "relativeEdgeVsTop10Cutoff": 5,
+        "allocationView": "Below current opportunity cut"
+      },
       "alphaTags": [
         "Narrative Heat"
       ],
@@ -3072,6 +3607,47 @@
         "score": 40,
         "recommendation": "Do not promote without new evidence.",
         "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 40,
+      "simulationDecision": "Simulation Watch",
+      "breakoutProbability30d": 31,
+      "expectedReturn30dPct": 17,
+      "bearCaseDrawdownPct": -36,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 72,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 68,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 64,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 1,
+        "percentile": 100,
+        "relativeEdgeVsTop10Cutoff": 13,
+        "allocationView": "Research basket candidate"
       },
       "alphaTags": [],
       "riskFlags": [

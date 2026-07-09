@@ -26,6 +26,7 @@ The demo scans built-in research seed projects and generates:
 - AI Council debate
 - Quantum Brain probabilities
 - Research OS tasks
+- Simulation Brain market-memory paths
 - Alpha Lab strategy report
 - Engine audit
 - HTML dashboard
@@ -37,6 +38,7 @@ Inspect committed sample outputs:
 open examples/report.html
 cat examples/ai-council.json
 cat examples/research-os.json
+cat examples/simulation-brain.json
 ```
 
 ## Why It Is Different
@@ -49,6 +51,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Uses an AI Council with specialist agents and a Risk Officer.
 - Red-teams every strong thesis.
 - Models bull/base/bear/black-swan futures with a Quantum Brain.
+- Simulates future paths with a Market Memory Twin and engine tournament.
 - Builds project/narrative/chain relationships with a World Model.
 - Creates research tasks and promotion/downgrade lifecycle states.
 - Learns from scan memory, outcome memory, and agent performance.
@@ -79,6 +82,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds a Quantum Reasoning Brain that tracks bull/base/bear/black-swan probabilities, entropy, signal entanglement, and collapse triggers.
 - Adds a World Model Brain that builds project/narrative/chain/source relationship graphs and applies market-regime reasoning.
 - Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
+- Adds a Self-Training Market Simulation Brain that compares projects to historical archetypes, simulates 7d/30d/90d paths, mutation-tests signals, runs engine tournaments, and ranks opportunities against the full scan universe.
 - Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
 ## Core Idea
@@ -293,6 +297,35 @@ The Autonomous Market Scientist adds:
 - Alpha-decay detector
 - Human preference fit
 
+### Self-Training Market Simulation Brain
+
+The Simulation Brain turns each scan into a future-testing lab.
+
+It adds:
+
+- Market Memory Twin scoring
+- Closest historical archetypes
+- 7-day, 30-day, and 90-day simulated paths
+- Breakout probability
+- Expected return and bear-case drawdown estimates
+- False-positive similarity
+- Signal mutation tests
+- Engine tournament voting
+- Adversarial simulation review
+- Portfolio-relative opportunity rank
+
+Example output:
+
+```text
+Simulation: Simulation Priority Watch
+Breakout probability: 68%
+Expected 30d return: 31%
+Bear-case drawdown: -24%
+Tournament: Constructive
+Adversary: Challenge
+Closest analog: AI infrastructure breakout
+```
+
 ### Watchtower Alpha
 
 The Watchtower layer monitors projects over time and surfaces alerts when the scanner detects meaningful changes.
@@ -423,6 +456,12 @@ Each project can receive:
 - `knowledgeGraph`
 - `marketScientistScore`
 - `autonomousMarketScientist`
+- `simulationBrainScore`
+- `simulationDecision`
+- `breakoutProbability30d`
+- `expectedReturn30dPct`
+- `engineTournament`
+- `adversarialSimulationReview`
 
 Example allocation buckets:
 
@@ -564,6 +603,7 @@ npm run agent-performance
 npm run agent-memory
 npm run research-os
 npm run alpha-lab
+npm run simulation-brain
 npm run engine:audit:json
 ```
 
@@ -573,6 +613,7 @@ CLI shortcuts:
 node src/cli.js demo
 node src/cli.js scan
 node src/cli.js wide
+node src/cli.js simulation
 node src/cli.js explain AKT
 ```
 

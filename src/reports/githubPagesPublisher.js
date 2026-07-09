@@ -22,6 +22,7 @@ const PUBLIC_REPORTS = [
   "agent-performance.json",
   "research-os.json",
   "alpha-lab.json",
+  "simulation-brain.json",
   "engine-audit.json",
 ];
 
@@ -52,9 +53,11 @@ function writeLandingPage(copiedFiles = []) {
   const report = readJsonReport("report.json") || {};
   const council = readJsonReport("ai-council.json") || {};
   const researchOS = readJsonReport("research-os.json") || {};
+  const simulationBrain = readJsonReport("simulation-brain.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
   const topCouncil = council.strongBuyCandidates?.[0] || council.topCouncilSetups?.[0] || {};
+  const topSimulation = simulationBrain.topSimulationCandidates?.[0] || {};
   const links = copiedFiles
     .filter((fileName) => fileName !== "report.html")
     .map((fileName) => `<a href="./${fileName}">${fileName}</a>`)
@@ -63,6 +66,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Projects", report.totalProjects ?? 0],
     ["AI Candidate", topCouncil.symbol || topProject.symbol || "N/A"],
     ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? "N/A"],
+    ["Simulation", topSimulation.symbol || topProject.symbol || "N/A"],
+    ["Breakout %", topSimulation.breakoutProbability30d ?? topProject.breakoutProbability30d ?? "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
     ["Engines", audit.totalEngines ?? "N/A"],
@@ -297,6 +302,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>AI Council:</strong> specialist agents debate bull and bear cases.</li>
           <li><strong>Quantum Brain:</strong> bull/base/bear/black-swan probabilities and collapse triggers.</li>
           <li><strong>Research OS:</strong> lifecycle, scenarios, red-team review, and research tasks.</li>
+          <li><strong>Simulation Brain:</strong> market-memory analogs, future paths, mutation tests, and engine tournaments.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
@@ -309,6 +315,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./report.json">JSON</a>
         <a class="button" href="./ai-council.json">AI Council</a>
         <a class="button" href="./research-os.json">Research OS</a>
+        <a class="button" href="./simulation-brain.json">Simulation Brain</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./alerts.json">Alerts</a>
       </div>

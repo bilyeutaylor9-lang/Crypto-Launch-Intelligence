@@ -33,6 +33,16 @@ function compact(project = {}) {
     marketRegimeGovernor: project.marketRegimeGovernor || {},
     marketScientistScore: project.marketScientistScore || 0,
     autonomousMarketScientist: project.autonomousMarketScientist || {},
+    simulationBrainScore: project.simulationBrainScore || 0,
+    simulationDecision: project.simulationDecision || "Unknown",
+    simulationConfidence: project.simulationConfidence || "Unknown",
+    breakoutProbability30d: project.breakoutProbability30d || 0,
+    expectedReturn30dPct: project.expectedReturn30dPct || 0,
+    bearCaseDrawdownPct: project.bearCaseDrawdownPct || 0,
+    selfTrainingMarketSimulationBrain: project.selfTrainingMarketSimulationBrain || {},
+    closestMarketAnalogs: project.closestMarketAnalogs || [],
+    engineTournament: project.engineTournament || {},
+    portfolioBrain: project.portfolioBrain || {},
     causalHypotheses: project.causalHypotheses || [],
     counterfactualAnalysis: project.counterfactualAnalysis || [],
     falsePositiveAutopsy: project.falsePositiveAutopsy || {},
@@ -94,6 +104,11 @@ export function writeResearchOSReports(projects = []) {
     marketScientist: projects
       .slice()
       .sort((a, b) => num(b.marketScientistScore) - num(a.marketScientistScore))
+      .slice(0, 25)
+      .map(compact),
+    simulationBrain: projects
+      .slice()
+      .sort((a, b) => num(b.simulationBrainScore) - num(a.simulationBrainScore))
       .slice(0, 25)
       .map(compact),
   };

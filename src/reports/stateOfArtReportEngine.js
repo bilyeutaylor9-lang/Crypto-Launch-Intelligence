@@ -43,6 +43,13 @@ function compactProject(project = {}) {
     knowledgeGraph: project.knowledgeGraph || {},
     marketScientistScore: project.marketScientistScore || 0,
     autonomousMarketScientist: project.autonomousMarketScientist || {},
+    simulationBrainScore: project.simulationBrainScore || 0,
+    simulationDecision: project.simulationDecision || "unknown",
+    breakoutProbability30d: project.breakoutProbability30d || 0,
+    expectedReturn30dPct: project.expectedReturn30dPct || 0,
+    bearCaseDrawdownPct: project.bearCaseDrawdownPct || 0,
+    closestMarketAnalogs: project.closestMarketAnalogs || [],
+    portfolioBrain: project.portfolioBrain || {},
     alphaTags: project.alphaTags || [],
     riskFlags: project.riskFlags || [],
     thesis: project.opportunityThesis || project.whyThisMatters || "",
@@ -88,6 +95,13 @@ export function writeStateOfArtReport(projects = []) {
     .sort((a, b) => num(b.aiEcosystemScore) - num(a.aiEcosystemScore))
     .slice(0, 25)
     .map(compactProject);
+  const simulationBrainCandidates = [...projects]
+    .filter((project) =>
+      ["Simulation Strong Buy Candidate", "Simulation Priority Watch"].includes(project.simulationDecision)
+    )
+    .sort((a, b) => num(b.simulationBrainScore) - num(a.simulationBrainScore))
+    .slice(0, 25)
+    .map(compactProject);
 
   const report = {
     generatedAt: new Date().toISOString(),
@@ -99,8 +113,10 @@ export function writeStateOfArtReport(projects = []) {
       highTrapRisk: highTrapRisk.length,
       reliableSources: reliableSources.length,
       aiStrongBuyCandidates: aiStrongBuyCandidates.length,
+      simulationBrainCandidates: simulationBrainCandidates.length,
     },
     aiStrongBuyCandidates,
+    simulationBrainCandidates,
     topConfidenceAdjusted,
     hotNarratives,
     improvingProjects,

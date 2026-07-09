@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-07-09T16:06:08.562Z",
-  "totalEngines": 86,
-  "wiredIntoPipeline": 62,
-  "stateOfArtReady": 69,
+  "generatedAt": "2026-07-09T16:22:14.114Z",
+  "totalEngines": 87,
+  "wiredIntoPipeline": 63,
+  "stateOfArtReady": 70,
   "readinessScore": 86,
   "categoryCounts": {
     "intelligence": 37,
-    "ai": 9,
+    "ai": 10,
     "learning": 8,
     "market-flow": 5,
     "narrative-launch": 7,
@@ -1523,6 +1523,20 @@
       "wiredInPipeline": false,
       "advancedSignals": 4,
       "readinessScore": 75,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "selfTrainingMarketSimulationBrainEngine.js",
+      "category": "ai",
+      "exports": [
+        "analyzeSelfTrainingMarketSimulationBrain",
+        "analyzeSelfTrainingMarketSimulationBrainBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
       "status": "state-of-art-ready"
     },
     {

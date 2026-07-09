@@ -12,6 +12,7 @@ import { analyzeAutonomousAlphaLab } from "../src/engines/autonomousAlphaLabEngi
 import { analyzeQuantumReasoningBrain } from "../src/engines/quantumReasoningBrainEngine.js";
 import { analyzeWorldModelBrainBatch } from "../src/engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientist } from "../src/engines/autonomousMarketScientistEngine.js";
+import { analyzeSelfTrainingMarketSimulationBrainBatch } from "../src/engines/selfTrainingMarketSimulationBrainEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -336,4 +337,49 @@ test("autonomous market scientist adds causal, counterfactual, autopsy, and pref
   assert.ok(result.counterfactualAnalysis.length > 0);
   assert.ok(result.falsePositiveAutopsy.falsePositiveRisk >= 0);
   assert.ok(result.humanPreferenceFit.score >= 0);
+});
+
+test("self-training market simulation brain builds analogs, scenarios, and tournament ranking", () => {
+  const [result] = analyzeSelfTrainingMarketSimulationBrainBatch([
+    {
+      name: "SimulationSetup",
+      symbol: "SIM",
+      confidenceAdjustedScore: 74,
+      pipelineScore: 76,
+      aiEcosystemScore: 70,
+      quantumBrainScore: 66,
+      marketScientistScore: 68,
+      worldModelScore: 63,
+      alphaLabScore: 60,
+      narrativeHeatScore: 82,
+      narrativeForecastScore: 78,
+      liquidityScore: 70,
+      liquidityExpansionScore: 66,
+      capitalFlowScore: 68,
+      buyPressureScore: 64,
+      smartMoneyAccumulationScore: 66,
+      smartWalletPerformanceScore: 62,
+      xSocialScore: 72,
+      socialAccelerationScore: 68,
+      proofScore: 70,
+      evidenceQualityScore: 66,
+      sourceReliabilityScore: 68,
+      dataConfidenceScore: 72,
+      outcomeLearningScore: 62,
+      prePumpPatternScore: 64,
+      signalCombinationScore: 66,
+      calibrationScore: 60,
+      trapRiskScore: 16,
+      riskScore: 20,
+      sellPressureScore: 18,
+    },
+  ]);
+
+  assert.ok(result.simulationBrainScore > 0);
+  assert.ok(result.breakoutProbability30d >= 0);
+  assert.ok(result.closestMarketAnalogs.length > 0);
+  assert.ok(result.signalMutationTests.length > 0);
+  assert.ok(result.engineTournament.agents.length > 0);
+  assert.equal(result.simulationPortfolioRank, 1);
+  assert.ok(result.selfTrainingMarketSimulationBrain.summary.length > 0);
 });

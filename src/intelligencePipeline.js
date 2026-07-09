@@ -63,6 +63,7 @@ import { analyzeAutonomousAlphaLabBatch } from "./engines/autonomousAlphaLabEngi
 import { analyzeQuantumReasoningBrainBatch } from "./engines/quantumReasoningBrainEngine.js";
 import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
+import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTrainingMarketSimulationBrainEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1050,6 +1051,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeQuantumReasoningBrainBatch(results);
   results = analyzeWorldModelBrainBatch(results);
   results = analyzeAutonomousMarketScientistBatch(results);
+  results = analyzeSelfTrainingMarketSimulationBrainBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1182,6 +1184,15 @@ export function summarizePipelineResults(results = []) {
   const highDisagreementSetups = safeResults.filter((p) => p.aiDisagreement?.level === "High");
   const redTeamBlocks = safeResults.filter((p) => p.redTeamReview?.status === "Block");
   const alphaLabMatches = safeResults.filter((p) => (p.alphaLabStrategies || []).length > 0);
+  const simulationStrongBuySetups = safeResults.filter(
+    (p) => p.simulationDecision === "Simulation Strong Buy Candidate"
+  );
+  const simulationPrioritySetups = safeResults.filter(
+    (p) => p.simulationDecision === "Simulation Priority Watch"
+  );
+  const adversarialSimulationBlocks = safeResults.filter(
+    (p) => p.adversarialSimulationReview?.status === "Block"
+  );
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1243,6 +1254,9 @@ export function summarizePipelineResults(results = []) {
     highDisagreementCount: highDisagreementSetups.length,
     redTeamBlockCount: redTeamBlocks.length,
     alphaLabMatchCount: alphaLabMatches.length,
+    simulationStrongBuyCount: simulationStrongBuySetups.length,
+    simulationPriorityCount: simulationPrioritySetups.length,
+    adversarialSimulationBlockCount: adversarialSimulationBlocks.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1280,6 +1294,22 @@ export function summarizePipelineResults(results = []) {
       alphaLabStatus: project.alphaLabStatus || "Unknown",
       scenarioPlan: project.scenarioPlan || {},
     })),
+    topSimulationBrainSetups: [...safeResults]
+      .sort((a, b) => num(b.simulationBrainScore) - num(a.simulationBrainScore))
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.simulationPortfolioRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        simulationBrainScore: project.simulationBrainScore || 0,
+        simulationDecision: project.simulationDecision || "Unknown",
+        breakoutProbability30d: project.breakoutProbability30d || 0,
+        expectedReturn30dPct: project.expectedReturn30dPct || 0,
+        bearCaseDrawdownPct: project.bearCaseDrawdownPct || 0,
+        closestMarketAnalogs: project.closestMarketAnalogs || [],
+        tournamentConsensus: project.engineTournament?.consensus || "Unknown",
+        adversarialStatus: project.adversarialSimulationReview?.status || "Unknown",
+      })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70

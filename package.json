@@ -51,6 +51,7 @@
     "agent-memory": "node src/learning/agentPerformanceMemoryStore.js",
     "research-os": "cat reports/research-os.json",
     "alpha-lab": "cat reports/alpha-lab.json",
+    "simulation-brain": "cat reports/simulation-brain.json",
     "engine:audit": "node src/engineHealthCheck.js",
     "engine:audit:json": "cat reports/engine-audit.json",
     "publish:dashboard": "node src/reports/githubPagesPublisher.js",

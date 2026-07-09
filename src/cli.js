@@ -47,6 +47,7 @@ function explain(symbol = "") {
   console.log(`Score: ${project.pipelineScore || project.opportunityScore || 0}`);
   console.log(`AI Council: ${project.aiEcosystemVerdict || "Unknown"} (${project.aiEcosystemScore || 0})`);
   console.log(`Quantum: ${project.quantumDecisionState || "Unknown"} | Bull ${project.quantumBullProbability || 0}% / Bear ${project.quantumBearProbability || 0}%`);
+  console.log(`Simulation: ${project.simulationDecision || "Unknown"} (${project.simulationBrainScore || 0}) | Breakout ${project.breakoutProbability30d || 0}% | 30d ${project.expectedReturn30dPct || 0}%`);
   console.log(`Lifecycle: ${project.strongBuyLifecycleStage || "Unknown"}`);
   console.log(`Why now: ${(project.whyNow?.whyThisProject || []).join(" ") || "No why-now summary."}`);
   console.log(`Invalidation: ${(project.whyNow?.invalidation || project.invalidationSignals || []).slice(0, 3).join(" ")}`);
@@ -64,6 +65,7 @@ Commands:
   crypto-launch council           Print AI Council report
   crypto-launch research-os       Print Research OS report
   crypto-launch alpha-lab         Print Alpha Lab report
+  crypto-launch simulation        Print Simulation Brain report
   crypto-launch audit             Run engine import health check
   crypto-launch explain SYMBOL    Explain a project from the latest report
 `);
@@ -90,6 +92,10 @@ switch (command) {
     break;
   case "alpha-lab":
     runNpm("alpha-lab", args);
+    break;
+  case "simulation":
+  case "simulation-brain":
+    runNpm("simulation-brain", args);
     break;
   case "audit":
     runNpm("engine:audit", args);
