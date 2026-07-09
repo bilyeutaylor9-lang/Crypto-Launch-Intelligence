@@ -12,6 +12,7 @@ import { writeWatchtowerPerformanceReport } from "./watchtowerPerformanceReportE
 import { writeStateOfArtReport } from "./stateOfArtReportEngine.js";
 import { writeAICouncilReports } from "./aiCouncilReportEngine.js";
 import { writeResearchOSReports } from "./researchOSReportEngine.js";
+import { writeEngineAuditReport } from "./engineAuditReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -32,6 +33,9 @@ export function generateReports(projects = [], meta = {}) {
     researchOSPath,
     alphaLabPath,
   } = writeResearchOSReports(projects);
+  const {
+    filePath: engineAuditPath,
+  } = writeEngineAuditReport();
   const {
     alertsPath,
     briefPath,
@@ -56,6 +60,7 @@ export function generateReports(projects = [], meta = {}) {
     agentPerformancePath,
     researchOSPath,
     alphaLabPath,
+    engineAuditPath,
     alertsPath,
     briefPath,
     watchtowerPerformancePath,

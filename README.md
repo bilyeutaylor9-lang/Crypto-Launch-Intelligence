@@ -1,10 +1,58 @@
 # Crypto Launch Intelligence
 
-## v0.5.0 - Watchtower Alpha
+[![Node.js](https://img.shields.io/badge/node-24%20ready-45e08f)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Live Dashboard](https://img.shields.io/badge/live-dashboard-5fb7ff)](https://bilyeutaylor9-lang.github.io/Crypto-Launch-Intelligence/)
+[![AI Council](https://img.shields.io/badge/AI%20Council-enabled-45e08f)](#ai-ecosystem-council)
+
+## Autonomous AI Crypto Research Desk
 
 Institutional-style crypto launch intelligence for discovering early momentum, launch catalysts, smart-money accumulation, narrative strength, and watchlist changes before they become obvious.
 
 Crypto Launch Intelligence is not a price prediction tool. It is a research system that scans crypto projects, scores them across many independent signals, remembers what it has seen before, and builds a continuously improving watchlist.
+
+## Try It Now
+
+Run the full demo without API keys:
+
+```bash
+npm install
+npm run demo
+open reports/report.html
+```
+
+The demo scans built-in research seed projects and generates:
+
+- AI Council debate
+- Quantum Brain probabilities
+- Research OS tasks
+- Alpha Lab strategy report
+- Engine audit
+- HTML dashboard
+- JSON and CSV exports
+
+Inspect committed sample outputs:
+
+```bash
+open examples/report.html
+cat examples/ai-council.json
+cat examples/research-os.json
+```
+
+## Why It Is Different
+
+Most crypto scanners rank tokens.
+
+Crypto Launch Intelligence runs an AI research workflow:
+
+- Discovers thousands of free-source candidates.
+- Uses an AI Council with specialist agents and a Risk Officer.
+- Red-teams every strong thesis.
+- Models bull/base/bear/black-swan futures with a Quantum Brain.
+- Builds project/narrative/chain relationships with a World Model.
+- Creates research tasks and promotion/downgrade lifecycle states.
+- Learns from scan memory, outcome memory, and agent performance.
+- Publishes a live dashboard and machine-readable reports.
 
 ## What It Does
 
@@ -31,6 +79,7 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Adds a Quantum Reasoning Brain that tracks bull/base/bear/black-swan probabilities, entropy, signal entanglement, and collapse triggers.
 - Adds a World Model Brain that builds project/narrative/chain/source relationship graphs and applies market-regime reasoning.
 - Adds an Autonomous Market Scientist that performs causal hypotheses, counterfactual analysis, false-positive autopsy, alpha-decay checks, and preference-fit scoring.
+- Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
 ## Core Idea
 
@@ -402,8 +451,11 @@ Running the scanner creates:
 - `reports/agent-performance.json`
 - `reports/research-os.json`
 - `reports/alpha-lab.json`
+- `reports/engine-audit.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
+
+The `examples/` directory contains demo-generated versions of the most important reports so visitors can inspect output without running the scanner.
 
 ## Live GitHub Dashboard
 
@@ -478,6 +530,7 @@ npm start
 Equivalent commands:
 
 ```bash
+npm run demo
 npm run scan
 npm run scan:full
 npm run report
@@ -511,6 +564,16 @@ npm run agent-performance
 npm run agent-memory
 npm run research-os
 npm run alpha-lab
+npm run engine:audit:json
+```
+
+CLI shortcuts:
+
+```bash
+node src/cli.js demo
+node src/cli.js scan
+node src/cli.js wide
+node src/cli.js explain AKT
 ```
 
 Inspect expanded source candidates:

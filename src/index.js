@@ -225,6 +225,7 @@ function printReportPaths(paths) {
   console.log(`Agent Memory:   ${paths.agentPerformancePath}`);
   console.log(`Research OS:    ${paths.researchOSPath}`);
   console.log(`Alpha Lab:      ${paths.alphaLabPath}`);
+  console.log(`Engine Audit:   ${paths.engineAuditPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
   console.log(`Performance:    ${paths.watchtowerPerformancePath}`);

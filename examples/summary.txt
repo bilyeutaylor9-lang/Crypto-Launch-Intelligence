@@ -1,0 +1,120 @@
+CRYPTO LAUNCH INTELLIGENCE REPORT
+Generated: 7/9/2026, 9:06:08 AM
+
+Projects scanned: 8
+Market regime: Risk-Off
+Healthy breadth: 0%
+High-conviction breadth: 0%
+Average opportunity score: 2.38
+Strong buy candidates: 0
+High-conviction candidates: 0
+Priority research queue: 0
+Defensive / avoid candidates: 8
+X/social acceleration setups: 0
+Positive learning-edge setups: 0
+Accelerating watched projects: 8
+Quantum upside fields: 0
+Outcome-memory winner fits: 0
+Outcome-memory trap fits: 8
+Winning signal combinations: 0
+Trap signal combinations: 0
+Calibrated edges: 0
+Calibrated warnings: 0
+AI priority watches: 0
+AI rejections: 8
+External confirmations: 0
+Pre-breakout pattern matches: 0
+Trap-pattern warnings: 0
+High score / low data confidence: 0
+Institutional vNext setups: 0
+Institutional confidence setups: 0
+High vesting pressure setups: 0
+Proof-backed setups: 0
+Thin/developing proof setups: 8
+Hot narrative setups: 4
+Improving projects: 0
+Reliable source setups: 0
+High trap-risk setups: 0
+AI strong-buy candidates: 1
+Pre-strong-buy lifecycle setups: 1
+High AI-disagreement setups: 8
+Red-team blocks: 1
+Alpha Lab strategy matches: 0
+Watchtower alerts: 29
+Watchtower high/critical alerts: 29
+Watchtower brief: 0 critical, 10 high, and 10 total watchtower alerts detected.
+Watchtower hit rate: 0% (0 evaluated, 29 pending)
+
+Top project:
+EigenLayer (EIGEN)
+
+Top score:
+9.00
+
+Top research queue:
+None
+
+Top quantum fields:
+None
+
+Top outcome-learning fits:
+None
+
+Top signal-combination setups:
+None
+
+Top calibrated edges:
+None
+
+Top AI analyst theses:
+None
+
+Top pre-breakout pattern matches:
+None
+
+Top institutional vNext setups:
+None
+
+Top proof-backed setups:
+None
+
+Top confidence-adjusted setups:
+1. Pendle (PENDLE) - adjusted 29, source 15, trap 12
+2. Celestia (TIA) - adjusted 29, source 15, trap 12
+3. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
+4. Jupiter (JUP) - adjusted 28, source 15, trap 12
+5. Akash Network (AKT) - adjusted 27, source 15, trap 20
+
+Top narrative heat setups:
+1. EigenLayer (EIGEN) - heat 80, Hot Rotation
+2. Akash Network (AKT) - heat 93, Hot Rotation
+3. Bittensor (TAO) - heat 93, Hot Rotation
+4. Render (RNDR) - heat 88, Hot Rotation
+
+Top improving projects:
+None
+
+Top trap-risk warnings:
+None
+
+Top AI strong-buy candidates:
+1. Pendle (PENDLE) - council 52, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
+
+Files generated:
+- reports/report.html
+- reports/report.json
+- reports/opportunities.csv
+- reports/quantum-field.json
+- reports/outcome-calibration.json
+- reports/pre-pump-patterns.json
+- reports/institutional-vnext.json
+- reports/state-of-art-signals.json
+- reports/ai-council.json
+- reports/agent-performance.json
+- reports/research-os.json
+- reports/alpha-lab.json
+- reports/alerts.json
+- reports/daily-brief.json
+- reports/watchtower-performance.json
+- reports/watchlist.json
+- reports/summary.txt

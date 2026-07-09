@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2026-07-09T16:06:08.516Z",
+  "totalProjects": 8,
+  "activeStrategyCount": 0,
+  "strategies": [],
+  "selfCritique": [
+    "Promote strategies only after enough outcome examples exist.",
+    "Treat cold-start strategies as hypotheses, not proven alpha.",
+    "High narrative heat without liquidity/proof confirmation should remain capped."
+  ]
+}
