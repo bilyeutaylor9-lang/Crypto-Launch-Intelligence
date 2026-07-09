@@ -18,6 +18,8 @@ const PUBLIC_REPORTS = [
   "pre-pump-patterns.json",
   "institutional-vnext.json",
   "state-of-art-signals.json",
+  "ai-council.json",
+  "agent-performance.json",
 ];
 
 function copyIfExists(fileName = "") {

@@ -86,6 +86,8 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.sourceReliabilityScore ?? "")}</td>
           <td>${esc(p.trapRiskScore ?? "")}</td>
           <td>${esc(p.trapRiskLevel || "")}</td>
+          <td>${esc(p.aiEcosystemScore ?? "")}</td>
+          <td>${esc(p.aiEcosystemVerdict || "")}</td>
           <td>${esc(p.institutionalVNextScore ?? "")}</td>
           <td>${esc(p.xSocialScore ?? "")}</td>
           <td>${esc(p.externalSignalScore ?? "")}</td>
@@ -124,6 +126,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.sourceReliabilityScore ?? "")}</td>
           <td>${esc(p.trapRiskScore ?? "")}</td>
           <td>${esc(p.trapRiskLevel || "")}</td>
+          <td>${esc(p.aiEcosystemVerdict || "")}</td>
         </tr>
       `
     )
@@ -261,6 +264,7 @@ export function writeHtmlReport(projects = []) {
         <th>Source</th>
         <th>Trap</th>
         <th>Trap Level</th>
+        <th>AI Council</th>
       </tr>
     </thead>
     <tbody>
@@ -294,6 +298,8 @@ export function writeHtmlReport(projects = []) {
         <th>Source</th>
         <th>Trap</th>
         <th>Trap Level</th>
+        <th>AI Score</th>
+        <th>AI Council</th>
         <th>vNext</th>
         <th>X Social</th>
         <th>External</th>

@@ -12,6 +12,7 @@ import { analyzeCommunityGrowthBatch } from "./engines/communityGrowthEngine.js"
 import { analyzeSocialAccelerationBatch } from "./engines/socialAccelerationEngine.js";
 import { analyzeXSocialIntelligenceBatch } from "./engines/xSocialIntelligenceEngine.js";
 import { analyzeExternalIntelligenceBatch } from "./engines/externalIntelligenceEngine.js";
+import { analyzeWebResearchAgentBatch } from "./engines/webResearchAgentEngine.js";
 import { analyzeLiquidityBatch } from "./engines/liquidityIntelligenceEngine.js";
 import { analyzeHolderGrowthBatch } from "./engines/holderGrowthEngine.js";
 import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
@@ -56,6 +57,7 @@ import { analyzeProjectChangeBatch } from "./engines/projectChangeDetectionEngin
 import { analyzeTrapRiskBatch } from "./engines/trapRiskEngine.js";
 import { analyzeSourceReliabilityBatch } from "./engines/sourceReliabilityEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
+import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -63,6 +65,7 @@ import { saveScanMemory } from "./learning/scanMemoryStore.js";
 import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
 import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
 import { saveInternetResearchMemory } from "./learning/internetResearchMemoryStore.js";
+import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -983,6 +986,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Community Growth", analyzeCommunityGrowthBatch, results);
   results = await runEngine("Social Acceleration", analyzeSocialAccelerationBatch, results);
   results = await runEngine("External Intelligence", analyzeExternalIntelligenceBatch, results, options.externalIntelligence || {});
+  results = await runEngine("Web Research Agent", analyzeWebResearchAgentBatch, results, options.webResearchAgent || {});
   results = await runEngine("X Social Intelligence", analyzeXSocialIntelligenceBatch, results);
   results = await runEngine("Liquidity Intelligence", analyzeLiquidityBatch, results);
   results = await runEngine("Holder Growth", analyzeHolderGrowthBatch, results);
@@ -1035,6 +1039,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeOpportunityProofBatch(results);
   results = analyzeTrapRiskBatch(results);
   results = analyzeConfidenceAdjustedRankBatch(results);
+  results = analyzeAIEcosystemCouncilBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1059,6 +1064,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveInternetResearchMemory(results);
     } catch (error) {
       console.log(`Internet research memory save failed: ${error.message}`);
+    }
+
+    try {
+      saveAgentCouncilMemory(results);
+    } catch (error) {
+      console.log(`Agent council memory save failed: ${error.message}`);
     }
   }
 
@@ -1154,6 +1165,9 @@ export function summarizePipelineResults(results = []) {
   );
   const highTrapRiskSetups = safeResults.filter((p) => num(p.trapRiskScore) >= 60);
   const reliableSourceSetups = safeResults.filter((p) => num(p.sourceReliabilityScore) >= 70);
+  const aiStrongBuySetups = safeResults.filter((p) =>
+    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
+  );
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1210,6 +1224,7 @@ export function summarizePipelineResults(results = []) {
     improvingProjectCount: improvingProjects.length,
     highTrapRiskCount: highTrapRiskSetups.length,
     reliableSourceCount: reliableSourceSetups.length,
+    aiStrongBuyCount: aiStrongBuySetups.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1222,6 +1237,17 @@ export function summarizePipelineResults(results = []) {
       trapRiskScore: project.trapRiskScore || 0,
       narrativeHeatScore: project.narrativeHeatScore || 0,
       projectChangeState: project.projectChangeState || "unknown",
+    })),
+    topAIStrongBuySetups: aiStrongBuySetups.slice(0, 10).map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      pipelineScore: project.pipelineScore || 0,
+      confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
+      aiEcosystemScore: project.aiEcosystemScore || 0,
+      aiEcosystemVerdict: project.aiEcosystemVerdict || "Unknown",
+      caveat: project.aiEcosystemCaveat || "",
+      conversation: project.aiEcosystemCouncil?.conversation || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

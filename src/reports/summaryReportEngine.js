@@ -88,6 +88,9 @@ export function writeSummaryReport(projects = []) {
   );
   const reliableSources = ranked.filter((p) => Number(p.sourceReliabilityScore || 0) >= 70);
   const highTrapRisk = ranked.filter((p) => Number(p.trapRiskScore || 0) >= 60);
+  const aiStrongBuyCandidates = ranked.filter((p) =>
+    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
+  );
   const confidenceAdjusted = [...ranked].sort(
     (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
   );
@@ -171,6 +174,12 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - trap ${p.trapRiskScore || 0}, ${p.trapRiskLevel || "unknown"}`;
     })
     .join("\n");
+  const topAIStrongBuyCandidates = aiStrongBuyCandidates
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - council ${p.aiEcosystemScore || 0}, ${p.aiEcosystemVerdict || "unknown"}${p.aiEcosystemCaveat ? ` - ${p.aiEcosystemCaveat}` : ""}`;
+    })
+    .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
@@ -217,6 +226,7 @@ Hot narrative setups: ${hotNarratives.length}
 Improving projects: ${improvingProjects.length}
 Reliable source setups: ${reliableSources.length}
 High trap-risk setups: ${highTrapRisk.length}
+AI strong-buy candidates: ${aiStrongBuyCandidates.length}
 Watchtower alerts: ${watchtowerAlerts.length}
 Watchtower high/critical alerts: ${watchtowerAlerts.filter((alert) => ["High", "Critical"].includes(alert.severity)).length}
 Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
@@ -267,6 +277,9 @@ ${topImprovingProjects || "None"}
 Top trap-risk warnings:
 ${topTrapRisks || "None"}
 
+Top AI strong-buy candidates:
+${topAIStrongBuyCandidates || "None"}
+
 Files generated:
 - reports/report.html
 - reports/report.json
@@ -276,6 +289,8 @@ Files generated:
 - reports/pre-pump-patterns.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
+- reports/ai-council.json
+- reports/agent-performance.json
 - reports/alerts.json
 - reports/daily-brief.json
 - reports/watchtower-performance.json

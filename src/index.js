@@ -148,6 +148,7 @@ function printSummary(summary) {
   console.log(`Improving Projects: ${summary.improvingProjectCount}`);
   console.log(`High Trap Risk: ${summary.highTrapRiskCount}`);
   console.log(`Reliable Source Setups: ${summary.reliableSourceCount}`);
+  console.log(`AI Strong Buy Candidates: ${summary.aiStrongBuyCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -171,6 +172,9 @@ function printTopProjects(results) {
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
     if (project.confidenceAdjustedScore) {
       console.log(`   Confidence-Adjusted: ${project.confidenceAdjustedScore} (#${project.confidenceAdjustedRank || "-"})`);
+    }
+    if (project.aiEcosystemVerdict) {
+      console.log(`   AI Council: ${project.aiEcosystemVerdict} (${project.aiEcosystemScore || 0})`);
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
@@ -213,6 +217,8 @@ function printReportPaths(paths) {
   console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
   console.log(`State Signals:  ${paths.stateOfArtPath}`);
+  console.log(`AI Council:     ${paths.aiCouncilPath}`);
+  console.log(`Agent Memory:   ${paths.agentPerformancePath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
   console.log(`Performance:    ${paths.watchtowerPerformancePath}`);

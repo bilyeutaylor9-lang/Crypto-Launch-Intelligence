@@ -24,6 +24,12 @@ function compactProject(project = {}) {
     sourceReliabilityScore: project.sourceReliabilityScore || 0,
     trapRiskScore: project.trapRiskScore || 0,
     trapRiskLevel: project.trapRiskLevel || "unknown",
+    aiEcosystemScore: project.aiEcosystemScore || 0,
+    aiEcosystemVerdict: project.aiEcosystemVerdict || "unknown",
+    aiEcosystemCaveat: project.aiEcosystemCaveat || "",
+    strongBuyEvidenceGate: project.strongBuyEvidenceGate || {},
+    whyNow: project.whyNow || {},
+    aiDebate: project.aiDebate || {},
     alphaTags: project.alphaTags || [],
     riskFlags: project.riskFlags || [],
     thesis: project.opportunityThesis || project.whyThisMatters || "",
@@ -62,6 +68,13 @@ export function writeStateOfArtReport(projects = []) {
     .sort((a, b) => num(b.sourceReliabilityScore) - num(a.sourceReliabilityScore))
     .slice(0, 25)
     .map(compactProject);
+  const aiStrongBuyCandidates = [...projects]
+    .filter((project) =>
+      ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(project.aiEcosystemVerdict)
+    )
+    .sort((a, b) => num(b.aiEcosystemScore) - num(a.aiEcosystemScore))
+    .slice(0, 25)
+    .map(compactProject);
 
   const report = {
     generatedAt: new Date().toISOString(),
@@ -72,7 +85,9 @@ export function writeStateOfArtReport(projects = []) {
       improvingProjects: improvingProjects.length,
       highTrapRisk: highTrapRisk.length,
       reliableSources: reliableSources.length,
+      aiStrongBuyCandidates: aiStrongBuyCandidates.length,
     },
+    aiStrongBuyCandidates,
     topConfidenceAdjusted,
     hotNarratives,
     improvingProjects,

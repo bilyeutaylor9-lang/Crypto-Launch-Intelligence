@@ -10,6 +10,7 @@ import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.
 import { writeWatchtowerReports } from "./watchtowerReportEngine.js";
 import { writeWatchtowerPerformanceReport } from "./watchtowerPerformanceReportEngine.js";
 import { writeStateOfArtReport } from "./stateOfArtReportEngine.js";
+import { writeAICouncilReports } from "./aiCouncilReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -22,6 +23,10 @@ export function generateReports(projects = [], meta = {}) {
   const prePumpPatternPath = writePrePumpPatternReport();
   const institutionalVNextPath = writeInstitutionalVNextReport(projects);
   const stateOfArtPath = writeStateOfArtReport(projects);
+  const {
+    councilPath: aiCouncilPath,
+    performancePath: agentPerformancePath,
+  } = writeAICouncilReports(projects);
   const {
     alertsPath,
     briefPath,
@@ -42,6 +47,8 @@ export function generateReports(projects = [], meta = {}) {
     prePumpPatternPath,
     institutionalVNextPath,
     stateOfArtPath,
+    aiCouncilPath,
+    agentPerformancePath,
     alertsPath,
     briefPath,
     watchtowerPerformancePath,

@@ -23,6 +23,9 @@ Crypto Launch Intelligence is not a price prediction tool. It is a research syst
 - Connects external X/news intelligence when API keys are available.
 - Adds AI analyst review, institutional vNext scoring, pre-pump pattern matching, and data confidence.
 - Adds a state-of-art ranking layer with narrative heat, source reliability, project-change detection, trap-risk scoring, and confidence-adjusted institutional rank.
+- Adds an autonomous web research agent that budgets free web/RSS/Google News searches toward the highest-priority candidates.
+- Adds an AI ecosystem council where specialist agents debate narrative, quant, flow, research quality, learning memory, and risk before assigning a final verdict.
+- Adds agent performance memory so the AI council can track agent behavior and adjust weights over time.
 
 ## Core Idea
 
@@ -126,6 +129,61 @@ It adds:
 - Confidence-Adjusted Ranking: produces a second ranking that blends opportunity, confidence, proof, source quality, narrative heat, improvement, and trap risk.
 
 The goal is not just to find high scores. The goal is to find high scores that deserve trust.
+
+### AI Ecosystem Council
+
+The AI council is a deterministic multi-agent layer. It does not need a paid model key to run.
+
+Specialists include:
+
+- Narrative Scout
+- Quant Forecaster
+- Flow Analyst
+- Research Analyst
+- Learning Engine
+- Risk Officer
+
+Each specialist scores the project and contributes a short message. The council then assigns:
+
+- `AI Strong Buy`
+- `Best Available Strong Buy Candidate`
+- `AI Priority Watch`
+- `AI Watchlist`
+- `AI Pass For Now`
+- `Rejected By AI Council`
+
+If a scan has no true strong-buy setup, the council still names the best available candidate, but adds a caveat so the dashboard never confuses weak data with confirmed conviction.
+
+The council also includes:
+
+- Agent performance memory
+- Performance-aware agent weights
+- Bull/bear debate transcript
+- Strong-buy evidence gate
+- Why-now explanation
+- Final moderator summary
+
+Strong-buy gate checks include council score, agent agreement, data confidence, proof score, confidence-adjusted score, trap risk, and risk-officer clearance.
+
+### 10,000-Project Wide Scan
+
+The wide scan is built as a staged funnel:
+
+- Collect up to 10,000 candidates from free/no-key market, DEX, CEX, DeFi, Google News, and research-seed sources.
+- Deduplicate and cheap-rank the full candidate pool.
+- Spend web research only on the highest-priority slice using `WEB_RESEARCH_AGENT_LIMIT`.
+- Run the full scoring stack and produce confidence-adjusted rankings.
+- Save internet research memory so future scans can compare what was found before.
+
+This keeps the scanner free-friendly. It can look across a huge market without trying to run expensive web searches against every single project.
+
+Useful wide-scan controls:
+
+```bash
+npm run scan:wide
+WEB_RESEARCH_AGENT_LIMIT=250 npm run scan:wide
+DISCOVERY_SCAN_LIMIT=10000 WIDE_SCAN_LIMIT=10000 npm run scan
+```
 
 ### Watchtower Alpha
 
@@ -233,6 +291,16 @@ Each project can receive:
 - `projectChangeScore`
 - `sourceReliabilityScore`
 - `trapRiskScore`
+- `webResearchPriority`
+- `webResearchStatus`
+- `internetResearchScore`
+- `internetResearchRiskScore`
+- `aiEcosystemScore`
+- `aiEcosystemVerdict`
+- `aiEcosystemCouncil`
+- `strongBuyEvidenceGate`
+- `aiDebate`
+- `whyNow`
 
 Example allocation buckets:
 
@@ -257,6 +325,8 @@ Running the scanner creates:
 - `reports/pre-pump-patterns.json`
 - `reports/institutional-vnext.json`
 - `reports/state-of-art-signals.json`
+- `reports/ai-council.json`
+- `reports/agent-performance.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
 
@@ -312,6 +382,7 @@ Persistent learning files are saved under:
 - `data/pre-pump-patterns.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
+- `data/agent-performance-memory.json`
 
 These files are local runtime memory and should usually not be committed.
 
@@ -360,6 +431,9 @@ npm run watchlist
 npm run alerts
 npm run brief
 npm run state-signals
+npm run ai-council
+npm run agent-performance
+npm run agent-memory
 ```
 
 Inspect expanded source candidates:

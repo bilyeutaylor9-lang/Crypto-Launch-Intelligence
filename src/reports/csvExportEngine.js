@@ -46,6 +46,10 @@ export function writeCsvReport(projects = []) {
     "sourceReliabilityScore",
     "trapRiskScore",
     "trapRiskLevel",
+    "aiEcosystemScore",
+    "aiEcosystemVerdict",
+    "aiEcosystemConfidence",
+    "aiEcosystemCaveat",
     "whyThisMatters",
     "topEvidence",
     "topRisks",
@@ -134,6 +138,10 @@ export function writeCsvReport(projects = []) {
     p.sourceReliabilityScore ?? "",
     p.trapRiskScore ?? "",
     p.trapRiskLevel ?? "",
+    p.aiEcosystemScore ?? "",
+    p.aiEcosystemVerdict ?? "",
+    p.aiEcosystemConfidence ?? "",
+    p.aiEcosystemCaveat ?? "",
     p.whyThisMatters ?? "",
     Array.isArray(p.topEvidence)
       ? p.topEvidence.map((item) => item.text || item.label || item.summary).filter(Boolean).join("; ")

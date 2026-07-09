@@ -67,7 +67,11 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
   const safeProjects = Array.isArray(projects) ? projects : [];
   const xMap = await getXProjectIntelligenceBatch(safeProjects, options.x || {});
   const newsMap = await getNewsProjectIntelligenceBatch(safeProjects, options.news || {});
-  const internetMap = await getInternetProjectResearchBatch(safeProjects, options.internet || {});
+  const inlineInternetEnabled =
+    options.internet?.enabled === true || process.env.EXTERNAL_INLINE_INTERNET === "true";
+  const internetMap = inlineInternetEnabled
+    ? await getInternetProjectResearchBatch(safeProjects, options.internet || {})
+    : new Map();
 
   return safeProjects.map((project) => {
     const key = projectKey(project);
@@ -116,6 +120,9 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
       ...project,
       externalSignalScore,
       externalRiskScore,
+      internetResearch: internet,
+      internetResearchScore: num(internet.signalScore),
+      internetResearchRiskScore: num(internet.riskScore),
       externalIntelligence: {
         status,
         x,

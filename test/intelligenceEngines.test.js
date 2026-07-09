@@ -5,6 +5,8 @@ import { analyzeNarrativeLaunchStaking } from "../src/engines/narrativeLaunchSta
 import { analyzeOpportunityProof } from "../src/engines/opportunityProofEngine.js";
 import { analyzeTrapRisk } from "../src/engines/trapRiskEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "../src/engines/confidenceAdjustedRankEngine.js";
+import { analyzeWebResearchAgentBatch } from "../src/engines/webResearchAgentEngine.js";
+import { analyzeAIEcosystemCouncilBatch } from "../src/engines/aiEcosystemCouncilEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -115,4 +117,103 @@ test("confidence-adjusted ranking rewards strong evidence and penalizes traps", 
   assert.equal(results[0].name, "CleanSetup");
   assert.equal(results[0].confidenceAdjustedRank, 1);
   assert.ok(results[0].confidenceAdjustedScore > results[1].confidenceAdjustedScore);
+});
+
+test("web research agent builds a priority queue without spending search budget", async () => {
+  const results = await analyzeWebResearchAgentBatch(
+    [
+      {
+        name: "LaunchAI",
+        symbol: "LAI",
+        description: "AI agent token launch with mainnet and airdrop",
+        discoveryPriorityScore: 80,
+        liquidityUsd: 500000,
+        volume24h: 250000,
+        discoverySources: ["google-news", "dexscreener"],
+      },
+      {
+        name: "QuietCoin",
+        symbol: "QUIET",
+        description: "generic market data",
+        discoveryPriorityScore: 10,
+      },
+    ],
+    { limit: 0 }
+  );
+
+  assert.equal(results[0].name, "LaunchAI");
+  assert.ok(results[0].webResearchPriority > results[1].webResearchPriority);
+  assert.equal(results[0].webResearchStatus, "QUEUED_NOT_SEARCHED");
+  assert.ok(results[0].webResearchPlan.queries.length > 0);
+});
+
+test("AI ecosystem council selects one best available strong-buy candidate when no true strong buy exists", () => {
+  const results = analyzeAIEcosystemCouncilBatch([
+    {
+      name: "BetterSetup",
+      pipelineScore: 64,
+      confidenceAdjustedScore: 62,
+      narrativeHeatScore: 75,
+      proofScore: 52,
+      dataConfidenceScore: 60,
+      sourceReliabilityScore: 58,
+      trapRiskScore: 18,
+      riskScore: 25,
+      projectChangeScore: 62,
+    },
+    {
+      name: "WeakerSetup",
+      pipelineScore: 42,
+      confidenceAdjustedScore: 38,
+      narrativeHeatScore: 40,
+      proofScore: 30,
+      dataConfidenceScore: 35,
+      trapRiskScore: 25,
+    },
+  ]);
+
+  const selected = results.find(
+    (project) => project.aiEcosystemVerdict === "Best Available Strong Buy Candidate"
+  );
+
+  assert.equal(selected.name, "BetterSetup");
+  assert.match(selected.aiEcosystemCaveat, /manual confirmation/);
+  assert.ok(selected.strongBuyEvidenceGate.blockers.length > 0);
+  assert.ok(selected.aiDebate.moderator.length > 0);
+  assert.ok(selected.whyNow.invalidation.length > 0);
+});
+
+test("AI ecosystem council grants true strong buy only when evidence gate clears", () => {
+  const [result] = analyzeAIEcosystemCouncilBatch([
+    {
+      name: "EliteSetup",
+      pipelineScore: 88,
+      confidenceAdjustedScore: 82,
+      narrativeScore: 82,
+      narrativeForecastScore: 85,
+      narrativeHeatScore: 90,
+      infrastructureNarrativeScore: 76,
+      liquidityScore: 82,
+      liquidityExpansionScore: 80,
+      capitalFlowScore: 84,
+      buyPressureScore: 80,
+      smartMoneyAccumulationScore: 82,
+      smartWalletPerformanceScore: 78,
+      proofScore: 76,
+      dataConfidenceScore: 78,
+      sourceReliabilityScore: 72,
+      evidenceQualityScore: 74,
+      learningEdgeScore: 75,
+      outcomeLearningScore: 72,
+      prePumpPatternScore: 74,
+      projectChangeScore: 72,
+      trapRiskScore: 10,
+      riskScore: 18,
+      externalRiskScore: 0,
+    },
+  ]);
+
+  assert.equal(result.aiEcosystemVerdict, "AI Strong Buy");
+  assert.equal(result.strongBuyEvidenceGate.readyForTrueStrongBuy, true);
+  assert.match(result.aiDebate.moderator, /clears the evidence gate/);
 });
