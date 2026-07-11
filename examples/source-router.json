@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-10T03:55:56.157Z",
+  "generatedAt": "2026-07-11T01:26:05.159Z",
   "memoryFile": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/source-router-memory.json",
   "runs": 0,
   "strongestSources": [
@@ -83,7 +83,29 @@
       "cooldownUntil": null
     },
     {
+      "source": "aiDiscoverySwarm",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
       "source": "researchSeeds",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "githubProjectDiscovery",
       "trustScore": 15,
       "runs": 0,
       "successes": 0,
@@ -106,28 +128,6 @@
     },
     {
       "source": "expandedMarketData",
-      "trustScore": 15,
-      "runs": 0,
-      "successes": 0,
-      "failures": 0,
-      "lastStatus": "UNKNOWN",
-      "lastError": null,
-      "lastCandidateCount": 0,
-      "cooldownUntil": null
-    },
-    {
-      "source": "freeMarketData",
-      "trustScore": 15,
-      "runs": 0,
-      "successes": 0,
-      "failures": 0,
-      "lastStatus": "UNKNOWN",
-      "lastError": null,
-      "lastCandidateCount": 0,
-      "cooldownUntil": null
-    },
-    {
-      "source": "birdeye",
       "trustScore": 15,
       "runs": 0,
       "successes": 0,
@@ -217,7 +217,29 @@
       "cooldownUntil": null
     },
     {
+      "source": "githubProjectDiscovery",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
       "source": "researchSeeds",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "aiDiscoverySwarm",
       "trustScore": 15,
       "runs": 0,
       "successes": 0,

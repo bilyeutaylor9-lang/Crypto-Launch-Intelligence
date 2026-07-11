@@ -54,8 +54,10 @@ export function saveInternetResearchMemory(projects = []) {
       narrativeHits: project.internetResearch?.narrativeHits || [],
       riskHits: project.internetResearch?.riskHits || [],
       sourceCount: project.internetResearch?.sourceCount || 0,
+      crawlPageCount: project.internetResearch?.crawlPageCount || 0,
+      webcrawl: project.internetResearch?.webcrawl || {},
       articles: (project.internetResearch?.articles || []).slice(0, 8),
-      pages: (project.internetResearch?.pages || []).slice(0, 3),
+      pages: (project.internetResearch?.pages || []).slice(0, 6),
       summary: project.internetResearch?.summary || "",
     }));
   const updated = [...existing, ...records].slice(-MAX_RECORDS);
@@ -93,6 +95,7 @@ export function summarizeInternetResearchMemory() {
       symbol: record.symbol,
       score: record.score,
       sourceCount: record.sourceCount,
+      crawlPageCount: record.crawlPageCount || 0,
     })),
   };
 }

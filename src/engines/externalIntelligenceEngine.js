@@ -153,7 +153,7 @@ export async function analyzeExternalIntelligenceBatch(projects = [], options = 
               ? "Negative"
               : "Neutral",
           reasons: [
-            `X status: ${status.x}. News status: ${status.news}. Internet sources: ${num(internet.sourceCount)}.`,
+            `X status: ${status.x}. News status: ${status.news}. Internet sources: ${num(internet.sourceCount)}. Crawled pages: ${num(internet.crawlPageCount)}.`,
             `${[...new Set(catalystHits)].length} catalyst terms and ${[...new Set(riskHits)].length} risk terms detected.`,
           ],
         },

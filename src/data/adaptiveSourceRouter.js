@@ -13,7 +13,9 @@ const CORE_SOURCE_NAMES = [
   "freeMarketData",
   "expandedMarketData",
   "googleNewsDiscovery",
+  "githubProjectDiscovery",
   "researchSeeds",
+  "aiDiscoverySwarm",
   "candidateRescue",
 ];
 
@@ -231,7 +233,9 @@ export function saveSourceRoutingOutcome(discovery = {}, options = {}) {
     freeMarketData: reports.freeMarketData,
     expandedMarketData: reports.expandedMarketData,
     googleNewsDiscovery: reports.googleNewsDiscovery,
+    githubProjectDiscovery: reports.githubProjectDiscovery,
     researchSeeds: reports.researchSeeds,
+    aiDiscoverySwarm: reports.aiDiscoverySwarm,
     candidateRescue: reports.candidateRescue,
   };
 

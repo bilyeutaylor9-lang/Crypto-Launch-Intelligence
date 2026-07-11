@@ -67,6 +67,7 @@ Commands:
   crypto-launch dashboard         Open the HTML dashboard
   crypto-launch council           Print AI Council report
   crypto-launch research-os       Print Research OS report
+  crypto-launch webcrawl          Run free web crawler research demo
   crypto-launch alpha-lab         Print Alpha Lab report
   crypto-launch simulation        Print Simulation Brain report
   crypto-launch outcome           Print Outcome Judge report
@@ -74,6 +75,8 @@ Commands:
   crypto-launch dossier           Print Dossier Swarm report
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
+  crypto-launch github-discovery  Search free GitHub project discovery
+  crypto-launch ai-discovery      Run AI discovery swarm
   crypto-launch audit             Run engine import health check
   crypto-launch explain SYMBOL    Explain a project from the latest report
 `);
@@ -97,6 +100,10 @@ switch (command) {
     break;
   case "research-os":
     runNpm("research-os", args);
+    break;
+  case "webcrawl":
+  case "research-webcrawl":
+    runNpm("research:webcrawl", args);
     break;
   case "alpha-lab":
     runNpm("alpha-lab", args);
@@ -124,6 +131,14 @@ switch (command) {
   case "router":
   case "sources":
     runNpm("source-router", args);
+    break;
+  case "github-discovery":
+  case "github":
+    runNpm("sources:github", args);
+    break;
+  case "ai-discovery":
+  case "ai-swarm":
+    runNpm("sources:ai-swarm", args);
     break;
   case "audit":
     runNpm("engine:audit", args);

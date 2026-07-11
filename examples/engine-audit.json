@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-07-10T03:55:56.235Z",
-  "totalEngines": 90,
-  "wiredIntoPipeline": 66,
-  "stateOfArtReady": 73,
+  "generatedAt": "2026-07-11T01:26:05.355Z",
+  "totalEngines": 91,
+  "wiredIntoPipeline": 67,
+  "stateOfArtReady": 74,
   "readinessScore": 87,
   "categoryCounts": {
     "intelligence": 38,
     "ai": 10,
     "learning": 9,
     "market-flow": 5,
-    "narrative-launch": 8,
+    "narrative-launch": 9,
     "discovery": 13,
     "risk": 2,
     "wallet-flow": 5
@@ -1565,6 +1565,21 @@
       "wiredInPipeline": false,
       "advancedSignals": 4,
       "readinessScore": 75,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "roadmapCatalystProfitEngine.js",
+      "category": "narrative-launch",
+      "exports": [
+        "extractRoadmapMilestones",
+        "analyzeRoadmapCatalystProfit",
+        "analyzeRoadmapCatalystProfitBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
       "status": "state-of-art-ready"
     },
     {

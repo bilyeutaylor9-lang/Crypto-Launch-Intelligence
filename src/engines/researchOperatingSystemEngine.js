@@ -45,6 +45,7 @@ function multiTimeframe(project = {}) {
   const sevenDay = clamp(
     avg([
       project.catalystCalendarScore,
+      project.roadmapProfitabilityScore,
       project.narrativeHeatScore,
       project.prePumpPatternScore,
       project.confidenceAdjustedScore,
@@ -93,12 +94,13 @@ function scenarioPlan(project = {}, timeframes = {}) {
   const trap = num(project.trapRiskScore);
   const liquidity = num(project.liquidityScore || project.liquidityExpansionScore);
   const catalyst = avg([project.catalystScore, project.catalystCalendarScore]);
+  const roadmap = num(project.roadmapProfitabilityScore);
   const narrative = num(project.narrativeHeatScore);
 
   return {
     bullCase: {
-      score: Math.round(clamp(base + narrative * 0.16 + catalyst * 0.14 + liquidity * 0.12 - trap * 0.1)),
-      thesis: "Upside scenario requires catalyst confirmation, liquidity expansion, and low trap risk.",
+      score: Math.round(clamp(base + narrative * 0.16 + catalyst * 0.14 + roadmap * 0.12 + liquidity * 0.12 - trap * 0.1)),
+      thesis: "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk.",
     },
     baseCase: {
       score: Math.round(clamp(base + avg(Object.values(timeframes).filter((value) => typeof value === "number")) * 0.12 - trap * 0.08)),
@@ -144,6 +146,13 @@ function researchTasks(project = {}) {
       task: "Run deeper web research on official pages, recent articles, and negative-risk searches.",
       priority: "High",
       status: project.webResearchStatus === "SEARCHED" ? "in_progress" : "open",
+    });
+  }
+  if (num(project.roadmapProfitabilityScore) >= 50 || project.fullRoadmap?.milestoneCount) {
+    tasks.push({
+      task: "Verify the full roadmap milestones and decide whether the catalyst path is already priced in.",
+      priority: num(project.roadmapProfitabilityScore) >= 65 ? "High" : "Medium",
+      status: "open",
     });
   }
 

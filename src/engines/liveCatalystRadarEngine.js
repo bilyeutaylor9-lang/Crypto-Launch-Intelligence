@@ -17,6 +17,7 @@ function textFor(project = {}) {
     project.aiThesis?.memo,
     ...(project.newsItems || []).map((item) => item.title || item.summary),
     ...(project.internetResearch?.findings || []).map((item) => item.title || item.summary || item.text),
+    ...(project.roadmapMilestones || []).map((item) => item.title || item.summary || item.type),
     ...(project.catalysts || []).map((item) => item.label || item.type || item.summary),
     ...(project.catalystSignals || []).map((item) => item.label || item.reason),
   ]
@@ -98,6 +99,9 @@ function detectMarketEvents(project = {}) {
   }
   if (num(project.catalystCalendarScore || project.catalystScore) >= 65) {
     events.push(event("Catalyst Calendar Alert", project.catalystCalendarScore || project.catalystScore, "24h-30d", "High", ["catalyst calendar score elevated"]));
+  }
+  if (num(project.roadmapProfitabilityScore) >= 65) {
+    events.push(event("Profitable Roadmap Path", project.roadmapProfitabilityScore, "7d-90d", "High", ["roadmap-profit agents see a tradable catalyst path"]));
   }
 
   return events;

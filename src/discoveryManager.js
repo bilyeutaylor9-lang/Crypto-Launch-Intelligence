@@ -8,7 +8,9 @@ import { getFreeMarketDataCandidates } from "./data/freeMarketDataConnector.js";
 import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnector.js";
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
+import { getGithubProjectDiscoveryCandidates } from "./data/githubProjectDiscoveryConnector.js";
 import { buildCandidateRescueExpansion } from "./data/candidateRescueExpansionEngine.js";
+import { runAIDiscoverySwarm } from "./data/aiDiscoverySwarmEngine.js";
 import {
   getSourceRoutingPlan,
   saveSourceRoutingOutcome,
@@ -260,6 +262,11 @@ export async function runDiscoveryManager(options = {}) {
       process.env.GOOGLE_NEWS_DISCOVERY_LIMIT ||
       (wideScan ? 500 : 120)
   );
+  const githubDiscoveryLimit = num(
+    options.githubDiscoveryLimit ||
+      process.env.GITHUB_DISCOVERY_LIMIT ||
+      (wideScan ? 500 : 120)
+  );
   const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
   const seedSupplementThreshold = num(
     options.seedSupplementThreshold ||
@@ -268,6 +275,8 @@ export async function runDiscoveryManager(options = {}) {
   );
   const candidateRescueEnabled =
     options.candidateRescue?.enabled ?? process.env.DISABLE_CANDIDATE_RESCUE !== "true";
+  const aiDiscoverySwarmEnabled =
+    options.aiDiscoverySwarm?.enabled ?? process.env.DISABLE_AI_DISCOVERY_SWARM !== "true";
   const sourceRouterPlan = options.sourceRouter?.enabled === false
     ? { sources: [], run: [], skipped: [], prioritized: [] }
     : getSourceRoutingPlan();
@@ -299,6 +308,9 @@ export async function runDiscoveryManager(options = {}) {
   const googleNews = await routedSource(sourceRouterPlan, "googleNewsDiscovery", "GoogleNewsDiscovery", () =>
     getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit })
   );
+  const githubDiscovery = await routedSource(sourceRouterPlan, "githubProjectDiscovery", "GitHubProjectDiscovery", () =>
+    getGithubProjectDiscoveryCandidates({ limit: githubDiscoveryLimit })
+  );
 
   const dexResults = normalizeResults(dex.output, []);
   const geckoResults = normalizeResults(gecko.output, []);
@@ -307,6 +319,7 @@ export async function runDiscoveryManager(options = {}) {
   const freeMarketResults = normalizeResults(freeMarket.output, []);
   const expandedMarketResults = normalizeResults(expandedMarket.output, []);
   const googleNewsResults = normalizeResults(googleNews.output, []);
+  const githubDiscoveryResults = normalizeResults(githubDiscovery.output, []);
 
   const rawPool = [
     ...dexResults.map((p) => enrichDiscoverySource(p, "dexscreener")),
@@ -316,6 +329,7 @@ export async function runDiscoveryManager(options = {}) {
     ...freeMarketResults.map((p) => enrichDiscoverySource(p, p.source || "free-market")),
     ...expandedMarketResults.map((p) => enrichDiscoverySource(p, p.source || "expanded-market")),
     ...googleNewsResults.map((p) => enrichDiscoverySource(p, "google-news")),
+    ...githubDiscoveryResults.map((p) => enrichDiscoverySource(p, "github-project-discovery")),
   ];
 
   const liveDedupedPool = dedupeAndMerge(rawPool);
@@ -329,10 +343,25 @@ export async function runDiscoveryManager(options = {}) {
     ...liveDedupedPool,
     ...fallbackSeedResults.map((p) => enrichDiscoverySource(p, "research-seed")),
   ]);
+  const aiDiscoverySwarm = aiDiscoverySwarmEnabled
+    && shouldRunSource(sourceRouterPlan, "aiDiscoverySwarm")
+    ? runAIDiscoverySwarm(seedSupplementedPool, options.aiDiscoverySwarm || {})
+    : {
+        candidates: [],
+        report: {
+          status: "DISABLED",
+          agents: [],
+          addedCount: 0,
+        },
+      };
+  const agentExpandedPool = dedupeAndMerge([
+    ...seedSupplementedPool,
+    ...(aiDiscoverySwarm.candidates || []).map((p) => enrichDiscoverySource(p, "ai-discovery-swarm")),
+  ]);
   const rescueExpansion = candidateRescueEnabled
     && shouldRunSource(sourceRouterPlan, "candidateRescue")
     ? buildCandidateRescueExpansion(
-        seedSupplementedPool,
+        agentExpandedPool,
         {
           sourceReports: {
             dexscreener: dex,
@@ -342,6 +371,7 @@ export async function runDiscoveryManager(options = {}) {
             freeMarketData: freeMarket,
             expandedMarketData: expandedMarket,
             googleNewsDiscovery: googleNews,
+            githubProjectDiscovery: githubDiscovery,
           },
         },
         options.candidateRescue || {}
@@ -351,15 +381,15 @@ export async function runDiscoveryManager(options = {}) {
         report: {
           status: "DISABLED",
           reasons: ["candidate rescue disabled"],
-          originalCount: seedSupplementedPool.length,
-          expandedCount: seedSupplementedPool.length,
+          originalCount: agentExpandedPool.length,
+          expandedCount: agentExpandedPool.length,
           addedCount: 0,
           failedSources: [],
           clusters: [],
         },
       };
   const dedupedPool = dedupeAndMerge([
-    ...seedSupplementedPool,
+    ...agentExpandedPool,
     ...(rescueExpansion.candidates || []).map((p) => enrichDiscoverySource(p, "candidate-rescue")),
   ]);
   const qualityGate = applyQualityGate(dedupedPool, options);
@@ -399,7 +429,9 @@ export async function runDiscoveryManager(options = {}) {
       "dexscreener-profiles",
       "dexscreener-boosts",
       "google-news",
+      "github-project-discovery",
       "research-seed-supplement",
+      "ai-discovery-swarm",
       "candidate-rescue",
     ],
 
@@ -411,13 +443,16 @@ export async function runDiscoveryManager(options = {}) {
       freeMarketResults.length +
       expandedMarketResults.length +
       googleNewsResults.length +
+      githubDiscoveryResults.length +
       fallbackSeedResults.length +
+      (aiDiscoverySwarm.candidates?.length || 0) +
       (rescueExpansion.candidates?.length || 0),
 
     rawCount: rawPool.length,
     liveDedupedCount: liveDedupedPool.length,
     seedSupplementCount: fallbackSeedResults.length,
     seedSupplementThreshold,
+    aiDiscoverySwarmCount: aiDiscoverySwarm.candidates?.length || 0,
     candidateRescueCount: rescueExpansion.candidates?.length || 0,
     dedupedCount: dedupedPool.length,
     acceptedCount: candidatePool.length,
@@ -525,6 +560,15 @@ export async function runDiscoveryManager(options = {}) {
         error: googleNews.error,
       },
 
+      githubProjectDiscovery: {
+        status: githubDiscovery.status,
+        durationMs: githubDiscovery.durationMs,
+        scannedTokens: githubDiscoveryResults.length,
+        enabled: process.env.DISABLE_GITHUB_DISCOVERY !== "true",
+        error: githubDiscovery.error,
+        report: githubDiscovery.output?.report,
+      },
+
       researchSeeds: {
         status: fallbackSeedResults.length ? "USED" : "SKIPPED",
         scannedTokens: fallbackSeedResults.length,
@@ -534,6 +578,13 @@ export async function runDiscoveryManager(options = {}) {
           : "Live source candidate count was above the supplement threshold or seeds were disabled.",
       },
 
+      aiDiscoverySwarm: {
+        status: aiDiscoverySwarm.report?.status || "UNKNOWN",
+        scannedTokens: aiDiscoverySwarm.candidates?.length || 0,
+        enabled: Boolean(aiDiscoverySwarmEnabled),
+        report: aiDiscoverySwarm.report,
+      },
+
       candidateRescue: {
         status: rescueExpansion.report?.status || "UNKNOWN",
         scannedTokens: rescueExpansion.candidates?.length || 0,
@@ -541,6 +592,7 @@ export async function runDiscoveryManager(options = {}) {
         report: rescueExpansion.report,
       },
     },
+    aiDiscoverySwarm: aiDiscoverySwarm.report,
     candidateRescue: rescueExpansion.report,
     sourceRouter: sourceRouterPlan,
   };

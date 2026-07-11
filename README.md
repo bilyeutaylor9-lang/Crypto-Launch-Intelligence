@@ -75,7 +75,8 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Discovers crypto projects from live market and launch sources.
 - Pulls from DexScreener, GeckoTerminal, CoinGecko, Birdeye, CoinPaprika, DeFiLlama, Binance, KuCoin, Coinbase, Kraken, CoinCap, CoinLore, CryptoCompare, DeFiLlama yields/stablecoins, narrative DexScreener search, OKX, Bybit, Gate.io, MEXC, Bitget, HTX, Bitfinex, Bitstamp, and Gemini.
 - Adds DexScreener latest token profiles and token boosts as free launch-discovery sources.
-- Researches public internet sources including crypto RSS feeds, Google News RSS search, and project pages, then saves research memory for future scans.
+- Adds free GitHub repository discovery to find new or active crypto projects before they have strong market coverage.
+- Researches public internet sources including crypto RSS feeds, Google News RSS search, project pages, and a bounded free web crawler, then saves research memory for future scans.
 - Uses research seed supplement candidates when live discovery is thin, so API rate limits or regional blocks do not leave the intelligence pipeline empty.
 - Scores projects across narrative, liquidity, momentum, developer, community, catalyst, smart-wallet, whale, and market-rank signals.
 - Detects launch, staking, restaking, TGE, mainnet, airdrop, and listing setups.
@@ -89,6 +90,9 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds AI analyst review, institutional vNext scoring, pre-pump pattern matching, and data confidence.
 - Adds a state-of-art ranking layer with narrative heat, source reliability, project-change detection, trap-risk scoring, and confidence-adjusted institutional rank.
 - Adds an autonomous web research agent that budgets free web/RSS/Google News searches toward the highest-priority candidates.
+- Adds free web crawling for project websites and same-domain research pages, with hard limits so scans stay GitHub-friendly.
+- Adds an AI Discovery Swarm where specialist agents search the candidate universe for narrative, launch, ecosystem, liquidity, institutional, and risk setups.
+- Adds a Roadmap Catalyst Profit Engine that extracts roadmap milestones and lets agents decide whether the catalyst path looks potentially profitable.
 - Adds an AI ecosystem council where specialist agents debate narrative, quant, flow, research quality, learning memory, and risk before assigning a final verdict.
 - Adds agent performance memory so the AI council can track agent behavior and adjust weights over time.
 - Adds a Research OS layer with multi-timeframe intelligence, scenario planning, autonomous research tasks, red-team review, disagreement detection, and strong-buy lifecycle tracking.
@@ -246,10 +250,11 @@ Strong-buy gate checks include council score, agent agreement, data confidence, 
 
 The wide scan is built as a staged funnel:
 
-- Collect up to 10,000 candidates from free/no-key market, DEX, CEX, DeFi, Google News, and research-seed sources.
+- Collect up to 10,000 candidates from free/no-key market, DEX, CEX, DeFi, Google News, GitHub repository search, AI discovery agents, and research-seed sources.
 - Rescue thin scans with narrative/chain expansion when providers fail, rate-limit, or return too few candidates.
 - Deduplicate and cheap-rank the full candidate pool.
 - Spend web research only on the highest-priority slice using `WEB_RESEARCH_AGENT_LIMIT`.
+- Crawl only the best candidates' public websites using `FREE_WEBCRAWL_MAX_PAGES`.
 - Run the full scoring stack and produce confidence-adjusted rankings.
 - Save internet research memory so future scans can compare what was found before.
 
@@ -261,9 +266,89 @@ Useful wide-scan controls:
 npm run scan:wide
 npm run scan:rescue
 WEB_RESEARCH_AGENT_LIMIT=250 npm run scan:wide
+FREE_WEBCRAWL_MAX_PAGES=6 WEB_RESEARCH_AGENT_LIMIT=100 npm run scan:wide
+GITHUB_DISCOVERY_LIMIT=500 AI_DISCOVERY_SWARM_LIMIT=500 npm run scan:wide
 DISCOVERY_SCAN_LIMIT=10000 WIDE_SCAN_LIMIT=10000 npm run scan
 CANDIDATE_RESCUE_THRESHOLD=1500 CANDIDATE_RESCUE_LIMIT=500 npm run scan:wide
 ```
+
+### Free Web Crawler
+
+The free crawler upgrades the web research agent from simple RSS/news checks into bounded page research.
+
+It can:
+
+- Crawl a project's homepage, same-domain research pages, roadmap pages, docs, blog, whitepaper/litepaper, changelog, tokenomics pages, and sitemap-discovered roadmap links.
+- Follow only safe HTTP/HTTPS links and skip social, binary, archive, video, script, and off-domain URLs.
+- Extract page titles, descriptions, body text, catalyst terms, narrative terms, and risk terms.
+- Boost internet research confidence when multiple crawled pages support the same thesis.
+- Save crawl evidence in `data/internet-research-memory.json` for future learning.
+
+Useful controls:
+
+```bash
+npm run research:webcrawl
+FREE_WEBCRAWL_MAX_PAGES=6 WEB_RESEARCH_AGENT_LIMIT=100 npm run scan
+FREE_WEBCRAWL_ENABLED=false npm run scan
+FREE_WEBCRAWL_TIMEOUT_MS=5000 npm run scan:wide
+```
+
+### GitHub + AI Discovery Agents
+
+The scanner can now search free public GitHub repositories for projects that may not be visible on token APIs yet.
+
+It looks for recently updated crypto, Web3, DeFi, AI-agent, RWA, DePIN, launch, airdrop, Base, and Solana repositories. Each repo becomes a candidate with:
+
+- GitHub URL and repository name
+- Stars, forks, open issues, language, and pushed date
+- Recent-activity estimate for developer scoring
+- Chain inference from repository text
+- Discovery priority score
+
+The AI Discovery Swarm then has multiple deterministic agents review the candidate universe:
+
+- Narrative Scout
+- Launch Hunter
+- Ecosystem Scout
+- Liquidity Scout
+- Institutional Scout
+- Risk Scout
+
+Useful controls:
+
+```bash
+npm run sources:github
+npm run sources:ai-swarm
+GITHUB_DISCOVERY_LIMIT=500 npm run scan:wide
+GITHUB_TOKEN=your_optional_token GITHUB_DISCOVERY_LIMIT=1000 npm run scan:wide
+DISABLE_GITHUB_DISCOVERY=true npm run scan
+DISABLE_AI_DISCOVERY_SWARM=true npm run scan
+```
+
+GitHub without a token is free but rate-limited. Adding a GitHub token is optional and only improves rate limits.
+
+### Roadmap Profit Agents
+
+Roadmap analysis now goes beyond spotting the word `roadmap`.
+
+The Roadmap Catalyst Profit Engine:
+
+- Extracts milestone candidates from project text, crawled pages, articles, and explicit roadmap fields.
+- Searches multiple roadmap sources instead of trusting one page: explicit fields, homepage, `/roadmap`, docs, blog, whitepaper/litepaper, changelog, tokenomics pages, sitemap links, RSS/news articles, and web-crawled text.
+- Detects mainnet, token launch, exchange listing, airdrop, staking, integrations, product releases, governance, funding, and unlock-risk events.
+- Parses timing hints such as `Q3 2026`, `September 2026`, `next month`, and `soon`.
+- Converts roadmap milestones into catalyst-calendar inputs.
+- Runs agents that decide whether the roadmap looks like a potentially profitable catalyst path or just noise.
+
+Key outputs:
+
+- `fullRoadmap`
+- `roadmapMilestones`
+- `fullRoadmap.sourceBreakdown`
+- `roadmapProfitabilityScore`
+- `roadmapProfitabilityVerdict`
+- `roadmapProfitabilityAgents`
+- `roadmapProfitabilityDecision`
 
 ### Adaptive Source Router
 
@@ -557,6 +642,13 @@ Each project can receive:
 - `webResearchStatus`
 - `internetResearchScore`
 - `internetResearchRiskScore`
+- `internetResearch.webcrawl`
+- `internetResearch.crawlPageCount`
+- `fullRoadmap`
+- `roadmapMilestones`
+- `roadmapProfitabilityScore`
+- `roadmapProfitabilityVerdict`
+- `roadmapProfitabilityAgents`
 - `aiEcosystemScore`
 - `aiEcosystemVerdict`
 - `aiEcosystemCouncil`
@@ -770,7 +862,10 @@ Inspect expanded source candidates:
 ```bash
 npm run sources:expanded
 npm run sources:seeds
+npm run sources:github
+npm run sources:ai-swarm
 npm run research:internet
+npm run research:webcrawl
 npm run research:memory
 npm run discover:wide
 ```
@@ -780,6 +875,10 @@ Discovery tuning:
 ```bash
 FREE_SOURCE_LIMIT=200 EXPANDED_SOURCE_LIMIT=200 npm run scan
 INTERNET_RESEARCH_PROJECT_LIMIT=50 npm run scan
+FREE_WEBCRAWL_MAX_PAGES=6 WEB_RESEARCH_AGENT_LIMIT=100 npm run scan
+FREE_WEBCRAWL_ENABLED=false npm run scan
+GITHUB_DISCOVERY_LIMIT=500 AI_DISCOVERY_SWARM_LIMIT=500 npm run scan:wide
+GITHUB_TOKEN=your_optional_token GITHUB_DISCOVERY_LIMIT=1000 npm run scan:wide
 DISCOVERY_SCAN_LIMIT=1500 npm run scan
 WIDE_SCAN=true WIDE_SCAN_LIMIT=10000 DISCOVERY_SCAN_LIMIT=10000 npm run scan
 COINGECKO_PER_PAGE=100 COINGECKO_PAGES=1 COINGECKO_CATEGORY_LIMIT=4 COINGECKO_DELAY_MS=3500 npm run scan

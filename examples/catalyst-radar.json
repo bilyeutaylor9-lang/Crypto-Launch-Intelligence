@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-10T03:55:56.145Z",
+  "generatedAt": "2026-07-11T01:26:05.125Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -132,7 +132,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Reject For Now",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     }
   ],
@@ -260,7 +260,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Reject For Now",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {

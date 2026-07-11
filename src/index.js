@@ -116,6 +116,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`
     );
   }
+  if (discovery.sourceReports?.githubProjectDiscovery || discovery.aiDiscoverySwarm) {
+    console.log(
+      `GitHub Discovery: ${discovery.sourceReports?.githubProjectDiscovery?.scannedTokens || 0} | AI Swarm: ${discovery.aiDiscoverySwarmCount || 0}`
+    );
+  }
 }
 
 function printSummary(summary) {

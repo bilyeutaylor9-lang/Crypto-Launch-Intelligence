@@ -187,7 +187,7 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
               : "Neutral",
           reasons: [
             research.summary || "Web research completed.",
-            `${num(research.sourceCount)} sources, ${(research.catalystHits || []).length} catalyst hits, ${(research.riskHits || []).length} risk hits.`,
+            `${num(research.sourceCount)} sources, ${num(research.crawlPageCount)} crawled pages, ${(research.catalystHits || []).length} catalyst hits, ${(research.riskHits || []).length} risk hits.`,
           ],
         },
       ],

@@ -18,6 +18,9 @@ import { analyzeLiveCatalystRadarBatch } from "../src/engines/liveCatalystRadarE
 import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
 import { buildCandidateRescueExpansion } from "../src/data/candidateRescueExpansionEngine.js";
 import { getSourceRoutingPlan, shouldRunSource } from "../src/data/adaptiveSourceRouter.js";
+import { __internetResearchTestHooks } from "../src/data/internetResearchConnector.js";
+import { runAIDiscoverySwarm } from "../src/data/aiDiscoverySwarmEngine.js";
+import { analyzeRoadmapCatalystProfit } from "../src/engines/roadmapCatalystProfitEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -575,4 +578,106 @@ test("adaptive source router cools down unreliable free providers", () => {
   assert.equal(shouldRunSource(plan, "coingecko"), false);
   assert.ok(plan.skipped.some((source) => source.source === "coingecko"));
   assert.ok(plan.prioritized.includes("dexscreener"));
+});
+
+test("free web crawler extracts safe same-domain research links", () => {
+  const html = `
+    <html>
+      <head><title>LaunchAI Docs</title></head>
+      <body>
+        <a href="/blog/mainnet-launch">Mainnet Launch</a>
+        <a href="https://launchai.example/tokenomics">Tokenomics</a>
+        <a href="https://x.com/launchai">Social</a>
+        <a href="https://other.example/story">Other</a>
+        <a href="/logo.png">Logo</a>
+      </body>
+    </html>
+  `;
+  const links = __internetResearchTestHooks.extractLinks(html, "https://launchai.example");
+  const scored = __internetResearchTestHooks.scoreResearch({
+    project: {
+      name: "LaunchAI",
+      symbol: "LAI",
+      description: "AI agent mainnet launch",
+    },
+    pages: [
+      {
+        url: "https://launchai.example/blog/mainnet-launch",
+        crawlDepth: 1,
+        title: "LaunchAI mainnet launch",
+        text: "LaunchAI announces AI agent mainnet launch, staking, and ecosystem integrations.",
+      },
+    ],
+  });
+
+  assert.deepEqual(links, [
+    "https://launchai.example/blog/mainnet-launch",
+    "https://launchai.example/tokenomics",
+  ]);
+  assert.equal(scored.crawlPageCount, 1);
+  assert.ok(scored.signalScore > 0);
+  assert.ok(scored.catalystHits.includes("launch"));
+});
+
+test("free web crawler seeds multiple roadmap research sources", () => {
+  const seeds = __internetResearchTestHooks.roadmapSeedUrls("https://launchai.example");
+  const sitemapLinks = __internetResearchTestHooks.parseSitemapLinks(
+    `
+      <urlset>
+        <url><loc>https://launchai.example/roadmap</loc></url>
+        <url><loc>https://launchai.example/docs/tokenomics</loc></url>
+        <url><loc>https://other.example/roadmap</loc></url>
+      </urlset>
+    `,
+    "https://launchai.example"
+  );
+
+  assert.ok(seeds.includes("https://launchai.example/roadmap"));
+  assert.ok(seeds.includes("https://launchai.example/docs"));
+  assert.deepEqual(sitemapLinks, [
+    "https://launchai.example/roadmap",
+    "https://launchai.example/docs/tokenomics",
+  ]);
+});
+
+test("roadmap catalyst profit engine extracts milestones and agent verdict", () => {
+  const result = analyzeRoadmapCatalystProfit(
+    {
+      name: "RoadmapAI",
+      symbol: "RAI",
+      description: "AI agent protocol",
+      internetResearchScore: 72,
+      narrativeHeatScore: 80,
+      liquidityExpansionScore: 65,
+      roadmap:
+        "Roadmap: Q3 2026 mainnet launch, September 2026 staking rewards, Coinbase listing soon, and ecosystem integrations.",
+      internetResearch: {
+        crawlPageCount: 3,
+        sourceCount: 4,
+        pages: [
+          {
+            title: "RoadmapAI roadmap",
+            text: "Q3 2026 mainnet launch with staking rewards and ecosystem integrations.",
+          },
+        ],
+      },
+    },
+    { now: "2026-07-10T00:00:00.000Z" }
+  );
+
+  assert.ok(result.roadmapMilestones.length >= 2);
+  assert.ok(result.roadmapProfitabilityScore > 0);
+  assert.ok(result.roadmapProfitabilityAgents.length >= 4);
+  assert.ok(result.catalysts.some((catalyst) => catalyst.type === "mainnet"));
+  assert.ok(result.fullRoadmap.milestoneCount >= 2);
+  assert.ok(result.fullRoadmap.sourceBreakdown.crawledPages >= 1);
+});
+
+test("AI discovery swarm adds agent-selected research candidates", () => {
+  const swarm = runAIDiscoverySwarm([], { limit: 10, seedLimit: 50, minScore: 10 });
+
+  assert.equal(swarm.report.status, "USED");
+  assert.ok(swarm.candidates.length > 0);
+  assert.ok(swarm.report.agents.length >= 5);
+  assert.ok(swarm.candidates[0].aiDiscoveryAgents.length > 0);
 });

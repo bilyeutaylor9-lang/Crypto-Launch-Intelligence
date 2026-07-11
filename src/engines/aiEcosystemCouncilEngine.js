@@ -121,6 +121,9 @@ function whyNow(project = {}, agents = [], gate = {}) {
   if (num(project.catalystScore) >= 60 || num(project.catalystCalendarScore) >= 60) {
     catalysts.push("Catalyst engine sees a launch/listing/news timing cluster.");
   }
+  if (num(project.roadmapProfitabilityScore) >= 58) {
+    catalysts.push(`Roadmap agents see a possible profitable catalyst path: ${project.roadmapProfitabilityVerdict}.`);
+  }
   if (num(project.prePumpPatternEdge) >= 8) reasons.push("Pattern memory resembles previous pre-breakout setups.");
   if (num(project.trapRiskScore) >= 55) invalidations.push("Trap risk must fall below the strong-buy threshold.");
   if (num(project.proofScore) < 55) invalidations.push("Proof score must improve.");
@@ -150,6 +153,7 @@ function buildAgents(project = {}) {
     project.quantumOpportunityScore,
     project.signalCombinationScore,
     project.calibrationScore,
+    project.roadmapProfitabilityScore,
   ]);
   const flowScore = avg([
     project.liquidityScore,
@@ -165,6 +169,7 @@ function buildAgents(project = {}) {
     project.sourceReliabilityScore,
     project.internetResearchScore,
     project.evidenceQualityScore,
+    project.roadmapProfitabilityScore,
   ]);
   const learningScore = avg([
     project.learningEdgeScore,
@@ -183,7 +188,7 @@ function buildAgents(project = {}) {
   ]);
   const riskDefense = clamp(100 - riskScore);
 
-  return [
+  const agents = [
     agent(
       "Narrative Scout",
       narrativeScore,
@@ -224,6 +229,24 @@ function buildAgents(project = {}) {
         ? "Historical pattern memory is supportive."
         : "Historical memory does not yet show a strong winner fit."
     ),
+  ];
+
+  if (num(project.roadmapProfitabilityScore) > 0 || project.fullRoadmap?.milestoneCount) {
+    agents.push(agent(
+      "Roadmap Profit Agent",
+      avg([project.roadmapProfitabilityScore, project.catalystCalendarScore, project.internetResearchScore]),
+      num(project.roadmapProfitabilityScore) >= 70
+        ? "bullish"
+        : num(project.roadmapProfitabilityScore) >= 50
+        ? "watching"
+        : "cautious",
+      num(project.roadmapProfitabilityScore) >= 70
+        ? "Roadmap milestones appear to create a tradable catalyst path."
+        : "Roadmap profitability needs stronger confirmation."
+    ));
+  }
+
+  agents.push(
     agent(
       "Risk Officer",
       riskDefense,
@@ -231,8 +254,10 @@ function buildAgents(project = {}) {
       riskDefense >= 70
         ? "No dominant trap or risk cluster blocks the thesis."
         : "Risk controls require caution before calling this a strong buy."
-    ),
-  ];
+    )
+  );
+
+  return agents;
 }
 
 function verdictFor(project = {}, councilScore = 0, agents = [], gate = {}) {

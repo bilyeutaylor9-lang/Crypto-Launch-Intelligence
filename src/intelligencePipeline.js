@@ -13,6 +13,7 @@ import { analyzeSocialAccelerationBatch } from "./engines/socialAccelerationEngi
 import { analyzeXSocialIntelligenceBatch } from "./engines/xSocialIntelligenceEngine.js";
 import { analyzeExternalIntelligenceBatch } from "./engines/externalIntelligenceEngine.js";
 import { analyzeWebResearchAgentBatch } from "./engines/webResearchAgentEngine.js";
+import { analyzeRoadmapCatalystProfitBatch } from "./engines/roadmapCatalystProfitEngine.js";
 import { analyzeLiquidityBatch } from "./engines/liquidityIntelligenceEngine.js";
 import { analyzeHolderGrowthBatch } from "./engines/holderGrowthEngine.js";
 import { analyzeWhaleActivityBatch } from "./engines/whaleActivityEngine.js";
@@ -996,6 +997,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Social Acceleration", analyzeSocialAccelerationBatch, results);
   results = await runEngine("External Intelligence", analyzeExternalIntelligenceBatch, results, options.externalIntelligence || {});
   results = await runEngine("Web Research Agent", analyzeWebResearchAgentBatch, results, options.webResearchAgent || {});
+  results = await runEngine("Roadmap Catalyst Profit", analyzeRoadmapCatalystProfitBatch, results, options.roadmapCatalystProfit || {});
   results = await runEngine("X Social Intelligence", analyzeXSocialIntelligenceBatch, results);
   results = await runEngine("Liquidity Intelligence", analyzeLiquidityBatch, results);
   results = await runEngine("Holder Growth", analyzeHolderGrowthBatch, results);
