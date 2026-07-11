@@ -1,0 +1,242 @@
+{
+  "generatedAt": "2026-07-10T03:55:56.157Z",
+  "memoryFile": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/source-router-memory.json",
+  "runs": 0,
+  "strongestSources": [
+    {
+      "source": "dexscreener",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "geckoterminal",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "coingecko",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "birdeye",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "freeMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "expandedMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    }
+  ],
+  "weakestSources": [
+    {
+      "source": "candidateRescue",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "researchSeeds",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "googleNewsDiscovery",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "expandedMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "freeMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "birdeye",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    }
+  ],
+  "sources": [
+    {
+      "source": "dexscreener",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "geckoterminal",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "coingecko",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "birdeye",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "freeMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "expandedMarketData",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "googleNewsDiscovery",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "researchSeeds",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
+      "source": "candidateRescue",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    }
+  ]
+}

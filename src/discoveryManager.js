@@ -9,6 +9,11 @@ import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnec
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
 import { buildCandidateRescueExpansion } from "./data/candidateRescueExpansionEngine.js";
+import {
+  getSourceRoutingPlan,
+  saveSourceRoutingOutcome,
+  shouldRunSource,
+} from "./data/adaptiveSourceRouter.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -136,6 +141,20 @@ async function safeSource(name, fn) {
   }
 }
 
+async function routedSource(plan = {}, sourceKey = "", name = "", fn) {
+  if (!shouldRunSource(plan, sourceKey)) {
+    return {
+      name,
+      status: "SKIPPED",
+      durationMs: 0,
+      output: [],
+      error: "Skipped by Adaptive Source Router",
+    };
+  }
+
+  return safeSource(name, fn);
+}
+
 function getReportNumber(report = {}, keys = []) {
   for (const key of keys) {
     const value = num(report?.[key]);
@@ -249,10 +268,13 @@ export async function runDiscoveryManager(options = {}) {
   );
   const candidateRescueEnabled =
     options.candidateRescue?.enabled ?? process.env.DISABLE_CANDIDATE_RESCUE !== "true";
+  const sourceRouterPlan = options.sourceRouter?.enabled === false
+    ? { sources: [], run: [], skipped: [], prioritized: [] }
+    : getSourceRoutingPlan();
 
-  const dex = await safeSource("DexScreener", () => scanLiveMarket({ maxTokens }));
-  const gecko = await safeSource("GeckoTerminal", () => getGeckoTerminalCandidates());
-  const coinGecko = await safeSource("CoinGecko", () =>
+  const dex = await routedSource(sourceRouterPlan, "dexscreener", "DexScreener", () => scanLiveMarket({ maxTokens }));
+  const gecko = await routedSource(sourceRouterPlan, "geckoterminal", "GeckoTerminal", () => getGeckoTerminalCandidates());
+  const coinGecko = await routedSource(sourceRouterPlan, "coingecko", "CoinGecko", () =>
     getCoinGeckoCandidates({
       perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
       pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || (wideScan ? 2 : 1)),
@@ -263,18 +285,18 @@ export async function runDiscoveryManager(options = {}) {
       ),
     })
   );
-  const birdeye = await safeSource("Birdeye", () =>
+  const birdeye = await routedSource(sourceRouterPlan, "birdeye", "Birdeye", () =>
     getBirdeyeCandidates({
       limit: num(options.birdeyeLimit || process.env.BIRDEYE_LIMIT || 100),
     })
   );
-  const freeMarket = await safeSource("FreeMarketData", () =>
+  const freeMarket = await routedSource(sourceRouterPlan, "freeMarketData", "FreeMarketData", () =>
     getFreeMarketDataCandidates({ limit: freeLimit })
   );
-  const expandedMarket = await safeSource("ExpandedMarketData", () =>
+  const expandedMarket = await routedSource(sourceRouterPlan, "expandedMarketData", "ExpandedMarketData", () =>
     getExpandedMarketDataCandidates({ limit: expandedLimit })
   );
-  const googleNews = await safeSource("GoogleNewsDiscovery", () =>
+  const googleNews = await routedSource(sourceRouterPlan, "googleNewsDiscovery", "GoogleNewsDiscovery", () =>
     getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit })
   );
 
@@ -298,7 +320,9 @@ export async function runDiscoveryManager(options = {}) {
 
   const liveDedupedPool = dedupeAndMerge(rawPool);
   const fallbackSeedResults =
-    fallbackSeedsEnabled && liveDedupedPool.length < seedSupplementThreshold
+    fallbackSeedsEnabled &&
+    shouldRunSource(sourceRouterPlan, "researchSeeds") &&
+    liveDedupedPool.length < seedSupplementThreshold
       ? getFallbackResearchSeedCandidates({ limit: options.seedLimit })
       : [];
   const seedSupplementedPool = dedupeAndMerge([
@@ -306,6 +330,7 @@ export async function runDiscoveryManager(options = {}) {
     ...fallbackSeedResults.map((p) => enrichDiscoverySource(p, "research-seed")),
   ]);
   const rescueExpansion = candidateRescueEnabled
+    && shouldRunSource(sourceRouterPlan, "candidateRescue")
     ? buildCandidateRescueExpansion(
         seedSupplementedPool,
         {
@@ -349,7 +374,7 @@ export async function runDiscoveryManager(options = {}) {
 
   const dexRejectedTokens = num(dex.output?.rejectedTokens);
 
-  return {
+  const discovery = {
     scannedAt: new Date().toISOString(),
     durationMs: Date.now() - startedAt,
     mode: wideScan ? "wide" : "standard",
@@ -517,7 +542,14 @@ export async function runDiscoveryManager(options = {}) {
       },
     },
     candidateRescue: rescueExpansion.report,
+    sourceRouter: sourceRouterPlan,
   };
+
+  if (options.saveSourceRouter !== false && sourceRouterPlan.sources?.length) {
+    discovery.sourceRouterReport = saveSourceRoutingOutcome(discovery);
+  }
+
+  return discovery;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -38,6 +38,8 @@
     "sources": "node src/data/dataSourceManager.js",
     "sources:expanded": "node src/data/expandedMarketDataConnector.js",
     "sources:seeds": "node src/data/fallbackResearchSeedConnector.js",
+    "source-router": "node src/data/adaptiveSourceRouter.js",
+    "sources:router": "node src/data/adaptiveSourceRouter.js",
     "research:internet": "node src/data/internetResearchConnector.js",
     "research:memory": "node src/learning/internetResearchMemoryStore.js",
     "watchtower": "node src/watchtower.js",

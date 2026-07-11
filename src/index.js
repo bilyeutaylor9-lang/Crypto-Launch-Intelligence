@@ -235,6 +235,7 @@ function printReportPaths(paths) {
   console.log(`Catalyst Radar: ${paths.catalystRadarPath}`);
   console.log(`Dossier Swarm:  ${paths.dossierSwarmPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
+  console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);
   console.log(`Alerts:         ${paths.alertsPath}`);
   console.log(`Daily Brief:    ${paths.briefPath}`);
@@ -282,7 +283,7 @@ async function main() {
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
       discoveredProjects: discoveredList.length,
-      discovery,
+      discovery: discoveredProjects,
       scannedProjects: results.length,
       engineMode: "full",
       scoringMode: "institutional-weighted-fallback",

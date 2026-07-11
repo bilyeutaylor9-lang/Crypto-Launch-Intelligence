@@ -30,6 +30,7 @@ The demo scans built-in research seed projects and generates:
 - Outcome Judge reality grading
 - Catalyst Radar why-now alerts
 - Project Dossier Swarm research packets
+- Adaptive Source Router provider memory
 - 8-month execution roadmap
 - Alpha Lab strategy report
 - Engine audit
@@ -46,6 +47,7 @@ cat examples/simulation-brain.json
 cat examples/outcome-judge.json
 cat examples/catalyst-radar.json
 cat examples/dossier-swarm.json
+cat examples/source-router.json
 cat examples/roadmap.json
 ```
 
@@ -98,6 +100,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds an Autonomous Outcome Judge that compares old calls against realized outcomes, finds false positives and missed winners, scores engine reliability, and adjusts confidence with accountability.
 - Adds a Live Catalyst Radar that detects listings, launches, airdrops, governance votes, staking changes, unlock risk, release signals, liquidity expansion, social acceleration, and smart-money movement.
 - Adds a Project Dossier Swarm where specialist agents review tokenomics, liquidity, narrative, developer strength, wallets, risk, outcomes, and final PM fit before creating an inspectable project research packet.
+- Adds an Adaptive Source Router that learns which free discovery providers are healthy, rate-limited, blocked, or useful, then routes future scans around bad endpoints.
 - Adds an 8-month public roadmap with JSON output for dashboard publishing.
 - Adds an engine audit so the repository can prove which engines exist, which ones are wired, and which are state-of-art ready.
 
@@ -260,6 +263,25 @@ npm run scan:rescue
 WEB_RESEARCH_AGENT_LIMIT=250 npm run scan:wide
 DISCOVERY_SCAN_LIMIT=10000 WIDE_SCAN_LIMIT=10000 npm run scan
 CANDIDATE_RESCUE_THRESHOLD=1500 CANDIDATE_RESCUE_LIMIT=500 npm run scan:wide
+```
+
+### Adaptive Source Router
+
+The Source Router is the scanner's discovery traffic controller. It records which free providers are producing candidates, which ones are failing, and which ones are temporarily blocked or rate-limited.
+
+It helps wide scans stay alive when free endpoints get noisy:
+
+- Cools down providers after `429`, `403`, `451`, timeout, or authorization failures.
+- Keeps healthy providers prioritized for the next run.
+- Lets the scanner continue with DexScreener, GeckoTerminal, DeFiLlama, CEX data, Google News, research seeds, and rescue expansion when one source breaks.
+- Writes `reports/source-router.json` so you can see the strongest and weakest discovery sources.
+
+Useful controls:
+
+```bash
+npm run source-router
+DISABLED_DISCOVERY_SOURCES=coingecko,binance npm run scan
+SOURCE_ROUTER_MAX_RUNS=500 npm run scan:wide
 ```
 
 ### Research OS and Alpha Lab
@@ -602,6 +624,12 @@ Running the scanner creates:
 - `reports/agent-performance.json`
 - `reports/research-os.json`
 - `reports/alpha-lab.json`
+- `reports/simulation-brain.json`
+- `reports/outcome-judge.json`
+- `reports/catalyst-radar.json`
+- `reports/dossier-swarm.json`
+- `reports/roadmap.json`
+- `reports/source-router.json`
 - `reports/engine-audit.json`
 - `reports/watchlist.json`
 - `reports/summary.txt`
@@ -661,6 +689,7 @@ Persistent learning files are saved under:
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
 - `data/agent-performance-memory.json`
+- `data/source-router-memory.json`
 
 These files are local runtime memory and should usually not be committed.
 
@@ -720,6 +749,7 @@ npm run outcome-judge
 npm run catalyst-radar
 npm run dossier-swarm
 npm run roadmap
+npm run source-router
 npm run engine:audit:json
 ```
 
@@ -757,9 +787,10 @@ CANDIDATE_RESCUE_THRESHOLD=500 CANDIDATE_RESCUE_LIMIT=250 npm run scan
 RESEARCH_SEED_SUPPLEMENT_THRESHOLD=500 npm run scan
 DISABLE_RESEARCH_SEEDS=true npm run scan
 DISABLE_CANDIDATE_RESCUE=true npm run scan
+DISABLED_DISCOVERY_SOURCES=coingecko,binance npm run scan
 ```
 
-If CoinGecko returns `429`, the scanner pauses that source for the rest of the run and continues with the other providers. This is expected on free public endpoints.
+If CoinGecko returns `429` or an exchange blocks your region, the Source Router records it, cools that source down, and continues with the other providers. This is expected on free public endpoints.
 
 Run tests:
 

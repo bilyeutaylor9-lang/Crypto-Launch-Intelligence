@@ -73,6 +73,7 @@ Commands:
   crypto-launch catalysts         Print Live Catalyst Radar report
   crypto-launch dossier           Print Dossier Swarm report
   crypto-launch roadmap           Generate and print roadmap summary
+  crypto-launch source-router     Print adaptive source router report
   crypto-launch audit             Run engine import health check
   crypto-launch explain SYMBOL    Explain a project from the latest report
 `);
@@ -118,6 +119,11 @@ switch (command) {
     break;
   case "roadmap":
     runNpm("roadmap", args);
+    break;
+  case "source-router":
+  case "router":
+  case "sources":
+    runNpm("source-router", args);
     break;
   case "audit":
     runNpm("engine:audit", args);

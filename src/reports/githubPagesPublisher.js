@@ -27,6 +27,7 @@ const PUBLIC_REPORTS = [
   "catalyst-radar.json",
   "dossier-swarm.json",
   "roadmap.json",
+  "source-router.json",
   "engine-audit.json",
 ];
 
@@ -61,6 +62,7 @@ function writeLandingPage(copiedFiles = []) {
   const outcomeJudge = readJsonReport("outcome-judge.json") || {};
   const catalystRadar = readJsonReport("catalyst-radar.json") || {};
   const dossierSwarm = readJsonReport("dossier-swarm.json") || {};
+  const sourceRouter = readJsonReport("source-router.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
   const topCouncil = council.strongBuyCandidates?.[0] || council.topCouncilSetups?.[0] || {};
@@ -78,6 +80,7 @@ function writeLandingPage(copiedFiles = []) {
     ["Outcome Judged", outcomeJudge.trackedProjects ?? topProject.outcomeJudgeStatus ?? "N/A"],
     ["Catalysts", catalystRadar.activeCatalystProjects ?? "N/A"],
     ["Dossiers", dossierSwarm.dossieredProjects ?? "N/A"],
+    ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
     ["Engines", audit.totalEngines ?? "N/A"],
@@ -315,6 +318,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Simulation Brain:</strong> market-memory analogs, future paths, mutation tests, and engine tournaments.</li>
           <li><strong>Outcome Judge:</strong> grades old calls against reality and adjusts confidence.</li>
           <li><strong>Catalyst Radar:</strong> detects why-now events, urgency, and action windows.</li>
+          <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
@@ -332,6 +336,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./outcome-judge.json">Outcome Judge</a>
         <a class="button" href="./catalyst-radar.json">Catalyst Radar</a>
         <a class="button" href="./dossier-swarm.json">Dossier Swarm</a>
+        <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./alerts.json">Alerts</a>

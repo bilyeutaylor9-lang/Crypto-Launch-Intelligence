@@ -17,6 +17,7 @@ import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOut
 import { analyzeLiveCatalystRadarBatch } from "../src/engines/liveCatalystRadarEngine.js";
 import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
 import { buildCandidateRescueExpansion } from "../src/data/candidateRescueExpansionEngine.js";
+import { getSourceRoutingPlan, shouldRunSource } from "../src/data/adaptiveSourceRouter.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -545,4 +546,33 @@ test("candidate rescue expansion backfills thin discovery pools with clustered c
   assert.ok(rescue.candidates.length > 0);
   assert.ok(rescue.report.topClusters.length > 0);
   assert.ok(rescue.candidates.some((candidate) => candidate.source === "candidate-rescue"));
+});
+
+test("adaptive source router cools down unreliable free providers", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const plan = getSourceRoutingPlan({
+    memory: {
+      sources: {
+        coingecko: {
+          source: "coingecko",
+          runs: 6,
+          successes: 1,
+          failures: 5,
+          totalCandidates: 200,
+          totalDurationMs: 9000,
+          lastStatus: "FAILED",
+          lastError: "429 rate limit",
+          cooldownUntil: future,
+        },
+      },
+      runs: [],
+    },
+  });
+
+  const coingecko = plan.sources.find((source) => source.source === "coingecko");
+
+  assert.equal(coingecko.decision, "COOLDOWN");
+  assert.equal(shouldRunSource(plan, "coingecko"), false);
+  assert.ok(plan.skipped.some((source) => source.source === "coingecko"));
+  assert.ok(plan.prioritized.includes("dexscreener"));
 });
