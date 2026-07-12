@@ -36,8 +36,10 @@ const PUBLIC_REPORTS = [
   "alpha-dashboard-v2.json",
   "paper-trading-lab.json",
   "weight-optimizer.json",
+  "breakout-brain.json",
   "source-truth.json",
   "github-intelligence-pro.json",
+  "autonomous-research.json",
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
@@ -82,8 +84,10 @@ function writeLandingPage(copiedFiles = []) {
   const alphaDashboardV2 = readJsonReport("alpha-dashboard-v2.json") || {};
   const paperLab = readJsonReport("paper-trading-lab.json") || {};
   const weightOptimizer = readJsonReport("weight-optimizer.json") || {};
+  const breakoutBrain = readJsonReport("breakout-brain.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
+  const autonomousResearch = readJsonReport("autonomous-research.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
@@ -115,8 +119,11 @@ function writeLandingPage(copiedFiles = []) {
       "Top Weight",
       topWeightFamily ? `${topWeightFamily.label} ${topWeightFamily.weight}x` : "N/A",
     ],
+    ["Breakout Pick", breakoutBrain.topThree?.[0]?.symbol || "N/A"],
+    ["Breakout Picks", breakoutBrain.selectedCount ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
+    ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
     ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
@@ -362,8 +369,10 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Autonomous Alpha OS:</strong> fuses agents into one operating decision and action queue.</li>
           <li><strong>Paper Trading Lab:</strong> grades simulated strategy calls against later outcomes.</li>
           <li><strong>Weight Optimizer:</strong> adjusts engine-family trust from paper performance.</li>
+          <li><strong>Breakout Brain:</strong> selects the top three best-available breakout candidates from thousands of simulations.</li>
           <li><strong>Source Truth:</strong> measures provider reliability and source agreement.</li>
           <li><strong>GitHub Pro:</strong> scores repository activity, contributors, releases, and repo risk.</li>
+          <li><strong>Research Brain:</strong> loops through hypotheses, missing proof, evidence graph, critic review, and memory.</li>
           <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
@@ -391,8 +400,10 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./alpha-dashboard-v2.json">Dashboard v2</a>
         <a class="button" href="./paper-trading-lab.json">Paper Lab</a>
         <a class="button" href="./weight-optimizer.json">Weights</a>
+        <a class="button" href="./breakout-brain.json">Breakouts</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
+        <a class="button" href="./autonomous-research.json">Research Brain</a>
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>

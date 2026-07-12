@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.681Z",
+  "generatedAt": "2026-07-12T06:04:13.524Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -297,39 +297,6 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 7,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineScore": 0,
-      "liveCatalystRadarScore": 49,
-      "liveCatalystUrgency": "Medium",
-      "liveCatalystAction": "Watch for confirmation",
-      "topEvent": {
-        "type": "Staking Change",
-        "score": 55,
-        "window": "7d-30d",
-        "urgency": "Medium",
-        "reasons": [
-          "staking or restaking language detected"
-        ]
-      },
-      "events": [
-        {
-          "type": "Staking Change",
-          "score": 55,
-          "window": "7d-30d",
-          "urgency": "Medium",
-          "reasons": [
-            "staking or restaking language detected"
-          ]
-        }
-      ],
-      "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Simulation Watch",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data"
-    },
-    {
       "rank": 2,
       "name": "Akash Network",
       "symbol": "AKT",
@@ -360,6 +327,39 @@
       ],
       "dossierSwarmDecision": "Do Not Promote",
       "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 7,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 0,
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -425,11 +425,11 @@
       "count": 1
     },
     {
-      "type": "Airdrop / Points Catalyst",
+      "type": "Migration / Release",
       "count": 1
     },
     {
-      "type": "Migration / Release",
+      "type": "Airdrop / Points Catalyst",
       "count": 1
     }
   ]

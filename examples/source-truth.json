@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.708Z",
+  "generatedAt": "2026-07-12T06:04:13.552Z",
   "totalProjects": 8,
   "verifiedStacks": 0,
   "weakStacks": 8,
@@ -48,8 +48,8 @@
       ]
     },
     {
-      "name": "Celestia",
-      "symbol": "TIA",
+      "name": "Akash Network",
+      "symbol": "AKT",
       "score": 26,
       "verdict": "Weak Source Stack",
       "sources": [
@@ -72,21 +72,9 @@
       ]
     },
     {
-      "name": "Akash Network",
-      "symbol": "AKT",
+      "name": "Celestia",
+      "symbol": "TIA",
       "score": 26,
-      "verdict": "Weak Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 15
-        }
-      ]
-    },
-    {
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "score": 23,
       "verdict": "Weak Source Stack",
       "sources": [
         {
@@ -98,6 +86,18 @@
     {
       "name": "Render",
       "symbol": "RNDR",
+      "score": 23,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Ondo",
+      "symbol": "ONDO",
       "score": 23,
       "verdict": "Weak Source Stack",
       "sources": [

@@ -31,6 +31,7 @@ const DEFAULT_AGENTS = [
   "Weight Optimizer",
   "Source Truth",
   "GitHub Pro",
+  "Autonomous Research Orchestrator",
 ];
 
 function ensureDataDir() {
@@ -235,6 +236,7 @@ export function saveAgentCouncilMemory(projects = []) {
         autoLearningWeightScore: project.autoLearningWeightScore || 0,
         sourceTruthScore: project.sourceTruthScore || 0,
         githubProScore: project.githubProScore || 0,
+        autonomousResearchScore: project.autonomousResearchScore || 0,
         confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
         pipelineScore: project.pipelineScore || 0,
         trapRiskScore: project.trapRiskScore || 0,
@@ -261,6 +263,18 @@ export function saveAgentCouncilMemory(projects = []) {
             name: "GitHub Pro",
             score: project.githubProScore || 0,
             stance: project.githubProScore >= 65 ? "cleared" : project.githubProScore >= 40 ? "watching" : "cautious",
+          },
+          {
+            name: "Autonomous Research Orchestrator",
+            score: project.autonomousResearchScore || 0,
+            stance:
+              project.autonomousResearchVerdict === "Research-Verified Priority"
+                ? "cleared"
+                : project.autonomousResearchVerdict === "Blocked By Research Risk"
+                ? "blocked"
+                : project.autonomousResearchScore >= 55
+                ? "watching"
+                : "cautious",
           },
           ...commanderAgents,
         ],

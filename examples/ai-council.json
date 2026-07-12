@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T02:26:54.779Z",
+  "generatedAt": "2026-07-12T06:04:10.669Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -7,7 +7,7 @@
       "rank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 53,
+      "score": 54,
       "verdict": "Best Available Strong Buy Candidate",
       "confidence": "Developing",
       "caveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
@@ -21,7 +21,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 53,
+            "value": 54,
             "required": ">= 78"
           },
           {
@@ -106,7 +106,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 36,
+          "score": 37,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -154,7 +154,7 @@
       "rank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 53,
+      "score": 54,
       "verdict": "Best Available Strong Buy Candidate",
       "confidence": "Developing",
       "caveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
@@ -168,7 +168,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 53,
+            "value": 54,
             "required": ">= 78"
           },
           {
@@ -253,7 +253,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 36,
+          "score": 37,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -296,11 +296,156 @@
       ]
     },
     {
+      "rank": 4,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "score": 52,
+      "verdict": "AI Watchlist",
+      "confidence": "Developing",
+      "caveat": "",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 52,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 4,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 27,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 20,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 85,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "No major positive change detected yet."
+        ],
+        "catalysts": [
+          "No confirmed catalyst cluster yet."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "debate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit.",
+          "Research Analyst: Research evidence is still developing."
+        ],
+        "moderator": "Bittensor does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "agents": [
+        {
+          "name": "Narrative Scout",
+          "score": 46,
+          "stance": "cautious",
+          "message": "Narrative evidence is not strong enough by itself."
+        },
+        {
+          "name": "Quant Forecaster",
+          "score": 34,
+          "stance": "cautious",
+          "message": "Composite scores need more confirmation."
+        },
+        {
+          "name": "Flow Analyst",
+          "score": 19,
+          "stance": "cautious",
+          "message": "Flow and smart-money support are not yet decisive."
+        },
+        {
+          "name": "Research Analyst",
+          "score": 45,
+          "stance": "cautious",
+          "message": "Research evidence is still developing."
+        },
+        {
+          "name": "Learning Engine",
+          "score": 42,
+          "stance": "cautious",
+          "message": "Historical memory does not yet show a strong winner fit."
+        },
+        {
+          "name": "Roadmap Profit Agent",
+          "score": 45,
+          "stance": "cautious",
+          "message": "Roadmap profitability needs stronger confirmation."
+        },
+        {
+          "name": "Risk Officer",
+          "score": 85,
+          "stance": "cleared",
+          "message": "No dominant trap or risk cluster blocks the thesis."
+        }
+      ],
+      "conversation": [
+        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
+        "Narrative Scout: Narrative evidence is not strong enough by itself.",
+        "Quant Forecaster: Composite scores need more confirmation.",
+        "Moderator: Bittensor does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      ]
+    },
+    {
       "rank": 6,
       "name": "Pendle",
       "symbol": "PENDLE",
-      "score": 51,
-      "verdict": "AI Pass For Now",
+      "score": 52,
+      "verdict": "AI Watchlist",
       "confidence": "Developing",
       "caveat": "",
       "pipelineScore": 0,
@@ -313,7 +458,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 51,
+            "value": 52,
             "required": ">= 78"
           },
           {
@@ -444,8 +589,8 @@
       "rank": 7,
       "name": "Celestia",
       "symbol": "TIA",
-      "score": 51,
-      "verdict": "AI Pass For Now",
+      "score": 52,
+      "verdict": "AI Watchlist",
       "confidence": "Developing",
       "caveat": "",
       "pipelineScore": 0,
@@ -458,7 +603,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 51,
+            "value": 52,
             "required": ">= 78"
           },
           {
@@ -586,155 +731,10 @@
       ]
     },
     {
-      "rank": 4,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "score": 51,
-      "verdict": "AI Pass For Now",
-      "confidence": "Developing",
-      "caveat": "",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 51,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 4,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 27,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 85,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "Narrative heat is elevated."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "No confirmed catalyst cluster yet."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "debate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Learning Engine: Historical memory does not yet show a strong winner fit.",
-          "Research Analyst: Research evidence is still developing."
-        ],
-        "moderator": "Bittensor does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "agents": [
-        {
-          "name": "Narrative Scout",
-          "score": 46,
-          "stance": "cautious",
-          "message": "Narrative evidence is not strong enough by itself."
-        },
-        {
-          "name": "Quant Forecaster",
-          "score": 34,
-          "stance": "cautious",
-          "message": "Composite scores need more confirmation."
-        },
-        {
-          "name": "Flow Analyst",
-          "score": 19,
-          "stance": "cautious",
-          "message": "Flow and smart-money support are not yet decisive."
-        },
-        {
-          "name": "Research Analyst",
-          "score": 45,
-          "stance": "cautious",
-          "message": "Research evidence is still developing."
-        },
-        {
-          "name": "Learning Engine",
-          "score": 42,
-          "stance": "cautious",
-          "message": "Historical memory does not yet show a strong winner fit."
-        },
-        {
-          "name": "Roadmap Profit Agent",
-          "score": 45,
-          "stance": "cautious",
-          "message": "Roadmap profitability needs stronger confirmation."
-        },
-        {
-          "name": "Risk Officer",
-          "score": 85,
-          "stance": "cleared",
-          "message": "No dominant trap or risk cluster blocks the thesis."
-        }
-      ],
-      "conversation": [
-        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
-        "Narrative Scout: Narrative evidence is not strong enough by itself.",
-        "Quant Forecaster: Composite scores need more confirmation.",
-        "Moderator: Bittensor does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      ]
-    },
-    {
       "rank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 49,
+      "score": 50,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
@@ -748,7 +748,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 49,
+            "value": 50,
             "required": ">= 78"
           },
           {
@@ -1024,7 +1024,7 @@
       "rank": 5,
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 47,
+      "score": 48,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
@@ -1038,7 +1038,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 47,
+            "value": 48,
             "required": ">= 78"
           },
           {
@@ -1117,7 +1117,7 @@
       "agents": [
         {
           "name": "Narrative Scout",
-          "score": 46,
+          "score": 47,
           "stance": "cautious",
           "message": "Narrative evidence is not strong enough by itself."
         },
@@ -1169,12 +1169,12 @@
       "rank": 3,
       "name": "Render",
       "symbol": "RNDR",
-      "score": 45,
+      "score": 46,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
       "pipelineScore": 3,
-      "confidenceAdjustedScore": 26,
+      "confidenceAdjustedScore": 27,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -1183,7 +1183,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 45,
+            "value": 46,
             "required": ">= 78"
           },
           {
@@ -1207,7 +1207,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 26,
+            "value": 27,
             "required": ">= 65"
           },
           {
@@ -1313,227 +1313,236 @@
   ],
   "agentPerformance": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/agent-performance-memory.json",
-    "records": 54,
+    "records": 188,
     "outcomes": 0,
     "agents": [
       {
         "name": "Narrative Scout",
-        "observations": 54,
+        "observations": 188,
         "bullish": 0,
-        "cautious": 42,
+        "cautious": 170,
         "averageScore": 32,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 53,
+        "weight": 1.12
       },
       {
         "name": "Quant Forecaster",
-        "observations": 54,
+        "observations": 188,
         "bullish": 0,
-        "cautious": 54,
+        "cautious": 188,
         "averageScore": 33,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 53,
+        "weight": 1.12
       },
       {
         "name": "Flow Analyst",
-        "observations": 54,
+        "observations": 188,
         "bullish": 0,
-        "cautious": 54,
+        "cautious": 188,
         "averageScore": 21,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 53,
+        "weight": 1.12
       },
       {
         "name": "Research Analyst",
-        "observations": 54,
+        "observations": 188,
         "bullish": 0,
-        "cautious": 39,
+        "cautious": 134,
         "averageScore": 55,
-        "reliability": 48,
-        "weight": 1.09
+        "reliability": 53,
+        "weight": 1.12
       },
       {
         "name": "Learning Engine",
-        "observations": 54,
+        "observations": 188,
         "bullish": 0,
-        "cautious": 54,
+        "cautious": 184,
         "averageScore": 41,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 53,
+        "weight": 1.12
       },
       {
         "name": "Risk Officer",
-        "observations": 54,
-        "bullish": 35,
-        "cautious": 1,
-        "averageScore": 78,
-        "reliability": 51,
-        "weight": 1.11
+        "observations": 188,
+        "bullish": 129,
+        "cautious": 2,
+        "averageScore": 77,
+        "reliability": 57,
+        "weight": 1.15
       },
       {
         "name": "Roadmap Profit Agent",
-        "observations": 42,
+        "observations": 184,
         "bullish": 0,
-        "cautious": 36,
-        "averageScore": 26,
-        "reliability": 47,
-        "weight": 1.08
-      },
-      {
-        "name": "Roadmap Agent",
-        "observations": 66,
-        "bullish": 0,
-        "cautious": 29,
-        "averageScore": 35,
-        "reliability": 48,
-        "weight": 1.09
-      },
-      {
-        "name": "GitHub Agent",
-        "observations": 78,
-        "bullish": 0,
-        "cautious": 39,
-        "averageScore": 33,
-        "reliability": 48,
-        "weight": 1.09
-      },
-      {
-        "name": "Tokenomics Agent",
-        "observations": 78,
-        "bullish": 38,
-        "cautious": 39,
-        "averageScore": 78,
+        "cautious": 162,
+        "averageScore": 36,
         "reliability": 52,
         "weight": 1.11
       },
       {
-        "name": "Catalyst Agent",
-        "observations": 41,
+        "name": "Roadmap Agent",
+        "observations": 296,
         "bullish": 0,
-        "cautious": 38,
-        "averageScore": 21,
-        "reliability": 47,
-        "weight": 1.08
+        "cautious": 139,
+        "averageScore": 35,
+        "reliability": 57,
+        "weight": 1.15
+      },
+      {
+        "name": "GitHub Agent",
+        "observations": 346,
+        "bullish": 0,
+        "cautious": 173,
+        "averageScore": 33,
+        "reliability": 59,
+        "weight": 1.16
+      },
+      {
+        "name": "Tokenomics Agent",
+        "observations": 346,
+        "bullish": 169,
+        "cautious": 173,
+        "averageScore": 78,
+        "reliability": 63,
+        "weight": 1.19
+      },
+      {
+        "name": "Catalyst Agent",
+        "observations": 177,
+        "bullish": 0,
+        "cautious": 173,
+        "averageScore": 24,
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Liquidity Agent",
-        "observations": 73,
+        "observations": 329,
         "bullish": 0,
-        "cautious": 37,
+        "cautious": 161,
         "averageScore": 47,
-        "reliability": 48,
-        "weight": 1.09
+        "reliability": 58,
+        "weight": 1.16
       },
       {
         "name": "Narrative Agent",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
-        "cautious": 25,
-        "averageScore": 27,
-        "reliability": 47,
-        "weight": 1.08
+        "cautious": 138,
+        "averageScore": 31,
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Profitability Agent",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
-        "cautious": 39,
+        "cautious": 173,
         "averageScore": 29,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Research Agent",
-        "observations": 14,
+        "observations": 70,
         "bullish": 0,
         "cautious": 0,
         "averageScore": 65,
-        "reliability": 48,
-        "weight": 1.09
+        "reliability": 50,
+        "weight": 1.1
       },
       {
         "name": "Commander",
-        "observations": 78,
+        "observations": 346,
         "bullish": 0,
-        "cautious": 39,
+        "cautious": 173,
         "averageScore": 45,
-        "reliability": 48,
-        "weight": 1.09
+        "reliability": 59,
+        "weight": 1.16
       },
       {
         "name": "Causal Brain",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
-        "cautious": 15,
+        "cautious": 59,
         "averageScore": 51,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Strategy Lab",
-        "observations": 39,
-        "bullish": 10,
+        "observations": 173,
+        "bullish": 41,
         "cautious": 0,
         "averageScore": 63,
-        "reliability": 49,
-        "weight": 1.09
+        "reliability": 54,
+        "weight": 1.13
       },
       {
         "name": "Simulation Desk",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
         "cautious": 0,
         "averageScore": 34,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Proof Officer",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
-        "cautious": 39,
+        "cautious": 173,
         "averageScore": 48,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Risk Governor",
-        "observations": 39,
+        "observations": 173,
         "bullish": 0,
-        "cautious": 39,
+        "cautious": 173,
         "averageScore": 25,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Paper Trading Lab",
-        "observations": 0,
+        "observations": 134,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 55,
+        "averageScore": 46,
+        "reliability": 50,
+        "weight": 1.1
       },
       {
         "name": "Weight Optimizer",
-        "observations": 0,
+        "observations": 134,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 5,
+        "averageScore": 53,
+        "reliability": 51,
+        "weight": 1.11
       },
       {
         "name": "Source Truth",
-        "observations": 0,
+        "observations": 134,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 123,
+        "averageScore": 37,
+        "reliability": 50,
+        "weight": 1.1
       },
       {
         "name": "GitHub Pro",
+        "observations": 134,
+        "bullish": 0,
+        "cautious": 134,
+        "averageScore": 0,
+        "reliability": 50,
+        "weight": 1.1
+      },
+      {
+        "name": "Autonomous Research Orchestrator",
         "observations": 0,
         "bullish": 0,
         "cautious": 0,
@@ -1543,41 +1552,42 @@
       },
       {
         "name": "Risk Agent",
-        "observations": 56,
+        "observations": 242,
         "bullish": 0,
-        "cautious": 54,
+        "cautious": 224,
         "averageScore": 38,
-        "reliability": 47,
-        "weight": 1.08
+        "reliability": 55,
+        "weight": 1.14
       }
     ],
     "weights": {
-      "Narrative Scout": 1.08,
-      "Quant Forecaster": 1.08,
-      "Flow Analyst": 1.08,
-      "Research Analyst": 1.09,
-      "Learning Engine": 1.08,
-      "Risk Officer": 1.11,
-      "Roadmap Profit Agent": 1.08,
-      "Roadmap Agent": 1.09,
-      "GitHub Agent": 1.09,
-      "Tokenomics Agent": 1.11,
-      "Catalyst Agent": 1.08,
-      "Liquidity Agent": 1.09,
-      "Narrative Agent": 1.08,
-      "Profitability Agent": 1.08,
-      "Research Agent": 1.09,
-      "Commander": 1.09,
-      "Causal Brain": 1.08,
-      "Strategy Lab": 1.09,
-      "Simulation Desk": 1.08,
-      "Proof Officer": 1.08,
-      "Risk Governor": 1.08,
-      "Paper Trading Lab": 1.06,
-      "Weight Optimizer": 1.06,
-      "Source Truth": 1.06,
-      "GitHub Pro": 1.06,
-      "Risk Agent": 1.08
+      "Narrative Scout": 1.12,
+      "Quant Forecaster": 1.12,
+      "Flow Analyst": 1.12,
+      "Research Analyst": 1.12,
+      "Learning Engine": 1.12,
+      "Risk Officer": 1.15,
+      "Roadmap Profit Agent": 1.11,
+      "Roadmap Agent": 1.15,
+      "GitHub Agent": 1.16,
+      "Tokenomics Agent": 1.19,
+      "Catalyst Agent": 1.11,
+      "Liquidity Agent": 1.16,
+      "Narrative Agent": 1.11,
+      "Profitability Agent": 1.11,
+      "Research Agent": 1.1,
+      "Commander": 1.16,
+      "Causal Brain": 1.11,
+      "Strategy Lab": 1.13,
+      "Simulation Desk": 1.11,
+      "Proof Officer": 1.11,
+      "Risk Governor": 1.11,
+      "Paper Trading Lab": 1.1,
+      "Weight Optimizer": 1.11,
+      "Source Truth": 1.1,
+      "GitHub Pro": 1.1,
+      "Autonomous Research Orchestrator": 1.06,
+      "Risk Agent": 1.14
     }
   }
 }

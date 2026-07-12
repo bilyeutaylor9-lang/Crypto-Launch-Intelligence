@@ -5,8 +5,8 @@ import { scanLiveMarket } from "./liveMarketScanner.js";
 import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
 import { getCoinGeckoCandidates } from "./data/coinGeckoConnector.js";
 import { getBirdeyeCandidates } from "./data/birdeyeConnector.js";
-import { getFreeMarketDataCandidates } from "./data/freeMarketDataConnector.js";
-import { getExpandedMarketDataCandidates } from "./data/expandedMarketDataConnector.js";
+import { getFreeMarketDataProviderBatch } from "./data/freeMarketDataConnector.js";
+import { getExpandedMarketDataProviderBatch } from "./data/expandedMarketDataConnector.js";
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
 import { getGithubProjectDiscoveryCandidates } from "./data/githubProjectDiscoveryConnector.js";
@@ -167,6 +167,31 @@ function getReportNumber(report = {}, keys = []) {
   return 0;
 }
 
+function providerResultsFrom(output = {}) {
+  return Array.isArray(output?.providers) ? output.providers : [];
+}
+
+function summarizeProviders(providers = []) {
+  const safeProviders = Array.isArray(providers) ? providers : [];
+  const byStatus = safeProviders.reduce((acc, provider) => {
+    const status = provider.status || "unknown";
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    total: safeProviders.length,
+    healthy: byStatus.healthy || 0,
+    authenticationRequired: byStatus.authentication_required || 0,
+    rateLimited: byStatus.rate_limited || 0,
+    regionBlocked: byStatus.region_blocked || 0,
+    temporarilyUnavailable: byStatus.temporarily_unavailable || 0,
+    degraded: byStatus.degraded || 0,
+    byStatus,
+    providers: safeProviders,
+  };
+}
+
 function passesQualityGate(project = {}, options = {}) {
   const minLiquidity = num(options.minLiquidity ?? process.env.MIN_LIQUIDITY ?? 0);
   const minVolume = num(options.minVolume ?? process.env.MIN_VOLUME_24H ?? 0);
@@ -301,10 +326,10 @@ export async function runDiscoveryManager(options = {}) {
     })
   );
   const freeMarket = await routedSource(sourceRouterPlan, "freeMarketData", "FreeMarketData", () =>
-    getFreeMarketDataCandidates({ limit: freeLimit })
+    getFreeMarketDataProviderBatch({ limit: freeLimit })
   );
   const expandedMarket = await routedSource(sourceRouterPlan, "expandedMarketData", "ExpandedMarketData", () =>
-    getExpandedMarketDataCandidates({ limit: expandedLimit })
+    getExpandedMarketDataProviderBatch({ limit: expandedLimit })
   );
   const googleNews = await routedSource(sourceRouterPlan, "googleNewsDiscovery", "GoogleNewsDiscovery", () =>
     getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit })
@@ -321,6 +346,12 @@ export async function runDiscoveryManager(options = {}) {
   const expandedMarketResults = normalizeResults(expandedMarket.output, []);
   const googleNewsResults = normalizeResults(googleNews.output, []);
   const githubDiscoveryResults = normalizeResults(githubDiscovery.output, []);
+  const freeMarketProviders = providerResultsFrom(freeMarket.output);
+  const expandedMarketProviders = providerResultsFrom(expandedMarket.output);
+  const providerHealth = summarizeProviders([
+    ...freeMarketProviders,
+    ...expandedMarketProviders,
+  ]);
 
   const rawPool = [
     ...dexResults.map((p) => enrichDiscoverySource(p, "dexscreener")),
@@ -417,6 +448,7 @@ export async function runDiscoveryManager(options = {}) {
       "birdeye",
       "coinpaprika",
       "defillama",
+      "defillama-chain",
       "binance",
       "kucoin",
       "coinbase",
@@ -429,6 +461,15 @@ export async function runDiscoveryManager(options = {}) {
       "dexscreener-search",
       "dexscreener-profiles",
       "dexscreener-boosts",
+      "okx",
+      "bybit",
+      "gate",
+      "mexc",
+      "bitget",
+      "htx",
+      "bitfinex",
+      "bitstamp",
+      "gemini",
       "google-news",
       "github-project-discovery",
       "research-seed-supplement",
@@ -461,6 +502,7 @@ export async function runDiscoveryManager(options = {}) {
     scanLimit: candidateRanking.limit,
     wideLimit,
     rejectedCount: dexRejectedTokens + qualityGate.rejected.length,
+    providerHealth,
 
     qualityGate: {
       enabled:
@@ -523,7 +565,8 @@ export async function runDiscoveryManager(options = {}) {
         scannedTokens: freeMarketResults.length,
         enabled: true,
         error: freeMarket.error,
-        sources: ["coinpaprika", "defillama", "binance", "kucoin", "coinbase", "kraken"],
+        providerHealth: summarizeProviders(freeMarketProviders),
+        sources: ["coinpaprika", "defillama", "defillama-chain", "binance", "kucoin", "coinbase", "kraken"],
       },
 
       expandedMarketData: {
@@ -532,6 +575,7 @@ export async function runDiscoveryManager(options = {}) {
         scannedTokens: expandedMarketResults.length,
         enabled: true,
         error: expandedMarket.error,
+        providerHealth: summarizeProviders(expandedMarketProviders),
         sources: [
           "coincap",
           "coinlore",

@@ -8,7 +8,7 @@
  * signals. This is a research simulator, not a price prediction guarantee.
  */
 
-const DEFAULT_SCENARIOS = Number(process.env.QUANTUM_FIELD_SCENARIOS || 384);
+const DEFAULT_SCENARIOS = Number(process.env.QUANTUM_FIELD_SCENARIOS || 2048);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;

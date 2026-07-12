@@ -34,7 +34,18 @@ import {
   analyzeAutoLearningWeightOptimizerBatch,
   buildAutoLearningWeights,
 } from "../src/engines/autoLearningWeightOptimizerEngine.js";
+import { analyzeBreakoutBrainBatch } from "../src/engines/breakoutBrainEngine.js";
+import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
+import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
+import {
+  classifyProviderStatus,
+  getBybitProviderResult,
+  getCoinCapProviderResult,
+  getGeminiTickerCandidates,
+} from "../src/data/expandedMarketDataConnector.js";
+import { __coinGeckoTestHooks } from "../src/data/coinGeckoConnector.js";
+import { __birdeyeTestHooks } from "../src/data/birdeyeConnector.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -1079,4 +1090,192 @@ test("alpha dashboard v2 rolls up paper, source, github, and weight intelligence
   assert.equal(dashboard.counts.verifiedSourceStacks, 1);
   assert.equal(dashboard.counts.healthyGithubSignals, 1);
   assert.ok(dashboard.operatorNotes.length > 0);
+});
+
+test("breakout brain runs thousands of simulations and always selects top three best available projects", () => {
+  const results = analyzeBreakoutBrainBatch(
+    [
+      {
+        name: "BreakoutOne",
+        symbol: "BO",
+        narrativeHeatScore: 88,
+        catalystCalendarScore: 82,
+        earlyBreakoutScore: 80,
+        liquidityExpansionScore: 76,
+        smartMoneyAccumulationScore: 78,
+        proofScore: 74,
+        dataConfidenceScore: 72,
+        sourceReliabilityScore: 70,
+        trapRiskScore: 10,
+      },
+      {
+        name: "BreakoutTwo",
+        symbol: "BT",
+        narrativeHeatScore: 78,
+        catalystCalendarScore: 72,
+        momentumShiftScore: 74,
+        buyPressureScore: 70,
+        smartWalletPerformanceScore: 68,
+        proofScore: 66,
+        dataConfidenceScore: 62,
+        trapRiskScore: 18,
+      },
+      {
+        name: "BreakoutThree",
+        symbol: "BTH",
+        narrativeHeatScore: 70,
+        liveCatalystRadarScore: 68,
+        accelerationScore: 66,
+        capitalFlowScore: 62,
+        proofScore: 58,
+        trapRiskScore: 22,
+      },
+      {
+        name: "WeakBreakout",
+        symbol: "WB",
+        narrativeHeatScore: 30,
+        proofScore: 20,
+        trapRiskScore: 50,
+      },
+    ],
+    { simulations: 1200, minSelections: 3 }
+  );
+
+  const selected = results.filter((project) => project.breakoutBrainSelected);
+
+  assert.equal(selected.length, 3);
+  assert.ok(selected.every((project) => project.breakoutMonteCarlo.simulations >= 1000));
+  assert.deepEqual(
+    selected.map((project) => project.breakoutBrainSelectionRank).sort((a, b) => a - b),
+    [1, 2, 3]
+  );
+  assert.ok(selected[0].breakoutProbabilitySoon >= 0);
+  assert.ok(selected[0].evidence.some((item) => item.engine === "Breakout Brain Engine"));
+});
+
+test("quantum outcome field defaults to thousands of deterministic scenarios", () => {
+  const result = analyzeQuantumOutcomeField({
+    name: "QuantumDefault",
+    symbol: "QD",
+    narrativeHeatScore: 80,
+    catalystScore: 72,
+    momentumShiftScore: 70,
+    liquidityScore: 68,
+    smartMoneyAccumulationScore: 66,
+    riskScore: 20,
+  });
+
+  assert.ok(result.quantumOutcomeField.scenarioCount >= 2000);
+  assert.ok(result.quantumOpportunityScore >= 0);
+});
+
+test("provider status classification handles auth, rate limits, region blocks, and outages", () => {
+  assert.equal(classifyProviderStatus({ status: 401 }), "authentication_required");
+  assert.equal(classifyProviderStatus({ status: 429 }), "rate_limited");
+  assert.equal(classifyProviderStatus({ status: 451 }), "region_blocked");
+  assert.equal(classifyProviderStatus({ message: "fetch failed" }), "temporarily_unavailable");
+});
+
+test("CoinGecko demo key headers and pacing are configurable", () => {
+  const oldDemoKey = process.env.COINGECKO_DEMO_API_KEY;
+  const oldDelay = process.env.COINGECKO_DELAY_MS;
+  const oldRpm = process.env.COINGECKO_REQUESTS_PER_MINUTE;
+
+  process.env.COINGECKO_DEMO_API_KEY = "demo-key";
+  process.env.COINGECKO_REQUESTS_PER_MINUTE = "60";
+  delete process.env.COINGECKO_DELAY_MS;
+
+  assert.equal(__coinGeckoTestHooks.coinGeckoHeaders()["x-cg-demo-api-key"], "demo-key");
+  assert.ok(__coinGeckoTestHooks.requestDelayMs() >= 1000);
+  assert.equal(__coinGeckoTestHooks.requestDelayMs({ delayMs: 123 }), 123);
+
+  if (oldDemoKey === undefined) delete process.env.COINGECKO_DEMO_API_KEY;
+  else process.env.COINGECKO_DEMO_API_KEY = oldDemoKey;
+  if (oldDelay === undefined) delete process.env.COINGECKO_DELAY_MS;
+  else process.env.COINGECKO_DELAY_MS = oldDelay;
+  if (oldRpm === undefined) delete process.env.COINGECKO_REQUESTS_PER_MINUTE;
+  else process.env.COINGECKO_REQUESTS_PER_MINUTE = oldRpm;
+});
+
+test("Binance routes to Binance.US in US mode and keeps liquidity separate from volume", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => [
+      {
+        symbol: "BTCUSDT",
+        lastPrice: "65000",
+        quoteVolume: "1234567",
+        priceChangePercent: "2.5",
+      },
+    ],
+  });
+
+  try {
+    const config = getBinanceMarketConfig({ region: "US" });
+    const [candidate] = await getBinanceTickerCandidates({ region: "US", limit: 1 });
+
+    assert.equal(config.source, "binance-us");
+    assert.equal(config.exchange, "Binance.US");
+    assert.equal(candidate.source, "binance-us");
+    assert.equal(candidate.exchange, "Binance.US");
+    assert.equal(candidate.baseSymbol, "BTC");
+    assert.equal(candidate.quoteSymbol, "USDT");
+    assert.equal(candidate.liquidityUsd, null);
+    assert.equal(candidate.volume24h, 1234567);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("CoinCap V3 reports missing key without attempting a request", async () => {
+  const result = await getCoinCapProviderResult({ apiKey: "" });
+
+  assert.equal(result.status, "authentication_required");
+  assert.equal(result.attempted, false);
+  assert.deepEqual(result.candidates, []);
+});
+
+test("Bybit reports US region block without attempting a request", async () => {
+  const result = await getBybitProviderResult({ region: "US" });
+
+  assert.equal(result.status, "region_blocked");
+  assert.equal(result.attempted, false);
+  assert.deepEqual(result.candidates, []);
+});
+
+test("Gemini uses bulk price feed and avoids fake liquidity", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => [
+      {
+        pair: "BTCUSD",
+        price: "65000",
+        percentChange24h: "1.2",
+      },
+    ],
+  });
+
+  try {
+    const [candidate] = await getGeminiTickerCandidates({ limit: 1 });
+
+    assert.equal(candidate.source, "gemini");
+    assert.equal(candidate.exchange, "Gemini");
+    assert.equal(candidate.liquidityUsd, null);
+    assert.equal(candidate.volume24h, null);
+    assert.equal(candidate.marketCap, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Birdeye clamps trending limits and explains access errors", () => {
+  assert.equal(__birdeyeTestHooks.birdeyeLimit(500), 50);
+  assert.match(
+    __birdeyeTestHooks.friendlyBirdeyeError(403, "forbidden", "https://example.com"),
+    /key may not have access/
+  );
 });

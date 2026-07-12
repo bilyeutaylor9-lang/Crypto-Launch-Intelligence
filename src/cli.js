@@ -85,6 +85,8 @@ Commands:
   crypto-launch weight-optimizer  Print Auto-Learning Weight Optimizer report
   crypto-launch source-truth      Print Source Truth report
   crypto-launch github-pro        Print GitHub Intelligence Pro report
+  crypto-launch research-brain    Print Autonomous Research Orchestrator report
+  crypto-launch breakouts         Print Breakout Brain top candidates
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -184,6 +186,16 @@ switch (command) {
   case "github-pro":
   case "github-intelligence":
     runNpm("github-pro", args);
+    break;
+  case "research-brain":
+  case "autonomous-research":
+  case "research-loop":
+    runNpm("autonomous-research", args);
+    break;
+  case "breakouts":
+  case "breakout-brain":
+  case "blow-up":
+    runNpm("breakout-brain", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

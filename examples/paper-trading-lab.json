@@ -1,16 +1,79 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.707Z",
+  "generatedAt": "2026-07-12T06:04:13.550Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-    "totalRecords": 0,
+    "totalRecords": 1,
     "evaluatedRecords": 0,
-    "openRecords": 0,
+    "openRecords": 1,
     "winners": 0,
     "losers": 0,
     "winRate": 0,
     "averageReturnPct": 0,
-    "strategies": [],
-    "topOpenTrades": []
+    "strategies": [
+      {
+        "id": "narrative_heat_momentum",
+        "name": "Narrative Heat Momentum",
+        "observations": 1,
+        "evaluated": 0,
+        "winners": 0,
+        "losers": 0,
+        "avgReturnPct": -7,
+        "avgAlphaOSScore": 42,
+        "avgRiskScore": 20,
+        "winRate": 0,
+        "lossRate": 0,
+        "status": "Collecting"
+      }
+    ],
+    "topOpenTrades": [
+      {
+        "id": "0x742fa2694712b96caa0244ebabff2300955d9d2e",
+        "name": "robin",
+        "symbol": "ROBIN",
+        "chain": "robinhood",
+        "strategyId": "narrative_heat_momentum",
+        "strategyName": "Narrative Heat Momentum",
+        "openedAt": "2026-07-12T04:56:34.007Z",
+        "updatedAt": "2026-07-12T05:36:40.348Z",
+        "entryPriceUsd": 0.0008865,
+        "latestPriceUsd": 0.0008211,
+        "latestReturnPct": -7,
+        "daysOpen": 0,
+        "outcomeLabel": "Open",
+        "alphaOSVerdict": "OS Best Available Candidate",
+        "alphaOSScore": 42,
+        "causalAlphaScore": 60,
+        "strategyLabScore": 73,
+        "paperTradeScore": 57,
+        "proofScore": 30,
+        "sourceTruthScore": 44,
+        "githubProScore": 0,
+        "riskScore": 20,
+        "expectedReturn30dPct": 19,
+        "breakoutProbability30d": 34,
+        "entryTriggers": [
+          "Narrative heat rises with social acceleration and real liquidity support.",
+          "Project becomes best-in-class inside an active narrative cluster.",
+          "Proof score improves instead of relying only on hype."
+        ],
+        "invalidationRules": [
+          "Social heat fades without liquidity or GitHub confirmation.",
+          "Bot, low-source, or thin-proof risk rises.",
+          "Narrative leader rotates to a stronger competitor.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "checkpoints": {
+          "1d": null,
+          "7d": null,
+          "30d": null,
+          "90d": null
+        },
+        "latestAlphaOSVerdict": "OS Best Available Candidate",
+        "latestAlphaOSScore": 41,
+        "latestRiskScore": 20
+      }
+    ]
   },
   "totalProjects": 8,
   "promoteStrategyCount": 0,
@@ -19,7 +82,7 @@
     {
       "name": "Pendle",
       "symbol": "PENDLE",
-      "score": 48,
+      "score": 49,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -29,7 +92,7 @@
     {
       "name": "Celestia",
       "symbol": "TIA",
-      "score": 47,
+      "score": 49,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -39,9 +102,9 @@
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 46,
+      "score": 47,
       "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
@@ -49,7 +112,17 @@
     {
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 45,
+      "score": 46,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 44,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -67,21 +140,11 @@
       "alphaOSVerdict": "OS Risk Block"
     },
     {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 43,
-      "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
-    },
-    {
       "name": "Render",
       "symbol": "RNDR",
       "score": 43,
       "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
@@ -89,9 +152,9 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 41,
+      "score": 42,
       "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Risk Block"

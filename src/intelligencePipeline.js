@@ -78,6 +78,8 @@ import { analyzeCausalAlphaBrainBatch } from "./engines/causalAlphaBrainEngine.j
 import { analyzeAutonomousAlphaOSBatch } from "./engines/autonomousAlphaOSEngine.js";
 import { analyzePaperTradingOutcomeLabBatch } from "./engines/paperTradingOutcomeLabEngine.js";
 import { analyzeAutoLearningWeightOptimizerBatch } from "./engines/autoLearningWeightOptimizerEngine.js";
+import { analyzeBreakoutBrainBatch } from "./engines/breakoutBrainEngine.js";
+import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomousResearchOrchestratorEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -88,6 +90,7 @@ import { saveInternetResearchMemory } from "./learning/internetResearchMemorySto
 import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.js";
 import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
 import { savePaperTradingOutcomes } from "./learning/paperTradingOutcomeStore.js";
+import { saveAutonomousResearchMemory } from "./learning/autonomousResearchMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1084,6 +1087,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutonomousAlphaOSBatch(results);
   results = analyzePaperTradingOutcomeLabBatch(results);
   results = analyzeAutoLearningWeightOptimizerBatch(results);
+  results = analyzeBreakoutBrainBatch(results, options.breakoutBrain || {});
+  results = analyzeAutonomousResearchOrchestratorBatch(results, options.autonomousResearch || {});
 
   if (options.saveMemory !== false) {
     try {
@@ -1126,6 +1131,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       savePaperTradingOutcomes(results);
     } catch (error) {
       console.log(`Paper trading outcome save failed: ${error.message}`);
+    }
+
+    try {
+      saveAutonomousResearchMemory(results);
+    } catch (error) {
+      console.log(`Autonomous research memory save failed: ${error.message}`);
     }
   }
 
@@ -1261,6 +1272,13 @@ export function summarizePipelineResults(results = []) {
   const eliteGithubSignals = safeResults.filter((p) => p.githubProVerdict === "Elite Builder Signal");
   const healthyGithubSignals = safeResults.filter((p) => p.githubProVerdict === "Healthy Builder Signal");
   const weightOptimizedPriority = safeResults.filter((p) => p.autoLearningWeightVerdict === "Weight-Optimized Priority");
+  const breakoutBrainSelections = safeResults.filter((p) => p.breakoutBrainSelected);
+  const topBreakoutBrainSetups = [...safeResults]
+    .sort((a, b) => num(b.breakoutBrainScore) - num(a.breakoutBrainScore))
+    .slice(0, 10);
+  const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
+  const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
+  const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1347,6 +1365,11 @@ export function summarizePipelineResults(results = []) {
     eliteGithubSignalCount: eliteGithubSignals.length,
     healthyGithubSignalCount: healthyGithubSignals.length,
     weightOptimizedPriorityCount: weightOptimizedPriority.length,
+    breakoutBrainSelectionCount: breakoutBrainSelections.length,
+    breakoutBrainHighProbabilityCount: safeResults.filter((p) => num(p.breakoutProbabilitySoon) >= 40).length,
+    autonomousResearchPriorityCount: autonomousResearchPriority.length,
+    autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
+    autonomousResearchBlockedCount: autonomousResearchBlocked.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1478,6 +1501,38 @@ export function summarizePipelineResults(results = []) {
         strategy: project.bestAutonomousStrategy?.name || "No Strategy",
         causalDriver: project.causalSignalGraph?.primaryDriver?.label || "Unknown",
       })),
+    topAutonomousResearchSetups: [...safeResults]
+      .sort((a, b) => num(b.autonomousResearchScore) - num(a.autonomousResearchScore))
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.autonomousAlphaOSRank || project.pipelineRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        autonomousResearchScore: project.autonomousResearchScore || 0,
+        verdict: project.autonomousResearchVerdict || "Unknown",
+        confidence: project.autonomousResearchConfidence || 0,
+        unansweredQuestions: project.autonomousResearchOrchestrator?.unansweredQuestions || [],
+        contradictions: project.autonomousResearchOrchestrator?.contradictions || [],
+        searchesPerformed: project.autonomousResearchOrchestrator?.searchesPerformed || [],
+      })),
+    topBreakoutBrainSetups: topBreakoutBrainSetups.map((project) => ({
+      rank: project.breakoutBrainRank || 0,
+      selected: Boolean(project.breakoutBrainSelected),
+      selectionRank: project.breakoutBrainSelectionRank || null,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      chain: project.chain || "unknown",
+      breakoutBrainScore: project.breakoutBrainScore || 0,
+      breakoutProbabilitySoon: project.breakoutProbabilitySoon || 0,
+      doubleProbability: project.breakoutMonteCarlo?.doubleProbability || 0,
+      collapseProbability: project.breakoutMonteCarlo?.collapseProbability || 0,
+      expectedReturn30dPct: project.breakoutExpectedReturn30dPct || 0,
+      confidence: project.breakoutBrainConfidence || "Unknown",
+      decision: project.breakoutBrainDecision || "Unknown",
+      simulations: project.breakoutMonteCarlo?.simulations || 0,
+      topDrivers: project.breakoutMonteCarlo?.topDrivers || [],
+      riskControls: project.breakoutMonteCarlo?.riskControls || [],
+    })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(
       (p) => p.smartMoneyAccumulationScore >= 70

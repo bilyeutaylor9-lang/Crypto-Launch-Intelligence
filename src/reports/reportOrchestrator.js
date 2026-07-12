@@ -21,6 +21,8 @@ import { writeRoadmapReport } from "./roadmapReportEngine.js";
 import { writeAICommandCenterReport } from "./aiCommandCenterReportEngine.js";
 import { writeAlphaOSReports } from "./alphaOSReportEngine.js";
 import { writeAlphaDashboardV2Report } from "./alphaDashboardV2ReportEngine.js";
+import { writeAutonomousResearchReport } from "./autonomousResearchReportEngine.js";
+import { writeBreakoutBrainReport } from "./breakoutBrainReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -76,6 +78,12 @@ export function generateReports(projects = [], meta = {}) {
     githubProPath,
   } = writeAlphaDashboardV2Report(projects);
   const {
+    filePath: autonomousResearchPath,
+  } = writeAutonomousResearchReport(projects);
+  const {
+    filePath: breakoutBrainPath,
+  } = writeBreakoutBrainReport(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -122,6 +130,8 @@ export function generateReports(projects = [], meta = {}) {
     weightOptimizerPath,
     sourceTruthPath,
     githubProPath,
+    autonomousResearchPath,
+    breakoutBrainPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

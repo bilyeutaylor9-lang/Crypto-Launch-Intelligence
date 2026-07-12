@@ -117,6 +117,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`
     );
   }
+  if (discovery.providerHealth) {
+    console.log(
+      `Provider Health: ${discovery.providerHealth.healthy || 0}/${discovery.providerHealth.total || 0} healthy | Missing Keys: ${discovery.providerHealth.authenticationRequired || 0} | Rate Limited: ${discovery.providerHealth.rateLimited || 0} | Region Blocked: ${discovery.providerHealth.regionBlocked || 0}`
+    );
+  }
   if (discovery.sourceReports?.githubProjectDiscovery || discovery.aiDiscoverySwarm) {
     console.log(
       `GitHub Discovery: ${discovery.sourceReports?.githubProjectDiscovery?.scannedTokens || 0} | AI Swarm: ${discovery.aiDiscoverySwarmCount || 0}`
@@ -169,9 +174,13 @@ function printSummary(summary) {
   console.log(`Alpha OS Strong Buys: ${summary.alphaOSStrongBuyCount}`);
   console.log(`Alpha OS Best Available: ${summary.alphaOSBestAvailableCount}`);
   console.log(`Weight-Optimized Priority: ${summary.weightOptimizedPriorityCount}`);
+  console.log(`Breakout Brain Picks: ${summary.breakoutBrainSelectionCount}`);
+  console.log(`High Breakout Probability: ${summary.breakoutBrainHighProbabilityCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
+  console.log(`Autonomous Research Priority: ${summary.autonomousResearchPriorityCount}`);
+  console.log(`Autonomous Research Blocked: ${summary.autonomousResearchBlockedCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -266,6 +275,8 @@ function printReportPaths(paths) {
   console.log(`Weights:        ${paths.weightOptimizerPath}`);
   console.log(`Source Truth:   ${paths.sourceTruthPath}`);
   console.log(`GitHub Pro:     ${paths.githubProPath}`);
+  console.log(`Research Brain: ${paths.autonomousResearchPath}`);
+  console.log(`Breakout Brain: ${paths.breakoutBrainPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

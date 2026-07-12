@@ -138,6 +138,7 @@ export function createScanRecord(project = {}) {
       autoLearningWeight: num(project.autoLearningWeightScore),
       sourceTruth: num(project.sourceTruthScore),
       githubPro: num(project.githubProScore),
+      autonomousResearch: num(project.autonomousResearchScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -240,6 +241,8 @@ export function createScanRecord(project = {}) {
       autoLearningWeightOptimizer: project.autoLearningWeightOptimizer || {},
       sourceTruth: project.sourceTruth || {},
       githubIntelligencePro: project.githubIntelligencePro || {},
+      autonomousResearchOrchestrator: project.autonomousResearchOrchestrator || {},
+      evidenceGraph: project.evidenceGraph || {},
     },
 
     futureOutcomes: {

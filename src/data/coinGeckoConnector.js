@@ -42,6 +42,29 @@ class CoinGeckoRateLimitError extends Error {
   }
 }
 
+function coinGeckoHeaders() {
+  return {
+    accept: "application/json",
+    ...(process.env.COINGECKO_DEMO_API_KEY
+      ? { "x-cg-demo-api-key": process.env.COINGECKO_DEMO_API_KEY }
+      : {}),
+  };
+}
+
+function requestDelayMs(options = {}) {
+  if (options.delayMs !== undefined) return Number(options.delayMs);
+  if (process.env.COINGECKO_DELAY_MS) return Number(process.env.COINGECKO_DELAY_MS);
+
+  const rpm = Number(process.env.COINGECKO_REQUESTS_PER_MINUTE || 0);
+  if (rpm > 0) {
+    const safetyMargin = Number(process.env.COINGECKO_RATE_LIMIT_SAFETY_MARGIN || 0.85);
+    const safeRpm = Math.max(1, Math.floor(rpm * Math.min(1, Math.max(0.1, safetyMargin))));
+    return Math.ceil(60000 / safeRpm);
+  }
+
+  return 3500;
+}
+
 async function fetchJson(url, options = {}) {
   const timeoutMs = Number(options.timeoutMs || 15000);
   const controller = new AbortController();
@@ -51,9 +74,7 @@ async function fetchJson(url, options = {}) {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: {
-        accept: "application/json"
-      }
+      headers: coinGeckoHeaders(),
     });
 
     if (response.status === 429) {
@@ -209,7 +230,7 @@ export async function getCoinGeckoCandidates(options = {}) {
   const pages = Number(options.pages || process.env.COINGECKO_PAGES || 1);
   const categoryLimit = Number(options.categoryLimit || process.env.COINGECKO_CATEGORY_LIMIT || 4);
   const categories = (options.categories || DEFAULT_CATEGORIES).slice(0, categoryLimit);
-  const delayMs = Number(options.delayMs || process.env.COINGECKO_DELAY_MS || 3500);
+  const delayMs = requestDelayMs(options);
   const stopOnRateLimit = options.stopOnRateLimit ?? process.env.COINGECKO_STOP_ON_429 !== "false";
 
   const candidates = [];
@@ -278,6 +299,11 @@ export async function getCoinGeckoCandidates(options = {}) {
 
   return dedupeProjects(candidates);
 }
+
+export const __coinGeckoTestHooks = {
+  coinGeckoHeaders,
+  requestDelayMs,
+};
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const candidates = await getCoinGeckoCandidates({

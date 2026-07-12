@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T02:26:54.809Z",
+  "generatedAt": "2026-07-12T06:04:10.697Z",
   "totalProjects": 8,
   "counts": {
     "strongBuyCandidates": 0,
@@ -158,12 +158,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -324,12 +324,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -491,7 +491,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 49,
+        "score": 50,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -613,7 +613,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -658,18 +658,18 @@
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 28,
+        "bull": 29,
         "bear": 24,
         "entropy": "High"
       }
@@ -781,7 +781,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Watch"
           },
           {
@@ -827,7 +827,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 47,
+        "score": 48,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -837,7 +837,7 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 26,
+        "bull": 27,
         "bear": 25,
         "entropy": "High"
       }
@@ -995,7 +995,7 @@
       },
       "aiCouncil": {
         "verdict": "Best Available Strong Buy Candidate",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -1127,7 +1127,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -1257,22 +1257,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
+          "scoreAfterMutation": 14,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 25,
+          "scoreAfterMutation": 26,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 32,
+          "scoreAfterMutation": 33,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1331,7 +1331,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 45,
+        "score": 46,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -1502,7 +1502,7 @@
       },
       "aiCouncil": {
         "verdict": "Best Available Strong Buy Candidate",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -1624,7 +1624,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Watch"
           },
           {
@@ -1670,7 +1670,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 47,
+        "score": 48,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -1680,7 +1680,7 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 26,
+        "bull": 27,
         "bear": 25,
         "entropy": "High"
       }
@@ -1802,7 +1802,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -1932,22 +1932,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
+          "scoreAfterMutation": 14,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 25,
+          "scoreAfterMutation": 26,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 32,
+          "scoreAfterMutation": 33,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -2006,7 +2006,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 45,
+        "score": 46,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -2128,7 +2128,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -2173,18 +2173,18 @@
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 28,
+        "bull": 29,
         "bear": 24,
         "entropy": "High"
       }
@@ -2341,12 +2341,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -2507,12 +2507,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -2674,7 +2674,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 49,
+        "score": 50,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -2796,7 +2796,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -2841,18 +2841,18 @@
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 28,
+        "bull": 29,
         "bear": 24,
         "entropy": "High"
       }
@@ -2964,7 +2964,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Watch"
           },
           {
@@ -3010,7 +3010,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 47,
+        "score": 48,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -3020,7 +3020,7 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 26,
+        "bull": 27,
         "bear": 25,
         "entropy": "High"
       }
@@ -3142,7 +3142,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -3272,22 +3272,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
+          "scoreAfterMutation": 14,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 25,
+          "scoreAfterMutation": 26,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 32,
+          "scoreAfterMutation": 33,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3346,7 +3346,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 45,
+        "score": 46,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -3514,7 +3514,7 @@
       },
       "aiCouncil": {
         "verdict": "Best Available Strong Buy Candidate",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -3681,12 +3681,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -3847,12 +3847,12 @@
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
@@ -4014,7 +4014,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 49,
+        "score": 50,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -4136,7 +4136,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -4181,18 +4181,18 @@
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
-        "verdict": "AI Pass For Now",
-        "score": 51,
+        "verdict": "AI Watchlist",
+        "score": 52,
         "confidence": "Developing"
       },
       "researchOS": {
-        "lifecycleStage": "Candidate",
+        "lifecycleStage": "Watch",
         "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 28,
+        "bull": 29,
         "bear": 24,
         "entropy": "High"
       }
@@ -4304,7 +4304,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Watch"
           },
           {
@@ -4350,7 +4350,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 47,
+        "score": 48,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -4360,7 +4360,7 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 26,
+        "bull": 27,
         "bear": 25,
         "entropy": "High"
       }
@@ -4482,7 +4482,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -4612,22 +4612,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
+          "scoreAfterMutation": 14,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 25,
+          "scoreAfterMutation": 26,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 32,
+          "scoreAfterMutation": 33,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -4686,7 +4686,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 45,
+        "score": 46,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -4854,7 +4854,7 @@
       },
       "aiCouncil": {
         "verdict": "Best Available Strong Buy Candidate",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
