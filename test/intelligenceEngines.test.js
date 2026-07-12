@@ -21,6 +21,9 @@ import { getSourceRoutingPlan, shouldRunSource } from "../src/data/adaptiveSourc
 import { __internetResearchTestHooks } from "../src/data/internetResearchConnector.js";
 import { runAIDiscoverySwarm } from "../src/data/aiDiscoverySwarmEngine.js";
 import { analyzeRoadmapCatalystProfit } from "../src/engines/roadmapCatalystProfitEngine.js";
+import { analyzeAIResearchCommander } from "../src/engines/aiResearchCommanderEngine.js";
+import { analyzeAutonomousAlphaInvestigator } from "../src/engines/autonomousAlphaInvestigatorEngine.js";
+import { buildAIPortfolioWarRoom } from "../src/engines/aiPortfolioWarRoomEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -680,4 +683,96 @@ test("AI discovery swarm adds agent-selected research candidates", () => {
   assert.ok(swarm.candidates.length > 0);
   assert.ok(swarm.report.agents.length >= 5);
   assert.ok(swarm.candidates[0].aiDiscoveryAgents.length > 0);
+});
+
+test("AI research commander finds missing proof and assigns agents", () => {
+  const result = analyzeAIResearchCommander({
+    name: "CommanderCoin",
+    symbol: "CMD",
+    aiEcosystemScore: 68,
+    confidenceAdjustedScore: 64,
+    catalystCalendarScore: 62,
+    webResearchPriority: 70,
+    proofScore: 42,
+    dataConfidenceScore: 44,
+    liquidityScore: 35,
+    trapRiskScore: 30,
+  });
+
+  assert.ok(result.researchCommanderScore >= 0);
+  assert.ok(result.missingEvidence.some((item) => item.id === "roadmap"));
+  assert.ok(result.missingEvidence.some((item) => item.id === "github"));
+  assert.ok(result.researchAssignments.some((item) => item.agent === "Roadmap Agent"));
+  assert.ok(result.aiResearchCommander.nextAction.length > 0);
+});
+
+test("autonomous alpha investigator builds case file with specialist agents", () => {
+  const result = analyzeAutonomousAlphaInvestigator({
+    name: "AlphaCase",
+    symbol: "ALPHA",
+    aiEcosystemScore: 78,
+    confidenceAdjustedScore: 74,
+    roadmapProfitabilityScore: 72,
+    liveCatalystRadarScore: 70,
+    catalystCalendarScore: 68,
+    developerActivityScore: 62,
+    githubQualityScore: 58,
+    tokenomicsScore: 66,
+    liquidityExpansionScore: 70,
+    liquidityScore: 64,
+    capitalFlowScore: 66,
+    buyPressureScore: 63,
+    narrativeHeatScore: 82,
+    internetResearchScore: 68,
+    simulationBrainScore: 70,
+    breakoutProbability30d: 62,
+    expectedReturn30dPct: 38,
+    trapRiskScore: 16,
+    proofScore: 66,
+    dataConfidenceScore: 64,
+  });
+
+  assert.ok(result.alphaInvestigatorScore > 0);
+  assert.ok(result.alphaInvestigatorAgents.length >= 8);
+  assert.ok(result.alphaCaseFile.bullCase.length > 0);
+  assert.ok(result.alphaCaseFile.invalidation.length >= 0);
+  assert.ok(result.autonomousAlphaInvestigator.selfCorrection.agentWeights);
+});
+
+test("AI portfolio war room builds narrative battle map and allocations", () => {
+  const { annotated, battlePlan } = buildAIPortfolioWarRoom([
+    {
+      name: "AgentOne",
+      symbol: "AONE",
+      chain: "base",
+      description: "AI agent launchpad on Base",
+      aiEcosystemScore: 76,
+      confidenceAdjustedScore: 72,
+      alphaInvestigatorScore: 74,
+      researchCommanderScore: 70,
+      liveCatalystRadarScore: 68,
+      narrativeHeatScore: 82,
+      liquidityScore: 62,
+      dataConfidenceScore: 65,
+      trapRiskScore: 18,
+    },
+    {
+      name: "RWATwo",
+      symbol: "RWA2",
+      chain: "ethereum",
+      description: "RWA tokenized treasury protocol",
+      aiEcosystemScore: 64,
+      confidenceAdjustedScore: 60,
+      alphaInvestigatorScore: 58,
+      researchCommanderScore: 56,
+      narrativeHeatScore: 70,
+      trapRiskScore: 28,
+    },
+  ]);
+
+  assert.equal(annotated.length, 2);
+  assert.ok(annotated[0].aiPortfolioWarRoomScore >= 0);
+  assert.ok(battlePlan.narrativeBattleMap.length > 0);
+  assert.ok(battlePlan.bestInClassBoard.length > 0);
+  assert.ok(Object.keys(battlePlan.capitalAllocation).includes("priorityResearch"));
 });

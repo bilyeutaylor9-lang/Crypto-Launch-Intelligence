@@ -1,0 +1,4342 @@
+{
+  "generatedAt": "2026-07-12T00:55:49.241Z",
+  "totalProjects": 8,
+  "counts": {
+    "promoteToAlpha": 0,
+    "investigateNow": 0,
+    "alphaCases": 0,
+    "priorityInvestigations": 0,
+    "coreWatch": 0,
+    "priorityResearch": 0,
+    "avoid": 0
+  },
+  "commanderBrief": "Focus on ai, restaking, depin, modular. Highest ranked project: EigenLayer.",
+  "researchCommander": [
+    {
+      "rank": 6,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 29,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 40,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Airdrop / Points Catalyst is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 25,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Pendle",
+        "symbol": "PENDLE",
+        "score": 25,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Pendle PENDLE yield trading restaking liquid restaking LRT points staking rewards DeFi",
+          "summary": "Pendle PENDLE yield trading restaking liquid restaking LRT points staking rewards DeFi",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "airdrop",
+          "matchedTerms": [
+            "points",
+            "airdrop"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 90,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing liquidity depth confirmation.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "restaking",
+        "launchpads"
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 29,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 38,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Celestia",
+        "symbol": "TIA",
+        "score": 23,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Celestia TIA modular blockchain data availability rollup appchain staking validators ecosystem",
+          "summary": "Celestia TIA modular blockchain data availability rollup appchain staking validators ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "product_release",
+          "matchedTerms": [
+            "app",
+            "product",
+            "release"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 86,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 34,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "restaking",
+        "modular"
+      ]
+    },
+    {
+      "rank": 8,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 36,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Jupiter",
+        "symbol": "JUP",
+        "score": 21,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Jupiter JUP Solana DEX aggregator launchpad LFG token launch trading perps ecosystem",
+          "summary": "Jupiter JUP Solana DEX aggregator launchpad LFG token launch trading perps ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "token_launch",
+          "matchedTerms": [
+            "token launch"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 98,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing liquidity depth confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 29,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Roadmap Path",
+      "narratives": [
+        "solana",
+        "launchpads"
+      ]
+    },
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "Best Available Strong Buy Candidate",
+      "commanderScore": 35,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 31,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "EigenLayer",
+        "symbol": "EIGEN",
+        "score": 31,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "summary": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "mainnet",
+          "matchedTerms": [
+            "mainnet"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 100,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Roadmap Agent: Roadmap milestones support a catalyst path.",
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 4,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 31,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "unlocks",
+          "label": "Missing unlock schedule confirmation",
+          "severity": "Medium",
+          "agent": "Risk Agent",
+          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Risk Agent",
+          "priority": "Medium",
+          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
+          "reason": "Missing unlock schedule confirmation"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Bittensor",
+        "symbol": "TAO",
+        "score": 22,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing unlock schedule confirmation",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 30,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 30,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Akash Network",
+        "symbol": "AKT",
+        "score": 21,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 28,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 22,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 29,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "roadmap",
+          "label": "Missing verified roadmap",
+          "severity": "Medium",
+          "agent": "Roadmap Agent",
+          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
+        },
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 24,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Ondo",
+        "symbol": "ONDO",
+        "score": 24,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "governance",
+          "keyword": "treasury",
+          "weight": 10,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 27,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "rwa",
+        "stablecoins"
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 26,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 26,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "roadmap",
+          "label": "Missing verified roadmap",
+          "severity": "Medium",
+          "agent": "Roadmap Agent",
+          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
+        },
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 18,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Render",
+        "symbol": "RNDR",
+        "score": 18,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "token",
+          "keyword": "migration",
+          "weight": 18,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 23,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "solana"
+      ]
+    }
+  ],
+  "alphaInvestigator": [
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "Best Available Strong Buy Candidate",
+      "commanderScore": 35,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 31,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "EigenLayer",
+        "symbol": "EIGEN",
+        "score": 31,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "summary": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "mainnet",
+          "matchedTerms": [
+            "mainnet"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 100,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Roadmap Agent: Roadmap milestones support a catalyst path.",
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 29,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 40,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Airdrop / Points Catalyst is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 25,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Pendle",
+        "symbol": "PENDLE",
+        "score": 25,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Pendle PENDLE yield trading restaking liquid restaking LRT points staking rewards DeFi",
+          "summary": "Pendle PENDLE yield trading restaking liquid restaking LRT points staking rewards DeFi",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "airdrop",
+          "matchedTerms": [
+            "points",
+            "airdrop"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 90,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing liquidity depth confirmation.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "restaking",
+        "launchpads"
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 22,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 29,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "roadmap",
+          "label": "Missing verified roadmap",
+          "severity": "Medium",
+          "agent": "Roadmap Agent",
+          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
+        },
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 24,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Ondo",
+        "symbol": "ONDO",
+        "score": 24,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "governance",
+          "keyword": "treasury",
+          "weight": 10,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 27,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "rwa",
+        "stablecoins"
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 29,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 38,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Celestia",
+        "symbol": "TIA",
+        "score": 23,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Celestia TIA modular blockchain data availability rollup appchain staking validators ecosystem",
+          "summary": "Celestia TIA modular blockchain data availability rollup appchain staking validators ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "product_release",
+          "matchedTerms": [
+            "app",
+            "product",
+            "release"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 86,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 34,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "restaking",
+        "modular"
+      ]
+    },
+    {
+      "rank": 4,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 31,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "unlocks",
+          "label": "Missing unlock schedule confirmation",
+          "severity": "Medium",
+          "agent": "Risk Agent",
+          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Risk Agent",
+          "priority": "Medium",
+          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
+          "reason": "Missing unlock schedule confirmation"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Bittensor",
+        "symbol": "TAO",
+        "score": 22,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing unlock schedule confirmation",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 30,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 8,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 36,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Jupiter",
+        "symbol": "JUP",
+        "score": 21,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Jupiter JUP Solana DEX aggregator launchpad LFG token launch trading perps ecosystem",
+          "summary": "Jupiter JUP Solana DEX aggregator launchpad LFG token launch trading perps ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "token_launch",
+          "matchedTerms": [
+            "token launch"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 98,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing liquidity depth confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 29,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Roadmap Path",
+      "narratives": [
+        "solana",
+        "launchpads"
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 30,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Akash Network",
+        "symbol": "AKT",
+        "score": 21,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 28,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 26,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 26,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "roadmap",
+          "label": "Missing verified roadmap",
+          "severity": "Medium",
+          "agent": "Roadmap Agent",
+          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
+        },
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 18,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Render",
+        "symbol": "RNDR",
+        "score": 18,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "token",
+          "keyword": "migration",
+          "weight": 18,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 23,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "solana"
+      ]
+    }
+  ],
+  "portfolioWarRoom": {
+    "generatedAt": "2026-07-12T00:55:49.240Z",
+    "totalProjects": 8,
+    "narrativeBattleMap": [
+      {
+        "narrative": "ai",
+        "score": 45,
+        "projectCount": 5,
+        "momentum": 84,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 57,
+        "risk": 18,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "restaking",
+        "score": 45,
+        "projectCount": 5,
+        "momentum": 78,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 59,
+        "risk": 17,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "depin",
+        "score": 44,
+        "projectCount": 3,
+        "momentum": 91,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 51,
+        "risk": 20,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "modular",
+        "score": 40,
+        "projectCount": 1,
+        "momentum": 64,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 49,
+        "risk": 12,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestGithub": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          }
+        }
+      },
+      {
+        "narrative": "rwa",
+        "score": 37,
+        "projectCount": 1,
+        "momentum": 46,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 67,
+        "risk": 20,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "stablecoins",
+        "score": 37,
+        "projectCount": 1,
+        "momentum": 46,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 67,
+        "risk": 20,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "launchpads",
+        "score": 35,
+        "projectCount": 2,
+        "momentum": 56,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 38,
+        "risk": 12,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestGithub": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          }
+        }
+      },
+      {
+        "narrative": "solana",
+        "score": 35,
+        "projectCount": 2,
+        "momentum": 70,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 32,
+        "risk": 16,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "score": 23,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          }
+        }
+      }
+    ],
+    "topNarratives": [
+      {
+        "narrative": "ai",
+        "score": 45,
+        "projectCount": 5,
+        "momentum": 84,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 57,
+        "risk": 18,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "restaking",
+        "score": 45,
+        "projectCount": 5,
+        "momentum": 78,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 59,
+        "risk": 17,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "Best Available Strong Buy Candidate",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "depin",
+        "score": 44,
+        "projectCount": 3,
+        "momentum": 91,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 51,
+        "risk": 20,
+        "state": "Developing",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 30,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "modular",
+        "score": 40,
+        "projectCount": 1,
+        "momentum": 64,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 49,
+        "risk": 12,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestGithub": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          }
+        }
+      },
+      {
+        "narrative": "rwa",
+        "score": 37,
+        "projectCount": 1,
+        "momentum": 46,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 67,
+        "risk": 20,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "stablecoins",
+        "score": 37,
+        "projectCount": 1,
+        "momentum": 46,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 67,
+        "risk": 20,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestEarly": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestCatalyst": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestRiskAdjusted": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "needsMoreProof": {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 27,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          }
+        }
+      },
+      {
+        "narrative": "launchpads",
+        "score": 35,
+        "projectCount": 2,
+        "momentum": 56,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 38,
+        "risk": 12,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestGithub": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 36,
+            "allocation": "Wait For Confirmation",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 12
+          }
+        }
+      },
+      {
+        "narrative": "solana",
+        "score": 35,
+        "projectCount": 2,
+        "momentum": 70,
+        "github": 0,
+        "liquidity": 30,
+        "catalysts": 32,
+        "risk": 16,
+        "state": "Quiet",
+        "bestInClass": {
+          "bestOverall": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestEarly": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestCatalyst": {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "score": 23,
+            "allocation": "Ignore",
+            "role": "Best Catalyst Setup",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+            "risk": 20
+          },
+          "bestGithub": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "bestRiskAdjusted": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          },
+          "needsMoreProof": {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "score": 29,
+            "allocation": "Ignore",
+            "role": "Best Roadmap Path",
+            "aiVerdict": "AI Pass For Now",
+            "alphaVerdict": "Avoid",
+            "commanderVerdict": "Low Priority Research",
+            "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+            "risk": 12
+          }
+        }
+      }
+    ],
+    "bestInClassBoard": [
+      {
+        "narrative": "ai",
+        "state": "Developing",
+        "score": 45,
+        "bestOverall": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestEarly": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestCatalyst": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestRiskAdjusted": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "needsMoreProof": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        }
+      },
+      {
+        "narrative": "restaking",
+        "state": "Developing",
+        "score": 45,
+        "bestOverall": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestEarly": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestCatalyst": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        "bestRiskAdjusted": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "needsMoreProof": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        }
+      },
+      {
+        "narrative": "depin",
+        "state": "Developing",
+        "score": 44,
+        "bestOverall": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestEarly": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestCatalyst": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestRiskAdjusted": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "needsMoreProof": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "score": 30,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        }
+      },
+      {
+        "narrative": "modular",
+        "state": "Quiet",
+        "score": 40,
+        "bestOverall": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestEarly": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestCatalyst": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestGithub": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestRiskAdjusted": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "needsMoreProof": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        }
+      },
+      {
+        "narrative": "rwa",
+        "state": "Quiet",
+        "score": 37,
+        "bestOverall": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestEarly": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestCatalyst": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestRiskAdjusted": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "needsMoreProof": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        }
+      },
+      {
+        "narrative": "stablecoins",
+        "state": "Quiet",
+        "score": 37,
+        "bestOverall": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestEarly": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestCatalyst": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestRiskAdjusted": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "needsMoreProof": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "score": 27,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        }
+      },
+      {
+        "narrative": "launchpads",
+        "state": "Quiet",
+        "score": 35,
+        "bestOverall": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestEarly": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestCatalyst": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestGithub": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "bestRiskAdjusted": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        "needsMoreProof": {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        }
+      },
+      {
+        "narrative": "solana",
+        "state": "Quiet",
+        "score": 35,
+        "bestOverall": {
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "score": 29,
+          "allocation": "Ignore",
+          "role": "Best Roadmap Path",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 12
+        },
+        "bestEarly": {
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "score": 29,
+          "allocation": "Ignore",
+          "role": "Best Roadmap Path",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 12
+        },
+        "bestCatalyst": {
+          "name": "Render",
+          "symbol": "RNDR",
+          "chain": "solana",
+          "score": 23,
+          "allocation": "Ignore",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 20
+        },
+        "bestGithub": {
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "score": 29,
+          "allocation": "Ignore",
+          "role": "Best Roadmap Path",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 12
+        },
+        "bestRiskAdjusted": {
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "score": 29,
+          "allocation": "Ignore",
+          "role": "Best Roadmap Path",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 12
+        },
+        "needsMoreProof": {
+          "name": "Jupiter",
+          "symbol": "JUP",
+          "chain": "solana",
+          "score": 29,
+          "allocation": "Ignore",
+          "role": "Best Roadmap Path",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 12
+        }
+      }
+    ],
+    "capitalAllocation": {
+      "coreWatch": [],
+      "priorityResearch": [],
+      "smallSpeculative": [],
+      "waitForConfirmation": [
+        {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "Best Available Strong Buy Candidate",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Roadmap Needs Confirmation",
+          "risk": 20
+        },
+        {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "score": 36,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        },
+        {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
+          "allocation": "Wait For Confirmation",
+          "role": "Best Catalyst Setup",
+          "aiVerdict": "AI Pass For Now",
+          "alphaVerdict": "Avoid",
+          "commanderVerdict": "Low Priority Research",
+          "roadmapProfitabilityVerdict": "Not Enough Profit Edge",
+          "risk": 12
+        }
+      ],
+      "avoid": []
+    },
+    "commanderBrief": "Focus on ai, restaking, depin, modular. Highest ranked project: EigenLayer."
+  }
+}

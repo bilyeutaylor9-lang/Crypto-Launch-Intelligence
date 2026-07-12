@@ -239,6 +239,10 @@ function printReportPaths(paths) {
   console.log(`Outcome Judge:  ${paths.outcomeJudgePath}`);
   console.log(`Catalyst Radar: ${paths.catalystRadarPath}`);
   console.log(`Dossier Swarm:  ${paths.dossierSwarmPath}`);
+  console.log(`Command Center: ${paths.commandCenterPath}`);
+  console.log(`Commander:      ${paths.commanderPath}`);
+  console.log(`Investigator:   ${paths.alphaInvestigatorPath}`);
+  console.log(`War Room:       ${paths.warRoomPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

@@ -26,6 +26,10 @@ const PUBLIC_REPORTS = [
   "outcome-judge.json",
   "catalyst-radar.json",
   "dossier-swarm.json",
+  "ai-command-center.json",
+  "ai-research-commander.json",
+  "alpha-investigator.json",
+  "portfolio-war-room.json",
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
@@ -62,6 +66,8 @@ function writeLandingPage(copiedFiles = []) {
   const outcomeJudge = readJsonReport("outcome-judge.json") || {};
   const catalystRadar = readJsonReport("catalyst-radar.json") || {};
   const dossierSwarm = readJsonReport("dossier-swarm.json") || {};
+  const commandCenter = readJsonReport("ai-command-center.json") || {};
+  const warRoom = readJsonReport("portfolio-war-room.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
@@ -80,6 +86,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Outcome Judged", outcomeJudge.trackedProjects ?? topProject.outcomeJudgeStatus ?? "N/A"],
     ["Catalysts", catalystRadar.activeCatalystProjects ?? "N/A"],
     ["Dossiers", dossierSwarm.dossieredProjects ?? "N/A"],
+    ["Alpha Cases", commandCenter.counts?.alphaCases ?? "N/A"],
+    ["Top Narrative", warRoom.topNarratives?.[0]?.narrative || "N/A"],
     ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
@@ -318,6 +326,8 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Simulation Brain:</strong> market-memory analogs, future paths, mutation tests, and engine tournaments.</li>
           <li><strong>Outcome Judge:</strong> grades old calls against reality and adjusts confidence.</li>
           <li><strong>Catalyst Radar:</strong> detects why-now events, urgency, and action windows.</li>
+          <li><strong>AI Command Center:</strong> routes research, builds alpha case files, and organizes portfolio priorities.</li>
+          <li><strong>Portfolio War Room:</strong> ranks narratives, best-in-class candidates, and research allocation.</li>
           <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
@@ -336,6 +346,9 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./outcome-judge.json">Outcome Judge</a>
         <a class="button" href="./catalyst-radar.json">Catalyst Radar</a>
         <a class="button" href="./dossier-swarm.json">Dossier Swarm</a>
+        <a class="button" href="./ai-command-center.json">Command Center</a>
+        <a class="button" href="./alpha-investigator.json">Alpha Investigator</a>
+        <a class="button" href="./portfolio-war-room.json">War Room</a>
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>

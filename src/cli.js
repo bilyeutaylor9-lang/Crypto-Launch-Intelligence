@@ -73,6 +73,10 @@ Commands:
   crypto-launch outcome           Print Outcome Judge report
   crypto-launch catalysts         Print Live Catalyst Radar report
   crypto-launch dossier           Print Dossier Swarm report
+  crypto-launch command-center    Print AI Command Center report
+  crypto-launch commander         Print AI Research Commander report
+  crypto-launch investigator      Print Alpha Investigator report
+  crypto-launch war-room          Print Portfolio War Room report
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -123,6 +127,22 @@ switch (command) {
   case "dossier":
   case "dossier-swarm":
     runNpm("dossier-swarm", args);
+    break;
+  case "command-center":
+  case "ai-command-center":
+    runNpm("ai-command-center", args);
+    break;
+  case "commander":
+  case "research-commander":
+    runNpm("research-commander", args);
+    break;
+  case "investigator":
+  case "alpha-investigator":
+    runNpm("alpha-investigator", args);
+    break;
+  case "war-room":
+  case "portfolio-war-room":
+    runNpm("portfolio-war-room", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

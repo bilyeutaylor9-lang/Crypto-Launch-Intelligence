@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T01:26:05.125Z",
+  "generatedAt": "2026-07-12T00:55:49.230Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -421,11 +421,11 @@
       "count": 2
     },
     {
-      "type": "Airdrop / Points Catalyst",
+      "type": "Mainnet Launch",
       "count": 1
     },
     {
-      "type": "Mainnet Launch",
+      "type": "Airdrop / Points Catalyst",
       "count": 1
     },
     {

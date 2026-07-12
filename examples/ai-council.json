@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T01:26:01.154Z",
+  "generatedAt": "2026-07-12T00:55:46.596Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -1169,7 +1169,7 @@
       "rank": 3,
       "name": "Render",
       "symbol": "RNDR",
-      "score": 46,
+      "score": 45,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
@@ -1183,7 +1183,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 46,
+            "value": 45,
             "required": ">= 78"
           },
           {
@@ -1369,6 +1369,96 @@
         "averageScore": 84,
         "reliability": 51,
         "weight": 1.11
+      },
+      {
+        "name": "Roadmap Profit Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Roadmap Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "GitHub Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Tokenomics Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Catalyst Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Liquidity Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Narrative Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Profitability Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Research Agent",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Commander",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
       }
     ],
     "weights": {
@@ -1377,7 +1467,17 @@
       "Flow Analyst": 1.07,
       "Research Analyst": 1.07,
       "Learning Engine": 1.07,
-      "Risk Officer": 1.11
+      "Risk Officer": 1.11,
+      "Roadmap Profit Agent": 1.06,
+      "Roadmap Agent": 1.06,
+      "GitHub Agent": 1.06,
+      "Tokenomics Agent": 1.06,
+      "Catalyst Agent": 1.06,
+      "Liquidity Agent": 1.06,
+      "Narrative Agent": 1.06,
+      "Profitability Agent": 1.06,
+      "Research Agent": 1.06,
+      "Commander": 1.06
     }
   }
 }

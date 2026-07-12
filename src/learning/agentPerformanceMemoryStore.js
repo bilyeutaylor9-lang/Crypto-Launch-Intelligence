@@ -12,6 +12,16 @@ const DEFAULT_AGENTS = [
   "Research Analyst",
   "Learning Engine",
   "Risk Officer",
+  "Roadmap Profit Agent",
+  "Roadmap Agent",
+  "GitHub Agent",
+  "Tokenomics Agent",
+  "Catalyst Agent",
+  "Liquidity Agent",
+  "Narrative Agent",
+  "Profitability Agent",
+  "Research Agent",
+  "Commander",
 ];
 
 function ensureDataDir() {
@@ -183,20 +193,43 @@ export function saveAgentCouncilMemory(projects = []) {
   const memory = readMemory();
   const records = (Array.isArray(projects) ? projects : [])
     .filter((project) => project.aiEcosystemCouncil)
-    .map((project) => ({
-      id: projectId(project),
-      name: project.name || "Unknown",
-      symbol: project.symbol || "UNKNOWN",
-      chain: project.chain || "unknown",
-      scannedAt: new Date().toISOString(),
-      verdict: project.aiEcosystemVerdict || "Unknown",
-      score: project.aiEcosystemScore || 0,
-      confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
-      pipelineScore: project.pipelineScore || 0,
-      trapRiskScore: project.trapRiskScore || 0,
-      agents: project.aiEcosystemCouncil?.agents || [],
-      evidenceGate: project.strongBuyEvidenceGate || {},
-    }));
+    .map((project) => {
+      const commanderAgents = (project.researchAssignments || []).map((assignment) => ({
+        name: assignment.agent || "Commander",
+        score:
+          assignment.priority === "Critical"
+            ? 25
+            : assignment.priority === "High"
+            ? 55
+            : assignment.priority === "Medium"
+            ? 65
+            : 75,
+        stance: ["Critical", "High"].includes(assignment.priority) ? "cautious" : "watching",
+      }));
+
+      return {
+        id: projectId(project),
+        name: project.name || "Unknown",
+        symbol: project.symbol || "UNKNOWN",
+        chain: project.chain || "unknown",
+        scannedAt: new Date().toISOString(),
+        verdict: project.aiEcosystemVerdict || "Unknown",
+        alphaInvestigatorVerdict: project.alphaInvestigatorVerdict || "Unknown",
+        researchCommanderVerdict: project.researchCommanderVerdict || "Unknown",
+        score: project.aiEcosystemScore || 0,
+        alphaInvestigatorScore: project.alphaInvestigatorScore || 0,
+        researchCommanderScore: project.researchCommanderScore || 0,
+        confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
+        pipelineScore: project.pipelineScore || 0,
+        trapRiskScore: project.trapRiskScore || 0,
+        agents: [
+          ...(project.aiEcosystemCouncil?.agents || []),
+          ...(project.alphaInvestigatorAgents || []),
+          ...commanderAgents,
+        ],
+        evidenceGate: project.strongBuyEvidenceGate || {},
+      };
+    });
 
   const updated = {
     ...memory,

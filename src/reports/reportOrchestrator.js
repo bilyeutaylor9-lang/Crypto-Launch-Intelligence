@@ -18,6 +18,7 @@ import { writeOutcomeJudgeReport } from "./outcomeJudgeReportEngine.js";
 import { writeDossierSwarmReport } from "./dossierSwarmReportEngine.js";
 import { writeLiveCatalystRadarReport } from "./liveCatalystRadarReportEngine.js";
 import { writeRoadmapReport } from "./roadmapReportEngine.js";
+import { writeAICommandCenterReport } from "./aiCommandCenterReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -55,6 +56,12 @@ export function generateReports(projects = [], meta = {}) {
     filePath: roadmapPath,
   } = writeRoadmapReport();
   const {
+    commandCenterPath,
+    commanderPath,
+    alphaPath: alphaInvestigatorPath,
+    warRoomPath,
+  } = writeAICommandCenterReport(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -89,6 +96,10 @@ export function generateReports(projects = [], meta = {}) {
     catalystRadarPath,
     dossierSwarmPath,
     roadmapPath,
+    commandCenterPath,
+    commanderPath,
+    alphaInvestigatorPath,
+    warRoomPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

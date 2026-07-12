@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T01:26:01.188Z",
+  "generatedAt": "2026-07-12T00:55:46.614Z",
   "totalProjects": 8,
   "counts": {
     "strongBuyCandidates": 0,
@@ -1331,7 +1331,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 46,
+        "score": 45,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -2006,7 +2006,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 46,
+        "score": 45,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -3178,7 +3178,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 46,
+        "score": 45,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -4518,7 +4518,7 @@
       },
       "aiCouncil": {
         "verdict": "AI Pass For Now",
-        "score": 46,
+        "score": 45,
         "confidence": "Developing"
       },
       "researchOS": {

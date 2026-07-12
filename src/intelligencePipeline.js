@@ -68,6 +68,9 @@ import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTra
 import { analyzeAutonomousOutcomeJudgeBatch } from "./engines/autonomousOutcomeJudgeEngine.js";
 import { analyzeLiveCatalystRadarBatch } from "./engines/liveCatalystRadarEngine.js";
 import { analyzeProjectDossierSwarmBatch } from "./engines/projectDossierSwarmEngine.js";
+import { analyzeAIResearchCommanderBatch } from "./engines/aiResearchCommanderEngine.js";
+import { analyzeAutonomousAlphaInvestigatorBatch } from "./engines/autonomousAlphaInvestigatorEngine.js";
+import { analyzeAIPortfolioWarRoomBatch } from "./engines/aiPortfolioWarRoomEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1060,6 +1063,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutonomousOutcomeJudgeBatch(results, options.outcomeJudge || {});
   results = analyzeLiveCatalystRadarBatch(results);
   results = analyzeProjectDossierSwarmBatch(results, options.dossierSwarm || {});
+  results = analyzeAIResearchCommanderBatch(results);
+  results = analyzeAutonomousAlphaInvestigatorBatch(results);
+  results = analyzeAIPortfolioWarRoomBatch(results);
 
   if (options.saveMemory !== false) {
     try {

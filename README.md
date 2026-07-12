@@ -30,6 +30,7 @@ The demo scans built-in research seed projects and generates:
 - Outcome Judge reality grading
 - Catalyst Radar why-now alerts
 - Project Dossier Swarm research packets
+- AI Command Center, Research Commander, Alpha Investigator, and Portfolio War Room
 - Adaptive Source Router provider memory
 - 8-month execution roadmap
 - Alpha Lab strategy report
@@ -47,6 +48,8 @@ cat examples/simulation-brain.json
 cat examples/outcome-judge.json
 cat examples/catalyst-radar.json
 cat examples/dossier-swarm.json
+cat examples/ai-command-center.json
+cat examples/portfolio-war-room.json
 cat examples/source-router.json
 cat examples/roadmap.json
 ```
@@ -67,6 +70,8 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Builds specialist-agent research dossiers for the best candidates.
 - Builds project/narrative/chain relationships with a World Model.
 - Creates research tasks and promotion/downgrade lifecycle states.
+- Routes research through an AI Research Commander and Alpha Investigator.
+- Builds a Portfolio War Room that ranks narratives, best-in-class candidates, and research allocation.
 - Learns from scan memory, outcome memory, and agent performance.
 - Publishes a live dashboard and machine-readable reports.
 
@@ -95,6 +100,9 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds a Roadmap Catalyst Profit Engine that extracts roadmap milestones and lets agents decide whether the catalyst path looks potentially profitable.
 - Adds an AI ecosystem council where specialist agents debate narrative, quant, flow, research quality, learning memory, and risk before assigning a final verdict.
 - Adds agent performance memory so the AI council can track agent behavior and adjust weights over time.
+- Adds an AI Research Commander that finds missing evidence, assigns specialist research tasks, and decides whether a project should be investigated now.
+- Adds an Autonomous Alpha Investigator that builds a multi-agent alpha case file with bull case, bear case, missing proof, invalidation, and promotion triggers.
+- Adds an AI Portfolio War Room that maps narratives, selects best-in-class projects, and produces research allocation buckets.
 - Adds a Research OS layer with multi-timeframe intelligence, scenario planning, autonomous research tasks, red-team review, disagreement detection, and strong-buy lifecycle tracking.
 - Adds an Autonomous Alpha Lab that discovers strategy matches, paper-tests them against memory, and lets the meta-council decide whether they should influence live scoring.
 - Adds a Quantum Reasoning Brain that tracks bull/base/bear/black-swan probabilities, entropy, signal entanglement, and collapse triggers.
@@ -573,6 +581,36 @@ Default daemon schedule is every 30 minutes. Override it with:
 WATCHTOWER_CRON="*/10 * * * *" npm run watchtower:daemon
 ```
 
+### AI Command Center
+
+The AI Command Center turns the scanner into an autonomous research desk.
+
+It includes:
+
+- **AI Research Commander**: finds missing evidence, assigns specialist agents, and decides whether a project should be promoted, investigated, watched, or avoided.
+- **Autonomous Alpha Investigator**: builds a case file with roadmap, GitHub, tokenomics, catalyst, liquidity, narrative, profitability, and risk agents.
+- **AI Portfolio War Room**: organizes the whole scan into narrative battle maps, best-in-class candidates, and research allocation buckets.
+
+Instead of only returning a score, the AI now asks:
+
+> What proof is missing, which agent should find it, and which project deserves attention first?
+
+Outputs:
+
+- `reports/ai-command-center.json`
+- `reports/ai-research-commander.json`
+- `reports/alpha-investigator.json`
+- `reports/portfolio-war-room.json`
+
+Run:
+
+```bash
+npm run ai-command-center
+npm run research-commander
+npm run alpha-investigator
+npm run portfolio-war-room
+```
+
 ### Proof Engine
 
 The Proof Engine turns raw scanner scores into a readable evidence trail for each project.
@@ -649,6 +687,17 @@ Each project can receive:
 - `roadmapProfitabilityScore`
 - `roadmapProfitabilityVerdict`
 - `roadmapProfitabilityAgents`
+- `researchCommanderScore`
+- `researchCommanderVerdict`
+- `missingEvidence`
+- `researchAssignments`
+- `alphaInvestigatorScore`
+- `alphaInvestigatorVerdict`
+- `alphaCaseFile`
+- `aiPortfolioWarRoomScore`
+- `aiWarRoomNarratives`
+- `aiWarRoomRole`
+- `aiWarRoomAllocation`
 - `aiEcosystemScore`
 - `aiEcosystemVerdict`
 - `aiEcosystemCouncil`
@@ -720,6 +769,10 @@ Running the scanner creates:
 - `reports/outcome-judge.json`
 - `reports/catalyst-radar.json`
 - `reports/dossier-swarm.json`
+- `reports/ai-command-center.json`
+- `reports/ai-research-commander.json`
+- `reports/alpha-investigator.json`
+- `reports/portfolio-war-room.json`
 - `reports/roadmap.json`
 - `reports/source-router.json`
 - `reports/engine-audit.json`
@@ -840,6 +893,10 @@ npm run simulation-brain
 npm run outcome-judge
 npm run catalyst-radar
 npm run dossier-swarm
+npm run ai-command-center
+npm run research-commander
+npm run alpha-investigator
+npm run portfolio-war-room
 npm run roadmap
 npm run source-router
 npm run engine:audit:json

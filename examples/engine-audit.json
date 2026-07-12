@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-11T01:26:05.355Z",
-  "totalEngines": 91,
-  "wiredIntoPipeline": 67,
-  "stateOfArtReady": 74,
+  "generatedAt": "2026-07-12T00:55:49.301Z",
+  "totalEngines": 94,
+  "wiredIntoPipeline": 70,
+  "stateOfArtReady": 77,
   "readinessScore": 87,
   "categoryCounts": {
     "intelligence": 38,
-    "ai": 10,
-    "learning": 9,
+    "ai": 12,
+    "learning": 10,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -58,6 +58,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "aiResearchCommanderEngine.js",
+      "category": "ai",
+      "exports": [
+        "analyzeAIResearchCommander",
+        "analyzeAIResearchCommanderBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "airdropToTokenEngine.js",
       "category": "ai",
       "exports": [
@@ -89,6 +103,20 @@
       "hasBatch": true,
       "hasAnalyzer": true,
       "wiredInPipeline": false,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousAlphaInvestigatorEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaInvestigator",
+        "analyzeAutonomousAlphaInvestigatorBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
       "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
@@ -293,35 +321,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 1,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "exchangeProbabilityEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "scoreExchangeProbability",
-        "classifyExchangeProbability",
-        "analyzeExchangeProbability",
-        "analyzeExchangeProbabilityBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 1,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "externalIntelligenceEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "analyzeExternalIntelligenceBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -595,6 +594,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "aiPortfolioWarRoomEngine.js",
+      "category": "ai",
+      "exports": [
+        "buildAIPortfolioWarRoom",
+        "analyzeAIPortfolioWarRoomBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 95,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "aiResearchAnalystEngine.js",
       "category": "ai",
       "exports": [
@@ -605,6 +618,20 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "aiResearchCommanderEngine.js",
+      "category": "ai",
+      "exports": [
+        "analyzeAIResearchCommander",
+        "analyzeAIResearchCommanderBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -656,6 +683,20 @@
       "advancedSignals": 4,
       "readinessScore": 65,
       "status": "usable"
+    },
+    {
+      "file": "autonomousAlphaInvestigatorEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaInvestigator",
+        "analyzeAutonomousAlphaInvestigatorBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "autonomousAlphaLabEngine.js",
