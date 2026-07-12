@@ -24,6 +24,9 @@ import { analyzeRoadmapCatalystProfit } from "../src/engines/roadmapCatalystProf
 import { analyzeAIResearchCommander } from "../src/engines/aiResearchCommanderEngine.js";
 import { analyzeAutonomousAlphaInvestigator } from "../src/engines/autonomousAlphaInvestigatorEngine.js";
 import { buildAIPortfolioWarRoom } from "../src/engines/aiPortfolioWarRoomEngine.js";
+import { analyzeAutonomousStrategyLab } from "../src/engines/autonomousStrategyLabEngine.js";
+import { analyzeCausalAlphaBrain } from "../src/engines/causalAlphaBrainEngine.js";
+import { analyzeAutonomousAlphaOSBatch } from "../src/engines/autonomousAlphaOSEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -775,4 +778,117 @@ test("AI portfolio war room builds narrative battle map and allocations", () => 
   assert.ok(battlePlan.narrativeBattleMap.length > 0);
   assert.ok(battlePlan.bestInClassBoard.length > 0);
   assert.ok(Object.keys(battlePlan.capitalAllocation).includes("priorityResearch"));
+});
+
+test("autonomous strategy lab selects a paper strategy and plan", () => {
+  const result = analyzeAutonomousStrategyLab({
+    name: "StrategyCoin",
+    symbol: "STRAT",
+    roadmapProfitabilityScore: 74,
+    liveCatalystRadarScore: 72,
+    catalystCalendarScore: 68,
+    narrativeHeatScore: 82,
+    proofScore: 70,
+    dataConfidenceScore: 66,
+    sourceReliabilityScore: 64,
+    liquidityExpansionScore: 66,
+    capitalFlowScore: 62,
+    buyPressureScore: 60,
+    trapRiskScore: 12,
+    sellPressureScore: 18,
+    simulationBrainScore: 68,
+    breakoutProbability30d: 61,
+    expectedReturn30dPct: 34,
+  });
+
+  assert.ok(result.strategyLabScore > 0);
+  assert.ok(result.bestAutonomousStrategy);
+  assert.ok(result.strategyTournament.length >= 5);
+  assert.ok(result.paperTradingPlan.entryTriggers.length > 0);
+  assert.ok(["Paper Strong Buy Candidate", "Priority Paper Trade", "Strategy Watch"].includes(result.strategyLabVerdict));
+});
+
+test("causal alpha brain builds graph, drivers, and counterfactuals", () => {
+  const result = analyzeCausalAlphaBrain({
+    name: "CausalCoin",
+    symbol: "CAUSE",
+    strategyLabScore: 76,
+    paperTradeScore: 70,
+    liveCatalystRadarScore: 74,
+    catalystCalendarScore: 70,
+    roadmapProfitabilityScore: 68,
+    liquidityExpansionScore: 72,
+    liquidityScore: 66,
+    capitalFlowScore: 68,
+    buyPressureScore: 65,
+    smartMoneyAccumulationScore: 66,
+    narrativeHeatScore: 80,
+    simulationBrainScore: 72,
+    breakoutProbability30d: 63,
+    proofScore: 72,
+    dataConfidenceScore: 70,
+    sourceReliabilityScore: 68,
+    evidenceQualityScore: 66,
+    trapRiskScore: 12,
+    riskScore: 18,
+  });
+
+  assert.ok(result.causalAlphaScore > 0);
+  assert.ok(result.causalSignalGraph.nodes.length > 0);
+  assert.ok(result.causalSignalGraph.edges.length > 0);
+  assert.ok(result.causalAlphaDrivers.length > 0);
+  assert.ok(result.causalCounterfactuals.length > 0);
+});
+
+test("autonomous alpha OS produces a final operating verdict and best available fallback", () => {
+  const results = analyzeAutonomousAlphaOSBatch([
+    {
+      name: "OSCoin",
+      symbol: "OS",
+      causalAlphaScore: 74,
+      causalAlphaConfidenceScore: 64,
+      causalAlphaVerdict: "Causal Priority Research",
+      strategyLabScore: 72,
+      strategyLabVerdict: "Priority Paper Trade",
+      paperTradeScore: 70,
+      simulationBrainScore: 68,
+      breakoutProbability30d: 60,
+      expectedReturn30dPct: 28,
+      aiPortfolioWarRoomScore: 66,
+      alphaInvestigatorScore: 64,
+      liveCatalystRadarScore: 68,
+      proofScore: 66,
+      dataConfidenceScore: 64,
+      sourceReliabilityScore: 62,
+      trapRiskScore: 16,
+      sellPressureScore: 18,
+      causalSignalGraph: {
+        primaryDriver: { label: "Why-Now Catalyst", score: 74 },
+      },
+      bestAutonomousStrategy: { name: "Roadmap Catalyst Confirmation" },
+      paperTradingPlan: { entryTriggers: ["Catalyst confirmed"] },
+    },
+    {
+      name: "WeakOS",
+      symbol: "WOS",
+      causalAlphaScore: 42,
+      strategyLabScore: 38,
+      simulationBrainScore: 35,
+      proofScore: 32,
+      trapRiskScore: 22,
+    },
+  ]);
+
+  assert.equal(results[0].autonomousAlphaOSRank, 1);
+  assert.ok(results[0].autonomousAlphaOSScore > results[1].autonomousAlphaOSScore);
+  assert.ok(results[0].autonomousAlphaOSCouncil.agents.length >= 6);
+  assert.ok(results[0].autonomousAlphaOSNextActions.length > 0);
+  assert.ok(
+    [
+      "OS Strong Buy Research Candidate",
+      "OS Best Available Candidate",
+      "OS Priority Research",
+      "OS Paper Trade",
+    ].includes(results[0].autonomousAlphaOSVerdict)
+  );
 });

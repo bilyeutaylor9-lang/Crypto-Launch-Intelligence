@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-12T00:55:49.301Z",
-  "totalEngines": 94,
-  "wiredIntoPipeline": 70,
-  "stateOfArtReady": 77,
-  "readinessScore": 87,
+  "generatedAt": "2026-07-12T01:40:00.783Z",
+  "totalEngines": 97,
+  "wiredIntoPipeline": 73,
+  "stateOfArtReady": 80,
+  "readinessScore": 88,
   "categoryCounts": {
-    "intelligence": 38,
+    "intelligence": 39,
     "ai": 12,
-    "learning": 10,
+    "learning": 12,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -137,6 +137,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousAlphaOSEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaOS",
+        "analyzeAutonomousAlphaOSBatch",
+        "summarizeAutonomousAlphaOS"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousMarketScientistEngine.js",
       "category": "ai",
       "exports": [
@@ -157,6 +172,22 @@
         "analyzeAutonomousOutcomeJudge",
         "analyzeAutonomousOutcomeJudgeBatch",
         "summarizeOutcomeJudge"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousStrategyLabEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeAutonomousStrategyLab",
+        "analyzeAutonomousStrategyLabBatch",
+        "summarizeAutonomousStrategyLab",
+        "estimateStrategyMemorySampleCount"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
@@ -244,6 +275,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "causalAlphaBrainEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeCausalAlphaBrain",
+        "analyzeCausalAlphaBrainBatch",
+        "summarizeCausalAlphaBrain"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "cexListingDiscoveryEngine.js",
       "category": "discovery",
       "exports": [
@@ -273,54 +319,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "developerActivityEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "classifyDeveloperActivity",
-        "scoreDeveloperActivity",
-        "analyzeDeveloperActivity",
-        "analyzeDeveloperActivityBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 5,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "earlyBreakoutEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "detectEarlyBreakout",
-        "scoreEarlyBreakout",
-        "analyzeEarlyBreakout",
-        "analyzeEarlyBreakoutBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 3,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "ecosystemIntegrationEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "detectIntegrationSignals",
-        "scoreEcosystemIntegration",
-        "analyzeEcosystemIntegration",
-        "analyzeEcosystemIntegrationBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 1,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -714,6 +712,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousAlphaOSEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaOS",
+        "analyzeAutonomousAlphaOSBatch",
+        "summarizeAutonomousAlphaOS"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousMarketScientistEngine.js",
       "category": "ai",
       "exports": [
@@ -734,6 +747,22 @@
         "analyzeAutonomousOutcomeJudge",
         "analyzeAutonomousOutcomeJudgeBatch",
         "summarizeOutcomeJudge"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousStrategyLabEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeAutonomousStrategyLab",
+        "analyzeAutonomousStrategyLabBatch",
+        "summarizeAutonomousStrategyLab",
+        "estimateStrategyMemorySampleCount"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
@@ -817,6 +846,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "causalAlphaBrainEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeCausalAlphaBrain",
+        "analyzeCausalAlphaBrainBatch",
+        "summarizeCausalAlphaBrain"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

@@ -22,6 +22,11 @@ const DEFAULT_AGENTS = [
   "Profitability Agent",
   "Research Agent",
   "Commander",
+  "Causal Brain",
+  "Strategy Lab",
+  "Simulation Desk",
+  "Proof Officer",
+  "Risk Governor",
 ];
 
 function ensureDataDir() {
@@ -219,12 +224,16 @@ export function saveAgentCouncilMemory(projects = []) {
         score: project.aiEcosystemScore || 0,
         alphaInvestigatorScore: project.alphaInvestigatorScore || 0,
         researchCommanderScore: project.researchCommanderScore || 0,
+        strategyLabScore: project.strategyLabScore || 0,
+        causalAlphaScore: project.causalAlphaScore || 0,
+        autonomousAlphaOSScore: project.autonomousAlphaOSScore || 0,
         confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
         pipelineScore: project.pipelineScore || 0,
         trapRiskScore: project.trapRiskScore || 0,
         agents: [
           ...(project.aiEcosystemCouncil?.agents || []),
           ...(project.alphaInvestigatorAgents || []),
+          ...(project.autonomousAlphaOSCouncil?.agents || []),
           ...commanderAgents,
         ],
         evidenceGate: project.strongBuyEvidenceGate || {},

@@ -163,6 +163,10 @@ function printSummary(summary) {
   console.log(`High AI Disagreement: ${summary.highDisagreementCount}`);
   console.log(`Red-Team Blocks: ${summary.redTeamBlockCount}`);
   console.log(`Alpha Lab Matches: ${summary.alphaLabMatchCount}`);
+  console.log(`Strategy Strong Buys: ${summary.strategyStrongBuyCount}`);
+  console.log(`Causal Strong Buys: ${summary.causalStrongBuyCount}`);
+  console.log(`Alpha OS Strong Buys: ${summary.alphaOSStrongBuyCount}`);
+  console.log(`Alpha OS Best Available: ${summary.alphaOSBestAvailableCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -189,6 +193,12 @@ function printTopProjects(results) {
     }
     if (project.aiEcosystemVerdict) {
       console.log(`   AI Council: ${project.aiEcosystemVerdict} (${project.aiEcosystemScore || 0})`);
+    }
+    if (project.autonomousAlphaOSVerdict) {
+      console.log(`   Alpha OS: ${project.autonomousAlphaOSVerdict} (${project.autonomousAlphaOSScore || 0})`);
+    }
+    if (project.bestAutonomousStrategy?.name) {
+      console.log(`   Strategy: ${project.bestAutonomousStrategy.name} (${project.strategyLabScore || 0})`);
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
@@ -243,6 +253,9 @@ function printReportPaths(paths) {
   console.log(`Commander:      ${paths.commanderPath}`);
   console.log(`Investigator:   ${paths.alphaInvestigatorPath}`);
   console.log(`War Room:       ${paths.warRoomPath}`);
+  console.log(`Strategy Lab:   ${paths.strategyLabPath}`);
+  console.log(`Causal Brain:   ${paths.causalBrainPath}`);
+  console.log(`Alpha OS:       ${paths.alphaOSPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

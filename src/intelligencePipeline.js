@@ -71,6 +71,9 @@ import { analyzeProjectDossierSwarmBatch } from "./engines/projectDossierSwarmEn
 import { analyzeAIResearchCommanderBatch } from "./engines/aiResearchCommanderEngine.js";
 import { analyzeAutonomousAlphaInvestigatorBatch } from "./engines/autonomousAlphaInvestigatorEngine.js";
 import { analyzeAIPortfolioWarRoomBatch } from "./engines/aiPortfolioWarRoomEngine.js";
+import { analyzeAutonomousStrategyLabBatch } from "./engines/autonomousStrategyLabEngine.js";
+import { analyzeCausalAlphaBrainBatch } from "./engines/causalAlphaBrainEngine.js";
+import { analyzeAutonomousAlphaOSBatch } from "./engines/autonomousAlphaOSEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -79,6 +82,7 @@ import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
 import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
 import { saveInternetResearchMemory } from "./learning/internetResearchMemoryStore.js";
 import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.js";
+import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1066,6 +1070,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAIResearchCommanderBatch(results);
   results = analyzeAutonomousAlphaInvestigatorBatch(results);
   results = analyzeAIPortfolioWarRoomBatch(results);
+  results = analyzeAutonomousStrategyLabBatch(results);
+  results = analyzeCausalAlphaBrainBatch(results);
+  results = analyzeAutonomousAlphaOSBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1096,6 +1103,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveAgentCouncilMemory(results);
     } catch (error) {
       console.log(`Agent council memory save failed: ${error.message}`);
+    }
+
+    try {
+      saveStrategyMemory(results);
+    } catch (error) {
+      console.log(`Strategy memory save failed: ${error.message}`);
     }
   }
 
@@ -1216,6 +1229,14 @@ export function summarizePipelineResults(results = []) {
   const urgentCatalystSetups = safeResults.filter((p) =>
     ["Critical", "High", "Risk-Critical"].includes(p.liveCatalystUrgency)
   );
+  const strategyStrongBuySetups = safeResults.filter((p) => p.strategyLabVerdict === "Paper Strong Buy Candidate");
+  const strategyPrioritySetups = safeResults.filter((p) => p.strategyLabVerdict === "Priority Paper Trade");
+  const causalStrongBuySetups = safeResults.filter((p) => p.causalAlphaVerdict === "Causal Strong Buy Candidate");
+  const causalPrioritySetups = safeResults.filter((p) => p.causalAlphaVerdict === "Causal Priority Research");
+  const alphaOSStrongBuySetups = safeResults.filter((p) => p.autonomousAlphaOSVerdict === "OS Strong Buy Research Candidate");
+  const alphaOSBestAvailableSetups = safeResults.filter((p) => p.autonomousAlphaOSVerdict === "OS Best Available Candidate");
+  const alphaOSPrioritySetups = safeResults.filter((p) => p.autonomousAlphaOSVerdict === "OS Priority Research");
+  const alphaOSPaperSetups = safeResults.filter((p) => p.autonomousAlphaOSVerdict === "OS Paper Trade");
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -1287,6 +1308,14 @@ export function summarizePipelineResults(results = []) {
     dossierPriorityCount: dossierPrioritySetups.length,
     researchPriorityDossierCount: researchPriorityDossiers.length,
     urgentCatalystCount: urgentCatalystSetups.length,
+    strategyStrongBuyCount: strategyStrongBuySetups.length,
+    strategyPriorityCount: strategyPrioritySetups.length,
+    causalStrongBuyCount: causalStrongBuySetups.length,
+    causalPriorityCount: causalPrioritySetups.length,
+    alphaOSStrongBuyCount: alphaOSStrongBuySetups.length,
+    alphaOSBestAvailableCount: alphaOSBestAvailableSetups.length,
+    alphaOSPriorityCount: alphaOSPrioritySetups.length,
+    alphaOSPaperTradeCount: alphaOSPaperSetups.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({
@@ -1381,6 +1410,23 @@ export function summarizePipelineResults(results = []) {
         urgency: project.liveCatalystUrgency || "Low",
         action: project.liveCatalystAction || "No immediate action",
         topEvent: project.liveCatalystEvents?.[0] || null,
+      })),
+    topAutonomousAlphaOSSetups: [...safeResults]
+      .sort((a, b) => num(b.autonomousAlphaOSScore) - num(a.autonomousAlphaOSScore))
+      .slice(0, 10)
+      .map((project) => ({
+        rank: project.autonomousAlphaOSRank || 0,
+        name: project.name || "Unknown",
+        symbol: project.symbol || "Unknown",
+        autonomousAlphaOSScore: project.autonomousAlphaOSScore || 0,
+        verdict: project.autonomousAlphaOSVerdict || "Unknown",
+        mode: project.autonomousAlphaOSMode || "Unknown",
+        consensus: project.autonomousAlphaOSCouncil?.consensus || "Unknown",
+        causalAlphaScore: project.causalAlphaScore || 0,
+        strategyLabScore: project.strategyLabScore || 0,
+        bestStrategy: project.bestAutonomousStrategy?.name || "No Strategy",
+        primaryDriver: project.causalSignalGraph?.primaryDriver?.label || "Unknown",
+        nextActions: project.autonomousAlphaOSNextActions || [],
       })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

@@ -26,6 +26,14 @@ function compact(project = {}) {
     warRoomAllocation: project.aiWarRoomAllocation || "Unknown",
     warRoomRole: project.aiWarRoomRole || "Unknown",
     narratives: project.aiWarRoomNarratives || [],
+    strategyLabScore: project.strategyLabScore || 0,
+    strategyLabVerdict: project.strategyLabVerdict || "Unknown",
+    bestStrategy: project.bestAutonomousStrategy?.name || "No Strategy",
+    causalAlphaScore: project.causalAlphaScore || 0,
+    causalAlphaVerdict: project.causalAlphaVerdict || "Unknown",
+    alphaOSScore: project.autonomousAlphaOSScore || 0,
+    alphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
+    alphaOSMode: project.autonomousAlphaOSMode || "Unknown",
   };
 }
 
@@ -55,6 +63,9 @@ export function writeAICommandCenterReport(projects = []) {
       priorityInvestigations: safeProjects.filter((project) => project.alphaInvestigatorVerdict === "Priority Investigation").length,
       coreWatch: safeProjects.filter((project) => project.aiWarRoomAllocation === "Core Watch").length,
       priorityResearch: safeProjects.filter((project) => project.aiWarRoomAllocation === "Priority Research").length,
+      alphaOSStrongBuy: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Strong Buy Research Candidate").length,
+      alphaOSBestAvailable: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Best Available Candidate").length,
+      alphaOSPriority: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Priority Research").length,
       avoid: safeProjects.filter((project) => project.aiWarRoomAllocation === "Avoid").length,
     },
     commanderBrief: battlePlan.commanderBrief,

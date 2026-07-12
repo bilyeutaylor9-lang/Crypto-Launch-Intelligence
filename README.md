@@ -31,6 +31,7 @@ The demo scans built-in research seed projects and generates:
 - Catalyst Radar why-now alerts
 - Project Dossier Swarm research packets
 - AI Command Center, Research Commander, Alpha Investigator, and Portfolio War Room
+- Autonomous Strategy Lab, Causal Alpha Brain, and Alpha OS final operating verdicts
 - Adaptive Source Router provider memory
 - 8-month execution roadmap
 - Alpha Lab strategy report
@@ -50,6 +51,9 @@ cat examples/catalyst-radar.json
 cat examples/dossier-swarm.json
 cat examples/ai-command-center.json
 cat examples/portfolio-war-room.json
+cat examples/strategy-lab.json
+cat examples/causal-alpha-brain.json
+cat examples/autonomous-alpha-os.json
 cat examples/source-router.json
 cat examples/roadmap.json
 ```
@@ -72,6 +76,7 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Creates research tasks and promotion/downgrade lifecycle states.
 - Routes research through an AI Research Commander and Alpha Investigator.
 - Builds a Portfolio War Room that ranks narratives, best-in-class candidates, and research allocation.
+- Runs a Strategy Lab, Causal Alpha Brain, and Autonomous Alpha OS to decide what deserves paper-trade tracking.
 - Learns from scan memory, outcome memory, and agent performance.
 - Publishes a live dashboard and machine-readable reports.
 
@@ -103,6 +108,9 @@ Crypto Launch Intelligence runs an AI research workflow:
 - Adds an AI Research Commander that finds missing evidence, assigns specialist research tasks, and decides whether a project should be investigated now.
 - Adds an Autonomous Alpha Investigator that builds a multi-agent alpha case file with bull case, bear case, missing proof, invalidation, and promotion triggers.
 - Adds an AI Portfolio War Room that maps narratives, selects best-in-class projects, and produces research allocation buckets.
+- Adds an Autonomous Strategy Lab that runs strategy tournaments, builds paper-trade plans, and saves strategy memory.
+- Adds a Causal Alpha Brain that builds signal graphs, isolates the main driver/blocker, and runs counterfactual driver-removal tests.
+- Adds an Autonomous Alpha OS that fuses strategy, causal, simulation, proof, and risk agents into one operating verdict.
 - Adds a Research OS layer with multi-timeframe intelligence, scenario planning, autonomous research tasks, red-team review, disagreement detection, and strong-buy lifecycle tracking.
 - Adds an Autonomous Alpha Lab that discovers strategy matches, paper-tests them against memory, and lets the meta-council decide whether they should influence live scoring.
 - Adds a Quantum Reasoning Brain that tracks bull/base/bear/black-swan probabilities, entropy, signal entanglement, and collapse triggers.
@@ -611,6 +619,34 @@ npm run alpha-investigator
 npm run portfolio-war-room
 ```
 
+### Autonomous Alpha OS
+
+The Autonomous Alpha OS is the final decision layer above the research desk.
+
+It adds:
+
+- **Autonomous Strategy Lab**: runs a tournament across roadmap, GitHub, liquidity, narrative, smart-money, launch, and proof-based strategies.
+- **Paper Trading Brain**: creates simulated entry triggers, invalidation rules, review cadence, and expected holding windows.
+- **Causal Alpha Brain**: builds a causal signal graph, names the primary driver, names the primary blocker, and runs counterfactual driver-removal tests.
+- **Alpha OS Council**: fuses causal, strategy, simulation, proof, risk, and commander agents into one operating verdict.
+- **Best Available Candidate fallback**: when no setup clears the true strong-buy gate, the OS can still identify the strongest paper-trade candidate instead of returning nothing.
+
+Outputs:
+
+- `reports/strategy-lab.json`
+- `reports/causal-alpha-brain.json`
+- `reports/autonomous-alpha-os.json`
+- `data/strategy-memory.json`
+
+Run:
+
+```bash
+npm run strategy-lab
+npm run causal-brain
+npm run alpha-os
+npm run strategy-memory
+```
+
 ### Proof Engine
 
 The Proof Engine turns raw scanner scores into a readable evidence trail for each project.
@@ -773,6 +809,9 @@ Running the scanner creates:
 - `reports/ai-research-commander.json`
 - `reports/alpha-investigator.json`
 - `reports/portfolio-war-room.json`
+- `reports/strategy-lab.json`
+- `reports/causal-alpha-brain.json`
+- `reports/autonomous-alpha-os.json`
 - `reports/roadmap.json`
 - `reports/source-router.json`
 - `reports/engine-audit.json`
@@ -834,6 +873,7 @@ Persistent learning files are saved under:
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
 - `data/agent-performance-memory.json`
+- `data/strategy-memory.json`
 - `data/source-router-memory.json`
 
 These files are local runtime memory and should usually not be committed.
@@ -897,6 +937,10 @@ npm run ai-command-center
 npm run research-commander
 npm run alpha-investigator
 npm run portfolio-war-room
+npm run strategy-lab
+npm run causal-brain
+npm run alpha-os
+npm run strategy-memory
 npm run roadmap
 npm run source-router
 npm run engine:audit:json

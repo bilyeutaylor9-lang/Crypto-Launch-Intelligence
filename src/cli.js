@@ -77,6 +77,9 @@ Commands:
   crypto-launch commander         Print AI Research Commander report
   crypto-launch investigator      Print Alpha Investigator report
   crypto-launch war-room          Print Portfolio War Room report
+  crypto-launch strategy-lab      Print Autonomous Strategy Lab report
+  crypto-launch causal-brain      Print Causal Alpha Brain report
+  crypto-launch alpha-os          Print Autonomous Alpha OS report
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -143,6 +146,18 @@ switch (command) {
   case "war-room":
   case "portfolio-war-room":
     runNpm("portfolio-war-room", args);
+    break;
+  case "strategy-lab":
+  case "strategies":
+    runNpm("strategy-lab", args);
+    break;
+  case "causal-brain":
+  case "causal-alpha":
+    runNpm("causal-brain", args);
+    break;
+  case "alpha-os":
+  case "autonomous-alpha-os":
+    runNpm("alpha-os", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

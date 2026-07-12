@@ -55,6 +55,16 @@ function compact(project = {}) {
     dossierSwarmDecision: project.dossierSwarmDecision || "Unknown",
     dossierSwarmConsensus: project.dossierSwarmConsensus || "",
     projectDossierSwarm: project.projectDossierSwarm || null,
+    strategyLabScore: project.strategyLabScore || 0,
+    strategyLabVerdict: project.strategyLabVerdict || "Unknown",
+    bestAutonomousStrategy: project.bestAutonomousStrategy || null,
+    paperTradingPlan: project.paperTradingPlan || {},
+    causalAlphaScore: project.causalAlphaScore || 0,
+    causalAlphaVerdict: project.causalAlphaVerdict || "Unknown",
+    causalSignalGraph: project.causalSignalGraph || {},
+    autonomousAlphaOSScore: project.autonomousAlphaOSScore || 0,
+    autonomousAlphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
+    autonomousAlphaOSMode: project.autonomousAlphaOSMode || "Unknown",
     causalHypotheses: project.causalHypotheses || [],
     counterfactualAnalysis: project.counterfactualAnalysis || [],
     falsePositiveAutopsy: project.falsePositiveAutopsy || {},
@@ -136,6 +146,21 @@ export function writeResearchOSReports(projects = []) {
     dossierSwarm: projects
       .filter((project) => project.projectDossierSwarm)
       .sort((a, b) => num(b.dossierSwarmScore) - num(a.dossierSwarmScore))
+      .slice(0, 25)
+      .map(compact),
+    autonomousAlphaOS: projects
+      .slice()
+      .sort((a, b) => num(b.autonomousAlphaOSScore) - num(a.autonomousAlphaOSScore))
+      .slice(0, 25)
+      .map(compact),
+    causalAlphaBrain: projects
+      .slice()
+      .sort((a, b) => num(b.causalAlphaScore) - num(a.causalAlphaScore))
+      .slice(0, 25)
+      .map(compact),
+    strategyLab: projects
+      .slice()
+      .sort((a, b) => num(b.strategyLabScore) - num(a.strategyLabScore))
       .slice(0, 25)
       .map(compact),
   };

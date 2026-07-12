@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T00:55:49.241Z",
+  "generatedAt": "2026-07-12T01:40:00.726Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -8,6 +8,9 @@
     "priorityInvestigations": 0,
     "coreWatch": 0,
     "priorityResearch": 0,
+    "alphaOSStrongBuy": 0,
+    "alphaOSBestAvailable": 1,
+    "alphaOSPriority": 0,
     "avoid": 0
   },
   "commanderBrief": "Focus on ai, restaking, depin, modular. Highest ranked project: EigenLayer.",
@@ -135,7 +138,15 @@
       "narratives": [
         "restaking",
         "launchpads"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 57,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 36,
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "alphaOSMode": "Best Available Paper Candidate"
     },
     {
       "rank": 7,
@@ -271,7 +282,15 @@
         "ai",
         "restaking",
         "modular"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 58,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 35,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 8,
@@ -390,7 +409,15 @@
       "narratives": [
         "solana",
         "launchpads"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 54,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 29,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 1,
@@ -529,7 +556,15 @@
       "narratives": [
         "ai",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "causalAlphaScore": 60,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 23,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked"
     },
     {
       "rank": 4,
@@ -676,7 +711,15 @@
         "ai",
         "depin",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 61,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 31,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 2,
@@ -811,7 +854,15 @@
         "ai",
         "depin",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 61,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 55,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 27,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 5,
@@ -942,7 +993,15 @@
       "narratives": [
         "rwa",
         "stablecoins"
-      ]
+      ],
+      "strategyLabScore": 57,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 51,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 28,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 3,
@@ -1083,7 +1142,15 @@
         "ai",
         "depin",
         "solana"
-      ]
+      ],
+      "strategyLabScore": 60,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 54,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 26,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     }
   ],
   "alphaInvestigator": [
@@ -1224,7 +1291,15 @@
       "narratives": [
         "ai",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "causalAlphaScore": 60,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 23,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked"
     },
     {
       "rank": 6,
@@ -1349,7 +1424,15 @@
       "narratives": [
         "restaking",
         "launchpads"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 57,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 36,
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "alphaOSMode": "Best Available Paper Candidate"
     },
     {
       "rank": 5,
@@ -1480,7 +1563,15 @@
       "narratives": [
         "rwa",
         "stablecoins"
-      ]
+      ],
+      "strategyLabScore": 57,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 51,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 28,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 7,
@@ -1616,7 +1707,15 @@
         "ai",
         "restaking",
         "modular"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 58,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 35,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 4,
@@ -1763,7 +1862,15 @@
         "ai",
         "depin",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 61,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 31,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 8,
@@ -1882,7 +1989,15 @@
       "narratives": [
         "solana",
         "launchpads"
-      ]
+      ],
+      "strategyLabScore": 64,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 54,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 29,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 2,
@@ -2017,7 +2132,15 @@
         "ai",
         "depin",
         "restaking"
-      ]
+      ],
+      "strategyLabScore": 61,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 55,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 27,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     },
     {
       "rank": 3,
@@ -2158,11 +2281,19 @@
         "ai",
         "depin",
         "solana"
-      ]
+      ],
+      "strategyLabScore": 60,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 54,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 26,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor"
     }
   ],
   "portfolioWarRoom": {
-    "generatedAt": "2026-07-12T00:55:49.240Z",
+    "generatedAt": "2026-07-12T01:40:00.726Z",
     "totalProjects": 8,
     "narrativeBattleMap": [
       {

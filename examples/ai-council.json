@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T00:55:46.596Z",
+  "generatedAt": "2026-07-12T01:39:58.851Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -1459,6 +1459,51 @@
         "averageScore": 50,
         "reliability": 45,
         "weight": 1.06
+      },
+      {
+        "name": "Causal Brain",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Strategy Lab",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Simulation Desk",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Proof Officer",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Risk Governor",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
       }
     ],
     "weights": {
@@ -1477,7 +1522,12 @@
       "Narrative Agent": 1.06,
       "Profitability Agent": 1.06,
       "Research Agent": 1.06,
-      "Commander": 1.06
+      "Commander": 1.06,
+      "Causal Brain": 1.06,
+      "Strategy Lab": 1.06,
+      "Simulation Desk": 1.06,
+      "Proof Officer": 1.06,
+      "Risk Governor": 1.06
     }
   }
 }

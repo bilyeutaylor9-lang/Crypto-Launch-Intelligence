@@ -30,6 +30,9 @@ const PUBLIC_REPORTS = [
   "ai-research-commander.json",
   "alpha-investigator.json",
   "portfolio-war-room.json",
+  "strategy-lab.json",
+  "causal-alpha-brain.json",
+  "autonomous-alpha-os.json",
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
@@ -68,6 +71,9 @@ function writeLandingPage(copiedFiles = []) {
   const dossierSwarm = readJsonReport("dossier-swarm.json") || {};
   const commandCenter = readJsonReport("ai-command-center.json") || {};
   const warRoom = readJsonReport("portfolio-war-room.json") || {};
+  const strategyLab = readJsonReport("strategy-lab.json") || {};
+  const causalBrain = readJsonReport("causal-alpha-brain.json") || {};
+  const alphaOS = readJsonReport("autonomous-alpha-os.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
@@ -88,6 +94,9 @@ function writeLandingPage(copiedFiles = []) {
     ["Dossiers", dossierSwarm.dossieredProjects ?? "N/A"],
     ["Alpha Cases", commandCenter.counts?.alphaCases ?? "N/A"],
     ["Top Narrative", warRoom.topNarratives?.[0]?.narrative || "N/A"],
+    ["Strategy", strategyLab.topCandidates?.[0]?.bestStrategy || "N/A"],
+    ["Causal Driver", causalBrain.topProjects?.[0]?.primaryDriver || "N/A"],
+    ["Alpha OS", alphaOS.topCandidates?.[0]?.symbol || "N/A"],
     ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
@@ -328,6 +337,9 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Catalyst Radar:</strong> detects why-now events, urgency, and action windows.</li>
           <li><strong>AI Command Center:</strong> routes research, builds alpha case files, and organizes portfolio priorities.</li>
           <li><strong>Portfolio War Room:</strong> ranks narratives, best-in-class candidates, and research allocation.</li>
+          <li><strong>Strategy Lab:</strong> tests strategy hypotheses and creates paper-trade plans.</li>
+          <li><strong>Causal Alpha Brain:</strong> explains which signals actually drive the verdict.</li>
+          <li><strong>Autonomous Alpha OS:</strong> fuses agents into one operating decision and action queue.</li>
           <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
@@ -349,6 +361,9 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./ai-command-center.json">Command Center</a>
         <a class="button" href="./alpha-investigator.json">Alpha Investigator</a>
         <a class="button" href="./portfolio-war-room.json">War Room</a>
+        <a class="button" href="./strategy-lab.json">Strategy Lab</a>
+        <a class="button" href="./causal-alpha-brain.json">Causal Brain</a>
+        <a class="button" href="./autonomous-alpha-os.json">Alpha OS</a>
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>

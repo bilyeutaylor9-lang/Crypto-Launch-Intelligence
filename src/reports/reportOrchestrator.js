@@ -19,6 +19,7 @@ import { writeDossierSwarmReport } from "./dossierSwarmReportEngine.js";
 import { writeLiveCatalystRadarReport } from "./liveCatalystRadarReportEngine.js";
 import { writeRoadmapReport } from "./roadmapReportEngine.js";
 import { writeAICommandCenterReport } from "./aiCommandCenterReportEngine.js";
+import { writeAlphaOSReports } from "./alphaOSReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -62,6 +63,11 @@ export function generateReports(projects = [], meta = {}) {
     warRoomPath,
   } = writeAICommandCenterReport(projects);
   const {
+    strategyLabPath,
+    causalBrainPath,
+    alphaOSPath,
+  } = writeAlphaOSReports(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -100,6 +106,9 @@ export function generateReports(projects = [], meta = {}) {
     commanderPath,
     alphaInvestigatorPath,
     warRoomPath,
+    strategyLabPath,
+    causalBrainPath,
+    alphaOSPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,
