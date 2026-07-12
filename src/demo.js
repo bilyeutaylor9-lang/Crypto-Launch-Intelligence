@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import "./config/loadEnv.js";
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { runIntelligencePipeline, summarizePipelineResults } from "./intelligencePipeline.js";
 import { generateReports } from "./reports/reportOrchestrator.js";

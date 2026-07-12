@@ -1,5 +1,6 @@
 // src/index.js
 
+import "./config/loadEnv.js";
 import { runDiscoveryManager } from "./discoveryManager.js";
 
 import {

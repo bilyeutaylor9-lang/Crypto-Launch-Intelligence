@@ -1,5 +1,6 @@
 // src/liveMarketScanner.js
 
+import "./config/loadEnv.js";
 import {
   runIntelligencePipeline,
   summarizePipelineResults

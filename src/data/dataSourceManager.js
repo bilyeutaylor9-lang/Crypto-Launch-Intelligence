@@ -1,5 +1,6 @@
 // src/data/dataSourceManager.js
 
+import "../config/loadEnv.js";
 import { DATA_SOURCES } from "./dataSourceRegistry.js";
 
 /**

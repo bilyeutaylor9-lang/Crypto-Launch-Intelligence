@@ -1,5 +1,7 @@
 // src/data/birdeyeConnector.js
 
+import "../config/loadEnv.js";
+
 /**
  * Crypto Launch Intelligence
  * Birdeye Connector
@@ -9,8 +11,8 @@
  *
  * Notes:
  * - Birdeye generally requires an API key.
- * - Add your key as:
- *   export BIRDEYE_API_KEY="your_key_here"
+ * - Add your key to .env as:
+ *   BIRDEYE_API_KEY=your_key_here
  */
 
 const BIRDEYE_BASE = "https://public-api.birdeye.so";

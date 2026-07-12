@@ -1,3 +1,4 @@
+import "./config/loadEnv.js";
 import { runDiscoveryManager } from "./discoveryManager.js";
 import { runIntelligencePipeline } from "./intelligencePipeline.js";
 import { generateReports } from "./reports/reportOrchestrator.js";

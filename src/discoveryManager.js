@@ -1,5 +1,6 @@
 // src/discoveryManager.js
 
+import "./config/loadEnv.js";
 import { scanLiveMarket } from "./liveMarketScanner.js";
 import { getGeckoTerminalCandidates } from "./data/geckoTerminalConnector.js";
 import { getCoinGeckoCandidates } from "./data/coinGeckoConnector.js";
