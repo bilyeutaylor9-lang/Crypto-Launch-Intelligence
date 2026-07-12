@@ -14,7 +14,10 @@ async function fetchJson(url) {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${url}`);
+    const error = new Error(`Request failed: ${response.status} ${url}`);
+    error.status = response.status;
+    error.url = url;
+    throw error;
   }
 
   return response.json();
@@ -24,8 +27,87 @@ function n(value = 0) {
   return Number(value || 0);
 }
 
+function nullableNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function normalizeSymbol(symbol = "") {
   return String(symbol || "").replace("USDT", "").replace("USD", "").toUpperCase();
+}
+
+function splitQuotePair(symbol = "") {
+  const normalized = String(symbol || "").toUpperCase();
+  const quote = ["USDT", "USDC", "USD", "BUSD"].find((item) => normalized.endsWith(item)) || "";
+  const base = quote ? normalized.slice(0, -quote.length) : normalized;
+
+  return {
+    baseSymbol: base,
+    quoteSymbol: quote,
+  };
+}
+
+function classifyProviderStatus(error = {}) {
+  const status = Number(error.status || error.httpStatus || 0);
+  const message = String(error.message || "").toLowerCase();
+
+  if (status === 401 || message.includes("unauthorized") || message.includes("authentication")) {
+    return "authentication_required";
+  }
+  if (status === 429 || message.includes("rate limit")) return "rate_limited";
+  if (status === 403 || status === 451 || message.includes("region") || message.includes("blocked")) {
+    return "region_blocked";
+  }
+  if (status >= 500 || message.includes("timeout") || message.includes("fetch failed")) {
+    return "temporarily_unavailable";
+  }
+  return "degraded";
+}
+
+function providerEnvelope({
+  source = "unknown",
+  status = "healthy",
+  startedAt = Date.now(),
+  candidates = [],
+  attempted = true,
+  httpStatus = 200,
+  errorCode = null,
+  errorMessage = null,
+} = {}) {
+  return {
+    source,
+    status,
+    attempted,
+    candidates,
+    candidateCount: candidates.length,
+    durationMs: Date.now() - startedAt,
+    attempts: attempted ? 1 : 0,
+    httpStatus,
+    errorCode,
+    errorMessage,
+  };
+}
+
+async function runProvider(source = "", fn) {
+  const startedAt = Date.now();
+
+  try {
+    const candidates = await fn();
+    return providerEnvelope({ source, startedAt, candidates });
+  } catch (error) {
+    const status = classifyProviderStatus(error);
+    return providerEnvelope({
+      source,
+      status,
+      startedAt,
+      candidates: [],
+      attempted: true,
+      httpStatus: error.status || null,
+      errorCode: status,
+      errorMessage: error.message,
+    });
+  }
 }
 
 // CoinPaprika
@@ -101,30 +183,61 @@ export async function getDefiLlamaChainCandidates(options = {}) {
   }));
 }
 
-// Binance Spot
+// Binance / Binance.US Spot
+export function getBinanceMarketConfig(options = {}) {
+  const region = String(options.region || process.env.MARKET_REGION || "").toUpperCase();
+  const market = String(options.market || process.env.BINANCE_MARKET || "").toUpperCase();
+  const useUs = region === "US" || market === "US";
+
+  return {
+    source: useUs ? "binance-us" : "binance",
+    exchange: useUs ? "Binance.US" : "Binance",
+    baseUrl: useUs
+      ? options.baseUrl || process.env.BINANCE_US_BASE_URL || "https://api.binance.us"
+      : options.baseUrl || process.env.BINANCE_BASE_URL || "https://api.binance.com",
+    tradeUrlBase: useUs ? "https://www.binance.us/trade" : "https://www.binance.com/en/trade",
+    useUs,
+  };
+}
+
 export async function getBinanceTickerCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const tickers = await fetchJson("https://api.binance.com/api/v3/ticker/24hr");
+  const config = getBinanceMarketConfig(options);
+  const tickers = await fetchJson(`${config.baseUrl}/api/v3/ticker/24hr`);
 
   return tickers
-    .filter(t => String(t.symbol || "").endsWith("USDT"))
+    .filter(t => /USD(T|C)?$/i.test(String(t.symbol || "")))
     .sort((a, b) => n(b.quoteVolume) - n(a.quoteVolume))
     .slice(0, limit)
-    .map(ticker => ({
-      name: normalizeSymbol(ticker.symbol),
-      symbol: normalizeSymbol(ticker.symbol),
-      chain: "binance",
-      address: null,
-      pairAddress: ticker.symbol,
-      dex: "cex",
-      url: `https://www.binance.com/en/trade/${normalizeSymbol(ticker.symbol)}_USDT`,
-      priceUsd: n(ticker.lastPrice),
-      liquidityUsd: n(ticker.quoteVolume),
-      volume24h: n(ticker.quoteVolume),
-      priceChange24h: n(ticker.priceChangePercent),
-      source: "binance",
-      description: `${ticker.symbol} Binance 24h market data`
-    }));
+    .map(ticker => {
+      const { baseSymbol, quoteSymbol } = splitQuotePair(ticker.symbol);
+
+      return {
+        name: baseSymbol || normalizeSymbol(ticker.symbol),
+        symbol: baseSymbol || normalizeSymbol(ticker.symbol),
+        baseSymbol,
+        quoteSymbol,
+        chain: null,
+        exchange: config.exchange,
+        address: null,
+        pairAddress: ticker.symbol,
+        marketKey: `${config.source}:${ticker.symbol}`,
+        assetKey: `symbol:${baseSymbol || normalizeSymbol(ticker.symbol)}`,
+        dex: "cex",
+        url: config.useUs
+          ? `${config.tradeUrlBase}/${ticker.symbol}`
+          : `${config.tradeUrlBase}/${baseSymbol}_${quoteSymbol || "USDT"}`,
+        priceUsd: nullableNumber(ticker.lastPrice),
+        liquidityUsd: null,
+        volume24h: nullableNumber(ticker.quoteVolume),
+        priceChange24h: nullableNumber(ticker.priceChangePercent),
+        marketCap: null,
+        fullyDilutedValue: null,
+        fdv: null,
+        source: config.source,
+        description: `${ticker.symbol} ${config.exchange} 24h market data`
+      };
+    });
 }
 
 // KuCoin
@@ -222,7 +335,7 @@ export async function getKrakenTickerCandidates(options = {}) {
   });
 }
 
-export async function getFreeMarketDataCandidates(options = {}) {
+export async function getFreeMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
 
   const sourceCalls = [
@@ -235,18 +348,31 @@ export async function getFreeMarketDataCandidates(options = {}) {
     ["kraken", () => getKrakenTickerCandidates({ limit: 50 })]
   ];
 
-  const all = [];
+  const providers = [];
 
   for (const [name, fn] of sourceCalls) {
-    try {
-      const results = await fn();
-      all.push(...results);
-    } catch (error) {
-      console.warn(`${name} skipped: ${error.message}`);
+    const result = await runProvider(name, fn);
+    providers.push(result);
+
+    if (result.status !== "healthy") {
+      console.warn(`${name} skipped: ${result.errorMessage || result.status}`);
     }
   }
 
-  return all;
+  return {
+    candidates: providers.flatMap((provider) => provider.candidates || []),
+    providers: providers.map(({ candidates, ...provider }) => provider),
+  };
+}
+
+export async function getFreeMarketDataProviderResults(options = {}) {
+  const batch = await getFreeMarketDataProviderBatch(options);
+  return batch.providers;
+}
+
+export async function getFreeMarketDataCandidates(options = {}) {
+  const batch = await getFreeMarketDataProviderBatch(options);
+  return batch.candidates;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

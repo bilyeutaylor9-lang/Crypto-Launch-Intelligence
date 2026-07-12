@@ -16,12 +16,38 @@ import "../config/loadEnv.js";
  */
 
 const BIRDEYE_BASE = "https://public-api.birdeye.so";
+const BIRDEYE_MAX_TRENDING_LIMIT = 50;
 
 function hasBirdeyeKey() {
   return Boolean(process.env.BIRDEYE_API_KEY);
 }
 
-async function fetchBirdeyeJson(url) {
+function birdeyeLimit(value = 50) {
+  const limit = Number(value || 50);
+  if (!Number.isFinite(limit)) return 50;
+  return Math.max(1, Math.min(BIRDEYE_MAX_TRENDING_LIMIT, Math.round(limit)));
+}
+
+function friendlyBirdeyeError(status = 0, body = "", url = "") {
+  const detail = body ? ` ${String(body).slice(0, 180)}` : "";
+
+  if (status === 400) {
+    return `Birdeye request failed: 400 bad request. Trending limit must be 1-${BIRDEYE_MAX_TRENDING_LIMIT}.${detail}`;
+  }
+  if (status === 401) {
+    return `Birdeye request failed: 401 unauthorized. Check BIRDEYE_API_KEY.${detail}`;
+  }
+  if (status === 403) {
+    return `Birdeye request failed: 403 forbidden. The key may not have access to this endpoint or chain.${detail}`;
+  }
+  if (status === 429) {
+    return `Birdeye request failed: 429 rate limited. Lower BIRDEYE_LIMIT or retry later.${detail}`;
+  }
+
+  return `Birdeye request failed: ${status} ${url}${detail}`;
+}
+
+async function fetchBirdeyeJson(url, options = {}) {
   if (!hasBirdeyeKey()) {
     throw new Error("Missing BIRDEYE_API_KEY");
   }
@@ -30,35 +56,40 @@ async function fetchBirdeyeJson(url) {
     headers: {
       accept: "application/json",
       "X-API-KEY": process.env.BIRDEYE_API_KEY,
-      "x-chain": "solana"
+      "x-chain": options.chain || "solana"
     }
   });
 
   if (!response.ok) {
-    throw new Error(`Birdeye request failed: ${response.status} ${url}`);
+    const body = await response.text().catch(() => "");
+    throw new Error(friendlyBirdeyeError(response.status, body, url));
   }
 
   return response.json();
 }
 
 export async function getBirdeyeTrendingTokens(options = {}) {
-  const limit = Number(options.limit || 50);
+  const limit = birdeyeLimit(options.limit || process.env.BIRDEYE_LIMIT || 50);
+  const chain = options.chain || process.env.BIRDEYE_CHAIN || "solana";
 
   return fetchBirdeyeJson(
-    `${BIRDEYE_BASE}/defi/token_trending?sort_by=rank&sort_type=asc&offset=0&limit=${limit}`
+    `${BIRDEYE_BASE}/defi/token_trending?sort_by=rank&sort_type=asc&interval=24h&offset=0&limit=${limit}`,
+    { chain }
   );
 }
 
-export function normalizeBirdeyeToken(token = {}) {
+export function normalizeBirdeyeToken(token = {}, meta = {}) {
+  const chain = meta.chain || token.chain || process.env.BIRDEYE_CHAIN || "solana";
+
   return {
     name: token.name || "Unknown",
     symbol: token.symbol || "UNKNOWN",
-    chain: "solana",
+    chain,
     address: token.address || token.tokenAddress || null,
     pairAddress: token.address || token.tokenAddress || null,
     dex: "birdeye",
     url: token.address
-      ? `https://birdeye.so/token/${token.address}?chain=solana`
+      ? `https://birdeye.so/token/${token.address}?chain=${encodeURIComponent(chain)}`
       : null,
 
     priceUsd: Number(token.price || token.priceUsd || 0),
@@ -75,7 +106,7 @@ export function normalizeBirdeyeToken(token = {}) {
     description: [
       token.name,
       token.symbol,
-      "birdeye solana trending"
+      `birdeye ${chain} trending`
     ]
       .filter(Boolean)
       .join(" ")
@@ -91,8 +122,15 @@ export async function getBirdeyeCandidates(options = {}) {
   const response = await getBirdeyeTrendingTokens(options);
   const tokens = response?.data?.tokens || response?.data || [];
 
-  return tokens.map(normalizeBirdeyeToken);
+  const chain = options.chain || process.env.BIRDEYE_CHAIN || "solana";
+
+  return tokens.map((token) => normalizeBirdeyeToken(token, { chain }));
 }
+
+export const __birdeyeTestHooks = {
+  birdeyeLimit,
+  friendlyBirdeyeError,
+};
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const candidates = await getBirdeyeCandidates({ limit: 25 });

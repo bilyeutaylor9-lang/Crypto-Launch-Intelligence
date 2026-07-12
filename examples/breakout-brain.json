@@ -1,0 +1,676 @@
+{
+  "generatedAt": "2026-07-12T06:04:13.561Z",
+  "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
+  "totalProjects": 8,
+  "simulatedProjects": 8,
+  "selectedCount": 3,
+  "requiredSelections": 3,
+  "defaultSimulations": 4096,
+  "topThree": [
+    {
+      "rank": 1,
+      "selected": true,
+      "selectionRank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineRank": 1,
+      "pipelineScore": 9,
+      "breakoutBrainScore": 22,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 23,
+      "blowUpProbabilitySoon": 23,
+      "expectedReturn30dPct": 15,
+      "bestCaseReturnPct": 54,
+      "bearCaseReturnPct": -26,
+      "confidence": "Medium",
+      "confidenceScore": 62,
+      "simulations": 4096,
+      "positiveProbability": 67,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 2.08,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 61
+        },
+        {
+          "driver": "Catalyst",
+          "score": 53
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 42
+        },
+        {
+          "driver": "Learning",
+          "score": 37
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat",
+        "Best Available AI Candidate"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 2,
+      "selected": true,
+      "selectionRank": 2,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineRank": 6,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 20,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 13,
+      "blowUpProbabilitySoon": 13,
+      "expectedReturn30dPct": 8,
+      "bestCaseReturnPct": 42,
+      "bearCaseReturnPct": -27,
+      "confidence": "Medium",
+      "confidenceScore": 68,
+      "simulations": 4096,
+      "positiveProbability": 60,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 1.56,
+      "topDrivers": [
+        {
+          "driver": "Institutional Stack",
+          "score": 46
+        },
+        {
+          "driver": "Narrative",
+          "score": 42
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Catalyst",
+          "score": 35
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 3,
+      "selected": true,
+      "selectionRank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineRank": 4,
+      "pipelineScore": 3,
+      "breakoutBrainScore": 19,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 15,
+      "blowUpProbabilitySoon": 15,
+      "expectedReturn30dPct": 10,
+      "bestCaseReturnPct": 44,
+      "bearCaseReturnPct": -25,
+      "confidence": "Medium",
+      "confidenceScore": 63,
+      "simulations": 4096,
+      "positiveProbability": 63,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 3,
+      "asymmetryRatio": 1.76,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 58
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 44
+        },
+        {
+          "driver": "Catalyst",
+          "score": 43
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Bittensor is led by signalCombos 59, prePumpPattern 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    }
+  ],
+  "breakoutBoard": [
+    {
+      "rank": 1,
+      "selected": true,
+      "selectionRank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineRank": 1,
+      "pipelineScore": 9,
+      "breakoutBrainScore": 22,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 23,
+      "blowUpProbabilitySoon": 23,
+      "expectedReturn30dPct": 15,
+      "bestCaseReturnPct": 54,
+      "bearCaseReturnPct": -26,
+      "confidence": "Medium",
+      "confidenceScore": 62,
+      "simulations": 4096,
+      "positiveProbability": 67,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 2.08,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 61
+        },
+        {
+          "driver": "Catalyst",
+          "score": 53
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 42
+        },
+        {
+          "driver": "Learning",
+          "score": 37
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat",
+        "Best Available AI Candidate"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 2,
+      "selected": true,
+      "selectionRank": 2,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineRank": 6,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 20,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 13,
+      "blowUpProbabilitySoon": 13,
+      "expectedReturn30dPct": 8,
+      "bestCaseReturnPct": 42,
+      "bearCaseReturnPct": -27,
+      "confidence": "Medium",
+      "confidenceScore": 68,
+      "simulations": 4096,
+      "positiveProbability": 60,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 1.56,
+      "topDrivers": [
+        {
+          "driver": "Institutional Stack",
+          "score": 46
+        },
+        {
+          "driver": "Narrative",
+          "score": 42
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Catalyst",
+          "score": 35
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 3,
+      "selected": true,
+      "selectionRank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineRank": 4,
+      "pipelineScore": 3,
+      "breakoutBrainScore": 19,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 15,
+      "blowUpProbabilitySoon": 15,
+      "expectedReturn30dPct": 10,
+      "bestCaseReturnPct": 44,
+      "bearCaseReturnPct": -25,
+      "confidence": "Medium",
+      "confidenceScore": 63,
+      "simulations": 4096,
+      "positiveProbability": 63,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 3,
+      "asymmetryRatio": 1.76,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 58
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 44
+        },
+        {
+          "driver": "Catalyst",
+          "score": 43
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Bittensor is led by signalCombos 59, prePumpPattern 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 4,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineRank": 5,
+      "pipelineScore": 1,
+      "breakoutBrainScore": 18,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 18,
+      "blowUpProbabilitySoon": 18,
+      "expectedReturn30dPct": 10,
+      "bestCaseReturnPct": 49,
+      "bearCaseReturnPct": -28,
+      "confidence": "Medium",
+      "confidenceScore": 61,
+      "simulations": 4096,
+      "positiveProbability": 61,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 6,
+      "asymmetryRatio": 1.75,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 45
+        },
+        {
+          "driver": "Catalyst",
+          "score": 44
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 40
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Social",
+          "score": 31
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Ondo is led by signalCombos 59, prePumpPattern 50, calibration 50. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 5,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineRank": 7,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 19,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 10,
+      "blowUpProbabilitySoon": 10,
+      "expectedReturn30dPct": 6,
+      "bestCaseReturnPct": 40,
+      "bearCaseReturnPct": -27,
+      "confidence": "Medium",
+      "confidenceScore": 68,
+      "simulations": 4096,
+      "positiveProbability": 56,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 1.48,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 47
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 46
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Catalyst",
+          "score": 36
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 6,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineRank": 2,
+      "pipelineScore": 3,
+      "breakoutBrainScore": 13,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 10,
+      "blowUpProbabilitySoon": 10,
+      "expectedReturn30dPct": 4,
+      "bestCaseReturnPct": 39,
+      "bearCaseReturnPct": -31,
+      "confidence": "Medium",
+      "confidenceScore": 62,
+      "simulations": 4096,
+      "positiveProbability": 55,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 7,
+      "asymmetryRatio": 1.26,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 62
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 40
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Catalyst",
+          "score": 31
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Akash Network is led by signalCombos 59, narrative 52, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 7,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "pipelineRank": 8,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 14,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 5,
+      "blowUpProbabilitySoon": 5,
+      "expectedReturn30dPct": 0,
+      "bestCaseReturnPct": 33,
+      "bearCaseReturnPct": -32,
+      "confidence": "Medium",
+      "confidenceScore": 68,
+      "simulations": 4096,
+      "positiveProbability": 49,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 8,
+      "asymmetryRatio": 1.03,
+      "topDrivers": [
+        {
+          "driver": "Institutional Stack",
+          "score": 43
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Narrative",
+          "score": 31
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        },
+        {
+          "driver": "Catalyst",
+          "score": 27
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Jupiter is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 8,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineRank": 3,
+      "pipelineScore": 3,
+      "breakoutBrainScore": 10,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 6,
+      "blowUpProbabilitySoon": 6,
+      "expectedReturn30dPct": 1,
+      "bestCaseReturnPct": 35,
+      "bearCaseReturnPct": -34,
+      "confidence": "Medium",
+      "confidenceScore": 61,
+      "simulations": 4096,
+      "positiveProbability": 51,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 10,
+      "asymmetryRatio": 1.03,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 57
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 38
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        },
+        {
+          "driver": "Catalyst",
+          "score": 24
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Render is led by signalCombos 59, prePumpPattern 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    }
+  ]
+}

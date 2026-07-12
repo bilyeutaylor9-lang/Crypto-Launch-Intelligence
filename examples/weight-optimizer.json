@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.708Z",
-  "memorySamples": 0,
+  "generatedAt": "2026-07-12T06:04:13.552Z",
+  "memorySamples": 1,
   "evaluatedSamples": 0,
   "globalPaperWinRate": 0,
   "globalAverageReturnPct": 0,
@@ -8,8 +8,8 @@
     {
       "id": "strategy",
       "label": "Strategy Lab",
-      "weight": 0.99,
-      "avgProjectScore": 60,
+      "weight": 1.01,
+      "avgProjectScore": 64,
       "memorySignal": 0,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -17,8 +17,8 @@
     {
       "id": "causal",
       "label": "Causal Brain",
-      "weight": 1.22,
-      "avgProjectScore": 56,
+      "weight": 1.23,
+      "avgProjectScore": 57,
       "memorySignal": 50,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -61,8 +61,8 @@
     }
   ],
   "weights": {
-    "strategy": 0.99,
-    "causal": 1.22,
+    "strategy": 1.01,
+    "causal": 1.23,
     "simulation": 0.89,
     "proof": 1.1,
     "risk": 1.33,

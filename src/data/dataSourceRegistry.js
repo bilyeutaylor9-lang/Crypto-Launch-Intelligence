@@ -11,10 +11,36 @@
 export const DATA_SOURCES = {
   market: [
     "dexScreener",
+    "dexScreenerSearch",
+    "dexScreenerProfiles",
+    "dexScreenerBoosts",
+    "geckoTerminal",
     "coinGecko",
     "coinMarketCap",
     "defiLlama",
-    "dexTools"
+    "defiLlamaChains",
+    "defiLlamaYields",
+    "defiLlamaStablecoins",
+    "coinPaprika",
+    "coinCap",
+    "coinLore",
+    "cryptoCompare",
+    "birdeye",
+    "dexTools",
+    "binance",
+    "binanceUS",
+    "kuCoin",
+    "coinbase",
+    "kraken",
+    "okx",
+    "bybit",
+    "gate",
+    "mexc",
+    "bitget",
+    "htx",
+    "bitfinex",
+    "bitstamp",
+    "gemini"
   ],
 
   chains: [

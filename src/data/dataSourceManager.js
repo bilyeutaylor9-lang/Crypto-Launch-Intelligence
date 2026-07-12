@@ -72,6 +72,132 @@ export const SOURCE_STATUS = {
     chains: ["market"]
   },
 
+  coinLore: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 74,
+    category: "market",
+    chains: ["market"]
+  },
+
+  binance: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 73,
+    category: "market",
+    chains: ["market"]
+  },
+
+  kuCoin: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 72,
+    category: "market",
+    chains: ["market"]
+  },
+
+  coinbase: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 71,
+    category: "market",
+    chains: ["market"]
+  },
+
+  kraken: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 70,
+    category: "market",
+    chains: ["market"]
+  },
+
+  okx: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 69,
+    category: "market",
+    chains: ["market"]
+  },
+
+  bybit: {
+    enabled: process.env.MARKET_REGION !== "US",
+    requiresKey: false,
+    tier: 2,
+    priority: 68,
+    category: "market",
+    chains: ["market"]
+  },
+
+  gate: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 67,
+    category: "market",
+    chains: ["market"]
+  },
+
+  mexc: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 66,
+    category: "market",
+    chains: ["market"]
+  },
+
+  bitget: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 65,
+    category: "market",
+    chains: ["market"]
+  },
+
+  htx: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 64,
+    category: "market",
+    chains: ["market"]
+  },
+
+  bitfinex: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 63,
+    category: "market",
+    chains: ["market"]
+  },
+
+  bitstamp: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 62,
+    category: "market",
+    chains: ["market"]
+  },
+
+  gemini: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 61,
+    category: "market",
+    chains: ["market"]
+  },
+
   // =========================
   // Premium Market Sources
   // =========================
@@ -91,6 +217,16 @@ export const SOURCE_STATUS = {
     envKey: "COINMARKETCAP_API_KEY",
     tier: 2,
     priority: 80,
+    category: "market",
+    chains: ["market"]
+  },
+
+  coinCap: {
+    enabled: Boolean(process.env.COINCAP_API_KEY),
+    requiresKey: true,
+    envKey: "COINCAP_API_KEY",
+    tier: 2,
+    priority: 79,
     category: "market",
     chains: ["market"]
   },

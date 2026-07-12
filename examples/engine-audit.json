@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.776Z",
-  "totalEngines": 101,
-  "wiredIntoPipeline": 77,
-  "stateOfArtReady": 84,
+  "generatedAt": "2026-07-12T06:04:13.624Z",
+  "totalEngines": 103,
+  "wiredIntoPipeline": 79,
+  "stateOfArtReady": 86,
   "readinessScore": 88,
   "categoryCounts": {
     "intelligence": 41,
-    "ai": 12,
+    "ai": 14,
     "learning": 14,
     "market-flow": 5,
     "narrative-launch": 9,
@@ -196,6 +196,22 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousResearchOrchestratorEngine.js",
+      "category": "ai",
+      "exports": [
+        "runControlledResearchLoop",
+        "analyzeAutonomousResearchOrchestrator",
+        "analyzeAutonomousResearchOrchestratorBatch",
+        "summarizeAutonomousResearchOrchestrator"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousStrategyLabEngine.js",
       "category": "intelligence",
       "exports": [
@@ -224,6 +240,20 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "breakoutBrainEngine.js",
+      "category": "ai",
+      "exports": [
+        "analyzeBreakoutBrain",
+        "analyzeBreakoutBrainBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -286,38 +316,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 5,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "causalAlphaBrainEngine.js",
-      "category": "learning",
-      "exports": [
-        "analyzeCausalAlphaBrain",
-        "analyzeCausalAlphaBrainBatch",
-        "summarizeCausalAlphaBrain"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 6,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "cexListingDiscoveryEngine.js",
-      "category": "discovery",
-      "exports": [
-        "detectCexListingSignal",
-        "scoreCexListingSignal",
-        "analyzeCexListing",
-        "analyzeCexListingBatch",
-        "discoverCexListingProjects"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": false,
-      "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -770,6 +768,22 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousResearchOrchestratorEngine.js",
+      "category": "ai",
+      "exports": [
+        "runControlledResearchLoop",
+        "analyzeAutonomousResearchOrchestrator",
+        "analyzeAutonomousResearchOrchestratorBatch",
+        "summarizeAutonomousResearchOrchestrator"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousStrategyLabEngine.js",
       "category": "intelligence",
       "exports": [
@@ -798,6 +812,20 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "breakoutBrainEngine.js",
+      "category": "ai",
+      "exports": [
+        "analyzeBreakoutBrain",
+        "analyzeBreakoutBrainBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/11/2026, 7:26:54 PM
+Generated: 7/11/2026, 11:04:10 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -83,13 +83,13 @@ Top confidence-adjusted setups:
 2. Celestia (TIA) - adjusted 29, source 15, trap 12
 3. Jupiter (JUP) - adjusted 29, source 15, trap 12
 4. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
-5. Bittensor (TAO) - adjusted 27, source 15, trap 20
+5. Akash Network (AKT) - adjusted 27, source 15, trap 20
 
 Top narrative heat setups:
 1. EigenLayer (EIGEN) - heat 80, Hot Rotation
-2. Bittensor (TAO) - heat 93, Hot Rotation
-3. Akash Network (AKT) - heat 93, Hot Rotation
-4. Render (RNDR) - heat 88, Hot Rotation
+2. Akash Network (AKT) - heat 94, Hot Rotation
+3. Render (RNDR) - heat 89, Hot Rotation
+4. Bittensor (TAO) - heat 94, Hot Rotation
 
 Top improving projects:
 None
@@ -98,7 +98,7 @@ Top trap-risk warnings:
 None
 
 Top AI strong-buy candidates:
-1. EigenLayer (EIGEN) - council 53, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
+1. EigenLayer (EIGEN) - council 54, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
 
 Files generated:
 - reports/report.html

@@ -91,6 +91,11 @@ function printHeader(discovery = {}, memeGate = {}, ranked = [], summary = {}) {
   console.log(`Discovered................. ${discovery.discoveredCount || 0}`);
   console.log(`Discovery Accepted......... ${discovery.acceptedCount || 0}`);
   console.log(`Discovery Rejected......... ${discovery.rejectedCount || 0}`);
+  if (discovery.providerHealth) {
+    console.log(
+      `Provider Health............ ${discovery.providerHealth.healthy || 0}/${discovery.providerHealth.total || 0} healthy`
+    );
+  }
   console.log(`Meme Filter Accepted....... ${memeGate.acceptedCount || 0}`);
   console.log(`Meme Filter Rejected....... ${memeGate.rejectedCount || 0}`);
   console.log(`Ranked Projects............ ${ranked.length}`);

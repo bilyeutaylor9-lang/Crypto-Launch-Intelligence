@@ -22,6 +22,12 @@ function n(value = 0) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function nullableNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function sleep(ms = 200) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -58,6 +64,7 @@ async function fetchJson(url, options = {}) {
       headers: {
         accept: "application/json",
         "user-agent": "Crypto-Launch-Intelligence/0.5",
+        ...(options.headers || {}),
       },
     });
 
@@ -74,22 +81,104 @@ async function fetchJson(url, options = {}) {
   }
 }
 
+export function classifyProviderStatus(error = {}) {
+  const status = Number(error.status || error.httpStatus || 0);
+  const message = String(error.message || error.errorMessage || "").toLowerCase();
+
+  if (status === 401 || message.includes("unauthorized") || message.includes("authentication")) {
+    return "authentication_required";
+  }
+  if (status === 429 || message.includes("rate limit")) return "rate_limited";
+  if (status === 403 || status === 451 || message.includes("region") || message.includes("blocked")) {
+    return "region_blocked";
+  }
+  if (status >= 500 || message.includes("timeout") || message.includes("fetch failed")) {
+    return "temporarily_unavailable";
+  }
+  return "degraded";
+}
+
+function providerEnvelope({
+  source = "unknown",
+  status = "healthy",
+  startedAt = Date.now(),
+  candidates = [],
+  attempted = true,
+  httpStatus = 200,
+  errorCode = null,
+  errorMessage = null,
+} = {}) {
+  return {
+    source,
+    status,
+    attempted,
+    candidates,
+    candidateCount: candidates.length,
+    durationMs: Date.now() - startedAt,
+    attempts: attempted ? 1 : 0,
+    httpStatus,
+    errorCode,
+    errorMessage,
+  };
+}
+
+async function runProvider(source = "", fn) {
+  const startedAt = Date.now();
+
+  try {
+    const candidates = await fn();
+    return providerEnvelope({ source, startedAt, candidates });
+  } catch (error) {
+    const status = classifyProviderStatus(error);
+    return providerEnvelope({
+      source,
+      status,
+      startedAt,
+      candidates: [],
+      attempted: true,
+      httpStatus: error.status || null,
+      errorCode: status,
+      errorMessage: error.message,
+    });
+  }
+}
+
 function candidate(base = {}) {
+  const chain =
+    base.chain === null
+      ? null
+      : base.chain === undefined
+      ? String(base.source || "market").toLowerCase()
+      : String(base.chain).toLowerCase();
+  const marketCap = nullableNumber(base.marketCap);
+  const fullyDilutedValue = nullableNumber(base.fullyDilutedValue ?? base.fdv);
+
   return {
     name: base.name || "Unknown",
     symbol: normalizeSymbol(base.symbol || base.name || "UNKNOWN"),
-    chain: String(base.chain || base.source || "market").toLowerCase(),
+    chain,
+    exchange: base.exchange || null,
+    baseSymbol: base.baseSymbol || normalizeSymbol(base.symbol || base.name || "UNKNOWN"),
+    quoteSymbol: base.quoteSymbol || null,
+    assetKey:
+      base.assetKey ||
+      (base.address && chain ? `${chain}:${String(base.address).toLowerCase()}` : null) ||
+      (base.id ? `${base.source || "provider"}:${base.id}` : null) ||
+      `symbol:${normalizeSymbol(base.symbol || base.name || "UNKNOWN")}:${String(base.name || "").toLowerCase()}`,
+    marketKey: base.marketKey || (base.id ? `${base.source || "expanded-market"}:${base.id}` : null),
     address: base.address || null,
     pairAddress: base.pairAddress || base.id || null,
     dex: base.dex || "market",
     url: base.url || null,
-    priceUsd: n(base.priceUsd),
-    liquidityUsd: n(base.liquidityUsd ?? base.marketCap ?? base.tvl),
-    volume24h: n(base.volume24h),
-    priceChange24h: n(base.priceChange24h),
-    marketCap: n(base.marketCap),
-    fdv: n(base.fdv ?? base.marketCap),
-    tvl: n(base.tvl),
+    priceUsd: nullableNumber(base.priceUsd),
+    liquidityUsd: nullableNumber(base.liquidityUsd),
+    volume24h: nullableNumber(base.volume24h),
+    priceChange24h: nullableNumber(base.priceChange24h),
+    marketCap,
+    fullyDilutedValue,
+    fdv: fullyDilutedValue,
+    tvlUsd: nullableNumber(base.tvlUsd ?? base.tvl),
+    tvl: nullableNumber(base.tvlUsd ?? base.tvl),
     category: base.category || "",
     source: base.source || "expanded-market",
     description: [base.description, base.name, base.symbol, base.category, base.source]
@@ -100,24 +189,80 @@ function candidate(base = {}) {
 
 export async function getCoinCapCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const response = await fetchJson(`https://api.coincap.io/v2/assets?limit=${limit}`);
+  const apiKey = options.apiKey !== undefined ? options.apiKey : process.env.COINCAP_API_KEY || "";
+
+  if (!apiKey) return [];
+
+  const baseUrl = options.baseUrl || process.env.COINCAP_BASE_URL || "https://rest.coincap.io/v3";
+  const response = await fetchJson(`${baseUrl}/assets?limit=${limit}`, {
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+    },
+  });
 
   return (response.data || []).map((asset) =>
     candidate({
       name: asset.name,
       symbol: asset.symbol,
-      chain: "coincap",
+      chain: null,
       id: asset.id,
       url: `https://coincap.io/assets/${asset.id}`,
       priceUsd: asset.priceUsd,
-      liquidityUsd: asset.marketCapUsd,
+      liquidityUsd: null,
       volume24h: asset.volumeUsd24Hr,
       priceChange24h: asset.changePercent24Hr,
       marketCap: asset.marketCapUsd,
+      fullyDilutedValue: null,
       source: "coincap",
       description: `${asset.name || ""} ${asset.symbol || ""} CoinCap market data`,
     })
   );
+}
+
+export async function getCoinCapProviderResult(options = {}) {
+  const startedAt = Date.now();
+  const apiKey = options.apiKey !== undefined ? options.apiKey : process.env.COINCAP_API_KEY || "";
+
+  if (!apiKey) {
+    return {
+      source: "coincap",
+      status: "authentication_required",
+      attempted: false,
+      candidates: [],
+      durationMs: 0,
+      attempts: 0,
+      httpStatus: null,
+      errorCode: "missing_api_key",
+      errorMessage: "COINCAP_API_KEY is required for CoinCap V3.",
+    };
+  }
+
+  try {
+    const candidates = await getCoinCapCandidates(options);
+    return {
+      source: "coincap",
+      status: "healthy",
+      attempted: true,
+      candidates,
+      durationMs: Date.now() - startedAt,
+      attempts: 1,
+      httpStatus: 200,
+      errorCode: null,
+      errorMessage: null,
+    };
+  } catch (error) {
+    return {
+      source: "coincap",
+      status: classifyProviderStatus(error),
+      attempted: true,
+      candidates: [],
+      durationMs: Date.now() - startedAt,
+      attempts: 1,
+      httpStatus: error.status || null,
+      errorCode: classifyProviderStatus(error),
+      errorMessage: error.message,
+    };
+  }
 }
 
 export async function getCoinLoreCandidates(options = {}) {
@@ -400,6 +545,10 @@ export async function getOkxTickerCandidates(options = {}) {
 
 export async function getBybitTickerCandidates(options = {}) {
   const limit = Number(options.limit || 100);
+  if (String(options.region || process.env.MARKET_REGION || "").toUpperCase() === "US") {
+    return [];
+  }
+
   const response = await fetchJson("https://api.bybit.com/v5/market/tickers?category=spot");
 
   return (response.result?.list || [])
@@ -410,18 +559,66 @@ export async function getBybitTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.symbol),
         symbol: fromPair(ticker.symbol),
-        chain: "bybit",
+        chain: null,
+        exchange: "Bybit",
+        baseSymbol: fromPair(ticker.symbol),
+        quoteSymbol: "USDT",
         id: ticker.symbol,
         dex: "cex",
         url: `https://www.bybit.com/trade/spot/${ticker.symbol}`,
         priceUsd: ticker.lastPrice,
-        liquidityUsd: ticker.turnover24h,
+        liquidityUsd: null,
         volume24h: ticker.turnover24h,
         priceChange24h: n(ticker.price24hPcnt) * 100,
         source: "bybit",
         description: `${ticker.symbol || ""} Bybit 24h spot market data`,
       })
     );
+}
+
+export async function getBybitProviderResult(options = {}) {
+  const startedAt = Date.now();
+
+  if (String(options.region || process.env.MARKET_REGION || "").toUpperCase() === "US") {
+    return {
+      source: "bybit",
+      status: "region_blocked",
+      attempted: false,
+      candidates: [],
+      durationMs: 0,
+      attempts: 0,
+      httpStatus: null,
+      errorCode: "region_blocked",
+      errorMessage: "Bybit is skipped in MARKET_REGION=US.",
+    };
+  }
+
+  try {
+    const candidates = await getBybitTickerCandidates(options);
+    return {
+      source: "bybit",
+      status: "healthy",
+      attempted: true,
+      candidates,
+      durationMs: Date.now() - startedAt,
+      attempts: 1,
+      httpStatus: 200,
+      errorCode: null,
+      errorMessage: null,
+    };
+  } catch (error) {
+    return {
+      source: "bybit",
+      status: classifyProviderStatus(error),
+      attempted: true,
+      candidates: [],
+      durationMs: Date.now() - startedAt,
+      attempts: 1,
+      httpStatus: error.status || null,
+      errorCode: classifyProviderStatus(error),
+      errorMessage: error.message,
+    };
+  }
 }
 
 export async function getGateTickerCandidates(options = {}) {
@@ -583,37 +780,33 @@ export async function getBitstampTickerCandidates(options = {}) {
 
 export async function getGeminiTickerCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const symbols = await fetchJson("https://api.gemini.com/v1/symbols");
-  const usdSymbols = (symbols || [])
-    .filter((symbol) => String(symbol || "").endsWith("usd"))
-    .slice(0, limit);
-  const all = [];
+  const priceFeed = await fetchJson(options.priceFeedUrl || "https://api.gemini.com/v1/pricefeed");
 
-  for (const symbol of usdSymbols) {
-    try {
-      const ticker = await fetchJson(`https://api.gemini.com/v2/ticker/${symbol}`);
-      all.push(
-        candidate({
-          name: fromPair(symbol.toUpperCase()),
-          symbol: fromPair(symbol.toUpperCase()),
-          chain: "gemini",
-          id: symbol,
-          dex: "cex",
-          url: `https://www.gemini.com/prices/${fromPair(symbol).toLowerCase()}`,
-          priceUsd: ticker.close,
-          liquidityUsd: n(ticker.volume?.USD),
-          volume24h: n(ticker.volume?.USD),
-          priceChange24h: n(ticker.changes?.at(-1)) - n(ticker.open),
-          source: "gemini",
-          description: `${symbol} Gemini 24h spot market data`,
-        })
-      );
-    } catch (error) {
-      console.warn(`gemini ${symbol} skipped: ${error.message}`);
-    }
-  }
-
-  return all;
+  return (priceFeed || [])
+    .filter((ticker) => String(ticker.pair || "").toUpperCase().endsWith("USD"))
+    .slice(0, limit)
+    .map((ticker) => {
+      const pair = String(ticker.pair || "").toUpperCase();
+      return candidate({
+        name: fromPair(pair),
+        symbol: fromPair(pair),
+        chain: null,
+        exchange: "Gemini",
+        baseSymbol: fromPair(pair),
+        quoteSymbol: "USD",
+        id: pair,
+        dex: "cex",
+        url: `https://www.gemini.com/prices/${fromPair(pair).toLowerCase()}`,
+        priceUsd: ticker.price,
+        liquidityUsd: null,
+        volume24h: null,
+        priceChange24h: ticker.percentChange24h,
+        marketCap: null,
+        fullyDilutedValue: null,
+        source: "gemini",
+        description: `${pair} Gemini bulk public price feed`,
+      });
+    });
 }
 
 function dedupe(projects = []) {
@@ -631,10 +824,10 @@ function dedupe(projects = []) {
   return [...seen.values()];
 }
 
-export async function getExpandedMarketDataCandidates(options = {}) {
+export async function getExpandedMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
   const sourceCalls = [
-    ["coincap", () => getCoinCapCandidates({ limit })],
+    ["coincap", () => getCoinCapProviderResult({ limit }), true],
     ["coinlore", () => getCoinLoreCandidates({ limit })],
     ["cryptocompare", () => getCryptoCompareCandidates({ limit })],
     ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit })],
@@ -643,30 +836,41 @@ export async function getExpandedMarketDataCandidates(options = {}) {
     ["dexscreener-profiles", () => getDexScreenerTokenProfileCandidates({ limit })],
     ["dexscreener-boosts", () => getDexScreenerBoostCandidates({ limit })],
     ["okx", () => getOkxTickerCandidates({ limit })],
-    ["bybit", () => getBybitTickerCandidates({ limit })],
+    ["bybit", () => getBybitProviderResult({ limit }), true],
     ["gate", () => getGateTickerCandidates({ limit })],
     ["mexc", () => getMexcTickerCandidates({ limit })],
     ["bitget", () => getBitgetTickerCandidates({ limit })],
     ["htx", () => getHtxTickerCandidates({ limit })],
     ["bitfinex", () => getBitfinexTickerCandidates({ limit })],
     ["bitstamp", () => getBitstampTickerCandidates({ limit })],
-    ["gemini", () => getGeminiTickerCandidates({ limit: Math.min(30, limit) })],
+    ["gemini", () => getGeminiTickerCandidates({ limit })],
   ];
-  const all = [];
+  const providers = [];
 
-  for (const [name, fn] of sourceCalls) {
-    try {
-      all.push(...(await fn()));
-    } catch (error) {
-      const blocked = [401, 403, 451].includes(Number(error.status));
-      const suffix = blocked
-        ? `provider unavailable in this environment or requires access (${error.status})`
-        : error.message;
-      console.warn(`${name} skipped: ${suffix}`);
+  for (const [name, fn, returnsProviderResult] of sourceCalls) {
+    const result = returnsProviderResult ? await fn() : await runProvider(name, fn);
+    providers.push(result);
+
+    if (result.status !== "healthy") {
+      const message = result.errorMessage || result.errorCode || result.status;
+      console.warn(`${name} skipped: ${message}`);
     }
   }
 
-  return dedupe(all);
+  return {
+    candidates: dedupe(providers.flatMap((provider) => provider.candidates || [])),
+    providers: providers.map(({ candidates, ...provider }) => provider),
+  };
+}
+
+export async function getExpandedMarketDataProviderResults(options = {}) {
+  const batch = await getExpandedMarketDataProviderBatch(options);
+  return batch.providers;
+}
+
+export async function getExpandedMarketDataCandidates(options = {}) {
+  const batch = await getExpandedMarketDataProviderBatch(options);
+  return batch.candidates;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

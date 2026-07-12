@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T02:26:57.709Z",
+  "generatedAt": "2026-07-12T06:04:13.553Z",
   "totalProjects": 8,
   "headline": {
     "topCandidate": {
@@ -8,10 +8,10 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "alphaOSScore": 36,
+      "alphaOSScore": 37,
       "alphaOSVerdict": "OS Best Available Candidate",
-      "autoLearningWeightScore": 55,
-      "paperOutcomeLabScore": 48,
+      "autoLearningWeightScore": 57,
+      "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -58,10 +58,10 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "alphaOSScore": 36,
+      "alphaOSScore": 37,
       "alphaOSVerdict": "OS Best Available Candidate",
-      "autoLearningWeightScore": 55,
-      "paperOutcomeLabScore": 48,
+      "autoLearningWeightScore": 57,
+      "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -86,10 +86,10 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "alphaOSScore": 34,
+      "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 55,
-      "paperOutcomeLabScore": 47,
+      "autoLearningWeightScore": 57,
+      "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -112,10 +112,10 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "alphaOSScore": 29,
+      "alphaOSScore": 30,
       "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 54,
-      "paperOutcomeLabScore": 45,
+      "autoLearningWeightScore": 55,
+      "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -140,10 +140,10 @@
       "pipelineScore": 3,
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 53,
-      "paperOutcomeLabScore": 46,
+      "autoLearningWeightScore": 54,
+      "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "causalDriver": "Narrative Gravity",
       "sourceTruthScore": 26,
@@ -152,7 +152,7 @@
       "githubProVerdict": "No Repo Signal",
       "risk": 73,
       "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
@@ -190,12 +190,12 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
-      "alphaOSScore": 27,
+      "alphaOSScore": 28,
       "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 50,
-      "paperOutcomeLabScore": 43,
+      "autoLearningWeightScore": 51,
+      "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "causalDriver": "Narrative Gravity",
       "sourceTruthScore": 26,
@@ -204,7 +204,33 @@
       "githubProVerdict": "No Repo Signal",
       "risk": 75,
       "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Evidence Quality.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 1,
+      "alphaOSScore": 28,
+      "alphaOSVerdict": "OS Risk Block",
+      "autoLearningWeightScore": 50,
+      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "causalDriver": "Narrative Gravity",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 76,
+      "nextActions": [
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
@@ -221,7 +247,7 @@
       "autoLearningWeightScore": 49,
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "causalDriver": "Narrative Gravity",
       "sourceTruthScore": 23,
@@ -230,33 +256,7 @@
       "githubProVerdict": "No Repo Signal",
       "risk": 75,
       "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 5,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 1,
-      "alphaOSScore": 27,
-      "alphaOSVerdict": "OS Risk Block",
-      "autoLearningWeightScore": 48,
-      "paperOutcomeLabScore": 41,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "causalDriver": "Narrative Gravity",
-      "sourceTruthScore": 23,
-      "sourceTruthVerdict": "Weak Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 76,
-      "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
@@ -264,18 +264,81 @@
     }
   ],
   "paperTradingOutcomeLab": {
-    "generatedAt": "2026-07-12T02:26:57.707Z",
+    "generatedAt": "2026-07-12T06:04:13.550Z",
     "memory": {
       "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-      "totalRecords": 0,
+      "totalRecords": 1,
       "evaluatedRecords": 0,
-      "openRecords": 0,
+      "openRecords": 1,
       "winners": 0,
       "losers": 0,
       "winRate": 0,
       "averageReturnPct": 0,
-      "strategies": [],
-      "topOpenTrades": []
+      "strategies": [
+        {
+          "id": "narrative_heat_momentum",
+          "name": "Narrative Heat Momentum",
+          "observations": 1,
+          "evaluated": 0,
+          "winners": 0,
+          "losers": 0,
+          "avgReturnPct": -7,
+          "avgAlphaOSScore": 42,
+          "avgRiskScore": 20,
+          "winRate": 0,
+          "lossRate": 0,
+          "status": "Collecting"
+        }
+      ],
+      "topOpenTrades": [
+        {
+          "id": "0x742fa2694712b96caa0244ebabff2300955d9d2e",
+          "name": "robin",
+          "symbol": "ROBIN",
+          "chain": "robinhood",
+          "strategyId": "narrative_heat_momentum",
+          "strategyName": "Narrative Heat Momentum",
+          "openedAt": "2026-07-12T04:56:34.007Z",
+          "updatedAt": "2026-07-12T05:36:40.348Z",
+          "entryPriceUsd": 0.0008865,
+          "latestPriceUsd": 0.0008211,
+          "latestReturnPct": -7,
+          "daysOpen": 0,
+          "outcomeLabel": "Open",
+          "alphaOSVerdict": "OS Best Available Candidate",
+          "alphaOSScore": 42,
+          "causalAlphaScore": 60,
+          "strategyLabScore": 73,
+          "paperTradeScore": 57,
+          "proofScore": 30,
+          "sourceTruthScore": 44,
+          "githubProScore": 0,
+          "riskScore": 20,
+          "expectedReturn30dPct": 19,
+          "breakoutProbability30d": 34,
+          "entryTriggers": [
+            "Narrative heat rises with social acceleration and real liquidity support.",
+            "Project becomes best-in-class inside an active narrative cluster.",
+            "Proof score improves instead of relying only on hype."
+          ],
+          "invalidationRules": [
+            "Social heat fades without liquidity or GitHub confirmation.",
+            "Bot, low-source, or thin-proof risk rises.",
+            "Narrative leader rotates to a stronger competitor.",
+            "Autonomous Strategy Lab score drops below 50.",
+            "Causal Alpha Brain downgrades the primary driver."
+          ],
+          "checkpoints": {
+            "1d": null,
+            "7d": null,
+            "30d": null,
+            "90d": null
+          },
+          "latestAlphaOSVerdict": "OS Best Available Candidate",
+          "latestAlphaOSScore": 41,
+          "latestRiskScore": 20
+        }
+      ]
     },
     "totalProjects": 8,
     "promoteStrategyCount": 0,
@@ -284,7 +347,7 @@
       {
         "name": "Pendle",
         "symbol": "PENDLE",
-        "score": 48,
+        "score": 49,
         "verdict": "Collect More Outcomes",
         "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
@@ -294,7 +357,7 @@
       {
         "name": "Celestia",
         "symbol": "TIA",
-        "score": 47,
+        "score": 49,
         "verdict": "Collect More Outcomes",
         "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
@@ -304,9 +367,9 @@
       {
         "name": "Bittensor",
         "symbol": "TAO",
-        "score": 46,
+        "score": 47,
         "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
+        "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Reject"
@@ -314,7 +377,17 @@
       {
         "name": "Jupiter",
         "symbol": "JUP",
-        "score": 45,
+        "score": 46,
+        "verdict": "Collect More Outcomes",
+        "strategy": "Truth-Verified Alpha",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Reject"
+      },
+      {
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "score": 44,
         "verdict": "Collect More Outcomes",
         "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
@@ -332,21 +405,11 @@
         "alphaOSVerdict": "OS Risk Block"
       },
       {
-        "name": "Akash Network",
-        "symbol": "AKT",
-        "score": 43,
-        "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Reject"
-      },
-      {
         "name": "Render",
         "symbol": "RNDR",
         "score": 43,
         "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
+        "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Reject"
@@ -354,9 +417,9 @@
       {
         "name": "Ondo",
         "symbol": "ONDO",
-        "score": 41,
+        "score": 42,
         "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
+        "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Risk Block"
@@ -364,8 +427,8 @@
     ]
   },
   "autoLearningWeightOptimizer": {
-    "generatedAt": "2026-07-12T02:26:57.708Z",
-    "memorySamples": 0,
+    "generatedAt": "2026-07-12T06:04:13.552Z",
+    "memorySamples": 1,
     "evaluatedSamples": 0,
     "globalPaperWinRate": 0,
     "globalAverageReturnPct": 0,
@@ -373,8 +436,8 @@
       {
         "id": "strategy",
         "label": "Strategy Lab",
-        "weight": 0.99,
-        "avgProjectScore": 60,
+        "weight": 1.01,
+        "avgProjectScore": 64,
         "memorySignal": 0,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -382,8 +445,8 @@
       {
         "id": "causal",
         "label": "Causal Brain",
-        "weight": 1.22,
-        "avgProjectScore": 56,
+        "weight": 1.23,
+        "avgProjectScore": 57,
         "memorySignal": 50,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -426,8 +489,8 @@
       }
     ],
     "weights": {
-      "strategy": 0.99,
-      "causal": 1.22,
+      "strategy": 1.01,
+      "causal": 1.23,
       "simulation": 0.89,
       "proof": 1.1,
       "risk": 1.33,
@@ -435,7 +498,7 @@
     }
   },
   "sourceTruth": {
-    "generatedAt": "2026-07-12T02:26:57.708Z",
+    "generatedAt": "2026-07-12T06:04:13.552Z",
     "totalProjects": 8,
     "verifiedStacks": 0,
     "weakStacks": 8,
@@ -484,8 +547,8 @@
         ]
       },
       {
-        "name": "Celestia",
-        "symbol": "TIA",
+        "name": "Akash Network",
+        "symbol": "AKT",
         "score": 26,
         "verdict": "Weak Source Stack",
         "sources": [
@@ -508,21 +571,9 @@
         ]
       },
       {
-        "name": "Akash Network",
-        "symbol": "AKT",
+        "name": "Celestia",
+        "symbol": "TIA",
         "score": 26,
-        "verdict": "Weak Source Stack",
-        "sources": [
-          {
-            "source": "researchSeeds",
-            "trustScore": 15
-          }
-        ]
-      },
-      {
-        "name": "Ondo",
-        "symbol": "ONDO",
-        "score": 23,
         "verdict": "Weak Source Stack",
         "sources": [
           {
@@ -542,11 +593,23 @@
             "trustScore": 15
           }
         ]
+      },
+      {
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "score": 23,
+        "verdict": "Weak Source Stack",
+        "sources": [
+          {
+            "source": "researchSeeds",
+            "trustScore": 15
+          }
+        ]
       }
     ]
   },
   "githubIntelligencePro": {
-    "generatedAt": "2026-07-12T02:26:57.708Z",
+    "generatedAt": "2026-07-12T06:04:13.553Z",
     "totalProjects": 8,
     "repoProjects": 0,
     "eliteBuilderSignals": 0,
