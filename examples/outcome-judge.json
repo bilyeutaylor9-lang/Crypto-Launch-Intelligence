@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.718Z",
+  "generatedAt": "2026-07-12T02:26:57.677Z",
   "totalProjects": 8,
   "trackedProjects": 0,
   "coldStartProjects": 8,
-  "reliabilitySampleCount": 1312,
+  "reliabilitySampleCount": 1313,
   "strongestEngines": [
     {
       "engine": "liquidity",
@@ -194,7 +194,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "simulationBrainScore": 39,
+      "simulationBrainScore": 40,
       "aiEcosystemScore": 49,
       "outcomeJudgeScore": 44,
       "outcomeJudgeStatus": "Cold Start",
@@ -392,7 +392,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "simulationBrainScore": 39,
+      "simulationBrainScore": 40,
       "aiEcosystemScore": 49,
       "outcomeJudgeScore": 44,
       "outcomeJudgeStatus": "Cold Start",

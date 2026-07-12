@@ -80,6 +80,11 @@ Commands:
   crypto-launch strategy-lab      Print Autonomous Strategy Lab report
   crypto-launch causal-brain      Print Causal Alpha Brain report
   crypto-launch alpha-os          Print Autonomous Alpha OS report
+  crypto-launch alpha-dashboard   Print Alpha Dashboard v2 report
+  crypto-launch paper-lab         Print Paper Trading Outcome Lab report
+  crypto-launch weight-optimizer  Print Auto-Learning Weight Optimizer report
+  crypto-launch source-truth      Print Source Truth report
+  crypto-launch github-pro        Print GitHub Intelligence Pro report
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -158,6 +163,27 @@ switch (command) {
   case "alpha-os":
   case "autonomous-alpha-os":
     runNpm("alpha-os", args);
+    break;
+  case "alpha-dashboard":
+  case "alpha-dashboard-v2":
+  case "dashboard-v2":
+    runNpm("alpha-dashboard-v2", args);
+    break;
+  case "paper-lab":
+  case "paper-trading":
+    runNpm("paper-lab", args);
+    break;
+  case "weight-optimizer":
+  case "weights":
+    runNpm("weight-optimizer", args);
+    break;
+  case "source-truth":
+  case "truth":
+    runNpm("source-truth", args);
+    break;
+  case "github-pro":
+  case "github-intelligence":
+    runNpm("github-pro", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

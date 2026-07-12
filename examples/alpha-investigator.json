@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.726Z",
+  "generatedAt": "2026-07-12T02:26:57.691Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -151,7 +151,12 @@
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
       "alphaOSVerdict": "OS Risk Block",
-      "alphaOSMode": "Blocked"
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 51,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 6,
@@ -277,14 +282,19 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Best Available Candidate",
-      "alphaOSMode": "Best Available Paper Candidate"
+      "alphaOSMode": "Best Available Paper Candidate",
+      "paperOutcomeLabScore": 48,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 5,
@@ -416,14 +426,19 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 57,
+      "strategyLabScore": 55,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 51,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSScore": 27,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 41,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 48,
+      "sourceTruthScore": 23,
+      "githubProScore": 0
     },
     {
       "rank": 7,
@@ -560,14 +575,19 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 35,
+      "alphaOSScore": 34,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
     },
     {
       "rank": 4,
@@ -715,14 +735,167 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 53,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
+    },
+    {
+      "rank": 2,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 3,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 30,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Akash Network",
+        "symbol": "AKT",
+        "score": 22,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 28,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ],
+      "strategyLabScore": 59,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 55,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 27,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 50,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
     },
     {
       "rank": 8,
@@ -730,9 +903,9 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 36,
+      "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -842,157 +1015,19 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 29,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
-    },
-    {
-      "rank": 2,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Research Agent",
-          "priority": "Medium",
-          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
-          "reason": "Missing external source confirmation"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        }
-      ],
-      "alphaInvestigatorScore": 21,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Akash Network",
-        "symbol": "AKT",
-        "score": 21,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
-          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
-          "date": null,
-          "dateLabel": "unknown",
-          "precision": "unknown",
-          "type": "staking",
-          "matchedTerms": [
-            "staking",
-            "validator"
-          ],
-          "source": "inferred-web-roadmap",
-          "daysUntil": null,
-          "roadmapScore": 80,
-          "impact": "Major Positive"
-        },
-        "bullCase": [
-          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
-        ],
-        "bearCase": [
-          "Roadmap Agent: Roadmap does not prove enough yet.",
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Catalyst Agent: Catalyst timing is not decisive.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone."
-        ],
-        "missingProof": [
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing external source confirmation",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
-          "Liquidity expansion rises above 60.",
-          "Catalyst radar confirms a why-now event."
-        ]
-      },
-      "warRoomScore": 28,
-      "warRoomAllocation": "Ignore",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "ai",
-        "depin",
-        "restaking"
-      ],
-      "strategyLabScore": 61,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 55,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 27,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 45,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 54,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 3,
@@ -1134,14 +1169,19 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 60,
+      "strategyLabScore": 58,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 26,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 49,
+      "sourceTruthScore": 23,
+      "githubProScore": 0
     }
   ]
 }

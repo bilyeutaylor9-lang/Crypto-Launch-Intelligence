@@ -134,6 +134,10 @@ export function createScanRecord(project = {}) {
       paperTrade: num(project.paperTradeScore),
       causalAlpha: num(project.causalAlphaScore),
       autonomousAlphaOS: num(project.autonomousAlphaOSScore),
+      paperOutcomeLab: num(project.paperOutcomeLabScore),
+      autoLearningWeight: num(project.autoLearningWeightScore),
+      sourceTruth: num(project.sourceTruthScore),
+      githubPro: num(project.githubProScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -232,6 +236,10 @@ export function createScanRecord(project = {}) {
       causalCounterfactuals: project.causalCounterfactuals || [],
       autonomousAlphaOS: project.autonomousAlphaOS || {},
       autonomousAlphaOSCouncil: project.autonomousAlphaOSCouncil || {},
+      paperTradingOutcomeLab: project.paperTradingOutcomeLab || {},
+      autoLearningWeightOptimizer: project.autoLearningWeightOptimizer || {},
+      sourceTruth: project.sourceTruth || {},
+      githubIntelligencePro: project.githubIntelligencePro || {},
     },
 
     futureOutcomes: {

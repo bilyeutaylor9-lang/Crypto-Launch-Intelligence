@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.732Z",
+  "generatedAt": "2026-07-12T02:26:57.701Z",
   "totalProjects": 8,
   "counts": {
     "strongBuyResearch": 0,
     "bestAvailable": 1,
     "priorityResearch": 0,
     "paperTrade": 0,
-    "blocked": 1
+    "blocked": 2
   },
   "commanderBrief": "Top OS candidate: Pendle (OS Best Available Candidate).",
   "topCandidates": [
@@ -20,7 +20,7 @@
       "mode": "Best Available Paper Candidate",
       "consensus": "Mixed",
       "causalScore": 57,
-      "strategyScore": 64,
+      "strategyScore": 62,
       "simulationScore": 40,
       "risk": 73,
       "primaryDriver": "Evidence Quality",
@@ -39,12 +39,12 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 35,
+      "score": 34,
       "verdict": "OS Reject",
       "mode": "Monitor",
       "consensus": "Mixed",
       "causalScore": 58,
-      "strategyScore": 64,
+      "strategyScore": 62,
       "simulationScore": 40,
       "risk": 72,
       "primaryDriver": "Evidence Quality",
@@ -66,7 +66,7 @@
       "mode": "Monitor",
       "consensus": "Mixed",
       "causalScore": 61,
-      "strategyScore": 64,
+      "strategyScore": 62,
       "simulationScore": 35,
       "risk": 73,
       "primaryDriver": "Narrative Gravity",
@@ -88,9 +88,9 @@
       "mode": "Monitor",
       "consensus": "Mixed",
       "causalScore": 54,
-      "strategyScore": 64,
-      "simulationScore": 39,
-      "risk": 69,
+      "strategyScore": 62,
+      "simulationScore": 40,
+      "risk": 70,
       "primaryDriver": "Evidence Quality",
       "bestStrategy": "Truth-Verified Alpha",
       "nextActions": [
@@ -105,14 +105,14 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 28,
-      "verdict": "OS Reject",
-      "mode": "Monitor",
-      "consensus": "Mixed",
+      "score": 27,
+      "verdict": "OS Risk Block",
+      "mode": "Blocked",
+      "consensus": "Blocked",
       "causalScore": 51,
-      "strategyScore": 57,
+      "strategyScore": 55,
       "simulationScore": 32,
-      "risk": 75,
+      "risk": 76,
       "primaryDriver": "Narrative Gravity",
       "bestStrategy": "GitHub Builder Momentum",
       "nextActions": [
@@ -132,7 +132,7 @@
       "mode": "Monitor",
       "consensus": "Mixed",
       "causalScore": 55,
-      "strategyScore": 61,
+      "strategyScore": 59,
       "simulationScore": 27,
       "risk": 75,
       "primaryDriver": "Narrative Gravity",
@@ -154,7 +154,7 @@
       "mode": "Monitor",
       "consensus": "Mixed",
       "causalScore": 54,
-      "strategyScore": 60,
+      "strategyScore": 58,
       "simulationScore": 27,
       "risk": 75,
       "primaryDriver": "Narrative Gravity",
@@ -191,412 +191,6 @@
   ],
   "topStrategyCandidates": [
     {
-      "rank": 1,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "pipelineScore": 0,
-      "strategyLabScore": 64,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "strategyReadinessPct": 66,
-      "paperTradeScore": 53,
-      "paperTradingPlan": {
-        "mode": "Research Only",
-        "positionStyle": "No simulated entry until evidence improves",
-        "entryTriggers": [
-          "Proof, source reliability, and AI confidence all improve together.",
-          "Causal and simulation layers agree on the same core driver.",
-          "Red-team review is clear or only lightly challenged."
-        ],
-        "invalidationRules": [
-          "Evidence quality deteriorates or sources conflict.",
-          "AI agents disagree because risk is rising.",
-          "Outcome judge downgrades the setup after reality checks.",
-          "Autonomous Strategy Lab score drops below 50.",
-          "Causal Alpha Brain downgrades the primary driver."
-        ],
-        "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "21-90 days",
-        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
-      },
-      "causalAlphaScore": 57,
-      "causalAlphaVerdict": "Causal Watch",
-      "causalAlphaConfidence": "Developing",
-      "primaryDriver": {
-        "id": "proof",
-        "label": "Evidence Quality",
-        "type": "driver",
-        "score": 61,
-        "weight": 1.18,
-        "contribution": 13,
-        "state": "Developing Driver"
-      },
-      "primaryBlocker": {
-        "id": "catalyst",
-        "label": "Why-Now Catalyst",
-        "type": "driver",
-        "score": 41,
-        "weight": 1.12,
-        "contribution": 8,
-        "state": "Weak"
-      },
-      "causalCounterfactuals": [
-        {
-          "remove": "Evidence Quality",
-          "scoreWithoutDriver": 44,
-          "estimatedImpact": 13,
-          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 47,
-          "estimatedImpact": 10,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Forward Simulation",
-          "scoreWithoutDriver": 48,
-          "estimatedImpact": 9,
-          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 8,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Why-Now Catalyst",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 8,
-          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Liquidity Confirmation",
-          "scoreWithoutDriver": 51,
-          "estimatedImpact": 6,
-          "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
-        }
-      ],
-      "autonomousAlphaOSScore": 36,
-      "autonomousAlphaOSVerdict": "OS Best Available Candidate",
-      "autonomousAlphaOSMode": "Best Available Paper Candidate",
-      "autonomousAlphaOSConsensus": "Mixed",
-      "autonomousAlphaOSNextActions": [
-        "Verify the primary causal driver against raw evidence before any live decision.",
-        "Run paper-trade tracking through the expected holding window.",
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Why-Now Catalyst.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ],
-      "risk": 73
-    },
-    {
-      "rank": 2,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineScore": 0,
-      "strategyLabScore": 64,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "strategyReadinessPct": 66,
-      "paperTradeScore": 53,
-      "paperTradingPlan": {
-        "mode": "Research Only",
-        "positionStyle": "No simulated entry until evidence improves",
-        "entryTriggers": [
-          "Proof, source reliability, and AI confidence all improve together.",
-          "Causal and simulation layers agree on the same core driver.",
-          "Red-team review is clear or only lightly challenged."
-        ],
-        "invalidationRules": [
-          "Evidence quality deteriorates or sources conflict.",
-          "AI agents disagree because risk is rising.",
-          "Outcome judge downgrades the setup after reality checks.",
-          "Autonomous Strategy Lab score drops below 50.",
-          "Causal Alpha Brain downgrades the primary driver."
-        ],
-        "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "21-90 days",
-        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
-      },
-      "causalAlphaScore": 58,
-      "causalAlphaVerdict": "Causal Watch",
-      "causalAlphaConfidence": "Low",
-      "primaryDriver": {
-        "id": "proof",
-        "label": "Evidence Quality",
-        "type": "driver",
-        "score": 61,
-        "weight": 1.18,
-        "contribution": 13,
-        "state": "Developing Driver"
-      },
-      "primaryBlocker": {
-        "id": "builders",
-        "label": "Builder Proof",
-        "type": "driver",
-        "score": 38,
-        "weight": 0.96,
-        "contribution": 7,
-        "state": "Weak"
-      },
-      "causalCounterfactuals": [
-        {
-          "remove": "Evidence Quality",
-          "scoreWithoutDriver": 45,
-          "estimatedImpact": 13,
-          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 48,
-          "estimatedImpact": 10,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 9,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Forward Simulation",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 9,
-          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Why-Now Catalyst",
-          "scoreWithoutDriver": 51,
-          "estimatedImpact": 7,
-          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Builder Proof",
-          "scoreWithoutDriver": 51,
-          "estimatedImpact": 7,
-          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
-        }
-      ],
-      "autonomousAlphaOSScore": 35,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
-      "autonomousAlphaOSNextActions": [
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Builder Proof.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ],
-      "risk": 72
-    },
-    {
-      "rank": 3,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "pipelineScore": 3,
-      "strategyLabScore": 64,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "GitHub Builder Momentum",
-      "strategyReadinessPct": 63,
-      "paperTradeScore": 52,
-      "paperTradingPlan": {
-        "mode": "Research Only",
-        "positionStyle": "No simulated entry until evidence improves",
-        "entryTriggers": [
-          "Commit/activity quality continues improving across multiple scans.",
-          "Roadmap or docs align with real shipped work.",
-          "Social attention begins rising after builder momentum."
-        ],
-        "invalidationRules": [
-          "Repository activity becomes stale or purely cosmetic.",
-          "Docs and roadmap do not match actual development.",
-          "Token incentives dominate without product traction.",
-          "Autonomous Strategy Lab score drops below 50.",
-          "Causal Alpha Brain downgrades the primary driver."
-        ],
-        "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "30-120 days",
-        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
-      },
-      "causalAlphaScore": 61,
-      "causalAlphaVerdict": "Causal Watch",
-      "causalAlphaConfidence": "Developing",
-      "primaryDriver": {
-        "id": "narrative",
-        "label": "Narrative Gravity",
-        "type": "driver",
-        "score": 60,
-        "weight": 1.05,
-        "contribution": 11,
-        "state": "Developing Driver"
-      },
-      "primaryBlocker": {
-        "id": "proof",
-        "label": "Evidence Quality",
-        "type": "driver",
-        "score": 44,
-        "weight": 1.18,
-        "contribution": 9,
-        "state": "Weak"
-      },
-      "causalCounterfactuals": [
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 50,
-          "estimatedImpact": 11,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 51,
-          "estimatedImpact": 10,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Why-Now Catalyst",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 9,
-          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Evidence Quality",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 9,
-          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Forward Simulation",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 9,
-          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Builder Proof",
-          "scoreWithoutDriver": 54,
-          "estimatedImpact": 7,
-          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
-        }
-      ],
-      "autonomousAlphaOSScore": 31,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
-      "autonomousAlphaOSNextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ],
-      "risk": 73
-    },
-    {
-      "rank": 4,
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "chain": "solana",
-      "pipelineScore": 0,
-      "strategyLabScore": 64,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "strategyReadinessPct": 66,
-      "paperTradeScore": 53,
-      "paperTradingPlan": {
-        "mode": "Research Only",
-        "positionStyle": "No simulated entry until evidence improves",
-        "entryTriggers": [
-          "Proof, source reliability, and AI confidence all improve together.",
-          "Causal and simulation layers agree on the same core driver.",
-          "Red-team review is clear or only lightly challenged."
-        ],
-        "invalidationRules": [
-          "Evidence quality deteriorates or sources conflict.",
-          "AI agents disagree because risk is rising.",
-          "Outcome judge downgrades the setup after reality checks.",
-          "Autonomous Strategy Lab score drops below 50.",
-          "Causal Alpha Brain downgrades the primary driver."
-        ],
-        "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "21-90 days",
-        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
-      },
-      "causalAlphaScore": 54,
-      "causalAlphaVerdict": "Causal Watch",
-      "causalAlphaConfidence": "Low",
-      "primaryDriver": {
-        "id": "proof",
-        "label": "Evidence Quality",
-        "type": "driver",
-        "score": 61,
-        "weight": 1.18,
-        "contribution": 13,
-        "state": "Developing Driver"
-      },
-      "primaryBlocker": {
-        "id": "builders",
-        "label": "Builder Proof",
-        "type": "driver",
-        "score": 37,
-        "weight": 0.96,
-        "contribution": 6,
-        "state": "Weak"
-      },
-      "causalCounterfactuals": [
-        {
-          "remove": "Evidence Quality",
-          "scoreWithoutDriver": 41,
-          "estimatedImpact": 13,
-          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 44,
-          "estimatedImpact": 10,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Forward Simulation",
-          "scoreWithoutDriver": 45,
-          "estimatedImpact": 9,
-          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 48,
-          "estimatedImpact": 6,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Liquidity Confirmation",
-          "scoreWithoutDriver": 48,
-          "estimatedImpact": 6,
-          "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Builder Proof",
-          "scoreWithoutDriver": 48,
-          "estimatedImpact": 6,
-          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
-        }
-      ],
-      "autonomousAlphaOSScore": 29,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
-      "autonomousAlphaOSNextActions": [
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Builder Proof.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ],
-      "risk": 69
-    },
-    {
       "rank": 8,
       "name": "EigenLayer",
       "symbol": "EIGEN",
@@ -695,7 +289,458 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 51,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 78
+    },
+    {
+      "rank": 1,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "strategyReadinessPct": 66,
+      "paperTradeScore": 53,
+      "paperTradingPlan": {
+        "mode": "Research Only",
+        "positionStyle": "No simulated entry until evidence improves",
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "reviewCadence": "Every 24h scan cycle",
+        "expectedHoldingWindow": "21-90 days",
+        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
+      },
+      "causalAlphaScore": 57,
+      "causalAlphaVerdict": "Causal Watch",
+      "causalAlphaConfidence": "Developing",
+      "primaryDriver": {
+        "id": "proof",
+        "label": "Evidence Quality",
+        "type": "driver",
+        "score": 61,
+        "weight": 1.18,
+        "contribution": 13,
+        "state": "Developing Driver"
+      },
+      "primaryBlocker": {
+        "id": "catalyst",
+        "label": "Why-Now Catalyst",
+        "type": "driver",
+        "score": 41,
+        "weight": 1.12,
+        "contribution": 8,
+        "state": "Weak"
+      },
+      "causalCounterfactuals": [
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 44,
+          "estimatedImpact": 13,
+          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 47,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Forward Simulation",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 9,
+          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 8,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Why-Now Catalyst",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 8,
+          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Liquidity Confirmation",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 6,
+          "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
+        }
+      ],
+      "autonomousAlphaOSScore": 36,
+      "autonomousAlphaOSVerdict": "OS Best Available Candidate",
+      "autonomousAlphaOSMode": "Best Available Paper Candidate",
+      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSNextActions": [
+        "Verify the primary causal driver against raw evidence before any live decision.",
+        "Run paper-trade tracking through the expected holding window.",
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Why-Now Catalyst.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ],
+      "paperOutcomeLabScore": 48,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 73
+    },
+    {
+      "rank": 2,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 0,
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "strategyReadinessPct": 66,
+      "paperTradeScore": 53,
+      "paperTradingPlan": {
+        "mode": "Research Only",
+        "positionStyle": "No simulated entry until evidence improves",
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "reviewCadence": "Every 24h scan cycle",
+        "expectedHoldingWindow": "21-90 days",
+        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
+      },
+      "causalAlphaScore": 58,
+      "causalAlphaVerdict": "Causal Watch",
+      "causalAlphaConfidence": "Low",
+      "primaryDriver": {
+        "id": "proof",
+        "label": "Evidence Quality",
+        "type": "driver",
+        "score": 61,
+        "weight": 1.18,
+        "contribution": 13,
+        "state": "Developing Driver"
+      },
+      "primaryBlocker": {
+        "id": "builders",
+        "label": "Builder Proof",
+        "type": "driver",
+        "score": 38,
+        "weight": 0.96,
+        "contribution": 7,
+        "state": "Weak"
+      },
+      "causalCounterfactuals": [
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 45,
+          "estimatedImpact": 13,
+          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 9,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Forward Simulation",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 9,
+          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Why-Now Catalyst",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 7,
+          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Builder Proof",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 7,
+          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
+        }
+      ],
+      "autonomousAlphaOSScore": 34,
+      "autonomousAlphaOSVerdict": "OS Reject",
+      "autonomousAlphaOSMode": "Monitor",
+      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSNextActions": [
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Builder Proof.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ],
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 72
+    },
+    {
+      "rank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 3,
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "GitHub Builder Momentum",
+      "strategyReadinessPct": 63,
+      "paperTradeScore": 51,
+      "paperTradingPlan": {
+        "mode": "Research Only",
+        "positionStyle": "No simulated entry until evidence improves",
+        "entryTriggers": [
+          "Commit/activity quality continues improving across multiple scans.",
+          "Roadmap or docs align with real shipped work.",
+          "Social attention begins rising after builder momentum."
+        ],
+        "invalidationRules": [
+          "Repository activity becomes stale or purely cosmetic.",
+          "Docs and roadmap do not match actual development.",
+          "Token incentives dominate without product traction.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "reviewCadence": "Every 24h scan cycle",
+        "expectedHoldingWindow": "30-120 days",
+        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
+      },
+      "causalAlphaScore": 61,
+      "causalAlphaVerdict": "Causal Watch",
+      "causalAlphaConfidence": "Developing",
+      "primaryDriver": {
+        "id": "narrative",
+        "label": "Narrative Gravity",
+        "type": "driver",
+        "score": 60,
+        "weight": 1.05,
+        "contribution": 11,
+        "state": "Developing Driver"
+      },
+      "primaryBlocker": {
+        "id": "proof",
+        "label": "Evidence Quality",
+        "type": "driver",
+        "score": 44,
+        "weight": 1.18,
+        "contribution": 9,
+        "state": "Weak"
+      },
+      "causalCounterfactuals": [
+        {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 50,
+          "estimatedImpact": 11,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Why-Now Catalyst",
+          "scoreWithoutDriver": 52,
+          "estimatedImpact": 9,
+          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 52,
+          "estimatedImpact": 9,
+          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Forward Simulation",
+          "scoreWithoutDriver": 52,
+          "estimatedImpact": 9,
+          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Builder Proof",
+          "scoreWithoutDriver": 54,
+          "estimatedImpact": 7,
+          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
+        }
+      ],
+      "autonomousAlphaOSScore": 31,
+      "autonomousAlphaOSVerdict": "OS Reject",
+      "autonomousAlphaOSMode": "Monitor",
+      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSNextActions": [
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Evidence Quality.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ],
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 53,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 73
+    },
+    {
+      "rank": 4,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "pipelineScore": 0,
+      "strategyLabScore": 62,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "strategyReadinessPct": 66,
+      "paperTradeScore": 53,
+      "paperTradingPlan": {
+        "mode": "Research Only",
+        "positionStyle": "No simulated entry until evidence improves",
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "reviewCadence": "Every 24h scan cycle",
+        "expectedHoldingWindow": "21-90 days",
+        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
+      },
+      "causalAlphaScore": 54,
+      "causalAlphaVerdict": "Causal Watch",
+      "causalAlphaConfidence": "Low",
+      "primaryDriver": {
+        "id": "proof",
+        "label": "Evidence Quality",
+        "type": "driver",
+        "score": 61,
+        "weight": 1.18,
+        "contribution": 13,
+        "state": "Developing Driver"
+      },
+      "primaryBlocker": {
+        "id": "builders",
+        "label": "Builder Proof",
+        "type": "driver",
+        "score": 37,
+        "weight": 0.96,
+        "contribution": 6,
+        "state": "Weak"
+      },
+      "causalCounterfactuals": [
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 41,
+          "estimatedImpact": 13,
+          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 44,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Forward Simulation",
+          "scoreWithoutDriver": 45,
+          "estimatedImpact": 9,
+          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 6,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Liquidity Confirmation",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 6,
+          "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Builder Proof",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 6,
+          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
+        }
+      ],
+      "autonomousAlphaOSScore": 29,
+      "autonomousAlphaOSVerdict": "OS Reject",
+      "autonomousAlphaOSMode": "Monitor",
+      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSNextActions": [
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Builder Proof.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ],
+      "paperOutcomeLabScore": 45,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 54,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 70
     },
     {
       "rank": 6,
@@ -703,7 +748,7 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
-      "strategyLabScore": 61,
+      "strategyLabScore": 59,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
@@ -796,6 +841,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 50,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -804,11 +858,11 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineScore": 3,
-      "strategyLabScore": 60,
+      "strategyLabScore": 58,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
-      "paperTradeScore": 48,
+      "paperTradeScore": 47,
       "paperTradingPlan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -897,6 +951,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 49,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -905,7 +968,7 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 1,
-      "strategyLabScore": 57,
+      "strategyLabScore": 55,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 57,
@@ -988,17 +1051,26 @@
           "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
         }
       ],
-      "autonomousAlphaOSScore": 28,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSScore": 27,
+      "autonomousAlphaOSVerdict": "OS Risk Block",
+      "autonomousAlphaOSMode": "Blocked",
+      "autonomousAlphaOSConsensus": "Blocked",
       "autonomousAlphaOSNextActions": [
         "Watch trigger: Commit/activity quality continues improving across multiple scans.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
-      "risk": 75
+      "paperOutcomeLabScore": 41,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 48,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 76
     }
   ],
   "topCausalCandidates": [
@@ -1008,11 +1080,11 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 3,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 63,
-      "paperTradeScore": 52,
+      "paperTradeScore": 51,
       "paperTradingPlan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -1101,6 +1173,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 53,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 73
     },
     {
@@ -1202,6 +1283,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 51,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 78
     },
     {
@@ -1210,7 +1300,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -1293,7 +1383,7 @@
           "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
         }
       ],
-      "autonomousAlphaOSScore": 35,
+      "autonomousAlphaOSScore": 34,
       "autonomousAlphaOSVerdict": "OS Reject",
       "autonomousAlphaOSMode": "Monitor",
       "autonomousAlphaOSConsensus": "Mixed",
@@ -1303,6 +1393,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 72
     },
     {
@@ -1311,7 +1410,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -1406,6 +1505,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 48,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 73
     },
     {
@@ -1414,7 +1522,7 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
-      "strategyLabScore": 61,
+      "strategyLabScore": 59,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
@@ -1507,6 +1615,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 50,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -1515,7 +1632,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -1608,7 +1725,16 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
-      "risk": 69
+      "paperOutcomeLabScore": 45,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 54,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 70
     },
     {
       "rank": 7,
@@ -1616,11 +1742,11 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineScore": 3,
-      "strategyLabScore": 60,
+      "strategyLabScore": 58,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
-      "paperTradeScore": 48,
+      "paperTradeScore": 47,
       "paperTradingPlan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -1709,6 +1835,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 49,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -1717,7 +1852,7 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 1,
-      "strategyLabScore": 57,
+      "strategyLabScore": 55,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 57,
@@ -1800,17 +1935,26 @@
           "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
         }
       ],
-      "autonomousAlphaOSScore": 28,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSScore": 27,
+      "autonomousAlphaOSVerdict": "OS Risk Block",
+      "autonomousAlphaOSMode": "Blocked",
+      "autonomousAlphaOSConsensus": "Blocked",
       "autonomousAlphaOSNextActions": [
         "Watch trigger: Commit/activity quality continues improving across multiple scans.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
-      "risk": 75
+      "paperOutcomeLabScore": 41,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 48,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 76
     }
   ],
   "topOSCandidates": [
@@ -1820,7 +1964,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -1915,6 +2059,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 48,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 73
     },
     {
@@ -1923,7 +2076,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -2006,7 +2159,7 @@
           "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
         }
       ],
-      "autonomousAlphaOSScore": 35,
+      "autonomousAlphaOSScore": 34,
       "autonomousAlphaOSVerdict": "OS Reject",
       "autonomousAlphaOSMode": "Monitor",
       "autonomousAlphaOSConsensus": "Mixed",
@@ -2016,6 +2169,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 55,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 72
     },
     {
@@ -2024,11 +2186,11 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 3,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 63,
-      "paperTradeScore": 52,
+      "paperTradeScore": 51,
       "paperTradingPlan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -2117,6 +2279,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 53,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 73
     },
     {
@@ -2125,7 +2296,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "strategyReadinessPct": 66,
@@ -2218,7 +2389,16 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
-      "risk": 69
+      "paperOutcomeLabScore": 45,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 54,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 70
     },
     {
       "rank": 5,
@@ -2226,7 +2406,7 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 1,
-      "strategyLabScore": 57,
+      "strategyLabScore": 55,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 57,
@@ -2309,17 +2489,26 @@
           "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
         }
       ],
-      "autonomousAlphaOSScore": 28,
-      "autonomousAlphaOSVerdict": "OS Reject",
-      "autonomousAlphaOSMode": "Monitor",
-      "autonomousAlphaOSConsensus": "Mixed",
+      "autonomousAlphaOSScore": 27,
+      "autonomousAlphaOSVerdict": "OS Risk Block",
+      "autonomousAlphaOSMode": "Blocked",
+      "autonomousAlphaOSConsensus": "Blocked",
       "autonomousAlphaOSNextActions": [
         "Watch trigger: Commit/activity quality continues improving across multiple scans.",
         "Resolve blocker: Evidence Quality.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
-      "risk": 75
+      "paperOutcomeLabScore": 41,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 48,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 76
     },
     {
       "rank": 6,
@@ -2327,7 +2516,7 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
-      "strategyLabScore": 61,
+      "strategyLabScore": 59,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
@@ -2420,6 +2609,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 50,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 26,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -2428,11 +2626,11 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineScore": 3,
-      "strategyLabScore": 60,
+      "strategyLabScore": 58,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "strategyReadinessPct": 59,
-      "paperTradeScore": 48,
+      "paperTradeScore": 47,
       "paperTradingPlan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -2521,6 +2719,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 49,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 23,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 75
     },
     {
@@ -2622,6 +2829,15 @@
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ],
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "paperStrategyWinRate": 0,
+      "autoLearningWeightScore": 51,
+      "autoLearningWeightVerdict": "Needs More Learning",
+      "sourceTruthScore": 27,
+      "sourceTruthVerdict": "Weak Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
       "risk": 78
     }
   ]

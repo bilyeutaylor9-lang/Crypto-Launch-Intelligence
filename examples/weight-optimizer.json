@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-07-12T02:26:57.708Z",
+  "memorySamples": 0,
+  "evaluatedSamples": 0,
+  "globalPaperWinRate": 0,
+  "globalAverageReturnPct": 0,
+  "families": [
+    {
+      "id": "strategy",
+      "label": "Strategy Lab",
+      "weight": 0.99,
+      "avgProjectScore": 60,
+      "memorySignal": 0,
+      "confidence": 30,
+      "action": "Collect More Outcomes"
+    },
+    {
+      "id": "causal",
+      "label": "Causal Brain",
+      "weight": 1.22,
+      "avgProjectScore": 56,
+      "memorySignal": 50,
+      "confidence": 30,
+      "action": "Collect More Outcomes"
+    },
+    {
+      "id": "simulation",
+      "label": "Simulation Brain",
+      "weight": 0.89,
+      "avgProjectScore": 34,
+      "memorySignal": 0,
+      "confidence": 30,
+      "action": "Collect More Outcomes"
+    },
+    {
+      "id": "proof",
+      "label": "Proof / Source",
+      "weight": 1.1,
+      "avgProjectScore": 26,
+      "memorySignal": 50,
+      "confidence": 30,
+      "action": "Collect More Outcomes"
+    },
+    {
+      "id": "risk",
+      "label": "Risk Governor",
+      "weight": 1.33,
+      "avgProjectScore": 83,
+      "memorySignal": 50,
+      "confidence": 30,
+      "action": "Collect More Outcomes"
+    },
+    {
+      "id": "github",
+      "label": "GitHub Pro",
+      "weight": 1,
+      "avgProjectScore": 0,
+      "memorySignal": 50,
+      "confidence": 0,
+      "action": "Collect More Outcomes"
+    }
+  ],
+  "weights": {
+    "strategy": 0.99,
+    "causal": 1.22,
+    "simulation": 0.89,
+    "proof": 1.1,
+    "risk": 1.33,
+    "github": 1
+  }
+}

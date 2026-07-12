@@ -34,6 +34,11 @@ function compact(project = {}) {
     alphaOSScore: project.autonomousAlphaOSScore || 0,
     alphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
     alphaOSMode: project.autonomousAlphaOSMode || "Unknown",
+    paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
+    paperOutcomeLabVerdict: project.paperOutcomeLabVerdict || "Unknown",
+    autoLearningWeightScore: project.autoLearningWeightScore || 0,
+    sourceTruthScore: project.sourceTruthScore || 0,
+    githubProScore: project.githubProScore || 0,
   };
 }
 
@@ -66,6 +71,9 @@ export function writeAICommandCenterReport(projects = []) {
       alphaOSStrongBuy: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Strong Buy Research Candidate").length,
       alphaOSBestAvailable: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Best Available Candidate").length,
       alphaOSPriority: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Priority Research").length,
+      paperPromotions: safeProjects.filter((project) => project.paperOutcomeLabVerdict === "Promote Strategy Weight").length,
+      verifiedSourceStacks: safeProjects.filter((project) => project.sourceTruthVerdict === "Verified Source Stack").length,
+      healthyGithubSignals: safeProjects.filter((project) => project.githubProVerdict === "Healthy Builder Signal").length,
       avoid: safeProjects.filter((project) => project.aiWarRoomAllocation === "Avoid").length,
     },
     commanderBrief: battlePlan.commanderBrief,

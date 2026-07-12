@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.783Z",
-  "totalEngines": 97,
-  "wiredIntoPipeline": 73,
-  "stateOfArtReady": 80,
+  "generatedAt": "2026-07-12T02:26:57.776Z",
+  "totalEngines": 101,
+  "wiredIntoPipeline": 77,
+  "stateOfArtReady": 84,
   "readinessScore": 88,
   "categoryCounts": {
-    "intelligence": 39,
+    "intelligence": 41,
     "ai": 12,
-    "learning": 12,
+    "learning": 14,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -103,6 +103,21 @@
       "hasBatch": true,
       "hasAnalyzer": true,
       "wiredInPipeline": false,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autoLearningWeightOptimizerEngine.js",
+      "category": "learning",
+      "exports": [
+        "buildAutoLearningWeights",
+        "analyzeAutoLearningWeightOptimizerBatch",
+        "summarizeAutoLearningWeightOptimizer"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
       "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
@@ -302,22 +317,6 @@
       "hasBatch": true,
       "hasAnalyzer": true,
       "wiredInPipeline": false,
-      "advancedSignals": 4,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "communityGrowthEngine.js",
-      "category": "intelligence",
-      "exports": [
-        "classifyCommunity",
-        "scoreCommunityGrowth",
-        "analyzeCommunityGrowth",
-        "analyzeCommunityGrowthBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
       "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
@@ -681,6 +680,21 @@
       "advancedSignals": 4,
       "readinessScore": 65,
       "status": "usable"
+    },
+    {
+      "file": "autoLearningWeightOptimizerEngine.js",
+      "category": "learning",
+      "exports": [
+        "buildAutoLearningWeights",
+        "analyzeAutoLearningWeightOptimizerBatch",
+        "summarizeAutoLearningWeightOptimizer"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "autonomousAlphaInvestigatorEngine.js",
@@ -1062,6 +1076,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 1,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "githubIntelligenceProEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeGithubIntelligencePro",
+        "analyzeGithubIntelligenceProBatch",
+        "summarizeGithubIntelligencePro"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -1467,6 +1496,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "paperTradingOutcomeLabEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzePaperTradingOutcomeLab",
+        "analyzePaperTradingOutcomeLabBatch",
+        "summarizePaperTradingOutcomeLab"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "partnershipEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1798,6 +1842,21 @@
       "wiredInPipeline": true,
       "advancedSignals": 3,
       "readinessScore": 85,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "sourceTruthEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeSourceTruth",
+        "analyzeSourceTruthBatch",
+        "summarizeSourceTruth"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
       "status": "state-of-art-ready"
     },
     {

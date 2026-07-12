@@ -167,6 +167,10 @@ function printSummary(summary) {
   console.log(`Causal Strong Buys: ${summary.causalStrongBuyCount}`);
   console.log(`Alpha OS Strong Buys: ${summary.alphaOSStrongBuyCount}`);
   console.log(`Alpha OS Best Available: ${summary.alphaOSBestAvailableCount}`);
+  console.log(`Weight-Optimized Priority: ${summary.weightOptimizedPriorityCount}`);
+  console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
+  console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
+  console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
   console.log("");
   console.log(`Smart Money Accumulation: ${summary.strongSmartMoneyAccumulationCount}`);
   console.log(`Smart Wallet Performance: ${summary.strongSmartWalletPerformanceCount}`);
@@ -256,6 +260,11 @@ function printReportPaths(paths) {
   console.log(`Strategy Lab:   ${paths.strategyLabPath}`);
   console.log(`Causal Brain:   ${paths.causalBrainPath}`);
   console.log(`Alpha OS:       ${paths.alphaOSPath}`);
+  console.log(`Dashboard v2:   ${paths.alphaDashboardV2Path}`);
+  console.log(`Paper Lab:      ${paths.paperLabPath}`);
+  console.log(`Weights:        ${paths.weightOptimizerPath}`);
+  console.log(`Source Truth:   ${paths.sourceTruthPath}`);
+  console.log(`GitHub Pro:     ${paths.githubProPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

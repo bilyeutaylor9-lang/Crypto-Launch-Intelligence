@@ -65,6 +65,14 @@ function compact(project = {}) {
     autonomousAlphaOSScore: project.autonomousAlphaOSScore || 0,
     autonomousAlphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
     autonomousAlphaOSMode: project.autonomousAlphaOSMode || "Unknown",
+    paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
+    paperOutcomeLabVerdict: project.paperOutcomeLabVerdict || "Unknown",
+    autoLearningWeightScore: project.autoLearningWeightScore || 0,
+    autoLearningWeightVerdict: project.autoLearningWeightVerdict || "Unknown",
+    sourceTruthScore: project.sourceTruthScore || 0,
+    sourceTruthVerdict: project.sourceTruthVerdict || "Unknown",
+    githubProScore: project.githubProScore || 0,
+    githubProVerdict: project.githubProVerdict || "Unknown",
     causalHypotheses: project.causalHypotheses || [],
     counterfactualAnalysis: project.counterfactualAnalysis || [],
     falsePositiveAutopsy: project.falsePositiveAutopsy || {},
@@ -161,6 +169,11 @@ export function writeResearchOSReports(projects = []) {
     strategyLab: projects
       .slice()
       .sort((a, b) => num(b.strategyLabScore) - num(a.strategyLabScore))
+      .slice(0, 25)
+      .map(compact),
+    alphaDashboardV2: projects
+      .slice()
+      .sort((a, b) => num(b.autoLearningWeightScore) - num(a.autoLearningWeightScore))
       .slice(0, 25)
       .map(compact),
   };

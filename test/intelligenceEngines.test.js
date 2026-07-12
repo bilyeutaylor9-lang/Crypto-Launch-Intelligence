@@ -27,6 +27,14 @@ import { buildAIPortfolioWarRoom } from "../src/engines/aiPortfolioWarRoomEngine
 import { analyzeAutonomousStrategyLab } from "../src/engines/autonomousStrategyLabEngine.js";
 import { analyzeCausalAlphaBrain } from "../src/engines/causalAlphaBrainEngine.js";
 import { analyzeAutonomousAlphaOSBatch } from "../src/engines/autonomousAlphaOSEngine.js";
+import { analyzeSourceTruth } from "../src/engines/sourceTruthEngine.js";
+import { analyzeGithubIntelligencePro } from "../src/engines/githubIntelligenceProEngine.js";
+import { analyzePaperTradingOutcomeLab } from "../src/engines/paperTradingOutcomeLabEngine.js";
+import {
+  analyzeAutoLearningWeightOptimizerBatch,
+  buildAutoLearningWeights,
+} from "../src/engines/autoLearningWeightOptimizerEngine.js";
+import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
@@ -891,4 +899,184 @@ test("autonomous alpha OS produces a final operating verdict and best available 
       "OS Paper Trade",
     ].includes(results[0].autonomousAlphaOSVerdict)
   );
+});
+
+test("source truth engine verifies projects with multiple trusted source groups", () => {
+  const result = analyzeSourceTruth(
+    {
+      name: "TruthCoin",
+      symbol: "TRUTH",
+      source: "CoinGecko",
+      discoverySources: ["DexScreener", "GitHub Project Discovery", "Google News Discovery"],
+      proofScore: 80,
+      evidenceQualityScore: 74,
+      dataConfidenceScore: 72,
+      sourceReliabilityScore: 76,
+      internetResearchScore: 70,
+      roadmapProfitabilityScore: 68,
+      githubProScore: 66,
+      externalRiskScore: 16,
+      trapRiskScore: 12,
+    },
+    {
+      router: {
+        sources: [
+          { source: "coingecko", trustScore: 86 },
+          { source: "dexscreener", trustScore: 82 },
+          { source: "githubProjectDiscovery", trustScore: 78 },
+          { source: "googleNewsDiscovery", trustScore: 74 },
+        ],
+      },
+    }
+  );
+
+  assert.ok(result.sourceTruthScore >= 70);
+  assert.equal(result.sourceTruthVerdict, "Verified Source Stack");
+  assert.equal(result.sourceTruth.sourceCount, 4);
+  assert.equal(result.sourceTruth.strongestSource.source, "coingecko");
+  assert.ok(result.evidence.some((item) => item.engine === "Source Truth Engine"));
+});
+
+test("github intelligence pro scores repository activity and builder quality", () => {
+  const result = analyzeGithubIntelligencePro({
+    name: "BuilderCoin",
+    symbol: "BUILD",
+    repository: "https://github.com/example/buildercoin",
+    githubStars: 1500,
+    githubForks: 240,
+    commits30d: 34,
+    contributors: 18,
+    releases: 5,
+    githubPushedAt: new Date().toISOString(),
+    developerActivityScore: 82,
+    sourceTruthScore: 76,
+  });
+
+  assert.ok(result.githubProScore >= 75);
+  assert.equal(result.githubProVerdict, "Elite Builder Signal");
+  assert.equal(result.githubIntelligencePro.risks.length, 0);
+  assert.ok(result.evidence.some((item) => item.engine === "GitHub Intelligence Pro"));
+});
+
+test("paper trading outcome lab promotes strategies with confirmed paper outcomes", () => {
+  const result = analyzePaperTradingOutcomeLab(
+    {
+      name: "PaperCoin",
+      symbol: "PAPER",
+      bestAutonomousStrategy: {
+        id: "roadmap_catalyst_confirmation",
+        name: "Roadmap Catalyst Confirmation",
+      },
+      paperTradeScore: 78,
+      causalAlphaScore: 76,
+      autonomousAlphaOSScore: 74,
+      proofScore: 72,
+      trapRiskScore: 10,
+      sellPressureScore: 12,
+    },
+    {
+      summary: {
+        totalRecords: 40,
+        evaluatedRecords: 28,
+        winRate: 64,
+        averageReturnPct: 24,
+        strategies: [
+          {
+            id: "roadmap_catalyst_confirmation",
+            name: "Roadmap Catalyst Confirmation",
+            evaluated: 24,
+            winRate: 67,
+            lossRate: 21,
+            avgReturnPct: 31,
+          },
+        ],
+      },
+    }
+  );
+
+  assert.ok(result.paperOutcomeLabScore >= 70);
+  assert.equal(result.paperOutcomeLabVerdict, "Promote Strategy Weight");
+  assert.equal(result.paperStrategyWinRate, 67);
+  assert.ok(result.evidence.some((item) => item.engine === "Paper Trading Outcome Lab"));
+});
+
+test("auto-learning weight optimizer creates dynamic weights and ranks stronger setups", () => {
+  const projects = [
+    {
+      name: "WeightCoin",
+      symbol: "WGT",
+      strategyLabScore: 82,
+      causalAlphaScore: 78,
+      simulationBrainScore: 75,
+      proofScore: 80,
+      sourceTruthScore: 76,
+      githubProScore: 72,
+      autonomousAlphaOSScore: 79,
+      trapRiskScore: 10,
+      sellPressureScore: 12,
+      riskScore: 14,
+    },
+    {
+      name: "ThinWeight",
+      symbol: "THIN",
+      strategyLabScore: 30,
+      causalAlphaScore: 28,
+      simulationBrainScore: 24,
+      proofScore: 26,
+      sourceTruthScore: 30,
+      githubProScore: 0,
+      autonomousAlphaOSScore: 32,
+      trapRiskScore: 72,
+      sellPressureScore: 66,
+      riskScore: 64,
+    },
+  ];
+  const optimizer = buildAutoLearningWeights(projects, {
+    totalRecords: 30,
+    evaluatedRecords: 20,
+    winRate: 65,
+    averageReturnPct: 18,
+  });
+  const results = analyzeAutoLearningWeightOptimizerBatch(projects);
+
+  assert.ok(optimizer.weights.strategy > 1);
+  assert.ok(optimizer.families.length >= 6);
+  assert.ok(results[0].autoLearningWeightScore > results[1].autoLearningWeightScore);
+  assert.ok(["Weight-Optimized Priority", "Weight-Optimized Watch"].includes(results[0].autoLearningWeightVerdict));
+});
+
+test("alpha dashboard v2 rolls up paper, source, github, and weight intelligence", () => {
+  const dashboard = buildAlphaDashboardV2([
+    {
+      name: "DashboardCoin",
+      symbol: "DASH",
+      chain: "base",
+      pipelineScore: 82,
+      autonomousAlphaOSScore: 78,
+      autonomousAlphaOSRank: 1,
+      autonomousAlphaOSVerdict: "OS Priority Research",
+      autoLearningWeightScore: 80,
+      paperOutcomeLabScore: 74,
+      paperOutcomeLabVerdict: "Promote Strategy Weight",
+      paperStrategyWinRate: 63,
+      sourceTruthScore: 77,
+      sourceTruthVerdict: "Verified Source Stack",
+      githubProScore: 72,
+      githubProVerdict: "Healthy Builder Signal",
+      trapRiskScore: 14,
+      sellPressureScore: 16,
+      sourceTruth: {
+        sources: [{ source: "coingecko", trustScore: 86 }],
+      },
+      githubIntelligencePro: {
+        risks: [],
+      },
+    },
+  ]);
+
+  assert.equal(dashboard.totalProjects, 1);
+  assert.equal(dashboard.topCandidates[0].symbol, "DASH");
+  assert.equal(dashboard.counts.verifiedSourceStacks, 1);
+  assert.equal(dashboard.counts.healthyGithubSignals, 1);
+  assert.ok(dashboard.operatorNotes.length > 0);
 });

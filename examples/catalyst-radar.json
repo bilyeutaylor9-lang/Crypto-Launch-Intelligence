@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.720Z",
+  "generatedAt": "2026-07-12T02:26:57.681Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -66,7 +66,7 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 1,
-      "liveCatalystRadarScore": 67,
+      "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -194,7 +194,7 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 1,
-      "liveCatalystRadarScore": 67,
+      "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {

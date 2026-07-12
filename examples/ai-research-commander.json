@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.726Z",
+  "generatedAt": "2026-07-12T02:26:57.691Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -130,14 +130,19 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Best Available Candidate",
-      "alphaOSMode": "Best Available Paper Candidate"
+      "alphaOSMode": "Best Available Paper Candidate",
+      "paperOutcomeLabScore": 48,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 7,
@@ -274,14 +279,19 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 35,
+      "alphaOSScore": 34,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
     },
     {
       "rank": 8,
@@ -289,9 +299,9 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 36,
+      "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -401,14 +411,19 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 29,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 45,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 54,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 1,
@@ -555,7 +570,12 @@
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
       "alphaOSVerdict": "OS Risk Block",
-      "alphaOSMode": "Blocked"
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 51,
+      "sourceTruthScore": 27,
+      "githubProScore": 0
     },
     {
       "rank": 4,
@@ -703,14 +723,19 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 64,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 53,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
     },
     {
       "rank": 2,
@@ -784,12 +809,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorScore": 22,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Akash Network",
         "symbol": "AKT",
-        "score": 21,
+        "score": 22,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -846,14 +871,19 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 59,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 55,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 27,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 50,
+      "sourceTruthScore": 26,
+      "githubProScore": 0
     },
     {
       "rank": 5,
@@ -985,14 +1015,19 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 57,
+      "strategyLabScore": 55,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 51,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSScore": 27,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 41,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 48,
+      "sourceTruthScore": 23,
+      "githubProScore": 0
     },
     {
       "rank": 3,
@@ -1134,14 +1169,19 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 60,
+      "strategyLabScore": 58,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 26,
       "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor"
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 49,
+      "sourceTruthScore": 23,
+      "githubProScore": 0
     }
   ]
 }

@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/11/2026, 6:39:58 PM
+Generated: 7/11/2026, 7:26:54 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -81,8 +81,8 @@ None
 Top confidence-adjusted setups:
 1. Pendle (PENDLE) - adjusted 29, source 15, trap 12
 2. Celestia (TIA) - adjusted 29, source 15, trap 12
-3. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
-4. Jupiter (JUP) - adjusted 28, source 15, trap 12
+3. Jupiter (JUP) - adjusted 29, source 15, trap 12
+4. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
 5. Bittensor (TAO) - adjusted 27, source 15, trap 20
 
 Top narrative heat setups:

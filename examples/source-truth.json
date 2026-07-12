@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-07-12T02:26:57.708Z",
+  "totalProjects": 8,
+  "verifiedStacks": 0,
+  "weakStacks": 8,
+  "sources": [
+    {
+      "source": "researchSeeds",
+      "projects": 8,
+      "avgTrustScore": 15
+    }
+  ],
+  "topProjects": [
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "score": 27,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 27,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "score": 27,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 26,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "score": 26,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 26,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "score": 23,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 23,
+      "verdict": "Weak Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 15
+        }
+      ]
+    }
+  ]
+}

@@ -27,6 +27,10 @@ const DEFAULT_AGENTS = [
   "Simulation Desk",
   "Proof Officer",
   "Risk Governor",
+  "Paper Trading Lab",
+  "Weight Optimizer",
+  "Source Truth",
+  "GitHub Pro",
 ];
 
 function ensureDataDir() {
@@ -227,6 +231,10 @@ export function saveAgentCouncilMemory(projects = []) {
         strategyLabScore: project.strategyLabScore || 0,
         causalAlphaScore: project.causalAlphaScore || 0,
         autonomousAlphaOSScore: project.autonomousAlphaOSScore || 0,
+        paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
+        autoLearningWeightScore: project.autoLearningWeightScore || 0,
+        sourceTruthScore: project.sourceTruthScore || 0,
+        githubProScore: project.githubProScore || 0,
         confidenceAdjustedScore: project.confidenceAdjustedScore || 0,
         pipelineScore: project.pipelineScore || 0,
         trapRiskScore: project.trapRiskScore || 0,
@@ -234,6 +242,26 @@ export function saveAgentCouncilMemory(projects = []) {
           ...(project.aiEcosystemCouncil?.agents || []),
           ...(project.alphaInvestigatorAgents || []),
           ...(project.autonomousAlphaOSCouncil?.agents || []),
+          {
+            name: "Paper Trading Lab",
+            score: project.paperOutcomeLabScore || 0,
+            stance: project.paperOutcomeLabScore >= 65 ? "bullish" : project.paperOutcomeLabScore >= 40 ? "watching" : "cautious",
+          },
+          {
+            name: "Weight Optimizer",
+            score: project.autoLearningWeightScore || 0,
+            stance: project.autoLearningWeightScore >= 65 ? "bullish" : project.autoLearningWeightScore >= 40 ? "watching" : "cautious",
+          },
+          {
+            name: "Source Truth",
+            score: project.sourceTruthScore || 0,
+            stance: project.sourceTruthScore >= 65 ? "cleared" : project.sourceTruthScore >= 40 ? "watching" : "cautious",
+          },
+          {
+            name: "GitHub Pro",
+            score: project.githubProScore || 0,
+            stance: project.githubProScore >= 65 ? "cleared" : project.githubProScore >= 40 ? "watching" : "cautious",
+          },
           ...commanderAgents,
         ],
         evidenceGate: project.strongBuyEvidenceGate || {},

@@ -33,6 +33,11 @@ const PUBLIC_REPORTS = [
   "strategy-lab.json",
   "causal-alpha-brain.json",
   "autonomous-alpha-os.json",
+  "alpha-dashboard-v2.json",
+  "paper-trading-lab.json",
+  "weight-optimizer.json",
+  "source-truth.json",
+  "github-intelligence-pro.json",
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
@@ -74,9 +79,17 @@ function writeLandingPage(copiedFiles = []) {
   const strategyLab = readJsonReport("strategy-lab.json") || {};
   const causalBrain = readJsonReport("causal-alpha-brain.json") || {};
   const alphaOS = readJsonReport("autonomous-alpha-os.json") || {};
+  const alphaDashboardV2 = readJsonReport("alpha-dashboard-v2.json") || {};
+  const paperLab = readJsonReport("paper-trading-lab.json") || {};
+  const weightOptimizer = readJsonReport("weight-optimizer.json") || {};
+  const sourceTruth = readJsonReport("source-truth.json") || {};
+  const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
   const audit = readJsonReport("engine-audit.json") || {};
   const topProject = report.projects?.[0] || {};
+  const topWeightFamily = [...(weightOptimizer.families || [])].sort(
+    (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
+  )[0];
   const topCouncil = council.strongBuyCandidates?.[0] || council.topCouncilSetups?.[0] || {};
   const topSimulation = simulationBrain.topSimulationCandidates?.[0] || {};
   const links = copiedFiles
@@ -97,6 +110,13 @@ function writeLandingPage(copiedFiles = []) {
     ["Strategy", strategyLab.topCandidates?.[0]?.bestStrategy || "N/A"],
     ["Causal Driver", causalBrain.topProjects?.[0]?.primaryDriver || "N/A"],
     ["Alpha OS", alphaOS.topCandidates?.[0]?.symbol || "N/A"],
+    ["Paper Win %", paperLab.memory?.winRate ?? alphaDashboardV2.headline?.paperWinRate ?? "N/A"],
+    [
+      "Top Weight",
+      topWeightFamily ? `${topWeightFamily.label} ${topWeightFamily.weight}x` : "N/A",
+    ],
+    ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
+    ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
     ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
@@ -340,6 +360,10 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Strategy Lab:</strong> tests strategy hypotheses and creates paper-trade plans.</li>
           <li><strong>Causal Alpha Brain:</strong> explains which signals actually drive the verdict.</li>
           <li><strong>Autonomous Alpha OS:</strong> fuses agents into one operating decision and action queue.</li>
+          <li><strong>Paper Trading Lab:</strong> grades simulated strategy calls against later outcomes.</li>
+          <li><strong>Weight Optimizer:</strong> adjusts engine-family trust from paper performance.</li>
+          <li><strong>Source Truth:</strong> measures provider reliability and source agreement.</li>
+          <li><strong>GitHub Pro:</strong> scores repository activity, contributors, releases, and repo risk.</li>
           <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
@@ -364,6 +388,11 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./strategy-lab.json">Strategy Lab</a>
         <a class="button" href="./causal-alpha-brain.json">Causal Brain</a>
         <a class="button" href="./autonomous-alpha-os.json">Alpha OS</a>
+        <a class="button" href="./alpha-dashboard-v2.json">Dashboard v2</a>
+        <a class="button" href="./paper-trading-lab.json">Paper Lab</a>
+        <a class="button" href="./weight-optimizer.json">Weights</a>
+        <a class="button" href="./source-truth.json">Source Truth</a>
+        <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>

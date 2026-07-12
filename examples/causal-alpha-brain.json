@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.732Z",
+  "generatedAt": "2026-07-12T02:26:57.700Z",
   "totalProjects": 8,
   "strongBuyCandidates": 0,
   "priorityResearch": 0,
@@ -10,8 +10,8 @@
     "Strategy Fit": 8,
     "Evidence Quality": 8,
     "Forward Simulation": 8,
-    "Liquidity Confirmation": 1,
-    "Builder Proof": 2
+    "Builder Proof": 2,
+    "Liquidity Confirmation": 1
   },
   "topProjects": [
     {

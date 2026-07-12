@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:39:58.851Z",
+  "generatedAt": "2026-07-12T02:26:54.779Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -739,7 +739,7 @@
       "confidence": "Developing",
       "caveat": "",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 29,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -772,7 +772,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 28,
+            "value": 29,
             "required": ">= 65"
           },
           {
@@ -1313,182 +1313,200 @@
   ],
   "agentPerformance": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/agent-performance-memory.json",
-    "records": 15,
+    "records": 54,
     "outcomes": 0,
     "agents": [
       {
         "name": "Narrative Scout",
-        "observations": 15,
+        "observations": 54,
         "bullish": 0,
-        "cautious": 6,
-        "averageScore": 47,
-        "reliability": 46,
-        "weight": 1.07
+        "cautious": 42,
+        "averageScore": 32,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Quant Forecaster",
-        "observations": 15,
+        "observations": 54,
         "bullish": 0,
-        "cautious": 15,
+        "cautious": 54,
         "averageScore": 33,
-        "reliability": 46,
-        "weight": 1.07
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Flow Analyst",
-        "observations": 15,
+        "observations": 54,
         "bullish": 0,
-        "cautious": 15,
-        "averageScore": 19,
-        "reliability": 46,
-        "weight": 1.07
+        "cautious": 54,
+        "averageScore": 21,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Research Analyst",
-        "observations": 15,
+        "observations": 54,
         "bullish": 0,
-        "cautious": 10,
-        "averageScore": 53,
-        "reliability": 46,
-        "weight": 1.07
+        "cautious": 39,
+        "averageScore": 55,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "Learning Engine",
-        "observations": 15,
+        "observations": 54,
         "bullish": 0,
-        "cautious": 15,
+        "cautious": 54,
         "averageScore": 41,
-        "reliability": 46,
-        "weight": 1.07
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Risk Officer",
-        "observations": 15,
-        "bullish": 15,
-        "cautious": 0,
-        "averageScore": 84,
+        "observations": 54,
+        "bullish": 35,
+        "cautious": 1,
+        "averageScore": 78,
         "reliability": 51,
         "weight": 1.11
       },
       {
         "name": "Roadmap Profit Agent",
-        "observations": 0,
+        "observations": 42,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 36,
+        "averageScore": 26,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Roadmap Agent",
-        "observations": 0,
+        "observations": 66,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 29,
+        "averageScore": 35,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "GitHub Agent",
-        "observations": 0,
+        "observations": 78,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 39,
+        "averageScore": 33,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "Tokenomics Agent",
-        "observations": 0,
-        "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "observations": 78,
+        "bullish": 38,
+        "cautious": 39,
+        "averageScore": 78,
+        "reliability": 52,
+        "weight": 1.11
       },
       {
         "name": "Catalyst Agent",
-        "observations": 0,
+        "observations": 41,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 38,
+        "averageScore": 21,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Liquidity Agent",
-        "observations": 0,
+        "observations": 73,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 37,
+        "averageScore": 47,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "Narrative Agent",
-        "observations": 0,
+        "observations": 39,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 25,
+        "averageScore": 27,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Profitability Agent",
-        "observations": 0,
+        "observations": 39,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 39,
+        "averageScore": 29,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Research Agent",
-        "observations": 0,
+        "observations": 14,
         "bullish": 0,
         "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "averageScore": 65,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "Commander",
-        "observations": 0,
+        "observations": 78,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 39,
+        "averageScore": 45,
+        "reliability": 48,
+        "weight": 1.09
       },
       {
         "name": "Causal Brain",
-        "observations": 0,
+        "observations": 39,
         "bullish": 0,
-        "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "cautious": 15,
+        "averageScore": 51,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Strategy Lab",
-        "observations": 0,
-        "bullish": 0,
+        "observations": 39,
+        "bullish": 10,
         "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "averageScore": 63,
+        "reliability": 49,
+        "weight": 1.09
       },
       {
         "name": "Simulation Desk",
-        "observations": 0,
+        "observations": 39,
         "bullish": 0,
         "cautious": 0,
-        "averageScore": 50,
-        "reliability": 45,
-        "weight": 1.06
+        "averageScore": 34,
+        "reliability": 47,
+        "weight": 1.08
       },
       {
         "name": "Proof Officer",
+        "observations": 39,
+        "bullish": 0,
+        "cautious": 39,
+        "averageScore": 48,
+        "reliability": 47,
+        "weight": 1.08
+      },
+      {
+        "name": "Risk Governor",
+        "observations": 39,
+        "bullish": 0,
+        "cautious": 39,
+        "averageScore": 25,
+        "reliability": 47,
+        "weight": 1.08
+      },
+      {
+        "name": "Paper Trading Lab",
         "observations": 0,
         "bullish": 0,
         "cautious": 0,
@@ -1497,37 +1515,69 @@
         "weight": 1.06
       },
       {
-        "name": "Risk Governor",
+        "name": "Weight Optimizer",
         "observations": 0,
         "bullish": 0,
         "cautious": 0,
         "averageScore": 50,
         "reliability": 45,
         "weight": 1.06
+      },
+      {
+        "name": "Source Truth",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "GitHub Pro",
+        "observations": 0,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 50,
+        "reliability": 45,
+        "weight": 1.06
+      },
+      {
+        "name": "Risk Agent",
+        "observations": 56,
+        "bullish": 0,
+        "cautious": 54,
+        "averageScore": 38,
+        "reliability": 47,
+        "weight": 1.08
       }
     ],
     "weights": {
-      "Narrative Scout": 1.07,
-      "Quant Forecaster": 1.07,
-      "Flow Analyst": 1.07,
-      "Research Analyst": 1.07,
-      "Learning Engine": 1.07,
+      "Narrative Scout": 1.08,
+      "Quant Forecaster": 1.08,
+      "Flow Analyst": 1.08,
+      "Research Analyst": 1.09,
+      "Learning Engine": 1.08,
       "Risk Officer": 1.11,
-      "Roadmap Profit Agent": 1.06,
-      "Roadmap Agent": 1.06,
-      "GitHub Agent": 1.06,
-      "Tokenomics Agent": 1.06,
-      "Catalyst Agent": 1.06,
-      "Liquidity Agent": 1.06,
-      "Narrative Agent": 1.06,
-      "Profitability Agent": 1.06,
-      "Research Agent": 1.06,
-      "Commander": 1.06,
-      "Causal Brain": 1.06,
-      "Strategy Lab": 1.06,
-      "Simulation Desk": 1.06,
-      "Proof Officer": 1.06,
-      "Risk Governor": 1.06
+      "Roadmap Profit Agent": 1.08,
+      "Roadmap Agent": 1.09,
+      "GitHub Agent": 1.09,
+      "Tokenomics Agent": 1.11,
+      "Catalyst Agent": 1.08,
+      "Liquidity Agent": 1.09,
+      "Narrative Agent": 1.08,
+      "Profitability Agent": 1.08,
+      "Research Agent": 1.09,
+      "Commander": 1.09,
+      "Causal Brain": 1.08,
+      "Strategy Lab": 1.09,
+      "Simulation Desk": 1.08,
+      "Proof Officer": 1.08,
+      "Risk Governor": 1.08,
+      "Paper Trading Lab": 1.06,
+      "Weight Optimizer": 1.06,
+      "Source Truth": 1.06,
+      "GitHub Pro": 1.06,
+      "Risk Agent": 1.08
     }
   }
 }

@@ -3,7 +3,7 @@
 [![Node.js](https://img.shields.io/badge/node-24%20ready-45e08f)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live Dashboard](https://img.shields.io/badge/live-dashboard-5fb7ff)](https://bilyeutaylor9-lang.github.io/Crypto-Launch-Intelligence/)
-[![Engine Audit](https://img.shields.io/badge/97%20engines-audited-45e08f)](#engine-stack)
+[![Engine Audit](https://img.shields.io/badge/100%2B%20engines-audited-45e08f)](#engine-stack)
 [![AI Council](https://img.shields.io/badge/AI%20Council-enabled-45e08f)](#ai-command-system)
 
 ## Autonomous AI Crypto Research Operating System
@@ -115,6 +115,10 @@ The project now behaves like a miniature autonomous research organization.
 | Strategy Lab | Runs paper strategy tournaments and creates simulated trade plans | `reports/strategy-lab.json` |
 | Causal Alpha Brain | Builds causal graphs, primary drivers, blockers, and counterfactuals | `reports/causal-alpha-brain.json` |
 | Autonomous Alpha OS | Fuses strategy, causal, simulation, proof, risk, and commander agents | `reports/autonomous-alpha-os.json` |
+| Paper Trading Lab | Grades Alpha OS calls against simulated outcome history | `reports/paper-trading-lab.json` |
+| Weight Optimizer | Suggests engine-family weights from paper performance | `reports/weight-optimizer.json` |
+| Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
+| GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 
 ## Autonomous Alpha OS
 
@@ -141,9 +145,40 @@ Possible verdicts:
 
 The system can still name a best available paper candidate when no project clears the true strong-buy gate. That helps avoid the scanner returning nothing while still keeping risk warnings visible.
 
+## Outcome Lab and Auto-Learning
+
+The next intelligence layer makes the AI accountable.
+
+It tracks simulated Alpha OS calls and asks:
+
+- Which strategies actually worked on paper?
+- Which engines were useful and which were noise?
+- Which source stacks were trustworthy?
+- Which GitHub signals predicted real builder quality?
+- Which risk warnings prevented bad calls?
+
+The Paper Trading Outcome Lab records strategy calls, entry price, current price, estimated return, win/loss state, and strategy history.
+
+The Auto-Learning Weight Optimizer converts that memory into engine-family weight suggestions for:
+
+- Strategy Lab
+- Causal Brain
+- Simulation Brain
+- Proof and source truth
+- Risk Governor
+- GitHub Pro
+
+The system can then say things like:
+
+```text
+This setup uses a strategy with a 63% paper win rate.
+AI Council is positive, but the Weight Optimizer says this pattern still needs more outcome samples.
+Source Truth confirms the project across 4 source groups.
+```
+
 ## Engine Stack
 
-The latest engine audit loads **97 engines** successfully.
+The latest engine audit loads **100+ engines** successfully.
 
 Core engine families:
 
@@ -152,6 +187,8 @@ Core engine families:
 - Narrative and launch engines
 - Roadmap and catalyst engines
 - GitHub and developer engines
+- GitHub Intelligence Pro engines
+- Source Truth and provider reliability engines
 - Social and X intelligence engines
 - Liquidity and capital-flow engines
 - Whale and smart-wallet engines
@@ -160,6 +197,7 @@ Core engine families:
 - Pre-pump pattern engines
 - Quantum outcome engines
 - Simulation and outcome-learning engines
+- Paper-trading outcome and weight-optimization engines
 - AI council, dossier, commander, investigator, strategy, causal, and Alpha OS engines
 
 Run the audit:
@@ -236,6 +274,7 @@ Memory files include:
 - `data/internet-research-memory.json`
 - `data/agent-performance-memory.json`
 - `data/strategy-memory.json`
+- `data/paper-trading-outcomes.json`
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
@@ -258,6 +297,11 @@ Every scan can generate a full research packet:
 | `reports/strategy-lab.json` | Strategy tournament and paper plans |
 | `reports/causal-alpha-brain.json` | Causal graph and counterfactual analysis |
 | `reports/autonomous-alpha-os.json` | Final AI operating verdict |
+| `reports/alpha-dashboard-v2.json` | Unified Alpha OS, paper, source, GitHub, and weight dashboard |
+| `reports/paper-trading-lab.json` | Simulated strategy outcome tracking |
+| `reports/weight-optimizer.json` | Auto-learning engine-family weight suggestions |
+| `reports/source-truth.json` | Provider trust and source agreement |
+| `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
 | `reports/outcome-judge.json` | Reality grading and outcome accountability |
 | `reports/catalyst-radar.json` | Time-sensitive why-now events |
@@ -315,6 +359,11 @@ npm run portfolio-war-room
 npm run strategy-lab
 npm run causal-brain
 npm run alpha-os
+npm run alpha-dashboard-v2
+npm run paper-lab
+npm run weight-optimizer
+npm run source-truth
+npm run github-pro
 ```
 
 Learning and memory:
@@ -324,6 +373,7 @@ npm run patterns
 npm run backtest
 npm run agent-memory
 npm run strategy-memory
+npm run paper-memory
 npm run source-router
 ```
 
@@ -368,6 +418,11 @@ cat examples/ai-command-center.json
 cat examples/strategy-lab.json
 cat examples/causal-alpha-brain.json
 cat examples/autonomous-alpha-os.json
+cat examples/alpha-dashboard-v2.json
+cat examples/paper-trading-lab.json
+cat examples/weight-optimizer.json
+cat examples/source-truth.json
+cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json
 cat examples/source-router.json
 ```

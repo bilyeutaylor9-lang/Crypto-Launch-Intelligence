@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-07-12T02:26:57.707Z",
+  "memory": {
+    "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
+    "totalRecords": 0,
+    "evaluatedRecords": 0,
+    "openRecords": 0,
+    "winners": 0,
+    "losers": 0,
+    "winRate": 0,
+    "averageReturnPct": 0,
+    "strategies": [],
+    "topOpenTrades": []
+  },
+  "totalProjects": 8,
+  "promoteStrategyCount": 0,
+  "downgradeStrategyCount": 0,
+  "topPaperCandidates": [
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 48,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Best Available Candidate"
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 47,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "score": 46,
+      "verdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "score": 45,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "score": 43,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Roadmap Catalyst Confirmation",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Risk Block"
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 43,
+      "verdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 43,
+      "verdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "score": 41,
+      "verdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Risk Block"
+    }
+  ]
+}

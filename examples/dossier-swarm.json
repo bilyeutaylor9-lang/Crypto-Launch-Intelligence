@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T01:40:00.722Z",
+  "generatedAt": "2026-07-12T02:26:57.684Z",
   "totalProjects": 8,
   "dossieredProjects": 8,
   "counts": {
@@ -1141,13 +1141,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 46,
+                "value": 48,
                 "interpretation": "needs work"
               },
               {
@@ -1165,7 +1165,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 17,
+            "score": 18,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1181,7 +1181,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 17,
+                "value": 18,
                 "interpretation": "needs work"
               }
             ],
@@ -1218,7 +1218,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 39,
+            "score": 40,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -1229,7 +1229,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 75,
+                "value": 76,
                 "interpretation": "risk"
               },
               {
@@ -1851,7 +1851,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "simulationBrainScore": 39,
+      "simulationBrainScore": 40,
       "outcomeJudgeScore": 44,
       "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
@@ -1926,13 +1926,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 24,
+            "score": 25,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 52,
+                "value": 54,
                 "interpretation": "needs work"
               },
               {
@@ -1966,7 +1966,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 21,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -2014,7 +2014,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 69,
+                "value": 70,
                 "interpretation": "risk"
               },
               {
@@ -2066,7 +2066,7 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 39,
+                "value": 40,
                 "interpretation": "needs work"
               },
               {
@@ -3239,13 +3239,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 46,
+            "score": 47,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 46,
+                "value": 48,
                 "interpretation": "needs work"
               },
               {
@@ -3263,7 +3263,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 17,
+            "score": 18,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -3279,7 +3279,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 17,
+                "value": 18,
                 "interpretation": "needs work"
               }
             ],
@@ -3316,7 +3316,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 39,
+            "score": 40,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -3327,7 +3327,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 75,
+                "value": 76,
                 "interpretation": "risk"
               },
               {
@@ -3949,7 +3949,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "simulationBrainScore": 39,
+      "simulationBrainScore": 40,
       "outcomeJudgeScore": 44,
       "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
@@ -4024,13 +4024,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 24,
+            "score": 25,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 52,
+                "value": 54,
                 "interpretation": "needs work"
               },
               {
@@ -4064,7 +4064,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 21,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -4112,7 +4112,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 69,
+                "value": 70,
                 "interpretation": "risk"
               },
               {
@@ -4164,7 +4164,7 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 39,
+                "value": 40,
                 "interpretation": "needs work"
               },
               {
@@ -4229,7 +4229,7 @@
     {
       "agent": "Narrative Agent",
       "samples": 8,
-      "averageScore": 42,
+      "averageScore": 43,
       "approve": 0,
       "watch": 4,
       "reject": 4,
