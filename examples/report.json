@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T05:24:52.162Z",
+  "generatedAt": "2026-07-13T05:27:04.924Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-13T05:24:46.593Z",
-    "completedAt": "2026-07-13T05:24:52.161Z",
+    "startedAt": "2026-07-13T05:26:59.950Z",
+    "completedAt": "2026-07-13T05:27:04.923Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required."
   },
@@ -30,7 +30,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -3274,7 +3274,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -5027,7 +5027,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -6295,7 +6295,7 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.068Z",
+            "searchedAt": "2026-07-13T05:27:04.842Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -6305,30 +6305,30 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.068Z"
+            "calledAt": "2026-07-13T05:27:04.842Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.068Z"
+            "calledAt": "2026-07-13T05:27:04.842Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-eigen",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.068Z"
+            "calledAt": "2026-07-13T05:27:04.842Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.068Z"
+            "calledAt": "2026-07-13T05:27:04.842Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.069Z"
+            "calledAt": "2026-07-13T05:27:04.842Z"
           }
         ],
         "evidence": [
@@ -8682,7 +8682,7 @@
         "name": "EigenLayer",
         "symbol": "EIGEN",
         "chain": "ethereum",
-        "createdAt": "2026-07-13T05:24:52.150Z",
+        "createdAt": "2026-07-13T05:27:04.916Z",
         "status": "open",
         "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -9072,7 +9072,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -12071,7 +12071,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -13790,7 +13790,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -15064,7 +15064,7 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.080Z",
+            "searchedAt": "2026-07-13T05:27:04.849Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -15074,30 +15074,30 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.080Z"
+            "calledAt": "2026-07-13T05:27:04.849Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.080Z"
+            "calledAt": "2026-07-13T05:27:04.849Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-rndr",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.080Z"
+            "calledAt": "2026-07-13T05:27:04.849Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.081Z"
+            "calledAt": "2026-07-13T05:27:04.849Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.081Z"
+            "calledAt": "2026-07-13T05:27:04.849Z"
           }
         ],
         "evidence": [
@@ -17467,7 +17467,7 @@
         "name": "Render",
         "symbol": "RNDR",
         "chain": "solana",
-        "createdAt": "2026-07-13T05:24:52.152Z",
+        "createdAt": "2026-07-13T05:27:04.917Z",
         "status": "open",
         "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -17851,7 +17851,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -20995,7 +20995,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -22726,7 +22726,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -24000,7 +24000,7 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.093Z",
+            "searchedAt": "2026-07-13T05:27:04.857Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -24010,30 +24010,30 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.093Z"
+            "calledAt": "2026-07-13T05:27:04.857Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.093Z"
+            "calledAt": "2026-07-13T05:27:04.858Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tao",
             "chain": "bittensor",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.093Z"
+            "calledAt": "2026-07-13T05:27:04.858Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.093Z"
+            "calledAt": "2026-07-13T05:27:04.858Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.093Z"
+            "calledAt": "2026-07-13T05:27:04.858Z"
           }
         ],
         "evidence": [
@@ -26377,7 +26377,7 @@
         "name": "Bittensor",
         "symbol": "TAO",
         "chain": "bittensor",
-        "createdAt": "2026-07-13T05:24:52.152Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -26767,7 +26767,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -29850,7 +29850,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -31557,7 +31557,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -32825,7 +32825,7 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.105Z",
+            "searchedAt": "2026-07-13T05:27:04.870Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -32835,30 +32835,30 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.105Z"
+            "calledAt": "2026-07-13T05:27:04.870Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.106Z"
+            "calledAt": "2026-07-13T05:27:04.870Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-akt",
             "chain": "cosmos",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.106Z"
+            "calledAt": "2026-07-13T05:27:04.870Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.106Z"
+            "calledAt": "2026-07-13T05:27:04.870Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.106Z"
+            "calledAt": "2026-07-13T05:27:04.871Z"
           }
         ],
         "evidence": [
@@ -35226,7 +35226,7 @@
         "name": "Akash Network",
         "symbol": "AKT",
         "chain": "cosmos",
-        "createdAt": "2026-07-13T05:24:52.152Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -35616,7 +35616,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -38648,7 +38648,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -40348,7 +40348,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -41622,7 +41622,7 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.113Z",
+            "searchedAt": "2026-07-13T05:27:04.881Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -41632,30 +41632,30 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.113Z"
+            "calledAt": "2026-07-13T05:27:04.881Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.113Z"
+            "calledAt": "2026-07-13T05:27:04.881Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-ondo",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.113Z"
+            "calledAt": "2026-07-13T05:27:04.881Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.113Z"
+            "calledAt": "2026-07-13T05:27:04.881Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.113Z"
+            "calledAt": "2026-07-13T05:27:04.881Z"
           }
         ],
         "evidence": [
@@ -44056,7 +44056,7 @@
         "name": "Ondo",
         "symbol": "ONDO",
         "chain": "ethereum",
-        "createdAt": "2026-07-13T05:24:52.152Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
         "predictionWindow": "30d",
@@ -44440,7 +44440,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -47446,7 +47446,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-13T05:24:51.769Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -49152,7 +49152,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -50420,7 +50420,7 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.123Z",
+            "searchedAt": "2026-07-13T05:27:04.888Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -50430,30 +50430,30 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.123Z"
+            "calledAt": "2026-07-13T05:27:04.888Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.124Z"
+            "calledAt": "2026-07-13T05:27:04.888Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-pendle",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.124Z"
+            "calledAt": "2026-07-13T05:27:04.888Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.124Z"
+            "calledAt": "2026-07-13T05:27:04.888Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.124Z"
+            "calledAt": "2026-07-13T05:27:04.888Z"
           }
         ],
         "evidence": [
@@ -52821,7 +52821,7 @@
         "name": "Pendle",
         "symbol": "PENDLE",
         "chain": "ethereum",
-        "createdAt": "2026-07-13T05:24:52.153Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",
@@ -53209,7 +53209,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -56277,7 +56277,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T05:24:51.769Z",
+          "timestamp": "2026-07-13T05:27:04.564Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -57985,7 +57985,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -59253,7 +59253,7 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.130Z",
+            "searchedAt": "2026-07-13T05:27:04.897Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -59263,30 +59263,30 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.130Z"
+            "calledAt": "2026-07-13T05:27:04.897Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.130Z"
+            "calledAt": "2026-07-13T05:27:04.897Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tia",
             "chain": "celestia",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.130Z"
+            "calledAt": "2026-07-13T05:27:04.897Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.130Z"
+            "calledAt": "2026-07-13T05:27:04.897Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.130Z"
+            "calledAt": "2026-07-13T05:27:04.897Z"
           }
         ],
         "evidence": [
@@ -61655,7 +61655,7 @@
         "name": "Celestia",
         "symbol": "TIA",
         "chain": "celestia",
-        "createdAt": "2026-07-13T05:24:52.153Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",
@@ -62043,7 +62043,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:24:46.595Z",
+      "discoveredAt": "2026-07-13T05:26:59.952Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -65024,7 +65024,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-13T05:24:51.770Z",
+          "timestamp": "2026-07-13T05:27:04.566Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -66670,7 +66670,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:24:51.980Z",
+        "generatedAt": "2026-07-13T05:27:04.761Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -67938,7 +67938,7 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:24:52.137Z",
+            "searchedAt": "2026-07-13T05:27:04.904Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -67948,30 +67948,30 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:24:52.137Z"
+            "calledAt": "2026-07-13T05:27:04.904Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:24:52.137Z"
+            "calledAt": "2026-07-13T05:27:04.904Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-jup",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:24:52.137Z"
+            "calledAt": "2026-07-13T05:27:04.904Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:24:52.137Z"
+            "calledAt": "2026-07-13T05:27:04.904Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:24:52.138Z"
+            "calledAt": "2026-07-13T05:27:04.904Z"
           }
         ],
         "evidence": [
@@ -70328,7 +70328,7 @@
         "name": "Jupiter",
         "symbol": "JUP",
         "chain": "solana",
-        "createdAt": "2026-07-13T05:24:52.153Z",
+        "createdAt": "2026-07-13T05:27:04.918Z",
         "status": "open",
         "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",

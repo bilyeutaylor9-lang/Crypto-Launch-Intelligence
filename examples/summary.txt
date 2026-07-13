@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/12/2026, 10:24:52 PM
+Generated: 7/12/2026, 10:27:04 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -30,6 +30,10 @@ Institutional vNext setups: 0
 Institutional confidence setups: 0
 High vesting pressure setups: 0
 Proof-backed setups: 0
+Proof-carrying alpha candidates: 0
+Accountable contract research: 3
+Alpha contract invalidations: 0
+Alpha contract receipts: 8
 Thin/developing proof setups: 8
 Hot narrative setups: 5
 Improving projects: 0
@@ -78,6 +82,13 @@ None
 Top proof-backed setups:
 None
 
+Top proof-carrying alpha contracts:
+1. EigenLayer (EIGEN) - contract 43, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
+2. Bittensor (TAO) - contract 43, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
+3. Akash Network (AKT) - contract 41, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
+4. Pendle (PENDLE) - contract 41, Weak Contract
+5. Celestia (TIA) - contract 41, Weak Contract
+
 Top confidence-adjusted setups:
 1. Celestia (TIA) - adjusted 30, source 15, trap 12
 2. Pendle (PENDLE) - adjusted 29, source 15, trap 12
@@ -108,6 +119,9 @@ Files generated:
 - reports/quantum-field.json
 - reports/outcome-calibration.json
 - reports/pre-pump-patterns.json
+- reports/alpha-contracts.json
+- reports/alpha-contract-leaderboard.json
+- reports/alpha-contract-receipts.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
 - reports/ai-council.json

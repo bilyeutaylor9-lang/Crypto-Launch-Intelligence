@@ -136,6 +136,7 @@ function writeLandingPage(copiedFiles = []) {
     ["Alpha OS Max", selfEvolvingAlphaOS.topProject?.symbol || "N/A"],
     ["Alpha Theses", alphaTheses.totalTheses ?? "N/A"],
     ["Alpha Contracts", alphaContracts.alphaCandidates ?? "N/A"],
+    ["Contract Research", alphaContracts.priorityResearch ?? "N/A"],
     ["Contract Receipts", alphaContracts.publicReceipts?.length ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],

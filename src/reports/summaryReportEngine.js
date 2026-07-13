@@ -81,6 +81,16 @@ export function writeSummaryReport(projects = []) {
   );
   const highVestingPressure = ranked.filter((p) => Number(p.vestingPressureScore || 0) >= 65);
   const proofBacked = ranked.filter((p) => Number(p.proofScore || 0) >= 70);
+  const alphaContractCandidates = ranked.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Proof-Carrying Alpha Candidate"
+  );
+  const accountableContractResearch = ranked.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Accountable Priority Research"
+  );
+  const alphaContractInvalidations = ranked.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Invalidation Hit"
+  );
+  const alphaContractReceipts = ranked.filter((p) => p.alphaContractReceipt);
   const thinProof = ranked.filter((p) => ["Thin", "Developing"].includes(p.proofStrength));
   const hotNarratives = ranked.filter((p) => Number(p.narrativeHeatScore || 0) >= 65);
   const improvingProjects = ranked.filter((p) =>
@@ -154,6 +164,19 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - proof ${p.proofScore || 0}, ${p.proofVerdict || "Unknown"} - ${p.whyThisMatters || "No proof summary"}`;
     })
     .join("\n");
+  const topAlphaContracts = [...ranked]
+    .filter((p) => p.proofCarryingAlphaContract)
+    .sort(
+      (a, b) =>
+        Number(b.proofCarryingAlphaContractScore || 0) -
+        Number(a.proofCarryingAlphaContractScore || 0)
+    )
+    .slice(0, 5)
+    .map((p, index) => {
+      const caveat = p.proofCarryingAlphaContract?.fallbackCaveat || p.alphaContractReceipt?.caveat;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - contract ${p.proofCarryingAlphaContractScore || 0}, ${p.proofCarryingAlphaContractVerdict || "Unknown"}${caveat ? ` - ${caveat}` : ""}`;
+    })
+    .join("\n");
   const topConfidenceAdjusted = confidenceAdjusted
     .slice(0, 5)
     .map((p, index) => {
@@ -225,6 +248,10 @@ Institutional vNext setups: ${institutionalVNext.length}
 Institutional confidence setups: ${institutionalConfidence.length}
 High vesting pressure setups: ${highVestingPressure.length}
 Proof-backed setups: ${proofBacked.length}
+Proof-carrying alpha candidates: ${alphaContractCandidates.length}
+Accountable contract research: ${accountableContractResearch.length}
+Alpha contract invalidations: ${alphaContractInvalidations.length}
+Alpha contract receipts: ${alphaContractReceipts.length}
 Thin/developing proof setups: ${thinProof.length}
 Hot narrative setups: ${hotNarratives.length}
 Improving projects: ${improvingProjects.length}
@@ -273,6 +300,9 @@ ${topInstitutionalVNext || "None"}
 Top proof-backed setups:
 ${topProofBacked || "None"}
 
+Top proof-carrying alpha contracts:
+${topAlphaContracts || "None"}
+
 Top confidence-adjusted setups:
 ${topConfidenceAdjusted || "None"}
 
@@ -295,6 +325,9 @@ Files generated:
 - reports/quantum-field.json
 - reports/outcome-calibration.json
 - reports/pre-pump-patterns.json
+- reports/alpha-contracts.json
+- reports/alpha-contract-leaderboard.json
+- reports/alpha-contract-receipts.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
 - reports/ai-council.json
