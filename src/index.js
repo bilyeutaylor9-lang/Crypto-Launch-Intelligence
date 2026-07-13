@@ -183,6 +183,11 @@ function printSummary(summary) {
   console.log(`Proof-Carrying Alpha Candidates: ${summary.proofCarryingAlphaCandidateCount}`);
   console.log(`Accountable Contract Research: ${summary.accountablePriorityContractCount}`);
   console.log(`Alpha Contract Invalidations: ${summary.alphaContractInvalidationCount}`);
+  console.log(`Knowledge Graph Alpha: ${summary.alphaKnowledgeGraphCandidateCount}`);
+  console.log(`Knowledge Graph Priority: ${summary.alphaKnowledgeGraphPriorityCount}`);
+  console.log(`Causal Twin Strong Buys: ${summary.causalMarketTwinStrongBuyCount}`);
+  console.log(`Causal Twin Priority: ${summary.causalMarketTwinPriorityCount}`);
+  console.log(`Causal Twin Risk Blocks: ${summary.causalMarketTwinRiskBlockCount}`);
   console.log(`Alpha Governor Promotes: ${summary.alphaGovernorPromoteCount}`);
   console.log(`Alpha Governor Priority: ${summary.alphaGovernorPriorityCount}`);
   console.log(`Alpha Governor Risk Blocks: ${summary.alphaGovernorRiskBlockCount}`);
@@ -223,6 +228,11 @@ function printTopProjects(results) {
     }
     if (project.bestAutonomousStrategy?.name) {
       console.log(`   Strategy: ${project.bestAutonomousStrategy.name} (${project.strategyLabScore || 0})`);
+    }
+    if (project.causalMarketTwinVerdict) {
+      console.log(
+        `   Market Twin: ${project.causalMarketTwinVerdict} (${project.causalMarketTwinScore || 0}, EV ${project.causalMarketTwinExpectedReturnPct || 0}%)`
+      );
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
@@ -293,6 +303,8 @@ function printReportPaths(paths) {
   console.log(`Alpha Contracts:${paths.alphaContractsPath}`);
   console.log(`Contract Board: ${paths.alphaContractLeaderboardPath}`);
   console.log(`Receipts:       ${paths.alphaContractReceiptsPath}`);
+  console.log(`Alpha Graph:    ${paths.alphaKnowledgeGraphPath}`);
+  console.log(`Market Twin:    ${paths.causalMarketTwinPath}`);
   console.log(`Governor:      ${paths.alphaEvolutionGovernorPath}`);
   console.log(`Gov Queue:     ${paths.alphaEvolutionQueuePath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);

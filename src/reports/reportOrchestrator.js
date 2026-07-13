@@ -27,6 +27,7 @@ import { writeHighTechAlphaStackReport } from "./highTechAlphaStackReportEngine.
 import { writeSelfEvolvingAlphaOSReport } from "./selfEvolvingAlphaOSReportEngine.js";
 import { writeProofCarryingAlphaContractReport } from "./proofCarryingAlphaContractReportEngine.js";
 import { writeAlphaEvolutionGovernorReport } from "./alphaEvolutionGovernorReportEngine.js";
+import { writeKnowledgeGraphTwinReports } from "./knowledgeGraphTwinReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -100,6 +101,10 @@ export function generateReports(projects = [], meta = {}) {
     receiptsPath: alphaContractReceiptsPath,
   } = writeProofCarryingAlphaContractReport(projects);
   const {
+    alphaKnowledgeGraphPath,
+    causalMarketTwinPath,
+  } = writeKnowledgeGraphTwinReports(projects);
+  const {
     filePath: alphaEvolutionGovernorPath,
     queuePath: alphaEvolutionQueuePath,
   } = writeAlphaEvolutionGovernorReport(projects);
@@ -158,6 +163,8 @@ export function generateReports(projects = [], meta = {}) {
     alphaContractsPath,
     alphaContractLeaderboardPath,
     alphaContractReceiptsPath,
+    alphaKnowledgeGraphPath,
+    causalMarketTwinPath,
     alphaEvolutionGovernorPath,
     alphaEvolutionQueuePath,
     sourceRouterPath,

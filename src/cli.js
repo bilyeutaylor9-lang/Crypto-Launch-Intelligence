@@ -48,6 +48,8 @@ function explain(symbol = "") {
   console.log(`AI Council: ${project.aiEcosystemVerdict || "Unknown"} (${project.aiEcosystemScore || 0})`);
   console.log(`Quantum: ${project.quantumDecisionState || "Unknown"} | Bull ${project.quantumBullProbability || 0}% / Bear ${project.quantumBearProbability || 0}%`);
   console.log(`Simulation: ${project.simulationDecision || "Unknown"} (${project.simulationBrainScore || 0}) | Breakout ${project.breakoutProbability30d || 0}% | 30d ${project.expectedReturn30dPct || 0}%`);
+  console.log(`Knowledge Graph: ${project.alphaKnowledgeGraphVerdict || "Unknown"} (${project.alphaKnowledgeGraphScore || 0}) | ${project.alphaKnowledgeGraph?.dominantRelation || "No dominant relation"}`);
+  console.log(`Market Twin: ${project.causalMarketTwinVerdict || "Unknown"} (${project.causalMarketTwinScore || 0}) | EV ${project.causalMarketTwinExpectedReturnPct || 0}%`);
   console.log(`Outcome Judge: ${project.outcomeJudgeVerdict || "Unknown"} (${project.outcomeJudgeScore || 0}) | ${project.outcomeAdjustedConfidence || "Unknown"} confidence`);
   console.log(`Catalyst Radar: ${project.liveCatalystUrgency || "Low"} (${project.liveCatalystRadarScore || 0}) | ${project.liveCatalystEvents?.[0]?.type || "No catalyst"}`);
   console.log(`Dossier Swarm: ${project.dossierSwarmDecision || "Unknown"} (${project.dossierSwarmScore || 0}) | ${project.dossierSwarmConsensus || "No consensus"}`);
@@ -94,6 +96,9 @@ Commands:
   crypto-launch contracts         Print proof-carrying alpha contracts
   crypto-launch judge             Print alpha contract leaderboard
   crypto-launch receipts          Print public alpha contract receipts
+  crypto-launch graph             Print Autonomous Alpha Knowledge Graph report
+  crypto-launch twin              Print Causal Market Twin report
+  crypto-launch graph-memory      Print persistent graph memory summary
   crypto-launch governor          Print Alpha Evolution Governor report
   crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
@@ -241,6 +246,20 @@ switch (command) {
   case "receipts":
   case "alpha-receipts":
     runNpm("alpha:receipts", args);
+    break;
+  case "graph":
+  case "alpha-graph":
+  case "knowledge-graph":
+    runNpm("alpha:graph", args);
+    break;
+  case "twin":
+  case "causal-twin":
+  case "market-twin":
+    runNpm("causal:twin", args);
+    break;
+  case "graph-memory":
+  case "knowledge-memory":
+    runNpm("graph-memory", args);
     break;
   case "governor":
   case "alpha-governor":

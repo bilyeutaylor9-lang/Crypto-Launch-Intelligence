@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.086Z",
+  "generatedAt": "2026-07-13T06:33:02.299Z",
   "totalProjects": 8,
   "paperStrongBuyCandidates": 0,
   "priorityPaperTrades": 4,
@@ -9,20 +9,20 @@
       "id": "truth_verified_alpha",
       "name": "Truth-Verified Alpha",
       "activeProjects": 8,
-      "avgScore": 66,
-      "avgReadiness": 61,
+      "avgScore": 67,
+      "avgReadiness": 62,
       "topProjects": [
         {
-          "name": "Pendle",
-          "symbol": "PENDLE",
-          "score": 69,
+          "name": "Celestia",
+          "symbol": "TIA",
+          "score": 70,
           "readiness": 66,
           "verdict": "Priority Paper Trade"
         },
         {
-          "name": "Celestia",
-          "symbol": "TIA",
-          "score": 69,
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "score": 70,
           "readiness": 66,
           "verdict": "Priority Paper Trade"
         },
@@ -36,15 +36,22 @@
         {
           "name": "Bittensor",
           "symbol": "TAO",
-          "score": 66,
-          "readiness": 61,
+          "score": 67,
+          "readiness": 62,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
+          "score": 64,
+          "readiness": 58,
+          "verdict": "Strategy Watch"
+        },
+        {
+          "name": "Render",
+          "symbol": "RNDR",
           "score": 63,
-          "readiness": 57,
+          "readiness": 58,
           "verdict": "Strategy Watch"
         },
         {
@@ -60,13 +67,6 @@
           "score": 63,
           "readiness": 57,
           "verdict": "Strategy Watch"
-        },
-        {
-          "name": "Render",
-          "symbol": "RNDR",
-          "score": 62,
-          "readiness": 57,
-          "verdict": "Strategy Watch"
         }
       ]
     },
@@ -74,15 +74,22 @@
       "id": "github_builder_momentum",
       "name": "GitHub Builder Momentum",
       "activeProjects": 8,
-      "avgScore": 60,
+      "avgScore": 61,
       "avgReadiness": 61,
       "topProjects": [
         {
           "name": "Bittensor",
           "symbol": "TAO",
-          "score": 64,
+          "score": 65,
           "readiness": 64,
           "verdict": "Priority Paper Trade"
+        },
+        {
+          "name": "Render",
+          "symbol": "RNDR",
+          "score": 61,
+          "readiness": 60,
+          "verdict": "Strategy Watch"
         },
         {
           "name": "Akash Network",
@@ -92,30 +99,23 @@
           "verdict": "Strategy Watch"
         },
         {
-          "name": "Render",
-          "symbol": "RNDR",
-          "score": 60,
-          "readiness": 59,
-          "verdict": "Strategy Watch"
-        },
-        {
           "name": "Celestia",
           "symbol": "TIA",
-          "score": 60,
-          "readiness": 64,
+          "score": 61,
+          "readiness": 65,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
-          "score": 59,
-          "readiness": 58,
+          "score": 60,
+          "readiness": 59,
           "verdict": "Strategy Watch"
         },
         {
           "name": "Pendle",
           "symbol": "PENDLE",
-          "score": 58,
+          "score": 59,
           "readiness": 63,
           "verdict": "Priority Paper Trade"
         },
@@ -159,14 +159,14 @@
         {
           "name": "Akash Network",
           "symbol": "AKT",
-          "score": 55,
-          "readiness": 57,
+          "score": 56,
+          "readiness": 58,
           "verdict": "Strategy Watch"
         },
         {
           "name": "Pendle",
           "symbol": "PENDLE",
-          "score": 55,
+          "score": 56,
           "readiness": 62,
           "verdict": "Priority Paper Trade"
         },
@@ -187,8 +187,8 @@
         {
           "name": "Render",
           "symbol": "RNDR",
-          "score": 48,
-          "readiness": 53,
+          "score": 49,
+          "readiness": 54,
           "verdict": "Strategy Watch"
         },
         {
@@ -204,7 +204,7 @@
       "id": "narrative_heat_momentum",
       "name": "Narrative Heat Momentum",
       "activeProjects": 8,
-      "avgScore": 51,
+      "avgScore": 52,
       "avgReadiness": 53,
       "topProjects": [
         {
@@ -215,24 +215,24 @@
           "verdict": "Priority Paper Trade"
         },
         {
-          "name": "Akash Network",
-          "symbol": "AKT",
-          "score": 53,
-          "readiness": 52,
-          "verdict": "Strategy Watch"
-        },
-        {
           "name": "Pendle",
           "symbol": "PENDLE",
-          "score": 53,
-          "readiness": 56,
+          "score": 54,
+          "readiness": 57,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
-          "score": 52,
+          "score": 53,
           "readiness": 51,
+          "verdict": "Strategy Watch"
+        },
+        {
+          "name": "Akash Network",
+          "symbol": "AKT",
+          "score": 53,
+          "readiness": 52,
           "verdict": "Strategy Watch"
         },
         {
@@ -252,8 +252,8 @@
         {
           "name": "Jupiter",
           "symbol": "JUP",
-          "score": 49,
-          "readiness": 54,
+          "score": 50,
+          "readiness": 55,
           "verdict": "Priority Paper Trade"
         },
         {
@@ -270,7 +270,7 @@
       "name": "Launch/Airdrop Cycle",
       "activeProjects": 8,
       "avgScore": 49,
-      "avgReadiness": 56,
+      "avgReadiness": 55,
       "topProjects": [
         {
           "name": "Celestia",
@@ -338,15 +338,15 @@
       "avgReadiness": 54,
       "topProjects": [
         {
-          "name": "Pendle",
-          "symbol": "PENDLE",
+          "name": "Celestia",
+          "symbol": "TIA",
           "score": 50,
           "readiness": 58,
           "verdict": "Priority Paper Trade"
         },
         {
-          "name": "Celestia",
-          "symbol": "TIA",
+          "name": "Pendle",
+          "symbol": "PENDLE",
           "score": 50,
           "readiness": 58,
           "verdict": "Priority Paper Trade"
@@ -399,9 +399,16 @@
       "id": "smart_money_confirmation",
       "name": "Smart Money Confirmation",
       "activeProjects": 8,
-      "avgScore": 41,
+      "avgScore": 42,
       "avgReadiness": 51,
       "topProjects": [
+        {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "score": 45,
+          "readiness": 55,
+          "verdict": "Priority Paper Trade"
+        },
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
@@ -410,16 +417,9 @@
           "verdict": "Strategy Watch"
         },
         {
-          "name": "Pendle",
-          "symbol": "PENDLE",
-          "score": 44,
-          "readiness": 55,
-          "verdict": "Priority Paper Trade"
-        },
-        {
           "name": "Celestia",
           "symbol": "TIA",
-          "score": 42,
+          "score": 43,
           "readiness": 54,
           "verdict": "Priority Paper Trade"
         },
@@ -463,7 +463,7 @@
   ],
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/strategy-memory.json",
-    "totalRecords": 311,
+    "totalRecords": 424,
     "strategyCount": 6,
     "strategies": [
       {
@@ -484,7 +484,7 @@
       {
         "id": "narrative_heat_momentum",
         "name": "Narrative Heat Momentum",
-        "observations": 87,
+        "observations": 111,
         "avgScore": 66,
         "avgReadiness": 61,
         "avgPaperTradeScore": 50,
@@ -492,14 +492,29 @@
         "avgAlphaOSScore": 31,
         "promoted": 0,
         "paperOnly": 0,
-        "rejected": 85,
+        "rejected": 109,
         "promotionRate": 0,
         "status": "Paper-Tested"
       },
       {
+        "id": "roadmap_catalyst_confirmation",
+        "name": "Roadmap Catalyst Confirmation",
+        "observations": 5,
+        "avgScore": 68,
+        "avgReadiness": 63,
+        "avgPaperTradeScore": 52,
+        "avgCausalAlphaScore": 60,
+        "avgAlphaOSScore": 30,
+        "promoted": 0,
+        "paperOnly": 0,
+        "rejected": 5,
+        "promotionRate": 0,
+        "status": "Cold Start"
+      },
+      {
         "id": "liquidity_breakout_pressure",
         "name": "Liquidity Breakout Pressure",
-        "observations": 26,
+        "observations": 27,
         "avgScore": 61,
         "avgReadiness": 61,
         "avgPaperTradeScore": 49,
@@ -507,14 +522,14 @@
         "avgAlphaOSScore": 28,
         "promoted": 0,
         "paperOnly": 2,
-        "rejected": 24,
+        "rejected": 25,
         "promotionRate": 0,
         "status": "Paper-Tested"
       },
       {
         "id": "github_builder_momentum",
         "name": "GitHub Builder Momentum",
-        "observations": 18,
+        "observations": 21,
         "avgScore": 61,
         "avgReadiness": 60,
         "avgPaperTradeScore": 49,
@@ -522,29 +537,14 @@
         "avgAlphaOSScore": 28,
         "promoted": 0,
         "paperOnly": 0,
-        "rejected": 18,
+        "rejected": 21,
         "promotionRate": 0,
         "status": "Paper-Tested"
       },
       {
-        "id": "roadmap_catalyst_confirmation",
-        "name": "Roadmap Catalyst Confirmation",
-        "observations": 4,
-        "avgScore": 68,
-        "avgReadiness": 63,
-        "avgPaperTradeScore": 52,
-        "avgCausalAlphaScore": 60,
-        "avgAlphaOSScore": 28,
-        "promoted": 0,
-        "paperOnly": 0,
-        "rejected": 4,
-        "promotionRate": 0,
-        "status": "Cold Start"
-      },
-      {
         "id": "truth_verified_alpha",
         "name": "Truth-Verified Alpha",
-        "observations": 172,
+        "observations": 256,
         "avgScore": 59,
         "avgReadiness": 59,
         "avgPaperTradeScore": 48,
@@ -552,7 +552,7 @@
         "avgAlphaOSScore": 24,
         "promoted": 0,
         "paperOnly": 2,
-        "rejected": 167,
+        "rejected": 250,
         "promotionRate": 0,
         "status": "Paper-Tested"
       }
@@ -575,10 +575,10 @@
   },
   "topCandidates": [
     {
-      "rank": 6,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "score": 69,
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 70,
       "readiness": 66,
       "verdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
@@ -605,9 +605,9 @@
     },
     {
       "rank": 7,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "score": 69,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 70,
       "readiness": 66,
       "verdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
@@ -665,11 +665,11 @@
       "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 66,
-      "readiness": 61,
+      "score": 67,
+      "readiness": 62,
       "verdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "paperTradeScore": 52,
+      "paperTradeScore": 53,
       "plan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -694,11 +694,40 @@
       "rank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 63,
-      "readiness": 57,
+      "score": 64,
+      "readiness": 58,
       "verdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "paperTradeScore": 48,
+      "paperTradeScore": 49,
+      "plan": {
+        "mode": "Research Only",
+        "positionStyle": "No simulated entry until evidence improves",
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "reviewCadence": "Every 24h scan cycle",
+        "expectedHoldingWindow": "21-90 days",
+        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 63,
+      "readiness": 58,
+      "verdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "paperTradeScore": 49,
       "plan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
@@ -749,39 +778,10 @@
       }
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
       "score": 63,
-      "readiness": 57,
-      "verdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "paperTradeScore": 48,
-      "plan": {
-        "mode": "Research Only",
-        "positionStyle": "No simulated entry until evidence improves",
-        "entryTriggers": [
-          "Proof, source reliability, and AI confidence all improve together.",
-          "Causal and simulation layers agree on the same core driver.",
-          "Red-team review is clear or only lightly challenged."
-        ],
-        "invalidationRules": [
-          "Evidence quality deteriorates or sources conflict.",
-          "AI agents disagree because risk is rising.",
-          "Outcome judge downgrades the setup after reality checks.",
-          "Autonomous Strategy Lab score drops below 50.",
-          "Causal Alpha Brain downgrades the primary driver."
-        ],
-        "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "21-90 days",
-        "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
-      }
-    },
-    {
-      "rank": 2,
-      "name": "Render",
-      "symbol": "RNDR",
-      "score": 62,
       "readiness": 57,
       "verdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",

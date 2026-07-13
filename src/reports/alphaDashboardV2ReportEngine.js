@@ -31,6 +31,11 @@ function compact(project = {}) {
     alphaOSScore: project.autonomousAlphaOSScore || 0,
     alphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
     autoLearningWeightScore: project.autoLearningWeightScore || 0,
+    alphaKnowledgeGraphScore: project.alphaKnowledgeGraphScore || 0,
+    alphaKnowledgeGraphVerdict: project.alphaKnowledgeGraphVerdict || "Unknown",
+    causalMarketTwinScore: project.causalMarketTwinScore || 0,
+    causalMarketTwinVerdict: project.causalMarketTwinVerdict || "Unknown",
+    causalMarketTwinExpectedReturnPct: project.causalMarketTwinExpectedReturnPct || 0,
     paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
     paperOutcomeLabVerdict: project.paperOutcomeLabVerdict || "Unknown",
     strategy: project.bestAutonomousStrategy?.name || "No Strategy",
@@ -56,7 +61,9 @@ export function buildAlphaDashboardV2(projects = []) {
     .sort(
       (a, b) =>
         num(b.autoLearningWeightScore || b.autonomousAlphaOSScore) -
-        num(a.autoLearningWeightScore || a.autonomousAlphaOSScore)
+        num(a.autoLearningWeightScore || a.autonomousAlphaOSScore) ||
+        num(b.causalMarketTwinScore || b.alphaKnowledgeGraphScore) -
+          num(a.causalMarketTwinScore || a.alphaKnowledgeGraphScore)
     )
     .slice(0, 50)
     .map(compact);
@@ -76,6 +83,11 @@ export function buildAlphaDashboardV2(projects = []) {
       alphaOSStrongBuy: alphaOS.counts?.strongBuyResearch || 0,
       alphaOSBestAvailable: alphaOS.counts?.bestAvailable || 0,
       alphaOSPriority: alphaOS.counts?.priorityResearch || 0,
+      graphPriority: safeProjects.filter((project) => project.alphaKnowledgeGraphVerdict === "Knowledge Graph Priority Research").length,
+      twinPriority: safeProjects.filter((project) => project.causalMarketTwinVerdict === "Twin Priority Research").length,
+      twinStrongBuyResearch: safeProjects.filter(
+        (project) => project.causalMarketTwinVerdict === "Twin Strong Buy Research Candidate"
+      ).length,
       paperPromotions: paperLab.promoteStrategyCount || 0,
       paperDowngrades: paperLab.downgradeStrategyCount || 0,
       verifiedSourceStacks: sourceTruth.verifiedStacks || 0,

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.092Z",
+  "generatedAt": "2026-07-13T06:33:02.312Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-    "totalRecords": 3,
+    "totalRecords": 4,
     "evaluatedRecords": 0,
-    "openRecords": 3,
+    "openRecords": 4,
     "winners": 0,
     "losers": 0,
     "winRate": 0,
@@ -13,12 +13,12 @@
       {
         "id": "truth_verified_alpha",
         "name": "Truth-Verified Alpha",
-        "observations": 2,
+        "observations": 3,
         "evaluated": 0,
         "winners": 0,
         "losers": 0,
         "avgReturnPct": 0,
-        "avgAlphaOSScore": 39,
+        "avgAlphaOSScore": 40,
         "avgRiskScore": 12,
         "winRate": 0,
         "lossRate": 0,
@@ -86,6 +86,50 @@
         "latestAlphaOSVerdict": "OS Best Available Candidate",
         "latestAlphaOSScore": 41,
         "latestRiskScore": 20
+      },
+      {
+        "id": "research-seed-aero",
+        "name": "Aerodrome",
+        "symbol": "AERO",
+        "chain": "base",
+        "strategyId": "truth_verified_alpha",
+        "strategyName": "Truth-Verified Alpha",
+        "openedAt": "2026-07-13T06:15:19.501Z",
+        "updatedAt": "2026-07-13T06:15:19.501Z",
+        "entryPriceUsd": 0,
+        "latestPriceUsd": 0,
+        "latestReturnPct": 0,
+        "daysOpen": 0,
+        "outcomeLabel": "Open",
+        "alphaOSVerdict": "OS Best Available Candidate",
+        "alphaOSScore": 42,
+        "causalAlphaScore": 61,
+        "strategyLabScore": 72,
+        "paperTradeScore": 56,
+        "proofScore": 0,
+        "sourceTruthScore": 52,
+        "githubProScore": 0,
+        "riskScore": 12,
+        "expectedReturn30dPct": 17,
+        "breakoutProbability30d": 31,
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "checkpoints": {
+          "1d": null,
+          "7d": null,
+          "30d": null,
+          "90d": null
+        }
       },
       {
         "id": "rescue-modular-alt",
@@ -185,16 +229,6 @@
   "downgradeStrategyCount": 0,
   "topPaperCandidates": [
     {
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "score": 49,
-      "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Best Available Candidate"
-    },
-    {
       "name": "Celestia",
       "symbol": "TIA",
       "score": 49,
@@ -203,6 +237,16 @@
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 49,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Best Available Candidate"
     },
     {
       "name": "Bittensor",
@@ -218,6 +262,16 @@
       "name": "Jupiter",
       "symbol": "JUP",
       "score": 46,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 44,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -243,16 +297,6 @@
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Risk Block"
-    },
-    {
-      "name": "Render",
-      "symbol": "RNDR",
-      "score": 43,
-      "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
     },
     {
       "name": "Ondo",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.104Z",
+  "generatedAt": "2026-07-13T06:33:02.338Z",
   "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
   "totalProjects": 8,
   "simulatedProjects": 8,
@@ -18,8 +18,8 @@
       "pipelineScore": 9,
       "breakoutBrainScore": 24,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
-      "breakoutProbabilitySoon": 23,
-      "blowUpProbabilitySoon": 23,
+      "breakoutProbabilitySoon": 24,
+      "blowUpProbabilitySoon": 24,
       "expectedReturn30dPct": 16,
       "bestCaseReturnPct": 55,
       "bearCaseReturnPct": -25,
@@ -34,7 +34,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 61
+          "score": 62
         },
         {
           "driver": "Catalyst",
@@ -73,6 +73,67 @@
       "rank": 2,
       "selected": true,
       "selectionRank": 2,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineRank": 7,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 22,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 14,
+      "blowUpProbabilitySoon": 14,
+      "expectedReturn30dPct": 9,
+      "bestCaseReturnPct": 43,
+      "bearCaseReturnPct": -26,
+      "confidence": "Medium",
+      "confidenceScore": 71,
+      "simulations": 4096,
+      "positiveProbability": 60,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 1.65,
+      "topDrivers": [
+        {
+          "driver": "Institutional Stack",
+          "score": 47
+        },
+        {
+          "driver": "Narrative",
+          "score": 43
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Catalyst",
+          "score": 36
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 3,
+      "selected": true,
+      "selectionRank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -129,65 +190,6 @@
         "Weak liquidity support"
       ],
       "thesis": "Bittensor is led by signalCombos 59, prePumpPattern 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
-    },
-    {
-      "rank": 3,
-      "selected": true,
-      "selectionRank": 3,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "pipelineRank": 6,
-      "pipelineScore": 0,
-      "breakoutBrainScore": 22,
-      "breakoutBrainDecision": "Best Available Breakout Candidate",
-      "breakoutProbabilitySoon": 13,
-      "blowUpProbabilitySoon": 13,
-      "expectedReturn30dPct": 8,
-      "bestCaseReturnPct": 42,
-      "bearCaseReturnPct": -27,
-      "confidence": "Medium",
-      "confidenceScore": 71,
-      "simulations": 4096,
-      "positiveProbability": 60,
-      "doubleProbability": 0,
-      "tripleProbability": 0,
-      "collapseProbability": 4,
-      "asymmetryRatio": 1.56,
-      "topDrivers": [
-        {
-          "driver": "Institutional Stack",
-          "score": 46
-        },
-        {
-          "driver": "Narrative",
-          "score": 42
-        },
-        {
-          "driver": "Learning",
-          "score": 39
-        },
-        {
-          "driver": "Catalyst",
-          "score": 35
-        },
-        {
-          "driver": "Flows",
-          "score": 28
-        }
-      ],
-      "riskControls": [
-        "Collapse probability acceptable for research queue.",
-        "No major anti-chase state detected.",
-        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
-      ],
-      "alphaTags": [],
-      "riskFlags": [
-        "Resembles prior outcome traps",
-        "AI analyst rejection",
-        "Weak liquidity support"
-      ],
-      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
     }
   ],
   "breakoutBoard": [
@@ -202,8 +204,8 @@
       "pipelineScore": 9,
       "breakoutBrainScore": 24,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
-      "breakoutProbabilitySoon": 23,
-      "blowUpProbabilitySoon": 23,
+      "breakoutProbabilitySoon": 24,
+      "blowUpProbabilitySoon": 24,
       "expectedReturn30dPct": 16,
       "bestCaseReturnPct": 55,
       "bearCaseReturnPct": -25,
@@ -218,7 +220,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 61
+          "score": 62
         },
         {
           "driver": "Catalyst",
@@ -257,6 +259,67 @@
       "rank": 2,
       "selected": true,
       "selectionRank": 2,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineRank": 7,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 22,
+      "breakoutBrainDecision": "Best Available Breakout Candidate",
+      "breakoutProbabilitySoon": 14,
+      "blowUpProbabilitySoon": 14,
+      "expectedReturn30dPct": 9,
+      "bestCaseReturnPct": 43,
+      "bearCaseReturnPct": -26,
+      "confidence": "Medium",
+      "confidenceScore": 71,
+      "simulations": 4096,
+      "positiveProbability": 60,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 4,
+      "asymmetryRatio": 1.65,
+      "topDrivers": [
+        {
+          "driver": "Institutional Stack",
+          "score": 47
+        },
+        {
+          "driver": "Narrative",
+          "score": 43
+        },
+        {
+          "driver": "Learning",
+          "score": 39
+        },
+        {
+          "driver": "Catalyst",
+          "score": 36
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 3,
+      "selected": true,
+      "selectionRank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -315,73 +378,14 @@
       "thesis": "Bittensor is led by signalCombos 59, prePumpPattern 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 3,
-      "selected": true,
-      "selectionRank": 3,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "pipelineRank": 6,
-      "pipelineScore": 0,
-      "breakoutBrainScore": 22,
-      "breakoutBrainDecision": "Best Available Breakout Candidate",
-      "breakoutProbabilitySoon": 13,
-      "blowUpProbabilitySoon": 13,
-      "expectedReturn30dPct": 8,
-      "bestCaseReturnPct": 42,
-      "bearCaseReturnPct": -27,
-      "confidence": "Medium",
-      "confidenceScore": 71,
-      "simulations": 4096,
-      "positiveProbability": 60,
-      "doubleProbability": 0,
-      "tripleProbability": 0,
-      "collapseProbability": 4,
-      "asymmetryRatio": 1.56,
-      "topDrivers": [
-        {
-          "driver": "Institutional Stack",
-          "score": 46
-        },
-        {
-          "driver": "Narrative",
-          "score": 42
-        },
-        {
-          "driver": "Learning",
-          "score": 39
-        },
-        {
-          "driver": "Catalyst",
-          "score": 35
-        },
-        {
-          "driver": "Flows",
-          "score": 28
-        }
-      ],
-      "riskControls": [
-        "Collapse probability acceptable for research queue.",
-        "No major anti-chase state detected.",
-        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
-      ],
-      "alphaTags": [],
-      "riskFlags": [
-        "Resembles prior outcome traps",
-        "AI analyst rejection",
-        "Weak liquidity support"
-      ],
-      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
-    },
-    {
       "rank": 4,
       "selected": false,
       "selectionRank": null,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineRank": 7,
-      "pipelineScore": 0,
+      "pipelineRank": 5,
+      "pipelineScore": 2,
       "breakoutBrainScore": 21,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 11,
@@ -400,7 +404,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 48
+          "score": 49
         },
         {
           "driver": "Institutional Stack",
@@ -412,7 +416,7 @@
         },
         {
           "driver": "Catalyst",
-          "score": 36
+          "score": 37
         },
         {
           "driver": "Flows",
@@ -441,7 +445,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineRank": 5,
+      "pipelineRank": 6,
       "pipelineScore": 2,
       "breakoutBrainScore": 19,
       "breakoutBrainDecision": "Low Breakout Priority",
@@ -461,7 +465,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 45
+          "score": 46
         },
         {
           "driver": "Catalyst",
@@ -473,7 +477,7 @@
         },
         {
           "driver": "Learning",
-          "score": 40
+          "score": 39
         },
         {
           "driver": "Social",
@@ -520,7 +524,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 63
+          "score": 64
         },
         {
           "driver": "Learning",
@@ -626,7 +630,7 @@
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 7,
       "blowUpProbabilitySoon": 7,
-      "expectedReturn30dPct": 1,
+      "expectedReturn30dPct": 2,
       "bestCaseReturnPct": 36,
       "bearCaseReturnPct": -34,
       "confidence": "Medium",
@@ -640,7 +644,7 @@
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 58
+          "score": 59
         },
         {
           "driver": "Learning",

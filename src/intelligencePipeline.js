@@ -83,6 +83,8 @@ import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomous
 import { analyzeHighTechAlphaStackBatch } from "./engines/highTechAlphaStackEngine.js";
 import { analyzeSelfEvolvingAlphaOSBatch } from "./engines/selfEvolvingAlphaOSEngine.js";
 import { analyzeProofCarryingAlphaContractBatch } from "./engines/proofCarryingAlphaContractEngine.js";
+import { analyzeAutonomousAlphaKnowledgeGraphBatch } from "./engines/autonomousAlphaKnowledgeGraphEngine.js";
+import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
@@ -97,6 +99,7 @@ import { savePaperTradingOutcomes } from "./learning/paperTradingOutcomeStore.js
 import { saveAutonomousResearchMemory } from "./learning/autonomousResearchMemoryStore.js";
 import { saveAlphaContracts } from "./learning/alphaContractStore.js";
 import { saveAlphaEvolutionMemory } from "./learning/alphaEvolutionMemoryStore.js";
+import { saveAlphaKnowledgeGraph } from "./learning/alphaKnowledgeGraphStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1098,6 +1101,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeHighTechAlphaStackBatch(results);
   results = analyzeSelfEvolvingAlphaOSBatch(results);
   results = analyzeProofCarryingAlphaContractBatch(results);
+  results = analyzeAutonomousAlphaKnowledgeGraphBatch(results);
+  results = analyzeCausalMarketTwinBatch(results);
   results = analyzeAlphaEvolutionGovernorBatch(results);
 
   if (options.saveMemory !== false) {
@@ -1153,6 +1158,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveAlphaContracts(results);
     } catch (error) {
       console.log(`Alpha contract memory save failed: ${error.message}`);
+    }
+
+    try {
+      saveAlphaKnowledgeGraph(results);
+    } catch (error) {
+      console.log(`Alpha knowledge graph save failed: ${error.message}`);
     }
 
     try {
@@ -1327,6 +1338,30 @@ export function summarizePipelineResults(results = []) {
   const topProofContracts = [...safeResults]
     .sort((a, b) => num(b.proofCarryingAlphaContractScore) - num(a.proofCarryingAlphaContractScore))
     .slice(0, 10);
+  const alphaKnowledgeGraphCandidates = safeResults.filter(
+    (p) => p.alphaKnowledgeGraphVerdict === "Knowledge Graph Alpha Candidate"
+  );
+  const alphaKnowledgeGraphPriority = safeResults.filter(
+    (p) => p.alphaKnowledgeGraphVerdict === "Knowledge Graph Priority Research"
+  );
+  const alphaKnowledgeGraphRiskBlocks = safeResults.filter(
+    (p) => p.alphaKnowledgeGraphVerdict === "Knowledge Graph Risk Block"
+  );
+  const topAlphaKnowledgeGraphSetups = [...safeResults]
+    .sort((a, b) => num(b.alphaKnowledgeGraphScore) - num(a.alphaKnowledgeGraphScore))
+    .slice(0, 10);
+  const causalMarketTwinStrongBuy = safeResults.filter(
+    (p) => p.causalMarketTwinVerdict === "Twin Strong Buy Research Candidate"
+  );
+  const causalMarketTwinPriority = safeResults.filter(
+    (p) => p.causalMarketTwinVerdict === "Twin Priority Research"
+  );
+  const causalMarketTwinRiskBlocks = safeResults.filter(
+    (p) => p.causalMarketTwinVerdict === "Twin Risk Block"
+  );
+  const topCausalMarketTwinSetups = [...safeResults]
+    .sort((a, b) => num(b.causalMarketTwinScore) - num(a.causalMarketTwinScore))
+    .slice(0, 10);
   const alphaGovernorPromotes = safeResults.filter(
     (p) => p.alphaEvolutionGovernorVerdict === "Governor Promote"
   );
@@ -1444,6 +1479,12 @@ export function summarizePipelineResults(results = []) {
     proofCarryingAlphaCandidateCount: proofContractCandidates.length,
     accountablePriorityContractCount: accountablePriorityContracts.length,
     alphaContractInvalidationCount: invalidatedContracts.length,
+    alphaKnowledgeGraphCandidateCount: alphaKnowledgeGraphCandidates.length,
+    alphaKnowledgeGraphPriorityCount: alphaKnowledgeGraphPriority.length,
+    alphaKnowledgeGraphRiskBlockCount: alphaKnowledgeGraphRiskBlocks.length,
+    causalMarketTwinStrongBuyCount: causalMarketTwinStrongBuy.length,
+    causalMarketTwinPriorityCount: causalMarketTwinPriority.length,
+    causalMarketTwinRiskBlockCount: causalMarketTwinRiskBlocks.length,
     alphaGovernorPromoteCount: alphaGovernorPromotes.length,
     alphaGovernorPriorityCount: alphaGovernorPriority.length,
     alphaGovernorRecheckCount: alphaGovernorRechecks.length,
@@ -1657,6 +1698,36 @@ export function summarizePipelineResults(results = []) {
       mustHappen: project.proofCarryingAlphaContract?.mustHappen || [],
       invalidatesIf: project.proofCarryingAlphaContract?.invalidatesIf || [],
       supportingEngines: project.proofCarryingAlphaContract?.supportingEngines || [],
+    })),
+    topAlphaKnowledgeGraphSetups: topAlphaKnowledgeGraphSetups.map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.alphaKnowledgeGraphScore || 0,
+      confidence: project.alphaKnowledgeGraphConfidence || "Unknown",
+      verdict: project.alphaKnowledgeGraphVerdict || "Unknown",
+      dominantRelation: project.alphaKnowledgeGraph?.dominantRelation || "Unknown",
+      memoryScans: project.alphaKnowledgeGraph?.memoryContext?.scans || 0,
+      nodes: project.alphaKnowledgeGraph?.graph?.nodes?.length || 0,
+      edges: project.alphaKnowledgeGraph?.graph?.edges?.length || 0,
+      missingProof: project.alphaKnowledgeGraph?.missingProof || [],
+    })),
+    topCausalMarketTwinSetups: topCausalMarketTwinSetups.map((project) => ({
+      rank: project.pipelineRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.causalMarketTwinScore || 0,
+      confidence: project.causalMarketTwinConfidence || "Unknown",
+      verdict: project.causalMarketTwinVerdict || "Unknown",
+      expectedReturnPct: project.causalMarketTwinExpectedReturnPct || 0,
+      upsideProbability: project.causalMarketTwinUpsideProbability || 0,
+      downsideProbability: project.causalMarketTwinDownsideProbability || 0,
+      primaryCausalDriver: project.causalMarketTwin?.primaryCausalDriver || "Unknown",
+      bestScenario: project.causalMarketTwin?.bestScenario || null,
+      worstScenario: project.causalMarketTwin?.worstScenario || null,
+      experiments: project.causalMarketTwin?.experiments || [],
     })),
     topAlphaEvolutionGovernorSetups: topAlphaGovernorSetups.map((project) => ({
       rank: project.alphaEvolutionGovernorRank || 0,

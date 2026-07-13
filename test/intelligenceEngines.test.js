@@ -26,6 +26,8 @@ import { analyzeAutonomousAlphaInvestigator } from "../src/engines/autonomousAlp
 import { buildAIPortfolioWarRoom } from "../src/engines/aiPortfolioWarRoomEngine.js";
 import { analyzeAutonomousStrategyLab } from "../src/engines/autonomousStrategyLabEngine.js";
 import { analyzeCausalAlphaBrain } from "../src/engines/causalAlphaBrainEngine.js";
+import { analyzeAutonomousAlphaKnowledgeGraph } from "../src/engines/autonomousAlphaKnowledgeGraphEngine.js";
+import { analyzeCausalMarketTwin } from "../src/engines/causalMarketTwinEngine.js";
 import { analyzeAutonomousAlphaOSBatch } from "../src/engines/autonomousAlphaOSEngine.js";
 import { analyzeSourceTruth } from "../src/engines/sourceTruthEngine.js";
 import {
@@ -864,6 +866,126 @@ test("causal alpha brain builds graph, drivers, and counterfactuals", () => {
   assert.ok(result.causalSignalGraph.edges.length > 0);
   assert.ok(result.causalAlphaDrivers.length > 0);
   assert.ok(result.causalCounterfactuals.length > 0);
+});
+
+test("autonomous alpha knowledge graph links identity, sources, narratives, and memory", () => {
+  const project = {
+    name: "GraphAlpha",
+    symbol: "GRAPH",
+    chain: "base",
+    description: "Base AI agent token with roadmap and GitHub proof",
+    discoverySources: ["dexscreener", "github", "roadmap"],
+    sourceTruthScore: 72,
+    proofScore: 70,
+    dataConfidenceScore: 68,
+    evidenceQualityScore: 66,
+    githubProScore: 74,
+    roadmapProfitabilityScore: 70,
+    liveCatalystRadarScore: 68,
+    causalAlphaScore: 72,
+    simulationBrainScore: 66,
+    autonomousAlphaOSScore: 70,
+    narrativeHeatScore: 82,
+    liquidityExpansionScore: 64,
+    trapRiskScore: 12,
+    evidence: [{ engine: "Source Truth", signal: "verified", score: 72 }],
+    githubIntelligencePro: {
+      repository: "https://github.com/example/graph-alpha",
+    },
+  };
+  const peer = {
+    name: "BaseAgentPeer",
+    symbol: "BAP",
+    chain: "base",
+    description: "Base AI project",
+    confidenceAdjustedScore: 64,
+    sourceTruthScore: 60,
+  };
+  const result = analyzeAutonomousAlphaKnowledgeGraph(project, {
+    projects: [project, peer],
+    memory: {
+      projects: {},
+      indexes: {
+        chains: { base: { count: 2, projects: ["base:graph", "base:peer"] } },
+        narratives: { ai: { count: 2, projects: ["base:graph", "base:peer"] } },
+        sources: { github: { count: 1, projects: ["base:graph"] } },
+        repositories: {},
+      },
+    },
+  });
+
+  assert.ok(result.alphaKnowledgeGraphScore > 0);
+  assert.ok(result.alphaKnowledgeGraph.graph.nodes.length > 0);
+  assert.ok(result.alphaKnowledgeGraph.graph.edges.length > 0);
+  assert.ok(result.alphaKnowledgeGraph.graph.scanNeighbors.length > 0);
+  assert.ok(result.alphaKnowledgeGraph.missingProof.length < 5);
+  assert.ok(result.evidence.some((item) => item.engine === "Autonomous Alpha Knowledge Graph"));
+});
+
+test("causal market twin creates scenario probabilities and expected value", () => {
+  const graphResult = analyzeAutonomousAlphaKnowledgeGraph(
+    {
+      name: "TwinAlpha",
+      symbol: "TWIN",
+      chain: "ethereum",
+      description: "AI restaking project with strong catalyst, liquidity, source truth, and GitHub evidence",
+      discoverySources: ["coingecko", "dexscreener", "github", "roadmap"],
+      alphaKnowledgeGraphScore: 74,
+      alphaKnowledgeGraphConfidenceScore: 68,
+      causalAlphaScore: 76,
+      causalAlphaConfidenceScore: 66,
+      simulationBrainScore: 72,
+      breakoutBrainScore: 70,
+      autonomousAlphaOSScore: 73,
+      selfEvolvingAlphaOSScore: 71,
+      sourceTruthScore: 78,
+      proofScore: 74,
+      dataConfidenceScore: 70,
+      evidenceQualityScore: 72,
+      liveCatalystRadarScore: 76,
+      roadmapProfitabilityScore: 74,
+      catalystCalendarScore: 70,
+      liquidityExpansionScore: 72,
+      liquidityScore: 66,
+      capitalFlowScore: 68,
+      buyPressureScore: 66,
+      narrativeHeatScore: 82,
+      narrativeForecastScore: 76,
+      smartMoneyAccumulationScore: 64,
+      exchangeProbabilityScore: 62,
+      trapRiskScore: 10,
+      riskScore: 12,
+      sellPressureScore: 14,
+      evidence: [{ engine: "Proof", signal: "strong", score: 74 }],
+    },
+    {
+      projects: [],
+      memory: { projects: {}, indexes: { chains: {}, narratives: {}, sources: {}, repositories: {} } },
+    }
+  );
+  const result = analyzeCausalMarketTwin(graphResult, {
+    projects: [graphResult],
+    regime: {
+      state: "Narrative Risk-On",
+      avgHeat: 80,
+      avgLiquidity: 65,
+      avgRisk: 12,
+      avgProof: 74,
+      bias: "Allow stronger narrative upside when liquidity confirms.",
+    },
+  });
+  const probabilityTotal = result.causalMarketTwin.scenarios.reduce(
+    (sum, scenario) => sum + scenario.probability,
+    0
+  );
+
+  assert.equal(probabilityTotal, 100);
+  assert.ok(result.causalMarketTwinScore > 0);
+  assert.ok(result.causalMarketTwinExpectedReturnPct > 0);
+  assert.ok(result.causalMarketTwin.scenarios.length >= 6);
+  assert.ok(result.causalMarketTwin.bestScenario);
+  assert.ok(result.causalMarketTwin.experiments.length > 0);
+  assert.ok(result.evidence.some((item) => item.engine === "Causal Market Twin"));
 });
 
 test("autonomous alpha OS produces a final operating verdict and best available fallback", () => {

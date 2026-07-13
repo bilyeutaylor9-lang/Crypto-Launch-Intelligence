@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.147Z",
-  "totalEngines": 107,
-  "wiredIntoPipeline": 83,
-  "stateOfArtReady": 90,
+  "generatedAt": "2026-07-13T06:33:02.443Z",
+  "totalEngines": 109,
+  "wiredIntoPipeline": 85,
+  "stateOfArtReady": 92,
   "readinessScore": 89,
   "categoryCounts": {
-    "intelligence": 41,
+    "intelligence": 42,
     "ai": 14,
-    "learning": 18,
+    "learning": 19,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -148,6 +148,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousAlphaKnowledgeGraphEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaKnowledgeGraph",
+        "analyzeAutonomousAlphaKnowledgeGraphBatch",
+        "summarizeAutonomousAlphaKnowledgeGraph"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -300,20 +315,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 3,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "catalystCalendarEngine.js",
-      "category": "narrative-launch",
-      "exports": [
-        "analyzeCatalystCalendar",
-        "analyzeCatalystCalendarBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -722,6 +723,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousAlphaKnowledgeGraphEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousAlphaKnowledgeGraph",
+        "analyzeAutonomousAlphaKnowledgeGraphBatch",
+        "summarizeAutonomousAlphaKnowledgeGraph"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousAlphaLabEngine.js",
       "category": "learning",
       "exports": [
@@ -916,6 +932,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "causalMarketTwinEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeCausalMarketTwin",
+        "analyzeCausalMarketTwinBatch",
+        "summarizeCausalMarketTwin"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

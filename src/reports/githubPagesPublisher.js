@@ -43,6 +43,8 @@ const PUBLIC_REPORTS = [
   "alpha-contracts.json",
   "alpha-contract-leaderboard.json",
   "alpha-contract-receipts.json",
+  "alpha-knowledge-graph.json",
+  "causal-market-twin.json",
   "alpha-evolution-governor.json",
   "alpha-evolution-queue.json",
   "source-truth.json",
@@ -97,6 +99,8 @@ function writeLandingPage(copiedFiles = []) {
   const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json") || {};
   const alphaTheses = readJsonReport("alpha-theses.json") || {};
   const alphaContracts = readJsonReport("alpha-contracts.json") || {};
+  const alphaKnowledgeGraph = readJsonReport("alpha-knowledge-graph.json") || {};
+  const causalMarketTwin = readJsonReport("causal-market-twin.json") || {};
   const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
@@ -141,6 +145,10 @@ function writeLandingPage(copiedFiles = []) {
     ["Alpha Contracts", alphaContracts.alphaCandidates ?? "N/A"],
     ["Contract Research", alphaContracts.priorityResearch ?? "N/A"],
     ["Contract Receipts", alphaContracts.publicReceipts?.length ?? "N/A"],
+    ["Graph Pick", alphaKnowledgeGraph.topProjects?.[0]?.symbol || "N/A"],
+    ["Graph Priority", alphaKnowledgeGraph.priorityResearch ?? "N/A"],
+    ["Twin Pick", causalMarketTwin.topProjects?.[0]?.symbol || "N/A"],
+    ["Twin EV", causalMarketTwin.topProjects?.[0]?.expectedReturnPct ?? "N/A"],
     ["Governor Priority", alphaEvolutionGovernor.counts?.priorityResearch ?? "N/A"],
     ["Governor Blocks", alphaEvolutionGovernor.counts?.riskBlocks ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],

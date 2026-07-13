@@ -1,38 +1,12 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.109Z",
+  "generatedAt": "2026-07-13T06:33:02.369Z",
   "totalReceipts": 8,
   "publicReceipts": [
     {
-      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
-      "symbol": "EIGEN",
-      "score": 43,
-      "verdict": "Accountable Priority Research",
-      "confidence": "Medium",
-      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
-      "receipt": {
-        "headline": "EIGEN contract: Medium confidence, score 40.",
-        "mustProve": [
-          "Contract score stays at or above 35.",
-          "Risk score remains below 78.",
-          "Liquidity does not drop more than 30% from entry.",
-          "Source truth or proof score stays above 45.",
-          "Catalyst, liquidity expansion, or capital flow remains active."
-        ],
-        "invalidationRules": [
-          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
-          "Liquidity falls more than 40% from entry.",
-          "Both source truth and proof fall below 35.",
-          "Agent committee or Alpha OS flips to a block decision."
-        ],
-        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
-        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
-      }
-    },
-    {
       "contractId": "alpha-contract:research-seed-tao:e6m79e",
       "symbol": "TAO",
-      "score": 43,
-      "verdict": "Accountable Priority Research",
+      "score": 52,
+      "verdict": "Invalidation Hit",
       "confidence": "Medium",
       "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
       "receipt": {
@@ -50,19 +24,18 @@
           "Both source truth and proof fall below 35.",
           "Agent committee or Alpha OS flips to a block decision."
         ],
-        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
-        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
       }
     },
     {
-      "contractId": "alpha-contract:research-seed-akt:36yiei",
-      "symbol": "AKT",
-      "score": 41,
-      "verdict": "Accountable Priority Research",
+      "contractId": "alpha-contract:research-seed-pendle:omxj6",
+      "symbol": "PENDLE",
+      "score": 51,
+      "verdict": "Invalidation Hit",
       "confidence": "Medium",
-      "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
       "receipt": {
-        "headline": "AKT contract: Medium confidence, score 36.",
+        "headline": "PENDLE contract: Medium confidence, score 37.",
         "mustProve": [
           "Contract score stays at or above 35.",
           "Risk score remains below 78.",
@@ -76,19 +49,18 @@
           "Both source truth and proof fall below 35.",
           "Agent committee or Alpha OS flips to a block decision."
         ],
-        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
-        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
       }
     },
     {
-      "contractId": "alpha-contract:research-seed-pendle:omxj6",
-      "symbol": "PENDLE",
-      "score": 41,
-      "verdict": "Weak Contract",
+      "contractId": "alpha-contract:research-seed-akt:36yiei",
+      "symbol": "AKT",
+      "score": 50,
+      "verdict": "Invalidation Hit",
       "confidence": "Medium",
-      "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
       "receipt": {
-        "headline": "PENDLE contract: Medium confidence, score 36.",
+        "headline": "AKT contract: Medium confidence, score 36.",
         "mustProve": [
           "Contract score stays at or above 35.",
           "Risk score remains below 78.",
@@ -108,8 +80,8 @@
     {
       "contractId": "alpha-contract:research-seed-tia:2mv2os",
       "symbol": "TIA",
-      "score": 41,
-      "verdict": "Weak Contract",
+      "score": 50,
+      "verdict": "Invalidation Hit",
       "confidence": "Medium",
       "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
       "receipt": {
@@ -131,14 +103,39 @@
       }
     },
     {
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "symbol": "EIGEN",
+      "score": 49,
+      "verdict": "Invalidation Hit",
+      "confidence": "Medium",
+      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "EIGEN contract: Medium confidence, score 41.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
       "contractId": "alpha-contract:research-seed-rndr:qhzloy",
       "symbol": "RNDR",
-      "score": 39,
-      "verdict": "Weak Contract",
+      "score": 49,
+      "verdict": "Invalidation Hit",
       "confidence": "Developing",
       "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
       "receipt": {
-        "headline": "RNDR contract: Developing confidence, score 34.",
+        "headline": "RNDR contract: Developing confidence, score 35.",
         "mustProve": [
           "Contract score stays at or above 35.",
           "Risk score remains below 78.",
@@ -158,8 +155,8 @@
     {
       "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
       "symbol": "ONDO",
-      "score": 38,
-      "verdict": "Weak Contract",
+      "score": 45,
+      "verdict": "Invalidation Hit",
       "confidence": "Developing",
       "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
       "receipt": {
@@ -183,8 +180,8 @@
     {
       "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
       "symbol": "JUP",
-      "score": 38,
-      "verdict": "Weak Contract",
+      "score": 39,
+      "verdict": "Invalidation Hit",
       "confidence": "Medium",
       "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
       "receipt": {

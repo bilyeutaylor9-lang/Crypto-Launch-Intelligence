@@ -164,6 +164,8 @@ export function createScanRecord(project = {}) {
       sourceTruth: num(project.sourceTruthScore),
       githubPro: num(project.githubProScore),
       autonomousResearch: num(project.autonomousResearchScore),
+      alphaKnowledgeGraph: num(project.alphaKnowledgeGraphScore),
+      causalMarketTwin: num(project.causalMarketTwinScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -268,6 +270,8 @@ export function createScanRecord(project = {}) {
       githubIntelligencePro: project.githubIntelligencePro || {},
       autonomousResearchOrchestrator: project.autonomousResearchOrchestrator || {},
       evidenceGraph: project.evidenceGraph || {},
+      alphaKnowledgeGraph: project.alphaKnowledgeGraph || {},
+      causalMarketTwin: project.causalMarketTwin || {},
     },
 
     futureOutcomes: {

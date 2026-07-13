@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.078Z",
+  "generatedAt": "2026-07-13T06:33:02.285Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -15,7 +15,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "liveCatalystRadarScore": 83,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -61,7 +61,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -94,12 +94,12 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 6,
+      "rank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 60,
+      "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -143,7 +143,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "liveCatalystRadarScore": 83,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -189,7 +189,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -222,12 +222,12 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 6,
+      "rank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 60,
+      "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -330,6 +330,39 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 2,
+      "liveCatalystRadarScore": 50,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
       "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
@@ -360,39 +393,6 @@
       ],
       "dossierSwarmDecision": "Do Not Promote",
       "simulationDecision": "Do Not Promote",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data"
-    },
-    {
-      "rank": 7,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineScore": 0,
-      "liveCatalystRadarScore": 49,
-      "liveCatalystUrgency": "Medium",
-      "liveCatalystAction": "Watch for confirmation",
-      "topEvent": {
-        "type": "Staking Change",
-        "score": 55,
-        "window": "7d-30d",
-        "urgency": "Medium",
-        "reasons": [
-          "staking or restaking language detected"
-        ]
-      },
-      "events": [
-        {
-          "type": "Staking Change",
-          "score": 55,
-          "window": "7d-30d",
-          "urgency": "Medium",
-          "reasons": [
-            "staking or restaking language detected"
-          ]
-        }
-      ],
-      "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {

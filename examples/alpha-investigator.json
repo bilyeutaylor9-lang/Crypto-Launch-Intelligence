@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.083Z",
+  "generatedAt": "2026-07-13T06:33:02.291Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -12,7 +12,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "Best Available Strong Buy Candidate",
       "commanderScore": 35,
       "commanderVerdict": "Low Priority Research",
@@ -144,10 +144,10 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 63,
+      "strategyLabScore": 64,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 60,
+      "causalAlphaScore": 58,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
       "alphaOSVerdict": "OS Risk Block",
@@ -159,7 +159,7 @@
       "githubProScore": 0
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -303,7 +303,7 @@
       "githubProScore": 0
     },
     {
-      "rank": 6,
+      "rank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
@@ -426,17 +426,17 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 69,
+      "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 58,
+      "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 37,
+      "alphaOSScore": 38,
       "alphaOSVerdict": "OS Best Available Candidate",
       "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 62,
+      "autoLearningWeightScore": 63,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -586,7 +586,7 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 66,
+      "strategyLabScore": 67,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 62,
@@ -601,12 +601,12 @@
       "githubProScore": 0
     },
     {
-      "rank": 7,
+      "rank": 5,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 30,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 31,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
@@ -735,17 +735,17 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 69,
+      "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 59,
+      "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 62,
+      "autoLearningWeightScore": 63,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -904,7 +904,7 @@
       "chain": "solana",
       "pipelineScore": 0,
       "confidenceAdjustedScore": 29,
-      "aiVerdict": "AI Pass For Now",
+      "aiVerdict": "AI Watchlist",
       "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
@@ -1008,7 +1008,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 29,
+      "warRoomScore": 30,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Roadmap Path",
       "narratives": [
@@ -1161,7 +1161,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 23,
+      "warRoomScore": 24,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -1169,15 +1169,15 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 54,
+      "causalAlphaScore": 55,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 26,
+      "alphaOSScore": 27,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 55,
       "sourceTruthScore": 49,

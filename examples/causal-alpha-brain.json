@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.089Z",
+  "generatedAt": "2026-07-13T06:33:02.305Z",
   "totalProjects": 8,
   "strongBuyCandidates": 0,
   "priorityResearch": 0,
@@ -63,44 +63,44 @@
       ]
     },
     {
-      "rank": 1,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
       "score": 60,
       "confidence": "Low",
       "verdict": "Causal Watch",
-      "primaryDriver": "Why-Now Catalyst",
-      "primaryBlocker": "Risk Drag",
+      "primaryDriver": "Evidence Quality",
+      "primaryBlocker": "Builder Proof",
       "counterfactuals": [
         {
-          "remove": "Why-Now Catalyst",
+          "remove": "Evidence Quality",
           "scoreWithoutDriver": 47,
           "estimatedImpact": 13,
-          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 11,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 50,
-          "estimatedImpact": 10,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Evidence Quality",
-          "scoreWithoutDriver": 51,
-          "estimatedImpact": 9,
           "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
         },
         {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 11,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 9,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
           "remove": "Forward Simulation",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 8,
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 9,
           "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Why-Now Catalyst",
+          "scoreWithoutDriver": 53,
+          "estimatedImpact": 7,
+          "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
         },
         {
           "remove": "Builder Proof",
@@ -112,13 +112,13 @@
     },
     {
       "rank": 7,
-      "name": "Celestia",
-      "symbol": "TIA",
+      "name": "Pendle",
+      "symbol": "PENDLE",
       "score": 59,
-      "confidence": "Low",
+      "confidence": "Developing",
       "verdict": "Causal Watch",
       "primaryDriver": "Evidence Quality",
-      "primaryBlocker": "Builder Proof",
+      "primaryBlocker": "Narrative Gravity",
       "counterfactuals": [
         {
           "remove": "Evidence Quality",
@@ -133,21 +133,21 @@
           "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
         },
         {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 50,
-          "estimatedImpact": 9,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
           "remove": "Forward Simulation",
           "scoreWithoutDriver": 50,
           "estimatedImpact": 9,
           "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
         },
         {
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 8,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
           "remove": "Why-Now Catalyst",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 7,
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 8,
           "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
         },
         {
@@ -159,50 +159,50 @@
       ]
     },
     {
-      "rank": 6,
-      "name": "Pendle",
-      "symbol": "PENDLE",
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
       "score": 58,
-      "confidence": "Developing",
+      "confidence": "Low",
       "verdict": "Causal Watch",
-      "primaryDriver": "Evidence Quality",
-      "primaryBlocker": "Why-Now Catalyst",
+      "primaryDriver": "Why-Now Catalyst",
+      "primaryBlocker": "Risk Drag",
       "counterfactuals": [
         {
-          "remove": "Evidence Quality",
+          "remove": "Why-Now Catalyst",
           "scoreWithoutDriver": 45,
           "estimatedImpact": 13,
-          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 47,
-          "estimatedImpact": 11,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Forward Simulation",
-          "scoreWithoutDriver": 49,
-          "estimatedImpact": 9,
-          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 50,
-          "estimatedImpact": 8,
-          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
-        },
-        {
-          "remove": "Why-Now Catalyst",
-          "scoreWithoutDriver": 50,
-          "estimatedImpact": 8,
           "interpretation": "Why-Now Catalyst is not yet strong enough to carry the thesis alone."
         },
         {
-          "remove": "Liquidity Confirmation",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 6,
-          "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
+          "remove": "Narrative Gravity",
+          "scoreWithoutDriver": 46,
+          "estimatedImpact": 12,
+          "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Strategy Fit",
+          "scoreWithoutDriver": 48,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 49,
+          "estimatedImpact": 9,
+          "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Forward Simulation",
+          "scoreWithoutDriver": 50,
+          "estimatedImpact": 8,
+          "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Builder Proof",
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 7,
+          "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
         }
       ]
     },
@@ -258,7 +258,7 @@
       "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
-      "score": 54,
+      "score": 55,
       "confidence": "Developing",
       "verdict": "Causal Watch",
       "primaryDriver": "Narrative Gravity",
@@ -266,37 +266,37 @@
       "counterfactuals": [
         {
           "remove": "Narrative Gravity",
-          "scoreWithoutDriver": 43,
+          "scoreWithoutDriver": 44,
           "estimatedImpact": 11,
           "interpretation": "Narrative Gravity is not yet strong enough to carry the thesis alone."
         },
         {
-          "remove": "Evidence Quality",
+          "remove": "Strategy Fit",
           "scoreWithoutDriver": 45,
+          "estimatedImpact": 10,
+          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
+        },
+        {
+          "remove": "Evidence Quality",
+          "scoreWithoutDriver": 46,
           "estimatedImpact": 9,
           "interpretation": "Evidence Quality is not yet strong enough to carry the thesis alone."
         },
         {
-          "remove": "Strategy Fit",
-          "scoreWithoutDriver": 45,
-          "estimatedImpact": 9,
-          "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
-        },
-        {
           "remove": "Forward Simulation",
-          "scoreWithoutDriver": 46,
+          "scoreWithoutDriver": 47,
           "estimatedImpact": 8,
           "interpretation": "Forward Simulation is not yet strong enough to carry the thesis alone."
         },
         {
           "remove": "Builder Proof",
-          "scoreWithoutDriver": 47,
+          "scoreWithoutDriver": 48,
           "estimatedImpact": 7,
           "interpretation": "Builder Proof is not yet strong enough to carry the thesis alone."
         },
         {
           "remove": "Liquidity Confirmation",
-          "scoreWithoutDriver": 48,
+          "scoreWithoutDriver": 49,
           "estimatedImpact": 6,
           "interpretation": "Liquidity Confirmation is not yet strong enough to carry the thesis alone."
         }
@@ -320,8 +320,8 @@
         },
         {
           "remove": "Strategy Fit",
-          "scoreWithoutDriver": 44,
-          "estimatedImpact": 10,
+          "scoreWithoutDriver": 43,
+          "estimatedImpact": 11,
           "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
         },
         {
@@ -351,7 +351,7 @@
       ]
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
       "score": 52,

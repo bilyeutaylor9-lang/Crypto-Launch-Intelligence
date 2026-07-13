@@ -1,11 +1,11 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/12/2026, 10:45:55 PM
+Generated: 7/12/2026, 11:33:02 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
 Healthy breadth: 0%
 High-conviction breadth: 0%
-Average opportunity score: 2.75
+Average opportunity score: 3.00
 Strong buy candidates: 0
 High-conviction candidates: 0
 Priority research queue: 0
@@ -31,16 +31,16 @@ Institutional confidence setups: 0
 High vesting pressure setups: 0
 Proof-backed setups: 0
 Proof-carrying alpha candidates: 0
-Accountable contract research: 3
-Alpha contract invalidations: 0
+Accountable contract research: 0
+Alpha contract invalidations: 8
 Alpha contract receipts: 8
 Alpha Governor promotes: 0
 Alpha Governor priority research: 3
-Alpha Governor rechecks: 4
-Alpha Governor risk blocks: 1
+Alpha Governor rechecks: 0
+Alpha Governor risk blocks: 5
 Thin/developing proof setups: 8
-Hot narrative setups: 5
-Improving projects: 0
+Hot narrative setups: 6
+Improving projects: 1
 Reliable source setups: 0
 High trap-risk setups: 0
 AI strong-buy candidates: 1
@@ -48,10 +48,10 @@ Pre-strong-buy lifecycle setups: 1
 High AI-disagreement setups: 8
 Red-team blocks: 1
 Alpha Lab strategy matches: 0
-Watchtower alerts: 112
-Watchtower high/critical alerts: 100
+Watchtower alerts: 204
+Watchtower high/critical alerts: 180
 Watchtower brief: 0 critical, 8 high, and 8 total watchtower alerts detected.
-Watchtower hit rate: 0% (0 evaluated, 112 pending)
+Watchtower hit rate: 0% (0 evaluated, 204 pending)
 
 Top project:
 EigenLayer (EIGEN)
@@ -87,41 +87,41 @@ Top proof-backed setups:
 None
 
 Top proof-carrying alpha contracts:
-1. EigenLayer (EIGEN) - contract 43, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-2. Bittensor (TAO) - contract 43, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-3. Akash Network (AKT) - contract 41, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-4. Pendle (PENDLE) - contract 41, Weak Contract
-5. Celestia (TIA) - contract 41, Weak Contract
+1. Bittensor (TAO) - contract 52, Invalidation Hit
+2. Pendle (PENDLE) - contract 51, Invalidation Hit
+3. Akash Network (AKT) - contract 50, Invalidation Hit
+4. Celestia (TIA) - contract 50, Invalidation Hit
+5. EigenLayer (EIGEN) - contract 49, Invalidation Hit
 
 Top Alpha Evolution Governor queue:
-1. Pendle (PENDLE) - governor 48, Governor Priority Research - Priority Research
-2. Celestia (TIA) - governor 47, Governor Priority Research - Priority Research
-3. Jupiter (JUP) - governor 46, Governor Priority Research - Priority Research
-4. Bittensor (TAO) - governor 44, Governor Recheck Soon - Risk-Contained Recheck
-5. EigenLayer (EIGEN) - governor 43, Governor Risk Block - Block
+1. Celestia (TIA) - governor 53, Governor Priority Research - Risk-Contained Priority Research
+2. Pendle (PENDLE) - governor 53, Governor Priority Research - Risk-Contained Priority Research
+3. Bittensor (TAO) - governor 50, Governor Priority Research - Risk-Contained Priority Research
+4. Akash Network (AKT) - governor 49, Governor Risk Block - Block
+5. Jupiter (JUP) - governor 49, Governor Risk Block - Block
 
 Top confidence-adjusted setups:
-1. Celestia (TIA) - adjusted 30, source 15, trap 12
-2. Pendle (PENDLE) - adjusted 29, source 15, trap 12
-3. Jupiter (JUP) - adjusted 29, source 15, trap 12
-4. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
+1. Celestia (TIA) - adjusted 31, source 15, trap 12
+2. EigenLayer (EIGEN) - adjusted 29, source 15, trap 20
+3. Pendle (PENDLE) - adjusted 29, source 15, trap 12
+4. Jupiter (JUP) - adjusted 29, source 15, trap 12
 5. Bittensor (TAO) - adjusted 28, source 15, trap 20
 
 Top narrative heat setups:
-1. EigenLayer (EIGEN) - heat 80, Hot Rotation
-2. Render (RNDR) - heat 92, Hot Rotation
-3. Bittensor (TAO) - heat 98, Hot Rotation
-4. Akash Network (AKT) - heat 98, Hot Rotation
-5. Celestia (TIA) - heat 68, Hot Rotation
+1. EigenLayer (EIGEN) - heat 83, Hot Rotation
+2. Render (RNDR) - heat 93, Hot Rotation
+3. Bittensor (TAO) - heat 99, Hot Rotation
+4. Akash Network (AKT) - heat 99, Hot Rotation
+5. Celestia (TIA) - heat 70, Hot Rotation
 
 Top improving projects:
-None
+1. EigenLayer (EIGEN) - change 58, improving
 
 Top trap-risk warnings:
 None
 
 Top AI strong-buy candidates:
-1. EigenLayer (EIGEN) - council 54, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
+1. EigenLayer (EIGEN) - council 56, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
 
 Files generated:
 - reports/report.html

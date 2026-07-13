@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.093Z",
+  "generatedAt": "2026-07-13T06:33:02.313Z",
   "totalProjects": 8,
   "verifiedStacks": 0,
   "weakStacks": 0,
@@ -48,8 +48,8 @@
       ]
     },
     {
-      "name": "Pendle",
-      "symbol": "PENDLE",
+      "name": "Celestia",
+      "symbol": "TIA",
       "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [
@@ -60,8 +60,8 @@
       ]
     },
     {
-      "name": "Celestia",
-      "symbol": "TIA",
+      "name": "Pendle",
+      "symbol": "PENDLE",
       "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [

@@ -18,6 +18,8 @@ This is not a simple token screener. It is a layered research system with:
 - 10,000-candidate wide scan mode
 - AI research agents
 - Causal signal reasoning
+- Autonomous Alpha Knowledge Graph
+- Causal Market Twin scenario engine
 - Self-evolving Alpha OS with thesis generation
 - Paper-trade strategy simulation
 - Outcome learning
@@ -75,6 +77,8 @@ npm run alpha:thesis
 npm run alpha:contracts
 npm run alpha:judge
 npm run alpha:receipts
+npm run alpha:graph
+npm run causal:twin
 npm run alpha:governor
 ```
 
@@ -94,6 +98,8 @@ The system does not trust one score. It builds a full research case:
 - Signal fusion: combines market, liquidity, narrative, catalyst, GitHub, social, roadmap, and risk data.
 - Agent debate: multiple AI-style specialist agents argue the bull case, bear case, proof gaps, and invalidation rules.
 - Causal reasoning: identifies which signal is actually driving the opportunity.
+- Knowledge graph memory: links projects, chains, narratives, sources, GitHub, catalysts, peer clusters, and past scans.
+- Causal market twin: runs scenario paths for bull, base, bear, listing surprise, liquidity drain, narrative rotation, and invalidation.
 - Paper simulation: tracks strategy ideas before treating them as trusted.
 - Outcome memory: compares old calls against later market behavior.
 - Dashboard publishing: turns every scan into a public GitHub Pages intelligence dashboard.
@@ -108,9 +114,10 @@ flowchart LR
   D --> E["Proof + Risk + Confidence Engines"]
   E --> F["AI Council + Research OS"]
   F --> G["Strategy Lab + Causal Alpha Brain"]
-  G --> H["Autonomous Alpha OS"]
-  H --> I["Reports + Dashboard + Watchtower"]
-  I --> J["Local Memory + Outcome Learning"]
+  G --> H["Knowledge Graph + Causal Market Twin"]
+  H --> I["Autonomous Alpha OS + Governor"]
+  I --> K["Reports + Dashboard + Watchtower"]
+  K --> J["Local Memory + Outcome Learning"]
   J --> D
 ```
 
@@ -127,6 +134,8 @@ The project now behaves like a miniature autonomous research organization.
 | Portfolio War Room | Ranks narratives, best-in-class candidates, and allocation buckets | `reports/portfolio-war-room.json` |
 | Strategy Lab | Runs paper strategy tournaments and creates simulated trade plans | `reports/strategy-lab.json` |
 | Causal Alpha Brain | Builds causal graphs, primary drivers, blockers, and counterfactuals | `reports/causal-alpha-brain.json` |
+| Autonomous Alpha Knowledge Graph | Links identity, sources, narratives, chains, repositories, catalysts, peer clusters, risk, and scan memory | `reports/alpha-knowledge-graph.json` |
+| Causal Market Twin | Models bull, base, bear, delay, listing, liquidity drain, narrative rotation, and invalidation scenarios | `reports/causal-market-twin.json` |
 | Autonomous Alpha OS | Fuses strategy, causal, simulation, proof, risk, and commander agents | `reports/autonomous-alpha-os.json` |
 | Paper Trading Lab | Grades Alpha OS calls against simulated outcome history | `reports/paper-trading-lab.json` |
 | Weight Optimizer | Suggests engine-family weights from paper performance | `reports/weight-optimizer.json` |
@@ -216,6 +225,45 @@ npm run contract-memory
 The main report is `reports/alpha-contracts.json`. The leaderboard is `reports/alpha-contract-leaderboard.json`. Public receipts are written to `reports/alpha-contract-receipts.json`.
 
 This makes the AI more accountable: future scans grade old contracts, mark invalidations, track win rate, and feed that reputation back into the next scan.
+
+## Knowledge Graph + Market Twin
+
+The Autonomous Alpha Knowledge Graph turns every scan into memory.
+
+It links:
+
+- Project identity
+- Chain and narrative clusters
+- Discovery sources
+- GitHub repositories
+- Roadmap and catalyst proof
+- Engine support
+- Risk constraints
+- Related projects
+- Prior scan behavior
+
+The Causal Market Twin sits on top of that graph and asks what could happen next.
+
+It produces:
+
+- Bull case
+- Base case
+- Bear case
+- Catalyst delay case
+- Listing surprise case
+- Liquidity drain case
+- Narrative rotation case
+- Invalidation case
+
+Key commands:
+
+```bash
+npm run alpha:graph
+npm run causal:twin
+npm run graph-memory
+```
+
+The main reports are `reports/alpha-knowledge-graph.json` and `reports/causal-market-twin.json`.
 
 ## Alpha Evolution Governor
 
@@ -416,6 +464,8 @@ Every scan can generate a full research packet:
 | `reports/alpha-contracts.json` | Falsifiable alpha contracts with proof, invalidation rules, and memory |
 | `reports/alpha-contract-leaderboard.json` | Contract rankings, engine leaderboard, agent leaderboard, and autopsy queue |
 | `reports/alpha-contract-receipts.json` | Public accountability receipts for top contracts |
+| `reports/alpha-knowledge-graph.json` | Persistent project graph, memory links, source coverage, peer clusters, and proof gaps |
+| `reports/causal-market-twin.json` | Scenario probabilities, expected return, best/worst paths, and next experiments |
 | `reports/alpha-evolution-governor.json` | Meta-governor operating report |
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
 | `reports/source-truth.json` | Provider trust and source agreement |
@@ -488,6 +538,8 @@ npm run alpha:thesis
 npm run alpha:contracts
 npm run alpha:judge
 npm run alpha:receipts
+npm run alpha:graph
+npm run causal:twin
 npm run alpha:governor
 npm run alpha:queue
 npm run source-truth
@@ -503,6 +555,7 @@ npm run agent-memory
 npm run strategy-memory
 npm run paper-memory
 npm run contract-memory
+npm run graph-memory
 npm run evolution-memory
 npm run source-router
 ```

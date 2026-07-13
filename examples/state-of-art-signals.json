@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T05:45:56.009Z",
+  "generatedAt": "2026-07-13T06:33:02.177Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
-    "hotNarratives": 5,
-    "improvingProjects": 0,
+    "hotNarratives": 6,
+    "improvingProjects": 1,
     "highTrapRisk": 0,
     "reliableSources": 0,
     "aiStrongBuyCandidates": 1,
@@ -13,23 +13,23 @@
   "aiStrongBuyCandidates": [
     {
       "rank": 1,
-      "confidenceAdjustedRank": 4,
+      "confidenceAdjustedRank": 2,
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "confidenceAdjustedScore": 28,
-      "institutionalRankScore": 28,
+      "confidenceAdjustedScore": 29,
+      "institutionalRankScore": 29,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 80,
+      "narrativeHeatScore": 83,
       "narrativeHeatState": "Hot Rotation",
-      "projectChangeScore": 52,
-      "projectChangeState": "stable",
+      "projectChangeScore": 58,
+      "projectChangeState": "improving",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 54,
+      "aiEcosystemScore": 56,
       "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
       "aiEcosystemCaveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
       "strongBuyEvidenceGate": {
@@ -40,7 +40,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 54,
+            "value": 56,
             "required": ">= 78"
           },
           {
@@ -64,7 +64,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 28,
+            "value": 29,
             "required": ">= 65"
           },
           {
@@ -92,7 +92,7 @@
           "Narrative heat is elevated."
         ],
         "whatChanged": [
-          "No major positive change detected yet."
+          "Project trend is improving since prior scans."
         ],
         "catalysts": [
           "Catalyst engine sees a launch/listing/news timing cluster."
@@ -120,22 +120,22 @@
       "multiTimeframeIntelligence": {
         "1h": 3,
         "24h": 6,
-        "7d": 55,
+        "7d": 56,
         "30d": 24,
         "90d": 60,
         "bestHorizon": "90d"
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 59,
+          "score": 61,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
-          "score": 30,
+          "score": 31,
           "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
         },
         "bearCase": {
-          "score": 21,
+          "score": 22,
           "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
         },
         "invalidation": [
@@ -165,19 +165,19 @@
       "alphaLabStatus": "No Match",
       "alphaLabBestStrategy": null,
       "quantumReasoningBrain": {
-        "score": 59,
+        "score": 60,
         "probabilities": {
-          "bull": 29,
+          "bull": 30,
           "base": 38,
-          "bear": 24,
+          "bear": 23,
           "blackSwan": 9
         },
         "entropyScore": 93,
         "entropy": "High",
         "decisionState": "Uncollapsed Alpha",
-        "summary": "Uncollapsed Alpha: bull 29%, bear 24%, entropy High."
+        "summary": "Uncollapsed Alpha: bull 30%, bear 23%, entropy High."
       },
-      "worldModelScore": 25,
+      "worldModelScore": 26,
       "knowledgeGraph": {
         "nodes": {
           "project": "EigenLayer",
@@ -195,7 +195,7 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "Pendle",
@@ -289,7 +289,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -305,14 +305,14 @@
         "outcome": null,
         "grade": null,
         "signalTrust": {
-          "activeSignals": 2,
+          "activeSignals": 3,
           "trustedSignals": [],
           "noisySignals": []
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
-      "liveCatalystRadarScore": 83,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystEvents": [
         {
@@ -343,11 +343,11 @@
           ]
         }
       ],
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 22,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -412,13 +412,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 50,
+            "score": 51,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 80,
+                "value": 83,
                 "interpretation": "supportive"
               },
               {
@@ -452,7 +452,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 26,
                 "interpretation": "needs work"
               }
             ],
@@ -528,7 +528,7 @@
               },
               {
                 "label": "outcomeLearningScore",
-                "value": 6,
+                "value": 5,
                 "interpretation": "needs work"
               },
               {
@@ -543,7 +543,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 22,
+            "score": 23,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -609,24 +609,24 @@
   "simulationBrainCandidates": [],
   "topConfidenceAdjusted": [
     {
-      "rank": 7,
+      "rank": 5,
       "confidenceAdjustedRank": 1,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 30,
-      "institutionalRankScore": 30,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 31,
+      "institutionalRankScore": 31,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 68,
+      "narrativeHeatScore": 70,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 12,
       "trapRiskLevel": "Minimal",
-      "aiEcosystemScore": 52,
+      "aiEcosystemScore": 53,
       "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -637,7 +637,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 52,
+            "value": 53,
             "required": ">= 78"
           },
           {
@@ -661,7 +661,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 30,
+            "value": 31,
             "required": ">= 65"
           },
           {
@@ -686,7 +686,7 @@
       },
       "whyNow": {
         "whyThisProject": [
-          "It is the strongest relative candidate in the current scan."
+          "Narrative heat is elevated."
         ],
         "whatChanged": [
           "No major positive change detected yet."
@@ -707,8 +707,8 @@
         ],
         "bearCase": [
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
           "Quant Forecaster: Composite scores need more confirmation.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
           "Narrative Scout: Narrative evidence is not strong enough by itself."
         ],
         "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
@@ -717,22 +717,22 @@
       "multiTimeframeIntelligence": {
         "1h": 4,
         "24h": 5,
-        "7d": 44,
-        "30d": 18,
+        "7d": 45,
+        "30d": 20,
         "90d": 60,
         "bestHorizon": "90d"
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 52,
+          "score": 54,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
-          "score": 32,
+          "score": 33,
           "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
         },
         "bearCase": {
-          "score": 26,
+          "score": 27,
           "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
         },
         "invalidation": [
@@ -790,7 +790,7 @@
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Bittensor",
@@ -859,20 +859,20 @@
         "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
       },
-      "outcomeJudgeScore": 44,
+      "outcomeJudgeScore": 45,
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "outcomeAdjustedConfidence": "Developing",
       "outcomeJudgement": {
         "status": "Cold Start",
         "verdict": "Awaiting Outcome Data",
-        "score": 44,
+        "score": 45,
         "realityAdjustment": -8,
         "confidenceScore": 55,
         "confidence": "Developing",
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T05:45:55.674Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -880,7 +880,7 @@
           "marketCap": 0,
           "liquidityUsd": 115000,
           "volume24h": 32500,
-          "score": 0,
+          "score": 2,
           "riskScore": 0,
           "tier": "Low Priority",
           "action": null
@@ -895,7 +895,7 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
-      "liveCatalystRadarScore": 49,
+      "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystEvents": [
         {
@@ -977,13 +977,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 37,
+            "score": 38,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 68,
+                "value": 70,
                 "interpretation": "supportive"
               },
               {
@@ -1086,7 +1086,7 @@
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 44,
+                "value": 45,
                 "interpretation": "needs work"
               },
               {
@@ -1112,7 +1112,7 @@
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 33,
+                "value": 34,
                 "interpretation": "needs work"
               },
               {
@@ -1167,8 +1167,602 @@
       "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 6,
+      "rank": 1,
       "confidenceAdjustedRank": 2,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "confidenceAdjustedScore": 29,
+      "institutionalRankScore": 29,
+      "confidence": "Developing",
+      "dataConfidence": "High",
+      "narrativeHeatScore": 83,
+      "narrativeHeatState": "Hot Rotation",
+      "projectChangeScore": 58,
+      "projectChangeState": "improving",
+      "sourceReliabilityScore": 15,
+      "trapRiskScore": 20,
+      "trapRiskLevel": "Low",
+      "aiEcosystemScore": 56,
+      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
+      "aiEcosystemCaveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 56,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 3,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 29,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 20,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 80,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "Project trend is improving since prior scans."
+        ],
+        "catalysts": [
+          "Catalyst engine sees a launch/listing/news timing cluster."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "aiDebate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit.",
+          "Research Analyst: Research evidence is still developing."
+        ],
+        "moderator": "EigenLayer does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "strongBuyLifecycleStage": "Pre-Strong Buy",
+      "multiTimeframeIntelligence": {
+        "1h": 3,
+        "24h": 6,
+        "7d": 56,
+        "30d": 24,
+        "90d": 60,
+        "bestHorizon": "90d"
+      },
+      "scenarioPlan": {
+        "bullCase": {
+          "score": 61,
+          "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
+        },
+        "baseCase": {
+          "score": 31,
+          "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
+        },
+        "bearCase": {
+          "score": 22,
+          "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
+        },
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ]
+      },
+      "redTeamReview": {
+        "score": 71,
+        "status": "Block",
+        "concerns": [
+          "Liquidity quality is weak.",
+          "Proof score is thin.",
+          "Discovery/source reliability is low.",
+          "Best-available candidate is not the same as true strong-buy confirmation."
+        ]
+      },
+      "aiDisagreement": {
+        "score": 77,
+        "level": "High",
+        "bullishAgents": 1,
+        "cautiousAgents": 5,
+        "verdict": "High-disagreement setup: require confirmation before promotion."
+      },
+      "alphaLabScore": 0,
+      "alphaLabStatus": "No Match",
+      "alphaLabBestStrategy": null,
+      "quantumReasoningBrain": {
+        "score": 60,
+        "probabilities": {
+          "bull": 30,
+          "base": 38,
+          "bear": 23,
+          "blackSwan": 9
+        },
+        "entropyScore": 93,
+        "entropy": "High",
+        "decisionState": "Uncollapsed Alpha",
+        "summary": "Uncollapsed Alpha: bull 30%, bear 23%, entropy High."
+      },
+      "worldModelScore": 26,
+      "knowledgeGraph": {
+        "nodes": {
+          "project": "EigenLayer",
+          "chain": "ethereum",
+          "narratives": [
+            "ai",
+            "restaking"
+          ],
+          "sources": [
+            "research-seed"
+          ]
+        },
+        "relatedProjects": [
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 31
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 29
+          },
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 28
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "score": 27
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "score": 27
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 23
+          }
+        ]
+      },
+      "marketScientistScore": 39,
+      "autonomousMarketScientist": {
+        "score": 39,
+        "recommendation": "Do not promote without new evidence.",
+        "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 29,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 28,
+      "expectedReturn30dPct": 13,
+      "bearCaseDrawdownPct": -42,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 78,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 75,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 67,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 2,
+        "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 39,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 39,
+        "realityAdjustment": -8,
+        "confidenceScore": 46,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-eigen",
+          "timestamp": "2026-07-13T06:33:01.474Z",
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "score": 9,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 3,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 84,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmScore": 22,
+      "dossierSwarmDecision": "Do Not Promote",
+      "projectDossierSwarm": {
+        "decision": "Do Not Promote",
+        "score": 22,
+        "consensus": {
+          "approve": 0,
+          "watch": 2,
+          "reject": 5,
+          "challenge": 0,
+          "block": 0,
+          "clear": 1,
+          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+        },
+        "agents": [
+          {
+            "name": "Tokenomics Agent",
+            "score": 59,
+            "vote": "Watch",
+            "thesis": "Token structure needs more proof before promotion.",
+            "evidence": [
+              {
+                "label": "tokenomicsScore",
+                "value": 10,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "vestingPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "tokenUnlockRiskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "tokenomics score is weak"
+            ]
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 44,
+            "vote": "Reject",
+            "thesis": "Flow confirmation is not strong enough yet.",
+            "evidence": [
+              {
+                "label": "liquidityScore",
+                "value": 25,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "liquidityExpansionScore",
+                "value": 30,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "sellPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "liquidity support is still thin"
+            ]
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 51,
+            "vote": "Watch",
+            "thesis": "Narrative needs more confirmation or cleaner attention.",
+            "evidence": [
+              {
+                "label": "narrativeHeatScore",
+                "value": 83,
+                "interpretation": "supportive"
+              },
+              {
+                "label": "narrativeForecastScore",
+                "value": 27.5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "xSocialScore",
+                "value": 39,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          },
+          {
+            "name": "Developer Agent",
+            "score": 23,
+            "vote": "Reject",
+            "thesis": "Builder evidence needs manual verification.",
+            "evidence": [
+              {
+                "label": "developerActivityScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "githubScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "worldModelScore",
+                "value": 26,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "developer/community proof is thin",
+              "source reliability is weak"
+            ]
+          },
+          {
+            "name": "Wallet Agent",
+            "score": 3,
+            "vote": "Reject",
+            "thesis": "Smart-money evidence is not decisive yet.",
+            "evidence": [
+              {
+                "label": "smartMoneyAccumulationScore",
+                "value": 3,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "smartWalletPerformanceScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "holderGrowthScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "wallet confirmation is weak"
+            ]
+          },
+          {
+            "name": "Risk Agent",
+            "score": 40,
+            "vote": "Clear",
+            "thesis": "No dominant risk cluster blocks research yet.",
+            "evidence": [
+              {
+                "label": "trapRiskScore",
+                "value": 20,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "falsePositiveSimilarity",
+                "value": 78,
+                "interpretation": "risk"
+              },
+              {
+                "label": "riskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "resembles prior false-positive/trap setups",
+              "simulation adversary blocked the thesis",
+              "Research OS red team blocked the thesis"
+            ]
+          },
+          {
+            "name": "Outcome Agent",
+            "score": 38,
+            "vote": "Reject",
+            "thesis": "Outcome memory is thin or inconclusive.",
+            "evidence": [
+              {
+                "label": "outcomeJudgeScore",
+                "value": 39,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "outcomeLearningScore",
+                "value": 5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "prePumpPatternScore",
+                "value": 50,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "no direct outcome history yet"
+            ]
+          },
+          {
+            "name": "Final PM Agent",
+            "score": 23,
+            "vote": "Reject",
+            "thesis": "Do not promote until blockers clear.",
+            "evidence": [
+              {
+                "label": "agentAverage",
+                "value": 37,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "simulationBrainScore",
+                "value": 29,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "proofScore",
+                "value": 3,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          }
+        ],
+        "strongestAgent": "Tokenomics Agent",
+        "weakestAgent": "Wallet Agent",
+        "keyBullCase": "Token structure needs more proof before promotion.",
+        "keyBearCase": "tokenomics score is weak",
+        "mustVerify": [
+          "verify current liquidity depth and source quality",
+          "review unlocks, vesting, emissions, and FDV pressure",
+          "inspect top wallet concentration and smart-wallet persistence",
+          "verify GitHub/docs/roadmap activity manually",
+          "confirm upcoming catalyst date and whether it is already priced in"
+        ],
+        "promotionTriggers": [
+          "liquidity score rises above 65",
+          "proof score rises above 60",
+          "smart-money accumulation confirms above 60",
+          "outcome judge gets a tracked follow-up scan"
+        ],
+        "invalidationSignals": [
+          "liquidity falls while price or social attention rises",
+          "sell pressure expands above 70",
+          "trap risk rises above 60",
+          "Outcome Judge downgrades the thesis after a follow-up scan",
+          "Pipeline score drops below 55 on the next scan.",
+          "Liquidity contracts while sell pressure rises.",
+          "Primary catalyst is delayed, cancelled, or already priced in."
+        ],
+        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+      },
+      "alphaTags": [
+        "Narrative Heat",
+        "Best Available AI Candidate"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 7,
+      "confidenceAdjustedRank": 3,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
@@ -1177,14 +1771,14 @@
       "institutionalRankScore": 29,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 59,
+      "narrativeHeatScore": 65,
       "narrativeHeatState": "Active",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 12,
       "trapRiskLevel": "Minimal",
-      "aiEcosystemScore": 52,
+      "aiEcosystemScore": 53,
       "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -1195,7 +1789,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 52,
+            "value": 53,
             "required": ">= 78"
           },
           {
@@ -1275,14 +1869,14 @@
       "multiTimeframeIntelligence": {
         "1h": 4,
         "24h": 5,
-        "7d": 43,
+        "7d": 44,
         "30d": 19,
         "90d": 60,
         "bestHorizon": "90d"
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 49,
+          "score": 50,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
@@ -1319,19 +1913,19 @@
       "alphaLabStatus": "No Match",
       "alphaLabBestStrategy": null,
       "quantumReasoningBrain": {
-        "score": 58,
+        "score": 60,
         "probabilities": {
-          "bull": 27,
+          "bull": 28,
           "base": 40,
-          "bear": 25,
+          "bear": 24,
           "blackSwan": 8
         },
-        "entropyScore": 92,
+        "entropyScore": 91,
         "entropy": "High",
         "decisionState": "Uncollapsed Alpha",
-        "summary": "Uncollapsed Alpha: bull 27%, bear 25%, entropy High."
+        "summary": "Uncollapsed Alpha: bull 28%, bear 24%, entropy High."
       },
-      "worldModelScore": 22,
+      "worldModelScore": 24,
       "knowledgeGraph": {
         "nodes": {
           "project": "Pendle",
@@ -1348,7 +1942,7 @@
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Ondo",
@@ -1358,11 +1952,11 @@
           }
         ]
       },
-      "marketScientistScore": 39,
+      "marketScientistScore": 40,
       "autonomousMarketScientist": {
-        "score": 39,
+        "score": 40,
         "recommendation": "Do not promote without new evidence.",
-        "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
+        "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
       },
       "simulationBrainScore": 40,
       "simulationDecision": "Simulation Watch",
@@ -1381,7 +1975,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 68,
+          "similarity": 69,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -1390,7 +1984,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 64,
+          "similarity": 65,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -1405,20 +1999,20 @@
         "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
       },
-      "outcomeJudgeScore": 44,
+      "outcomeJudgeScore": 45,
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "outcomeAdjustedConfidence": "Developing",
       "outcomeJudgement": {
         "status": "Cold Start",
         "verdict": "Awaiting Outcome Data",
-        "score": 44,
+        "score": 45,
         "realityAdjustment": -8,
         "confidenceScore": 55,
         "confidence": "Developing",
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -1434,14 +2028,14 @@
         "outcome": null,
         "grade": null,
         "signalTrust": {
-          "activeSignals": 0,
+          "activeSignals": 2,
           "trustedSignals": [],
           "noisySignals": []
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
-      "liveCatalystRadarScore": 60,
+      "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystEvents": [
         {
@@ -1532,14 +2126,14 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 34,
+            "score": 35,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 59,
-                "interpretation": "needs work"
+                "value": 65,
+                "interpretation": "supportive"
               },
               {
                 "label": "narrativeForecastScore",
@@ -1556,7 +2150,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 21,
+            "score": 22,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1572,7 +2166,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 22,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -1641,7 +2235,7 @@
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 44,
+                "value": 45,
                 "interpretation": "needs work"
               },
               {
@@ -1711,17 +2305,19 @@
         ],
         "finalMemo": "Pendle is a Do Not Promote. Do not promote until blockers clear."
       },
-      "alphaTags": [],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
       "riskFlags": [
         "Resembles prior outcome traps",
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 8,
-      "confidenceAdjustedRank": 3,
+      "confidenceAdjustedRank": 4,
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
@@ -1730,15 +2326,15 @@
       "institutionalRankScore": 29,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 56,
+      "narrativeHeatScore": 57,
       "narrativeHeatState": "Active",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 12,
       "trapRiskLevel": "Minimal",
-      "aiEcosystemScore": 51,
-      "aiEcosystemVerdict": "AI Pass For Now",
+      "aiEcosystemScore": 52,
+      "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
         "passed": 3,
@@ -1748,7 +2344,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 51,
+            "value": 52,
             "required": ">= 78"
           },
           {
@@ -1824,7 +2420,7 @@
         ],
         "moderator": "Jupiter does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
-      "strongBuyLifecycleStage": "Candidate",
+      "strongBuyLifecycleStage": "Watch",
       "multiTimeframeIntelligence": {
         "1h": 4,
         "24h": 5,
@@ -1965,7 +2561,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -2060,13 +2656,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 25,
+            "score": 26,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 56,
+                "value": 57,
                 "interpretation": "needs work"
               },
               {
@@ -2189,13 +2785,13 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 19,
+            "score": 20,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 32,
+                "value": 33,
                 "interpretation": "needs work"
               },
               {
@@ -2248,600 +2844,6 @@
       "thesis": "Jupiter is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 1,
-      "confidenceAdjustedRank": 4,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "pipelineScore": 9,
-      "confidenceAdjustedScore": 28,
-      "institutionalRankScore": 28,
-      "confidence": "Developing",
-      "dataConfidence": "High",
-      "narrativeHeatScore": 80,
-      "narrativeHeatState": "Hot Rotation",
-      "projectChangeScore": 52,
-      "projectChangeState": "stable",
-      "sourceReliabilityScore": 15,
-      "trapRiskScore": 20,
-      "trapRiskLevel": "Low",
-      "aiEcosystemScore": 54,
-      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
-      "aiEcosystemCaveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 54,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 3,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 28,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 80,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "Narrative heat is elevated."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "Catalyst engine sees a launch/listing/news timing cluster."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "aiDebate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Learning Engine: Historical memory does not yet show a strong winner fit.",
-          "Research Analyst: Research evidence is still developing."
-        ],
-        "moderator": "EigenLayer does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "strongBuyLifecycleStage": "Pre-Strong Buy",
-      "multiTimeframeIntelligence": {
-        "1h": 3,
-        "24h": 6,
-        "7d": 55,
-        "30d": 24,
-        "90d": 60,
-        "bestHorizon": "90d"
-      },
-      "scenarioPlan": {
-        "bullCase": {
-          "score": 59,
-          "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
-        },
-        "baseCase": {
-          "score": 30,
-          "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
-        },
-        "bearCase": {
-          "score": 21,
-          "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
-        },
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ]
-      },
-      "redTeamReview": {
-        "score": 71,
-        "status": "Block",
-        "concerns": [
-          "Liquidity quality is weak.",
-          "Proof score is thin.",
-          "Discovery/source reliability is low.",
-          "Best-available candidate is not the same as true strong-buy confirmation."
-        ]
-      },
-      "aiDisagreement": {
-        "score": 77,
-        "level": "High",
-        "bullishAgents": 1,
-        "cautiousAgents": 5,
-        "verdict": "High-disagreement setup: require confirmation before promotion."
-      },
-      "alphaLabScore": 0,
-      "alphaLabStatus": "No Match",
-      "alphaLabBestStrategy": null,
-      "quantumReasoningBrain": {
-        "score": 59,
-        "probabilities": {
-          "bull": 29,
-          "base": 38,
-          "bear": 24,
-          "blackSwan": 9
-        },
-        "entropyScore": 93,
-        "entropy": "High",
-        "decisionState": "Uncollapsed Alpha",
-        "summary": "Uncollapsed Alpha: bull 29%, bear 24%, entropy High."
-      },
-      "worldModelScore": 25,
-      "knowledgeGraph": {
-        "nodes": {
-          "project": "EigenLayer",
-          "chain": "ethereum",
-          "narratives": [
-            "ai",
-            "restaking"
-          ],
-          "sources": [
-            "research-seed"
-          ]
-        },
-        "relatedProjects": [
-          {
-            "name": "Celestia",
-            "symbol": "TIA",
-            "chain": "celestia",
-            "score": 30
-          },
-          {
-            "name": "Pendle",
-            "symbol": "PENDLE",
-            "chain": "ethereum",
-            "score": 29
-          },
-          {
-            "name": "Bittensor",
-            "symbol": "TAO",
-            "chain": "bittensor",
-            "score": 28
-          },
-          {
-            "name": "Render",
-            "symbol": "RNDR",
-            "chain": "solana",
-            "score": 27
-          },
-          {
-            "name": "Akash Network",
-            "symbol": "AKT",
-            "chain": "cosmos",
-            "score": 27
-          },
-          {
-            "name": "Ondo",
-            "symbol": "ONDO",
-            "chain": "ethereum",
-            "score": 23
-          }
-        ]
-      },
-      "marketScientistScore": 39,
-      "autonomousMarketScientist": {
-        "score": 39,
-        "recommendation": "Do not promote without new evidence.",
-        "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
-      },
-      "simulationBrainScore": 29,
-      "simulationDecision": "Do Not Promote",
-      "breakoutProbability30d": 28,
-      "expectedReturn30dPct": 13,
-      "bearCaseDrawdownPct": -42,
-      "closestMarketAnalogs": [
-        {
-          "name": "social hype liquidity trap",
-          "similarity": 78,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "late chase exhaustion",
-          "similarity": 75,
-          "examples": [
-            "post-pump listing chases",
-            "overheated unlock cycles"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
-          "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
-          ],
-          "riskType": "Breakout/Rotation"
-        }
-      ],
-      "portfolioBrain": {
-        "rank": 6,
-        "percentile": 38,
-        "relativeEdgeVsTop10Cutoff": 2,
-        "allocationView": "Below current opportunity cut"
-      },
-      "outcomeJudgeScore": 39,
-      "outcomeJudgeVerdict": "Awaiting Outcome Data",
-      "outcomeAdjustedConfidence": "Developing",
-      "outcomeJudgement": {
-        "status": "Cold Start",
-        "verdict": "Awaiting Outcome Data",
-        "score": 39,
-        "realityAdjustment": -8,
-        "confidenceScore": 46,
-        "confidence": "Developing",
-        "previousSnapshot": null,
-        "currentSnapshot": {
-          "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T05:45:55.675Z",
-          "name": "EigenLayer",
-          "symbol": "EIGEN",
-          "chain": "ethereum",
-          "priceUsd": 0,
-          "marketCap": 0,
-          "liquidityUsd": 112500,
-          "volume24h": 31250,
-          "score": 9,
-          "riskScore": 0,
-          "tier": "Low Priority",
-          "action": null
-        },
-        "outcome": null,
-        "grade": null,
-        "signalTrust": {
-          "activeSignals": 2,
-          "trustedSignals": [],
-          "noisySignals": []
-        },
-        "reliabilitySampleCount": 0,
-        "summary": "No prior outcome snapshot for this project yet."
-      },
-      "liveCatalystRadarScore": 83,
-      "liveCatalystUrgency": "Critical",
-      "liveCatalystEvents": [
-        {
-          "type": "Catalyst Calendar Alert",
-          "score": 88,
-          "window": "24h-30d",
-          "urgency": "High",
-          "reasons": [
-            "catalyst calendar score elevated"
-          ]
-        },
-        {
-          "type": "Mainnet Launch",
-          "score": 76,
-          "window": "7d-30d",
-          "urgency": "High",
-          "reasons": [
-            "mainnet language detected"
-          ]
-        },
-        {
-          "type": "Staking Change",
-          "score": 55,
-          "window": "7d-30d",
-          "urgency": "Medium",
-          "reasons": [
-            "staking or restaking language detected"
-          ]
-        }
-      ],
-      "dossierSwarmScore": 21,
-      "dossierSwarmDecision": "Do Not Promote",
-      "projectDossierSwarm": {
-        "decision": "Do Not Promote",
-        "score": 21,
-        "consensus": {
-          "approve": 0,
-          "watch": 2,
-          "reject": 5,
-          "challenge": 0,
-          "block": 0,
-          "clear": 1,
-          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
-        },
-        "agents": [
-          {
-            "name": "Tokenomics Agent",
-            "score": 59,
-            "vote": "Watch",
-            "thesis": "Token structure needs more proof before promotion.",
-            "evidence": [
-              {
-                "label": "tokenomicsScore",
-                "value": 10,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "vestingPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "tokenUnlockRiskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "tokenomics score is weak"
-            ]
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 44,
-            "vote": "Reject",
-            "thesis": "Flow confirmation is not strong enough yet.",
-            "evidence": [
-              {
-                "label": "liquidityScore",
-                "value": 25,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "liquidityExpansionScore",
-                "value": 30,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "sellPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "liquidity support is still thin"
-            ]
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 50,
-            "vote": "Watch",
-            "thesis": "Narrative needs more confirmation or cleaner attention.",
-            "evidence": [
-              {
-                "label": "narrativeHeatScore",
-                "value": 80,
-                "interpretation": "supportive"
-              },
-              {
-                "label": "narrativeForecastScore",
-                "value": 27.5,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "xSocialScore",
-                "value": 39,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          },
-          {
-            "name": "Developer Agent",
-            "score": 23,
-            "vote": "Reject",
-            "thesis": "Builder evidence needs manual verification.",
-            "evidence": [
-              {
-                "label": "developerActivityScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "githubScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "worldModelScore",
-                "value": 25,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "developer/community proof is thin",
-              "source reliability is weak"
-            ]
-          },
-          {
-            "name": "Wallet Agent",
-            "score": 3,
-            "vote": "Reject",
-            "thesis": "Smart-money evidence is not decisive yet.",
-            "evidence": [
-              {
-                "label": "smartMoneyAccumulationScore",
-                "value": 3,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "smartWalletPerformanceScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "holderGrowthScore",
-                "value": 0,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "wallet confirmation is weak"
-            ]
-          },
-          {
-            "name": "Risk Agent",
-            "score": 40,
-            "vote": "Clear",
-            "thesis": "No dominant risk cluster blocks research yet.",
-            "evidence": [
-              {
-                "label": "trapRiskScore",
-                "value": 20,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "falsePositiveSimilarity",
-                "value": 78,
-                "interpretation": "risk"
-              },
-              {
-                "label": "riskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "resembles prior false-positive/trap setups",
-              "simulation adversary blocked the thesis",
-              "Research OS red team blocked the thesis"
-            ]
-          },
-          {
-            "name": "Outcome Agent",
-            "score": 38,
-            "vote": "Reject",
-            "thesis": "Outcome memory is thin or inconclusive.",
-            "evidence": [
-              {
-                "label": "outcomeJudgeScore",
-                "value": 39,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "outcomeLearningScore",
-                "value": 6,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "prePumpPatternScore",
-                "value": 50,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "no direct outcome history yet"
-            ]
-          },
-          {
-            "name": "Final PM Agent",
-            "score": 22,
-            "vote": "Reject",
-            "thesis": "Do not promote until blockers clear.",
-            "evidence": [
-              {
-                "label": "agentAverage",
-                "value": 37,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "simulationBrainScore",
-                "value": 29,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "proofScore",
-                "value": 3,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          }
-        ],
-        "strongestAgent": "Tokenomics Agent",
-        "weakestAgent": "Wallet Agent",
-        "keyBullCase": "Token structure needs more proof before promotion.",
-        "keyBearCase": "tokenomics score is weak",
-        "mustVerify": [
-          "verify current liquidity depth and source quality",
-          "review unlocks, vesting, emissions, and FDV pressure",
-          "inspect top wallet concentration and smart-wallet persistence",
-          "verify GitHub/docs/roadmap activity manually",
-          "confirm upcoming catalyst date and whether it is already priced in"
-        ],
-        "promotionTriggers": [
-          "liquidity score rises above 65",
-          "proof score rises above 60",
-          "smart-money accumulation confirms above 60",
-          "outcome judge gets a tracked follow-up scan"
-        ],
-        "invalidationSignals": [
-          "liquidity falls while price or social attention rises",
-          "sell pressure expands above 70",
-          "trap risk rises above 60",
-          "Outcome Judge downgrades the thesis after a follow-up scan",
-          "Pipeline score drops below 55 on the next scan.",
-          "Liquidity contracts while sell pressure rises.",
-          "Primary catalyst is delayed, cancelled, or already priced in."
-        ],
-        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
-      },
-      "alphaTags": [
-        "Narrative Heat",
-        "Best Available AI Candidate"
-      ],
-      "riskFlags": [
-        "Resembles prior outcome traps",
-        "AI analyst rejection",
-        "Weak liquidity support"
-      ],
-      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
-    },
-    {
       "rank": 3,
       "confidenceAdjustedRank": 5,
       "name": "Bittensor",
@@ -2852,14 +2854,14 @@
       "institutionalRankScore": 28,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 98,
+      "narrativeHeatScore": 99,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 52,
+      "aiEcosystemScore": 53,
       "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -2870,7 +2872,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 52,
+            "value": 53,
             "required": ">= 78"
           },
           {
@@ -3024,13 +3026,13 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Render",
@@ -3106,7 +3108,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -3217,7 +3219,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 98,
+                "value": 99,
                 "interpretation": "supportive"
               },
               {
@@ -3412,14 +3414,14 @@
       "institutionalRankScore": 27,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 92,
+      "narrativeHeatScore": 93,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 52,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 47,
+      "aiEcosystemScore": 48,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -3430,7 +3432,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 47,
+            "value": 48,
             "required": ">= 78"
           },
           {
@@ -3585,19 +3587,19 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 29
           },
           {
             "name": "Jupiter",
             "symbol": "JUP",
             "chain": "solana",
             "score": 29
-          },
-          {
-            "name": "EigenLayer",
-            "symbol": "EIGEN",
-            "chain": "ethereum",
-            "score": 28
           },
           {
             "name": "Bittensor",
@@ -3673,7 +3675,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -3778,13 +3780,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 54,
+            "score": 55,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 92,
+                "value": 93,
                 "interpretation": "supportive"
               },
               {
@@ -3914,7 +3916,7 @@
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 38,
+                "value": 39,
                 "interpretation": "needs work"
               },
               {
@@ -3979,14 +3981,14 @@
       "institutionalRankScore": 27,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 98,
+      "narrativeHeatScore": 99,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 49,
+      "aiEcosystemScore": 50,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -3997,7 +3999,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 49,
+            "value": 50,
             "required": ">= 78"
           },
           {
@@ -4151,13 +4153,13 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Bittensor",
@@ -4233,7 +4235,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.475Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -4344,7 +4346,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 98,
+                "value": 99,
                 "interpretation": "supportive"
               },
               {
@@ -4529,7 +4531,7 @@
       "thesis": "Akash Network is led by signalCombos 59, narrative 52, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 5,
+      "rank": 6,
       "confidenceAdjustedRank": 8,
       "name": "Ondo",
       "symbol": "ONDO",
@@ -4539,14 +4541,14 @@
       "institutionalRankScore": 23,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 51,
+      "narrativeHeatScore": 52,
       "narrativeHeatState": "Active",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 49,
+      "aiEcosystemScore": 50,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -4557,7 +4559,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 49,
+            "value": 50,
             "required": ">= 78"
           },
           {
@@ -4693,7 +4695,7 @@
         "decisionState": "Uncollapsed Alpha",
         "summary": "Uncollapsed Alpha: bull 27%, bear 25%, entropy High."
       },
-      "worldModelScore": 18,
+      "worldModelScore": 19,
       "knowledgeGraph": {
         "nodes": {
           "project": "Ondo",
@@ -4708,16 +4710,16 @@
         },
         "relatedProjects": [
           {
-            "name": "Pendle",
-            "symbol": "PENDLE",
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
             "chain": "ethereum",
             "score": 29
           },
           {
-            "name": "EigenLayer",
-            "symbol": "EIGEN",
+            "name": "Pendle",
+            "symbol": "PENDLE",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           }
         ]
       },
@@ -4781,7 +4783,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.475Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -4892,7 +4894,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 51,
+                "value": 52,
                 "interpretation": "needs work"
               },
               {
@@ -4910,7 +4912,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 18,
+            "score": 19,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -4926,7 +4928,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 18,
+                "value": 19,
                 "interpretation": "needs work"
               }
             ],
@@ -5001,7 +5003,7 @@
               },
               {
                 "label": "outcomeLearningScore",
-                "value": 6,
+                "value": 5,
                 "interpretation": "needs work"
               },
               {
@@ -5022,7 +5024,7 @@
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 36,
+                "value": 37,
                 "interpretation": "needs work"
               },
               {
@@ -5088,14 +5090,14 @@
       "institutionalRankScore": 28,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 98,
+      "narrativeHeatScore": 99,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 52,
+      "aiEcosystemScore": 53,
       "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -5106,7 +5108,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 52,
+            "value": 53,
             "required": ">= 78"
           },
           {
@@ -5260,13 +5262,13 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Render",
@@ -5342,7 +5344,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -5453,7 +5455,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 98,
+                "value": 99,
                 "interpretation": "supportive"
               },
               {
@@ -5648,14 +5650,14 @@
       "institutionalRankScore": 27,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 98,
+      "narrativeHeatScore": 99,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 49,
+      "aiEcosystemScore": 50,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -5666,7 +5668,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 49,
+            "value": 50,
             "required": ">= 78"
           },
           {
@@ -5820,13 +5822,13 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Bittensor",
@@ -5902,7 +5904,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.475Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -6013,7 +6015,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 98,
+                "value": 99,
                 "interpretation": "supportive"
               },
               {
@@ -6208,14 +6210,14 @@
       "institutionalRankScore": 27,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 92,
+      "narrativeHeatScore": 93,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 52,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 47,
+      "aiEcosystemScore": 48,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -6226,7 +6228,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 47,
+            "value": 48,
             "required": ">= 78"
           },
           {
@@ -6381,19 +6383,19 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 29
           },
           {
             "name": "Jupiter",
             "symbol": "JUP",
             "chain": "solana",
             "score": 29
-          },
-          {
-            "name": "EigenLayer",
-            "symbol": "EIGEN",
-            "chain": "ethereum",
-            "score": 28
           },
           {
             "name": "Bittensor",
@@ -6469,7 +6471,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -6574,13 +6576,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 54,
+            "score": 55,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 92,
+                "value": 93,
                 "interpretation": "supportive"
               },
               {
@@ -6710,7 +6712,7 @@
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 38,
+                "value": 39,
                 "interpretation": "needs work"
               },
               {
@@ -6766,23 +6768,23 @@
     },
     {
       "rank": 1,
-      "confidenceAdjustedRank": 4,
+      "confidenceAdjustedRank": 2,
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "confidenceAdjustedScore": 28,
-      "institutionalRankScore": 28,
+      "confidenceAdjustedScore": 29,
+      "institutionalRankScore": 29,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 80,
+      "narrativeHeatScore": 83,
       "narrativeHeatState": "Hot Rotation",
-      "projectChangeScore": 52,
-      "projectChangeState": "stable",
+      "projectChangeScore": 58,
+      "projectChangeState": "improving",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 54,
+      "aiEcosystemScore": 56,
       "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
       "aiEcosystemCaveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
       "strongBuyEvidenceGate": {
@@ -6793,7 +6795,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 54,
+            "value": 56,
             "required": ">= 78"
           },
           {
@@ -6817,7 +6819,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 28,
+            "value": 29,
             "required": ">= 65"
           },
           {
@@ -6845,7 +6847,7 @@
           "Narrative heat is elevated."
         ],
         "whatChanged": [
-          "No major positive change detected yet."
+          "Project trend is improving since prior scans."
         ],
         "catalysts": [
           "Catalyst engine sees a launch/listing/news timing cluster."
@@ -6873,22 +6875,22 @@
       "multiTimeframeIntelligence": {
         "1h": 3,
         "24h": 6,
-        "7d": 55,
+        "7d": 56,
         "30d": 24,
         "90d": 60,
         "bestHorizon": "90d"
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 59,
+          "score": 61,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
-          "score": 30,
+          "score": 31,
           "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
         },
         "bearCase": {
-          "score": 21,
+          "score": 22,
           "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
         },
         "invalidation": [
@@ -6918,19 +6920,19 @@
       "alphaLabStatus": "No Match",
       "alphaLabBestStrategy": null,
       "quantumReasoningBrain": {
-        "score": 59,
+        "score": 60,
         "probabilities": {
-          "bull": 29,
+          "bull": 30,
           "base": 38,
-          "bear": 24,
+          "bear": 23,
           "blackSwan": 9
         },
         "entropyScore": 93,
         "entropy": "High",
         "decisionState": "Uncollapsed Alpha",
-        "summary": "Uncollapsed Alpha: bull 29%, bear 24%, entropy High."
+        "summary": "Uncollapsed Alpha: bull 30%, bear 23%, entropy High."
       },
-      "worldModelScore": 25,
+      "worldModelScore": 26,
       "knowledgeGraph": {
         "nodes": {
           "project": "EigenLayer",
@@ -6948,7 +6950,7 @@
             "name": "Celestia",
             "symbol": "TIA",
             "chain": "celestia",
-            "score": 30
+            "score": 31
           },
           {
             "name": "Pendle",
@@ -7042,7 +7044,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T05:45:55.675Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -7058,14 +7060,14 @@
         "outcome": null,
         "grade": null,
         "signalTrust": {
-          "activeSignals": 2,
+          "activeSignals": 3,
           "trustedSignals": [],
           "noisySignals": []
         },
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
-      "liveCatalystRadarScore": 83,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystEvents": [
         {
@@ -7096,11 +7098,11 @@
           ]
         }
       ],
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 22,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -7165,13 +7167,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 50,
+            "score": 51,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 80,
+                "value": 83,
                 "interpretation": "supportive"
               },
               {
@@ -7205,7 +7207,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 26,
                 "interpretation": "needs work"
               }
             ],
@@ -7281,7 +7283,7 @@
               },
               {
                 "label": "outcomeLearningScore",
-                "value": 6,
+                "value": 5,
                 "interpretation": "needs work"
               },
               {
@@ -7296,7 +7298,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 22,
+            "score": 23,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -7359,24 +7361,24 @@
       "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 7,
+      "rank": 5,
       "confidenceAdjustedRank": 1,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 30,
-      "institutionalRankScore": 30,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 31,
+      "institutionalRankScore": 31,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 68,
+      "narrativeHeatScore": 70,
       "narrativeHeatState": "Hot Rotation",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 12,
       "trapRiskLevel": "Minimal",
-      "aiEcosystemScore": 52,
+      "aiEcosystemScore": 53,
       "aiEcosystemVerdict": "AI Watchlist",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -7387,7 +7389,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 52,
+            "value": 53,
             "required": ">= 78"
           },
           {
@@ -7411,7 +7413,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 30,
+            "value": 31,
             "required": ">= 65"
           },
           {
@@ -7436,7 +7438,7 @@
       },
       "whyNow": {
         "whyThisProject": [
-          "It is the strongest relative candidate in the current scan."
+          "Narrative heat is elevated."
         ],
         "whatChanged": [
           "No major positive change detected yet."
@@ -7457,8 +7459,8 @@
         ],
         "bearCase": [
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
           "Quant Forecaster: Composite scores need more confirmation.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
           "Narrative Scout: Narrative evidence is not strong enough by itself."
         ],
         "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
@@ -7467,22 +7469,22 @@
       "multiTimeframeIntelligence": {
         "1h": 4,
         "24h": 5,
-        "7d": 44,
-        "30d": 18,
+        "7d": 45,
+        "30d": 20,
         "90d": 60,
         "bestHorizon": "90d"
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 52,
+          "score": 54,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
-          "score": 32,
+          "score": 33,
           "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
         },
         "bearCase": {
-          "score": 26,
+          "score": 27,
           "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
         },
         "invalidation": [
@@ -7540,7 +7542,7 @@
             "name": "EigenLayer",
             "symbol": "EIGEN",
             "chain": "ethereum",
-            "score": 28
+            "score": 29
           },
           {
             "name": "Bittensor",
@@ -7609,20 +7611,20 @@
         "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
       },
-      "outcomeJudgeScore": 44,
+      "outcomeJudgeScore": 45,
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "outcomeAdjustedConfidence": "Developing",
       "outcomeJudgement": {
         "status": "Cold Start",
         "verdict": "Awaiting Outcome Data",
-        "score": 44,
+        "score": 45,
         "realityAdjustment": -8,
         "confidenceScore": 55,
         "confidence": "Developing",
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T05:45:55.674Z",
+          "timestamp": "2026-07-13T06:33:01.474Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -7630,7 +7632,7 @@
           "marketCap": 0,
           "liquidityUsd": 115000,
           "volume24h": 32500,
-          "score": 0,
+          "score": 2,
           "riskScore": 0,
           "tier": "Low Priority",
           "action": null
@@ -7645,7 +7647,7 @@
         "reliabilitySampleCount": 0,
         "summary": "No prior outcome snapshot for this project yet."
       },
-      "liveCatalystRadarScore": 49,
+      "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystEvents": [
         {
@@ -7727,13 +7729,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 37,
+            "score": 38,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 68,
+                "value": 70,
                 "interpretation": "supportive"
               },
               {
@@ -7836,7 +7838,562 @@
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 44,
+                "value": 45,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "outcomeLearningScore",
+                "value": 5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "prePumpPatternScore",
+                "value": 50,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "no direct outcome history yet"
+            ]
+          },
+          {
+            "name": "Final PM Agent",
+            "score": 20,
+            "vote": "Reject",
+            "thesis": "Do not promote until blockers clear.",
+            "evidence": [
+              {
+                "label": "agentAverage",
+                "value": 34,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "simulationBrainScore",
+                "value": 40,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "proofScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          }
+        ],
+        "strongestAgent": "Tokenomics Agent",
+        "weakestAgent": "Wallet Agent",
+        "keyBullCase": "Token structure needs more proof before promotion.",
+        "keyBearCase": "tokenomics score is weak",
+        "mustVerify": [
+          "verify current liquidity depth and source quality",
+          "review unlocks, vesting, emissions, and FDV pressure",
+          "inspect top wallet concentration and smart-wallet persistence",
+          "verify GitHub/docs/roadmap activity manually"
+        ],
+        "promotionTriggers": [
+          "liquidity score rises above 65",
+          "proof score rises above 60",
+          "smart-money accumulation confirms above 60",
+          "outcome judge gets a tracked follow-up scan"
+        ],
+        "invalidationSignals": [
+          "liquidity falls while price or social attention rises",
+          "sell pressure expands above 70",
+          "trap risk rises above 60",
+          "Outcome Judge downgrades the thesis after a follow-up scan",
+          "Pipeline score drops below 55 on the next scan.",
+          "Liquidity contracts while sell pressure rises.",
+          "Primary catalyst is delayed, cancelled, or already priced in."
+        ],
+        "finalMemo": "Celestia is a Do Not Promote. Do not promote until blockers clear."
+      },
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
+      "rank": 7,
+      "confidenceAdjustedRank": 3,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 29,
+      "institutionalRankScore": 29,
+      "confidence": "Developing",
+      "dataConfidence": "High",
+      "narrativeHeatScore": 65,
+      "narrativeHeatState": "Active",
+      "projectChangeScore": 50,
+      "projectChangeState": "stable",
+      "sourceReliabilityScore": 15,
+      "trapRiskScore": 12,
+      "trapRiskLevel": "Minimal",
+      "aiEcosystemScore": 53,
+      "aiEcosystemVerdict": "AI Watchlist",
+      "aiEcosystemCaveat": "",
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 53,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 0,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 29,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 12,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 88,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "It is the strongest relative candidate in the current scan."
+        ],
+        "whatChanged": [
+          "No major positive change detected yet."
+        ],
+        "catalysts": [
+          "No confirmed catalyst cluster yet."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "aiDebate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Narrative Scout: Narrative evidence is not strong enough by itself.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
+        ],
+        "moderator": "Pendle does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "strongBuyLifecycleStage": "Watch",
+      "multiTimeframeIntelligence": {
+        "1h": 4,
+        "24h": 5,
+        "7d": 44,
+        "30d": 19,
+        "90d": 60,
+        "bestHorizon": "90d"
+      },
+      "scenarioPlan": {
+        "bullCase": {
+          "score": 50,
+          "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
+        },
+        "baseCase": {
+          "score": 31,
+          "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
+        },
+        "bearCase": {
+          "score": 25,
+          "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
+        },
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ]
+      },
+      "redTeamReview": {
+        "score": 52,
+        "status": "Challenge",
+        "concerns": [
+          "Liquidity quality is weak.",
+          "Proof score is thin.",
+          "Discovery/source reliability is low."
+        ]
+      },
+      "aiDisagreement": {
+        "score": 85,
+        "level": "High",
+        "bullishAgents": 1,
+        "cautiousAgents": 5,
+        "verdict": "High-disagreement setup: require confirmation before promotion."
+      },
+      "alphaLabScore": 0,
+      "alphaLabStatus": "No Match",
+      "alphaLabBestStrategy": null,
+      "quantumReasoningBrain": {
+        "score": 60,
+        "probabilities": {
+          "bull": 28,
+          "base": 40,
+          "bear": 24,
+          "blackSwan": 8
+        },
+        "entropyScore": 91,
+        "entropy": "High",
+        "decisionState": "Uncollapsed Alpha",
+        "summary": "Uncollapsed Alpha: bull 28%, bear 24%, entropy High."
+      },
+      "worldModelScore": 24,
+      "knowledgeGraph": {
+        "nodes": {
+          "project": "Pendle",
+          "chain": "ethereum",
+          "narratives": [
+            "restaking"
+          ],
+          "sources": [
+            "research-seed"
+          ]
+        },
+        "relatedProjects": [
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "score": 29
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 23
+          }
+        ]
+      },
+      "marketScientistScore": 40,
+      "autonomousMarketScientist": {
+        "score": 40,
+        "recommendation": "Do not promote without new evidence.",
+        "summary": "Scientist score 40. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 40,
+      "simulationDecision": "Simulation Watch",
+      "breakoutProbability30d": 31,
+      "expectedReturn30dPct": 17,
+      "bearCaseDrawdownPct": -36,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 73,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 69,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 65,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 2,
+        "percentile": 88,
+        "relativeEdgeVsTop10Cutoff": 13,
+        "allocationView": "Research basket candidate"
+      },
+      "outcomeJudgeScore": 45,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 45,
+        "realityAdjustment": -8,
+        "confidenceScore": 55,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-pendle",
+          "timestamp": "2026-07-13T06:33:01.474Z",
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "score": 0,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 2,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 61,
+      "liveCatalystUrgency": "High",
+      "liveCatalystEvents": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "score": 68,
+          "window": "72h-30d",
+          "urgency": "High",
+          "reasons": [
+            "airdrop, points, claim, or snapshot language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmScore": 14,
+      "dossierSwarmDecision": "Do Not Promote",
+      "projectDossierSwarm": {
+        "decision": "Do Not Promote",
+        "score": 14,
+        "consensus": {
+          "approve": 0,
+          "watch": 1,
+          "reject": 6,
+          "challenge": 0,
+          "block": 0,
+          "clear": 1,
+          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
+        },
+        "agents": [
+          {
+            "name": "Tokenomics Agent",
+            "score": 57,
+            "vote": "Watch",
+            "thesis": "Token structure needs more proof before promotion.",
+            "evidence": [
+              {
+                "label": "tokenomicsScore",
+                "value": 10,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "vestingPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "tokenUnlockRiskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "tokenomics score is weak"
+            ]
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 44,
+            "vote": "Reject",
+            "thesis": "Flow confirmation is not strong enough yet.",
+            "evidence": [
+              {
+                "label": "liquidityScore",
+                "value": 25,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "liquidityExpansionScore",
+                "value": 30,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "sellPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "liquidity support is still thin"
+            ]
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 35,
+            "vote": "Reject",
+            "thesis": "Narrative needs more confirmation or cleaner attention.",
+            "evidence": [
+              {
+                "label": "narrativeHeatScore",
+                "value": 65,
+                "interpretation": "supportive"
+              },
+              {
+                "label": "narrativeForecastScore",
+                "value": 15,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "xSocialScore",
+                "value": 39,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          },
+          {
+            "name": "Developer Agent",
+            "score": 22,
+            "vote": "Reject",
+            "thesis": "Builder evidence needs manual verification.",
+            "evidence": [
+              {
+                "label": "developerActivityScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "githubScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "worldModelScore",
+                "value": 24,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "developer/community proof is thin",
+              "source reliability is weak"
+            ]
+          },
+          {
+            "name": "Wallet Agent",
+            "score": 3,
+            "vote": "Reject",
+            "thesis": "Smart-money evidence is not decisive yet.",
+            "evidence": [
+              {
+                "label": "smartMoneyAccumulationScore",
+                "value": 3,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "smartWalletPerformanceScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "holderGrowthScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "wallet confirmation is weak"
+            ]
+          },
+          {
+            "name": "Risk Agent",
+            "score": 34,
+            "vote": "Clear",
+            "thesis": "No dominant risk cluster blocks research yet.",
+            "evidence": [
+              {
+                "label": "trapRiskScore",
+                "value": 12,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "falsePositiveSimilarity",
+                "value": 73,
+                "interpretation": "risk"
+              },
+              {
+                "label": "riskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "resembles prior false-positive/trap setups"
+            ]
+          },
+          {
+            "name": "Outcome Agent",
+            "score": 39,
+            "vote": "Reject",
+            "thesis": "Outcome memory is thin or inconclusive.",
+            "evidence": [
+              {
+                "label": "outcomeJudgeScore",
+                "value": 45,
                 "interpretation": "needs work"
               },
               {
@@ -7904,7 +8461,7 @@
           "Liquidity contracts while sell pressure rises.",
           "Primary catalyst is delayed, cancelled, or already priced in."
         ],
-        "finalMemo": "Celestia is a Do Not Promote. Do not promote until blockers clear."
+        "finalMemo": "Pendle is a Do Not Promote. Do not promote until blockers clear."
       },
       "alphaTags": [
         "Narrative Heat"
@@ -7914,10 +8471,605 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "Pendle is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     }
   ],
-  "improvingProjects": [],
+  "improvingProjects": [
+    {
+      "rank": 1,
+      "confidenceAdjustedRank": 2,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 9,
+      "confidenceAdjustedScore": 29,
+      "institutionalRankScore": 29,
+      "confidence": "Developing",
+      "dataConfidence": "High",
+      "narrativeHeatScore": 83,
+      "narrativeHeatState": "Hot Rotation",
+      "projectChangeScore": 58,
+      "projectChangeState": "improving",
+      "sourceReliabilityScore": 15,
+      "trapRiskScore": 20,
+      "trapRiskLevel": "Low",
+      "aiEcosystemScore": 56,
+      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
+      "aiEcosystemCaveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 56,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 3,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 29,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 20,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 80,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "Project trend is improving since prior scans."
+        ],
+        "catalysts": [
+          "Catalyst engine sees a launch/listing/news timing cluster."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "aiDebate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit.",
+          "Research Analyst: Research evidence is still developing."
+        ],
+        "moderator": "EigenLayer does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "strongBuyLifecycleStage": "Pre-Strong Buy",
+      "multiTimeframeIntelligence": {
+        "1h": 3,
+        "24h": 6,
+        "7d": 56,
+        "30d": 24,
+        "90d": 60,
+        "bestHorizon": "90d"
+      },
+      "scenarioPlan": {
+        "bullCase": {
+          "score": 61,
+          "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
+        },
+        "baseCase": {
+          "score": 31,
+          "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
+        },
+        "bearCase": {
+          "score": 22,
+          "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
+        },
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ]
+      },
+      "redTeamReview": {
+        "score": 71,
+        "status": "Block",
+        "concerns": [
+          "Liquidity quality is weak.",
+          "Proof score is thin.",
+          "Discovery/source reliability is low.",
+          "Best-available candidate is not the same as true strong-buy confirmation."
+        ]
+      },
+      "aiDisagreement": {
+        "score": 77,
+        "level": "High",
+        "bullishAgents": 1,
+        "cautiousAgents": 5,
+        "verdict": "High-disagreement setup: require confirmation before promotion."
+      },
+      "alphaLabScore": 0,
+      "alphaLabStatus": "No Match",
+      "alphaLabBestStrategy": null,
+      "quantumReasoningBrain": {
+        "score": 60,
+        "probabilities": {
+          "bull": 30,
+          "base": 38,
+          "bear": 23,
+          "blackSwan": 9
+        },
+        "entropyScore": 93,
+        "entropy": "High",
+        "decisionState": "Uncollapsed Alpha",
+        "summary": "Uncollapsed Alpha: bull 30%, bear 23%, entropy High."
+      },
+      "worldModelScore": 26,
+      "knowledgeGraph": {
+        "nodes": {
+          "project": "EigenLayer",
+          "chain": "ethereum",
+          "narratives": [
+            "ai",
+            "restaking"
+          ],
+          "sources": [
+            "research-seed"
+          ]
+        },
+        "relatedProjects": [
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 31
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "score": 29
+          },
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "score": 28
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "score": 27
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "score": 27
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "score": 23
+          }
+        ]
+      },
+      "marketScientistScore": 39,
+      "autonomousMarketScientist": {
+        "score": 39,
+        "recommendation": "Do not promote without new evidence.",
+        "summary": "Scientist score 39. Do not promote until the failure modes are resolved."
+      },
+      "simulationBrainScore": 29,
+      "simulationDecision": "Do Not Promote",
+      "breakoutProbability30d": 28,
+      "expectedReturn30dPct": 13,
+      "bearCaseDrawdownPct": -42,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 78,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 75,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 67,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "portfolioBrain": {
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 2,
+        "allocationView": "Below current opportunity cut"
+      },
+      "outcomeJudgeScore": 39,
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "outcomeAdjustedConfidence": "Developing",
+      "outcomeJudgement": {
+        "status": "Cold Start",
+        "verdict": "Awaiting Outcome Data",
+        "score": 39,
+        "realityAdjustment": -8,
+        "confidenceScore": 46,
+        "confidence": "Developing",
+        "previousSnapshot": null,
+        "currentSnapshot": {
+          "key": "ethereum:research-seed-eigen",
+          "timestamp": "2026-07-13T06:33:01.474Z",
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "priceUsd": 0,
+          "marketCap": 0,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "score": 9,
+          "riskScore": 0,
+          "tier": "Low Priority",
+          "action": null
+        },
+        "outcome": null,
+        "grade": null,
+        "signalTrust": {
+          "activeSignals": 3,
+          "trustedSignals": [],
+          "noisySignals": []
+        },
+        "reliabilitySampleCount": 0,
+        "summary": "No prior outcome snapshot for this project yet."
+      },
+      "liveCatalystRadarScore": 84,
+      "liveCatalystUrgency": "Critical",
+      "liveCatalystEvents": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "score": 88,
+          "window": "24h-30d",
+          "urgency": "High",
+          "reasons": [
+            "catalyst calendar score elevated"
+          ]
+        },
+        {
+          "type": "Mainnet Launch",
+          "score": 76,
+          "window": "7d-30d",
+          "urgency": "High",
+          "reasons": [
+            "mainnet language detected"
+          ]
+        },
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmScore": 22,
+      "dossierSwarmDecision": "Do Not Promote",
+      "projectDossierSwarm": {
+        "decision": "Do Not Promote",
+        "score": 22,
+        "consensus": {
+          "approve": 0,
+          "watch": 2,
+          "reject": 5,
+          "challenge": 0,
+          "block": 0,
+          "clear": 1,
+          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+        },
+        "agents": [
+          {
+            "name": "Tokenomics Agent",
+            "score": 59,
+            "vote": "Watch",
+            "thesis": "Token structure needs more proof before promotion.",
+            "evidence": [
+              {
+                "label": "tokenomicsScore",
+                "value": 10,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "vestingPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "tokenUnlockRiskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "tokenomics score is weak"
+            ]
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 44,
+            "vote": "Reject",
+            "thesis": "Flow confirmation is not strong enough yet.",
+            "evidence": [
+              {
+                "label": "liquidityScore",
+                "value": 25,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "liquidityExpansionScore",
+                "value": 30,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "sellPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "liquidity support is still thin"
+            ]
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 51,
+            "vote": "Watch",
+            "thesis": "Narrative needs more confirmation or cleaner attention.",
+            "evidence": [
+              {
+                "label": "narrativeHeatScore",
+                "value": 83,
+                "interpretation": "supportive"
+              },
+              {
+                "label": "narrativeForecastScore",
+                "value": 27.5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "xSocialScore",
+                "value": 39,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          },
+          {
+            "name": "Developer Agent",
+            "score": 23,
+            "vote": "Reject",
+            "thesis": "Builder evidence needs manual verification.",
+            "evidence": [
+              {
+                "label": "developerActivityScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "githubScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "worldModelScore",
+                "value": 26,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "developer/community proof is thin",
+              "source reliability is weak"
+            ]
+          },
+          {
+            "name": "Wallet Agent",
+            "score": 3,
+            "vote": "Reject",
+            "thesis": "Smart-money evidence is not decisive yet.",
+            "evidence": [
+              {
+                "label": "smartMoneyAccumulationScore",
+                "value": 3,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "smartWalletPerformanceScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "holderGrowthScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "wallet confirmation is weak"
+            ]
+          },
+          {
+            "name": "Risk Agent",
+            "score": 40,
+            "vote": "Clear",
+            "thesis": "No dominant risk cluster blocks research yet.",
+            "evidence": [
+              {
+                "label": "trapRiskScore",
+                "value": 20,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "falsePositiveSimilarity",
+                "value": 78,
+                "interpretation": "risk"
+              },
+              {
+                "label": "riskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "resembles prior false-positive/trap setups",
+              "simulation adversary blocked the thesis",
+              "Research OS red team blocked the thesis"
+            ]
+          },
+          {
+            "name": "Outcome Agent",
+            "score": 38,
+            "vote": "Reject",
+            "thesis": "Outcome memory is thin or inconclusive.",
+            "evidence": [
+              {
+                "label": "outcomeJudgeScore",
+                "value": 39,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "outcomeLearningScore",
+                "value": 5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "prePumpPatternScore",
+                "value": 50,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "no direct outcome history yet"
+            ]
+          },
+          {
+            "name": "Final PM Agent",
+            "score": 23,
+            "vote": "Reject",
+            "thesis": "Do not promote until blockers clear.",
+            "evidence": [
+              {
+                "label": "agentAverage",
+                "value": 37,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "simulationBrainScore",
+                "value": 29,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "proofScore",
+                "value": 3,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          }
+        ],
+        "strongestAgent": "Tokenomics Agent",
+        "weakestAgent": "Wallet Agent",
+        "keyBullCase": "Token structure needs more proof before promotion.",
+        "keyBearCase": "tokenomics score is weak",
+        "mustVerify": [
+          "verify current liquidity depth and source quality",
+          "review unlocks, vesting, emissions, and FDV pressure",
+          "inspect top wallet concentration and smart-wallet persistence",
+          "verify GitHub/docs/roadmap activity manually",
+          "confirm upcoming catalyst date and whether it is already priced in"
+        ],
+        "promotionTriggers": [
+          "liquidity score rises above 65",
+          "proof score rises above 60",
+          "smart-money accumulation confirms above 60",
+          "outcome judge gets a tracked follow-up scan"
+        ],
+        "invalidationSignals": [
+          "liquidity falls while price or social attention rises",
+          "sell pressure expands above 70",
+          "trap risk rises above 60",
+          "Outcome Judge downgrades the thesis after a follow-up scan",
+          "Pipeline score drops below 55 on the next scan.",
+          "Liquidity contracts while sell pressure rises.",
+          "Primary catalyst is delayed, cancelled, or already priced in."
+        ],
+        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+      },
+      "alphaTags": [
+        "Narrative Heat",
+        "Best Available AI Candidate"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    }
+  ],
   "highTrapRisk": [],
   "reliableSources": [],
   "marketHeatMap": [
@@ -7933,34 +9085,34 @@
     {
       "key": "depin",
       "currentCount": 3,
-      "historicalCount": 13,
+      "historicalCount": 20,
       "currentSharePct": 37.5,
-      "heatScore": 96,
-      "momentum": 28,
+      "heatScore": 98,
+      "momentum": 27,
       "state": "Hot Rotation"
     },
     {
       "key": "solana",
       "currentCount": 2,
-      "historicalCount": 144,
+      "historicalCount": 171,
       "currentSharePct": 25,
-      "heatScore": 81,
-      "momentum": 8,
+      "heatScore": 82,
+      "momentum": 7,
       "state": "Active"
     },
     {
       "key": "restaking",
       "currentCount": 2,
-      "historicalCount": 1,
+      "historicalCount": 6,
       "currentSharePct": 25,
-      "heatScore": 59,
-      "momentum": 23,
+      "heatScore": 65,
+      "momentum": 18,
       "state": "Active"
     },
     {
       "key": "rwa",
       "currentCount": 1,
-      "historicalCount": 361,
+      "historicalCount": 325,
       "currentSharePct": 12.5,
       "heatScore": 58,
       "momentum": -8,
@@ -7969,43 +9121,43 @@
     {
       "key": "stablecoins",
       "currentCount": 1,
-      "historicalCount": 22,
+      "historicalCount": 28,
       "currentSharePct": 12.5,
-      "heatScore": 44,
-      "momentum": 2,
-      "state": "Quiet"
-    },
-    {
-      "key": "perps",
-      "currentCount": 1,
-      "historicalCount": 20,
-      "currentSharePct": 12.5,
-      "heatScore": 43,
-      "momentum": 2,
+      "heatScore": 45,
+      "momentum": 1,
       "state": "Quiet"
     },
     {
       "key": "launchpads",
       "currentCount": 1,
-      "historicalCount": 20,
+      "historicalCount": 26,
       "currentSharePct": 12.5,
-      "heatScore": 43,
-      "momentum": 2,
+      "heatScore": 45,
+      "momentum": 1,
+      "state": "Quiet"
+    },
+    {
+      "key": "perps",
+      "currentCount": 1,
+      "historicalCount": 23,
+      "currentSharePct": 12.5,
+      "heatScore": 44,
+      "momentum": 1,
       "state": "Quiet"
     },
     {
       "key": "modular",
       "currentCount": 1,
-      "historicalCount": 3,
+      "historicalCount": 10,
       "currentSharePct": 12.5,
-      "heatScore": 35,
-      "momentum": 8,
+      "heatScore": 40,
+      "momentum": 4,
       "state": "Quiet"
     },
     {
       "key": "base",
       "currentCount": 0,
-      "historicalCount": 222,
+      "historicalCount": 229,
       "currentSharePct": 0,
       "heatScore": 28,
       "momentum": -19,
@@ -8014,18 +9166,18 @@
     {
       "key": "zkPrivacy",
       "currentCount": 0,
-      "historicalCount": 54,
+      "historicalCount": 65,
       "currentSharePct": 0,
-      "heatScore": 21,
-      "momentum": -14,
+      "heatScore": 22,
+      "momentum": -15,
       "state": "Quiet"
     },
     {
       "key": "prediction",
       "currentCount": 0,
-      "historicalCount": 28,
+      "historicalCount": 35,
       "currentSharePct": 0,
-      "heatScore": 18,
+      "heatScore": 19,
       "momentum": -12,
       "state": "Quiet"
     }

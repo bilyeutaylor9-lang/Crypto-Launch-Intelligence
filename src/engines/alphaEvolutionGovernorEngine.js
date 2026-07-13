@@ -106,6 +106,26 @@ function moduleScores(project = {}, history = null) {
       history ? Math.min(100, num(history.scans) * 10 + num(history.latest?.score) * 0.4) : 0,
     ])
   );
+  const knowledgeGraph = clamp(
+    average([
+      project.alphaKnowledgeGraphScore,
+      project.alphaKnowledgeGraphConfidenceScore,
+      project.sourceTruthScore,
+      project.githubProScore,
+      project.alphaKnowledgeGraph?.moduleScores?.relationStrength,
+      project.alphaKnowledgeGraph?.moduleScores?.sourceCoverage,
+    ])
+  );
+  const marketTwin = clamp(
+    average([
+      project.causalMarketTwinScore,
+      project.causalMarketTwinConfidenceScore,
+      50 + num(project.causalMarketTwinExpectedReturnPct),
+      project.causalMarketTwinUpsideProbability,
+      100 - num(project.causalMarketTwinDownsideProbability),
+      project.causalAlphaScore,
+    ])
+  );
 
   return {
     contractAccountability: Math.round(contractScore),
@@ -116,6 +136,8 @@ function moduleScores(project = {}, history = null) {
     researchCompleteness: Math.round(researchCompleteness),
     riskFirewall: Math.round(riskFirewall),
     learningLoop: Math.round(learningLoop),
+    knowledgeGraph: Math.round(knowledgeGraph),
+    marketTwin: Math.round(marketTwin),
   };
 }
 
@@ -124,12 +146,14 @@ function weightedGovernorScore(scores = {}) {
     clamp(
       scores.contractAccountability * 0.18 +
         scores.outcomeAccountability * 0.12 +
-        scores.evidenceStack * 0.16 +
+      scores.evidenceStack * 0.16 +
         scores.agentAlignment * 0.13 +
-        scores.discoveryBreadth * 0.1 +
-        scores.researchCompleteness * 0.12 +
-        scores.riskFirewall * 0.13 +
-        scores.learningLoop * 0.06
+        scores.discoveryBreadth * 0.08 +
+        scores.researchCompleteness * 0.1 +
+        scores.riskFirewall * 0.12 +
+        scores.learningLoop * 0.05 +
+        scores.knowledgeGraph * 0.08 +
+        scores.marketTwin * 0.08
     )
   );
 }
@@ -144,6 +168,13 @@ function blockers(project = {}, scores = {}) {
   if (project.proofCarryingAlphaContract?.latestGrade?.grade === "invalidated") {
     issues.push("Prior contract hit an invalidation rule.");
   }
+  if (
+    project.causalMarketTwinVerdict === "Twin Risk Block" &&
+    (num(project.causalMarketTwinDownsideProbability) >= 58 || scores.marketTwin < 35)
+  ) {
+    issues.push("Causal Market Twin is risk-blocking the setup.");
+  }
+  if (scores.marketTwin < 32) issues.push("Causal Market Twin scenario stack is too weak.");
   if (num(project.trapRiskScore) >= 75) issues.push("Trap risk is elevated.");
   if (num(project.falsePositiveSimilarity) >= 70) issues.push("Project resembles prior false positives.");
 
@@ -154,6 +185,7 @@ function severeRiskBlock(project = {}, scores = {}, issueList = []) {
   return (
     scores.riskFirewall < 20 ||
     num(project.trapRiskScore) >= 82 ||
+    (project.causalMarketTwinVerdict === "Twin Risk Block" && scores.marketTwin < 32) ||
     project.proofCarryingAlphaContract?.latestGrade?.grade === "invalidated" ||
     (project.redTeamReview?.status === "Block" && scores.riskFirewall < 35) ||
     issueList.length >= 3
@@ -171,6 +203,8 @@ function missingProof(project = {}, scores = {}) {
   }
   if (!project.alphaContractReceipt) gaps.push("Create a public alpha receipt.");
   if (num(project.sourceTruthScore) < 55) gaps.push("Confirm the project across more trusted sources.");
+  if (scores.knowledgeGraph < 50) gaps.push("Strengthen knowledge graph links across identity, source, GitHub, roadmap, and peers.");
+  if (scores.marketTwin < 50) gaps.push("Improve causal market twin scenarios with stronger catalyst, liquidity, and proof evidence.");
   if (num(project.liquidityScore || project.liquidityExpansionScore) < 45) {
     gaps.push("Verify liquidity quality, depth, and concentration.");
   }
@@ -238,6 +272,16 @@ function verdictFor(project = {}, score = 0, scores = {}, issueList = [], gaps =
 
 function upgradeDirectives(project = {}, scores = {}, gaps = []) {
   const directives = [
+    {
+      system: "Knowledge Graph",
+      priority: scores.knowledgeGraph < 55 ? "High" : "Medium",
+      task: "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory.",
+    },
+    {
+      system: "Causal Market Twin",
+      priority: scores.marketTwin < 55 ? "High" : "Medium",
+      task: "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
+    },
     {
       system: "Outcome Brain",
       priority: scores.outcomeAccountability < 55 ? "High" : "Medium",
@@ -312,7 +356,7 @@ export function analyzeAlphaEvolutionGovernor(project = {}, options = {}) {
           }
         : { scans: 0, latestScore: 0, latestVerdict: "New" },
       explanation:
-        `${projectName(project)} is ${verdict} because contract accountability ${scores.contractAccountability}, evidence ${scores.evidenceStack}, agent alignment ${scores.agentAlignment}, risk firewall ${scores.riskFirewall}, and outcome accountability ${scores.outcomeAccountability}.`,
+        `${projectName(project)} is ${verdict} because contract accountability ${scores.contractAccountability}, evidence ${scores.evidenceStack}, agent alignment ${scores.agentAlignment}, risk firewall ${scores.riskFirewall}, outcome accountability ${scores.outcomeAccountability}, knowledge graph ${scores.knowledgeGraph}, and market twin ${scores.marketTwin}.`,
     },
     evidence: [
       ...(project.evidence || []),
@@ -346,8 +390,10 @@ export function analyzeAlphaEvolutionGovernorBatch(projects = []) {
       .filter(
         (project) =>
           project.alphaEvolutionGovernor &&
-          !["Governor Promote", "Governor Priority Research", "Governor Risk Block"].includes(project.alphaEvolutionGovernorVerdict) &&
-          num(project.alphaEvolutionGovernorScore) >= 42
+          !["Governor Promote", "Governor Priority Research"].includes(project.alphaEvolutionGovernorVerdict) &&
+          num(project.alphaEvolutionGovernorScore) >= 42 &&
+          num(project.trapRiskScore) < 82 &&
+          project.redTeamReview?.status !== "Block"
       )
       .sort((a, b) => num(b.alphaEvolutionGovernorScore) - num(a.alphaEvolutionGovernorScore))
       .slice(0, Math.max(0, minimumPriority - alreadyPriority))
@@ -364,7 +410,10 @@ export function analyzeAlphaEvolutionGovernorBatch(projects = []) {
     const projectLabel = project.alphaEvolutionGovernor?.project || projectName(project);
     const fallback = fallbackIds.has(projectLabel);
     const verdict = fallback ? "Governor Priority Research" : project.alphaEvolutionGovernorVerdict;
-    const fallbackCaveat = "Best-available governor fallback: research only until proof and outcome evidence improve.";
+    const originalVerdict = project.alphaEvolutionGovernorVerdict;
+    const fallbackCaveat = originalVerdict === "Governor Risk Block"
+      ? "Best-available risk-contained governor fallback: research only; risk blockers must be resolved before any promotion."
+      : "Best-available governor fallback: research only until proof and outcome evidence improve.";
 
     return {
       ...project,
@@ -379,7 +428,10 @@ export function analyzeAlphaEvolutionGovernorBatch(projects = []) {
         actionPlan: fallback
           ? {
               ...(project.alphaEvolutionGovernor?.actionPlan || {}),
-              primaryAction: "Priority Research",
+              primaryAction:
+                originalVerdict === "Governor Risk Block"
+                  ? "Risk-Contained Priority Research"
+                  : "Priority Research",
               nextSteps: [
                 fallbackCaveat,
                 ...(project.alphaEvolutionGovernor?.actionPlan?.nextSteps || []),
