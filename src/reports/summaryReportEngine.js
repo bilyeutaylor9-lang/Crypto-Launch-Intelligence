@@ -91,6 +91,18 @@ export function writeSummaryReport(projects = []) {
     (p) => p.proofCarryingAlphaContractVerdict === "Invalidation Hit"
   );
   const alphaContractReceipts = ranked.filter((p) => p.alphaContractReceipt);
+  const alphaGovernorPromotes = ranked.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Promote"
+  );
+  const alphaGovernorPriority = ranked.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Priority Research"
+  );
+  const alphaGovernorRechecks = ranked.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Recheck Soon"
+  );
+  const alphaGovernorRiskBlocks = ranked.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Risk Block"
+  );
   const thinProof = ranked.filter((p) => ["Thin", "Developing"].includes(p.proofStrength));
   const hotNarratives = ranked.filter((p) => Number(p.narrativeHeatScore || 0) >= 65);
   const improvingProjects = ranked.filter((p) =>
@@ -177,6 +189,18 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - contract ${p.proofCarryingAlphaContractScore || 0}, ${p.proofCarryingAlphaContractVerdict || "Unknown"}${caveat ? ` - ${caveat}` : ""}`;
     })
     .join("\n");
+  const topAlphaGovernor = [...ranked]
+    .filter((p) => p.alphaEvolutionGovernor)
+    .sort(
+      (a, b) =>
+        Number(b.alphaEvolutionGovernorScore || 0) -
+        Number(a.alphaEvolutionGovernorScore || 0)
+    )
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - governor ${p.alphaEvolutionGovernorScore || 0}, ${p.alphaEvolutionGovernorVerdict || "Unknown"} - ${p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review"}`;
+    })
+    .join("\n");
   const topConfidenceAdjusted = confidenceAdjusted
     .slice(0, 5)
     .map((p, index) => {
@@ -252,6 +276,10 @@ Proof-carrying alpha candidates: ${alphaContractCandidates.length}
 Accountable contract research: ${accountableContractResearch.length}
 Alpha contract invalidations: ${alphaContractInvalidations.length}
 Alpha contract receipts: ${alphaContractReceipts.length}
+Alpha Governor promotes: ${alphaGovernorPromotes.length}
+Alpha Governor priority research: ${alphaGovernorPriority.length}
+Alpha Governor rechecks: ${alphaGovernorRechecks.length}
+Alpha Governor risk blocks: ${alphaGovernorRiskBlocks.length}
 Thin/developing proof setups: ${thinProof.length}
 Hot narrative setups: ${hotNarratives.length}
 Improving projects: ${improvingProjects.length}
@@ -303,6 +331,9 @@ ${topProofBacked || "None"}
 Top proof-carrying alpha contracts:
 ${topAlphaContracts || "None"}
 
+Top Alpha Evolution Governor queue:
+${topAlphaGovernor || "None"}
+
 Top confidence-adjusted setups:
 ${topConfidenceAdjusted || "None"}
 
@@ -328,6 +359,8 @@ Files generated:
 - reports/alpha-contracts.json
 - reports/alpha-contract-leaderboard.json
 - reports/alpha-contract-receipts.json
+- reports/alpha-evolution-governor.json
+- reports/alpha-evolution-queue.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
 - reports/ai-council.json

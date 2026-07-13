@@ -41,6 +41,7 @@ import { analyzeBreakoutBrainBatch } from "../src/engines/breakoutBrainEngine.js
 import { analyzeHighTechAlphaStackBatch } from "../src/engines/highTechAlphaStackEngine.js";
 import { analyzeSelfEvolvingAlphaOSBatch } from "../src/engines/selfEvolvingAlphaOSEngine.js";
 import { analyzeProofCarryingAlphaContractBatch } from "../src/engines/proofCarryingAlphaContractEngine.js";
+import { analyzeAlphaEvolutionGovernorBatch } from "../src/engines/alphaEvolutionGovernorEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1372,6 +1373,78 @@ test("proof-carrying alpha contracts create falsifiable receipts and rank strong
   assert.ok(results[0].proofCarryingAlphaContract.supportingEngines.length > 0);
   assert.ok(results[1].proofCarryingAlphaContractScore < results[0].proofCarryingAlphaContractScore);
   assert.ok(results[0].evidence.some((item) => item.engine === "Proof-Carrying Alpha Contract"));
+});
+
+test("alpha evolution governor fuses contracts, outcomes, sources, agents, and risk into an operating queue", () => {
+  const results = analyzeAlphaEvolutionGovernorBatch([
+    {
+      name: "GovernorAlpha",
+      symbol: "GOV",
+      chain: "base",
+      pipelineScore: 82,
+      proofCarryingAlphaContractScore: 78,
+      proofCarryingAlphaContractVerdict: "Proof-Carrying Alpha Candidate",
+      proofCarryingAlphaContract: {
+        projectKey: "base:gov",
+        mustHappen: [{ id: "score_holds" }, { id: "evidence_confirms" }],
+        invalidatesIf: [{ id: "risk_spike" }, { id: "liquidity_break" }],
+        latestGrade: { confirmationRate: 82 },
+        historySummary: { winRate: 66 },
+        sources: ["dexscreener", "github", "google-news"],
+        agentVotes: [
+          { agent: "Risk", score: 82 },
+          { agent: "Catalyst", score: 78 },
+        ],
+      },
+      alphaContractReceipt: { mustProve: ["score holds"], invalidationRules: ["risk spike"] },
+      outcomeJudgeScore: 72,
+      paperOutcomeLabScore: 68,
+      outcomeLearningScore: 70,
+      calibrationScore: 66,
+      sourceTruthScore: 78,
+      proofScore: 76,
+      evidenceQualityScore: 72,
+      dataConfidenceScore: 74,
+      aiEcosystemScore: 76,
+      selfEvolvingAlphaOSScore: 78,
+      autonomousAlphaOSScore: 74,
+      autonomousResearchConfidence: 72,
+      dossierSwarmScore: 70,
+      liveCatalystRadarScore: 74,
+      roadmapProfitabilityScore: 68,
+      githubProScore: 70,
+      discoverySources: ["dexscreener", "github", "news", "website"],
+      evidence: [{ engine: "Source Truth", signal: "verified", score: 78 }],
+      trapRiskScore: 8,
+      riskScore: 14,
+      sellPressureScore: 10,
+    },
+    {
+      name: "GovernorRisk",
+      symbol: "RISK",
+      chain: "ethereum",
+      proofCarryingAlphaContractScore: 28,
+      proofCarryingAlphaContractVerdict: "Weak Contract",
+      sourceTruthScore: 20,
+      proofScore: 18,
+      dataConfidenceScore: 24,
+      aiEcosystemScore: 30,
+      redTeamReview: { status: "Block" },
+      trapRiskScore: 86,
+      riskScore: 82,
+      sellPressureScore: 78,
+      falsePositiveSimilarity: 75,
+    },
+  ]);
+
+  assert.equal(results[0].alphaEvolutionGovernorRank, 1);
+  assert.ok(results[0].alphaEvolutionGovernorScore > results[1].alphaEvolutionGovernorScore);
+  assert.ok(["Governor Promote", "Governor Priority Research"].includes(results[0].alphaEvolutionGovernorVerdict));
+  assert.equal(results[1].alphaEvolutionGovernorVerdict, "Governor Risk Block");
+  assert.ok(results[0].alphaEvolutionGovernor.actionPlan.nextSteps.length > 0);
+  assert.ok(results[0].alphaEvolutionGovernor.upgradeDirectives.length >= 5);
+  assert.ok(results[1].alphaEvolutionGovernor.blockers.length >= 2);
+  assert.ok(results[0].evidence.some((item) => item.engine === "Alpha Evolution Governor"));
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

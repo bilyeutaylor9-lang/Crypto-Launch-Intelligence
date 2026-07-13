@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T05:27:05.148Z",
+  "generatedAt": "2026-07-13T05:45:56.094Z",
   "totalProjects": 8,
   "headline": {
     "topCandidate": {
@@ -264,7 +264,7 @@
     }
   ],
   "paperTradingOutcomeLab": {
-    "generatedAt": "2026-07-13T05:27:05.147Z",
+    "generatedAt": "2026-07-13T05:45:56.092Z",
     "memory": {
       "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
       "totalRecords": 3,
@@ -532,7 +532,7 @@
     ]
   },
   "autoLearningWeightOptimizer": {
-    "generatedAt": "2026-07-13T05:27:05.147Z",
+    "generatedAt": "2026-07-13T05:45:56.093Z",
     "memorySamples": 3,
     "evaluatedSamples": 0,
     "globalPaperWinRate": 0,
@@ -603,7 +603,7 @@
     }
   },
   "sourceTruth": {
-    "generatedAt": "2026-07-13T05:27:05.148Z",
+    "generatedAt": "2026-07-13T05:45:56.093Z",
     "totalProjects": 8,
     "verifiedStacks": 0,
     "weakStacks": 0,
@@ -714,7 +714,7 @@
     ]
   },
   "githubIntelligencePro": {
-    "generatedAt": "2026-07-13T05:27:05.148Z",
+    "generatedAt": "2026-07-13T05:45:56.093Z",
     "totalProjects": 8,
     "repoProjects": 0,
     "missingRepoProjects": 8,

@@ -94,6 +94,8 @@ Commands:
   crypto-launch contracts         Print proof-carrying alpha contracts
   crypto-launch judge             Print alpha contract leaderboard
   crypto-launch receipts          Print public alpha contract receipts
+  crypto-launch governor          Print Alpha Evolution Governor report
+  crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
   crypto-launch autopsy           Print alpha autopsy summary
   crypto-launch regime            Print market-regime adaptation summary
@@ -239,6 +241,17 @@ switch (command) {
   case "receipts":
   case "alpha-receipts":
     runNpm("alpha:receipts", args);
+    break;
+  case "governor":
+  case "alpha-governor":
+  case "evolution":
+  case "alpha-evolution":
+    runNpm("alpha:governor", args);
+    break;
+  case "queue":
+  case "alpha-queue":
+  case "evolution-queue":
+    runNpm("alpha:queue", args);
     break;
   case "debate":
   case "alpha-debate":

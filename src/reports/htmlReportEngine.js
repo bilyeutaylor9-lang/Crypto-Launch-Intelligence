@@ -82,6 +82,10 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.proofCarryingAlphaContractScore ?? "")}</td>
           <td>${esc(p.proofCarryingAlphaContractVerdict || "")}</td>
           <td>${esc(p.proofCarryingAlphaContract?.confidenceNow || "")}</td>
+          <td>${esc(p.alphaEvolutionGovernorRank ?? "")}</td>
+          <td>${esc(p.alphaEvolutionGovernorScore ?? "")}</td>
+          <td>${esc(p.alphaEvolutionGovernorVerdict || "")}</td>
+          <td>${esc(p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "")}</td>
           <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
           <td>${esc(p.confidenceAdjustedScore ?? "")}</td>
           <td>${esc(p.narrativeHeatScore ?? "")}</td>
@@ -307,6 +311,10 @@ export function writeHtmlReport(projects = []) {
         <th>Contract Score</th>
         <th>Contract Verdict</th>
         <th>Contract Confidence</th>
+        <th>Governor Rank</th>
+        <th>Governor Score</th>
+        <th>Governor Verdict</th>
+        <th>Governor Action</th>
         <th>Adj Rank</th>
         <th>Adj Score</th>
         <th>Heat</th>

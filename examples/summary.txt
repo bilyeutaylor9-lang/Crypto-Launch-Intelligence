@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/12/2026, 10:27:04 PM
+Generated: 7/12/2026, 10:45:55 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -34,6 +34,10 @@ Proof-carrying alpha candidates: 0
 Accountable contract research: 3
 Alpha contract invalidations: 0
 Alpha contract receipts: 8
+Alpha Governor promotes: 0
+Alpha Governor priority research: 3
+Alpha Governor rechecks: 4
+Alpha Governor risk blocks: 1
 Thin/developing proof setups: 8
 Hot narrative setups: 5
 Improving projects: 0
@@ -89,6 +93,13 @@ Top proof-carrying alpha contracts:
 4. Pendle (PENDLE) - contract 41, Weak Contract
 5. Celestia (TIA) - contract 41, Weak Contract
 
+Top Alpha Evolution Governor queue:
+1. Pendle (PENDLE) - governor 48, Governor Priority Research - Priority Research
+2. Celestia (TIA) - governor 47, Governor Priority Research - Priority Research
+3. Jupiter (JUP) - governor 46, Governor Priority Research - Priority Research
+4. Bittensor (TAO) - governor 44, Governor Recheck Soon - Risk-Contained Recheck
+5. EigenLayer (EIGEN) - governor 43, Governor Risk Block - Block
+
 Top confidence-adjusted setups:
 1. Celestia (TIA) - adjusted 30, source 15, trap 12
 2. Pendle (PENDLE) - adjusted 29, source 15, trap 12
@@ -122,6 +133,8 @@ Files generated:
 - reports/alpha-contracts.json
 - reports/alpha-contract-leaderboard.json
 - reports/alpha-contract-receipts.json
+- reports/alpha-evolution-governor.json
+- reports/alpha-evolution-queue.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
 - reports/ai-council.json

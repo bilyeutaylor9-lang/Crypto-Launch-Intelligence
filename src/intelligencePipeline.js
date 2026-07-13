@@ -83,6 +83,7 @@ import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomous
 import { analyzeHighTechAlphaStackBatch } from "./engines/highTechAlphaStackEngine.js";
 import { analyzeSelfEvolvingAlphaOSBatch } from "./engines/selfEvolvingAlphaOSEngine.js";
 import { analyzeProofCarryingAlphaContractBatch } from "./engines/proofCarryingAlphaContractEngine.js";
+import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -95,6 +96,7 @@ import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
 import { savePaperTradingOutcomes } from "./learning/paperTradingOutcomeStore.js";
 import { saveAutonomousResearchMemory } from "./learning/autonomousResearchMemoryStore.js";
 import { saveAlphaContracts } from "./learning/alphaContractStore.js";
+import { saveAlphaEvolutionMemory } from "./learning/alphaEvolutionMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1096,6 +1098,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeHighTechAlphaStackBatch(results);
   results = analyzeSelfEvolvingAlphaOSBatch(results);
   results = analyzeProofCarryingAlphaContractBatch(results);
+  results = analyzeAlphaEvolutionGovernorBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1150,6 +1153,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveAlphaContracts(results);
     } catch (error) {
       console.log(`Alpha contract memory save failed: ${error.message}`);
+    }
+
+    try {
+      saveAlphaEvolutionMemory(results);
+    } catch (error) {
+      console.log(`Alpha evolution memory save failed: ${error.message}`);
     }
   }
 
@@ -1318,6 +1327,24 @@ export function summarizePipelineResults(results = []) {
   const topProofContracts = [...safeResults]
     .sort((a, b) => num(b.proofCarryingAlphaContractScore) - num(a.proofCarryingAlphaContractScore))
     .slice(0, 10);
+  const alphaGovernorPromotes = safeResults.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Promote"
+  );
+  const alphaGovernorPriority = safeResults.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Priority Research"
+  );
+  const alphaGovernorRechecks = safeResults.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Recheck Soon"
+  );
+  const alphaGovernorEvidenceGaps = safeResults.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Evidence Gap"
+  );
+  const alphaGovernorRiskBlocks = safeResults.filter(
+    (p) => p.alphaEvolutionGovernorVerdict === "Governor Risk Block"
+  );
+  const topAlphaGovernorSetups = [...safeResults]
+    .sort((a, b) => num(b.alphaEvolutionGovernorScore) - num(a.alphaEvolutionGovernorScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1417,6 +1444,11 @@ export function summarizePipelineResults(results = []) {
     proofCarryingAlphaCandidateCount: proofContractCandidates.length,
     accountablePriorityContractCount: accountablePriorityContracts.length,
     alphaContractInvalidationCount: invalidatedContracts.length,
+    alphaGovernorPromoteCount: alphaGovernorPromotes.length,
+    alphaGovernorPriorityCount: alphaGovernorPriority.length,
+    alphaGovernorRecheckCount: alphaGovernorRechecks.length,
+    alphaGovernorEvidenceGapCount: alphaGovernorEvidenceGaps.length,
+    alphaGovernorRiskBlockCount: alphaGovernorRiskBlocks.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1625,6 +1657,20 @@ export function summarizePipelineResults(results = []) {
       mustHappen: project.proofCarryingAlphaContract?.mustHappen || [],
       invalidatesIf: project.proofCarryingAlphaContract?.invalidatesIf || [],
       supportingEngines: project.proofCarryingAlphaContract?.supportingEngines || [],
+    })),
+    topAlphaEvolutionGovernorSetups: topAlphaGovernorSetups.map((project) => ({
+      rank: project.alphaEvolutionGovernorRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.alphaEvolutionGovernorScore || 0,
+      verdict: project.alphaEvolutionGovernorVerdict || "Unknown",
+      action: project.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review",
+      reviewCadence: project.alphaEvolutionGovernor?.actionPlan?.reviewCadence || "",
+      moduleScores: project.alphaEvolutionGovernor?.moduleScores || {},
+      blockers: project.alphaEvolutionGovernor?.blockers || [],
+      missingProof: project.alphaEvolutionGovernor?.missingProof || [],
+      upgradeDirectives: project.alphaEvolutionGovernor?.upgradeDirectives || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

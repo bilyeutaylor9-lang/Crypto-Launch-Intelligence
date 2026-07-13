@@ -45,6 +45,13 @@ export function writeCsvReport(projects = []) {
     "proofCarryingAlphaContractCaveat",
     "alphaContractMustProve",
     "alphaContractInvalidationRules",
+    "alphaEvolutionGovernorRank",
+    "alphaEvolutionGovernorScore",
+    "alphaEvolutionGovernorVerdict",
+    "alphaEvolutionGovernorAction",
+    "alphaEvolutionGovernorReviewCadence",
+    "alphaEvolutionGovernorBlockers",
+    "alphaEvolutionGovernorMissingProof",
     "confidenceAdjustedRank",
     "confidenceAdjustedScore",
     "institutionalRankScore",
@@ -198,6 +205,17 @@ export function writeCsvReport(projects = []) {
       : "",
     Array.isArray(p.alphaContractReceipt?.invalidationRules)
       ? p.alphaContractReceipt.invalidationRules.join("; ")
+      : "",
+    p.alphaEvolutionGovernorRank ?? "",
+    p.alphaEvolutionGovernorScore ?? "",
+    p.alphaEvolutionGovernorVerdict ?? "",
+    p.alphaEvolutionGovernor?.actionPlan?.primaryAction ?? "",
+    p.alphaEvolutionGovernor?.actionPlan?.reviewCadence ?? "",
+    Array.isArray(p.alphaEvolutionGovernor?.blockers)
+      ? p.alphaEvolutionGovernor.blockers.join("; ")
+      : "",
+    Array.isArray(p.alphaEvolutionGovernor?.missingProof)
+      ? p.alphaEvolutionGovernor.missingProof.join("; ")
       : "",
     p.confidenceAdjustedRank ?? "",
     p.confidenceAdjustedScore ?? "",

@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-13T05:27:05.245Z",
-  "totalEngines": 106,
-  "wiredIntoPipeline": 82,
-  "stateOfArtReady": 89,
+  "generatedAt": "2026-07-13T05:45:56.147Z",
+  "totalEngines": 107,
+  "wiredIntoPipeline": 83,
+  "stateOfArtReady": 90,
   "readinessScore": 89,
   "categoryCounts": {
     "intelligence": 41,
     "ai": 14,
-    "learning": 17,
+    "learning": 18,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -104,6 +104,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": false,
       "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "alphaEvolutionGovernorEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAlphaEvolutionGovernor",
+        "analyzeAlphaEvolutionGovernorBatch",
+        "summarizeAlphaEvolutionGovernor"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -294,23 +309,6 @@
       "exports": [
         "analyzeCatalystCalendar",
         "analyzeCatalystCalendarBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 5,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "catalystEngine.js",
-      "category": "narrative-launch",
-      "exports": [
-        "detectCatalysts",
-        "scoreCatalysts",
-        "getNextCatalyst",
-        "analyzeCatalysts",
-        "analyzeCatalystsBatch"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
@@ -678,6 +676,21 @@
       "advancedSignals": 4,
       "readinessScore": 65,
       "status": "usable"
+    },
+    {
+      "file": "alphaEvolutionGovernorEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAlphaEvolutionGovernor",
+        "analyzeAlphaEvolutionGovernorBatch",
+        "summarizeAlphaEvolutionGovernor"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "autoLearningWeightOptimizerEngine.js",

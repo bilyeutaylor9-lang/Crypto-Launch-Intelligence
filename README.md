@@ -75,6 +75,7 @@ npm run alpha:thesis
 npm run alpha:contracts
 npm run alpha:judge
 npm run alpha:receipts
+npm run alpha:governor
 ```
 
 ## What Makes It Different
@@ -134,6 +135,7 @@ The project now behaves like a miniature autonomous research organization.
 | Self-Evolving Alpha OS | Builds identity graphs, world models, hypotheses, experiments, agent society debate, autopsy, regime adaptation, and thesis output | `reports/self-evolving-alpha-os.json` |
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
+| Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 
 ## Autonomous Alpha OS
 
@@ -214,6 +216,41 @@ npm run contract-memory
 The main report is `reports/alpha-contracts.json`. The leaderboard is `reports/alpha-contract-leaderboard.json`. Public receipts are written to `reports/alpha-contract-receipts.json`.
 
 This makes the AI more accountable: future scans grade old contracts, mark invalidations, track win rate, and feed that reputation back into the next scan.
+
+## Alpha Evolution Governor
+
+The Alpha Evolution Governor is the new meta-control layer above the AI Council, Alpha OS, High-Tech Stack, and proof-carrying contracts.
+
+It asks:
+
+- Is the alpha contract strong enough?
+- Did prior outcomes support the pattern?
+- Are enough independent sources confirming the thesis?
+- Do the specialist agents agree?
+- Is discovery coverage broad enough?
+- Is the research complete enough?
+- Is risk low enough to keep investigating?
+- What exact upgrade or proof task should happen next?
+
+Key commands:
+
+```bash
+npm run alpha:governor
+npm run alpha:queue
+npm run evolution-memory
+```
+
+The main report is `reports/alpha-evolution-governor.json`. The operating queue is `reports/alpha-evolution-queue.json`.
+
+Verdicts:
+
+- `Governor Promote`
+- `Governor Priority Research`
+- `Governor Recheck Soon`
+- `Governor Evidence Gap`
+- `Governor Risk Block`
+
+This gives the AI an operating brain that can say: promote, research deeper, recheck soon, block for risk, or fill missing proof.
 
 ## Outcome Lab and Auto-Learning
 
@@ -346,6 +383,7 @@ Memory files include:
 - `data/strategy-memory.json`
 - `data/paper-trading-outcomes.json`
 - `data/alpha-contracts.json`
+- `data/alpha-evolution-governor-memory.json`
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
@@ -378,6 +416,8 @@ Every scan can generate a full research packet:
 | `reports/alpha-contracts.json` | Falsifiable alpha contracts with proof, invalidation rules, and memory |
 | `reports/alpha-contract-leaderboard.json` | Contract rankings, engine leaderboard, agent leaderboard, and autopsy queue |
 | `reports/alpha-contract-receipts.json` | Public accountability receipts for top contracts |
+| `reports/alpha-evolution-governor.json` | Meta-governor operating report |
+| `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -448,6 +488,8 @@ npm run alpha:thesis
 npm run alpha:contracts
 npm run alpha:judge
 npm run alpha:receipts
+npm run alpha:governor
+npm run alpha:queue
 npm run source-truth
 npm run github-pro
 ```
@@ -461,6 +503,7 @@ npm run agent-memory
 npm run strategy-memory
 npm run paper-memory
 npm run contract-memory
+npm run evolution-memory
 npm run source-router
 ```
 
@@ -512,6 +555,8 @@ cat examples/breakout-brain.json
 cat examples/high-tech-alpha-stack.json
 cat examples/alpha-contracts.json
 cat examples/alpha-contract-leaderboard.json
+cat examples/alpha-evolution-governor.json
+cat examples/alpha-evolution-queue.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

@@ -43,6 +43,8 @@ const PUBLIC_REPORTS = [
   "alpha-contracts.json",
   "alpha-contract-leaderboard.json",
   "alpha-contract-receipts.json",
+  "alpha-evolution-governor.json",
+  "alpha-evolution-queue.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -95,6 +97,7 @@ function writeLandingPage(copiedFiles = []) {
   const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json") || {};
   const alphaTheses = readJsonReport("alpha-theses.json") || {};
   const alphaContracts = readJsonReport("alpha-contracts.json") || {};
+  const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
@@ -138,6 +141,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Alpha Contracts", alphaContracts.alphaCandidates ?? "N/A"],
     ["Contract Research", alphaContracts.priorityResearch ?? "N/A"],
     ["Contract Receipts", alphaContracts.publicReceipts?.length ?? "N/A"],
+    ["Governor Priority", alphaEvolutionGovernor.counts?.priorityResearch ?? "N/A"],
+    ["Governor Blocks", alphaEvolutionGovernor.counts?.riskBlocks ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
@@ -389,6 +394,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Breakout Brain:</strong> selects the top three best-available breakout candidates from thousands of simulations.</li>
           <li><strong>High-Tech Alpha Stack:</strong> runs ten advanced command modules over each project.</li>
           <li><strong>Proof-Carrying Alpha Contracts:</strong> turns top ideas into falsifiable receipts with review windows and invalidation rules.</li>
+          <li><strong>Alpha Evolution Governor:</strong> fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue.</li>
           <li><strong>Source Truth:</strong> measures provider reliability and source agreement.</li>
           <li><strong>GitHub Pro:</strong> scores repository activity, contributors, releases, and repo risk.</li>
           <li><strong>Research Brain:</strong> loops through hypotheses, missing proof, evidence graph, critic review, and memory.</li>
@@ -424,6 +430,8 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./alpha-contracts.json">Alpha Contracts</a>
         <a class="button" href="./alpha-contract-leaderboard.json">Contract Board</a>
         <a class="button" href="./alpha-contract-receipts.json">Receipts</a>
+        <a class="button" href="./alpha-evolution-governor.json">Governor</a>
+        <a class="button" href="./alpha-evolution-queue.json">Gov Queue</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
         <a class="button" href="./autonomous-research.json">Research Brain</a>
