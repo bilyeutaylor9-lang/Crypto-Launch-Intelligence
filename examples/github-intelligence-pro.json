@@ -1,8 +1,28 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.553Z",
+  "generatedAt": "2026-07-13T05:10:53.431Z",
   "totalProjects": 8,
   "repoProjects": 0,
+  "missingRepoProjects": 8,
+  "repoCoveragePct": 0,
   "eliteBuilderSignals": 0,
   "healthyBuilderSignals": 0,
+  "diagnostics": {
+    "status": "NO_REPO_SIGNALS_FOUND",
+    "message": "No repository fields were found. Run GitHub discovery or provide repository/githubUrl/html_url fields before GitHub Pro scoring.",
+    "acceptedRepoFields": [
+      "github",
+      "githubUrl",
+      "repositoryUrl",
+      "html_url",
+      "repository",
+      "full_name",
+      "githubStars",
+      "stargazers_count",
+      "githubForks",
+      "forks_count",
+      "githubPushedAt",
+      "pushed_at"
+    ]
+  },
   "topRepositories": []
 }

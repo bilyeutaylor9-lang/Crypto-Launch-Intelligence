@@ -63,6 +63,7 @@ Crypto Launch Intelligence
 Commands:
   crypto-launch demo              Run no-key demo and generate example reports
   crypto-launch scan              Run the standard scanner
+  crypto-launch op                Run the maximum Alpha OS scan mode
   crypto-launch wide              Run the 10,000-candidate wide scan
   crypto-launch dashboard         Open the HTML dashboard
   crypto-launch council           Print AI Council report
@@ -87,6 +88,12 @@ Commands:
   crypto-launch github-pro        Print GitHub Intelligence Pro report
   crypto-launch research-brain    Print Autonomous Research Orchestrator report
   crypto-launch breakouts         Print Breakout Brain top candidates
+  crypto-launch high-tech         Print High-Tech Alpha Stack report
+  crypto-launch self-evolving     Print Self-Evolving Alpha OS report
+  crypto-launch thesis            Print generated alpha thesis book
+  crypto-launch debate            Print agent-society debate summary
+  crypto-launch autopsy           Print alpha autopsy summary
+  crypto-launch regime            Print market-regime adaptation summary
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -102,6 +109,11 @@ switch (command) {
     break;
   case "scan":
     runNpm("scan", args);
+    break;
+  case "op":
+  case "scan-op":
+  case "alpha-op":
+    runNpm("scan:op", args);
     break;
   case "wide":
     runNpm("scan:wide", args);
@@ -196,6 +208,32 @@ switch (command) {
   case "breakout-brain":
   case "blow-up":
     runNpm("breakout-brain", args);
+    break;
+  case "high-tech":
+  case "alpha-stack":
+  case "high-tech-stack":
+    runNpm("high-tech", args);
+    break;
+  case "self-evolving":
+  case "self-evolving-alpha-os":
+  case "alpha-max":
+    runNpm("self-evolving-alpha-os", args);
+    break;
+  case "thesis":
+  case "alpha-thesis":
+    runNpm("alpha:thesis", args);
+    break;
+  case "debate":
+  case "alpha-debate":
+    runNpm("alpha:debate", args);
+    break;
+  case "autopsy":
+  case "alpha-autopsy":
+    runNpm("alpha:autopsy", args);
+    break;
+  case "regime":
+  case "alpha-regime":
+    runNpm("alpha:regime", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

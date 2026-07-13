@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.624Z",
-  "totalEngines": 103,
-  "wiredIntoPipeline": 79,
-  "stateOfArtReady": 86,
-  "readinessScore": 88,
+  "generatedAt": "2026-07-13T05:10:53.498Z",
+  "totalEngines": 105,
+  "wiredIntoPipeline": 81,
+  "stateOfArtReady": 88,
+  "readinessScore": 89,
   "categoryCounts": {
     "intelligence": 41,
     "ai": 14,
-    "learning": 14,
+    "learning": 16,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -1154,6 +1154,20 @@
       "status": "needs-upgrade"
     },
     {
+      "file": "highTechAlphaStackEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeHighTechAlphaStack",
+        "analyzeHighTechAlphaStackBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "holderGrowthEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1731,6 +1745,21 @@
         "extractRoadmapMilestones",
         "analyzeRoadmapCatalystProfit",
         "analyzeRoadmapCatalystProfitBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "selfEvolvingAlphaOSEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeSelfEvolvingAlphaOS",
+        "analyzeSelfEvolvingAlphaOSBatch",
+        "summarizeSelfEvolvingAlphaOS"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,

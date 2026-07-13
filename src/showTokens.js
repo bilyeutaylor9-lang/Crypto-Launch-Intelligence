@@ -236,7 +236,13 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════════════");
 }
 
-main().catch((error) => {
-  console.error("❌ showTokens failed:", error);
-  process.exit(1);
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error("❌ showTokens failed:", error);
+      process.exit(1);
+    });
+}
+
+export { main };

@@ -1,11 +1,11 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/11/2026, 11:04:10 PM
+Generated: 7/12/2026, 10:10:53 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
 Healthy breadth: 0%
 High-conviction breadth: 0%
-Average opportunity score: 2.38
+Average opportunity score: 2.75
 Strong buy candidates: 0
 High-conviction candidates: 0
 Priority research queue: 0
@@ -31,7 +31,7 @@ Institutional confidence setups: 0
 High vesting pressure setups: 0
 Proof-backed setups: 0
 Thin/developing proof setups: 8
-Hot narrative setups: 4
+Hot narrative setups: 5
 Improving projects: 0
 Reliable source setups: 0
 High trap-risk setups: 0
@@ -40,10 +40,10 @@ Pre-strong-buy lifecycle setups: 1
 High AI-disagreement setups: 8
 Red-team blocks: 1
 Alpha Lab strategy matches: 0
-Watchtower alerts: 29
-Watchtower high/critical alerts: 29
+Watchtower alerts: 112
+Watchtower high/critical alerts: 100
 Watchtower brief: 0 critical, 8 high, and 8 total watchtower alerts detected.
-Watchtower hit rate: 0% (0 evaluated, 29 pending)
+Watchtower hit rate: 0% (0 evaluated, 112 pending)
 
 Top project:
 EigenLayer (EIGEN)
@@ -79,17 +79,18 @@ Top proof-backed setups:
 None
 
 Top confidence-adjusted setups:
-1. Pendle (PENDLE) - adjusted 29, source 15, trap 12
-2. Celestia (TIA) - adjusted 29, source 15, trap 12
+1. Celestia (TIA) - adjusted 30, source 15, trap 12
+2. Pendle (PENDLE) - adjusted 29, source 15, trap 12
 3. Jupiter (JUP) - adjusted 29, source 15, trap 12
 4. EigenLayer (EIGEN) - adjusted 28, source 15, trap 20
-5. Akash Network (AKT) - adjusted 27, source 15, trap 20
+5. Bittensor (TAO) - adjusted 28, source 15, trap 20
 
 Top narrative heat setups:
 1. EigenLayer (EIGEN) - heat 80, Hot Rotation
-2. Akash Network (AKT) - heat 94, Hot Rotation
-3. Render (RNDR) - heat 89, Hot Rotation
-4. Bittensor (TAO) - heat 94, Hot Rotation
+2. Render (RNDR) - heat 92, Hot Rotation
+3. Bittensor (TAO) - heat 98, Hot Rotation
+4. Akash Network (AKT) - heat 98, Hot Rotation
+5. Celestia (TIA) - heat 68, Hot Rotation
 
 Top improving projects:
 None

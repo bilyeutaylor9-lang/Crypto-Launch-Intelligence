@@ -1,109 +1,109 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.552Z",
+  "generatedAt": "2026-07-13T05:10:53.431Z",
   "totalProjects": 8,
   "verifiedStacks": 0,
-  "weakStacks": 8,
+  "weakStacks": 0,
   "sources": [
     {
       "source": "researchSeeds",
       "projects": 8,
-      "avgTrustScore": 15
+      "avgTrustScore": 90
     }
   ],
   "topProjects": [
     {
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 27,
-      "verdict": "Weak Source Stack",
+      "score": 53,
+      "verdict": "Thin Source Stack",
       "sources": [
         {
           "source": "researchSeeds",
-          "trustScore": 15
-        }
-      ]
-    },
-    {
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "score": 27,
-      "verdict": "Weak Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 15
-        }
-      ]
-    },
-    {
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "score": 27,
-      "verdict": "Weak Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 15
-        }
-      ]
-    },
-    {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 26,
-      "verdict": "Weak Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 15
+          "trustScore": 90
         }
       ]
     },
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 26,
-      "verdict": "Weak Source Stack",
+      "score": 52,
+      "verdict": "Thin Source Stack",
       "sources": [
         {
           "source": "researchSeeds",
-          "trustScore": 15
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 52,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 52,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
         }
       ]
     },
     {
       "name": "Celestia",
       "symbol": "TIA",
-      "score": 26,
-      "verdict": "Weak Source Stack",
+      "score": 52,
+      "verdict": "Thin Source Stack",
       "sources": [
         {
           "source": "researchSeeds",
-          "trustScore": 15
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "score": 52,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
         }
       ]
     },
     {
       "name": "Render",
       "symbol": "RNDR",
-      "score": 23,
-      "verdict": "Weak Source Stack",
+      "score": 49,
+      "verdict": "Thin Source Stack",
       "sources": [
         {
           "source": "researchSeeds",
-          "trustScore": 15
+          "trustScore": 90
         }
       ]
     },
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 23,
-      "verdict": "Weak Source Stack",
+      "score": 49,
+      "verdict": "Thin Source Stack",
       "sources": [
         {
           "source": "researchSeeds",
-          "trustScore": 15
+          "trustScore": 90
         }
       ]
     }

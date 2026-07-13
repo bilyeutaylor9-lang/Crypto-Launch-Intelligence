@@ -176,6 +176,10 @@ function printSummary(summary) {
   console.log(`Weight-Optimized Priority: ${summary.weightOptimizedPriorityCount}`);
   console.log(`Breakout Brain Picks: ${summary.breakoutBrainSelectionCount}`);
   console.log(`High Breakout Probability: ${summary.breakoutBrainHighProbabilityCount}`);
+  console.log(`High-Tech Alpha Candidates: ${summary.highTechAlphaCandidateCount}`);
+  console.log(`High-Tech Priority Research: ${summary.highTechPriorityResearchCount}`);
+  console.log(`Self-Evolving Alpha Candidates: ${summary.selfEvolvingAlphaCandidateCount}`);
+  console.log(`Self-Evolving Priority Research: ${summary.selfEvolvingPriorityResearchCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -277,6 +281,9 @@ function printReportPaths(paths) {
   console.log(`GitHub Pro:     ${paths.githubProPath}`);
   console.log(`Research Brain: ${paths.autonomousResearchPath}`);
   console.log(`Breakout Brain: ${paths.breakoutBrainPath}`);
+  console.log(`High-Tech:      ${paths.highTechAlphaStackPath}`);
+  console.log(`Alpha OS Max:   ${paths.selfEvolvingAlphaOSPath}`);
+  console.log(`Alpha Theses:   ${paths.alphaThesesPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);
@@ -350,4 +357,8 @@ async function main() {
   }
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().then(() => process.exit(0));
+}
+
+export { main };

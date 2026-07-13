@@ -80,6 +80,8 @@ import { analyzePaperTradingOutcomeLabBatch } from "./engines/paperTradingOutcom
 import { analyzeAutoLearningWeightOptimizerBatch } from "./engines/autoLearningWeightOptimizerEngine.js";
 import { analyzeBreakoutBrainBatch } from "./engines/breakoutBrainEngine.js";
 import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomousResearchOrchestratorEngine.js";
+import { analyzeHighTechAlphaStackBatch } from "./engines/highTechAlphaStackEngine.js";
+import { analyzeSelfEvolvingAlphaOSBatch } from "./engines/selfEvolvingAlphaOSEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1089,6 +1091,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutoLearningWeightOptimizerBatch(results);
   results = analyzeBreakoutBrainBatch(results, options.breakoutBrain || {});
   results = analyzeAutonomousResearchOrchestratorBatch(results, options.autonomousResearch || {});
+  results = analyzeHighTechAlphaStackBatch(results);
+  results = analyzeSelfEvolvingAlphaOSBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1276,6 +1280,23 @@ export function summarizePipelineResults(results = []) {
   const topBreakoutBrainSetups = [...safeResults]
     .sort((a, b) => num(b.breakoutBrainScore) - num(a.breakoutBrainScore))
     .slice(0, 10);
+  const highTechAlphaCandidates = safeResults.filter((p) => p.highTechAlphaVerdict === "High-Tech Alpha Candidate");
+  const highTechPriorityResearch = safeResults.filter((p) => p.highTechAlphaVerdict === "High-Tech Priority Research");
+  const topHighTechAlphaSetups = [...safeResults]
+    .sort((a, b) => num(b.highTechAlphaScore) - num(a.highTechAlphaScore))
+    .slice(0, 10);
+  const selfEvolvingAlphaCandidates = safeResults.filter(
+    (p) => p.selfEvolvingAlphaOSDecision === "Self-Evolving Alpha Candidate"
+  );
+  const selfEvolvingPriorityResearch = safeResults.filter(
+    (p) => p.selfEvolvingAlphaOSDecision === "Priority Research"
+  );
+  const selfEvolvingResearchBlocks = safeResults.filter(
+    (p) => p.selfEvolvingAlphaOSDecision === "Research Block"
+  );
+  const topSelfEvolvingAlphaSetups = [...safeResults]
+    .sort((a, b) => num(b.selfEvolvingAlphaOSScore) - num(a.selfEvolvingAlphaOSScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1367,6 +1388,11 @@ export function summarizePipelineResults(results = []) {
     weightOptimizedPriorityCount: weightOptimizedPriority.length,
     breakoutBrainSelectionCount: breakoutBrainSelections.length,
     breakoutBrainHighProbabilityCount: safeResults.filter((p) => num(p.breakoutProbabilitySoon) >= 40).length,
+    highTechAlphaCandidateCount: highTechAlphaCandidates.length,
+    highTechPriorityResearchCount: highTechPriorityResearch.length,
+    selfEvolvingAlphaCandidateCount: selfEvolvingAlphaCandidates.length,
+    selfEvolvingPriorityResearchCount: selfEvolvingPriorityResearch.length,
+    selfEvolvingResearchBlockCount: selfEvolvingResearchBlocks.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1532,6 +1558,34 @@ export function summarizePipelineResults(results = []) {
       simulations: project.breakoutMonteCarlo?.simulations || 0,
       topDrivers: project.breakoutMonteCarlo?.topDrivers || [],
       riskControls: project.breakoutMonteCarlo?.riskControls || [],
+    })),
+    topHighTechAlphaSetups: topHighTechAlphaSetups.map((project) => ({
+      rank: project.highTechAlphaRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      chain: project.chain || "unknown",
+      highTechAlphaScore: project.highTechAlphaScore || 0,
+      verdict: project.highTechAlphaVerdict || "Unknown",
+      confidence: project.highTechAlphaConfidence || "Unknown",
+      commandDecision: project.highTechAlphaStack?.commandDecision || "",
+      strongestModules: project.highTechAlphaStack?.strongestModules || [],
+      weakestModules: project.highTechAlphaStack?.weakestModules || [],
+      blockers: project.highTechAlphaStack?.blockers || [],
+      moduleScores: project.highTechModuleScores || {},
+    })),
+    topSelfEvolvingAlphaSetups: topSelfEvolvingAlphaSetups.map((project) => ({
+      rank: project.selfEvolvingAlphaOSRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.selfEvolvingAlphaOSScore || 0,
+      decision: project.selfEvolvingAlphaOSDecision || "Unknown",
+      confidence: project.selfEvolvingAlphaOSConfidence || "Unknown",
+      thesis: project.alphaThesis || null,
+      committeeDecision: project.selfEvolvingAlphaOS?.agentSociety?.committeeDecision || "Unknown",
+      worldModelScore: project.selfEvolvingAlphaOS?.worldModel?.score || 0,
+      autopsyRisk: project.selfEvolvingAlphaOS?.alphaAutopsy?.riskScore || 0,
+      activeExperiments: project.selfEvolvingAlphaOS?.experimentLab?.activeExperiments || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

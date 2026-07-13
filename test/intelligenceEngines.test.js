@@ -28,13 +28,18 @@ import { analyzeAutonomousStrategyLab } from "../src/engines/autonomousStrategyL
 import { analyzeCausalAlphaBrain } from "../src/engines/causalAlphaBrainEngine.js";
 import { analyzeAutonomousAlphaOSBatch } from "../src/engines/autonomousAlphaOSEngine.js";
 import { analyzeSourceTruth } from "../src/engines/sourceTruthEngine.js";
-import { analyzeGithubIntelligencePro } from "../src/engines/githubIntelligenceProEngine.js";
+import {
+  analyzeGithubIntelligencePro,
+  summarizeGithubIntelligencePro,
+} from "../src/engines/githubIntelligenceProEngine.js";
 import { analyzePaperTradingOutcomeLab } from "../src/engines/paperTradingOutcomeLabEngine.js";
 import {
   analyzeAutoLearningWeightOptimizerBatch,
   buildAutoLearningWeights,
 } from "../src/engines/autoLearningWeightOptimizerEngine.js";
 import { analyzeBreakoutBrainBatch } from "../src/engines/breakoutBrainEngine.js";
+import { analyzeHighTechAlphaStackBatch } from "../src/engines/highTechAlphaStackEngine.js";
+import { analyzeSelfEvolvingAlphaOSBatch } from "../src/engines/selfEvolvingAlphaOSEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -969,6 +974,32 @@ test("github intelligence pro scores repository activity and builder quality", (
   assert.ok(result.evidence.some((item) => item.engine === "GitHub Intelligence Pro"));
 });
 
+test("github intelligence pro accepts raw GitHub API repository fields", () => {
+  const result = analyzeGithubIntelligencePro({
+    name: "RawRepoCoin",
+    symbol: "RAW",
+    full_name: "example/rawrepocoin",
+    html_url: "https://github.com/example/rawrepocoin",
+    stargazers_count: 900,
+    forks_count: 140,
+    open_issues_count: 24,
+    pushed_at: new Date().toISOString(),
+    language: "TypeScript",
+    commits30d: 22,
+    contributorsCount: 12,
+    releases: 3,
+  });
+  const summary = summarizeGithubIntelligencePro([result, { name: "NoRepo" }]);
+
+  assert.ok(result.githubProScore > 0);
+  assert.equal(result.githubIntelligencePro.repository, "https://github.com/example/rawrepocoin");
+  assert.equal(result.githubIntelligencePro.stars, 900);
+  assert.equal(summary.repoProjects, 1);
+  assert.equal(summary.missingRepoProjects, 1);
+  assert.equal(summary.diagnostics.status, "REPO_SIGNALS_FOUND");
+  assert.equal(summary.topRepositories[0].repository, "https://github.com/example/rawrepocoin");
+});
+
 test("paper trading outcome lab promotes strategies with confirmed paper outcomes", () => {
   const result = analyzePaperTradingOutcomeLab(
     {
@@ -1167,6 +1198,115 @@ test("quantum outcome field defaults to thousands of deterministic scenarios", (
 
   assert.ok(result.quantumOutcomeField.scenarioCount >= 2000);
   assert.ok(result.quantumOpportunityScore >= 0);
+});
+
+test("high-tech alpha stack runs ten advanced modules and ranks stronger projects", () => {
+  const results = analyzeHighTechAlphaStackBatch([
+    {
+      name: "HighTechOne",
+      symbol: "HT1",
+      pipelineScore: 82,
+      aiEcosystemScore: 78,
+      autonomousAlphaOSScore: 80,
+      breakoutBrainScore: 76,
+      breakoutProbabilitySoon: 42,
+      simulationBrainScore: 74,
+      causalAlphaScore: 72,
+      proofScore: 76,
+      sourceTruthScore: 74,
+      dataConfidenceScore: 72,
+      liquidityScore: 70,
+      liquidityExpansionScore: 72,
+      capitalFlowScore: 70,
+      buyPressureScore: 68,
+      catalystCalendarScore: 74,
+      liveCatalystRadarScore: 72,
+      narrativeHeatScore: 80,
+      smartMoneyAccumulationScore: 74,
+      trapRiskScore: 10,
+      riskScore: 16,
+      sellPressureScore: 12,
+    },
+    {
+      name: "HighTechWeak",
+      symbol: "HTW",
+      pipelineScore: 38,
+      proofScore: 22,
+      sourceTruthScore: 20,
+      liquidityScore: 18,
+      narrativeHeatScore: 72,
+      xBotRiskScore: 62,
+      trapRiskScore: 70,
+      riskScore: 68,
+      sellPressureScore: 64,
+    },
+  ]);
+
+  assert.equal(results[0].highTechAlphaStack.moduleCount, 10);
+  assert.ok(results[0].highTechAlphaScore > results[1].highTechAlphaScore);
+  assert.equal(results[0].highTechAlphaRank, 1);
+  assert.equal(Object.keys(results[0].highTechModuleScores).length, 10);
+  assert.ok(results[0].evidence.some((item) => item.engine === "High-Tech Alpha Stack Engine"));
+});
+
+test("self-evolving alpha OS builds thesis, agent society, and ranks stronger projects", () => {
+  const results = analyzeSelfEvolvingAlphaOSBatch([
+    {
+      name: "AlphaMax",
+      symbol: "AMAX",
+      chain: "base",
+      pipelineScore: 82,
+      confidenceAdjustedScore: 78,
+      highTechAlphaScore: 80,
+      breakoutBrainScore: 76,
+      autonomousAlphaOSScore: 78,
+      autonomousResearchScore: 74,
+      autonomousResearchConfidence: 70,
+      sourceTruthScore: 76,
+      proofScore: 78,
+      narrativeHeatScore: 82,
+      liveCatalystRadarScore: 76,
+      catalystCalendarScore: 72,
+      roadmapProfitabilityScore: 70,
+      liquidityScore: 72,
+      liquidityExpansionScore: 74,
+      capitalFlowScore: 70,
+      buyPressureScore: 68,
+      smartMoneyAccumulationScore: 72,
+      githubProScore: 66,
+      developerActivityScore: 64,
+      trapRiskScore: 8,
+      riskScore: 14,
+      sellPressureScore: 12,
+      source: "test",
+      discoverySources: ["dexscreener", "github"],
+      githubIntelligencePro: { repository: "https://github.com/example/alphamax" },
+    },
+    {
+      name: "RiskMax",
+      symbol: "RISK",
+      chain: "ethereum",
+      pipelineScore: 55,
+      highTechAlphaScore: 34,
+      sourceTruthScore: 22,
+      proofScore: 18,
+      narrativeHeatScore: 75,
+      trapRiskScore: 82,
+      sellPressureScore: 75,
+      falsePositiveSimilarity: 70,
+      xBotRiskScore: 68,
+    },
+  ]);
+
+  assert.ok(results[0].selfEvolvingAlphaOSScore > results[1].selfEvolvingAlphaOSScore);
+  assert.equal(results[0].selfEvolvingAlphaOSRank, 1);
+  assert.ok(results[0].selfEvolvingAlphaOS.identityGraph.identityCount > 0);
+  assert.ok(results[0].selfEvolvingAlphaOS.worldModel.nodes.length > 0);
+  assert.ok(results[0].selfEvolvingAlphaOS.hypothesisLab.hypotheses.length >= 4);
+  assert.ok(results[0].selfEvolvingAlphaOS.agentSociety.agents.length >= 6);
+  assert.ok(results[0].alphaThesis.whyNow.length > 0);
+  assert.ok(results[1].selfEvolvingAlphaOS.alphaAutopsy.riskScore >= 60);
+  assert.ok(results[0].evidence.some((item) => item.engine === "Self-Evolving Alpha OS"));
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {
