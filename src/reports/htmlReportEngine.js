@@ -39,6 +39,9 @@ export function writeHtmlReport(projects = []) {
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const ranked = [...projects].sort((a, b) => scoreOf(b) - scoreOf(a));
+  const smallCapPicks = ranked
+    .filter((project) => project.smallCapHunterSelected)
+    .sort((a, b) => Number(a.smallCapHunterSelectionRank || 999) - Number(b.smallCapHunterSelectionRank || 999));
   const confidenceRanked = [...projects].sort(
     (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
   );
@@ -86,6 +89,11 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.alphaEvolutionGovernorScore ?? "")}</td>
           <td>${esc(p.alphaEvolutionGovernorVerdict || "")}</td>
           <td>${esc(p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "")}</td>
+          <td>${esc(p.smallCapHunterSelectionRank ?? "")}</td>
+          <td>${esc(p.smallCapHunterScore ?? "")}</td>
+          <td>${esc(p.smallCapHunterVerdict || "")}</td>
+          <td>${esc(p.smallCapBand || "")}</td>
+          <td>${esc(p.smallCapHunter?.paperPlan?.totalPaperBudgetUsd ?? "")}</td>
           <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
           <td>${esc(p.confidenceAdjustedScore ?? "")}</td>
           <td>${esc(p.narrativeHeatScore ?? "")}</td>
@@ -262,6 +270,11 @@ export function writeHtmlReport(projects = []) {
       <h2>${ranked.filter((p) => scoreOf(p) >= 80).length}</h2>
       <p>Strong Buy Candidates</p>
     </div>
+
+    <div class="card">
+      <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
+      <p>Small-Cap Research Picks</p>
+    </div>
   </div>
 
   <h2 class="section-title">Institutional Confidence Ranking</h2>
@@ -315,6 +328,11 @@ export function writeHtmlReport(projects = []) {
         <th>Governor Score</th>
         <th>Governor Verdict</th>
         <th>Governor Action</th>
+        <th>Small Cap Rank</th>
+        <th>Small Cap Score</th>
+        <th>Small Cap Verdict</th>
+        <th>Cap Band</th>
+        <th>Paper Budget</th>
         <th>Adj Rank</th>
         <th>Adj Score</th>
         <th>Heat</th>

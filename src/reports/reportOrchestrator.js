@@ -28,6 +28,7 @@ import { writeSelfEvolvingAlphaOSReport } from "./selfEvolvingAlphaOSReportEngin
 import { writeProofCarryingAlphaContractReport } from "./proofCarryingAlphaContractReportEngine.js";
 import { writeAlphaEvolutionGovernorReport } from "./alphaEvolutionGovernorReportEngine.js";
 import { writeKnowledgeGraphTwinReports } from "./knowledgeGraphTwinReportEngine.js";
+import { writeSmallCapHunterReport } from "./smallCapHunterReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -109,6 +110,9 @@ export function generateReports(projects = [], meta = {}) {
     queuePath: alphaEvolutionQueuePath,
   } = writeAlphaEvolutionGovernorReport(projects);
   const {
+    filePath: smallCapHunterPath,
+  } = writeSmallCapHunterReport(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -167,6 +171,7 @@ export function generateReports(projects = [], meta = {}) {
     causalMarketTwinPath,
     alphaEvolutionGovernorPath,
     alphaEvolutionQueuePath,
+    smallCapHunterPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

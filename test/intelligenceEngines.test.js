@@ -44,6 +44,7 @@ import { analyzeHighTechAlphaStackBatch } from "../src/engines/highTechAlphaStac
 import { analyzeSelfEvolvingAlphaOSBatch } from "../src/engines/selfEvolvingAlphaOSEngine.js";
 import { analyzeProofCarryingAlphaContractBatch } from "../src/engines/proofCarryingAlphaContractEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "../src/engines/alphaEvolutionGovernorEngine.js";
+import { analyzeSmallCapHunterBatch } from "../src/engines/smallCapHunterEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1567,6 +1568,99 @@ test("alpha evolution governor fuses contracts, outcomes, sources, agents, and r
   assert.ok(results[0].alphaEvolutionGovernor.upgradeDirectives.length >= 5);
   assert.ok(results[1].alphaEvolutionGovernor.blockers.length >= 2);
   assert.ok(results[0].evidence.some((item) => item.engine === "Alpha Evolution Governor"));
+});
+
+test("small cap hunter selects two research candidates and blocks the obvious risk trap", () => {
+  const results = analyzeSmallCapHunterBatch(
+    [
+      {
+        name: "BuilderMicro",
+        symbol: "BLDR",
+        chain: "base",
+        marketCap: 12_000_000,
+        liquidityUsd: 240_000,
+        volume24h: 420_000,
+        sourceTruthScore: 78,
+        proofScore: 74,
+        evidenceQualityScore: 70,
+        dataConfidenceScore: 72,
+        githubProScore: 76,
+        roadmapProfitabilityScore: 68,
+        alphaKnowledgeGraphScore: 74,
+        prePump: { score: 73 },
+        prePumpPatternScore: 70,
+        narrativeHeatScore: 75,
+        liveCatalystRadarScore: 72,
+        breakoutBrainScore: 78,
+        momentumShiftScore: 66,
+        aiEcosystemScore: 75,
+        autonomousAlphaOSScore: 72,
+        alphaEvolutionGovernorScore: 74,
+        alphaEvolutionGovernorVerdict: "Governor Priority Research",
+        riskScore: 18,
+        trapRiskScore: 10,
+        sellPressureScore: 16,
+      },
+      {
+        name: "StructureSmall",
+        symbol: "STRC",
+        chain: "solana",
+        marketCap: 54_000_000,
+        liquidityUsd: 115_000,
+        volume24h: 180_000,
+        sourceTruthScore: 64,
+        proofScore: 66,
+        evidenceQualityScore: 62,
+        dataConfidenceScore: 60,
+        githubProScore: 59,
+        roadmapProfitabilityScore: 65,
+        alphaKnowledgeGraphScore: 63,
+        prePump: { score: 61 },
+        prePumpPatternScore: 58,
+        narrativeForecastScore: 64,
+        catalystCalendarScore: 67,
+        earlyBreakoutScore: 63,
+        aiEcosystemScore: 65,
+        autonomousAlphaOSScore: 61,
+        causalMarketTwinScore: 63,
+        riskScore: 25,
+        trapRiskScore: 19,
+        sellPressureScore: 22,
+      },
+      {
+        name: "TrapMicro",
+        symbol: "TRAP",
+        chain: "ethereum",
+        marketCap: 4_000_000,
+        liquidityUsd: 180_000,
+        volume24h: 900_000,
+        sourceTruthScore: 30,
+        proofScore: 24,
+        evidenceQualityScore: 26,
+        prePump: { score: 82 },
+        narrativeHeatScore: 86,
+        aiEcosystemScore: 45,
+        riskScore: 84,
+        trapRiskScore: 91,
+        sellPressureScore: 86,
+        redTeamReview: { status: "Block" },
+      },
+    ],
+    { budgetUsd: 100, targetCount: 2 }
+  );
+  const selected = results.filter((project) => project.smallCapHunterSelected);
+  const trap = results.find((project) => project.symbol === "TRAP");
+
+  assert.equal(selected.length, 2);
+  assert.deepEqual(
+    selected.map((project) => project.smallCapHunterSelectionRank),
+    [1, 2]
+  );
+  assert.equal(trap.smallCapHunterVerdict, "Small-Cap Risk Block");
+  assert.equal(trap.smallCapHunterSelected, false);
+  assert.equal(selected[0].smallCapHunter.paperPlan.totalPaperBudgetUsd, 100);
+  assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
+  assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.369Z",
+  "generatedAt": "2026-07-13T06:51:10.603Z",
   "totalReceipts": 8,
   "publicReceipts": [
     {
@@ -155,7 +155,7 @@
     {
       "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
       "symbol": "ONDO",
-      "score": 45,
+      "score": 44,
       "verdict": "Invalidation Hit",
       "confidence": "Developing",
       "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",

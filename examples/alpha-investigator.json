@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.291Z",
+  "generatedAt": "2026-07-13T06:51:10.524Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -12,9 +12,9 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 35,
+      "commanderScore": 36,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -137,7 +137,7 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 36,
+      "warRoomScore": 37,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -152,154 +152,10 @@
       "alphaOSScore": 23,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 57,
       "sourceTruthScore": 53,
-      "githubProScore": 0
-    },
-    {
-      "rank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 23,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        {
-          "id": "roadmap",
-          "label": "Missing verified roadmap",
-          "severity": "Medium",
-          "agent": "Roadmap Agent",
-          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
-        },
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "Roadmap Agent",
-          "priority": "Medium",
-          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
-          "reason": "Missing verified roadmap"
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        },
-        {
-          "agent": "Catalyst Agent",
-          "priority": "High",
-          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
-          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
-        }
-      ],
-      "alphaInvestigatorScore": 25,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Ondo",
-        "symbol": "ONDO",
-        "score": 25,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "group": "governance",
-          "keyword": "treasury",
-          "weight": 10,
-          "type": "",
-          "daysUntil": null,
-          "score": 17.5
-        },
-        "bullCase": [
-          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
-        ],
-        "bearCase": [
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone.",
-          "Profitability Agent: Profitability needs confirmation.",
-          "Risk Agent: Risk remains the main gating factor."
-        ],
-        "missingProof": [
-          "Missing verified roadmap",
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
-          "Liquidity expansion rises above 60."
-        ]
-      },
-      "warRoomScore": 27,
-      "warRoomAllocation": "Ignore",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "rwa",
-        "stablecoins"
-      ],
-      "strategyLabScore": 63,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 52,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 29,
-      "alphaOSVerdict": "OS Risk Block",
-      "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 43,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 56,
-      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
@@ -308,9 +164,9 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 40,
+      "commanderScore": 41,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -438,6 +294,150 @@
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 63,
       "sourceTruthScore": 52,
+      "githubProScore": 0
+    },
+    {
+      "rank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 23,
+      "aiVerdict": "AI Pass For Now",
+      "commanderScore": 30,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "roadmap",
+          "label": "Missing verified roadmap",
+          "severity": "Medium",
+          "agent": "Roadmap Agent",
+          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
+        },
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 24,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Ondo",
+        "symbol": "ONDO",
+        "score": 24,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "governance",
+          "keyword": "treasury",
+          "weight": 10,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 27,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "rwa",
+        "stablecoins"
+      ],
+      "strategyLabScore": 63,
+      "strategyLabVerdict": "Strategy Watch",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 52,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 28,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 56,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
@@ -738,7 +738,7 @@
       "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 60,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
@@ -853,7 +853,7 @@
           "GitHub Agent: Developer proof is weak or missing.",
           "Catalyst Agent: Catalyst timing is not decisive.",
           "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone."
+          "Profitability Agent: Profitability needs confirmation."
         ],
         "missingProof": [
           "Missing GitHub activity proof",
@@ -885,7 +885,7 @@
       ],
       "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
+      "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
@@ -1018,12 +1018,12 @@
       "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 54,
+      "causalAlphaScore": 55,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 61,
       "sourceTruthScore": 52,
@@ -1035,7 +1035,7 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineScore": 4,
-      "confidenceAdjustedScore": 27,
+      "confidenceAdjustedScore": 28,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",

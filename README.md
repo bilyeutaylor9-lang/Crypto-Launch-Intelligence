@@ -20,6 +20,7 @@ This is not a simple token screener. It is a layered research system with:
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
 - Causal Market Twin scenario engine
+- Small-Cap Hunter for two best-available $100 paper-research candidates
 - Self-evolving Alpha OS with thesis generation
 - Paper-trade strategy simulation
 - Outcome learning
@@ -80,6 +81,7 @@ npm run alpha:receipts
 npm run alpha:graph
 npm run causal:twin
 npm run alpha:governor
+npm run small-caps
 ```
 
 ## What Makes It Different
@@ -145,6 +147,7 @@ The project now behaves like a miniature autonomous research organization.
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
+| Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
 
 ## Autonomous Alpha OS
 
@@ -300,6 +303,27 @@ Verdicts:
 
 This gives the AI an operating brain that can say: promote, research deeper, recheck soon, block for risk, or fill missing proof.
 
+## Small-Cap Hunter
+
+Small-Cap Hunter is built for small-account research mode.
+
+It searches the full scan output for two best-available candidates that are:
+
+- Small enough to still have asymmetric upside potential
+- Liquid enough for a $100 paper-sized plan
+- Supported by source truth, proof, roadmap, GitHub, graph, or catalyst structure
+- Confirmed by AI/OS/governor consensus where available
+- Not blocked by severe trap risk, thin liquidity, red-team blocks, or oversized market cap
+
+Run a wide scan and inspect the two research candidates:
+
+```bash
+npm run scan:op
+npm run small-caps
+```
+
+The output is `reports/small-cap-hunter.json`. It includes the top two candidates, score, cap band, liquidity impact estimate, paper plan, warnings, and manual verification checklist. This is research software only, not a buy list.
+
 ## Outcome Lab and Auto-Learning
 
 The next intelligence layer makes the AI accountable.
@@ -351,6 +375,7 @@ Core engine families:
 - Proof, confidence, and explainability engines
 - Pre-pump pattern engines
 - Quantum outcome engines
+- Small-cap hunter and execution-fit engines
 - Simulation and outcome-learning engines
 - Paper-trading outcome and weight-optimization engines
 - AI council, dossier, commander, investigator, strategy, causal, and Alpha OS engines
@@ -468,6 +493,7 @@ Every scan can generate a full research packet:
 | `reports/causal-market-twin.json` | Scenario probabilities, expected return, best/worst paths, and next experiments |
 | `reports/alpha-evolution-governor.json` | Meta-governor operating report |
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
+| `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with $100 paper plan, structure score, upside score, and risk warnings |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -542,6 +568,7 @@ npm run alpha:graph
 npm run causal:twin
 npm run alpha:governor
 npm run alpha:queue
+npm run small-caps
 npm run source-truth
 npm run github-pro
 ```
@@ -610,6 +637,7 @@ cat examples/alpha-contracts.json
 cat examples/alpha-contract-leaderboard.json
 cat examples/alpha-evolution-governor.json
 cat examples/alpha-evolution-queue.json
+cat examples/small-cap-hunter.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.338Z",
+  "generatedAt": "2026-07-13T06:51:10.562Z",
   "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
   "totalProjects": 8,
   "simulatedProjects": 8,
@@ -67,7 +67,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "EigenLayer is led by narrative 55, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 2,
@@ -100,7 +100,7 @@
         },
         {
           "driver": "Narrative",
-          "score": 43
+          "score": 44
         },
         {
           "driver": "Learning",
@@ -121,7 +121,8 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat"
+        "Narrative Heat",
+        "Top-2 Small-Cap Research Candidate"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -182,7 +183,8 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat"
+        "Narrative Heat",
+        "Top-2 Small-Cap Research Candidate"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -253,7 +255,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "EigenLayer is led by narrative 54, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "EigenLayer is led by narrative 55, quantumField 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 2,
@@ -286,7 +288,7 @@
         },
         {
           "driver": "Narrative",
-          "score": 43
+          "score": 44
         },
         {
           "driver": "Learning",
@@ -307,7 +309,8 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat"
+        "Narrative Heat",
+        "Top-2 Small-Cap Research Candidate"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -368,7 +371,8 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat"
+        "Narrative Heat",
+        "Top-2 Small-Cap Research Candidate"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -452,20 +456,20 @@
       "breakoutProbabilitySoon": 18,
       "blowUpProbabilitySoon": 18,
       "expectedReturn30dPct": 11,
-      "bestCaseReturnPct": 50,
+      "bestCaseReturnPct": 49,
       "bearCaseReturnPct": -28,
       "confidence": "Medium",
       "confidenceScore": 63,
       "simulations": 4096,
-      "positiveProbability": 62,
+      "positiveProbability": 61,
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 6,
-      "asymmetryRatio": 1.79,
+      "asymmetryRatio": 1.75,
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 46
+          "score": 45
         },
         {
           "driver": "Catalyst",
@@ -519,7 +523,7 @@
       "positiveProbability": 55,
       "doubleProbability": 0,
       "tripleProbability": 0,
-      "collapseProbability": 7,
+      "collapseProbability": 6,
       "asymmetryRatio": 1.33,
       "topDrivers": [
         {
@@ -556,7 +560,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Akash Network is led by signalCombos 59, narrative 52, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "Akash Network is led by signalCombos 59, narrative 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 7,
@@ -585,7 +589,7 @@
       "topDrivers": [
         {
           "driver": "Institutional Stack",
-          "score": 43
+          "score": 44
         },
         {
           "driver": "Learning",

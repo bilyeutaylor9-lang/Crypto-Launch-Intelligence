@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.299Z",
+  "generatedAt": "2026-07-13T06:51:10.528Z",
   "totalProjects": 8,
   "paperStrongBuyCandidates": 0,
   "priorityPaperTrades": 4,
@@ -74,62 +74,62 @@
       "id": "github_builder_momentum",
       "name": "GitHub Builder Momentum",
       "activeProjects": 8,
-      "avgScore": 61,
+      "avgScore": 62,
       "avgReadiness": 61,
       "topProjects": [
         {
           "name": "Bittensor",
           "symbol": "TAO",
-          "score": 65,
+          "score": 66,
           "readiness": 64,
           "verdict": "Priority Paper Trade"
         },
         {
-          "name": "Render",
-          "symbol": "RNDR",
-          "score": 61,
+          "name": "Akash Network",
+          "symbol": "AKT",
+          "score": 63,
           "readiness": 60,
           "verdict": "Strategy Watch"
         },
         {
-          "name": "Akash Network",
-          "symbol": "AKT",
-          "score": 61,
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "score": 62,
+          "readiness": 59,
+          "verdict": "Strategy Watch"
+        },
+        {
+          "name": "Render",
+          "symbol": "RNDR",
+          "score": 62,
           "readiness": 60,
           "verdict": "Strategy Watch"
         },
         {
           "name": "Celestia",
           "symbol": "TIA",
-          "score": 61,
+          "score": 62,
           "readiness": 65,
           "verdict": "Priority Paper Trade"
         },
         {
-          "name": "EigenLayer",
-          "symbol": "EIGEN",
-          "score": 60,
-          "readiness": 59,
-          "verdict": "Strategy Watch"
-        },
-        {
           "name": "Pendle",
           "symbol": "PENDLE",
-          "score": 59,
-          "readiness": 63,
+          "score": 61,
+          "readiness": 64,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "Jupiter",
           "symbol": "JUP",
-          "score": 57,
+          "score": 58,
           "readiness": 62,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "Ondo",
           "symbol": "ONDO",
-          "score": 56,
+          "score": 57,
           "readiness": 57,
           "verdict": "Strategy Watch"
         }
@@ -145,8 +145,8 @@
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
-          "score": 60,
-          "readiness": 59,
+          "score": 61,
+          "readiness": 60,
           "verdict": "Strategy Watch"
         },
         {
@@ -157,6 +157,13 @@
           "verdict": "Priority Paper Trade"
         },
         {
+          "name": "Pendle",
+          "symbol": "PENDLE",
+          "score": 57,
+          "readiness": 63,
+          "verdict": "Priority Paper Trade"
+        },
+        {
           "name": "Akash Network",
           "symbol": "AKT",
           "score": 56,
@@ -164,16 +171,9 @@
           "verdict": "Strategy Watch"
         },
         {
-          "name": "Pendle",
-          "symbol": "PENDLE",
-          "score": 56,
-          "readiness": 62,
-          "verdict": "Priority Paper Trade"
-        },
-        {
           "name": "Celestia",
           "symbol": "TIA",
-          "score": 55,
+          "score": 56,
           "readiness": 62,
           "verdict": "Priority Paper Trade"
         },
@@ -210,14 +210,14 @@
         {
           "name": "Bittensor",
           "symbol": "TAO",
-          "score": 55,
+          "score": 56,
           "readiness": 55,
           "verdict": "Priority Paper Trade"
         },
         {
           "name": "Pendle",
           "symbol": "PENDLE",
-          "score": 54,
+          "score": 55,
           "readiness": 57,
           "verdict": "Priority Paper Trade"
         },
@@ -282,8 +282,8 @@
         {
           "name": "EigenLayer",
           "symbol": "EIGEN",
-          "score": 50,
-          "readiness": 54,
+          "score": 51,
+          "readiness": 55,
           "verdict": "Strategy Watch"
         },
         {
@@ -362,7 +362,7 @@
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "score": 44,
-          "readiness": 49,
+          "readiness": 50,
           "verdict": "Strategy Watch"
         },
         {
@@ -403,18 +403,18 @@
       "avgReadiness": 51,
       "topProjects": [
         {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "score": 45,
+          "readiness": 50,
+          "verdict": "Strategy Watch"
+        },
+        {
           "name": "Pendle",
           "symbol": "PENDLE",
           "score": 45,
           "readiness": 55,
           "verdict": "Priority Paper Trade"
-        },
-        {
-          "name": "EigenLayer",
-          "symbol": "EIGEN",
-          "score": 44,
-          "readiness": 49,
-          "verdict": "Strategy Watch"
         },
         {
           "name": "Celestia",
@@ -463,7 +463,7 @@
   ],
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/strategy-memory.json",
-    "totalRecords": 424,
+    "totalRecords": 499,
     "strategyCount": 6,
     "strategies": [
       {
@@ -499,17 +499,17 @@
       {
         "id": "roadmap_catalyst_confirmation",
         "name": "Roadmap Catalyst Confirmation",
-        "observations": 5,
+        "observations": 6,
         "avgScore": 68,
         "avgReadiness": 63,
         "avgPaperTradeScore": 52,
         "avgCausalAlphaScore": 60,
-        "avgAlphaOSScore": 30,
+        "avgAlphaOSScore": 29,
         "promoted": 0,
         "paperOnly": 0,
-        "rejected": 5,
+        "rejected": 6,
         "promotionRate": 0,
-        "status": "Cold Start"
+        "status": "Paper-Tested"
       },
       {
         "id": "liquidity_breakout_pressure",
@@ -529,7 +529,7 @@
       {
         "id": "github_builder_momentum",
         "name": "GitHub Builder Momentum",
-        "observations": 21,
+        "observations": 23,
         "avgScore": 61,
         "avgReadiness": 60,
         "avgPaperTradeScore": 49,
@@ -537,14 +537,14 @@
         "avgAlphaOSScore": 28,
         "promoted": 0,
         "paperOnly": 0,
-        "rejected": 21,
+        "rejected": 23,
         "promotionRate": 0,
         "status": "Paper-Tested"
       },
       {
         "id": "truth_verified_alpha",
         "name": "Truth-Verified Alpha",
-        "observations": 256,
+        "observations": 328,
         "avgScore": 59,
         "avgReadiness": 59,
         "avgPaperTradeScore": 48,
@@ -552,7 +552,7 @@
         "avgAlphaOSScore": 24,
         "promoted": 0,
         "paperOnly": 2,
-        "rejected": 250,
+        "rejected": 321,
         "promotionRate": 0,
         "status": "Paper-Tested"
       }
@@ -753,27 +753,27 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "score": 63,
-      "readiness": 58,
+      "readiness": 60,
       "verdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
+      "bestStrategy": "GitHub Builder Momentum",
       "paperTradeScore": 49,
       "plan": {
         "mode": "Research Only",
         "positionStyle": "No simulated entry until evidence improves",
         "entryTriggers": [
-          "Proof, source reliability, and AI confidence all improve together.",
-          "Causal and simulation layers agree on the same core driver.",
-          "Red-team review is clear or only lightly challenged."
+          "Commit/activity quality continues improving across multiple scans.",
+          "Roadmap or docs align with real shipped work.",
+          "Social attention begins rising after builder momentum."
         ],
         "invalidationRules": [
-          "Evidence quality deteriorates or sources conflict.",
-          "AI agents disagree because risk is rising.",
-          "Outcome judge downgrades the setup after reality checks.",
+          "Repository activity becomes stale or purely cosmetic.",
+          "Docs and roadmap do not match actual development.",
+          "Token incentives dominate without product traction.",
           "Autonomous Strategy Lab score drops below 50.",
           "Causal Alpha Brain downgrades the primary driver."
         ],
         "reviewCadence": "Every 24h scan cycle",
-        "expectedHoldingWindow": "21-90 days",
+        "expectedHoldingWindow": "30-120 days",
         "promotionGate": "Keep paper-only until proof rises above 65 and risk falls below 40."
       }
     },

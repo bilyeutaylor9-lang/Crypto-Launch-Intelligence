@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.341Z",
+  "generatedAt": "2026-07-13T06:51:10.564Z",
   "name": "Self-Evolving Alpha OS",
   "description": "Master research OS that fuses identity graph, world model, hypothesis lab, experiment lab, agent society, alpha autopsy, regime adaptation, and thesis generation.",
   "totalProjects": 8,
@@ -20,7 +20,7 @@
     "breakoutBrainScore": 24,
     "autonomousResearchScore": 31,
     "sourceTruthScore": 53,
-    "proofScore": 3,
+    "proofScore": 6,
     "riskScore": 78,
     "thesis": {
       "project": "EigenLayer",
@@ -101,7 +101,7 @@
         },
         {
           "name": "Research Agent",
-          "score": 29,
+          "score": 30,
           "vote": "Reject",
           "reason": "Judges source-backed evidence and unanswered questions."
         },
@@ -160,7 +160,7 @@
           "from": "project:EigenLayer",
           "to": "narrative:ai",
           "relation": "exposed_to",
-          "strength": 83
+          "strength": 84
         },
         {
           "from": "project:EigenLayer",
@@ -212,7 +212,7 @@
         {
           "id": "evidence_first_promotion",
           "thesis": "Source truth and proof quality are high enough for promotion.",
-          "score": 31,
+          "score": 33,
           "status": "Weak"
         },
         {
@@ -244,7 +244,7 @@
           "id": "raise_evidence_gate",
           "name": "Raise evidence gate before promotion",
           "expectedImpact": "Blocks weak thesis",
-          "score": 27,
+          "score": 28,
           "recommendation": "Observe"
         },
         {
@@ -329,7 +329,7 @@
       "breakoutBrainScore": 24,
       "autonomousResearchScore": 31,
       "sourceTruthScore": 53,
-      "proofScore": 3,
+      "proofScore": 6,
       "riskScore": 78,
       "thesis": {
         "project": "EigenLayer",
@@ -410,7 +410,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 29,
+            "score": 30,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -469,7 +469,7 @@
             "from": "project:EigenLayer",
             "to": "narrative:ai",
             "relation": "exposed_to",
-            "strength": 83
+            "strength": 84
           },
           {
             "from": "project:EigenLayer",
@@ -521,7 +521,7 @@
           {
             "id": "evidence_first_promotion",
             "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 31,
+            "score": 33,
             "status": "Weak"
           },
           {
@@ -553,7 +553,7 @@
             "id": "raise_evidence_gate",
             "name": "Raise evidence gate before promotion",
             "expectedImpact": "Blocks weak thesis",
-            "score": 27,
+            "score": 28,
             "recommendation": "Observe"
           },
           {
@@ -760,7 +760,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 48,
+        "score": 49,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Bittensor",
@@ -776,7 +776,7 @@
             "from": "project:Bittensor",
             "to": "narrative:ai",
             "relation": "exposed_to",
-            "strength": 99
+            "strength": 100
           },
           {
             "from": "project:Bittensor",
@@ -816,7 +816,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 70,
+            "score": 71,
             "status": "Supported"
           },
           {
@@ -842,7 +842,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 70,
+          "score": 71,
           "status": "Supported"
         },
         "risk": {
@@ -852,7 +852,7 @@
           "score": 73,
           "status": "Active Risk"
         },
-        "netScore": 60
+        "netScore": 61
       },
       "experimentLab": {
         "experiments": [
@@ -1077,7 +1077,7 @@
             "from": "project:Pendle",
             "to": "narrative:rwa",
             "relation": "exposed_to",
-            "strength": 65
+            "strength": 68
           },
           {
             "from": "project:Pendle",
@@ -1117,7 +1117,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 48,
+            "score": 50,
             "status": "Needs Evidence"
           },
           {
@@ -1217,7 +1217,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 35,
+        "score": 36,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -1376,7 +1376,7 @@
             "from": "project:Akash Network",
             "to": "narrative:ai",
             "relation": "exposed_to",
-            "strength": 99
+            "strength": 100
           },
           {
             "from": "project:Akash Network",
@@ -1659,7 +1659,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 42,
+        "score": 43,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Celestia",
@@ -1675,7 +1675,7 @@
             "from": "project:Celestia",
             "to": "narrative:ai",
             "relation": "exposed_to",
-            "strength": 70
+            "strength": 72
           },
           {
             "from": "project:Celestia",
@@ -1715,7 +1715,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 51,
+            "score": 53,
             "status": "Needs Evidence"
           },
           {
@@ -1815,7 +1815,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 34,
+        "score": 35,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -1828,7 +1828,7 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 28,
+      "score": 29,
       "decision": "Research Block",
       "confidence": "Low",
       "pipelineScore": 4,
@@ -1958,7 +1958,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 48,
+        "score": 49,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Render",
@@ -1974,7 +1974,7 @@
             "from": "project:Render",
             "to": "narrative:ai",
             "relation": "exposed_to",
-            "strength": 93
+            "strength": 94
           },
           {
             "from": "project:Render",
@@ -2014,7 +2014,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 66,
+            "score": 67,
             "status": "Needs Evidence"
           },
           {
@@ -2040,7 +2040,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 66,
+          "score": 67,
           "status": "Needs Evidence"
         },
         "risk": {
@@ -2050,7 +2050,7 @@
           "score": 75,
           "status": "Active Risk"
         },
-        "netScore": 55
+        "netScore": 56
       },
       "experimentLab": {
         "experiments": [
@@ -2430,7 +2430,7 @@
       "decision": "Research Block",
       "confidence": "Low",
       "pipelineScore": 2,
-      "highTechAlphaScore": 45,
+      "highTechAlphaScore": 44,
       "breakoutBrainScore": 19,
       "autonomousResearchScore": 24,
       "sourceTruthScore": 49,
@@ -2572,7 +2572,7 @@
             "from": "project:Ondo",
             "to": "narrative:rwa",
             "relation": "exposed_to",
-            "strength": 52
+            "strength": 51
           },
           {
             "from": "project:Ondo",
@@ -2712,7 +2712,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 26,
+        "score": 25,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {

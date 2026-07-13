@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.291Z",
+  "generatedAt": "2026-07-13T06:51:10.524Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -12,9 +12,9 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 40,
+      "commanderScore": 41,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -282,7 +282,7 @@
       "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 60,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
@@ -414,12 +414,12 @@
       "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 54,
+      "causalAlphaScore": 55,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 61,
       "sourceTruthScore": 52,
@@ -431,9 +431,9 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 9,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 35,
+      "commanderScore": 36,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -556,7 +556,7 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 36,
+      "warRoomScore": 37,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -571,7 +571,7 @@
       "alphaOSScore": 23,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 57,
       "sourceTruthScore": 53,
@@ -841,7 +841,7 @@
           "GitHub Agent: Developer proof is weak or missing.",
           "Catalyst Agent: Catalyst timing is not decisive.",
           "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone."
+          "Profitability Agent: Profitability needs confirmation."
         ],
         "missingProof": [
           "Missing GitHub activity proof",
@@ -873,7 +873,7 @@
       ],
       "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
+      "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
@@ -963,12 +963,12 @@
           "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 25,
+      "alphaInvestigatorScore": 24,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Ondo",
         "symbol": "ONDO",
-        "score": 25,
+        "score": 24,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -1020,10 +1020,10 @@
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 29,
+      "alphaOSScore": 28,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 42,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 56,
       "sourceTruthScore": 49,
@@ -1035,7 +1035,7 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineScore": 4,
-      "confidenceAdjustedScore": 27,
+      "confidenceAdjustedScore": 28,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",

@@ -191,6 +191,9 @@ function printSummary(summary) {
   console.log(`Alpha Governor Promotes: ${summary.alphaGovernorPromoteCount}`);
   console.log(`Alpha Governor Priority: ${summary.alphaGovernorPriorityCount}`);
   console.log(`Alpha Governor Risk Blocks: ${summary.alphaGovernorRiskBlockCount}`);
+  console.log(`Small-Cap Hunter Picks: ${summary.smallCapHunterSelectedCount}`);
+  console.log(`Small-Cap Watch: ${summary.smallCapHunterWatchCount}`);
+  console.log(`Small-Cap Risk Blocks: ${summary.smallCapHunterRiskBlockCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -233,6 +236,9 @@ function printTopProjects(results) {
       console.log(
         `   Market Twin: ${project.causalMarketTwinVerdict} (${project.causalMarketTwinScore || 0}, EV ${project.causalMarketTwinExpectedReturnPct || 0}%)`
       );
+    }
+    if (project.smallCapHunterSelected) {
+      console.log(`   Small-Cap Hunter: #${project.smallCapHunterSelectionRank} (${project.smallCapHunterScore || 0})`);
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
@@ -307,6 +313,7 @@ function printReportPaths(paths) {
   console.log(`Market Twin:    ${paths.causalMarketTwinPath}`);
   console.log(`Governor:      ${paths.alphaEvolutionGovernorPath}`);
   console.log(`Gov Queue:     ${paths.alphaEvolutionQueuePath}`);
+  console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

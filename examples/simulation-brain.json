@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.242Z",
+  "generatedAt": "2026-07-13T06:51:10.492Z",
   "totalProjects": 8,
   "counts": {
     "strongBuyCandidates": 0,
@@ -36,7 +36,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 68,
+          "similarity": 69,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -253,22 +253,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 16,
+          "scoreAfterMutation": 17,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -291,7 +291,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -878,12 +878,12 @@
           "riskType": "Trap/Exhaustion"
         },
         {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "name": "pre-listing catalyst squeeze",
+          "similarity": 68,
           "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
+            "TIA 2023",
+            "JUP 2024",
+            "PYTH 2023"
           ],
           "riskType": "Breakout/Rotation"
         }
@@ -921,22 +921,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 15,
+          "scoreAfterMutation": 16,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -969,7 +969,7 @@
           },
           {
             "name": "Proof Agent",
-            "score": 44,
+            "score": 45,
             "vote": "Watch"
           }
         ],
@@ -1089,22 +1089,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 14,
+          "scoreAfterMutation": 15,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 33,
+          "scoreAfterMutation": 34,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1206,7 +1206,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -1385,12 +1385,12 @@
           "riskType": "Trap/Exhaustion"
         },
         {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "name": "pre-listing catalyst squeeze",
+          "similarity": 68,
           "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
+            "TIA 2023",
+            "JUP 2024",
+            "PYTH 2023"
           ],
           "riskType": "Breakout/Rotation"
         }
@@ -1428,22 +1428,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 15,
+          "scoreAfterMutation": 16,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1476,7 +1476,7 @@
           },
           {
             "name": "Proof Agent",
-            "score": 44,
+            "score": 45,
             "vote": "Watch"
           }
         ],
@@ -1764,22 +1764,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 14,
+          "scoreAfterMutation": 15,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 33,
+          "scoreAfterMutation": 34,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1881,7 +1881,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -2219,7 +2219,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 68,
+          "similarity": 69,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -2436,22 +2436,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 16,
+          "scoreAfterMutation": 17,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -2474,7 +2474,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -3104,22 +3104,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 14,
+          "scoreAfterMutation": 15,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 33,
+          "scoreAfterMutation": 34,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3221,7 +3221,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -3397,12 +3397,12 @@
           "riskType": "Trap/Exhaustion"
         },
         {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "name": "pre-listing catalyst squeeze",
+          "similarity": 68,
           "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
+            "TIA 2023",
+            "JUP 2024",
+            "PYTH 2023"
           ],
           "riskType": "Breakout/Rotation"
         }
@@ -3440,22 +3440,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 15,
+          "scoreAfterMutation": 16,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3488,7 +3488,7 @@
           },
           {
             "name": "Proof Agent",
-            "score": 44,
+            "score": 45,
             "vote": "Watch"
           }
         ],
@@ -3559,7 +3559,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 68,
+          "similarity": 69,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -3776,22 +3776,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 16,
+          "scoreAfterMutation": 17,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3814,7 +3814,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -4444,22 +4444,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 14,
+          "scoreAfterMutation": 15,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 26,
+          "scoreAfterMutation": 27,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 33,
+          "scoreAfterMutation": 34,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -4561,7 +4561,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -4737,12 +4737,12 @@
           "riskType": "Trap/Exhaustion"
         },
         {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "name": "pre-listing catalyst squeeze",
+          "similarity": 68,
           "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
+            "TIA 2023",
+            "JUP 2024",
+            "PYTH 2023"
           ],
           "riskType": "Breakout/Rotation"
         }
@@ -4780,22 +4780,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 15,
+          "scoreAfterMutation": 16,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 27,
+          "scoreAfterMutation": 28,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -4828,7 +4828,7 @@
           },
           {
             "name": "Proof Agent",
-            "score": 44,
+            "score": 45,
             "vote": "Watch"
           }
         ],

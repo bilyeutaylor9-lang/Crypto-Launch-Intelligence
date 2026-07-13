@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/12/2026, 11:33:02 PM
+Generated: 7/12/2026, 11:51:10 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -48,10 +48,10 @@ Pre-strong-buy lifecycle setups: 1
 High AI-disagreement setups: 8
 Red-team blocks: 1
 Alpha Lab strategy matches: 0
-Watchtower alerts: 204
-Watchtower high/critical alerts: 180
+Watchtower alerts: 206
+Watchtower high/critical alerts: 182
 Watchtower brief: 0 critical, 8 high, and 8 total watchtower alerts detected.
-Watchtower hit rate: 0% (0 evaluated, 204 pending)
+Watchtower hit rate: 0% (0 evaluated, 206 pending)
 
 Top project:
 EigenLayer (EIGEN)
@@ -94,25 +94,25 @@ Top proof-carrying alpha contracts:
 5. EigenLayer (EIGEN) - contract 49, Invalidation Hit
 
 Top Alpha Evolution Governor queue:
-1. Celestia (TIA) - governor 53, Governor Priority Research - Risk-Contained Priority Research
-2. Pendle (PENDLE) - governor 53, Governor Priority Research - Risk-Contained Priority Research
-3. Bittensor (TAO) - governor 50, Governor Priority Research - Risk-Contained Priority Research
-4. Akash Network (AKT) - governor 49, Governor Risk Block - Block
-5. Jupiter (JUP) - governor 49, Governor Risk Block - Block
+1. Celestia (TIA) - governor 54, Governor Priority Research - Risk-Contained Priority Research
+2. Pendle (PENDLE) - governor 54, Governor Priority Research - Risk-Contained Priority Research
+3. Bittensor (TAO) - governor 51, Governor Priority Research - Risk-Contained Priority Research
+4. EigenLayer (EIGEN) - governor 50, Governor Risk Block - Block
+5. Akash Network (AKT) - governor 50, Governor Risk Block - Block
 
 Top confidence-adjusted setups:
 1. Celestia (TIA) - adjusted 31, source 15, trap 12
-2. EigenLayer (EIGEN) - adjusted 29, source 15, trap 20
-3. Pendle (PENDLE) - adjusted 29, source 15, trap 12
+2. EigenLayer (EIGEN) - adjusted 30, source 15, trap 20
+3. Pendle (PENDLE) - adjusted 30, source 15, trap 12
 4. Jupiter (JUP) - adjusted 29, source 15, trap 12
-5. Bittensor (TAO) - adjusted 28, source 15, trap 20
+5. Render (RNDR) - adjusted 28, source 15, trap 20
 
 Top narrative heat setups:
-1. EigenLayer (EIGEN) - heat 83, Hot Rotation
-2. Render (RNDR) - heat 93, Hot Rotation
-3. Bittensor (TAO) - heat 99, Hot Rotation
-4. Akash Network (AKT) - heat 99, Hot Rotation
-5. Celestia (TIA) - heat 70, Hot Rotation
+1. EigenLayer (EIGEN) - heat 84, Hot Rotation
+2. Render (RNDR) - heat 94, Hot Rotation
+3. Bittensor (TAO) - heat 100, Hot Rotation
+4. Akash Network (AKT) - heat 100, Hot Rotation
+5. Celestia (TIA) - heat 72, Hot Rotation
 
 Top improving projects:
 1. EigenLayer (EIGEN) - change 58, improving

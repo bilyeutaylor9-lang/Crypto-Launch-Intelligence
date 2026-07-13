@@ -1,0 +1,577 @@
+{
+  "generatedAt": "2026-07-13T06:51:10.633Z",
+  "name": "Small-Cap Hunter",
+  "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
+  "totalProjects": 8,
+  "huntedProjects": 8,
+  "targetCount": 2,
+  "selectedCount": 2,
+  "topTwo": [
+    {
+      "selectionRank": 1,
+      "selected": true,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 49,
+      "verdict": "Top-2 Small-Cap Research Candidate",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 64,
+      "upsideScore": 34,
+      "executionScore": 71,
+      "riskScore": 73,
+      "liquidityUsd": 110000,
+      "volume24h": 30000,
+      "estimatedLiquidityImpactPct": 0.091,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.091,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": 2,
+      "selected": true,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 48,
+      "verdict": "Top-2 Small-Cap Research Candidate",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 56,
+      "upsideScore": 39,
+      "executionScore": 71,
+      "riskScore": 73,
+      "liquidityUsd": 100000,
+      "volume24h": 25000,
+      "estimatedLiquidityImpactPct": 0.1,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.1,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    }
+  ],
+  "researchCandidates": 2,
+  "watchCount": 0,
+  "riskBlocks": 1,
+  "topProjects": [
+    {
+      "selectionRank": 1,
+      "selected": true,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 49,
+      "verdict": "Top-2 Small-Cap Research Candidate",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 64,
+      "upsideScore": 34,
+      "executionScore": 71,
+      "riskScore": 73,
+      "liquidityUsd": 110000,
+      "volume24h": 30000,
+      "estimatedLiquidityImpactPct": 0.091,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.091,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "score": 48,
+      "verdict": "Small-Cap Risk Block",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 57,
+      "upsideScore": 43,
+      "executionScore": 71,
+      "riskScore": 78,
+      "liquidityUsd": 112500,
+      "volume24h": 31250,
+      "estimatedLiquidityImpactPct": 0.089,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.089,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation.",
+        "Red-team block is active; do not promote without resolving it."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": 2,
+      "selected": true,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 48,
+      "verdict": "Top-2 Small-Cap Research Candidate",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 56,
+      "upsideScore": 39,
+      "executionScore": 71,
+      "riskScore": 73,
+      "liquidityUsd": 100000,
+      "volume24h": 25000,
+      "estimatedLiquidityImpactPct": 0.1,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.1,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "score": 48,
+      "verdict": "Small-Cap Thin Data",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 63,
+      "upsideScore": 33,
+      "executionScore": 71,
+      "riskScore": 72,
+      "liquidityUsd": 115000,
+      "volume24h": 32500,
+      "estimatedLiquidityImpactPct": 0.087,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.087,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "score": 47,
+      "verdict": "Small-Cap Thin Data",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 64,
+      "upsideScore": 27,
+      "executionScore": 71,
+      "riskScore": 70,
+      "liquidityUsd": 117500,
+      "volume24h": 33750,
+      "estimatedLiquidityImpactPct": 0.085,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.085,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 46,
+      "verdict": "Small-Cap Thin Data",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 56,
+      "upsideScore": 34,
+      "executionScore": 71,
+      "riskScore": 75,
+      "liquidityUsd": 105000,
+      "volume24h": 27500,
+      "estimatedLiquidityImpactPct": 0.095,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.095,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 45,
+      "verdict": "Small-Cap Thin Data",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 51,
+      "upsideScore": 33,
+      "executionScore": 71,
+      "riskScore": 75,
+      "liquidityUsd": 102500,
+      "volume24h": 26250,
+      "estimatedLiquidityImpactPct": 0.098,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.098,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "score": 45,
+      "verdict": "Small-Cap Thin Data",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 51,
+      "upsideScore": 37,
+      "executionScore": 71,
+      "riskScore": 76,
+      "liquidityUsd": 107500,
+      "volume24h": 28750,
+      "estimatedLiquidityImpactPct": 0.093,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.093,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    }
+  ],
+  "operatingRules": [
+    "Always surface two best-available small-cap research candidates when enough eligible projects exist.",
+    "Never treat this report as financial advice or a guaranteed buy list.",
+    "Require manual verification of contract, source identity, liquidity, slippage, unlocks, and jurisdiction before any real trade.",
+    "Use the $100 plan as a paper simulation for small-account research sizing."
+  ],
+  "commandMap": {
+    "report": "npm run small-caps",
+    "opScan": "npm run scan:op",
+    "wideScan": "npm run scan:wide",
+    "dashboard": "npm run dashboard"
+  }
+}

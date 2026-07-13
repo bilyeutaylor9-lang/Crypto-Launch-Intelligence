@@ -50,6 +50,7 @@ function explain(symbol = "") {
   console.log(`Simulation: ${project.simulationDecision || "Unknown"} (${project.simulationBrainScore || 0}) | Breakout ${project.breakoutProbability30d || 0}% | 30d ${project.expectedReturn30dPct || 0}%`);
   console.log(`Knowledge Graph: ${project.alphaKnowledgeGraphVerdict || "Unknown"} (${project.alphaKnowledgeGraphScore || 0}) | ${project.alphaKnowledgeGraph?.dominantRelation || "No dominant relation"}`);
   console.log(`Market Twin: ${project.causalMarketTwinVerdict || "Unknown"} (${project.causalMarketTwinScore || 0}) | EV ${project.causalMarketTwinExpectedReturnPct || 0}%`);
+  console.log(`Small-Cap Hunter: ${project.smallCapHunterVerdict || "Unknown"} (${project.smallCapHunterScore || 0}) | ${project.smallCapBand || "Unknown cap band"}`);
   console.log(`Outcome Judge: ${project.outcomeJudgeVerdict || "Unknown"} (${project.outcomeJudgeScore || 0}) | ${project.outcomeAdjustedConfidence || "Unknown"} confidence`);
   console.log(`Catalyst Radar: ${project.liveCatalystUrgency || "Low"} (${project.liveCatalystRadarScore || 0}) | ${project.liveCatalystEvents?.[0]?.type || "No catalyst"}`);
   console.log(`Dossier Swarm: ${project.dossierSwarmDecision || "Unknown"} (${project.dossierSwarmScore || 0}) | ${project.dossierSwarmConsensus || "No consensus"}`);
@@ -99,6 +100,7 @@ Commands:
   crypto-launch graph             Print Autonomous Alpha Knowledge Graph report
   crypto-launch twin              Print Causal Market Twin report
   crypto-launch graph-memory      Print persistent graph memory summary
+  crypto-launch small-caps        Print top two small-cap research candidates
   crypto-launch governor          Print Alpha Evolution Governor report
   crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
@@ -260,6 +262,12 @@ switch (command) {
   case "graph-memory":
   case "knowledge-memory":
     runNpm("graph-memory", args);
+    break;
+  case "small-caps":
+  case "small-cap":
+  case "microcaps":
+  case "micro-caps":
+    runNpm("small-caps", args);
     break;
   case "governor":
   case "alpha-governor":

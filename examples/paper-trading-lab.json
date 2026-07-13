@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.312Z",
+  "generatedAt": "2026-07-13T06:51:10.537Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
     "totalRecords": 4,
@@ -95,7 +95,7 @@
         "strategyId": "truth_verified_alpha",
         "strategyName": "Truth-Verified Alpha",
         "openedAt": "2026-07-13T06:15:19.501Z",
-        "updatedAt": "2026-07-13T06:15:19.501Z",
+        "updatedAt": "2026-07-13T06:34:15.655Z",
         "entryPriceUsd": 0,
         "latestPriceUsd": 0,
         "latestReturnPct": 0,
@@ -129,7 +129,10 @@
           "7d": null,
           "30d": null,
           "90d": null
-        }
+        },
+        "latestAlphaOSVerdict": "OS Best Available Candidate",
+        "latestAlphaOSScore": 41,
+        "latestRiskScore": 12
       },
       {
         "id": "rescue-modular-alt",
@@ -261,12 +264,22 @@
     {
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 46,
+      "score": 47,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "score": 44,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Risk Block"
     },
     {
       "name": "Render",
@@ -283,25 +296,15 @@
       "symbol": "AKT",
       "score": 44,
       "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
     },
     {
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "score": 43,
-      "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Risk Block"
-    },
-    {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 43,
+      "score": 42,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,

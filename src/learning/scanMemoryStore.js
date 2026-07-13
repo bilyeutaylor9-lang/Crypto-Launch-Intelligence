@@ -166,6 +166,7 @@ export function createScanRecord(project = {}) {
       autonomousResearch: num(project.autonomousResearchScore),
       alphaKnowledgeGraph: num(project.alphaKnowledgeGraphScore),
       causalMarketTwin: num(project.causalMarketTwinScore),
+      smallCapHunter: num(project.smallCapHunterScore),
       smartMoneyConviction: num(project.smartMoneyConvictionScore),
       liquidityMigration: num(project.liquidityMigrationScore),
       vestingPressure: num(project.vestingPressureScore),
@@ -272,6 +273,9 @@ export function createScanRecord(project = {}) {
       evidenceGraph: project.evidenceGraph || {},
       alphaKnowledgeGraph: project.alphaKnowledgeGraph || {},
       causalMarketTwin: project.causalMarketTwin || {},
+      smallCapHunter: project.smallCapHunter || {},
+      smallCapHunterSelected: Boolean(project.smallCapHunterSelected),
+      smallCapHunterSelectionRank: project.smallCapHunterSelectionRank || null,
     },
 
     futureOutcomes: {

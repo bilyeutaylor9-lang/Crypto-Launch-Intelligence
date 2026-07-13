@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.443Z",
-  "totalEngines": 109,
-  "wiredIntoPipeline": 85,
-  "stateOfArtReady": 92,
+  "generatedAt": "2026-07-13T06:51:10.671Z",
+  "totalEngines": 110,
+  "wiredIntoPipeline": 86,
+  "stateOfArtReady": 93,
   "readinessScore": 89,
   "categoryCounts": {
-    "intelligence": 42,
+    "intelligence": 43,
     "ai": 14,
     "learning": 19,
     "market-flow": 5,
@@ -1868,6 +1868,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "smallCapHunterEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeSmallCapHunter",
+        "analyzeSmallCapHunterBatch",
+        "summarizeSmallCapHunter"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

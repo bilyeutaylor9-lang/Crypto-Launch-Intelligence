@@ -1,16 +1,82 @@
 {
-  "generatedAt": "2026-07-13T06:33:02.380Z",
+  "generatedAt": "2026-07-13T06:51:10.616Z",
   "totalProjects": 8,
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/alpha-knowledge-graph.json",
-    "generatedAt": "2026-07-13T06:29:03.576Z",
-    "trackedProjects": 33,
-    "indexedChains": 2,
-    "indexedNarratives": 3,
-    "indexedSources": 3,
+    "generatedAt": "2026-07-13T06:34:15.800Z",
+    "trackedProjects": 108,
+    "indexedChains": 22,
+    "indexedNarratives": 35,
+    "indexedSources": 7,
     "indexedRepositories": 33,
     "hotspots": {
       "chains": [
+        {
+          "id": "ethereum",
+          "count": 29,
+          "projects": [
+            "research-seed-es",
+            "research-seed-eigen",
+            "research-seed-mega",
+            "research-seed-ath",
+            "research-seed-ondo",
+            "rescue-ai-ath",
+            "rescue-ai-olas",
+            "rescue-oracle-link",
+            "rescue-stablecoin-usual",
+            "research-seed-pendle",
+            "research-seed-ena",
+            "rescue-modular-alt",
+            "rescue-rwa-ondo",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-gfi",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-zk-zk",
+            "rescue-stablecoin-rsr",
+            "rescue-oracle-red",
+            "rescue-perps-aevo",
+            "rescue-gaming-imx",
+            "rescue-oracle-api3"
+          ]
+        },
+        {
+          "id": "solana",
+          "count": 25,
+          "projects": [
+            "research-seed-w",
+            "research-seed-rndr",
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "research-seed-jup",
+            "research-seed-pyth",
+            "rescue-solana-jup",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-solana-drift",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
+            "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
+            "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
+            "2ktxvykmsavhsry4jakhg4kfy8a69fxytx3t7t93pump",
+            "upaeul4zdnquvy9bdtoa63fpqhnbovwolekkvwgcbla",
+            "9qg92pwjygtowgu7mebnqzmwaxhc4fzua9nqmtt4pump",
+            "hbugfhal4ijdugihcy4ut6cngx58qac9djsafo7dpump",
+            "9fz2ctgcfnzdg7qrvcucglzcdjmmrmym5u6zqwjnwsel",
+            "gsozaypviofi9graehcnvnqusnwynznvkt9oyojpump",
+            "ctdvak1wz5wgjimqm41cgf323qtr1zwatnj3mwkdpump",
+            "66r44ygxe6zbxrmdibqkq5t6yhu72isue8bbs6u684fu"
+          ]
+        },
         {
           "id": "robinhood",
           "count": 22,
@@ -40,28 +106,134 @@
           ]
         },
         {
-          "id": "solana",
-          "count": 11,
+          "id": "base",
+          "count": 8,
           "projects": [
-            "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
-            "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
-            "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
-            "2ktxvykmsavhsry4jakhg4kfy8a69fxytx3t7t93pump",
-            "upaeul4zdnquvy9bdtoa63fpqhnbovwolekkvwgcbla",
-            "9qg92pwjygtowgu7mebnqzmwaxhc4fzua9nqmtt4pump",
-            "hbugfhal4ijdugihcy4ut6cngx58qac9djsafo7dpump",
-            "9fz2ctgcfnzdg7qrvcucglzcdjmmrmym5u6zqwjnwsel",
-            "gsozaypviofi9graehcnvnqusnwynznvkt9oyojpump",
-            "ctdvak1wz5wgjimqm41cgf323qtr1zwatnj3mwkdpump",
-            "66r44ygxe6zbxrmdibqkq5t6yhu72isue8bbs6u684fu"
+            "research-seed-virtual",
+            "research-seed-aero",
+            "rescue-ai-virtual",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "rescue-base-extra",
+            "rescue-base-well",
+            "rescue-base-seam"
+          ]
+        },
+        {
+          "id": "cosmos",
+          "count": 4,
+          "projects": [
+            "research-seed-akt",
+            "rescue-depin-akt",
+            "rescue-modular-dym",
+            "rescue-perps-dydx"
+          ]
+        },
+        {
+          "id": "bittensor",
+          "count": 2,
+          "projects": [
+            "research-seed-tao",
+            "rescue-ai-tao"
+          ]
+        },
+        {
+          "id": "celestia",
+          "count": 2,
+          "projects": [
+            "research-seed-tia",
+            "rescue-modular-tia"
+          ]
+        },
+        {
+          "id": "manta",
+          "count": 2,
+          "projects": [
+            "research-seed-manta",
+            "rescue-zk-manta"
           ]
         }
       ],
       "narratives": [
         {
           "id": "ai",
-          "count": 33,
+          "count": 108,
           "projects": [
+            "research-seed-bera",
+            "research-seed-es",
+            "research-seed-monad",
+            "research-seed-w",
+            "research-seed-zro",
+            "research-seed-eigen",
+            "research-seed-mega",
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-tia",
+            "research-seed-rndr",
+            "research-seed-ondo",
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-ai-ath",
+            "rescue-modular-tia",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "rescue-ai-tao",
+            "rescue-ai-olas",
+            "rescue-depin-akt",
+            "rescue-modular-dym",
+            "rescue-modular-sov",
+            "rescue-modular-avail",
+            "rescue-gaming-ron",
+            "rescue-oracle-link",
+            "research-seed-virtual",
+            "research-seed-aero",
+            "rescue-ai-virtual",
+            "rescue-stablecoin-usual",
+            "research-seed-pendle",
+            "rescue-perps-dydx",
+            "research-seed-manta",
+            "research-seed-ena",
+            "rescue-modular-alt",
+            "rescue-zk-mina",
+            "rescue-rwa-ondo",
+            "research-seed-jup",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-cfg",
+            "rescue-rwa-gfi",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "research-seed-pyth",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jup",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk",
+            "rescue-depin-fil",
+            "rescue-depin-ar",
+            "rescue-base-extra",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-stablecoin-rsr",
+            "rescue-oracle-red",
+            "rescue-perps-gmx",
+            "rescue-perps-aevo",
+            "rescue-solana-drift",
+            "rescue-perps-hype",
+            "rescue-base-well",
+            "rescue-gaming-imx",
+            "rescue-oracle-api3",
+            "rescue-base-seam",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "rescue-gaming-beam",
             "0x0da1de7f85f8f2dab381cae401bcbceba6cf01ae",
             "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
             "0x7fb5a4e3f8df4455703dd64c748f239c0931f086",
@@ -98,9 +270,54 @@
           ]
         },
         {
-          "id": "solana",
-          "count": 11,
+          "id": "defi",
+          "count": 25,
           "projects": [
+            "research-seed-bera",
+            "research-seed-ondo",
+            "research-seed-aero",
+            "research-seed-pendle",
+            "rescue-perps-dydx",
+            "research-seed-ena",
+            "rescue-rwa-ondo",
+            "research-seed-jup",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-gfi",
+            "rescue-base-aero",
+            "research-seed-pyth",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jup",
+            "rescue-base-extra",
+            "rescue-perps-gmx",
+            "rescue-solana-drift",
+            "rescue-perps-hype",
+            "rescue-base-well",
+            "rescue-base-seam",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "0x7fb5a4e3f8df4455703dd64c748f239c0931f086"
+          ]
+        },
+        {
+          "id": "solana",
+          "count": 25,
+          "projects": [
+            "research-seed-w",
+            "research-seed-rndr",
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "research-seed-jup",
+            "research-seed-pyth",
+            "rescue-solana-jup",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-solana-drift",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
             "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
             "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
             "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
@@ -115,14 +332,383 @@
           ]
         },
         {
-          "id": "defi",
-          "count": 1,
+          "id": "restaking",
+          "count": 22,
           "projects": [
-            "0x7fb5a4e3f8df4455703dd64c748f239c0931f086"
+            "research-seed-bera",
+            "research-seed-w",
+            "research-seed-eigen",
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-tia",
+            "rescue-modular-tia",
+            "rescue-ai-tao",
+            "rescue-depin-akt",
+            "research-seed-aero",
+            "research-seed-pendle",
+            "research-seed-manta",
+            "research-seed-ena",
+            "rescue-modular-alt",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jto"
+          ]
+        },
+        {
+          "id": "modular",
+          "count": 14,
+          "projects": [
+            "research-seed-es",
+            "research-seed-w",
+            "research-seed-mega",
+            "research-seed-tia",
+            "rescue-modular-tia",
+            "rescue-modular-dym",
+            "rescue-modular-sov",
+            "rescue-modular-avail",
+            "research-seed-manta",
+            "rescue-modular-alt",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk",
+            "rescue-oracle-red"
+          ]
+        },
+        {
+          "id": "depin",
+          "count": 14,
+          "projects": [
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-rndr",
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-ai-ath",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "rescue-ai-tao",
+            "rescue-depin-akt",
+            "rescue-depin-fil",
+            "rescue-depin-ar",
+            "rescue-depin-hnt"
+          ]
+        },
+        {
+          "id": "rwa",
+          "count": 9,
+          "projects": [
+            "research-seed-ondo",
+            "research-seed-virtual",
+            "rescue-ai-virtual",
+            "rescue-stablecoin-usual",
+            "rescue-rwa-ondo",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-cfg",
+            "rescue-rwa-gfi"
+          ]
+        },
+        {
+          "id": "base",
+          "count": 8,
+          "projects": [
+            "research-seed-virtual",
+            "research-seed-aero",
+            "rescue-ai-virtual",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "rescue-base-extra",
+            "rescue-base-well",
+            "rescue-base-seam"
+          ]
+        },
+        {
+          "id": "stablecoin",
+          "count": 6,
+          "projects": [
+            "research-seed-ondo",
+            "rescue-stablecoin-usual",
+            "research-seed-ena",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-stablecoin-rsr"
+          ]
+        },
+        {
+          "id": "privacy",
+          "count": 5,
+          "projects": [
+            "research-seed-manta",
+            "rescue-zk-mina",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk"
+          ]
+        },
+        {
+          "id": "gaming",
+          "count": 4,
+          "projects": [
+            "research-seed-ath",
+            "rescue-gaming-ron",
+            "rescue-gaming-imx",
+            "rescue-gaming-beam"
+          ]
+        },
+        {
+          "id": "perps",
+          "count": 4,
+          "projects": [
+            "rescue-perps-dydx",
+            "rescue-perps-gmx",
+            "rescue-perps-aevo",
+            "rescue-perps-hype"
           ]
         }
       ],
       "sources": [
+        {
+          "id": "roadmap",
+          "count": 108,
+          "projects": [
+            "research-seed-bera",
+            "research-seed-es",
+            "research-seed-monad",
+            "research-seed-w",
+            "research-seed-zro",
+            "research-seed-eigen",
+            "research-seed-mega",
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-tia",
+            "research-seed-rndr",
+            "research-seed-ondo",
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-ai-ath",
+            "rescue-modular-tia",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "rescue-ai-tao",
+            "rescue-ai-olas",
+            "rescue-depin-akt",
+            "rescue-modular-dym",
+            "rescue-modular-sov",
+            "rescue-modular-avail",
+            "rescue-gaming-ron",
+            "rescue-oracle-link",
+            "research-seed-virtual",
+            "research-seed-aero",
+            "rescue-ai-virtual",
+            "rescue-stablecoin-usual",
+            "research-seed-pendle",
+            "rescue-perps-dydx",
+            "research-seed-manta",
+            "research-seed-ena",
+            "rescue-modular-alt",
+            "rescue-zk-mina",
+            "rescue-rwa-ondo",
+            "research-seed-jup",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-cfg",
+            "rescue-rwa-gfi",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "research-seed-pyth",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jup",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk",
+            "rescue-depin-fil",
+            "rescue-depin-ar",
+            "rescue-base-extra",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-stablecoin-rsr",
+            "rescue-oracle-red",
+            "rescue-perps-gmx",
+            "rescue-perps-aevo",
+            "rescue-solana-drift",
+            "rescue-perps-hype",
+            "rescue-base-well",
+            "rescue-gaming-imx",
+            "rescue-oracle-api3",
+            "rescue-base-seam",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "rescue-gaming-beam",
+            "0x0da1de7f85f8f2dab381cae401bcbceba6cf01ae",
+            "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
+            "0x7fb5a4e3f8df4455703dd64c748f239c0931f086",
+            "0x0aa0b791f870d8c6f7dd310639c61991bb3e5d41",
+            "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
+            "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
+            "0x68742b496e8230b293b05dc35d366ce152471bcd",
+            "0xac2ceeda7072982fe34f231025d2e919a7e07863",
+            "0xc45eb65af7eee96707a9d433a05c53ba52768888",
+            "2ktxvykmsavhsry4jakhg4kfy8a69fxytx3t7t93pump",
+            "0xb7771c2099c69b5abf29672240900bf88b4087e3",
+            "0xf426b5c60bfb17286534ebdc1101fc0e3c41fcc4",
+            "0x2cfc76d6e62c0602fe018ba72e062a52b55a1163",
+            "upaeul4zdnquvy9bdtoa63fpqhnbovwolekkvwgcbla",
+            "0x7ebb9de631d1f27d92dcfc7921dd8b4e42b3d608",
+            "9qg92pwjygtowgu7mebnqzmwaxhc4fzua9nqmtt4pump",
+            "0xd2fe28fd9c5409557d11f3df9bdb42c7aecb255d",
+            "0x4663dd66c218b468e0d81816808fff44e8a7a4a0",
+            "hbugfhal4ijdugihcy4ut6cngx58qac9djsafo7dpump",
+            "9fz2ctgcfnzdg7qrvcucglzcdjmmrmym5u6zqwjnwsel",
+            "0x6053880a412346ff80ccb52365c79e1a2a17a8a5",
+            "0x84a508e988e7e4897dfdaf68efdaedeb9c5e5545",
+            "0x92532780e9edbb80aadb4e62f89c8407f8fdf258",
+            "0x0acb834130d284bfffa1c697f02dddafd8f50335",
+            "gsozaypviofi9graehcnvnqusnwynznvkt9oyojpump",
+            "ctdvak1wz5wgjimqm41cgf323qtr1zwatnj3mwkdpump",
+            "0xd55f3bbdced31daa38d214df6580ed97a405bfa8",
+            "0x7a81e1daa777c004a2ad68303323e84ebc234eeb",
+            "0x470b0859ebf4f9c8927873144f06c3cf8a92c7a0",
+            "0x24bacf58effeefc6a6993ae143b05034aa17b31a",
+            "0xd478e00fec96b0e15d6e984385cea43b4da09d20",
+            "66r44ygxe6zbxrmdibqkq5t6yhu72isue8bbs6u684fu",
+            "0x218eec7d0c6a26ba119063b3228b8d04085545d3"
+          ]
+        },
+        {
+          "id": "candidate-rescue",
+          "count": 55,
+          "projects": [
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-ai-ath",
+            "rescue-modular-tia",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "rescue-ai-tao",
+            "rescue-ai-olas",
+            "rescue-depin-akt",
+            "rescue-modular-dym",
+            "rescue-modular-sov",
+            "rescue-modular-avail",
+            "rescue-gaming-ron",
+            "rescue-oracle-link",
+            "rescue-ai-virtual",
+            "rescue-stablecoin-usual",
+            "rescue-perps-dydx",
+            "rescue-modular-alt",
+            "rescue-zk-mina",
+            "rescue-rwa-ondo",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-cfg",
+            "rescue-rwa-gfi",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jup",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk",
+            "rescue-depin-fil",
+            "rescue-depin-ar",
+            "rescue-base-extra",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-stablecoin-rsr",
+            "rescue-oracle-red",
+            "rescue-perps-gmx",
+            "rescue-perps-aevo",
+            "rescue-solana-drift",
+            "rescue-perps-hype",
+            "rescue-base-well",
+            "rescue-gaming-imx",
+            "rescue-oracle-api3",
+            "rescue-base-seam",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "rescue-gaming-beam"
+          ]
+        },
+        {
+          "id": "candidaterescue",
+          "count": 55,
+          "projects": [
+            "rescue-ai-rndr",
+            "rescue-ai-nos",
+            "rescue-ai-ath",
+            "rescue-modular-tia",
+            "rescue-depin-grass",
+            "rescue-ai-io",
+            "rescue-ai-tao",
+            "rescue-ai-olas",
+            "rescue-depin-akt",
+            "rescue-modular-dym",
+            "rescue-modular-sov",
+            "rescue-modular-avail",
+            "rescue-gaming-ron",
+            "rescue-oracle-link",
+            "rescue-ai-virtual",
+            "rescue-stablecoin-usual",
+            "rescue-perps-dydx",
+            "rescue-modular-alt",
+            "rescue-zk-mina",
+            "rescue-rwa-ondo",
+            "rescue-restaking-puffer",
+            "rescue-restaking-eigen",
+            "rescue-restaking-kelp",
+            "rescue-restaking-ethfi",
+            "rescue-restaking-rez",
+            "rescue-rwa-mpl",
+            "rescue-rwa-cpool",
+            "rescue-rwa-cfg",
+            "rescue-rwa-gfi",
+            "rescue-base-brett",
+            "rescue-base-aero",
+            "rescue-stablecoin-ena",
+            "rescue-stablecoin-fxs",
+            "rescue-solana-jup",
+            "rescue-zk-manta",
+            "rescue-zk-strk",
+            "rescue-zk-zk",
+            "rescue-depin-fil",
+            "rescue-depin-ar",
+            "rescue-base-extra",
+            "rescue-depin-hnt",
+            "rescue-solana-jto",
+            "rescue-stablecoin-rsr",
+            "rescue-oracle-red",
+            "rescue-perps-gmx",
+            "rescue-perps-aevo",
+            "rescue-solana-drift",
+            "rescue-perps-hype",
+            "rescue-base-well",
+            "rescue-gaming-imx",
+            "rescue-oracle-api3",
+            "rescue-base-seam",
+            "rescue-solana-pyth",
+            "rescue-solana-kmno",
+            "rescue-gaming-beam"
+          ]
+        },
         {
           "id": "google-news",
           "count": 33,
@@ -202,371 +788,384 @@
           ]
         },
         {
-          "id": "roadmap",
-          "count": 33,
+          "id": "research-seed",
+          "count": 20,
           "projects": [
-            "0x0da1de7f85f8f2dab381cae401bcbceba6cf01ae",
-            "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
-            "0x7fb5a4e3f8df4455703dd64c748f239c0931f086",
-            "0x0aa0b791f870d8c6f7dd310639c61991bb3e5d41",
-            "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
-            "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
-            "0x68742b496e8230b293b05dc35d366ce152471bcd",
-            "0xac2ceeda7072982fe34f231025d2e919a7e07863",
-            "0xc45eb65af7eee96707a9d433a05c53ba52768888",
-            "2ktxvykmsavhsry4jakhg4kfy8a69fxytx3t7t93pump",
-            "0xb7771c2099c69b5abf29672240900bf88b4087e3",
-            "0xf426b5c60bfb17286534ebdc1101fc0e3c41fcc4",
-            "0x2cfc76d6e62c0602fe018ba72e062a52b55a1163",
-            "upaeul4zdnquvy9bdtoa63fpqhnbovwolekkvwgcbla",
-            "0x7ebb9de631d1f27d92dcfc7921dd8b4e42b3d608",
-            "9qg92pwjygtowgu7mebnqzmwaxhc4fzua9nqmtt4pump",
-            "0xd2fe28fd9c5409557d11f3df9bdb42c7aecb255d",
-            "0x4663dd66c218b468e0d81816808fff44e8a7a4a0",
-            "hbugfhal4ijdugihcy4ut6cngx58qac9djsafo7dpump",
-            "9fz2ctgcfnzdg7qrvcucglzcdjmmrmym5u6zqwjnwsel",
-            "0x6053880a412346ff80ccb52365c79e1a2a17a8a5",
-            "0x84a508e988e7e4897dfdaf68efdaedeb9c5e5545",
-            "0x92532780e9edbb80aadb4e62f89c8407f8fdf258",
-            "0x0acb834130d284bfffa1c697f02dddafd8f50335",
-            "gsozaypviofi9graehcnvnqusnwynznvkt9oyojpump",
-            "ctdvak1wz5wgjimqm41cgf323qtr1zwatnj3mwkdpump",
-            "0xd55f3bbdced31daa38d214df6580ed97a405bfa8",
-            "0x7a81e1daa777c004a2ad68303323e84ebc234eeb",
-            "0x470b0859ebf4f9c8927873144f06c3cf8a92c7a0",
-            "0x24bacf58effeefc6a6993ae143b05034aa17b31a",
-            "0xd478e00fec96b0e15d6e984385cea43b4da09d20",
-            "66r44ygxe6zbxrmdibqkq5t6yhu72isue8bbs6u684fu",
-            "0x218eec7d0c6a26ba119063b3228b8d04085545d3"
+            "research-seed-bera",
+            "research-seed-es",
+            "research-seed-monad",
+            "research-seed-w",
+            "research-seed-zro",
+            "research-seed-eigen",
+            "research-seed-mega",
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-tia",
+            "research-seed-rndr",
+            "research-seed-ondo",
+            "research-seed-virtual",
+            "research-seed-aero",
+            "research-seed-pendle",
+            "research-seed-manta",
+            "research-seed-ena",
+            "research-seed-jup",
+            "research-seed-pyth"
+          ]
+        },
+        {
+          "id": "researchseeds",
+          "count": 20,
+          "projects": [
+            "research-seed-bera",
+            "research-seed-es",
+            "research-seed-monad",
+            "research-seed-w",
+            "research-seed-zro",
+            "research-seed-eigen",
+            "research-seed-mega",
+            "research-seed-tao",
+            "research-seed-ath",
+            "research-seed-akt",
+            "research-seed-tia",
+            "research-seed-rndr",
+            "research-seed-ondo",
+            "research-seed-virtual",
+            "research-seed-aero",
+            "research-seed-pendle",
+            "research-seed-manta",
+            "research-seed-ena",
+            "research-seed-jup",
+            "research-seed-pyth"
           ]
         }
       ]
     },
     "topMemoryProfiles": [
       {
-        "key": "0x68742b496e8230b293b05dc35d366ce152471bcd",
+        "key": "research-seed-ena",
         "scans": 1,
-        "name": "Make Robinhood Great Again",
-        "symbol": "MRGA",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 42,
-        "causalMarketTwinScore": 26,
+        "name": "Ethena",
+        "symbol": "ENA",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 48,
+        "causalMarketTwinScore": 33,
+        "governorScore": 54,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 33
+      },
+      {
+        "key": "rescue-restaking-kelp",
+        "scans": 1,
+        "name": "Kelp DAO",
+        "symbol": "KELP",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 53,
+        "causalMarketTwinScore": 33,
+        "governorScore": 55,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 33
+      },
+      {
+        "key": "rescue-solana-jto",
+        "scans": 1,
+        "name": "Jito",
+        "symbol": "JTO",
+        "chain": "solana",
+        "alphaKnowledgeGraphScore": 52,
+        "causalMarketTwinScore": 33,
+        "governorScore": 56,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 33
+      },
+      {
+        "key": "rescue-restaking-eigen",
+        "scans": 1,
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 51,
+        "causalMarketTwinScore": 32,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 32
+      },
+      {
+        "key": "rescue-restaking-ethfi",
+        "scans": 1,
+        "name": "Ether.fi",
+        "symbol": "ETHFI",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 52,
+        "causalMarketTwinScore": 32,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 32
+      },
+      {
+        "key": "rescue-restaking-rez",
+        "scans": 1,
+        "name": "Renzo",
+        "symbol": "REZ",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 52,
+        "causalMarketTwinScore": 32,
+        "governorScore": 54,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 32
+      },
+      {
+        "key": "rescue-base-aero",
+        "scans": 1,
+        "name": "Aerodrome",
+        "symbol": "AERO",
+        "chain": "base",
+        "alphaKnowledgeGraphScore": 48,
+        "causalMarketTwinScore": 32,
+        "governorScore": 55,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 32
+      },
+      {
+        "key": "rescue-gaming-ron",
+        "scans": 1,
+        "name": "Ronin",
+        "symbol": "RON",
+        "chain": "ronin",
+        "alphaKnowledgeGraphScore": 46,
+        "causalMarketTwinScore": 31,
+        "governorScore": 52,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 31
+      },
+      {
+        "key": "research-seed-aero",
+        "scans": 1,
+        "name": "Aerodrome",
+        "symbol": "AERO",
+        "chain": "base",
+        "alphaKnowledgeGraphScore": 52,
+        "causalMarketTwinScore": 31,
+        "governorScore": 55,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 31
+      },
+      {
+        "key": "research-seed-jup",
+        "scans": 1,
+        "name": "Jupiter",
+        "symbol": "JUP",
+        "chain": "solana",
+        "alphaKnowledgeGraphScore": 47,
+        "causalMarketTwinScore": 31,
+        "governorScore": 52,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 31
+      },
+      {
+        "key": "rescue-restaking-puffer",
+        "scans": 1,
+        "name": "Puffer",
+        "symbol": "PUFFER",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 51,
+        "causalMarketTwinScore": 31,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 31
+      },
+      {
+        "key": "rescue-stablecoin-fxs",
+        "scans": 1,
+        "name": "Frax",
+        "symbol": "FXS",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 48,
+        "causalMarketTwinScore": 31,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 31
+      },
+      {
+        "key": "rescue-rwa-mpl",
+        "scans": 1,
+        "name": "Maple Finance",
+        "symbol": "MPL",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 44,
+        "causalMarketTwinScore": 30,
         "governorScore": 51,
-        "verdict": "Twin Risk Block",
-        "pipelineDelta": 20,
-        "twinDelta": 26
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 30
       },
       {
-        "key": "0xc45eb65af7eee96707a9d433a05c53ba52768888",
-        "scans": 2,
-        "name": "HOOD4663",
-        "symbol": "HOOD",
-        "chain": "robinhood",
+        "key": "rescue-rwa-cpool",
+        "scans": 1,
+        "name": "Clearpool",
+        "symbol": "CPOOL",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 44,
+        "causalMarketTwinScore": 30,
+        "governorScore": 51,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 30
+      },
+      {
+        "key": "rescue-rwa-cfg",
+        "scans": 1,
+        "name": "Centrifuge",
+        "symbol": "CFG",
+        "chain": "polkadot",
+        "alphaKnowledgeGraphScore": 46,
+        "causalMarketTwinScore": 29,
+        "governorScore": 51,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 29
+      },
+      {
+        "key": "rescue-base-brett",
+        "scans": 1,
+        "name": "Brett",
+        "symbol": "BRETT",
+        "chain": "base",
+        "alphaKnowledgeGraphScore": 48,
+        "causalMarketTwinScore": 29,
+        "governorScore": 52,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 29
+      },
+      {
+        "key": "rescue-zk-manta",
+        "scans": 1,
+        "name": "Manta Network",
+        "symbol": "MANTA",
+        "chain": "manta",
+        "alphaKnowledgeGraphScore": 49,
+        "causalMarketTwinScore": 29,
+        "governorScore": 52,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 29
+      },
+      {
+        "key": "research-seed-monad",
+        "scans": 1,
+        "name": "Monad",
+        "symbol": "MONAD",
+        "chain": "monad",
+        "alphaKnowledgeGraphScore": 49,
+        "causalMarketTwinScore": 28,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 7,
+        "twinDelta": 28
+      },
+      {
+        "key": "rescue-modular-tia",
+        "scans": 1,
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "alphaKnowledgeGraphScore": 51,
+        "causalMarketTwinScore": 28,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 1,
+        "twinDelta": 28
+      },
+      {
+        "key": "rescue-ai-tao",
+        "scans": 1,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "alphaKnowledgeGraphScore": 51,
+        "causalMarketTwinScore": 28,
+        "governorScore": 53,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 1,
+        "twinDelta": 28
+      },
+      {
+        "key": "research-seed-pendle",
+        "scans": 1,
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 48,
+        "causalMarketTwinScore": 28,
+        "governorScore": 52,
+        "verdict": "Twin Reject",
+        "pipelineDelta": 0,
+        "twinDelta": 28
+      },
+      {
+        "key": "rescue-perps-dydx",
+        "scans": 1,
+        "name": "dYdX",
+        "symbol": "DYDX",
+        "chain": "cosmos",
         "alphaKnowledgeGraphScore": 43,
-        "causalMarketTwinScore": 24,
-        "governorScore": 49,
-        "verdict": "Twin Risk Block",
-        "pipelineDelta": 0,
-        "twinDelta": 0
-      },
-      {
-        "key": "0x7fb5a4e3f8df4455703dd64c748f239c0931f086",
-        "scans": 1,
-        "name": "Robinhood Meme Index",
-        "symbol": "RMI",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 38,
-        "causalMarketTwinScore": 22,
-        "governorScore": 46,
-        "verdict": "Twin Risk Block",
-        "pipelineDelta": 23,
-        "twinDelta": 22
-      },
-      {
-        "key": "0xac2ceeda7072982fe34f231025d2e919a7e07863",
-        "scans": 1,
-        "name": "memecoin",
-        "symbol": "MEME",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 41,
-        "causalMarketTwinScore": 22,
-        "governorScore": 48,
-        "verdict": "Twin Risk Block",
-        "pipelineDelta": 20,
-        "twinDelta": 22
-      },
-      {
-        "key": "0x0aa0b791f870d8c6f7dd310639c61991bb3e5d41",
-        "scans": 1,
-        "name": "Froth",
-        "symbol": "FROTH",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 38,
-        "causalMarketTwinScore": 21,
-        "governorScore": 47,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 23,
-        "twinDelta": 21
-      },
-      {
-        "key": "0x0da1de7f85f8f2dab381cae401bcbceba6cf01ae",
-        "scans": 1,
-        "name": "Sydney",
-        "symbol": "SYDNEY",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 38,
-        "causalMarketTwinScore": 19,
-        "governorScore": 46,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 24,
-        "twinDelta": 19
-      },
-      {
-        "key": "0x7ebb9de631d1f27d92dcfc7921dd8b4e42b3d608",
-        "scans": 1,
-        "name": "Elves for retirement",
-        "symbol": "Elves",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 37,
-        "causalMarketTwinScore": 19,
-        "governorScore": 45,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 16,
-        "twinDelta": 19
-      },
-      {
-        "key": "hs5edt766njwsyseh3hnc61t9y9nvd67vfpvlqhdpump",
-        "scans": 1,
-        "name": "ROBINSOL",
-        "symbol": "ROBINSOL",
-        "chain": "solana",
-        "alphaKnowledgeGraphScore": 38,
-        "causalMarketTwinScore": 18,
-        "governorScore": 45,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 24,
-        "twinDelta": 18
-      },
-      {
-        "key": "0x24bacf58effeefc6a6993ae143b05034aa17b31a",
-        "scans": 1,
-        "name": "Robinhood Coin",
-        "symbol": "RobinhoodCoin",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 41,
-        "causalMarketTwinScore": 17,
-        "governorScore": 46,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 9,
-        "twinDelta": 17
-      },
-      {
-        "key": "0x218eec7d0c6a26ba119063b3228b8d04085545d3",
-        "scans": 1,
-        "name": "LMEOW",
-        "symbol": "LMEOW",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 41,
-        "causalMarketTwinScore": 15,
-        "governorScore": 46,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 4,
-        "twinDelta": 15
-      },
-      {
-        "key": "0x6053880a412346ff80ccb52365c79e1a2a17a8a5",
-        "scans": 1,
-        "name": "Robinhood Doge",
-        "symbol": "ROGE",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 36,
-        "causalMarketTwinScore": 14,
-        "governorScore": 44,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 13,
-        "twinDelta": 14
-      },
-      {
-        "key": "fhxkhmriespzgnewx7rixmn1fzawzudv6ajqqbd7pump",
-        "scans": 1,
-        "name": "趁热打铁",
-        "symbol": "趁热打铁",
-        "chain": "solana",
-        "alphaKnowledgeGraphScore": 36,
-        "causalMarketTwinScore": 13,
-        "governorScore": 43,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 23,
-        "twinDelta": 13
-      },
-      {
-        "key": "0xb7771c2099c69b5abf29672240900bf88b4087e3",
-        "scans": 1,
-        "name": "York the Hood Dog",
-        "symbol": "YORK",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 38,
-        "causalMarketTwinScore": 13,
-        "governorScore": 45,
-        "verdict": "Twin Risk Block",
-        "pipelineDelta": 19,
-        "twinDelta": 13
-      },
-      {
-        "key": "0xd2fe28fd9c5409557d11f3df9bdb42c7aecb255d",
-        "scans": 1,
-        "name": "Vlad Tenev",
-        "symbol": "BABYVlad",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 37,
-        "causalMarketTwinScore": 13,
-        "governorScore": 44,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 15,
-        "twinDelta": 13
-      },
-      {
-        "key": "0x7a81e1daa777c004a2ad68303323e84ebc234eeb",
-        "scans": 1,
-        "name": "Robinhood bibi",
-        "symbol": "bibi",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 13,
-        "governorScore": 44,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 11,
-        "twinDelta": 13
-      },
-      {
-        "key": "0x470b0859ebf4f9c8927873144f06c3cf8a92c7a0",
-        "scans": 1,
-        "name": "Unhing3d",
-        "symbol": "UN3D",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 13,
-        "governorScore": 43,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 11,
-        "twinDelta": 13
-      },
-      {
-        "key": "2ktxvykmsavhsry4jakhg4kfy8a69fxytx3t7t93pump",
-        "scans": 2,
-        "name": "PINKJAK",
-        "symbol": "PINKJAK",
-        "chain": "solana",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 12,
-        "governorScore": 43,
+        "causalMarketTwinScore": 28,
+        "governorScore": 51,
         "verdict": "Twin Reject",
         "pipelineDelta": 0,
-        "twinDelta": 0
+        "twinDelta": 28
       },
       {
-        "key": "66r44ygxe6zbxrmdibqkq5t6yhu72isue8bbs6u684fu",
-        "scans": 2,
-        "name": "apple cat",
-        "symbol": "acat",
-        "chain": "solana",
-        "alphaKnowledgeGraphScore": 40,
-        "causalMarketTwinScore": 12,
-        "governorScore": 45,
+        "key": "rescue-rwa-gfi",
+        "scans": 1,
+        "name": "Goldfinch",
+        "symbol": "GFI",
+        "chain": "ethereum",
+        "alphaKnowledgeGraphScore": 43,
+        "causalMarketTwinScore": 28,
+        "governorScore": 51,
         "verdict": "Twin Reject",
         "pipelineDelta": 0,
-        "twinDelta": 0
+        "twinDelta": 28
       },
       {
-        "key": "0xf426b5c60bfb17286534ebdc1101fc0e3c41fcc4",
+        "key": "research-seed-pyth",
         "scans": 1,
-        "name": "Sydney",
-        "symbol": "SYDNEY",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 11,
-        "governorScore": 44,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 18,
-        "twinDelta": 11
-      },
-      {
-        "key": "0x2cfc76d6e62c0602fe018ba72e062a52b55a1163",
-        "scans": 1,
-        "name": "Purrency",
-        "symbol": "PURR",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 34,
-        "causalMarketTwinScore": 11,
-        "governorScore": 43,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 17,
-        "twinDelta": 11
-      },
-      {
-        "key": "upaeul4zdnquvy9bdtoa63fpqhnbovwolekkvwgcbla",
-        "scans": 1,
-        "name": "United Peace Asset",
-        "symbol": "UPA",
+        "name": "Pyth Network",
+        "symbol": "PYTH",
         "chain": "solana",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 11,
-        "governorScore": 43,
+        "alphaKnowledgeGraphScore": 45,
+        "causalMarketTwinScore": 28,
+        "governorScore": 51,
         "verdict": "Twin Reject",
-        "pipelineDelta": 17,
-        "twinDelta": 11
+        "pipelineDelta": 0,
+        "twinDelta": 28
       },
       {
-        "key": "0x4663dd66c218b468e0d81816808fff44e8a7a4a0",
+        "key": "rescue-solana-jup",
         "scans": 1,
-        "name": "Boyz N The Hood",
-        "symbol": "BOYZ",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 34,
-        "causalMarketTwinScore": 11,
-        "governorScore": 43,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 15,
-        "twinDelta": 11
-      },
-      {
-        "key": "0x0acb834130d284bfffa1c697f02dddafd8f50335",
-        "scans": 1,
-        "name": "Hoodbird",
-        "symbol": "HOODBIRD",
-        "chain": "robinhood",
-        "alphaKnowledgeGraphScore": 34,
-        "causalMarketTwinScore": 11,
-        "governorScore": 43,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 12,
-        "twinDelta": 11
-      },
-      {
-        "key": "5whr534gceemrvpeddpzgwlxkqx3shhhmcdz1fxcamzi",
-        "scans": 2,
-        "name": "banana cat ",
-        "symbol": "bcat",
+        "name": "Jupiter",
+        "symbol": "JUP",
         "chain": "solana",
-        "alphaKnowledgeGraphScore": 35,
-        "causalMarketTwinScore": 10,
-        "governorScore": 42,
+        "alphaKnowledgeGraphScore": 45,
+        "causalMarketTwinScore": 28,
+        "governorScore": 50,
         "verdict": "Twin Reject",
-        "pipelineDelta": -5,
-        "twinDelta": -1
-      },
-      {
-        "key": "9qg92pwjygtowgu7mebnqzmwaxhc4fzua9nqmtt4pump",
-        "scans": 1,
-        "name": "The Monkey King",
-        "symbol": "老刘",
-        "chain": "solana",
-        "alphaKnowledgeGraphScore": 34,
-        "causalMarketTwinScore": 10,
-        "governorScore": 41,
-        "verdict": "Twin Reject",
-        "pipelineDelta": 16,
-        "twinDelta": 10
+        "pipelineDelta": 0,
+        "twinDelta": 28
       }
     ]
   },
@@ -586,7 +1185,7 @@
   "twinnedProjects": 8,
   "marketRegime": {
     "state": "Risk-Off",
-    "avgHeat": 77,
+    "avgHeat": 78,
     "avgLiquidity": 25,
     "avgRisk": 74,
     "avgProof": 51,
@@ -595,25 +1194,25 @@
   "strongBuyResearch": 0,
   "priorityResearch": 0,
   "riskBlocks": 0,
-  "averageExpectedReturnPct": 0,
+  "averageExpectedReturnPct": 2,
   "topProjects": [
     {
       "rank": 1,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "graphScore": 50,
+      "graphScore": 51,
       "graphConfidence": "Developing",
       "graphVerdict": "Knowledge Graph Watch",
-      "twinScore": 28,
+      "twinScore": 37,
       "twinConfidence": "Developing",
       "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -10,
-      "upsideProbability": 41,
-      "downsideProbability": 41,
+      "expectedReturnPct": 0,
+      "upsideProbability": 68,
+      "downsideProbability": 23,
       "dominantRelation": "narrative:ai",
       "primaryCausalDriver": "Evidence Quality",
-      "memoryScans": 0,
+      "memoryScans": 1,
       "graphSize": {
         "nodes": 22,
         "edges": 28,
@@ -624,233 +1223,16 @@
       "moduleScores": {
         "sourceCoverage": 35,
         "evidenceQuality": 81,
-        "relationStrength": 87,
+        "relationStrength": 96,
         "engineAgreement": 45,
         "catalystContext": 35,
-        "memoryScore": 0,
+        "memoryScore": 8,
         "riskIntegrity": 28
       },
       "bestScenario": {
         "id": "bull_case",
         "label": "Bull Case",
-        "expectedMovePct": 28,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 2
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -42,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 23
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
-      ]
-    },
-    {
-      "rank": 2,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "graphScore": 47,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 28,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -11,
-      "upsideProbability": 41,
-      "downsideProbability": 41,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Evidence Quality",
-      "memoryScans": 0,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 81,
-        "relationStrength": 63,
-        "engineAgreement": 47,
-        "catalystContext": 38,
-        "memoryScore": 0,
-        "riskIntegrity": 27
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 27,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 2
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -43,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 23
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 3,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "graphScore": 47,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 27,
-      "twinConfidence": "Low",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -9,
-      "upsideProbability": 42,
-      "downsideProbability": 42,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 0,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 91,
-        "engineAgreement": 45,
-        "catalystContext": 40,
-        "memoryScore": 0,
-        "riskIntegrity": 27
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 33,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 3
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -44,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 25
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "chain": "solana",
-      "graphScore": 44,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Thin",
-      "twinScore": 26,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -13,
-      "upsideProbability": 41,
-      "downsideProbability": 41,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Evidence Quality",
-      "memoryScans": 0,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 81,
-        "relationStrength": 63,
-        "engineAgreement": 38,
-        "catalystContext": 27,
-        "memoryScore": 0,
-        "riskIntegrity": 30
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 21,
+        "expectedMovePct": 29,
         "triggers": [
           "Narrative heat keeps expanding.",
           "Catalyst proof confirms on schedule.",
@@ -873,7 +1255,224 @@
         "invalidatesIf": [
           "Invalidation evidence is disproven and proof quality recovers."
         ],
-        "probability": 23
+        "probability": 14
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "graphScore": 53,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 37,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": -2,
+      "upsideProbability": 68,
+      "downsideProbability": 23,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 1,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 47,
+        "catalystContext": 38,
+        "memoryScore": 8,
+        "riskIntegrity": 27
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 28,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -43,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 14
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure."
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "graphScore": 49,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 36,
+      "twinConfidence": "Low",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 3,
+      "upsideProbability": 69,
+      "downsideProbability": 22,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Narrative Gravity",
+      "memoryScans": 1,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 65,
+        "relationStrength": 99,
+        "engineAgreement": 45,
+        "catalystContext": 40,
+        "memoryScore": 8,
+        "riskIntegrity": 27
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 33,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 2
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -44,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 13
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure."
+      ]
+    },
+    {
+      "rank": 4,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "graphScore": 50,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Watch",
+      "twinScore": 35,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": -4,
+      "upsideProbability": 68,
+      "downsideProbability": 23,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 1,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 38,
+        "catalystContext": 27,
+        "memoryScore": 8,
+        "riskIntegrity": 30
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 21,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 0
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -42,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 14
       },
       "missingProof": [
         "Add more independent sources to the graph.",
@@ -892,18 +1491,18 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "graphScore": 49,
+      "graphScore": 51,
       "graphConfidence": "Developing",
       "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 24,
+      "twinScore": 34,
       "twinConfidence": "Low",
       "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -9,
-      "upsideProbability": 43,
-      "downsideProbability": 40,
+      "expectedReturnPct": 2,
+      "upsideProbability": 68,
+      "downsideProbability": 22,
       "dominantRelation": "narrative:ai",
       "primaryCausalDriver": "Why-Now Catalyst",
-      "memoryScans": 0,
+      "memoryScans": 1,
       "graphSize": {
         "nodes": 21,
         "edges": 27,
@@ -913,17 +1512,17 @@
       },
       "moduleScores": {
         "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 91,
+        "evidenceQuality": 66,
+        "relationStrength": 100,
         "engineAgreement": 47,
         "catalystContext": 57,
-        "memoryScore": 0,
+        "memoryScore": 8,
         "riskIntegrity": 22
       },
       "bestScenario": {
         "id": "bull_case",
         "label": "Bull Case",
-        "expectedMovePct": 36,
+        "expectedMovePct": 37,
         "triggers": [
           "Narrative heat keeps expanding.",
           "Catalyst proof confirms on schedule.",
@@ -933,7 +1532,7 @@
           "Liquidity expansion stalls while attention rises.",
           "Source truth or proof score drops below 45."
         ],
-        "probability": 3
+        "probability": 2
       },
       "worstScenario": {
         "id": "invalidation_case",
@@ -946,7 +1545,7 @@
         "invalidatesIf": [
           "Invalidation evidence is disproven and proof quality recovers."
         ],
-        "probability": 23
+        "probability": 13
       },
       "missingProof": [
         "Add more independent sources to the graph.",
@@ -964,18 +1563,18 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "graphScore": 45,
+      "graphScore": 47,
       "graphConfidence": "Developing",
       "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 23,
+      "twinScore": 33,
       "twinConfidence": "Low",
       "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -10,
-      "upsideProbability": 42,
-      "downsideProbability": 41,
+      "expectedReturnPct": 1,
+      "upsideProbability": 68,
+      "downsideProbability": 23,
       "dominantRelation": "narrative:ai",
       "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 0,
+      "memoryScans": 1,
       "graphSize": {
         "nodes": 22,
         "edges": 28,
@@ -986,10 +1585,10 @@
       "moduleScores": {
         "sourceCoverage": 35,
         "evidenceQuality": 65,
-        "relationStrength": 91,
+        "relationStrength": 100,
         "engineAgreement": 41,
         "catalystContext": 30,
-        "memoryScore": 0,
+        "memoryScore": 8,
         "riskIntegrity": 25
       },
       "bestScenario": {
@@ -1005,7 +1604,7 @@
           "Liquidity expansion stalls while attention rises.",
           "Source truth or proof score drops below 45."
         ],
-        "probability": 2
+        "probability": 1
       },
       "worstScenario": {
         "id": "invalidation_case",
@@ -1018,7 +1617,7 @@
         "invalidatesIf": [
           "Invalidation evidence is disproven and proof quality recovers."
         ],
-        "probability": 23
+        "probability": 13
       },
       "missingProof": [
         "Add more independent sources to the graph.",
@@ -1037,18 +1636,18 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "graphScore": 41,
+      "graphScore": 45,
       "graphConfidence": "Developing",
       "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 22,
+      "twinScore": 32,
       "twinConfidence": "Low",
       "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -11,
-      "upsideProbability": 41,
-      "downsideProbability": 42,
+      "expectedReturnPct": 2,
+      "upsideProbability": 69,
+      "downsideProbability": 22,
       "dominantRelation": "narrative:ai",
       "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 0,
+      "memoryScans": 1,
       "graphSize": {
         "nodes": 22,
         "edges": 28,
@@ -1059,10 +1658,10 @@
       "moduleScores": {
         "sourceCoverage": 35,
         "evidenceQuality": 65,
-        "relationStrength": 77,
+        "relationStrength": 100,
         "engineAgreement": 37,
         "catalystContext": 22,
-        "memoryScore": 0,
+        "memoryScore": 8,
         "riskIntegrity": 25
       },
       "bestScenario": {
@@ -1078,7 +1677,7 @@
           "Liquidity expansion stalls while attention rises.",
           "Source truth or proof score drops below 45."
         ],
-        "probability": 2
+        "probability": 1
       },
       "worstScenario": {
         "id": "invalidation_case",
@@ -1091,7 +1690,7 @@
         "invalidatesIf": [
           "Invalidation evidence is disproven and proof quality recovers."
         ],
-        "probability": 24
+        "probability": 12
       },
       "missingProof": [
         "Add more independent sources to the graph.",
@@ -1110,18 +1709,18 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "graphScore": 41,
-      "graphConfidence": "Low",
+      "graphScore": 48,
+      "graphConfidence": "Developing",
       "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 22,
+      "twinScore": 32,
       "twinConfidence": "Low",
       "twinVerdict": "Twin Reject",
-      "expectedReturnPct": -12,
-      "upsideProbability": 41,
-      "downsideProbability": 42,
+      "expectedReturnPct": -1,
+      "upsideProbability": 68,
+      "downsideProbability": 23,
       "dominantRelation": "narrative:ai",
       "primaryCausalDriver": "Strategy Fit",
-      "memoryScans": 0,
+      "memoryScans": 1,
       "graphSize": {
         "nodes": 23,
         "edges": 29,
@@ -1132,10 +1731,10 @@
       "moduleScores": {
         "sourceCoverage": 35,
         "evidenceQuality": 64,
-        "relationStrength": 57,
+        "relationStrength": 100,
         "engineAgreement": 40,
         "catalystContext": 40,
-        "memoryScore": 0,
+        "memoryScore": 8,
         "riskIntegrity": 24
       },
       "bestScenario": {
@@ -1151,7 +1750,7 @@
           "Liquidity expansion stalls while attention rises.",
           "Source truth or proof score drops below 45."
         ],
-        "probability": 2
+        "probability": 1
       },
       "worstScenario": {
         "id": "invalidation_case",
@@ -1164,7 +1763,7 @@
         "invalidatesIf": [
           "Invalidation evidence is disproven and proof quality recovers."
         ],
-        "probability": 24
+        "probability": 13
       },
       "missingProof": [
         "Add more independent sources to the graph.",

@@ -86,6 +86,7 @@ import { analyzeProofCarryingAlphaContractBatch } from "./engines/proofCarryingA
 import { analyzeAutonomousAlphaKnowledgeGraphBatch } from "./engines/autonomousAlphaKnowledgeGraphEngine.js";
 import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
+import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1104,6 +1105,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutonomousAlphaKnowledgeGraphBatch(results);
   results = analyzeCausalMarketTwinBatch(results);
   results = analyzeAlphaEvolutionGovernorBatch(results);
+  results = analyzeSmallCapHunterBatch(results, options.smallCapHunter || {});
 
   if (options.saveMemory !== false) {
     try {
@@ -1380,6 +1382,13 @@ export function summarizePipelineResults(results = []) {
   const topAlphaGovernorSetups = [...safeResults]
     .sort((a, b) => num(b.alphaEvolutionGovernorScore) - num(a.alphaEvolutionGovernorScore))
     .slice(0, 10);
+  const smallCapHunterSelections = safeResults.filter((p) => p.smallCapHunterSelected);
+  const smallCapHunterWatch = safeResults.filter((p) => p.smallCapHunterVerdict === "Small-Cap Watch");
+  const smallCapHunterRiskBlocks = safeResults.filter((p) => p.smallCapHunterVerdict === "Small-Cap Risk Block");
+  const topSmallCapHunterSetups = [...safeResults]
+    .filter((p) => p.smallCapHunter)
+    .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1490,6 +1499,9 @@ export function summarizePipelineResults(results = []) {
     alphaGovernorRecheckCount: alphaGovernorRechecks.length,
     alphaGovernorEvidenceGapCount: alphaGovernorEvidenceGaps.length,
     alphaGovernorRiskBlockCount: alphaGovernorRiskBlocks.length,
+    smallCapHunterSelectedCount: smallCapHunterSelections.length,
+    smallCapHunterWatchCount: smallCapHunterWatch.length,
+    smallCapHunterRiskBlockCount: smallCapHunterRiskBlocks.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1742,6 +1754,24 @@ export function summarizePipelineResults(results = []) {
       blockers: project.alphaEvolutionGovernor?.blockers || [],
       missingProof: project.alphaEvolutionGovernor?.missingProof || [],
       upgradeDirectives: project.alphaEvolutionGovernor?.upgradeDirectives || [],
+    })),
+    topSmallCapHunterSetups: topSmallCapHunterSetups.map((project) => ({
+      selectionRank: project.smallCapHunterSelectionRank || null,
+      selected: Boolean(project.smallCapHunterSelected),
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.smallCapHunterScore || 0,
+      verdict: project.smallCapHunterVerdict || "Unknown",
+      marketCap: project.smallCapMarketCap || 0,
+      capBand: project.smallCapBand || "Unknown",
+      structureScore: project.smallCapStructureScore || 0,
+      upsideScore: project.smallCapUpsideScore || 0,
+      executionScore: project.smallCapExecutionScore || 0,
+      riskScore: project.smallCapRiskScore || 0,
+      paperPlan: project.smallCapHunter?.paperPlan || {},
+      reasons: project.smallCapHunter?.reasons || [],
+      warnings: project.smallCapHunter?.warnings || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

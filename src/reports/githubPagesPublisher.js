@@ -47,6 +47,7 @@ const PUBLIC_REPORTS = [
   "causal-market-twin.json",
   "alpha-evolution-governor.json",
   "alpha-evolution-queue.json",
+  "small-cap-hunter.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -102,6 +103,7 @@ function writeLandingPage(copiedFiles = []) {
   const alphaKnowledgeGraph = readJsonReport("alpha-knowledge-graph.json") || {};
   const causalMarketTwin = readJsonReport("causal-market-twin.json") || {};
   const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json") || {};
+  const smallCapHunter = readJsonReport("small-cap-hunter.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
@@ -151,6 +153,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Twin EV", causalMarketTwin.topProjects?.[0]?.expectedReturnPct ?? "N/A"],
     ["Governor Priority", alphaEvolutionGovernor.counts?.priorityResearch ?? "N/A"],
     ["Governor Blocks", alphaEvolutionGovernor.counts?.riskBlocks ?? "N/A"],
+    ["Small-Cap #1", smallCapHunter.topTwo?.[0]?.symbol || "N/A"],
+    ["Small-Cap #2", smallCapHunter.topTwo?.[1]?.symbol || "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
