@@ -91,6 +91,9 @@ Commands:
   crypto-launch high-tech         Print High-Tech Alpha Stack report
   crypto-launch self-evolving     Print Self-Evolving Alpha OS report
   crypto-launch thesis            Print generated alpha thesis book
+  crypto-launch contracts         Print proof-carrying alpha contracts
+  crypto-launch judge             Print alpha contract leaderboard
+  crypto-launch receipts          Print public alpha contract receipts
   crypto-launch debate            Print agent-society debate summary
   crypto-launch autopsy           Print alpha autopsy summary
   crypto-launch regime            Print market-regime adaptation summary
@@ -222,6 +225,20 @@ switch (command) {
   case "thesis":
   case "alpha-thesis":
     runNpm("alpha:thesis", args);
+    break;
+  case "contracts":
+  case "alpha-contracts":
+    runNpm("alpha:contracts", args);
+    break;
+  case "judge":
+  case "alpha-judge":
+  case "leaderboard":
+  case "alpha-leaderboard":
+    runNpm("alpha:judge", args);
+    break;
+  case "receipts":
+  case "alpha-receipts":
+    runNpm("alpha:receipts", args);
     break;
   case "debate":
   case "alpha-debate":

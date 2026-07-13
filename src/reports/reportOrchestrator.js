@@ -25,6 +25,7 @@ import { writeAutonomousResearchReport } from "./autonomousResearchReportEngine.
 import { writeBreakoutBrainReport } from "./breakoutBrainReportEngine.js";
 import { writeHighTechAlphaStackReport } from "./highTechAlphaStackReportEngine.js";
 import { writeSelfEvolvingAlphaOSReport } from "./selfEvolvingAlphaOSReportEngine.js";
+import { writeProofCarryingAlphaContractReport } from "./proofCarryingAlphaContractReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -93,6 +94,11 @@ export function generateReports(projects = [], meta = {}) {
     thesisPath: alphaThesesPath,
   } = writeSelfEvolvingAlphaOSReport(projects);
   const {
+    filePath: alphaContractsPath,
+    leaderboardPath: alphaContractLeaderboardPath,
+    receiptsPath: alphaContractReceiptsPath,
+  } = writeProofCarryingAlphaContractReport(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -144,6 +150,9 @@ export function generateReports(projects = [], meta = {}) {
     highTechAlphaStackPath,
     selfEvolvingAlphaOSPath,
     alphaThesesPath,
+    alphaContractsPath,
+    alphaContractLeaderboardPath,
+    alphaContractReceiptsPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

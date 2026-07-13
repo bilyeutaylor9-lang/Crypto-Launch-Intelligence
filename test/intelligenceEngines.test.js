@@ -40,6 +40,7 @@ import {
 import { analyzeBreakoutBrainBatch } from "../src/engines/breakoutBrainEngine.js";
 import { analyzeHighTechAlphaStackBatch } from "../src/engines/highTechAlphaStackEngine.js";
 import { analyzeSelfEvolvingAlphaOSBatch } from "../src/engines/selfEvolvingAlphaOSEngine.js";
+import { analyzeProofCarryingAlphaContractBatch } from "../src/engines/proofCarryingAlphaContractEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1307,6 +1308,70 @@ test("self-evolving alpha OS builds thesis, agent society, and ranks stronger pr
   assert.ok(results[0].alphaThesis.whyNow.length > 0);
   assert.ok(results[1].selfEvolvingAlphaOS.alphaAutopsy.riskScore >= 60);
   assert.ok(results[0].evidence.some((item) => item.engine === "Self-Evolving Alpha OS"));
+});
+
+test("proof-carrying alpha contracts create falsifiable receipts and rank stronger projects", () => {
+  const results = analyzeProofCarryingAlphaContractBatch([
+    {
+      name: "ReceiptAlpha",
+      symbol: "RCA",
+      chain: "base",
+      pipelineScore: 82,
+      confidenceAdjustedScore: 78,
+      selfEvolvingAlphaOSScore: 84,
+      highTechAlphaScore: 82,
+      breakoutBrainScore: 78,
+      aiEcosystemScore: 76,
+      autonomousAlphaOSScore: 74,
+      sourceTruthScore: 80,
+      proofScore: 78,
+      liveCatalystRadarScore: 76,
+      liquidityExpansionScore: 72,
+      narrativeHeatScore: 82,
+      githubProScore: 70,
+      developerActivityScore: 66,
+      trapRiskScore: 8,
+      riskScore: 14,
+      sellPressureScore: 10,
+      source: "test",
+      discoverySources: ["dexscreener", "github"],
+      alphaThesis: {
+        summary: "ReceiptAlpha has a catalyst-backed liquidity and builder thesis.",
+      },
+      selfEvolvingAlphaOS: {
+        agentSociety: {
+          agents: [
+            { name: "Narrative Scout", vote: "Support", score: 82 },
+            { name: "Risk Officer", vote: "Cleared", score: 78 },
+          ],
+        },
+      },
+      evidence: [{ engine: "Source Truth", signal: "verified source stack", score: 80 }],
+    },
+    {
+      name: "RiskReceipt",
+      symbol: "RISK",
+      chain: "ethereum",
+      pipelineScore: 52,
+      highTechAlphaScore: 24,
+      sourceTruthScore: 22,
+      proofScore: 18,
+      narrativeHeatScore: 72,
+      trapRiskScore: 82,
+      riskScore: 78,
+      sellPressureScore: 75,
+      falsePositiveSimilarity: 70,
+    },
+  ]);
+
+  assert.equal(results[0].proofCarryingAlphaContractRank, 1);
+  assert.ok(results[0].proofCarryingAlphaContract.contractId);
+  assert.ok(results[0].proofCarryingAlphaContract.mustHappen.length >= 4);
+  assert.ok(results[0].proofCarryingAlphaContract.invalidatesIf.length >= 3);
+  assert.ok(results[0].alphaContractReceipt.mustProve.length > 0);
+  assert.ok(results[0].proofCarryingAlphaContract.supportingEngines.length > 0);
+  assert.ok(results[1].proofCarryingAlphaContractScore < results[0].proofCarryingAlphaContractScore);
+  assert.ok(results[0].evidence.some((item) => item.engine === "Proof-Carrying Alpha Contract"));
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

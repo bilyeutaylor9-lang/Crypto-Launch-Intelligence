@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T05:10:53.219Z",
+  "generatedAt": "2026-07-13T05:24:52.162Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-13T05:10:47.683Z",
-    "completedAt": "2026-07-13T05:10:53.219Z",
+    "startedAt": "2026-07-13T05:24:46.593Z",
+    "completedAt": "2026-07-13T05:24:52.161Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required."
   },
@@ -30,7 +30,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -729,6 +729,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 29.",
             "World model 49; autopsy risk 60."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 43,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Open Research Contract",
+            "7 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -3262,7 +3274,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T05:10:52.831Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -5015,7 +5027,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -6283,7 +6295,7 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.136Z",
+            "searchedAt": "2026-07-13T05:24:52.068Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -6293,30 +6305,30 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.136Z"
+            "calledAt": "2026-07-13T05:24:52.068Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.136Z"
+            "calledAt": "2026-07-13T05:24:52.068Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-eigen",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.136Z"
+            "calledAt": "2026-07-13T05:24:52.068Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.137Z"
+            "calledAt": "2026-07-13T05:24:52.068Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.137Z"
+            "calledAt": "2026-07-13T05:24:52.069Z"
           }
         ],
         "evidence": [
@@ -8661,7 +8673,383 @@
         ],
         "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
-      "selfEvolvingAlphaOSRank": 1
+      "selfEvolvingAlphaOSRank": 1,
+      "proofCarryingAlphaContractScore": 43,
+      "proofCarryingAlphaContractVerdict": "Accountable Priority Research",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+        "projectKey": "research-seed-eigen",
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "createdAt": "2026-07-13T05:24:52.150Z",
+        "status": "open",
+        "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 43,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "marketCap": 0,
+          "pipelineScore": 9,
+          "contractScore": 40,
+          "riskScore": 78,
+          "sourceTruthScore": 53,
+          "proofScore": 3,
+          "catalystScore": 83
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Catalyst Radar",
+            "score": 83
+          },
+          {
+            "engine": "Strategy Lab",
+            "score": 63
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 60
+          },
+          {
+            "engine": "AI Council",
+            "score": 54
+          },
+          {
+            "engine": "Source Truth",
+            "score": 53
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 50
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 46
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 29
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Promote",
+            "score": 72
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 32
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 78
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 24,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 53,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 54,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 30,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 59,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 25,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 39,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 29,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 39,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 83,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 21,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 35,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 31,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 63,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 60,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 23,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 43,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 57,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 24,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 30,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 46,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 34,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "EIGEN contract: Medium confidence, score 40.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Accountable Priority Research",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 1,
+        "bestAvailableFallback": true,
+        "fallbackCaveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "alphaContractReceipt": {
+        "headline": "EIGEN contract: Medium confidence, score 40.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "proofCarryingAlphaContractRank": 1
     },
     {
       "name": "Render",
@@ -8684,7 +9072,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -9341,6 +9729,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 21.",
             "World model 48; autopsy risk 59."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 39,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "6 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -11671,7 +12071,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T05:10:52.832Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -13390,7 +13790,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -14664,7 +15064,7 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.145Z",
+            "searchedAt": "2026-07-13T05:24:52.080Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -14674,30 +15074,30 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.145Z"
+            "calledAt": "2026-07-13T05:24:52.080Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.145Z"
+            "calledAt": "2026-07-13T05:24:52.080Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-rndr",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.145Z"
+            "calledAt": "2026-07-13T05:24:52.080Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.145Z"
+            "calledAt": "2026-07-13T05:24:52.081Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.145Z"
+            "calledAt": "2026-07-13T05:24:52.081Z"
           }
         ],
         "evidence": [
@@ -17058,7 +17458,377 @@
         ],
         "summary": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
-      "selfEvolvingAlphaOSRank": 6
+      "selfEvolvingAlphaOSRank": 6,
+      "proofCarryingAlphaContractScore": 39,
+      "proofCarryingAlphaContractVerdict": "Weak Contract",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-rndr:qhzloy",
+        "projectKey": "research-seed-rndr",
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "createdAt": "2026-07-13T05:24:52.152Z",
+        "status": "open",
+        "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 39,
+        "confidenceNow": "Developing",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "marketCap": 0,
+          "pipelineScore": 4,
+          "contractScore": 34,
+          "riskScore": 75,
+          "sourceTruthScore": 49,
+          "proofScore": 4,
+          "catalystScore": 49
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 62
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 59
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 54
+          },
+          {
+            "engine": "Source Truth",
+            "score": 49
+          },
+          {
+            "engine": "Catalyst Radar",
+            "score": 49
+          },
+          {
+            "engine": "AI Council",
+            "score": 47
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 24
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 27
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 26
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 75
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 15,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 47,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 30,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 57,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 27,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 40,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 27,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 38,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 23,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 27,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 19,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 62,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 54,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 26,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 43,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 55,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 12,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 44,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 28,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "RNDR contract: Developing confidence, score 34.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Weak Contract",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 6,
+        "bestAvailableFallback": false
+      },
+      "alphaContractReceipt": {
+        "headline": "RNDR contract: Developing confidence, score 34.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      },
+      "proofCarryingAlphaContractRank": 6
     },
     {
       "name": "Bittensor",
@@ -17081,7 +17851,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -17759,6 +18529,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 26.",
             "World model 48; autopsy risk 57."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 43,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Open Research Contract",
+            "7 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -20213,7 +20995,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T05:10:52.831Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -21944,7 +22726,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -23218,7 +24000,7 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.152Z",
+            "searchedAt": "2026-07-13T05:24:52.093Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -23228,30 +24010,30 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.152Z"
+            "calledAt": "2026-07-13T05:24:52.093Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.152Z"
+            "calledAt": "2026-07-13T05:24:52.093Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tao",
             "chain": "bittensor",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.152Z"
+            "calledAt": "2026-07-13T05:24:52.093Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.152Z"
+            "calledAt": "2026-07-13T05:24:52.093Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.152Z"
+            "calledAt": "2026-07-13T05:24:52.093Z"
           }
         ],
         "evidence": [
@@ -25586,7 +26368,383 @@
         ],
         "summary": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
-      "selfEvolvingAlphaOSRank": 2
+      "selfEvolvingAlphaOSRank": 2,
+      "proofCarryingAlphaContractScore": 43,
+      "proofCarryingAlphaContractVerdict": "Accountable Priority Research",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-tao:e6m79e",
+        "projectKey": "research-seed-tao",
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "createdAt": "2026-07-13T05:24:52.152Z",
+        "status": "open",
+        "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 43,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "marketCap": 0,
+          "pipelineScore": 4,
+          "contractScore": 39,
+          "riskScore": 73,
+          "sourceTruthScore": 52,
+          "proofScore": 4,
+          "catalystScore": 56
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 66
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 62
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 59
+          },
+          {
+            "engine": "Catalyst Radar",
+            "score": 56
+          },
+          {
+            "engine": "AI Council",
+            "score": 52
+          },
+          {
+            "engine": "Source Truth",
+            "score": 52
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 47
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 26
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 49
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 33
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 73
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 17,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 30,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 59,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 28,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 40,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 35,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 41,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 56,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 23,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 66,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 62,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 32,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 47,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 60,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 21,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 23,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 47,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 33,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "TAO contract: Medium confidence, score 39.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Accountable Priority Research",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 2,
+        "bestAvailableFallback": true,
+        "fallbackCaveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "alphaContractReceipt": {
+        "headline": "TAO contract: Medium confidence, score 39.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "proofCarryingAlphaContractRank": 2
     },
     {
       "name": "Akash Network",
@@ -25609,7 +26767,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -26268,6 +27426,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 23.",
             "World model 47; autopsy risk 59."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 41,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "7 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -28680,7 +29850,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T05:10:52.832Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -30387,7 +31557,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -31655,7 +32825,7 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.159Z",
+            "searchedAt": "2026-07-13T05:24:52.105Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -31665,30 +32835,30 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.159Z"
+            "calledAt": "2026-07-13T05:24:52.105Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.159Z"
+            "calledAt": "2026-07-13T05:24:52.106Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-akt",
             "chain": "cosmos",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.159Z"
+            "calledAt": "2026-07-13T05:24:52.106Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.159Z"
+            "calledAt": "2026-07-13T05:24:52.106Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.159Z"
+            "calledAt": "2026-07-13T05:24:52.106Z"
           }
         ],
         "evidence": [
@@ -34047,7 +35217,383 @@
         ],
         "summary": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
-      "selfEvolvingAlphaOSRank": 3
+      "selfEvolvingAlphaOSRank": 3,
+      "proofCarryingAlphaContractScore": 41,
+      "proofCarryingAlphaContractVerdict": "Accountable Priority Research",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-akt:36yiei",
+        "projectKey": "research-seed-akt",
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "createdAt": "2026-07-13T05:24:52.152Z",
+        "status": "open",
+        "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 41,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "marketCap": 0,
+          "pipelineScore": 3,
+          "contractScore": 36,
+          "riskScore": 75,
+          "sourceTruthScore": 52,
+          "proofScore": 4,
+          "catalystScore": 50
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 63
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 59
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 57
+          },
+          {
+            "engine": "Source Truth",
+            "score": 52
+          },
+          {
+            "engine": "Catalyst Radar",
+            "score": 50
+          },
+          {
+            "engine": "AI Council",
+            "score": 49
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 45
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 26
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 36
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 75
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 17,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 29,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 58,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 28,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 40,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 27,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 38,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 21,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 22,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 63,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 57,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 28,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 44,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 57,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 15,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 23,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 45,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 30,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "AKT contract: Medium confidence, score 36.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Accountable Priority Research",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 3,
+        "bestAvailableFallback": true,
+        "fallbackCaveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "alphaContractReceipt": {
+        "headline": "AKT contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      },
+      "proofCarryingAlphaContractRank": 3
     },
     {
       "name": "Ondo",
@@ -34070,7 +35616,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -34757,6 +36303,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 25.",
             "World model 41; autopsy risk 60."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 38,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "6 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -37090,7 +38648,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-13T05:10:52.832Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -38790,7 +40348,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -40064,7 +41622,7 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.166Z",
+            "searchedAt": "2026-07-13T05:24:52.113Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -40074,30 +41632,30 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.166Z"
+            "calledAt": "2026-07-13T05:24:52.113Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.166Z"
+            "calledAt": "2026-07-13T05:24:52.113Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-ondo",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.166Z"
+            "calledAt": "2026-07-13T05:24:52.113Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.166Z"
+            "calledAt": "2026-07-13T05:24:52.113Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.166Z"
+            "calledAt": "2026-07-13T05:24:52.113Z"
           }
         ],
         "evidence": [
@@ -42489,7 +44047,377 @@
         ],
         "summary": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window.."
       },
-      "selfEvolvingAlphaOSRank": 8
+      "selfEvolvingAlphaOSRank": 8,
+      "proofCarryingAlphaContractScore": 38,
+      "proofCarryingAlphaContractVerdict": "Weak Contract",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
+        "projectKey": "research-seed-ondo",
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "chain": "ethereum",
+        "createdAt": "2026-07-13T05:24:52.152Z",
+        "status": "open",
+        "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 38,
+        "confidenceNow": "Developing",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 107500,
+          "volume24h": 28750,
+          "marketCap": 0,
+          "pipelineScore": 2,
+          "contractScore": 33,
+          "riskScore": 76,
+          "sourceTruthScore": 49,
+          "proofScore": 1,
+          "catalystScore": 68
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Catalyst Radar",
+            "score": 68
+          },
+          {
+            "engine": "Strategy Lab",
+            "score": 63
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 59
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 52
+          },
+          {
+            "engine": "AI Council",
+            "score": 49
+          },
+          {
+            "engine": "Source Truth",
+            "score": 49
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 25
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 50
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 31
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 76
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 18,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 20,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 25,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 57,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 18,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 37,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 32,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 39,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 68,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 21,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 30,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 25,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 63,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 29,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 43,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 56,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 19,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 24,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 44,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 24,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "ONDO contract: Developing confidence, score 33.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Weak Contract",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 7,
+        "bestAvailableFallback": false
+      },
+      "alphaContractReceipt": {
+        "headline": "ONDO contract: Developing confidence, score 33.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      },
+      "proofCarryingAlphaContractRank": 7
     },
     {
       "name": "Pendle",
@@ -42512,7 +44440,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -43177,6 +45105,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 28.",
             "World model 41; autopsy risk 57."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 41,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "7 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -45506,7 +47446,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-13T05:10:52.831Z",
+          "timestamp": "2026-07-13T05:24:51.769Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -47212,7 +49152,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -48480,7 +50420,7 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.173Z",
+            "searchedAt": "2026-07-13T05:24:52.123Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -48490,30 +50430,30 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.173Z"
+            "calledAt": "2026-07-13T05:24:52.123Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.174Z"
+            "calledAt": "2026-07-13T05:24:52.124Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-pendle",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.174Z"
+            "calledAt": "2026-07-13T05:24:52.124Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.176Z"
+            "calledAt": "2026-07-13T05:24:52.124Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.176Z"
+            "calledAt": "2026-07-13T05:24:52.124Z"
           }
         ],
         "evidence": [
@@ -50872,7 +52812,381 @@
         ],
         "summary": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
       },
-      "selfEvolvingAlphaOSRank": 5
+      "selfEvolvingAlphaOSRank": 5,
+      "proofCarryingAlphaContractScore": 41,
+      "proofCarryingAlphaContractVerdict": "Weak Contract",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-pendle:omxj6",
+        "projectKey": "research-seed-pendle",
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "createdAt": "2026-07-13T05:24:52.153Z",
+        "status": "open",
+        "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 41,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "marketCap": 0,
+          "pipelineScore": 0,
+          "contractScore": 36,
+          "riskScore": 73,
+          "sourceTruthScore": 52,
+          "proofScore": 0,
+          "catalystScore": 60
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 69
+          },
+          {
+            "engine": "Catalyst Radar",
+            "score": 60
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 58
+          },
+          {
+            "engine": "AI Council",
+            "score": 52
+          },
+          {
+            "engine": "Source Truth",
+            "score": 52
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 50
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 47
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 40
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 46
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 35
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 73
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 18,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 12,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 58,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 22,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 39,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 40,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 44,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 60,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 14,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 40,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 25,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 69,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 58,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 37,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 62,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 22,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 47,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 29,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "PENDLE contract: Medium confidence, score 36.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Weak Contract",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 4,
+        "bestAvailableFallback": false
+      },
+      "alphaContractReceipt": {
+        "headline": "PENDLE contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      },
+      "proofCarryingAlphaContractRank": 4
     },
     {
       "name": "Celestia",
@@ -50895,7 +53209,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -51562,6 +53876,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 27.",
             "World model 41; autopsy risk 57."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 41,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "7 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -53951,7 +56277,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T05:10:52.830Z",
+          "timestamp": "2026-07-13T05:24:51.769Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -55659,7 +57985,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -56927,7 +59253,7 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.183Z",
+            "searchedAt": "2026-07-13T05:24:52.130Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -56937,30 +59263,30 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.183Z"
+            "calledAt": "2026-07-13T05:24:52.130Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.183Z"
+            "calledAt": "2026-07-13T05:24:52.130Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tia",
             "chain": "celestia",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.183Z"
+            "calledAt": "2026-07-13T05:24:52.130Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.183Z"
+            "calledAt": "2026-07-13T05:24:52.130Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.183Z"
+            "calledAt": "2026-07-13T05:24:52.130Z"
           }
         ],
         "evidence": [
@@ -59320,7 +61646,381 @@
         ],
         "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
       },
-      "selfEvolvingAlphaOSRank": 4
+      "selfEvolvingAlphaOSRank": 4,
+      "proofCarryingAlphaContractScore": 41,
+      "proofCarryingAlphaContractVerdict": "Weak Contract",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-tia:2mv2os",
+        "projectKey": "research-seed-tia",
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "createdAt": "2026-07-13T05:24:52.153Z",
+        "status": "open",
+        "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 41,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "marketCap": 0,
+          "pipelineScore": 0,
+          "contractScore": 36,
+          "riskScore": 72,
+          "sourceTruthScore": 52,
+          "proofScore": 0,
+          "catalystScore": 49
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 69
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 59
+          },
+          {
+            "engine": "AI Council",
+            "score": 52
+          },
+          {
+            "engine": "Source Truth",
+            "score": 52
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 50
+          },
+          {
+            "engine": "Catalyst Radar",
+            "score": 49
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 48
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 40
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 42
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 35
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 72
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 17,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 12,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 32,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 60,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 25,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 40,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 40,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 44,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 14,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 38,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 23,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 69,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 59,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 36,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 49,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 62,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 21,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 48,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 30,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "TIA contract: Medium confidence, score 36.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Weak Contract",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 5,
+        "bestAvailableFallback": false
+      },
+      "alphaContractReceipt": {
+        "headline": "TIA contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      },
+      "proofCarryingAlphaContractRank": 5
     },
     {
       "name": "Jupiter",
@@ -59343,7 +62043,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-13T05:10:47.684Z",
+      "discoveredAt": "2026-07-13T05:24:46.595Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -60006,6 +62706,18 @@
             "Research Block",
             "Committee: Committee Block; consensus 25.",
             "World model 33; autopsy risk 55."
+          ]
+        },
+        {
+          "engine": "Proof-Carrying Alpha Contract",
+          "signal": "falsifiable alpha thesis with confirmation, invalidation, review windows, and reputation accounting",
+          "score": 38,
+          "confidence": 0.52,
+          "impact": "Neutral",
+          "reasons": [
+            "Weak Contract",
+            "6 supporting engines and 7 agent votes attached.",
+            "No prior open contract to grade yet."
           ]
         }
       ],
@@ -62312,7 +65024,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-13T05:10:52.831Z",
+          "timestamp": "2026-07-13T05:24:51.770Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -63958,7 +66670,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-13T05:10:53.051Z",
+        "generatedAt": "2026-07-13T05:24:51.980Z",
         "memorySamples": 3,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -65226,7 +67938,7 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-13T05:10:53.189Z",
+            "searchedAt": "2026-07-13T05:24:52.137Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -65236,30 +67948,30 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-13T05:10:53.189Z"
+            "calledAt": "2026-07-13T05:24:52.137Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-13T05:10:53.189Z"
+            "calledAt": "2026-07-13T05:24:52.137Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-jup",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-13T05:10:53.189Z"
+            "calledAt": "2026-07-13T05:24:52.137Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-13T05:10:53.189Z"
+            "calledAt": "2026-07-13T05:24:52.137Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-13T05:10:53.189Z"
+            "calledAt": "2026-07-13T05:24:52.138Z"
           }
         ],
         "evidence": [
@@ -67607,7 +70319,377 @@
         ],
         "summary": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
       },
-      "selfEvolvingAlphaOSRank": 7
+      "selfEvolvingAlphaOSRank": 7,
+      "proofCarryingAlphaContractScore": 38,
+      "proofCarryingAlphaContractVerdict": "Weak Contract",
+      "proofCarryingAlphaContract": {
+        "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
+        "projectKey": "research-seed-jup",
+        "name": "Jupiter",
+        "symbol": "JUP",
+        "chain": "solana",
+        "createdAt": "2026-07-13T05:24:52.153Z",
+        "status": "open",
+        "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+        "predictionWindow": "30d",
+        "reviewAt": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ],
+        "scoreNow": 38,
+        "confidenceNow": "Medium",
+        "entrySnapshot": {
+          "priceUsd": 0,
+          "liquidityUsd": 117500,
+          "volume24h": 33750,
+          "marketCap": 0,
+          "pipelineScore": 0,
+          "contractScore": 30,
+          "riskScore": 70,
+          "sourceTruthScore": 52,
+          "proofScore": 0,
+          "catalystScore": 16
+        },
+        "mustHappen": [
+          {
+            "id": "score_holds",
+            "rule": "Contract score stays at or above 35.",
+            "metric": "contractScore",
+            "operator": ">=",
+            "target": 35
+          },
+          {
+            "id": "risk_control",
+            "rule": "Risk score remains below 78.",
+            "metric": "riskScore",
+            "operator": "<",
+            "target": 78
+          },
+          {
+            "id": "liquidity_survives",
+            "rule": "Liquidity does not drop more than 30% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": ">",
+            "target": -30
+          },
+          {
+            "id": "evidence_confirms",
+            "rule": "Source truth or proof score stays above 45.",
+            "metric": "evidenceScore",
+            "operator": ">=",
+            "target": 45
+          },
+          {
+            "id": "catalyst_or_flow",
+            "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+            "metric": "catalystOrFlowScore",
+            "operator": ">=",
+            "target": 45
+          }
+        ],
+        "invalidatesIf": [
+          {
+            "id": "risk_spike",
+            "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "metric": "riskScore",
+            "operator": ">=",
+            "target": 70
+          },
+          {
+            "id": "liquidity_break",
+            "rule": "Liquidity falls more than 40% from entry.",
+            "metric": "liquidityChangePct",
+            "operator": "<=",
+            "target": -40
+          },
+          {
+            "id": "evidence_break",
+            "rule": "Both source truth and proof fall below 35.",
+            "metric": "evidenceScore",
+            "operator": "<",
+            "target": 35
+          },
+          {
+            "id": "committee_block",
+            "rule": "Agent committee or Alpha OS flips to a block decision.",
+            "metric": "committeeBlock",
+            "operator": "==",
+            "target": true
+          }
+        ],
+        "supportingEngines": [
+          {
+            "engine": "Strategy Lab",
+            "score": 69
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "score": 54
+          },
+          {
+            "engine": "Source Truth",
+            "score": 52
+          },
+          {
+            "engine": "AI Council",
+            "score": 51
+          },
+          {
+            "engine": "Signal Combination",
+            "score": 50
+          },
+          {
+            "engine": "High-Tech Alpha Stack",
+            "score": 45
+          }
+        ],
+        "agentVotes": [
+          {
+            "agent": "Discovery Agent",
+            "vote": "Reject",
+            "score": 18
+          },
+          {
+            "agent": "Research Agent",
+            "vote": "Reject",
+            "score": 38
+          },
+          {
+            "agent": "Catalyst Agent",
+            "vote": "Reject",
+            "score": 30
+          },
+          {
+            "agent": "Liquidity Agent",
+            "vote": "Reject",
+            "score": 28
+          },
+          {
+            "agent": "Builder Agent",
+            "vote": "Reject",
+            "score": 0
+          },
+          {
+            "agent": "Simulation Agent",
+            "vote": "Reject",
+            "score": 32
+          },
+          {
+            "agent": "Risk Agent",
+            "vote": "Block",
+            "score": 70
+          }
+        ],
+        "sources": [
+          "research-seed",
+          "research-seed",
+          "researchSeeds"
+        ],
+        "evidenceRefs": [
+          {
+            "engine": "Institutional vNext Engine",
+            "signal": "Advanced institutional intelligence stack",
+            "score": 14,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Source Truth Engine",
+            "signal": "source reliability, provider history, and cross-evidence agreement",
+            "score": 52,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Change Detector",
+            "signal": "scan-over-scan change",
+            "score": 50,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Trap Risk Engine",
+            "signal": "rug/trap classifier",
+            "score": 12,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Ecosystem Council",
+            "signal": "multi-agent research consensus",
+            "score": 51,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Research Operating System",
+            "signal": "multi-timeframe scenario and lifecycle analysis",
+            "score": 31,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Lab",
+            "signal": "strategy discovery and simulation",
+            "score": 0,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Quantum Reasoning Brain",
+            "signal": "probabilistic scenario superposition",
+            "score": 58,
+            "impact": "Positive"
+          },
+          {
+            "engine": "World Model Brain",
+            "signal": "knowledge graph and market regime reasoning",
+            "score": 22,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Market Scientist",
+            "signal": "causal, counterfactual, decay, and autopsy reasoning",
+            "score": 39,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Self-Training Market Simulation Brain",
+            "signal": "market-memory analogs, scenario simulation, mutation tests, and engine tournament",
+            "score": 40,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Outcome Judge",
+            "signal": "prediction accountability and realized-outcome calibration",
+            "score": 44,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Live Catalyst Radar",
+            "signal": "time-sensitive catalyst and event detection",
+            "score": 16,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Project Dossier Swarm",
+            "signal": "specialist agent dossier review",
+            "score": 13,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "AI Research Commander",
+            "signal": "autonomous evidence routing and research task assignment",
+            "score": 37,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha Investigator",
+            "signal": "multi-agent alpha case file",
+            "score": 21,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Autonomous Strategy Lab",
+            "signal": "strategy tournament, paper-trade plan, and memory-adjusted readiness",
+            "score": 69,
+            "impact": "Positive"
+          },
+          {
+            "engine": "Causal Alpha Brain",
+            "signal": "causal graph, counterfactual driver removal, and historical delta reasoning",
+            "score": 54,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Alpha OS",
+            "signal": "final AI operating decision across causal, strategy, simulation, proof, and risk agents",
+            "score": 31,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Paper Trading Outcome Lab",
+            "signal": "strategy paper-trade outcomes and promotion/downgrade evidence",
+            "score": 46,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Auto-Learning Weight Optimizer",
+            "signal": "paper outcome guided engine-family weight suggestions",
+            "score": 61,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Breakout Brain Engine",
+            "signal": "near-term breakout Monte Carlo scenario ranking",
+            "score": 15,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "Autonomous Research Orchestrator",
+            "signal": "controlled agent research loop, evidence graph, self-critique, and stopping rules",
+            "score": 27,
+            "impact": "Neutral"
+          },
+          {
+            "engine": "High-Tech Alpha Stack Engine",
+            "signal": "ten-module institutional command stack",
+            "score": 45,
+            "impact": "Negative"
+          },
+          {
+            "engine": "Self-Evolving Alpha OS",
+            "signal": "identity graph, world model, hypotheses, experiments, agent society, autopsy, regime adaptation, and thesis",
+            "score": 26,
+            "impact": "Negative"
+          }
+        ],
+        "priorContractCount": 0,
+        "priorResolvedCount": 0,
+        "publicReceipt": {
+          "headline": "JUP contract: Medium confidence, score 30.",
+          "mustProve": [
+            "Contract score stays at or above 35.",
+            "Risk score remains below 78.",
+            "Liquidity does not drop more than 30% from entry.",
+            "Source truth or proof score stays above 45.",
+            "Catalyst, liquidity expansion, or capital flow remains active."
+          ],
+          "invalidationRules": [
+            "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+            "Liquidity falls more than 40% from entry.",
+            "Both source truth and proof fall below 35.",
+            "Agent committee or Alpha OS flips to a block decision."
+          ],
+          "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+        },
+        "verdict": "Weak Contract",
+        "latestGrade": null,
+        "historySummary": {
+          "total": 0,
+          "resolved": 0,
+          "wins": 0,
+          "losses": 0,
+          "winRate": 0,
+          "latest": null
+        },
+        "rank": 8,
+        "bestAvailableFallback": false
+      },
+      "alphaContractReceipt": {
+        "headline": "JUP contract: Medium confidence, score 30.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      },
+      "proofCarryingAlphaContractRank": 8
     }
   ]
 }

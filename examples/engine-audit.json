@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-13T05:10:53.498Z",
-  "totalEngines": 105,
-  "wiredIntoPipeline": 81,
-  "stateOfArtReady": 88,
+  "generatedAt": "2026-07-13T05:24:52.464Z",
+  "totalEngines": 106,
+  "wiredIntoPipeline": 82,
+  "stateOfArtReady": 89,
   "readinessScore": 89,
   "categoryCounts": {
     "intelligence": 41,
     "ai": 14,
-    "learning": 16,
+    "learning": 17,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -1650,6 +1650,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": false,
       "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "proofCarryingAlphaContractEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeProofCarryingAlphaContract",
+        "analyzeProofCarryingAlphaContractBatch",
+        "summarizeProofCarryingAlphaContracts"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

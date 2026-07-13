@@ -72,6 +72,9 @@ npm run causal-brain
 npm run alpha-os
 npm run alpha:os
 npm run alpha:thesis
+npm run alpha:contracts
+npm run alpha:judge
+npm run alpha:receipts
 ```
 
 ## What Makes It Different
@@ -183,6 +186,34 @@ npm run alpha:regime
 ```
 
 The master output is `reports/self-evolving-alpha-os.json`. The thesis book is `reports/alpha-theses.json`.
+
+## Proof-Carrying Alpha Contracts
+
+The newest accountability layer turns top ideas into falsifiable research contracts.
+
+Instead of only saying a project looks strong, the system now writes:
+
+- The thesis
+- What must happen next
+- What would invalidate the thesis
+- Which engines supported it
+- Which agents voted on it
+- Which sources backed it
+- Review windows at 1h, 24h, 7d, 30d, and 90d
+- A public receipt that can be judged later
+
+Key commands:
+
+```bash
+npm run alpha:contracts
+npm run alpha:judge
+npm run alpha:receipts
+npm run contract-memory
+```
+
+The main report is `reports/alpha-contracts.json`. The leaderboard is `reports/alpha-contract-leaderboard.json`. Public receipts are written to `reports/alpha-contract-receipts.json`.
+
+This makes the AI more accountable: future scans grade old contracts, mark invalidations, track win rate, and feed that reputation back into the next scan.
 
 ## Outcome Lab and Auto-Learning
 
@@ -314,6 +345,7 @@ Memory files include:
 - `data/agent-performance-memory.json`
 - `data/strategy-memory.json`
 - `data/paper-trading-outcomes.json`
+- `data/alpha-contracts.json`
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
@@ -343,6 +375,9 @@ Every scan can generate a full research packet:
 | `reports/high-tech-alpha-stack.json` | Ten-module institutional command stack |
 | `reports/self-evolving-alpha-os.json` | Master self-evolving research OS |
 | `reports/alpha-theses.json` | Institutional thesis book for top candidates |
+| `reports/alpha-contracts.json` | Falsifiable alpha contracts with proof, invalidation rules, and memory |
+| `reports/alpha-contract-leaderboard.json` | Contract rankings, engine leaderboard, agent leaderboard, and autopsy queue |
+| `reports/alpha-contract-receipts.json` | Public accountability receipts for top contracts |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -410,6 +445,9 @@ npm run breakouts
 npm run high-tech
 npm run alpha:os
 npm run alpha:thesis
+npm run alpha:contracts
+npm run alpha:judge
+npm run alpha:receipts
 npm run source-truth
 npm run github-pro
 ```
@@ -422,6 +460,7 @@ npm run backtest
 npm run agent-memory
 npm run strategy-memory
 npm run paper-memory
+npm run contract-memory
 npm run source-router
 ```
 
@@ -471,6 +510,8 @@ cat examples/paper-trading-lab.json
 cat examples/weight-optimizer.json
 cat examples/breakout-brain.json
 cat examples/high-tech-alpha-stack.json
+cat examples/alpha-contracts.json
+cat examples/alpha-contract-leaderboard.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

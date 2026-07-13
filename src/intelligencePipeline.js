@@ -82,6 +82,7 @@ import { analyzeBreakoutBrainBatch } from "./engines/breakoutBrainEngine.js";
 import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomousResearchOrchestratorEngine.js";
 import { analyzeHighTechAlphaStackBatch } from "./engines/highTechAlphaStackEngine.js";
 import { analyzeSelfEvolvingAlphaOSBatch } from "./engines/selfEvolvingAlphaOSEngine.js";
+import { analyzeProofCarryingAlphaContractBatch } from "./engines/proofCarryingAlphaContractEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -93,6 +94,7 @@ import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.j
 import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
 import { savePaperTradingOutcomes } from "./learning/paperTradingOutcomeStore.js";
 import { saveAutonomousResearchMemory } from "./learning/autonomousResearchMemoryStore.js";
+import { saveAlphaContracts } from "./learning/alphaContractStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1093,6 +1095,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutonomousResearchOrchestratorBatch(results, options.autonomousResearch || {});
   results = analyzeHighTechAlphaStackBatch(results);
   results = analyzeSelfEvolvingAlphaOSBatch(results);
+  results = analyzeProofCarryingAlphaContractBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1141,6 +1144,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveAutonomousResearchMemory(results);
     } catch (error) {
       console.log(`Autonomous research memory save failed: ${error.message}`);
+    }
+
+    try {
+      saveAlphaContracts(results);
+    } catch (error) {
+      console.log(`Alpha contract memory save failed: ${error.message}`);
     }
   }
 
@@ -1297,6 +1306,18 @@ export function summarizePipelineResults(results = []) {
   const topSelfEvolvingAlphaSetups = [...safeResults]
     .sort((a, b) => num(b.selfEvolvingAlphaOSScore) - num(a.selfEvolvingAlphaOSScore))
     .slice(0, 10);
+  const proofContractCandidates = safeResults.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Proof-Carrying Alpha Candidate"
+  );
+  const accountablePriorityContracts = safeResults.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Accountable Priority Research"
+  );
+  const invalidatedContracts = safeResults.filter(
+    (p) => p.proofCarryingAlphaContractVerdict === "Invalidation Hit"
+  );
+  const topProofContracts = [...safeResults]
+    .sort((a, b) => num(b.proofCarryingAlphaContractScore) - num(a.proofCarryingAlphaContractScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1393,6 +1414,9 @@ export function summarizePipelineResults(results = []) {
     selfEvolvingAlphaCandidateCount: selfEvolvingAlphaCandidates.length,
     selfEvolvingPriorityResearchCount: selfEvolvingPriorityResearch.length,
     selfEvolvingResearchBlockCount: selfEvolvingResearchBlocks.length,
+    proofCarryingAlphaCandidateCount: proofContractCandidates.length,
+    accountablePriorityContractCount: accountablePriorityContracts.length,
+    alphaContractInvalidationCount: invalidatedContracts.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1586,6 +1610,21 @@ export function summarizePipelineResults(results = []) {
       worldModelScore: project.selfEvolvingAlphaOS?.worldModel?.score || 0,
       autopsyRisk: project.selfEvolvingAlphaOS?.alphaAutopsy?.riskScore || 0,
       activeExperiments: project.selfEvolvingAlphaOS?.experimentLab?.activeExperiments || [],
+    })),
+    topProofCarryingAlphaContracts: topProofContracts.map((project) => ({
+      rank: project.proofCarryingAlphaContractRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.proofCarryingAlphaContractScore || 0,
+      verdict: project.proofCarryingAlphaContractVerdict || "Unknown",
+      confidence: project.proofCarryingAlphaContract?.confidenceNow || "Unknown",
+      contractId: project.proofCarryingAlphaContract?.contractId || "",
+      thesis: project.proofCarryingAlphaContract?.thesis || "",
+      latestGrade: project.proofCarryingAlphaContract?.latestGrade || null,
+      mustHappen: project.proofCarryingAlphaContract?.mustHappen || [],
+      invalidatesIf: project.proofCarryingAlphaContract?.invalidatesIf || [],
+      supportingEngines: project.proofCarryingAlphaContract?.supportingEngines || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

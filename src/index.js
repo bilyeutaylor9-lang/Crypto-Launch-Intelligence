@@ -180,6 +180,9 @@ function printSummary(summary) {
   console.log(`High-Tech Priority Research: ${summary.highTechPriorityResearchCount}`);
   console.log(`Self-Evolving Alpha Candidates: ${summary.selfEvolvingAlphaCandidateCount}`);
   console.log(`Self-Evolving Priority Research: ${summary.selfEvolvingPriorityResearchCount}`);
+  console.log(`Proof-Carrying Alpha Candidates: ${summary.proofCarryingAlphaCandidateCount}`);
+  console.log(`Accountable Contract Research: ${summary.accountablePriorityContractCount}`);
+  console.log(`Alpha Contract Invalidations: ${summary.alphaContractInvalidationCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -284,6 +287,9 @@ function printReportPaths(paths) {
   console.log(`High-Tech:      ${paths.highTechAlphaStackPath}`);
   console.log(`Alpha OS Max:   ${paths.selfEvolvingAlphaOSPath}`);
   console.log(`Alpha Theses:   ${paths.alphaThesesPath}`);
+  console.log(`Alpha Contracts:${paths.alphaContractsPath}`);
+  console.log(`Contract Board: ${paths.alphaContractLeaderboardPath}`);
+  console.log(`Receipts:       ${paths.alphaContractReceiptsPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

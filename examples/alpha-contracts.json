@@ -1,0 +1,2777 @@
+{
+  "generatedAt": "2026-07-13T05:24:52.412Z",
+  "name": "Proof-Carrying Alpha Contracts",
+  "description": "Accountability layer that turns alpha ideas into falsifiable contracts with confirmation rules, invalidation rules, review windows, public receipts, and outcome memory.",
+  "totalProjects": 8,
+  "generatedContracts": 8,
+  "memory": {
+    "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/alpha-contracts.json",
+    "totalContracts": 0,
+    "openContracts": 0,
+    "resolvedContracts": 0,
+    "wins": 0,
+    "losses": 0,
+    "winRate": 0,
+    "latestContracts": []
+  },
+  "memoryLeaderboard": {
+    "resolvedContracts": 0,
+    "projectReputation": []
+  },
+  "alphaCandidates": 0,
+  "priorityResearch": 3,
+  "invalidationHits": 0,
+  "openContracts": 0,
+  "resolvedContracts": 0,
+  "historicalWinRate": 0,
+  "topContracts": [
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 9,
+      "proofScore": 3,
+      "sourceTruthScore": 53,
+      "highTechAlphaScore": 46,
+      "selfEvolvingAlphaOSScore": 34,
+      "riskScore": 78,
+      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Catalyst Radar",
+          "score": 83
+        },
+        {
+          "engine": "Strategy Lab",
+          "score": 63
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 60
+        },
+        {
+          "engine": "AI Council",
+          "score": 54
+        },
+        {
+          "engine": "Source Truth",
+          "score": 53
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 50
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 46
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 29
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Promote",
+          "score": 72
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 32
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 78
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "EIGEN contract: Medium confidence, score 40.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "contractId": "alpha-contract:research-seed-tao:e6m79e",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 4,
+      "proofScore": 4,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 47,
+      "selfEvolvingAlphaOSScore": 33,
+      "riskScore": 73,
+      "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 66
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 62
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 56
+        },
+        {
+          "engine": "AI Council",
+          "score": 52
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 47
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 26
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 49
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 33
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 73
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "TAO contract: Medium confidence, score 39.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "contractId": "alpha-contract:research-seed-akt:36yiei",
+      "score": 41,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 3,
+      "proofScore": 4,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 45,
+      "selfEvolvingAlphaOSScore": 30,
+      "riskScore": 75,
+      "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 63
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 57
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 50
+        },
+        {
+          "engine": "AI Council",
+          "score": 49
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 45
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 26
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 36
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 75
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "AKT contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "rank": 4,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "contractId": "alpha-contract:research-seed-pendle:omxj6",
+      "score": 41,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "pipelineScore": 0,
+      "proofScore": 0,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 47,
+      "selfEvolvingAlphaOSScore": 29,
+      "riskScore": 73,
+      "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 69
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 60
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 58
+        },
+        {
+          "engine": "AI Council",
+          "score": 52
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 50
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 47
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 40
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 46
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 35
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 73
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "PENDLE contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "contractId": "alpha-contract:research-seed-tia:2mv2os",
+      "score": 41,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "pipelineScore": 0,
+      "proofScore": 0,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 48,
+      "selfEvolvingAlphaOSScore": 30,
+      "riskScore": 72,
+      "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 69
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 59
+        },
+        {
+          "engine": "AI Council",
+          "score": 52
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 50
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 49
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 48
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 40
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 42
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 35
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 72
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "TIA contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "rank": 6,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "contractId": "alpha-contract:research-seed-rndr:qhzloy",
+      "score": 39,
+      "verdict": "Weak Contract",
+      "confidence": "Developing",
+      "pipelineScore": 4,
+      "proofScore": 4,
+      "sourceTruthScore": 49,
+      "highTechAlphaScore": 44,
+      "selfEvolvingAlphaOSScore": 28,
+      "riskScore": 75,
+      "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 62
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 54
+        },
+        {
+          "engine": "Source Truth",
+          "score": 49
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 49
+        },
+        {
+          "engine": "AI Council",
+          "score": 47
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 24
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 27
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 26
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 75
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "RNDR contract: Developing confidence, score 34.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "rank": 7,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
+      "score": 38,
+      "verdict": "Weak Contract",
+      "confidence": "Developing",
+      "pipelineScore": 2,
+      "proofScore": 1,
+      "sourceTruthScore": 49,
+      "highTechAlphaScore": 44,
+      "selfEvolvingAlphaOSScore": 24,
+      "riskScore": 76,
+      "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Catalyst Radar",
+          "score": 68
+        },
+        {
+          "engine": "Strategy Lab",
+          "score": 63
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 52
+        },
+        {
+          "engine": "AI Council",
+          "score": 49
+        },
+        {
+          "engine": "Source Truth",
+          "score": 49
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 25
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 50
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 31
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 76
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "ONDO contract: Developing confidence, score 33.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "rank": 8,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
+      "score": 38,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "pipelineScore": 0,
+      "proofScore": 0,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 45,
+      "selfEvolvingAlphaOSScore": 26,
+      "riskScore": 70,
+      "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 69
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 54
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "AI Council",
+          "score": 51
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 50
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 45
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 38
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 30
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 32
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 70
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "JUP contract: Medium confidence, score 30.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    }
+  ],
+  "alphaCandidateContracts": [],
+  "priorityResearchContracts": [
+    {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 9,
+      "proofScore": 3,
+      "sourceTruthScore": 53,
+      "highTechAlphaScore": 46,
+      "selfEvolvingAlphaOSScore": 34,
+      "riskScore": 78,
+      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Catalyst Radar",
+          "score": 83
+        },
+        {
+          "engine": "Strategy Lab",
+          "score": 63
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 60
+        },
+        {
+          "engine": "AI Council",
+          "score": 54
+        },
+        {
+          "engine": "Source Truth",
+          "score": 53
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 50
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 46
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 29
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Promote",
+          "score": 72
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 32
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 78
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "EIGEN contract: Medium confidence, score 40.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "rank": 2,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "contractId": "alpha-contract:research-seed-tao:e6m79e",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 4,
+      "proofScore": 4,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 47,
+      "selfEvolvingAlphaOSScore": 33,
+      "riskScore": 73,
+      "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 66
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 62
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 56
+        },
+        {
+          "engine": "AI Council",
+          "score": 52
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 47
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 26
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 49
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 33
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 73
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "TAO contract: Medium confidence, score 39.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "contractId": "alpha-contract:research-seed-akt:36yiei",
+      "score": 41,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "pipelineScore": 3,
+      "proofScore": 4,
+      "sourceTruthScore": 52,
+      "highTechAlphaScore": 45,
+      "selfEvolvingAlphaOSScore": 30,
+      "riskScore": 75,
+      "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "predictionWindow": "30d",
+      "reviewAt": [
+        "1h",
+        "24h",
+        "7d",
+        "30d",
+        "90d"
+      ],
+      "latestGrade": null,
+      "historySummary": {
+        "total": 0,
+        "resolved": 0,
+        "wins": 0,
+        "losses": 0,
+        "winRate": 0,
+        "latest": null
+      },
+      "mustHappen": [
+        {
+          "id": "score_holds",
+          "rule": "Contract score stays at or above 35.",
+          "metric": "contractScore",
+          "operator": ">=",
+          "target": 35
+        },
+        {
+          "id": "risk_control",
+          "rule": "Risk score remains below 78.",
+          "metric": "riskScore",
+          "operator": "<",
+          "target": 78
+        },
+        {
+          "id": "liquidity_survives",
+          "rule": "Liquidity does not drop more than 30% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": ">",
+          "target": -30
+        },
+        {
+          "id": "evidence_confirms",
+          "rule": "Source truth or proof score stays above 45.",
+          "metric": "evidenceScore",
+          "operator": ">=",
+          "target": 45
+        },
+        {
+          "id": "catalyst_or_flow",
+          "rule": "Catalyst, liquidity expansion, or capital flow remains active.",
+          "metric": "catalystOrFlowScore",
+          "operator": ">=",
+          "target": 45
+        }
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ],
+      "supportingEngines": [
+        {
+          "engine": "Strategy Lab",
+          "score": 63
+        },
+        {
+          "engine": "Signal Combination",
+          "score": 59
+        },
+        {
+          "engine": "Causal Alpha Brain",
+          "score": 57
+        },
+        {
+          "engine": "Source Truth",
+          "score": 52
+        },
+        {
+          "engine": "Catalyst Radar",
+          "score": 50
+        },
+        {
+          "engine": "AI Council",
+          "score": 49
+        },
+        {
+          "engine": "High-Tech Alpha Stack",
+          "score": 45
+        }
+      ],
+      "agentVotes": [
+        {
+          "agent": "Discovery Agent",
+          "vote": "Reject",
+          "score": 18
+        },
+        {
+          "agent": "Research Agent",
+          "vote": "Reject",
+          "score": 26
+        },
+        {
+          "agent": "Catalyst Agent",
+          "vote": "Reject",
+          "score": 36
+        },
+        {
+          "agent": "Liquidity Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Builder Agent",
+          "vote": "Reject",
+          "score": 0
+        },
+        {
+          "agent": "Simulation Agent",
+          "vote": "Reject",
+          "score": 28
+        },
+        {
+          "agent": "Risk Agent",
+          "vote": "Block",
+          "score": 75
+        }
+      ],
+      "sources": [
+        "research-seed",
+        "research-seed",
+        "researchSeeds"
+      ],
+      "receipt": {
+        "headline": "AKT contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    }
+  ],
+  "invalidationHitContracts": [],
+  "publicReceipts": [
+    {
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "symbol": "EIGEN",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "EIGEN contract: Medium confidence, score 40.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-tao:e6m79e",
+      "symbol": "TAO",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "TAO contract: Medium confidence, score 39.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-akt:36yiei",
+      "symbol": "AKT",
+      "score": 41,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "AKT contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-pendle:omxj6",
+      "symbol": "PENDLE",
+      "score": 41,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "receipt": {
+        "headline": "PENDLE contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-tia:2mv2os",
+      "symbol": "TIA",
+      "score": 41,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "receipt": {
+        "headline": "TIA contract: Medium confidence, score 36.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-rndr:qhzloy",
+      "symbol": "RNDR",
+      "score": 39,
+      "verdict": "Weak Contract",
+      "confidence": "Developing",
+      "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "RNDR contract: Developing confidence, score 34.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
+      "symbol": "ONDO",
+      "score": 38,
+      "verdict": "Weak Contract",
+      "confidence": "Developing",
+      "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
+      "receipt": {
+        "headline": "ONDO contract: Developing confidence, score 33.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
+      "symbol": "JUP",
+      "score": 38,
+      "verdict": "Weak Contract",
+      "confidence": "Medium",
+      "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
+      "receipt": {
+        "headline": "JUP contract: Medium confidence, score 30.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    }
+  ],
+  "engineLeaderboard": [
+    {
+      "name": "Strategy Lab",
+      "appearances": 8,
+      "averageScore": 66
+    },
+    {
+      "name": "Causal Alpha Brain",
+      "appearances": 8,
+      "averageScore": 57
+    },
+    {
+      "name": "Signal Combination",
+      "appearances": 8,
+      "averageScore": 55
+    },
+    {
+      "name": "AI Council",
+      "appearances": 8,
+      "averageScore": 51
+    },
+    {
+      "name": "Source Truth",
+      "appearances": 8,
+      "averageScore": 51
+    },
+    {
+      "name": "Catalyst Radar",
+      "appearances": 7,
+      "averageScore": 59
+    },
+    {
+      "name": "High-Tech Alpha Stack",
+      "appearances": 6,
+      "averageScore": 46
+    }
+  ],
+  "agentLeaderboard": [
+    {
+      "name": "Risk Agent",
+      "appearances": 8,
+      "averageScore": 74
+    },
+    {
+      "name": "Catalyst Agent",
+      "appearances": 8,
+      "averageScore": 44
+    },
+    {
+      "name": "Simulation Agent",
+      "appearances": 8,
+      "averageScore": 32
+    },
+    {
+      "name": "Research Agent",
+      "appearances": 8,
+      "averageScore": 31
+    },
+    {
+      "name": "Liquidity Agent",
+      "appearances": 8,
+      "averageScore": 28
+    },
+    {
+      "name": "Discovery Agent",
+      "appearances": 8,
+      "averageScore": 18
+    },
+    {
+      "name": "Builder Agent",
+      "appearances": 8,
+      "averageScore": 0
+    }
+  ],
+  "sourceLeaderboard": [
+    {
+      "name": "research-seed",
+      "appearances": 16,
+      "averageScore": 41
+    },
+    {
+      "name": "researchSeeds",
+      "appearances": 8,
+      "averageScore": 41
+    }
+  ],
+  "falsePositiveAutopsies": [
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "verdict": "Accountable Priority Research",
+      "latestGrade": null,
+      "trapRiskScore": 20,
+      "falsePositiveSimilarity": 78,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
+      "verdict": "Weak Contract",
+      "latestGrade": null,
+      "trapRiskScore": 20,
+      "falsePositiveSimilarity": 76,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "contractId": "alpha-contract:research-seed-rndr:qhzloy",
+      "verdict": "Weak Contract",
+      "latestGrade": null,
+      "trapRiskScore": 20,
+      "falsePositiveSimilarity": 75,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "contractId": "alpha-contract:research-seed-akt:36yiei",
+      "verdict": "Accountable Priority Research",
+      "latestGrade": null,
+      "trapRiskScore": 20,
+      "falsePositiveSimilarity": 75,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "contractId": "alpha-contract:research-seed-tao:e6m79e",
+      "verdict": "Accountable Priority Research",
+      "latestGrade": null,
+      "trapRiskScore": 20,
+      "falsePositiveSimilarity": 73,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "contractId": "alpha-contract:research-seed-pendle:omxj6",
+      "verdict": "Weak Contract",
+      "latestGrade": null,
+      "trapRiskScore": 12,
+      "falsePositiveSimilarity": 73,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "contractId": "alpha-contract:research-seed-tia:2mv2os",
+      "verdict": "Weak Contract",
+      "latestGrade": null,
+      "trapRiskScore": 12,
+      "falsePositiveSimilarity": 72,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
+      "verdict": "Weak Contract",
+      "latestGrade": null,
+      "trapRiskScore": 12,
+      "falsePositiveSimilarity": 70,
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "invalidatesIf": [
+        {
+          "id": "risk_spike",
+          "rule": "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "metric": "riskScore",
+          "operator": ">=",
+          "target": 70
+        },
+        {
+          "id": "liquidity_break",
+          "rule": "Liquidity falls more than 40% from entry.",
+          "metric": "liquidityChangePct",
+          "operator": "<=",
+          "target": -40
+        },
+        {
+          "id": "evidence_break",
+          "rule": "Both source truth and proof fall below 35.",
+          "metric": "evidenceScore",
+          "operator": "<",
+          "target": 35
+        },
+        {
+          "id": "committee_block",
+          "rule": "Agent committee or Alpha OS flips to a block decision.",
+          "metric": "committeeBlock",
+          "operator": "==",
+          "target": true
+        }
+      ]
+    }
+  ],
+  "missedWinnerReviewQueue": [],
+  "operatingDoctrine": [
+    "Every promoted idea needs a thesis, proof requirements, invalidation rules, and a review window.",
+    "Old contracts are graded before new confidence is trusted.",
+    "A high score without evidence becomes priority research, not a buy signal.",
+    "Invalidation hits are useful because they teach the system which signals were noise.",
+    "This is research software only and never financial advice."
+  ],
+  "commandMap": {
+    "report": "npm run alpha:contracts",
+    "leaderboard": "npm run alpha:judge",
+    "receipts": "npm run alpha:receipts",
+    "memory": "npm run contract-memory",
+    "scan": "npm run scan:op"
+  }
+}

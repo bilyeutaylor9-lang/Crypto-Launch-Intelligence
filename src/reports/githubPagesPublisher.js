@@ -40,6 +40,9 @@ const PUBLIC_REPORTS = [
   "high-tech-alpha-stack.json",
   "self-evolving-alpha-os.json",
   "alpha-theses.json",
+  "alpha-contracts.json",
+  "alpha-contract-leaderboard.json",
+  "alpha-contract-receipts.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -91,6 +94,7 @@ function writeLandingPage(copiedFiles = []) {
   const highTechAlphaStack = readJsonReport("high-tech-alpha-stack.json") || {};
   const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json") || {};
   const alphaTheses = readJsonReport("alpha-theses.json") || {};
+  const alphaContracts = readJsonReport("alpha-contracts.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
@@ -131,6 +135,8 @@ function writeLandingPage(copiedFiles = []) {
     ["HT Candidates", highTechAlphaStack.alphaCandidates ?? "N/A"],
     ["Alpha OS Max", selfEvolvingAlphaOS.topProject?.symbol || "N/A"],
     ["Alpha Theses", alphaTheses.totalTheses ?? "N/A"],
+    ["Alpha Contracts", alphaContracts.alphaCandidates ?? "N/A"],
+    ["Contract Receipts", alphaContracts.publicReceipts?.length ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
@@ -381,6 +387,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Weight Optimizer:</strong> adjusts engine-family trust from paper performance.</li>
           <li><strong>Breakout Brain:</strong> selects the top three best-available breakout candidates from thousands of simulations.</li>
           <li><strong>High-Tech Alpha Stack:</strong> runs ten advanced command modules over each project.</li>
+          <li><strong>Proof-Carrying Alpha Contracts:</strong> turns top ideas into falsifiable receipts with review windows and invalidation rules.</li>
           <li><strong>Source Truth:</strong> measures provider reliability and source agreement.</li>
           <li><strong>GitHub Pro:</strong> scores repository activity, contributors, releases, and repo risk.</li>
           <li><strong>Research Brain:</strong> loops through hypotheses, missing proof, evidence graph, critic review, and memory.</li>
@@ -413,6 +420,9 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./weight-optimizer.json">Weights</a>
         <a class="button" href="./breakout-brain.json">Breakouts</a>
         <a class="button" href="./high-tech-alpha-stack.json">High-Tech</a>
+        <a class="button" href="./alpha-contracts.json">Alpha Contracts</a>
+        <a class="button" href="./alpha-contract-leaderboard.json">Contract Board</a>
+        <a class="button" href="./alpha-contract-receipts.json">Receipts</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
         <a class="button" href="./autonomous-research.json">Research Brain</a>
