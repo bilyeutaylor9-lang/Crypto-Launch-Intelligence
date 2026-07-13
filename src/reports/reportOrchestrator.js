@@ -23,6 +23,7 @@ import { writeAlphaOSReports } from "./alphaOSReportEngine.js";
 import { writeAlphaDashboardV2Report } from "./alphaDashboardV2ReportEngine.js";
 import { writeAutonomousResearchReport } from "./autonomousResearchReportEngine.js";
 import { writeBreakoutBrainReport } from "./breakoutBrainReportEngine.js";
+import { writeHighTechAlphaStackReport } from "./highTechAlphaStackReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -84,6 +85,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: breakoutBrainPath,
   } = writeBreakoutBrainReport(projects);
   const {
+    filePath: highTechAlphaStackPath,
+  } = writeHighTechAlphaStackReport(projects);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -132,6 +136,7 @@ export function generateReports(projects = [], meta = {}) {
     githubProPath,
     autonomousResearchPath,
     breakoutBrainPath,
+    highTechAlphaStackPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

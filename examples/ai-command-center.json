@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.531Z",
+  "generatedAt": "2026-07-13T03:40:02.976Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -142,7 +142,7 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
@@ -152,8 +152,8 @@
       "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -162,7 +162,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
@@ -291,7 +291,7 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
@@ -301,8 +301,8 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -423,18 +423,18 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 30,
+      "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 55,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 61,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -575,9 +575,9 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
@@ -585,17 +585,17 @@
       "alphaOSMode": "Blocked",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 53,
       "githubProScore": 0
     },
     {
-      "rank": 4,
+      "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 28,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
@@ -674,12 +674,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorScore": 23,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Bittensor",
         "symbol": "TAO",
-        "score": 22,
+        "score": 23,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -727,7 +727,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 30,
+      "warRoomScore": 31,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -735,29 +735,29 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 65,
-      "strategyLabVerdict": "Strategy Watch",
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 62,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 31,
+      "alphaOSScore": 32,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 54,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 60,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 2,
+      "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -883,18 +883,18 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 56,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -902,8 +902,8 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 22,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 23,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 30,
       "commanderVerdict": "Low Priority Research",
@@ -1027,29 +1027,29 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 51,
+      "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
+      "alphaOSScore": 29,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 50,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 56,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 26,
+      "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -1181,7 +1181,7 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
@@ -1191,8 +1191,8 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 49,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     }
   ],
@@ -1335,9 +1335,9 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
@@ -1345,8 +1345,8 @@
       "alphaOSMode": "Blocked",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 53,
       "githubProScore": 0
     },
     {
@@ -1354,8 +1354,8 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 22,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 23,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 30,
       "commanderVerdict": "Low Priority Research",
@@ -1479,18 +1479,18 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 51,
+      "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
+      "alphaOSScore": 29,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 50,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 56,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
@@ -1617,7 +1617,7 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
@@ -1627,8 +1627,168 @@
       "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
+      "githubProScore": 0
+    },
+    {
+      "rank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 31,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "unlocks",
+          "label": "Missing unlock schedule confirmation",
+          "severity": "Medium",
+          "agent": "Risk Agent",
+          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Risk Agent",
+          "priority": "Medium",
+          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
+          "reason": "Missing unlock schedule confirmation"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Bittensor",
+        "symbol": "TAO",
+        "score": 23,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing unlock schedule confirmation",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 31,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ],
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 62,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 32,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 60,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -1637,7 +1797,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
@@ -1766,7 +1926,7 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
@@ -1776,19 +1936,19 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 2,
+      "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -1914,178 +2074,18 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 56,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 26,
-      "githubProScore": 0
-    },
-    {
-      "rank": 4,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
-      "aiVerdict": "AI Watchlist",
-      "commanderScore": 31,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "unlocks",
-          "label": "Missing unlock schedule confirmation",
-          "severity": "Medium",
-          "agent": "Risk Agent",
-          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Risk Agent",
-          "priority": "Medium",
-          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
-          "reason": "Missing unlock schedule confirmation"
-        },
-        {
-          "agent": "Research Agent",
-          "priority": "Medium",
-          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
-          "reason": "Missing external source confirmation"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        }
-      ],
-      "alphaInvestigatorScore": 22,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Bittensor",
-        "symbol": "TAO",
-        "score": 22,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
-          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
-          "date": null,
-          "dateLabel": "unknown",
-          "precision": "unknown",
-          "type": "staking",
-          "matchedTerms": [
-            "staking",
-            "validator"
-          ],
-          "source": "inferred-web-roadmap",
-          "daysUntil": null,
-          "roadmapScore": 80,
-          "impact": "Major Positive"
-        },
-        "bullCase": [],
-        "bearCase": [
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Catalyst Agent: Catalyst timing is not decisive.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone.",
-          "Profitability Agent: Profitability needs confirmation."
-        ],
-        "missingProof": [
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing unlock schedule confirmation",
-          "Missing external source confirmation",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
-          "Liquidity expansion rises above 60.",
-          "Catalyst radar confirms a why-now event."
-        ]
-      },
-      "warRoomScore": 30,
-      "warRoomAllocation": "Ignore",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "ai",
-        "depin",
-        "restaking"
-      ],
-      "strategyLabScore": 65,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 62,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 31,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 47,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 54,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -2206,29 +2206,29 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 30,
+      "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 55,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 61,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 26,
+      "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -2360,7 +2360,7 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
@@ -2370,20 +2370,20 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 49,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     }
   ],
   "portfolioWarRoom": {
-    "generatedAt": "2026-07-12T06:04:13.530Z",
+    "generatedAt": "2026-07-13T03:40:02.976Z",
     "totalProjects": 8,
     "narrativeBattleMap": [
       {
         "narrative": "ai",
-        "score": 45,
+        "score": 46,
         "projectCount": 5,
-        "momentum": 84,
+        "momentum": 87,
         "github": 0,
         "liquidity": 30,
         "catalysts": 57,
@@ -2472,12 +2472,12 @@
       },
       {
         "narrative": "restaking",
-        "score": 45,
+        "score": 46,
         "projectCount": 5,
-        "momentum": 78,
+        "momentum": 81,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 59,
+        "catalysts": 60,
         "risk": 17,
         "state": "Developing",
         "bestInClass": {
@@ -2534,10 +2534,10 @@
             "risk": 20
           },
           "bestRiskAdjusted": {
-            "name": "Pendle",
-            "symbol": "PENDLE",
-            "chain": "ethereum",
-            "score": 36,
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
             "allocation": "Wait For Confirmation",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2563,12 +2563,12 @@
       },
       {
         "narrative": "depin",
-        "score": 44,
+        "score": 46,
         "projectCount": 3,
-        "momentum": 92,
+        "momentum": 96,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 51,
+        "catalysts": 52,
         "risk": 20,
         "state": "Developing",
         "bestInClass": {
@@ -2576,7 +2576,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2589,7 +2589,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2602,7 +2602,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2615,7 +2615,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2628,7 +2628,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2641,7 +2641,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -2654,9 +2654,9 @@
       },
       {
         "narrative": "modular",
-        "score": 40,
+        "score": 41,
         "projectCount": 1,
-        "momentum": 64,
+        "momentum": 68,
         "github": 0,
         "liquidity": 30,
         "catalysts": 49,
@@ -2927,12 +2927,12 @@
       },
       {
         "narrative": "solana",
-        "score": 35,
+        "score": 36,
         "projectCount": 2,
-        "momentum": 72,
+        "momentum": 74,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 32,
+        "catalysts": 33,
         "risk": 16,
         "state": "Quiet",
         "bestInClass": {
@@ -3018,9 +3018,9 @@
       },
       {
         "narrative": "launchpads",
-        "score": 35,
+        "score": 36,
         "projectCount": 2,
-        "momentum": 57,
+        "momentum": 58,
         "github": 0,
         "liquidity": 30,
         "catalysts": 38,
@@ -3111,9 +3111,9 @@
     "topNarratives": [
       {
         "narrative": "ai",
-        "score": 45,
+        "score": 46,
         "projectCount": 5,
-        "momentum": 84,
+        "momentum": 87,
         "github": 0,
         "liquidity": 30,
         "catalysts": 57,
@@ -3202,12 +3202,12 @@
       },
       {
         "narrative": "restaking",
-        "score": 45,
+        "score": 46,
         "projectCount": 5,
-        "momentum": 78,
+        "momentum": 81,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 59,
+        "catalysts": 60,
         "risk": 17,
         "state": "Developing",
         "bestInClass": {
@@ -3264,10 +3264,10 @@
             "risk": 20
           },
           "bestRiskAdjusted": {
-            "name": "Pendle",
-            "symbol": "PENDLE",
-            "chain": "ethereum",
-            "score": 36,
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "score": 34,
             "allocation": "Wait For Confirmation",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3293,12 +3293,12 @@
       },
       {
         "narrative": "depin",
-        "score": 44,
+        "score": 46,
         "projectCount": 3,
-        "momentum": 92,
+        "momentum": 96,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 51,
+        "catalysts": 52,
         "risk": 20,
         "state": "Developing",
         "bestInClass": {
@@ -3306,7 +3306,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3319,7 +3319,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3332,7 +3332,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3345,7 +3345,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3358,7 +3358,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3371,7 +3371,7 @@
             "name": "Bittensor",
             "symbol": "TAO",
             "chain": "bittensor",
-            "score": 30,
+            "score": 31,
             "allocation": "Ignore",
             "role": "Best Catalyst Setup",
             "aiVerdict": "AI Watchlist",
@@ -3384,9 +3384,9 @@
       },
       {
         "narrative": "modular",
-        "score": 40,
+        "score": 41,
         "projectCount": 1,
-        "momentum": 64,
+        "momentum": 68,
         "github": 0,
         "liquidity": 30,
         "catalysts": 49,
@@ -3657,12 +3657,12 @@
       },
       {
         "narrative": "solana",
-        "score": 35,
+        "score": 36,
         "projectCount": 2,
-        "momentum": 72,
+        "momentum": 74,
         "github": 0,
         "liquidity": 30,
-        "catalysts": 32,
+        "catalysts": 33,
         "risk": 16,
         "state": "Quiet",
         "bestInClass": {
@@ -3748,9 +3748,9 @@
       },
       {
         "narrative": "launchpads",
-        "score": 35,
+        "score": 36,
         "projectCount": 2,
-        "momentum": 57,
+        "momentum": 58,
         "github": 0,
         "liquidity": 30,
         "catalysts": 38,
@@ -3842,7 +3842,7 @@
       {
         "narrative": "ai",
         "state": "Developing",
-        "score": 45,
+        "score": 46,
         "bestOverall": {
           "name": "EigenLayer",
           "symbol": "EIGEN",
@@ -3925,7 +3925,7 @@
       {
         "narrative": "restaking",
         "state": "Developing",
-        "score": 45,
+        "score": 46,
         "bestOverall": {
           "name": "EigenLayer",
           "symbol": "EIGEN",
@@ -3979,10 +3979,10 @@
           "risk": 20
         },
         "bestRiskAdjusted": {
-          "name": "Pendle",
-          "symbol": "PENDLE",
-          "chain": "ethereum",
-          "score": 36,
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "score": 34,
           "allocation": "Wait For Confirmation",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4008,12 +4008,12 @@
       {
         "narrative": "depin",
         "state": "Developing",
-        "score": 44,
+        "score": 46,
         "bestOverall": {
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4026,7 +4026,7 @@
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4039,7 +4039,7 @@
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4052,7 +4052,7 @@
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4065,7 +4065,7 @@
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4078,7 +4078,7 @@
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
-          "score": 30,
+          "score": 31,
           "allocation": "Ignore",
           "role": "Best Catalyst Setup",
           "aiVerdict": "AI Watchlist",
@@ -4091,7 +4091,7 @@
       {
         "narrative": "modular",
         "state": "Quiet",
-        "score": 40,
+        "score": 41,
         "bestOverall": {
           "name": "Celestia",
           "symbol": "TIA",
@@ -4340,7 +4340,7 @@
       {
         "narrative": "solana",
         "state": "Quiet",
-        "score": 35,
+        "score": 36,
         "bestOverall": {
           "name": "Jupiter",
           "symbol": "JUP",
@@ -4423,7 +4423,7 @@
       {
         "narrative": "launchpads",
         "state": "Quiet",
-        "score": 35,
+        "score": 36,
         "bestOverall": {
           "name": "Pendle",
           "symbol": "PENDLE",

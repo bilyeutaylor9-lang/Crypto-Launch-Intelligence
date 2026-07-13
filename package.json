@@ -76,6 +76,8 @@
     "autonomous-research": "cat reports/autonomous-research.json",
     "breakout-brain": "cat reports/breakout-brain.json",
     "breakouts": "cat reports/breakout-brain.json",
+    "high-tech": "cat reports/high-tech-alpha-stack.json",
+    "alpha-stack": "cat reports/high-tech-alpha-stack.json",
     "strategy-memory": "node src/learning/strategyMemoryStore.js",
     "paper-memory": "node src/learning/paperTradingOutcomeStore.js",
     "research-memory": "node src/learning/autonomousResearchMemoryStore.js",

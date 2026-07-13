@@ -118,6 +118,7 @@ The project now behaves like a miniature autonomous research organization.
 | Paper Trading Lab | Grades Alpha OS calls against simulated outcome history | `reports/paper-trading-lab.json` |
 | Weight Optimizer | Suggests engine-family weights from paper performance | `reports/weight-optimizer.json` |
 | Breakout Brain | Runs thousands of quantum Monte Carlo paths and selects the top three best-available breakout candidates | `reports/breakout-brain.json` |
+| High-Tech Alpha Stack | Adds ten command modules for consensus, contradictions, stress, manipulation, catalysts, rotation, fit, gaps, and readiness | `reports/high-tech-alpha-stack.json` |
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 
@@ -302,6 +303,7 @@ Every scan can generate a full research packet:
 | `reports/paper-trading-lab.json` | Simulated strategy outcome tracking |
 | `reports/weight-optimizer.json` | Auto-learning engine-family weight suggestions |
 | `reports/breakout-brain.json` | Top-three breakout research picks from thousands of simulations |
+| `reports/high-tech-alpha-stack.json` | Ten-module institutional command stack |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -365,6 +367,7 @@ npm run alpha-dashboard-v2
 npm run paper-lab
 npm run weight-optimizer
 npm run breakouts
+npm run high-tech
 npm run source-truth
 npm run github-pro
 ```
@@ -425,6 +428,7 @@ cat examples/alpha-dashboard-v2.json
 cat examples/paper-trading-lab.json
 cat examples/weight-optimizer.json
 cat examples/breakout-brain.json
+cat examples/high-tech-alpha-stack.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

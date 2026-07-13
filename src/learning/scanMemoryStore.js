@@ -7,6 +7,9 @@ const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "scan-history.json");
 const MAX_RECORDS = Number(process.env.MAX_SCAN_MEMORY_RECORDS || 25000);
 
+let memoryCache = null;
+let memoryCacheMtimeMs = 0;
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -15,22 +18,44 @@ function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+function getMemoryMtimeMs() {
+  try {
+    return fs.statSync(MEMORY_FILE).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
 function readMemory() {
   ensureDataDir();
 
-  if (!fs.existsSync(MEMORY_FILE)) return [];
+  const mtimeMs = getMemoryMtimeMs();
+  if (memoryCache && memoryCacheMtimeMs === mtimeMs) return memoryCache;
+
+  if (!mtimeMs) {
+    memoryCache = [];
+    memoryCacheMtimeMs = 0;
+    return memoryCache;
+  }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
-    return Array.isArray(parsed) ? parsed : [];
+    memoryCache = Array.isArray(parsed) ? parsed : [];
+    memoryCacheMtimeMs = mtimeMs;
+    return memoryCache;
   } catch {
-    return [];
+    memoryCache = [];
+    memoryCacheMtimeMs = mtimeMs;
+    return memoryCache;
   }
 }
 
 function writeMemory(records = []) {
   ensureDataDir();
-  fs.writeFileSync(MEMORY_FILE, JSON.stringify(records.slice(-MAX_RECORDS), null, 2));
+  const trimmed = records.slice(-MAX_RECORDS);
+  fs.writeFileSync(MEMORY_FILE, JSON.stringify(trimmed, null, 2));
+  memoryCache = trimmed;
+  memoryCacheMtimeMs = getMemoryMtimeMs();
 }
 
 function tokenId(project = {}) {
@@ -294,6 +319,29 @@ export function getProjectHistory(projectId, limit = 100) {
   return readMemory()
     .filter((record) => record.id === id)
     .slice(-Number(limit || 100));
+}
+
+export function getProjectHistories(projectIds = [], limit = 100) {
+  const ids = new Set(
+    (Array.isArray(projectIds) ? projectIds : [projectIds])
+      .map((id) => String(id || "").toLowerCase())
+      .filter(Boolean)
+  );
+  const historyLimit = Number(limit || 100);
+  const histories = new Map([...ids].map((id) => [id, []]));
+
+  if (!ids.size) return histories;
+
+  for (const record of readMemory()) {
+    const id = String(record.id || "").toLowerCase();
+    if (!ids.has(id)) continue;
+
+    const history = histories.get(id);
+    history.push(record);
+    if (history.length > historyLimit) history.shift();
+  }
+
+  return histories;
 }
 
 export function summarizeMemory() {

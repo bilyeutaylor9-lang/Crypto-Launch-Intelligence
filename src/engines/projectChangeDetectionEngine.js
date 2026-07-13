@@ -1,6 +1,6 @@
 // src/engines/projectChangeDetectionEngine.js
 
-import { getProjectHistory } from "../learning/scanMemoryStore.js";
+import { getProjectHistories } from "../learning/scanMemoryStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -23,8 +23,8 @@ function projectId(project = {}) {
   ).toLowerCase();
 }
 
-function latestPrior(project = {}) {
-  const history = getProjectHistory(projectId(project), 20);
+function latestPrior(project = {}, histories = new Map()) {
+  const history = histories.get(projectId(project)) || [];
   return history.at(-1) || null;
 }
 
@@ -37,8 +37,11 @@ function changeState(delta = 0) {
 }
 
 export function analyzeProjectChangeBatch(projects = []) {
-  return projects.map((project) => {
-    const prior = latestPrior(project);
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const histories = getProjectHistories(safeProjects.map(projectId), 20);
+
+  return safeProjects.map((project) => {
+    const prior = latestPrior(project, histories);
 
     if (!prior) {
       return {

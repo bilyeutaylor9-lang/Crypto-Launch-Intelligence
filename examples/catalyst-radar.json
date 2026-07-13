@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.524Z",
+  "generatedAt": "2026-07-13T03:40:02.971Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -65,7 +65,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -193,7 +193,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -264,11 +264,11 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 4,
+      "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "liveCatalystRadarScore": 56,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -297,12 +297,12 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 2,
+      "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
-      "liveCatalystRadarScore": 49,
+      "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
       "topEvent": {
@@ -322,6 +322,39 @@
           "urgency": "Medium",
           "reasons": [
             "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Do Not Promote",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
+      "rank": 2,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineScore": 4,
+      "liveCatalystRadarScore": 49,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Migration / Release",
+        "score": 54,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "migration, release, or upgrade language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Migration / Release",
+          "score": 54,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "migration, release, or upgrade language detected"
           ]
         }
       ],
@@ -360,39 +393,6 @@
       ],
       "dossierSwarmDecision": "Do Not Promote",
       "simulationDecision": "Simulation Watch",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data"
-    },
-    {
-      "rank": 3,
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "pipelineScore": 3,
-      "liveCatalystRadarScore": 48,
-      "liveCatalystUrgency": "Medium",
-      "liveCatalystAction": "Watch for confirmation",
-      "topEvent": {
-        "type": "Migration / Release",
-        "score": 54,
-        "window": "7d-30d",
-        "urgency": "Medium",
-        "reasons": [
-          "migration, release, or upgrade language detected"
-        ]
-      },
-      "events": [
-        {
-          "type": "Migration / Release",
-          "score": 54,
-          "window": "7d-30d",
-          "urgency": "Medium",
-          "reasons": [
-            "migration, release, or upgrade language detected"
-          ]
-        }
-      ],
-      "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {

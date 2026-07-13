@@ -80,6 +80,7 @@ import { analyzePaperTradingOutcomeLabBatch } from "./engines/paperTradingOutcom
 import { analyzeAutoLearningWeightOptimizerBatch } from "./engines/autoLearningWeightOptimizerEngine.js";
 import { analyzeBreakoutBrainBatch } from "./engines/breakoutBrainEngine.js";
 import { analyzeAutonomousResearchOrchestratorBatch } from "./engines/autonomousResearchOrchestratorEngine.js";
+import { analyzeHighTechAlphaStackBatch } from "./engines/highTechAlphaStackEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1089,6 +1090,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeAutoLearningWeightOptimizerBatch(results);
   results = analyzeBreakoutBrainBatch(results, options.breakoutBrain || {});
   results = analyzeAutonomousResearchOrchestratorBatch(results, options.autonomousResearch || {});
+  results = analyzeHighTechAlphaStackBatch(results);
 
   if (options.saveMemory !== false) {
     try {
@@ -1276,6 +1278,11 @@ export function summarizePipelineResults(results = []) {
   const topBreakoutBrainSetups = [...safeResults]
     .sort((a, b) => num(b.breakoutBrainScore) - num(a.breakoutBrainScore))
     .slice(0, 10);
+  const highTechAlphaCandidates = safeResults.filter((p) => p.highTechAlphaVerdict === "High-Tech Alpha Candidate");
+  const highTechPriorityResearch = safeResults.filter((p) => p.highTechAlphaVerdict === "High-Tech Priority Research");
+  const topHighTechAlphaSetups = [...safeResults]
+    .sort((a, b) => num(b.highTechAlphaScore) - num(a.highTechAlphaScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1367,6 +1374,8 @@ export function summarizePipelineResults(results = []) {
     weightOptimizedPriorityCount: weightOptimizedPriority.length,
     breakoutBrainSelectionCount: breakoutBrainSelections.length,
     breakoutBrainHighProbabilityCount: safeResults.filter((p) => num(p.breakoutProbabilitySoon) >= 40).length,
+    highTechAlphaCandidateCount: highTechAlphaCandidates.length,
+    highTechPriorityResearchCount: highTechPriorityResearch.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1532,6 +1541,20 @@ export function summarizePipelineResults(results = []) {
       simulations: project.breakoutMonteCarlo?.simulations || 0,
       topDrivers: project.breakoutMonteCarlo?.topDrivers || [],
       riskControls: project.breakoutMonteCarlo?.riskControls || [],
+    })),
+    topHighTechAlphaSetups: topHighTechAlphaSetups.map((project) => ({
+      rank: project.highTechAlphaRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "Unknown",
+      chain: project.chain || "unknown",
+      highTechAlphaScore: project.highTechAlphaScore || 0,
+      verdict: project.highTechAlphaVerdict || "Unknown",
+      confidence: project.highTechAlphaConfidence || "Unknown",
+      commandDecision: project.highTechAlphaStack?.commandDecision || "",
+      strongestModules: project.highTechAlphaStack?.strongestModules || [],
+      weakestModules: project.highTechAlphaStack?.weakestModules || [],
+      blockers: project.highTechAlphaStack?.blockers || [],
+      moduleScores: project.highTechModuleScores || {},
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.624Z",
-  "totalEngines": 103,
-  "wiredIntoPipeline": 79,
-  "stateOfArtReady": 86,
-  "readinessScore": 88,
+  "generatedAt": "2026-07-13T03:40:03.018Z",
+  "totalEngines": 104,
+  "wiredIntoPipeline": 80,
+  "stateOfArtReady": 87,
+  "readinessScore": 89,
   "categoryCounts": {
     "intelligence": 41,
     "ai": 14,
-    "learning": 14,
+    "learning": 15,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -1152,6 +1152,20 @@
       "advancedSignals": 2,
       "readinessScore": 40,
       "status": "needs-upgrade"
+    },
+    {
+      "file": "highTechAlphaStackEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeHighTechAlphaStack",
+        "analyzeHighTechAlphaStackBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "holderGrowthEngine.js",

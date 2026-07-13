@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.531Z",
+  "generatedAt": "2026-07-13T03:40:02.976Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -130,7 +130,7 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
@@ -140,8 +140,8 @@
       "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -150,7 +150,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
@@ -279,7 +279,7 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
@@ -289,8 +289,8 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -411,18 +411,18 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 30,
+      "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 55,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 61,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -563,9 +563,9 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
@@ -573,17 +573,17 @@
       "alphaOSMode": "Blocked",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 53,
       "githubProScore": 0
     },
     {
-      "rank": 4,
+      "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 28,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
@@ -662,12 +662,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorScore": 23,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Bittensor",
         "symbol": "TAO",
-        "score": 22,
+        "score": 23,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -715,7 +715,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 30,
+      "warRoomScore": 31,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -723,29 +723,29 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 65,
-      "strategyLabVerdict": "Strategy Watch",
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 62,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 31,
+      "alphaOSScore": 32,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 54,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 60,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 2,
+      "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -871,18 +871,18 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 56,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -890,8 +890,8 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 22,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 23,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 30,
       "commanderVerdict": "Low Priority Research",
@@ -1015,29 +1015,29 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 51,
+      "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
+      "alphaOSScore": 29,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 50,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 56,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 26,
+      "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -1169,7 +1169,7 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
@@ -1179,8 +1179,8 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 49,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     }
   ]

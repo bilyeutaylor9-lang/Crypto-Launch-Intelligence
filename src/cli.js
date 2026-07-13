@@ -87,6 +87,7 @@ Commands:
   crypto-launch github-pro        Print GitHub Intelligence Pro report
   crypto-launch research-brain    Print Autonomous Research Orchestrator report
   crypto-launch breakouts         Print Breakout Brain top candidates
+  crypto-launch high-tech         Print High-Tech Alpha Stack report
   crypto-launch roadmap           Generate and print roadmap summary
   crypto-launch source-router     Print adaptive source router report
   crypto-launch github-discovery  Search free GitHub project discovery
@@ -196,6 +197,11 @@ switch (command) {
   case "breakout-brain":
   case "blow-up":
     runNpm("breakout-brain", args);
+    break;
+  case "high-tech":
+  case "alpha-stack":
+  case "high-tech-stack":
+    runNpm("high-tech", args);
     break;
   case "roadmap":
     runNpm("roadmap", args);

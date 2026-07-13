@@ -1,15 +1,29 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.550Z",
+  "generatedAt": "2026-07-13T03:40:02.987Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-    "totalRecords": 1,
+    "totalRecords": 3,
     "evaluatedRecords": 0,
-    "openRecords": 1,
+    "openRecords": 3,
     "winners": 0,
     "losers": 0,
     "winRate": 0,
     "averageReturnPct": 0,
     "strategies": [
+      {
+        "id": "truth_verified_alpha",
+        "name": "Truth-Verified Alpha",
+        "observations": 2,
+        "evaluated": 0,
+        "winners": 0,
+        "losers": 0,
+        "avgReturnPct": 0,
+        "avgAlphaOSScore": 39,
+        "avgRiskScore": 12,
+        "winRate": 0,
+        "lossRate": 0,
+        "status": "Collecting"
+      },
       {
         "id": "narrative_heat_momentum",
         "name": "Narrative Heat Momentum",
@@ -72,6 +86,97 @@
         "latestAlphaOSVerdict": "OS Best Available Candidate",
         "latestAlphaOSScore": 41,
         "latestRiskScore": 20
+      },
+      {
+        "id": "rescue-modular-alt",
+        "name": "AltLayer",
+        "symbol": "ALT",
+        "chain": "ethereum",
+        "strategyId": "truth_verified_alpha",
+        "strategyName": "Truth-Verified Alpha",
+        "openedAt": "2026-07-13T03:29:31.667Z",
+        "updatedAt": "2026-07-13T03:29:31.667Z",
+        "entryPriceUsd": 0,
+        "latestPriceUsd": 0,
+        "latestReturnPct": 0,
+        "daysOpen": 0,
+        "outcomeLabel": "Open",
+        "alphaOSVerdict": "OS Best Available Candidate",
+        "alphaOSScore": 41,
+        "causalAlphaScore": 59,
+        "strategyLabScore": 75,
+        "paperTradeScore": 60,
+        "proofScore": 0,
+        "sourceTruthScore": 63,
+        "githubProScore": 0,
+        "riskScore": 12,
+        "expectedReturn30dPct": 21,
+        "breakoutProbability30d": 34,
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "checkpoints": {
+          "1d": null,
+          "7d": null,
+          "30d": null,
+          "90d": null
+        }
+      },
+      {
+        "id": "rescue-ai-tao",
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "strategyId": "truth_verified_alpha",
+        "strategyName": "Truth-Verified Alpha",
+        "openedAt": "2026-07-13T03:32:20.439Z",
+        "updatedAt": "2026-07-13T03:34:24.060Z",
+        "entryPriceUsd": 0,
+        "latestPriceUsd": 0,
+        "latestReturnPct": 0,
+        "daysOpen": 0,
+        "outcomeLabel": "Open",
+        "alphaOSVerdict": "OS Best Available Candidate",
+        "alphaOSScore": 36,
+        "causalAlphaScore": 57,
+        "strategyLabScore": 71,
+        "paperTradeScore": 56,
+        "proofScore": 0,
+        "sourceTruthScore": 55,
+        "githubProScore": 0,
+        "riskScore": 12,
+        "expectedReturn30dPct": 16,
+        "breakoutProbability30d": 30,
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "checkpoints": {
+          "1d": null,
+          "7d": null,
+          "30d": null,
+          "90d": null
+        },
+        "latestAlphaOSVerdict": "OS Best Available Candidate",
+        "latestAlphaOSScore": 35,
+        "latestRiskScore": 12
       }
     ]
   },
@@ -134,7 +239,7 @@
       "symbol": "EIGEN",
       "score": 43,
       "verdict": "Collect More Outcomes",
-      "strategy": "Roadmap Catalyst Confirmation",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Risk Block"
@@ -152,7 +257,7 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 42,
+      "score": 43,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,

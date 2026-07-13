@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T06:04:13.531Z",
+  "generatedAt": "2026-07-13T03:40:02.976Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -144,9 +144,9 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Roadmap Catalyst Confirmation",
+      "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
@@ -154,8 +154,8 @@
       "alphaOSMode": "Blocked",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 53,
       "githubProScore": 0
     },
     {
@@ -163,8 +163,8 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 22,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 23,
       "aiVerdict": "AI Pass For Now",
       "commanderScore": 30,
       "commanderVerdict": "Low Priority Research",
@@ -288,18 +288,18 @@
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 51,
+      "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
+      "alphaOSScore": 29,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 42,
+      "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 50,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 56,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
@@ -426,7 +426,7 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 58,
@@ -436,8 +436,168 @@
       "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
+      "githubProScore": 0
+    },
+    {
+      "rank": 3,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 28,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 31,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        {
+          "id": "github",
+          "label": "Missing GitHub activity proof",
+          "severity": "Medium",
+          "agent": "GitHub Agent",
+          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
+        },
+        {
+          "id": "tokenomics",
+          "label": "Missing tokenomics and allocation proof",
+          "severity": "High",
+          "agent": "Tokenomics Agent",
+          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
+        },
+        {
+          "id": "unlocks",
+          "label": "Missing unlock schedule confirmation",
+          "severity": "Medium",
+          "agent": "Risk Agent",
+          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
+        },
+        {
+          "id": "web_research",
+          "label": "Missing external source confirmation",
+          "severity": "Medium",
+          "agent": "Research Agent",
+          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
+        },
+        {
+          "id": "liquidity",
+          "label": "Missing liquidity depth confirmation",
+          "severity": "Medium",
+          "agent": "Liquidity Agent",
+          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
+        }
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Risk Agent",
+          "priority": "Medium",
+          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
+          "reason": "Missing unlock schedule confirmation"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Bittensor",
+        "symbol": "TAO",
+        "score": 23,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing unlock schedule confirmation",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 31,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ],
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 62,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 32,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 60,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -446,7 +606,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
@@ -575,7 +735,7 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
@@ -585,19 +745,19 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 62,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 2,
+      "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 3,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "commanderScore": 31,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -723,178 +883,18 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 62,
+      "strategyLabScore": 63,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 56,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 28,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 51,
-      "sourceTruthScore": 26,
-      "githubProScore": 0
-    },
-    {
-      "rank": 4,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 27,
-      "aiVerdict": "AI Watchlist",
-      "commanderScore": 31,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "unlocks",
-          "label": "Missing unlock schedule confirmation",
-          "severity": "Medium",
-          "agent": "Risk Agent",
-          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Risk Agent",
-          "priority": "Medium",
-          "task": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources.",
-          "reason": "Missing unlock schedule confirmation"
-        },
-        {
-          "agent": "Research Agent",
-          "priority": "Medium",
-          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
-          "reason": "Missing external source confirmation"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        }
-      ],
-      "alphaInvestigatorScore": 22,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Bittensor",
-        "symbol": "TAO",
-        "score": 22,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "title": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
-          "summary": "Bittensor TAO AI decentralized compute inference subnet ecosystem staking validators emissions agents",
-          "date": null,
-          "dateLabel": "unknown",
-          "precision": "unknown",
-          "type": "staking",
-          "matchedTerms": [
-            "staking",
-            "validator"
-          ],
-          "source": "inferred-web-roadmap",
-          "daysUntil": null,
-          "roadmapScore": 80,
-          "impact": "Major Positive"
-        },
-        "bullCase": [],
-        "bearCase": [
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Catalyst Agent: Catalyst timing is not decisive.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone.",
-          "Profitability Agent: Profitability needs confirmation."
-        ],
-        "missingProof": [
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing unlock schedule confirmation",
-          "Missing external source confirmation",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing unlock schedule confirmation.",
-          "Liquidity expansion rises above 60.",
-          "Catalyst radar confirms a why-now event."
-        ]
-      },
-      "warRoomScore": 30,
-      "warRoomAllocation": "Ignore",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "ai",
-        "depin",
-        "restaking"
-      ],
-      "strategyLabScore": 65,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 62,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 31,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 47,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 54,
-      "sourceTruthScore": 26,
+      "autoLearningWeightScore": 57,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -1015,29 +1015,29 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 68,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 30,
+      "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 55,
-      "sourceTruthScore": 27,
+      "autoLearningWeightScore": 61,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 26,
+      "commanderScore": 27,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -1169,7 +1169,7 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 61,
+      "strategyLabScore": 62,
       "strategyLabVerdict": "Strategy Watch",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
@@ -1179,8 +1179,8 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 49,
-      "sourceTruthScore": 23,
+      "autoLearningWeightScore": 55,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     }
   ]
