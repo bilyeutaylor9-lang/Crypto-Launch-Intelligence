@@ -31,6 +31,10 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, num(value)));
+}
+
 function normalizeResults(output, fallback = []) {
   if (Array.isArray(output)) return output;
   if (Array.isArray(output?.results)) return output.results;
