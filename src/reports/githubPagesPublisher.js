@@ -49,6 +49,8 @@ const PUBLIC_REPORTS = [
   "alpha-evolution-queue.json",
   "small-cap-hunter.json",
   "proof-of-alpha-execution-twin.json",
+  "organic-demand-integrity.json",
+  "discovery-truth.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -106,6 +108,8 @@ function writeLandingPage(copiedFiles = []) {
   const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json") || {};
   const smallCapHunter = readJsonReport("small-cap-hunter.json") || {};
   const executionTwin = readJsonReport("proof-of-alpha-execution-twin.json") || {};
+  const organicIntegrity = readJsonReport("organic-demand-integrity.json") || {};
+  const discoveryTruth = readJsonReport("discovery-truth.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
@@ -161,6 +165,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Small-Cap Route #2", smallCapHunter.topTwo?.[1]?.purchaseRoute?.preferredRoute || "N/A"],
     ["Execution Twin", executionTwin.topExecutions?.[0]?.symbol || "N/A"],
     ["Exec Route", executionTwin.topExecutions?.[0]?.route || "N/A"],
+    ["Organic Blocks", organicIntegrity.institutionalBlocks ?? "N/A"],
+    ["Discovery Sources", discoveryTruth.sourceCapabilityAudit?.enabledSources ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
@@ -414,6 +420,8 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Proof-Carrying Alpha Contracts:</strong> turns top ideas into falsifiable receipts with review windows and invalidation rules.</li>
           <li><strong>Alpha Evolution Governor:</strong> fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue.</li>
           <li><strong>Proof-of-Alpha Execution Twin:</strong> checks route proof, $100 paper execution, slippage, safety, and thesis accountability.</li>
+          <li><strong>Organic Demand Integrity:</strong> separates real demand from holder-count, approval, reward, liquidity, yield, and admin-control traps.</li>
+          <li><strong>Discovery Truth Network:</strong> audits active sources, discovery lanes, independent evidence families, and rejected-candidate recall.</li>
           <li><strong>Source Truth:</strong> measures provider reliability and source agreement.</li>
           <li><strong>GitHub Pro:</strong> scores repository activity, contributors, releases, and repo risk.</li>
           <li><strong>Research Brain:</strong> loops through hypotheses, missing proof, evidence graph, critic review, and memory.</li>
@@ -452,6 +460,8 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./alpha-evolution-governor.json">Governor</a>
         <a class="button" href="./alpha-evolution-queue.json">Gov Queue</a>
         <a class="button" href="./proof-of-alpha-execution-twin.json">Execution Twin</a>
+        <a class="button" href="./organic-demand-integrity.json">Organic Integrity</a>
+        <a class="button" href="./discovery-truth.json">Discovery Truth</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
         <a class="button" href="./autonomous-research.json">Research Brain</a>

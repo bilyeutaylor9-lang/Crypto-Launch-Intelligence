@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:24.866Z",
+  "generatedAt": "2026-07-14T06:05:53.656Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
     "totalRecords": 5,
@@ -276,16 +276,6 @@
   "downgradeStrategyCount": 0,
   "topPaperCandidates": [
     {
-      "name": "Celestia",
-      "symbol": "TIA",
-      "score": 49,
-      "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
-    },
-    {
       "name": "Pendle",
       "symbol": "PENDLE",
       "score": 49,
@@ -308,7 +298,7 @@
     {
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 47,
+      "score": 46,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -341,6 +331,16 @@
       "score": 44,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 43,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:28.313Z",
+  "generatedAt": "2026-07-14T06:05:56.357Z",
   "name": "Proof-of-Alpha Execution Twin",
   "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
   "totalProjects": 8,
@@ -10,68 +10,6 @@
   "safetyBlocks": 0,
   "topExecutions": [],
   "topProjects": [
-    {
-      "rank": null,
-      "selected": false,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "score": 42,
-      "verdict": "Execution Route Block",
-      "confidence": "Low",
-      "route": "Unavailable",
-      "slippagePct": 0.307,
-      "quote": {
-        "budgetUsd": 100,
-        "priceUsd": null,
-        "estimatedTokens": null,
-        "liquidityUsd": 115000,
-        "volume24h": 32500,
-        "liquidityImpactPct": 0.087,
-        "volumeImpactPct": 0.3077,
-        "estimatedSlippagePct": 0.307,
-        "score": 87,
-        "blocker": null
-      },
-      "safety": {
-        "score": 37,
-        "risk": 72,
-        "contractKnown": false,
-        "pairKnown": true,
-        "sourceProof": 74,
-        "blockers": [
-          "No verified Coinbase/MetaMask execution route."
-        ]
-      },
-      "paperExecution": {
-        "mode": "Paper execution simulation only",
-        "budgetUsd": 100,
-        "preferredRoute": "Unavailable",
-        "estimatedTokens": null,
-        "estimatedSlippagePct": 0.307,
-        "simulatedEntryPriceUsd": null,
-        "reviewWindows": [
-          "1h",
-          "24h",
-          "7d",
-          "30d",
-          "90d"
-        ]
-      },
-      "invalidationRules": [
-        "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-        "Estimated $100 slippage rises above 5%.",
-        "Risk, trap, unlock, or sell-pressure score rises above 78.",
-        "Token contract or pair cannot be manually verified.",
-        "Alpha thesis/gov/proof score drops below 50 on the next scan."
-      ],
-      "requiredManualChecks": [
-        "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-        "Confirm slippage and fees inside the actual trade screen before any real order.",
-        "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-        "Confirm unlocks, emissions, insiders, and top-holder concentration."
-      ]
-    },
     {
       "rank": null,
       "selected": false,
@@ -325,10 +263,72 @@
     {
       "rank": null,
       "selected": false,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 40,
+      "verdict": "Execution Route Block",
+      "confidence": "Low",
+      "route": "Unavailable",
+      "slippagePct": 0.321,
+      "quote": {
+        "budgetUsd": 100,
+        "priceUsd": null,
+        "estimatedTokens": null,
+        "liquidityUsd": 105000,
+        "volume24h": 27500,
+        "liquidityImpactPct": 0.0952,
+        "volumeImpactPct": 0.3636,
+        "estimatedSlippagePct": 0.321,
+        "score": 87,
+        "blocker": null
+      },
+      "safety": {
+        "score": 32,
+        "risk": 75,
+        "contractKnown": false,
+        "pairKnown": true,
+        "sourceProof": 56,
+        "blockers": [
+          "No verified Coinbase/MetaMask execution route."
+        ]
+      },
+      "paperExecution": {
+        "mode": "Paper execution simulation only",
+        "budgetUsd": 100,
+        "preferredRoute": "Unavailable",
+        "estimatedTokens": null,
+        "estimatedSlippagePct": 0.321,
+        "simulatedEntryPriceUsd": null,
+        "reviewWindows": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ]
+      },
+      "invalidationRules": [
+        "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+        "Estimated $100 slippage rises above 5%.",
+        "Risk, trap, unlock, or sell-pressure score rises above 78.",
+        "Token contract or pair cannot be manually verified.",
+        "Alpha thesis/gov/proof score drops below 50 on the next scan."
+      ],
+      "requiredManualChecks": [
+        "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+        "Confirm slippage and fees inside the actual trade screen before any real order.",
+        "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+        "Confirm unlocks, emissions, insiders, and top-holder concentration."
+      ]
+    },
+    {
+      "rank": null,
+      "selected": false,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 40,
+      "score": 39,
       "verdict": "Execution Route Block",
       "confidence": "Low",
       "route": "Unavailable",
@@ -387,29 +387,29 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "score": 40,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "score": 39,
       "verdict": "Execution Route Block",
       "confidence": "Low",
       "route": "Unavailable",
-      "slippagePct": 0.321,
+      "slippagePct": 0.307,
       "quote": {
         "budgetUsd": 100,
         "priceUsd": null,
         "estimatedTokens": null,
-        "liquidityUsd": 105000,
-        "volume24h": 27500,
-        "liquidityImpactPct": 0.0952,
-        "volumeImpactPct": 0.3636,
-        "estimatedSlippagePct": 0.321,
+        "liquidityUsd": 115000,
+        "volume24h": 32500,
+        "liquidityImpactPct": 0.087,
+        "volumeImpactPct": 0.3077,
+        "estimatedSlippagePct": 0.307,
         "score": 87,
         "blocker": null
       },
       "safety": {
         "score": 32,
-        "risk": 75,
+        "risk": 74,
         "contractKnown": false,
         "pairKnown": true,
         "sourceProof": 56,
@@ -422,7 +422,7 @@
         "budgetUsd": 100,
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
-        "estimatedSlippagePct": 0.321,
+        "estimatedSlippagePct": 0.307,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",

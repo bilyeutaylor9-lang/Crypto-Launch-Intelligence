@@ -46,6 +46,7 @@ import { analyzeProofCarryingAlphaContractBatch } from "../src/engines/proofCarr
 import { analyzeAlphaEvolutionGovernorBatch } from "../src/engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "../src/engines/smallCapHunterEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "../src/engines/proofOfAlphaExecutionTwinEngine.js";
+import { analyzeOrganicDemandIntegrity } from "../src/engines/organicDemandIntegrityEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1826,6 +1827,76 @@ test("proof of alpha execution twin selects route-verified paper executions and 
   assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "Execution Route Block");
   assert.equal(unsafe.proofOfAlphaExecutionTwinVerdict, "Execution Safety Block");
   assert.ok(selected[0].proofOfAlphaExecutionTwin.paperExecution.reviewWindows.includes("30d"));
+});
+
+test("organic demand integrity downgrades LGNS-style big-number anomalies", () => {
+  const result = analyzeOrganicDemandIntegrity({
+    name: "Large Numbers Protocol",
+    symbol: "LGNSX",
+    chain: "polygon",
+    description:
+      "Algorithmic non-stablecoin with compounding staking, referral rewards, rank rewards, withdrawal pool income, mint role and setRatio controls.",
+    liquidityUsd: 220_000_000,
+    stablecoinReservesUsd: 80_000_000,
+    protocolOwnedLiquidityPct: 90,
+    liquidityProviders: 30,
+    holders: 2_450_000,
+    uniqueBuyers24h: 120,
+    activeHolders30d: 1_000,
+    holdersOver100Usd: 500,
+    transactions24h: 140_000,
+    approvalTransactions24h: 75_000,
+    transferTransactions24h: 55_000,
+    rewardClaims24h: 8_000,
+    buyTransactions24h: 900,
+    sellTransactions24h: 700,
+    repetitiveTransactionScore: 80,
+    dailyYieldPct: 0.9,
+    contractFunctions: ["mint", "grantRole", "revokeRole", "setRatio", "setMainPair", "burnFrom"],
+    marketCap: 389_000_000,
+    dexScreenerMarketCap: 5_000_000_000,
+    circulatingSupply: 0,
+    sourceTruthScore: 48,
+  });
+
+  assert.equal(result.organicDemandVerdict, "Institutional Integrity Block");
+  assert.ok(result.economicIntegrityRiskScore >= 70);
+  assert.ok(result.economicIntegrityPenalty >= 18);
+  assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Yield")));
+  assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Displayed liquidity")));
+  assert.equal(result.organicDemandStrongBuyEligible, false);
+});
+
+test("organic demand integrity can confirm cleaner economic demand", () => {
+  const result = analyzeOrganicDemandIntegrity({
+    name: "CleanFlow",
+    symbol: "FLOWX",
+    chain: "base",
+    liquidityUsd: 2_500_000,
+    stablecoinReservesUsd: 1_300_000,
+    protocolOwnedLiquidityPct: 8,
+    liquidityProviders: 160,
+    lpLocked: true,
+    holders: 35_000,
+    uniqueBuyers24h: 3_000,
+    activeHolders30d: 4_500,
+    holdersOver10Usd: 12_000,
+    holdersOver100Usd: 4_000,
+    swapTransactions24h: 6_000,
+    buyTransactions24h: 3_400,
+    sellTransactions24h: 2_600,
+    approvalTransactions24h: 800,
+    transferTransactions24h: 1_200,
+    ownerRenounced: true,
+    marketCap: 42_000_000,
+    circulatingSupply: 420_000_000,
+    sourceTruthScore: 78,
+  });
+
+  assert.equal(result.organicDemandVerdict, "Organic Demand Confirmed");
+  assert.equal(result.organicDemandStrongBuyEligible, true);
+  assert.ok(result.organicEconomicIntegrityScore >= 75);
+  assert.ok(result.economicIntegrityRiskScore < 45);
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

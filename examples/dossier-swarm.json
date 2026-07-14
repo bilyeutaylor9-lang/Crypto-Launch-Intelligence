@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:24.706Z",
+  "generatedAt": "2026-07-14T06:05:53.526Z",
   "totalProjects": 8,
   "dossieredProjects": 8,
   "counts": {
@@ -15,7 +15,7 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
       "dossierSwarmScore": 23,
@@ -115,7 +115,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 28,
+            "score": 27,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -131,7 +131,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 28,
+                "value": 27,
                 "interpretation": "needs work"
               }
             ],
@@ -277,7 +277,7 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 9,
+      "pipelineScore": 10,
       "simulationBrainScore": 29,
       "outcomeJudgeScore": 39,
       "dossierSwarmScore": 22,
@@ -541,10 +541,10 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "simulationBrainScore": 35,
       "outcomeJudgeScore": 41,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -552,7 +552,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -641,7 +641,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 25,
+            "score": 24,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -657,7 +657,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 29,
+                "value": 28,
                 "interpretation": "needs work"
               }
             ],
@@ -803,7 +803,7 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
       "dossierSwarmScore": 20,
@@ -1065,7 +1065,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "simulationBrainScore": 32,
       "outcomeJudgeScore": 39,
       "dossierSwarmScore": 16,
@@ -1165,7 +1165,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 19,
+            "score": 18,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1181,7 +1181,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 19,
+                "value": 18,
                 "interpretation": "needs work"
               }
             ],
@@ -1328,14 +1328,14 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 2,
-      "simulationBrainScore": 40,
-      "outcomeJudgeScore": 45,
+      "pipelineScore": 3,
+      "simulationBrainScore": 27,
+      "outcomeJudgeScore": 38,
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
-      "simulationDecision": "Simulation Watch",
+      "aiEcosystemVerdict": "AI Pass For Now",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
@@ -1428,7 +1428,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 21,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1444,7 +1444,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 26,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -1481,18 +1481,18 @@
           },
           {
             "name": "Risk Agent",
-            "score": 33,
+            "score": 39,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
               {
                 "label": "trapRiskScore",
-                "value": 12,
+                "value": 20,
                 "interpretation": "acceptable"
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 72,
+                "value": 74,
                 "interpretation": "risk"
               },
               {
@@ -1502,18 +1502,19 @@
               }
             ],
             "objections": [
-              "resembles prior false-positive/trap setups"
+              "resembles prior false-positive/trap setups",
+              "simulation adversary blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 45,
+                "value": 38,
                 "interpretation": "needs work"
               },
               {
@@ -1533,7 +1534,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 20,
+            "score": 17,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -1544,12 +1545,12 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 40,
+                "value": 27,
                 "interpretation": "needs work"
               },
               {
                 "label": "proofScore",
-                "value": 0,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -1853,7 +1854,7 @@
       "pipelineScore": 0,
       "simulationBrainScore": 40,
       "outcomeJudgeScore": 44,
-      "dossierSwarmScore": 14,
+      "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -1861,7 +1862,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 14,
+        "score": 13,
         "consensus": {
           "approve": 0,
           "watch": 1,
@@ -1950,7 +1951,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 22,
+            "score": 21,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1966,7 +1967,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 23,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -2113,7 +2114,7 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
       "dossierSwarmScore": 23,
@@ -2213,7 +2214,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 28,
+            "score": 27,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -2229,7 +2230,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 28,
+                "value": 27,
                 "interpretation": "needs work"
               }
             ],
@@ -2375,7 +2376,7 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 9,
+      "pipelineScore": 10,
       "simulationBrainScore": 29,
       "outcomeJudgeScore": 39,
       "dossierSwarmScore": 22,
@@ -2639,10 +2640,10 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "simulationBrainScore": 35,
       "outcomeJudgeScore": 41,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -2650,7 +2651,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -2739,7 +2740,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 25,
+            "score": 24,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -2755,7 +2756,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 29,
+                "value": 28,
                 "interpretation": "needs work"
               }
             ],
@@ -2901,7 +2902,7 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
       "dossierSwarmScore": 20,
@@ -3163,7 +3164,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "simulationBrainScore": 32,
       "outcomeJudgeScore": 39,
       "dossierSwarmScore": 16,
@@ -3263,7 +3264,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 19,
+            "score": 18,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -3279,7 +3280,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 19,
+                "value": 18,
                 "interpretation": "needs work"
               }
             ],
@@ -3426,14 +3427,14 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 2,
-      "simulationBrainScore": 40,
-      "outcomeJudgeScore": 45,
+      "pipelineScore": 3,
+      "simulationBrainScore": 27,
+      "outcomeJudgeScore": 38,
       "dossierSwarmScore": 14,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
-      "simulationDecision": "Simulation Watch",
+      "aiEcosystemVerdict": "AI Pass For Now",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
@@ -3526,7 +3527,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 21,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -3542,7 +3543,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 26,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -3579,18 +3580,18 @@
           },
           {
             "name": "Risk Agent",
-            "score": 33,
+            "score": 39,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
               {
                 "label": "trapRiskScore",
-                "value": 12,
+                "value": 20,
                 "interpretation": "acceptable"
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 72,
+                "value": 74,
                 "interpretation": "risk"
               },
               {
@@ -3600,18 +3601,19 @@
               }
             ],
             "objections": [
-              "resembles prior false-positive/trap setups"
+              "resembles prior false-positive/trap setups",
+              "simulation adversary blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 45,
+                "value": 38,
                 "interpretation": "needs work"
               },
               {
@@ -3631,7 +3633,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 20,
+            "score": 17,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -3642,12 +3644,12 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 40,
+                "value": 27,
                 "interpretation": "needs work"
               },
               {
                 "label": "proofScore",
-                "value": 0,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -3951,7 +3953,7 @@
       "pipelineScore": 0,
       "simulationBrainScore": 40,
       "outcomeJudgeScore": 44,
-      "dossierSwarmScore": 14,
+      "dossierSwarmScore": 13,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -3959,7 +3961,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 14,
+        "score": 13,
         "consensus": {
           "approve": 0,
           "watch": 1,
@@ -4048,7 +4050,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 22,
+            "score": 21,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -4064,7 +4066,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 23,
+                "value": 22,
                 "interpretation": "needs work"
               }
             ],
@@ -4249,7 +4251,7 @@
     {
       "agent": "Risk Agent",
       "samples": 8,
-      "averageScore": 37,
+      "averageScore": 38,
       "approve": 0,
       "watch": 0,
       "reject": 0,

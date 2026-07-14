@@ -87,6 +87,15 @@ export function writeCsvReport(projects = []) {
     "executionTwinRoute",
     "executionTwinSlippagePct",
     "executionTwinSafetyBlockers",
+    "organicIntegrityScore",
+    "organicDemandScore",
+    "economicSustainabilityScore",
+    "organicDemandVerdict",
+    "economicIntegrityRiskScore",
+    "economicIntegrityPenalty",
+    "hardExitLiquidityUsd",
+    "organicActivityShare",
+    "economicIntegrityBlockers",
     "confidenceAdjustedRank",
     "confidenceAdjustedScore",
     "institutionalRankScore",
@@ -292,6 +301,17 @@ export function writeCsvReport(projects = []) {
     p.proofOfAlphaExecutionTwinSlippagePct ?? "",
     Array.isArray(p.proofOfAlphaExecutionTwin?.safety?.blockers)
       ? p.proofOfAlphaExecutionTwin.safety.blockers.join("; ")
+      : "",
+    p.organicEconomicIntegrityScore ?? "",
+    p.organicDemandScore ?? "",
+    p.economicSustainabilityScore ?? "",
+    p.organicDemandVerdict ?? "",
+    p.economicIntegrityRiskScore ?? "",
+    p.economicIntegrityPenalty ?? "",
+    p.hardExitLiquidityUsd ?? "",
+    p.organicActivityShare ?? "",
+    Array.isArray(p.economicIntegrityBlockers)
+      ? p.economicIntegrityBlockers.join("; ")
       : "",
     p.confidenceAdjustedRank ?? "",
     p.confidenceAdjustedScore ?? "",

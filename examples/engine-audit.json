@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-14T05:40:28.393Z",
-  "totalEngines": 111,
-  "wiredIntoPipeline": 87,
-  "stateOfArtReady": 94,
+  "generatedAt": "2026-07-14T06:05:56.420Z",
+  "totalEngines": 112,
+  "wiredIntoPipeline": 88,
+  "stateOfArtReady": 95,
   "readinessScore": 89,
   "categoryCounts": {
-    "intelligence": 43,
+    "intelligence": 44,
     "ai": 14,
     "learning": 20,
     "market-flow": 5,
@@ -1550,6 +1550,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "organicDemandIntegrityEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeOrganicDemandIntegrity",
+        "analyzeOrganicDemandIntegrityBatch",
+        "summarizeOrganicDemandIntegrity"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

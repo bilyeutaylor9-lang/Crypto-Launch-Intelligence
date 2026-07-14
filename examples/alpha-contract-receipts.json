@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:27.342Z",
+  "generatedAt": "2026-07-14T06:05:55.513Z",
   "totalReceipts": 8,
   "publicReceipts": [
     {
@@ -78,31 +78,6 @@
       }
     },
     {
-      "contractId": "alpha-contract:research-seed-tia:2mv2os",
-      "symbol": "TIA",
-      "score": 50,
-      "verdict": "Invalidation Hit",
-      "confidence": "Medium",
-      "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
-      "receipt": {
-        "headline": "TIA contract: Medium confidence, score 36.",
-        "mustProve": [
-          "Contract score stays at or above 35.",
-          "Risk score remains below 78.",
-          "Liquidity does not drop more than 30% from entry.",
-          "Source truth or proof score stays above 45.",
-          "Catalyst, liquidity expansion, or capital flow remains active."
-        ],
-        "invalidationRules": [
-          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
-          "Liquidity falls more than 40% from entry.",
-          "Both source truth and proof fall below 35.",
-          "Agent committee or Alpha OS flips to a block decision."
-        ],
-        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
-      }
-    },
-    {
       "contractId": "alpha-contract:research-seed-rndr:qhzloy",
       "symbol": "RNDR",
       "score": 49,
@@ -136,6 +111,31 @@
       "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
       "receipt": {
         "headline": "ONDO contract: Developing confidence, score 33.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-tia:1wki046",
+      "symbol": "TIA",
+      "score": 44,
+      "verdict": "Invalidation Hit",
+      "confidence": "Medium",
+      "thesis": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "TIA contract: Medium confidence, score 33.",
         "mustProve": [
           "Contract score stays at or above 35.",
           "Risk score remains below 78.",

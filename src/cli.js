@@ -56,6 +56,9 @@ function explain(symbol = "") {
   console.log(
     `Execution Twin: ${project.proofOfAlphaExecutionTwinVerdict || "Unknown"} (${project.proofOfAlphaExecutionTwinScore || 0}) | Route ${project.proofOfAlphaExecutionTwinRoute || "Unavailable"} | Slippage ${project.proofOfAlphaExecutionTwinSlippagePct ?? "N/A"}%`
   );
+  console.log(
+    `Organic Integrity: ${project.organicDemandVerdict || "Unknown"} (${project.organicEconomicIntegrityScore || 0}) | Risk ${project.economicIntegrityRiskScore || 0} | Hard Exit $${project.hardExitLiquidityUsd || 0}`
+  );
   console.log(`Outcome Judge: ${project.outcomeJudgeVerdict || "Unknown"} (${project.outcomeJudgeScore || 0}) | ${project.outcomeAdjustedConfidence || "Unknown"} confidence`);
   console.log(`Catalyst Radar: ${project.liveCatalystUrgency || "Low"} (${project.liveCatalystRadarScore || 0}) | ${project.liveCatalystEvents?.[0]?.type || "No catalyst"}`);
   console.log(`Dossier Swarm: ${project.dossierSwarmDecision || "Unknown"} (${project.dossierSwarmScore || 0}) | ${project.dossierSwarmConsensus || "No consensus"}`);
@@ -107,6 +110,8 @@ Commands:
   crypto-launch graph-memory      Print persistent graph memory summary
   crypto-launch small-caps        Print top two small-cap research candidates
   crypto-launch execution-twin    Print Proof-of-Alpha Execution Twin report
+  crypto-launch organic-integrity Print Organic Demand Integrity report
+  crypto-launch discovery-truth   Print Discovery Truth Network report
   crypto-launch governor          Print Alpha Evolution Governor report
   crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
@@ -280,6 +285,17 @@ switch (command) {
   case "proof-of-alpha":
   case "alpha-execution":
     runNpm("execution-twin", args);
+    break;
+  case "organic-integrity":
+  case "organic-demand":
+  case "integrity":
+  case "economic-integrity":
+    runNpm("organic-integrity", args);
+    break;
+  case "discovery-truth":
+  case "truth-network":
+  case "source-truth-network":
+    runNpm("discovery-truth", args);
     break;
   case "governor":
   case "alpha-governor":

@@ -30,6 +30,8 @@ import { writeAlphaEvolutionGovernorReport } from "./alphaEvolutionGovernorRepor
 import { writeKnowledgeGraphTwinReports } from "./knowledgeGraphTwinReportEngine.js";
 import { writeSmallCapHunterReport } from "./smallCapHunterReportEngine.js";
 import { writeProofOfAlphaExecutionTwinReport } from "./proofOfAlphaExecutionTwinReportEngine.js";
+import { writeOrganicDemandIntegrityReport } from "./organicDemandIntegrityReportEngine.js";
+import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -117,6 +119,12 @@ export function generateReports(projects = [], meta = {}) {
     filePath: proofOfAlphaExecutionTwinPath,
   } = writeProofOfAlphaExecutionTwinReport(projects);
   const {
+    filePath: organicDemandIntegrityPath,
+  } = writeOrganicDemandIntegrityReport(projects);
+  const {
+    filePath: discoveryTruthPath,
+  } = writeDiscoveryTruthReport(meta);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -177,6 +185,8 @@ export function generateReports(projects = [], meta = {}) {
     alphaEvolutionQueuePath,
     smallCapHunterPath,
     proofOfAlphaExecutionTwinPath,
+    organicDemandIntegrityPath,
+    discoveryTruthPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

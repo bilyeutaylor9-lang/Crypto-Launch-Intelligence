@@ -86,7 +86,8 @@ function normalizeForReports(projects = []) {
           project.narrativeForecast?.narrative ||
           "",
         volume24h: project.volume24h ?? project.volume ?? "",
-        marketCap: project.marketCap ?? project.fdv ?? "",
+        marketCap: project.circulatingMarketCap ?? project.verifiedMarketCap ?? project.marketCap ?? "",
+        fdv: project.fdv ?? project.fullyDilutedValue ?? "",
         liquidity: project.liquidityUsd ?? project.liquidity ?? "",
       };
     })
@@ -198,6 +199,9 @@ function printSummary(summary) {
   console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
   console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
   console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
+  console.log(`Organic Demand Confirmed: ${summary.organicDemandConfirmedCount}`);
+  console.log(`Organic Integrity Blocks: ${summary.organicIntegrityBlockCount}`);
+  console.log(`Tradable Anomalies: ${summary.tradableAnomalyCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -249,6 +253,11 @@ function printTopProjects(results) {
     if (project.proofOfAlphaExecutionTwinSelected) {
       console.log(
         `   Execution Twin: #${project.proofOfAlphaExecutionTwinRank} (${project.proofOfAlphaExecutionTwinScore || 0}) via ${project.proofOfAlphaExecutionTwinRoute || "unverified route"}`
+      );
+    }
+    if (project.organicDemandVerdict) {
+      console.log(
+        `   Organic Integrity: ${project.organicDemandVerdict} (${project.organicEconomicIntegrityScore || 0}, risk ${project.economicIntegrityRiskScore || 0})`
       );
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
@@ -326,6 +335,8 @@ function printReportPaths(paths) {
   console.log(`Gov Queue:     ${paths.alphaEvolutionQueuePath}`);
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
+  console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
+  console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

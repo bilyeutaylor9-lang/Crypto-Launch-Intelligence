@@ -7,6 +7,7 @@ import { summarizeGithubIntelligencePro } from "../engines/githubIntelligencePro
 import { summarizeAutonomousAlphaOS } from "../engines/autonomousAlphaOSEngine.js";
 import { summarizeSmallCapHunter } from "../engines/smallCapHunterEngine.js";
 import { summarizeProofOfAlphaExecutionTwin } from "../engines/proofOfAlphaExecutionTwinEngine.js";
+import { summarizeOrganicDemandIntegrity } from "../engines/organicDemandIntegrityEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -49,6 +50,10 @@ function compact(project = {}) {
     executionTwinVerdict: project.proofOfAlphaExecutionTwinVerdict || "Unknown",
     executionTwinRoute: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
     executionTwinSlippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,
+    organicIntegrityScore: project.organicEconomicIntegrityScore || 0,
+    organicDemandVerdict: project.organicDemandVerdict || "Unknown",
+    economicIntegrityRiskScore: project.economicIntegrityRiskScore || 0,
+    hardExitLiquidityUsd: project.hardExitLiquidityUsd || 0,
     paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
     paperOutcomeLabVerdict: project.paperOutcomeLabVerdict || "Unknown",
     strategy: project.bestAutonomousStrategy?.name || "No Strategy",
@@ -72,6 +77,7 @@ export function buildAlphaDashboardV2(projects = []) {
   const githubPro = summarizeGithubIntelligencePro(safeProjects);
   const smallCapHunter = summarizeSmallCapHunter(safeProjects);
   const executionTwin = summarizeProofOfAlphaExecutionTwin(safeProjects);
+  const organicIntegrity = summarizeOrganicDemandIntegrity(safeProjects);
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
@@ -95,6 +101,7 @@ export function buildAlphaDashboardV2(projects = []) {
       bestGithubProject: githubPro.topRepositories?.[0] || null,
       smallCapResearchPicks: smallCapHunter.topTwo || [],
       executionTwinPicks: executionTwin.topExecutions || [],
+      organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
     },
     counts: {
       alphaOSStrongBuy: alphaOS.counts?.strongBuyResearch || 0,
@@ -118,10 +125,14 @@ export function buildAlphaDashboardV2(projects = []) {
       executionTwinPicks: executionTwin.selectedCount || 0,
       executionTwinRouteBlocks: executionTwin.routeBlocks || 0,
       executionTwinSafetyBlocks: executionTwin.safetyBlocks || 0,
+      organicDemandConfirmed: organicIntegrity.confirmedOrganicDemand || 0,
+      organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
+      tradableAnomalies: organicIntegrity.tradableAnomalies || 0,
     },
     topCandidates,
     smallCapHunter,
     executionTwin,
+    organicIntegrity,
     paperTradingOutcomeLab: paperLab,
     autoLearningWeightOptimizer: optimizer,
     sourceTruth,
@@ -132,6 +143,7 @@ export function buildAlphaDashboardV2(projects = []) {
       "A best-available candidate is not a buy signal; it is the strongest candidate when the field is weak.",
       "Small-Cap Hunter picks are research candidates for manual verification, not buy recommendations.",
       "Execution Twin picks are paper-execution simulations and must be verified inside the actual Coinbase or MetaMask trade flow.",
+      "Organic Integrity blocks protect against raw holder, transaction, liquidity, yield, and admin-control illusions.",
     ],
   };
 }

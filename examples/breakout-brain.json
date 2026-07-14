@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:26.017Z",
+  "generatedAt": "2026-07-14T06:05:54.449Z",
   "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
   "totalProjects": 8,
   "simulatedProjects": 8,
@@ -15,7 +15,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineRank": 1,
-      "pipelineScore": 9,
+      "pipelineScore": 10,
       "breakoutBrainScore": 24,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 24,
@@ -42,7 +42,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 42
+          "score": 43
         },
         {
           "driver": "Learning",
@@ -138,7 +138,7 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineRank": 3,
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "breakoutBrainScore": 21,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 16,
@@ -201,7 +201,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineRank": 1,
-      "pipelineScore": 9,
+      "pipelineScore": 10,
       "breakoutBrainScore": 24,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 24,
@@ -228,7 +228,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 42
+          "score": 43
         },
         {
           "driver": "Learning",
@@ -324,7 +324,7 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineRank": 3,
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "breakoutBrainScore": 21,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 16,
@@ -381,72 +381,11 @@
       "rank": 4,
       "selected": false,
       "selectionRank": null,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineRank": 5,
-      "pipelineScore": 2,
-      "breakoutBrainScore": 21,
-      "breakoutBrainDecision": "Low Breakout Priority",
-      "breakoutProbabilitySoon": 11,
-      "blowUpProbabilitySoon": 11,
-      "expectedReturn30dPct": 7,
-      "bestCaseReturnPct": 41,
-      "bearCaseReturnPct": -26,
-      "confidence": "Medium",
-      "confidenceScore": 71,
-      "simulations": 4096,
-      "positiveProbability": 57,
-      "doubleProbability": 0,
-      "tripleProbability": 0,
-      "collapseProbability": 4,
-      "asymmetryRatio": 1.58,
-      "topDrivers": [
-        {
-          "driver": "Narrative",
-          "score": 49
-        },
-        {
-          "driver": "Institutional Stack",
-          "score": 46
-        },
-        {
-          "driver": "Learning",
-          "score": 39
-        },
-        {
-          "driver": "Catalyst",
-          "score": 37
-        },
-        {
-          "driver": "Flows",
-          "score": 28
-        }
-      ],
-      "riskControls": [
-        "Collapse probability acceptable for research queue.",
-        "No major anti-chase state detected.",
-        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
-      ],
-      "alphaTags": [
-        "Narrative Heat"
-      ],
-      "riskFlags": [
-        "Resembles prior outcome traps",
-        "AI analyst rejection",
-        "Weak liquidity support"
-      ],
-      "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
-    },
-    {
-      "rank": 5,
-      "selected": false,
-      "selectionRank": null,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineRank": 6,
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "breakoutBrainScore": 18,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 16,
@@ -498,14 +437,14 @@
       "thesis": "Ondo is led by signalCombos 59, prePumpPattern 50, calibration 50. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 6,
+      "rank": 5,
       "selected": false,
       "selectionRank": null,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineRank": 4,
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "breakoutBrainScore": 14,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 10,
@@ -559,7 +498,7 @@
       "thesis": "Akash Network is led by narrative 53, prePumpPattern 50, signalCombos 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
-      "rank": 7,
+      "rank": 6,
       "selected": false,
       "selectionRank": null,
       "name": "Jupiter",
@@ -585,7 +524,7 @@
       "topDrivers": [
         {
           "driver": "Institutional Stack",
-          "score": 44
+          "score": 43
         },
         {
           "driver": "Learning",
@@ -618,6 +557,67 @@
       "thesis": "Jupiter is led by prePumpPattern 50, signalCombos 50, calibration 50. Main risk: Resembles prior outcome traps."
     },
     {
+      "rank": 7,
+      "selected": false,
+      "selectionRank": null,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineRank": 5,
+      "pipelineScore": 3,
+      "breakoutBrainScore": 13,
+      "breakoutBrainDecision": "Low Breakout Priority",
+      "breakoutProbabilitySoon": 10,
+      "blowUpProbabilitySoon": 10,
+      "expectedReturn30dPct": 3,
+      "bestCaseReturnPct": 40,
+      "bearCaseReturnPct": -32,
+      "confidence": "Medium",
+      "confidenceScore": 63,
+      "simulations": 4096,
+      "positiveProbability": 53,
+      "doubleProbability": 0,
+      "tripleProbability": 0,
+      "collapseProbability": 8,
+      "asymmetryRatio": 1.25,
+      "topDrivers": [
+        {
+          "driver": "Narrative",
+          "score": 49
+        },
+        {
+          "driver": "Institutional Stack",
+          "score": 40
+        },
+        {
+          "driver": "Learning",
+          "score": 38
+        },
+        {
+          "driver": "Catalyst",
+          "score": 37
+        },
+        {
+          "driver": "Flows",
+          "score": 28
+        }
+      ],
+      "riskControls": [
+        "Collapse probability acceptable for research queue.",
+        "No major anti-chase state detected.",
+        "Proof gap remains; verify roadmap, liquidity, team, and source stack."
+      ],
+      "alphaTags": [
+        "Narrative Heat"
+      ],
+      "riskFlags": [
+        "Resembles prior outcome traps",
+        "AI analyst rejection",
+        "Weak liquidity support"
+      ],
+      "thesis": "Celestia is led by prePumpPattern 50, signalCombos 50, calibration 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+    },
+    {
       "rank": 8,
       "selected": false,
       "selectionRank": null,
@@ -625,7 +625,7 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineRank": 2,
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "breakoutBrainScore": 12,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 7,

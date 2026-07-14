@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:27.786Z",
+  "generatedAt": "2026-07-14T06:05:55.891Z",
   "totalProjects": 8,
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/alpha-knowledge-graph.json",
@@ -6419,7 +6419,7 @@
   "graphedProjects": 8,
   "alphaCandidates": 0,
   "priorityResearch": 0,
-  "riskBlocks": 6,
+  "riskBlocks": 7,
   "topRelations": {
     "ai": 8,
     "restaking": 5,
@@ -6441,79 +6441,6 @@
   "topProjects": [
     {
       "rank": 1,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "graphScore": 53,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Watch",
-      "twinScore": 41,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 5,
-      "upsideProbability": 80,
-      "downsideProbability": 14,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Evidence Quality",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 81,
-        "relationStrength": 100,
-        "engineAgreement": 45,
-        "catalystContext": 35,
-        "memoryScore": 21,
-        "riskIntegrity": 28
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 29,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -42,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 8
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
-      ]
-    },
-    {
-      "rank": 2,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
@@ -6585,7 +6512,7 @@
       ]
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
@@ -6657,7 +6584,7 @@
       ]
     },
     {
-      "rank": 4,
+      "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -6729,7 +6656,7 @@
       ]
     },
     {
-      "rank": 5,
+      "rank": 4,
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
@@ -6802,7 +6729,7 @@
       ]
     },
     {
-      "rank": 6,
+      "rank": 5,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
@@ -6829,7 +6756,7 @@
         "sourceCoverage": 35,
         "evidenceQuality": 65,
         "relationStrength": 100,
-        "engineAgreement": 41,
+        "engineAgreement": 42,
         "catalystContext": 30,
         "memoryScore": 21,
         "riskIntegrity": 25
@@ -6838,6 +6765,79 @@
         "id": "bull_case",
         "label": "Bull Case",
         "expectedMovePct": 29,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -45,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 7
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "graphScore": 49,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 36,
+      "twinConfidence": "Low",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 4,
+      "upsideProbability": 81,
+      "downsideProbability": 13,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Strategy Fit",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 65,
+        "relationStrength": 100,
+        "engineAgreement": 40,
+        "catalystContext": 35,
+        "memoryScore": 21,
+        "riskIntegrity": 26
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 26,
         "triggers": [
           "Narrative heat keeps expanding.",
           "Catalyst proof confirms on schedule.",

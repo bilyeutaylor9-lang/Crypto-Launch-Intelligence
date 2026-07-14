@@ -16,12 +16,14 @@ This is not a simple token screener. It is a layered research system with:
 
 - Free-source project discovery
 - 10,000-candidate wide scan mode
+- Discovery Truth Network with canonical source manifest, lifecycle lanes, evidence-family independence, and rejected-candidate shadow watchlist
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
 - Causal Market Twin scenario engine
 - Small-Cap Hunter for two best-available $100 paper-research candidates with Coinbase/MetaMask route gating
 - Proof-of-Alpha Execution Twin for route-verified $100 paper execution simulations
+- Organic Demand Integrity layer for holder, activity, liquidity, admin-control, yield, and valuation-truth risk
 - Self-evolving Alpha OS with thesis generation
 - Paper-trade strategy simulation
 - Outcome learning
@@ -84,6 +86,8 @@ npm run causal:twin
 npm run alpha:governor
 npm run small-caps
 npm run execution-twin
+npm run organic-integrity
+npm run discovery-truth
 ```
 
 ## What Makes It Different
@@ -99,7 +103,9 @@ Crypto Launch Intelligence is designed to answer:
 The system does not trust one score. It builds a full research case:
 
 - Discovery breadth: finds projects from many free sources instead of one API.
+- Discovery truth: separates active live sources from planned sources and ranks prelaunch, new-pool, and established-emerging projects differently.
 - Signal fusion: combines market, liquidity, narrative, catalyst, GitHub, social, roadmap, and risk data.
+- Organic demand checks: discounts raw holders, tx counts, displayed liquidity, extreme yield, and source-disagreement traps.
 - Agent debate: multiple AI-style specialist agents argue the bull case, bear case, proof gaps, and invalidation rules.
 - Causal reasoning: identifies which signal is actually driving the opportunity.
 - Knowledge graph memory: links projects, chains, narratives, sources, GitHub, catalysts, peer clusters, and past scans.
@@ -113,16 +119,17 @@ The system does not trust one score. It builds a full research case:
 ```mermaid
 flowchart LR
   A["Free Data Sources"] --> B["Discovery Manager"]
-  B --> C["Candidate Rescue + AI Discovery Swarm"]
-  C --> D["Core Intelligence Pipeline"]
-  D --> E["Proof + Risk + Confidence Engines"]
-  E --> F["AI Council + Research OS"]
-  F --> G["Strategy Lab + Causal Alpha Brain"]
-  G --> H["Knowledge Graph + Causal Market Twin"]
-  H --> I["Autonomous Alpha OS + Governor"]
-  I --> K["Reports + Dashboard + Watchtower"]
-  K --> J["Local Memory + Outcome Learning"]
-  J --> D
+  B --> C["Discovery Truth + Identity Graph"]
+  C --> D["Candidate Rescue + AI Discovery Swarm"]
+  D --> E["Core Intelligence Pipeline"]
+  E --> F["Proof + Organic Demand + Risk Engines"]
+  F --> G["AI Council + Research OS"]
+  G --> H["Strategy Lab + Causal Alpha Brain"]
+  H --> I["Knowledge Graph + Causal Market Twin"]
+  I --> K["Autonomous Alpha OS + Governor"]
+  K --> L["Reports + Dashboard + Watchtower"]
+  L --> J["Local Memory + Outcome Learning"]
+  J --> E
 ```
 
 ## AI Command System
@@ -151,6 +158,8 @@ The project now behaves like a miniature autonomous research organization.
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
 | Proof-of-Alpha Execution Twin | Simulates whether a $100 paper execution is actually route-verified, liquid enough, safe enough, and linked to a falsifiable alpha thesis | `reports/proof-of-alpha-execution-twin.json` |
+| Organic Demand Integrity | Separates real demand from dust holders, repetitive calls, protocol-owned liquidity, extreme yield, privileged controls, and valuation disagreement | `reports/organic-demand-integrity.json` |
+| Discovery Truth Network | Audits active source coverage, discovery lanes, identity evidence, shadow rejects, and independent evidence families | `reports/discovery-truth.json` |
 
 ## Autonomous Alpha OS
 
@@ -422,6 +431,8 @@ npm run engine:audit
 
 The scanner is designed to keep working even when some providers rate-limit, block, or fail.
 
+Discovery Truth keeps the scanner honest about coverage. A source is counted as active only after it returns live candidates, market aggregators are grouped into one evidence family, rejected candidates are preserved in a shadow watchlist, and discovery ranking rewards novelty and formation velocity instead of absolute market cap.
+
 Supported discovery and research sources include:
 
 - DexScreener
@@ -453,6 +464,7 @@ If free APIs fail, the Adaptive Source Router records the problem and routes fut
 
 ```bash
 npm run source-router
+npm run discovery-truth
 ```
 
 ## Intelligence Flow
@@ -527,6 +539,8 @@ Every scan can generate a full research packet:
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
 | `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with Coinbase/MetaMask route status, $100 paper plan, structure score, upside score, and risk warnings |
 | `reports/proof-of-alpha-execution-twin.json` | Route-verified $100 paper execution simulations with slippage, safety, thesis, and invalidation checks |
+| `reports/organic-demand-integrity.json` | Organic demand, hard exit liquidity, admin-control, yield sustainability, holder authenticity, and valuation-disagreement checks |
+| `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -603,6 +617,8 @@ npm run alpha:governor
 npm run alpha:queue
 npm run small-caps
 npm run execution-twin
+npm run organic-integrity
+npm run discovery-truth
 npm run source-truth
 npm run github-pro
 ```

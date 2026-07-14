@@ -59,6 +59,7 @@ import { analyzeTrapRiskBatch } from "./engines/trapRiskEngine.js";
 import { analyzeSourceReliabilityBatch } from "./engines/sourceReliabilityEngine.js";
 import { analyzeSourceTruthBatch } from "./engines/sourceTruthEngine.js";
 import { analyzeGithubIntelligenceProBatch } from "./engines/githubIntelligenceProEngine.js";
+import { analyzeOrganicDemandIntegrityBatch } from "./engines/organicDemandIntegrityEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
@@ -170,6 +171,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.sourceReliabilityScore, weight: 0.4 },
     { score: project.sourceTruthScore, weight: 0.7 },
     { score: project.githubProScore, weight: 0.6 },
+    { score: project.organicEconomicIntegrityScore, weight: 0.9 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -313,6 +315,7 @@ function buildSignalProfile(project = {}) {
       { score: project.partnershipScore, weight: 0.7 },
       { score: project.ecosystemIntegrationScore, weight: 0.9 },
       { score: project.baselineScore, weight: 0.8 },
+      { score: project.organicEconomicIntegrityScore, weight: 1.0 },
     ]),
     devCommunity: weightedAverage([
       { score: project.developerActivityScore ?? project.developerScore, weight: 0.9 },
@@ -370,6 +373,7 @@ function buildSignalProfile(project = {}) {
       { score: project.trapRiskScore, weight: 1.2 },
       { score: project.xBotRiskScore, weight: 0.6 },
       { score: project.externalRiskScore, weight: 0.7 },
+      { score: project.economicIntegrityRiskScore, weight: 1.2 },
     ]),
   };
 
@@ -415,6 +419,8 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (num(project.narrativeLaunchStakingScore) >= 70) tags.push("Launch/Staking Setup");
   if (num(project.narrativeHeatScore) >= 65) tags.push("Narrative Heat");
   if (["accelerating", "improving"].includes(project.projectChangeState)) tags.push("Improving Since Last Scan");
+  if (project.organicDemandVerdict === "Organic Demand Confirmed") tags.push("Organic Demand Confirmed");
+  if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") tags.push("Tradable Anomaly");
 
   return tags;
 }
@@ -455,6 +461,23 @@ function buildRiskFlags(project = {}, profile = {}) {
   if (profile.risk >= 70) risks.push("Risk cluster elevated");
   if (num(project.liquidityScore) > 0 && num(project.liquidityScore) < 35) {
     risks.push("Weak liquidity support");
+  }
+  if (project.organicDemandVerdict === "Institutional Integrity Block") {
+    risks.push("Institutional integrity block");
+  }
+  if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") {
+    risks.push("Unverified organic demand");
+  }
+  if (num(project.economicIntegrityRiskScore) >= 75) {
+    risks.push("Extreme economic-model risk");
+  } else if (num(project.economicIntegrityRiskScore) >= 60) {
+    risks.push("Economic verification required");
+  }
+  if (num(project.hardExitLiquidityUsd) > 0 && num(project.liquidityUsd ?? project.liquidity) / num(project.hardExitLiquidityUsd) >= 4) {
+    risks.push("Hard exit liquidity risk");
+  }
+  if ((project.economicIntegrityBlockers || []).some((blocker) => /privileged|admin|mint/i.test(blocker))) {
+    risks.push("Privileged control risk");
   }
 
   return [...new Set(risks)];
@@ -578,6 +601,9 @@ function buildResearchChecklist(project = {}, profile = {}) {
   if (num(project.stakingRiskScore) > 0) {
     checklist.push("Review staking lockups, withdrawal rules, slashing exposure, and APY sustainability.");
   }
+  if (project.organicDemandIntegrity) {
+    checklist.push("Verify organic demand: DEX swaps, holder balance buckets, hard exit liquidity, admin roles, and real yield after inflation.");
+  }
   if (!checklist.length) {
     checklist.push("Wait for stronger cross-signal confirmation before deeper research.");
   }
@@ -618,6 +644,9 @@ function buildInvalidationSignals(project = {}, profile = {}) {
   }
   if (num(project.prePump?.score) >= 55) {
     invalidations.push("Pre-pump status changes to late chase or already pumped.");
+  }
+  if (project.organicDemandIntegrity) {
+    invalidations.push("Organic-demand integrity flips to institutional block or hard exit liquidity falls below paper sell-test thresholds.");
   }
 
   return invalidations;
@@ -799,6 +828,7 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.narrativeHeatScore) >= 70) bonus += 4;
   if (["accelerating", "improving"].includes(project.projectChangeState)) bonus += 3;
   if (num(project.sourceReliabilityScore) >= 70) bonus += 2;
+  if (project.organicDemandVerdict === "Organic Demand Confirmed") bonus += 4;
 
   if (profile.risk >= 85) penalty += 18;
   else if (profile.risk >= 70) penalty += 10;
@@ -824,6 +854,9 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.trapRiskScore) >= 80) penalty += 14;
   else if (num(project.trapRiskScore) >= 60) penalty += 8;
   if (num(project.sourceReliabilityScore) > 0 && num(project.sourceReliabilityScore) < 40) penalty += 4;
+  if (num(project.economicIntegrityPenalty) > 0) penalty += num(project.economicIntegrityPenalty);
+  if (project.organicDemandVerdict === "Institutional Integrity Block") penalty += 10;
+  if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") penalty += 6;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const dynamicWeightAdjustment = project.dynamicEngineWeights
@@ -864,6 +897,7 @@ function advancedScoreBreakdown(project = {}) {
 function classifyProject(project = {}) {
   const score = num(project.pipelineScore);
 
+  if (project.organicDemandVerdict === "Institutional Integrity Block") return "Integrity Block";
   if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
   if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
   if (num(project.stakingRiskScore) >= 70) return "High Staking Risk";
@@ -1074,6 +1108,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Source Reliability", analyzeSourceReliabilityBatch, results);
   results = await runEngine("Source Truth", analyzeSourceTruthBatch, results);
   results = await runEngine("GitHub Intelligence Pro", analyzeGithubIntelligenceProBatch, results);
+  results = await runEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
 
   results = addFinalScoring(results);
   results = analyzeProjectChangeBatch(results);
@@ -1400,6 +1435,14 @@ export function summarizePipelineResults(results = []) {
     .filter((p) => p.proofOfAlphaExecutionTwin)
     .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))
     .slice(0, 10);
+  const organicDemandConfirmed = safeResults.filter((p) => p.organicDemandVerdict === "Organic Demand Confirmed");
+  const organicIntegrityBlocks = safeResults.filter((p) => p.organicDemandVerdict === "Institutional Integrity Block");
+  const tradableAnomalies = safeResults.filter((p) => p.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand");
+  const economicVerificationRequired = safeResults.filter((p) => p.organicDemandVerdict === "Economic Verification Required");
+  const topOrganicIntegrityRisks = [...safeResults]
+    .filter((p) => p.organicDemandIntegrity)
+    .sort((a, b) => num(b.economicIntegrityRiskScore) - num(a.economicIntegrityRiskScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1518,6 +1561,10 @@ export function summarizePipelineResults(results = []) {
     executionTwinRouteBlockCount: executionTwinRouteBlocks.length,
     executionTwinSafetyBlockCount: executionTwinSafetyBlocks.length,
     executionTwinLiquidityBlockCount: executionTwinLiquidityBlocks.length,
+    organicDemandConfirmedCount: organicDemandConfirmed.length,
+    organicIntegrityBlockCount: organicIntegrityBlocks.length,
+    tradableAnomalyCount: tradableAnomalies.length,
+    economicVerificationRequiredCount: economicVerificationRequired.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1804,6 +1851,19 @@ export function summarizePipelineResults(results = []) {
       quote: project.proofOfAlphaExecutionTwin?.quote || {},
       safety: project.proofOfAlphaExecutionTwin?.safety || {},
       paperExecution: project.proofOfAlphaExecutionTwin?.paperExecution || {},
+    })),
+    topOrganicIntegrityRisks: topOrganicIntegrityRisks.map((project) => ({
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.organicEconomicIntegrityScore || 0,
+      verdict: project.organicDemandVerdict || "Unknown",
+      organicDemandScore: project.organicDemandScore || 0,
+      economicSustainabilityScore: project.economicSustainabilityScore || 0,
+      riskScore: project.economicIntegrityRiskScore || 0,
+      penalty: project.economicIntegrityPenalty || 0,
+      hardExitLiquidityUsd: project.hardExitLiquidityUsd || 0,
+      blockers: project.economicIntegrityBlockers || [],
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

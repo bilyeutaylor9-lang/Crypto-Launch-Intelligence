@@ -1,0 +1,299 @@
+export const SOURCE_STATUS = {
+  PLANNED: "PLANNED",
+  IMPLEMENTED: "IMPLEMENTED",
+  ENABLED: "ENABLED",
+  DEGRADED: "DEGRADED",
+};
+
+export const EVIDENCE_FAMILIES = {
+  market: "market-aggregator",
+  chain: "chain-event",
+  project: "project-controlled",
+  news: "independent-news",
+  developer: "developer-activity",
+  wallet: "wallet-activity",
+  security: "security-analysis",
+  funding: "funding-evidence",
+  community: "community-activity",
+  exchange: "exchange-evidence",
+  research: "research-seed",
+};
+
+export const SOURCE_MANIFEST = [
+  {
+    id: "dexscreener",
+    label: "DexScreener",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["ethereum", "base", "arbitrum", "polygon", "bsc", "solana"],
+  },
+  {
+    id: "geckoterminal",
+    label: "GeckoTerminal",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["ethereum", "base", "arbitrum", "polygon", "bsc", "solana"],
+  },
+  {
+    id: "coingecko",
+    label: "CoinGecko",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "birdeye",
+    label: "Birdeye",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: true,
+    chains: ["solana", "ethereum", "base", "polygon", "bsc"],
+  },
+  {
+    id: "freeMarketData",
+    label: "Free Market Providers",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "expandedMarketData",
+    label: "Expanded Free Market Providers",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "googleNewsDiscovery",
+    label: "Google News Discovery",
+    category: "news",
+    evidenceFamily: EVIDENCE_FAMILIES.news,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "githubProjectDiscovery",
+    label: "GitHub Project Discovery",
+    category: "developer",
+    evidenceFamily: EVIDENCE_FAMILIES.developer,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["prelaunch", "multi-chain"],
+  },
+  {
+    id: "researchSeeds",
+    label: "Fallback Research Seeds",
+    category: "research",
+    evidenceFamily: EVIDENCE_FAMILIES.research,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: false,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "aiDiscoverySwarm",
+    label: "AI Discovery Swarm",
+    category: "research",
+    evidenceFamily: EVIDENCE_FAMILIES.research,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "candidateRescue",
+    label: "Candidate Rescue",
+    category: "research",
+    evidenceFamily: EVIDENCE_FAMILIES.research,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "evmFactoryEvents",
+    label: "EVM Factory Events",
+    category: "chain",
+    evidenceFamily: EVIDENCE_FAMILIES.chain,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["ethereum", "base", "arbitrum", "polygon", "bsc"],
+  },
+  {
+    id: "solanaProgramEvents",
+    label: "Solana Program Events",
+    category: "chain",
+    evidenceFamily: EVIDENCE_FAMILIES.chain,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["solana"],
+  },
+  {
+    id: "goplus",
+    label: "GoPlus Security",
+    category: "security",
+    evidenceFamily: EVIDENCE_FAMILIES.security,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: false,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["ethereum", "base", "bsc", "polygon", "arbitrum"],
+  },
+  {
+    id: "rugcheck",
+    label: "RugCheck",
+    category: "security",
+    evidenceFamily: EVIDENCE_FAMILIES.security,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: false,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["solana"],
+  },
+  {
+    id: "launchpads",
+    label: "Launchpads",
+    category: "launch",
+    evidenceFamily: EVIDENCE_FAMILIES.project,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "ecosystemGrants",
+    label: "Ecosystem Grants",
+    category: "funding",
+    evidenceFamily: EVIDENCE_FAMILIES.funding,
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+];
+
+const SOURCE_ALIASES = new Map([
+  ["dexscreener-search", "dexscreener"],
+  ["dexscreener-profiles", "dexscreener"],
+  ["dexscreener-boosts", "dexscreener"],
+  ["dexscreener-latest", "dexscreener"],
+  ["dexscreener-boosted", "dexscreener"],
+  ["dexscreener-trending", "dexscreener"],
+  ["gecko-terminal", "geckoterminal"],
+  ["google-news", "googleNewsDiscovery"],
+  ["github-project-discovery", "githubProjectDiscovery"],
+  ["research-seed", "researchSeeds"],
+  ["research-seed-supplement", "researchSeeds"],
+  ["ai-discovery-swarm", "aiDiscoverySwarm"],
+  ["candidate-rescue", "candidateRescue"],
+  ["free-market", "freeMarketData"],
+  ["expanded-market", "expandedMarketData"],
+]);
+
+export function canonicalSourceId(source = "") {
+  const raw = String(source || "").trim();
+  if (!raw) return "unknown";
+  const normalized = raw.replace(/[_\s]+/g, "-");
+  const lower = normalized.toLowerCase();
+  const exact = SOURCE_MANIFEST.find((item) => item.id === raw || item.id.toLowerCase() === lower);
+  if (exact) return exact.id;
+  return SOURCE_ALIASES.get(raw) || SOURCE_ALIASES.get(lower) || lower;
+}
+
+export function getSourceManifest() {
+  return SOURCE_MANIFEST.map((source) => ({
+    lastSuccessAt: null,
+    uniqueCandidates24h: 0,
+    overlapRate: 0,
+    errorRate: 0,
+    cursor: null,
+    ...source,
+  }));
+}
+
+export function getSourceById(source = "") {
+  const id = canonicalSourceId(source);
+  return getSourceManifest().find((item) => item.id === id) || {
+    id,
+    label: id,
+    category: "unknown",
+    evidenceFamily: "unknown",
+    status: SOURCE_STATUS.PLANNED,
+    candidateGenerator: false,
+    enrichmentProvider: false,
+    requiresKey: false,
+    chains: [],
+    lastSuccessAt: null,
+    uniqueCandidates24h: 0,
+    overlapRate: 0,
+    errorRate: 0,
+    cursor: null,
+  };
+}
+
+export function evidenceFamilyForSource(source = "") {
+  return getSourceById(source).evidenceFamily || "unknown";
+}
+
+export function groupSourcesByCategory() {
+  return getSourceManifest().reduce((acc, source) => {
+    acc[source.category] = acc[source.category] || [];
+    acc[source.category].push(source.id);
+    return acc;
+  }, {});
+}
+
+export function summarizeSourceManifest() {
+  const sources = getSourceManifest();
+  const implemented = sources.filter((source) => source.status !== SOURCE_STATUS.PLANNED);
+  const candidateGenerators = sources.filter((source) => source.candidateGenerator);
+  const enrichmentProviders = sources.filter((source) => source.enrichmentProvider);
+
+  return {
+    totalSources: sources.length,
+    implementedSources: implemented.length,
+    plannedSources: sources.length - implemented.length,
+    candidateGenerators: candidateGenerators.length,
+    enrichmentProviders: enrichmentProviders.length,
+    categories: Object.keys(groupSourcesByCategory()),
+    sourcesByCategory: groupSourcesByCategory(),
+    sources,
+  };
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T05:40:26.025Z",
+  "generatedAt": "2026-07-14T06:05:54.453Z",
   "name": "Self-Evolving Alpha OS",
   "description": "Master research OS that fuses identity graph, world model, hypothesis lab, experiment lab, agent society, alpha autopsy, regime adaptation, and thesis generation.",
   "totalProjects": 8,
@@ -15,7 +15,7 @@
     "score": 35,
     "decision": "Research Block",
     "confidence": "Low",
-    "pipelineScore": 9,
+    "pipelineScore": 10,
     "highTechAlphaScore": 47,
     "breakoutBrainScore": 24,
     "autonomousResearchScore": 31,
@@ -324,7 +324,7 @@
       "score": 35,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 9,
+      "pipelineScore": 10,
       "highTechAlphaScore": 47,
       "breakoutBrainScore": 24,
       "autonomousResearchScore": 31,
@@ -632,7 +632,7 @@
       "score": 33,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "highTechAlphaScore": 47,
       "breakoutBrainScore": 21,
       "autonomousResearchScore": 24,
@@ -816,7 +816,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 71,
+            "score": 70,
             "status": "Supported"
           },
           {
@@ -842,7 +842,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 71,
+          "score": 70,
           "status": "Supported"
         },
         "risk": {
@@ -852,7 +852,7 @@
           "score": 73,
           "status": "Active Risk"
         },
-        "netScore": 61
+        "netScore": 60
       },
       "experimentLab": {
         "experiments": [
@@ -1217,7 +1217,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 36,
+        "score": 35,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -1233,7 +1233,7 @@
       "score": 30,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 3,
+      "pipelineScore": 4,
       "highTechAlphaScore": 45,
       "breakoutBrainScore": 14,
       "autonomousResearchScore": 23,
@@ -1526,312 +1526,13 @@
     },
     {
       "rank": 5,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "score": 30,
-      "decision": "Research Block",
-      "confidence": "Developing",
-      "pipelineScore": 2,
-      "highTechAlphaScore": 46,
-      "breakoutBrainScore": 21,
-      "autonomousResearchScore": 31,
-      "sourceTruthScore": 52,
-      "proofScore": 0,
-      "riskScore": 72,
-      "thesis": {
-        "project": "Celestia",
-        "symbol": "TIA",
-        "decision": "Research Block",
-        "confidence": "Developing",
-        "primaryDriver": "Source truth and proof quality are high enough for promotion.",
-        "whyNow": [
-          "Narrative heat is entering rotation."
-        ],
-        "risks": [
-          "Risk cluster is elevated.",
-          "Proof stack is thin.",
-          "Builder evidence is weak or missing.",
-          "Agent committee has a block vote."
-        ],
-        "confirms": [
-          "Official roadmap or catalyst source is verified.",
-          "Liquidity and volume remain stable after the scan.",
-          "Source truth and proof scores improve together.",
-          "Risk agent clears trap, unlock, and bot concerns.",
-          "Outcome memory shows similar setups performing well."
-        ],
-        "invalidates": [
-          "Liquidity drops or sell pressure spikes.",
-          "Catalyst cannot be verified by official or independent sources.",
-          "Source truth weakens or contradiction count rises.",
-          "Trap risk, bot risk, or false-positive similarity increases."
-        ],
-        "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
-      },
-      "identityGraph": {
-        "id": "research-seed-tia",
-        "confidence": 78,
-        "identityCount": 6,
-        "identities": [
-          {
-            "type": "symbol",
-            "value": "TIA"
-          },
-          {
-            "type": "name",
-            "value": "Celestia"
-          },
-          {
-            "type": "chain",
-            "value": "celestia"
-          },
-          {
-            "type": "pair",
-            "value": "research-seed-tia"
-          },
-          {
-            "type": "source",
-            "value": "research-seed"
-          },
-          {
-            "type": "discovery_source",
-            "value": "research-seed"
-          }
-        ],
-        "duplicateRisk": "Identity has enough anchors for downstream merging.",
-        "mergeKeys": [
-          "symbol:TIA",
-          "chain:celestia",
-          "pair:research-seed-tia"
-        ]
-      },
-      "agentSociety": {
-        "agents": [
-          {
-            "name": "Discovery Agent",
-            "score": 18,
-            "vote": "Reject",
-            "reason": "Judges whether the project deserves scan attention."
-          },
-          {
-            "name": "Research Agent",
-            "score": 40,
-            "vote": "Reject",
-            "reason": "Judges source-backed evidence and unanswered questions."
-          },
-          {
-            "name": "Catalyst Agent",
-            "score": 42,
-            "vote": "Reject",
-            "reason": "Judges whether timing matters soon."
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 28,
-            "vote": "Reject",
-            "reason": "Judges flow, liquidity, and execution quality."
-          },
-          {
-            "name": "Builder Agent",
-            "score": 0,
-            "vote": "Reject",
-            "reason": "Judges public builder activity."
-          },
-          {
-            "name": "Simulation Agent",
-            "score": 35,
-            "vote": "Reject",
-            "reason": "Judges scenario and high-tech stack agreement."
-          },
-          {
-            "name": "Risk Agent",
-            "score": 72,
-            "vote": "Block",
-            "reason": "Challenges traps, bot risk, unlocks, and false positives."
-          }
-        ],
-        "promoteVotes": 0,
-        "watchVotes": 0,
-        "challenges": 0,
-        "blocks": 1,
-        "consensusScore": 27,
-        "committeeDecision": "Committee Block"
-      },
-      "worldModel": {
-        "score": 43,
-        "primaryNarrative": "ai",
-        "nodes": [
-          "project:Celestia",
-          "chain:celestia",
-          "narrative:ai",
-          "source:research-seed",
-          "catalyst:roadmap",
-          "wallet:smart-money",
-          "risk:high"
-        ],
-        "relationships": [
-          {
-            "from": "project:Celestia",
-            "to": "narrative:ai",
-            "relation": "exposed_to",
-            "strength": 72
-          },
-          {
-            "from": "project:Celestia",
-            "to": "chain:celestia",
-            "relation": "runs_on",
-            "strength": 55
-          },
-          {
-            "from": "project:Celestia",
-            "to": "catalyst:roadmap",
-            "relation": "may_be_moved_by",
-            "strength": 50
-          },
-          {
-            "from": "project:Celestia",
-            "to": "wallet:smart-money",
-            "relation": "watched_by",
-            "strength": 3
-          },
-          {
-            "from": "project:Celestia",
-            "to": "risk:profile",
-            "relation": "challenged_by",
-            "strength": 72
-          }
-        ],
-        "summary": "World model is sparse; treat this as early research only."
-      },
-      "hypothesisLab": {
-        "hypotheses": [
-          {
-            "id": "catalyst_liquidity_breakout",
-            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 35,
-            "status": "Weak"
-          },
-          {
-            "id": "builder_narrative_compounding",
-            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 53,
-            "status": "Needs Evidence"
-          },
-          {
-            "id": "smart_money_flow_confirmation",
-            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
-            "score": 3,
-            "status": "Weak"
-          },
-          {
-            "id": "evidence_first_promotion",
-            "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 57,
-            "status": "Needs Evidence"
-          },
-          {
-            "id": "trap_rejection",
-            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-            "bearish": true,
-            "score": 72,
-            "status": "Active Risk"
-          }
-        ],
-        "strongest": {
-          "id": "evidence_first_promotion",
-          "thesis": "Source truth and proof quality are high enough for promotion.",
-          "score": 57,
-          "status": "Needs Evidence"
-        },
-        "risk": {
-          "id": "trap_rejection",
-          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-          "bearish": true,
-          "score": 72,
-          "status": "Active Risk"
-        },
-        "netScore": 47
-      },
-      "experimentLab": {
-        "experiments": [
-          {
-            "id": "raise_evidence_gate",
-            "name": "Raise evidence gate before promotion",
-            "expectedImpact": "Blocks weak thesis",
-            "score": 43,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "increase_catalyst_weight",
-            "name": "Increase catalyst weight for the next 30 days",
-            "expectedImpact": "No timing edge yet",
-            "score": 42,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "prioritize_breakout_brain",
-            "name": "Prioritize Breakout Brain and simulation agreement",
-            "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 37,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 72,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "activeExperiments": [
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 72,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "summary": "Experiment lab found scoring changes worth testing."
-      },
-      "alphaAutopsy": {
-        "riskScore": 57,
-        "failureModes": [
-          "resembles prior false positives",
-          "proof stack is thin"
-        ],
-        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
-        "action": "Require extra evidence before promotion."
-      },
-      "regimeAdaptation": {
-        "regime": "Risk-Off",
-        "weights": {
-          "narrative": 1.25,
-          "liquidity": 1.3,
-          "catalyst": 1.18,
-          "github": 1.15,
-          "risk": 1.35
-        },
-        "score": 35,
-        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
-      },
-      "operatorPlan": {
-        "nextAction": "Do not promote until block reason is disproven.",
-        "recheckWindow": "48-72h"
-      }
-    },
-    {
-      "rank": 6,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 29,
+      "score": 28,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "highTechAlphaScore": 44,
       "breakoutBrainScore": 12,
       "autonomousResearchScore": 20,
@@ -1958,7 +1659,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 49,
+        "score": 48,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Render",
@@ -2014,7 +1715,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 67,
+            "score": 66,
             "status": "Needs Evidence"
           },
           {
@@ -2040,7 +1741,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 67,
+          "score": 66,
           "status": "Needs Evidence"
         },
         "risk": {
@@ -2050,7 +1751,7 @@
           "score": 75,
           "status": "Active Risk"
         },
-        "netScore": 56
+        "netScore": 55
       },
       "experimentLab": {
         "experiments": [
@@ -2123,6 +1824,305 @@
       }
     },
     {
+      "rank": 6,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "score": 26,
+      "decision": "Research Block",
+      "confidence": "Low",
+      "pipelineScore": 3,
+      "highTechAlphaScore": 43,
+      "breakoutBrainScore": 13,
+      "autonomousResearchScore": 22,
+      "sourceTruthScore": 52,
+      "proofScore": 1,
+      "riskScore": 74,
+      "thesis": {
+        "project": "Celestia",
+        "symbol": "TIA",
+        "decision": "Research Block",
+        "confidence": "Low",
+        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+        "whyNow": [
+          "Narrative heat is entering rotation."
+        ],
+        "risks": [
+          "Risk cluster is elevated.",
+          "Proof stack is thin.",
+          "Builder evidence is weak or missing.",
+          "Agent committee has a block vote."
+        ],
+        "confirms": [
+          "Official roadmap or catalyst source is verified.",
+          "Liquidity and volume remain stable after the scan.",
+          "Source truth and proof scores improve together.",
+          "Risk agent clears trap, unlock, and bot concerns.",
+          "Outcome memory shows similar setups performing well."
+        ],
+        "invalidates": [
+          "Liquidity drops or sell pressure spikes.",
+          "Catalyst cannot be verified by official or independent sources.",
+          "Source truth weakens or contradiction count rises.",
+          "Trap risk, bot risk, or false-positive similarity increases."
+        ],
+        "summary": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      },
+      "identityGraph": {
+        "id": "research-seed-tia",
+        "confidence": 78,
+        "identityCount": 6,
+        "identities": [
+          {
+            "type": "symbol",
+            "value": "TIA"
+          },
+          {
+            "type": "name",
+            "value": "Celestia"
+          },
+          {
+            "type": "chain",
+            "value": "celestia"
+          },
+          {
+            "type": "pair",
+            "value": "research-seed-tia"
+          },
+          {
+            "type": "source",
+            "value": "research-seed"
+          },
+          {
+            "type": "discovery_source",
+            "value": "research-seed"
+          }
+        ],
+        "duplicateRisk": "Identity has enough anchors for downstream merging.",
+        "mergeKeys": [
+          "symbol:TIA",
+          "chain:celestia",
+          "pair:research-seed-tia"
+        ]
+      },
+      "agentSociety": {
+        "agents": [
+          {
+            "name": "Discovery Agent",
+            "score": 18,
+            "vote": "Reject",
+            "reason": "Judges whether the project deserves scan attention."
+          },
+          {
+            "name": "Research Agent",
+            "score": 25,
+            "vote": "Reject",
+            "reason": "Judges source-backed evidence and unanswered questions."
+          },
+          {
+            "name": "Catalyst Agent",
+            "score": 42,
+            "vote": "Reject",
+            "reason": "Judges whether timing matters soon."
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 28,
+            "vote": "Reject",
+            "reason": "Judges flow, liquidity, and execution quality."
+          },
+          {
+            "name": "Builder Agent",
+            "score": 0,
+            "vote": "Reject",
+            "reason": "Judges public builder activity."
+          },
+          {
+            "name": "Simulation Agent",
+            "score": 27,
+            "vote": "Reject",
+            "reason": "Judges scenario and high-tech stack agreement."
+          },
+          {
+            "name": "Risk Agent",
+            "score": 74,
+            "vote": "Block",
+            "reason": "Challenges traps, bot risk, unlocks, and false positives."
+          }
+        ],
+        "promoteVotes": 0,
+        "watchVotes": 0,
+        "challenges": 0,
+        "blocks": 1,
+        "consensusScore": 24,
+        "committeeDecision": "Committee Block"
+      },
+      "worldModel": {
+        "score": 41,
+        "primaryNarrative": "ai",
+        "nodes": [
+          "project:Celestia",
+          "chain:celestia",
+          "narrative:ai",
+          "source:research-seed",
+          "catalyst:roadmap",
+          "wallet:smart-money",
+          "risk:high"
+        ],
+        "relationships": [
+          {
+            "from": "project:Celestia",
+            "to": "narrative:ai",
+            "relation": "exposed_to",
+            "strength": 72
+          },
+          {
+            "from": "project:Celestia",
+            "to": "chain:celestia",
+            "relation": "runs_on",
+            "strength": 55
+          },
+          {
+            "from": "project:Celestia",
+            "to": "catalyst:roadmap",
+            "relation": "may_be_moved_by",
+            "strength": 50
+          },
+          {
+            "from": "project:Celestia",
+            "to": "wallet:smart-money",
+            "relation": "watched_by",
+            "strength": 3
+          },
+          {
+            "from": "project:Celestia",
+            "to": "risk:profile",
+            "relation": "challenged_by",
+            "strength": 74
+          }
+        ],
+        "summary": "World model is sparse; treat this as early research only."
+      },
+      "hypothesisLab": {
+        "hypotheses": [
+          {
+            "id": "catalyst_liquidity_breakout",
+            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
+            "score": 32,
+            "status": "Weak"
+          },
+          {
+            "id": "builder_narrative_compounding",
+            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+            "score": 51,
+            "status": "Needs Evidence"
+          },
+          {
+            "id": "smart_money_flow_confirmation",
+            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
+            "score": 3,
+            "status": "Weak"
+          },
+          {
+            "id": "evidence_first_promotion",
+            "thesis": "Source truth and proof quality are high enough for promotion.",
+            "score": 30,
+            "status": "Weak"
+          },
+          {
+            "id": "trap_rejection",
+            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+            "bearish": true,
+            "score": 74,
+            "status": "Active Risk"
+          }
+        ],
+        "strongest": {
+          "id": "builder_narrative_compounding",
+          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+          "score": 51,
+          "status": "Needs Evidence"
+        },
+        "risk": {
+          "id": "trap_rejection",
+          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+          "bearish": true,
+          "score": 74,
+          "status": "Active Risk"
+        },
+        "netScore": 40
+      },
+      "experimentLab": {
+        "experiments": [
+          {
+            "id": "raise_evidence_gate",
+            "name": "Raise evidence gate before promotion",
+            "expectedImpact": "Blocks weak thesis",
+            "score": 26,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "increase_catalyst_weight",
+            "name": "Increase catalyst weight for the next 30 days",
+            "expectedImpact": "No timing edge yet",
+            "score": 42,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "prioritize_breakout_brain",
+            "name": "Prioritize Breakout Brain and simulation agreement",
+            "expectedImpact": "Keeps scenario edge in watch mode",
+            "score": 29,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 74,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "activeExperiments": [
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 74,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "summary": "Experiment lab found scoring changes worth testing."
+      },
+      "alphaAutopsy": {
+        "riskScore": 58,
+        "failureModes": [
+          "resembles prior false positives",
+          "proof stack is thin"
+        ],
+        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
+        "action": "Require extra evidence before promotion."
+      },
+      "regimeAdaptation": {
+        "regime": "Risk-Off",
+        "weights": {
+          "narrative": 1.25,
+          "liquidity": 1.3,
+          "catalyst": 1.18,
+          "github": 1.15,
+          "risk": 1.35
+        },
+        "score": 32,
+        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
+      },
+      "operatorPlan": {
+        "nextAction": "Do not promote until block reason is disproven.",
+        "recheckWindow": "48-72h"
+      }
+    },
+    {
       "rank": 7,
       "name": "Jupiter",
       "symbol": "JUP",
@@ -2131,7 +2131,7 @@
       "decision": "Research Block",
       "confidence": "Developing",
       "pipelineScore": 0,
-      "highTechAlphaScore": 46,
+      "highTechAlphaScore": 45,
       "breakoutBrainScore": 15,
       "autonomousResearchScore": 27,
       "sourceTruthScore": 52,
@@ -2313,7 +2313,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 44,
+            "score": 43,
             "status": "Weak"
           },
           {
@@ -2429,7 +2429,7 @@
       "score": 24,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "highTechAlphaScore": 45,
       "breakoutBrainScore": 18,
       "autonomousResearchScore": 23,
@@ -2848,36 +2848,6 @@
       "summary": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
-      "project": "Celestia",
-      "symbol": "TIA",
-      "decision": "Research Block",
-      "confidence": "Developing",
-      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
-      "whyNow": [
-        "Narrative heat is entering rotation."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
-    },
-    {
       "project": "Render",
       "symbol": "RNDR",
       "decision": "Research Block",
@@ -2906,6 +2876,36 @@
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
       "summary": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+    },
+    {
+      "project": "Celestia",
+      "symbol": "TIA",
+      "decision": "Research Block",
+      "confidence": "Low",
+      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "whyNow": [
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Jupiter",

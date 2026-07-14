@@ -13,6 +13,14 @@ import { getGithubProjectDiscoveryCandidates } from "./data/githubProjectDiscove
 import { buildCandidateRescueExpansion } from "./data/candidateRescueExpansionEngine.js";
 import { runAIDiscoverySwarm } from "./data/aiDiscoverySwarmEngine.js";
 import {
+  discoveryLaneForProject,
+  evidenceFamiliesForProject,
+  independentEvidenceScore,
+  buildDiscoveryCoverage,
+} from "./discovery/discoveryCoverageEngine.js";
+import { identityKeyForProject, attachProjectIdentity } from "./discovery/projectIdentityGraph.js";
+import { buildSourceCapabilityAudit } from "./discovery/sourceCapabilityAudit.js";
+import {
   getSourceRoutingPlan,
   saveSourceRoutingOutcome,
   shouldRunSource,
@@ -33,19 +41,38 @@ function normalizeResults(output, fallback = []) {
 }
 
 function keyForProject(project = {}) {
-  const symbol = String(project.symbol || "").toUpperCase();
-  const chain = String(project.chain || "").toLowerCase();
-  const address = String(project.address || project.tokenAddress || "").toLowerCase();
-  const pair = String(project.pairAddress || "").toLowerCase();
+  return identityKeyForProject(project);
+}
 
-  if (address && address !== "null") return `${chain}:${address}`;
-  if (pair && pair !== "null") return `${chain}:${pair}`;
+function conservativeNumber(a = 0, b = 0) {
+  const left = num(a);
+  const right = num(b);
+  if (left > 0 && right > 0) return Math.min(left, right);
+  return left || right || 0;
+}
 
-  return `${chain}:${symbol}:${String(project.name || "").toLowerCase()}`;
+function valuationDisagreement(values = []) {
+  const active = values.map(num).filter((value) => value > 0);
+  if (active.length < 2) return 1;
+  return Number((Math.max(...active) / Math.min(...active)).toFixed(2));
 }
 
 function normalizeProject(project = {}) {
-  return {
+  const circulatingMarketCap = num(
+    project.circulatingMarketCap ??
+      project.verifiedMarketCap ??
+      project.marketData?.marketCap ??
+      project.marketCap
+  );
+  const fullyDilutedValue = num(project.fdv ?? project.fullyDilutedValue ?? project.marketData?.fdv);
+  const estimatedMarketCap = num(project.estimatedMarketCap ?? project.rawCandidate?.marketCap);
+  const valuationSources = [
+    ...(Array.isArray(project.valuationSources) ? project.valuationSources : []),
+    ...(circulatingMarketCap > 0 ? [{ source: project.source || "unknown", type: "circulatingMarketCap", value: circulatingMarketCap }] : []),
+    ...(fullyDilutedValue > 0 ? [{ source: project.source || "unknown", type: "fdv", value: fullyDilutedValue }] : []),
+    ...(estimatedMarketCap > 0 ? [{ source: project.source || "unknown", type: "estimatedMarketCap", value: estimatedMarketCap }] : []),
+  ];
+  const normalized = {
     ...project,
     name: project.name || project.baseToken?.name || "Unknown",
     symbol: project.symbol || project.baseToken?.symbol || "UNKNOWN",
@@ -55,11 +82,28 @@ function normalizeProject(project = {}) {
     priceUsd: num(project.priceUsd ?? project.price),
     liquidityUsd: num(project.liquidityUsd ?? project.liquidity?.usd ?? project.liquidity),
     volume24h: num(project.volume24h ?? project.volume?.h24 ?? project.volume),
-    marketCap: num(project.marketCap ?? project.fdv),
-    fdv: num(project.fdv ?? project.marketCap),
+    circulatingMarketCap,
+    verifiedMarketCap: num(project.verifiedMarketCap),
+    estimatedMarketCap,
+    marketCap: circulatingMarketCap,
+    fdv: fullyDilutedValue,
+    fullyDilutedValue,
+    circulatingSupply: num(project.circulatingSupply ?? project.marketData?.circulatingSupply),
+    totalSupply: num(project.totalSupply ?? project.marketData?.totalSupply),
+    maxSupply: num(project.maxSupply ?? project.marketData?.maxSupply),
+    supplyConfidence: num(project.supplyConfidence),
+    valuationSources,
+    valuationDisagreement: valuationDisagreement(valuationSources.map((source) => source.value)),
     priceChange24h: num(project.priceChange24h ?? project.priceChange?.h24),
     discoveredAt: project.discoveredAt || new Date().toISOString(),
   };
+
+  return attachProjectIdentity({
+    ...normalized,
+    discoveryLane: project.discoveryLane || discoveryLaneForProject(normalized),
+    evidenceFamilies: project.evidenceFamilies || evidenceFamiliesForProject(normalized),
+    independentEvidenceScore: project.independentEvidenceScore || independentEvidenceScore(normalized),
+  });
 }
 
 function mergeProject(existing = {}, incoming = {}) {
@@ -73,7 +117,7 @@ function mergeProject(existing = {}, incoming = {}) {
     b.source,
   ].filter(Boolean);
 
-  return {
+  return attachProjectIdentity({
     ...a,
     ...b,
     name: a.name !== "Unknown" ? a.name : b.name,
@@ -81,12 +125,28 @@ function mergeProject(existing = {}, incoming = {}) {
     priceUsd: b.priceUsd || a.priceUsd,
     liquidityUsd: Math.max(a.liquidityUsd, b.liquidityUsd),
     volume24h: Math.max(a.volume24h, b.volume24h),
-    marketCap: Math.max(a.marketCap, b.marketCap),
+    circulatingMarketCap: conservativeNumber(a.circulatingMarketCap, b.circulatingMarketCap),
+    verifiedMarketCap: conservativeNumber(a.verifiedMarketCap, b.verifiedMarketCap),
+    estimatedMarketCap: conservativeNumber(a.estimatedMarketCap, b.estimatedMarketCap),
+    marketCap: conservativeNumber(a.marketCap, b.marketCap),
     fdv: Math.max(a.fdv, b.fdv),
+    fullyDilutedValue: Math.max(a.fullyDilutedValue, b.fullyDilutedValue),
+    circulatingSupply: a.circulatingSupply || b.circulatingSupply,
+    totalSupply: Math.max(a.totalSupply, b.totalSupply),
+    maxSupply: Math.max(a.maxSupply, b.maxSupply),
+    supplyConfidence: Math.max(a.supplyConfidence, b.supplyConfidence),
+    valuationSources: [...(a.valuationSources || []), ...(b.valuationSources || [])],
+    valuationDisagreement: valuationDisagreement([
+      ...(a.valuationSources || []),
+      ...(b.valuationSources || []),
+    ].map((source) => source.value)),
     tvl: Math.max(num(a.tvl), num(b.tvl)),
     discoverySources: [...new Set(sources)],
+    evidenceFamilies: [...new Set([...(a.evidenceFamilies || []), ...(b.evidenceFamilies || [])])],
+    independentEvidenceScore: independentEvidenceScore({ ...a, ...b, discoverySources: [...new Set(sources)] }),
+    discoveryLane: a.discoveryLane || b.discoveryLane || discoveryLaneForProject({ ...a, ...b }),
     discoveredAt: a.discoveredAt || b.discoveredAt || new Date().toISOString(),
-  };
+  });
 }
 
 function dedupeAndMerge(projects = []) {
@@ -196,10 +256,18 @@ function passesQualityGate(project = {}, options = {}) {
   const minLiquidity = num(options.minLiquidity ?? process.env.MIN_LIQUIDITY ?? 0);
   const minVolume = num(options.minVolume ?? process.env.MIN_VOLUME_24H ?? 0);
   const maxMarketCap = num(options.maxMarketCap ?? process.env.MAX_MARKET_CAP ?? 0);
+  const lane = project.discoveryLane || discoveryLaneForProject(project);
+
+  if (lane === "prelaunch") return true;
+  if (lane === "new-pool") {
+    if (minLiquidity > 0 && num(project.liquidityUsd) < Math.min(minLiquidity, 10_000)) return false;
+    if (maxMarketCap > 0 && num(project.circulatingMarketCap ?? project.marketCap) > maxMarketCap) return false;
+    return true;
+  }
 
   if (minLiquidity > 0 && num(project.liquidityUsd) < minLiquidity) return false;
   if (minVolume > 0 && num(project.volume24h) < minVolume) return false;
-  if (maxMarketCap > 0 && num(project.marketCap) > maxMarketCap) return false;
+  if (maxMarketCap > 0 && num(project.circulatingMarketCap ?? project.marketCap) > maxMarketCap) return false;
 
   return true;
 }
@@ -217,10 +285,11 @@ function applyQualityGate(projects = [], options = {}) {
 }
 
 function discoveryPriority(project = {}) {
-  const sources = Array.isArray(project.discoverySources) ? project.discoverySources.length : 0;
-  const liquidity = Math.log10(Math.max(1, num(project.liquidityUsd)));
-  const volume = Math.log10(Math.max(1, num(project.volume24h)));
-  const marketCap = Math.log10(Math.max(1, num(project.marketCap)));
+  const lane = project.discoveryLane || discoveryLaneForProject(project);
+  const ageMs = project.pairCreatedAt || project.createdAt || project.launchDate
+    ? Date.now() - new Date(project.pairCreatedAt || project.createdAt || project.launchDate).getTime()
+    : null;
+  const ageHours = Number.isFinite(ageMs) ? Math.max(0, ageMs / 36e5) : null;
   const text = [
     project.name,
     project.symbol,
@@ -247,10 +316,53 @@ function discoveryPriority(project = {}) {
     "airdrop",
     "mainnet",
   ].filter((word) => text.includes(word)).length;
-  const sourceBoost = sources * 8;
+  const noveltyScore =
+    lane === "prelaunch" ? 78 :
+    ageHours !== null && ageHours <= 6 ? 95 :
+    ageHours !== null && ageHours <= 24 ? 86 :
+    ageHours !== null && ageHours <= 72 ? 74 :
+    44;
+  const liquidityFormationVelocity = clamp(
+    num(project.liquidityGrowth24h) * 2 +
+      Math.log10(Math.max(1, num(project.liquidityUsd))) * 9
+  );
+  const uniqueBuyerAcceleration = clamp(
+    num(project.uniqueBuyers24h || project.buyers24h) * 0.3 +
+      num(project.buyerGrowth24h || project.uniqueBuyerGrowth24h) * 1.4
+  );
+  const independentSourceConfirmation = independentEvidenceScore(project);
+  const deployerQuality = clamp(
+    num(project.deployerQualityScore || project.githubProScore || project.developerActivityScore)
+  );
+  const narrativeAcceleration = clamp(narrativeHits * 14 + num(project.narrativeHeatScore) * 0.35);
+  const smartWalletArrival = clamp(num(project.smartWalletScore || project.smartMoneyAccumulationScore));
+  const developerAcceleration = clamp(num(project.githubVelocityScore || project.developerActivityScore || project.githubProScore));
+  const launchProximity = clamp(
+    lane === "prelaunch"
+      ? narrativeHits * 12 + (text.includes("tge") || text.includes("mainnet") ? 30 : 0)
+      : 55
+  );
+  const manipulationRisk = clamp(
+    num(project.trapRiskScore) ||
+      num(project.riskScore) ||
+      num(project.economicIntegrityRiskScore) ||
+      (num(project.valuationDisagreement) >= 5 ? 60 : 0)
+  );
   const seedPenalty = project.researchSeed ? 35 : 0;
 
-  return Math.round(liquidity * 12 + volume * 11 + marketCap * 4 + narrativeHits * 9 + sourceBoost - seedPenalty);
+  return Math.round(
+    noveltyScore * 0.2 +
+      liquidityFormationVelocity * 0.15 +
+      uniqueBuyerAcceleration * 0.15 +
+      independentSourceConfirmation * 0.12 +
+      deployerQuality * 0.1 +
+      narrativeAcceleration * 0.1 +
+      smartWalletArrival * 0.08 +
+      developerAcceleration * 0.05 +
+      launchProximity * 0.05 -
+      manipulationRisk * 0.2 -
+      seedPenalty
+  );
 }
 
 function rankAndLimitCandidates(projects = [], options = {}) {
@@ -641,6 +753,18 @@ export async function runDiscoveryManager(options = {}) {
     candidateRescue: rescueExpansion.report,
     sourceRouter: sourceRouterPlan,
   };
+
+  discovery.sourceCapabilityAudit = buildSourceCapabilityAudit(discovery);
+  discovery.discoveryCoverage = buildDiscoveryCoverage({
+    rawPool,
+    dedupedPool,
+    accepted: qualityGate.accepted,
+    rejected: qualityGate.rejected,
+    limited: candidatePool,
+    sourceReports: discovery.sourceReports,
+  });
+  discovery.shadowRejectedCandidates = discovery.discoveryCoverage.shadowRejected;
+  discovery.sourceManifest = discovery.sourceCapabilityAudit.sources;
 
   if (options.saveSourceRouter !== false && sourceRouterPlan.sources?.length) {
     discovery.sourceRouterReport = saveSourceRoutingOutcome(discovery);

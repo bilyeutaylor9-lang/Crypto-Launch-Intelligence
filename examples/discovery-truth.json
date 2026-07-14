@@ -1,0 +1,359 @@
+{
+  "generatedAt": "2026-07-14T06:05:56.360Z",
+  "name": "Discovery Truth Network",
+  "mode": "demo",
+  "scannedAt": null,
+  "rawCount": 0,
+  "dedupedCount": 0,
+  "acceptedBeforeLimitCount": 0,
+  "acceptedAfterLimitCount": 0,
+  "rejectedCount": 0,
+  "sourceCapabilityAudit": {},
+  "discoveryCoverage": {},
+  "sourceManifest": [
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "dexscreener",
+      "label": "DexScreener",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "ethereum",
+        "base",
+        "arbitrum",
+        "polygon",
+        "bsc",
+        "solana"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "geckoterminal",
+      "label": "GeckoTerminal",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "ethereum",
+        "base",
+        "arbitrum",
+        "polygon",
+        "bsc",
+        "solana"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "coingecko",
+      "label": "CoinGecko",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "birdeye",
+      "label": "Birdeye",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": true,
+      "chains": [
+        "solana",
+        "ethereum",
+        "base",
+        "polygon",
+        "bsc"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "freeMarketData",
+      "label": "Free Market Providers",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "expandedMarketData",
+      "label": "Expanded Free Market Providers",
+      "category": "market",
+      "evidenceFamily": "market-aggregator",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "googleNewsDiscovery",
+      "label": "Google News Discovery",
+      "category": "news",
+      "evidenceFamily": "independent-news",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "githubProjectDiscovery",
+      "label": "GitHub Project Discovery",
+      "category": "developer",
+      "evidenceFamily": "developer-activity",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "prelaunch",
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "researchSeeds",
+      "label": "Fallback Research Seeds",
+      "category": "research",
+      "evidenceFamily": "research-seed",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": false,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "aiDiscoverySwarm",
+      "label": "AI Discovery Swarm",
+      "category": "research",
+      "evidenceFamily": "research-seed",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "candidateRescue",
+      "label": "Candidate Rescue",
+      "category": "research",
+      "evidenceFamily": "research-seed",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "evmFactoryEvents",
+      "label": "EVM Factory Events",
+      "category": "chain",
+      "evidenceFamily": "chain-event",
+      "status": "PLANNED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "ethereum",
+        "base",
+        "arbitrum",
+        "polygon",
+        "bsc"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "solanaProgramEvents",
+      "label": "Solana Program Events",
+      "category": "chain",
+      "evidenceFamily": "chain-event",
+      "status": "PLANNED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "solana"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "goplus",
+      "label": "GoPlus Security",
+      "category": "security",
+      "evidenceFamily": "security-analysis",
+      "status": "PLANNED",
+      "candidateGenerator": false,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "ethereum",
+        "base",
+        "bsc",
+        "polygon",
+        "arbitrum"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "rugcheck",
+      "label": "RugCheck",
+      "category": "security",
+      "evidenceFamily": "security-analysis",
+      "status": "PLANNED",
+      "candidateGenerator": false,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "solana"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "launchpads",
+      "label": "Launchpads",
+      "category": "launch",
+      "evidenceFamily": "project-controlled",
+      "status": "PLANNED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "ecosystemGrants",
+      "label": "Ecosystem Grants",
+      "category": "funding",
+      "evidenceFamily": "funding-evidence",
+      "status": "PLANNED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "multi-chain"
+      ]
+    }
+  ],
+  "sourceRouter": {},
+  "shadowRejectedCandidates": [],
+  "operatingRules": [
+    "A source counts as active only after returning live candidates.",
+    "Discovery priority rewards novelty, formation velocity, independent evidence families, deployer quality, and launch proximity.",
+    "Discovery priority does not reward absolute market cap.",
+    "Rejected candidates remain visible in the shadow watchlist for recall analysis.",
+    "FDV, estimated market cap, and circulating market cap are kept separate."
+  ],
+  "nextNativeConnectors": [
+    "EVM factory PairCreated/PoolCreated listeners",
+    "EVM contract deployment and initial-liquidity listeners",
+    "Solana Raydium/Meteora/Orca program event listeners",
+    "Bridge, locker, vesting, and launchpad event listeners"
+  ]
+}
