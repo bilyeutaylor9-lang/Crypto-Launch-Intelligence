@@ -45,6 +45,7 @@ import { analyzeSelfEvolvingAlphaOSBatch } from "../src/engines/selfEvolvingAlph
 import { analyzeProofCarryingAlphaContractBatch } from "../src/engines/proofCarryingAlphaContractEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "../src/engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "../src/engines/smallCapHunterEngine.js";
+import { analyzeProofOfAlphaExecutionTwinBatch } from "../src/engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1704,6 +1705,127 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
   );
   assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
+});
+
+test("proof of alpha execution twin selects route-verified paper executions and blocks unsafe paths", () => {
+  const results = analyzeProofOfAlphaExecutionTwinBatch(
+    [
+      {
+        name: "MetaRoute",
+        symbol: "META",
+        chain: "base",
+        address: "0x0000000000000000000000000000000000000aaa",
+        pairAddress: "0x0000000000000000000000000000000000000aab",
+        liquidityUsd: 260_000,
+        volume24h: 410_000,
+        priceUsd: 0.25,
+        sourceTruthScore: 78,
+        proofScore: 76,
+        evidenceQualityScore: 74,
+        dataConfidenceScore: 72,
+        proofCarryingAlphaContractScore: 74,
+        alphaEvolutionGovernorScore: 76,
+        autonomousAlphaOSScore: 72,
+        causalMarketTwinScore: 70,
+        breakoutBrainScore: 78,
+        smallCapHunterScore: 82,
+        smallCapHunterVerdict: "Top-2 Small-Cap Research Candidate",
+        smallCapHunter: {
+          purchaseRoute: {
+            purchasable: true,
+            preferredRoute: "MetaMask",
+            status: "Available Route Detected",
+            score: 70,
+            routes: [{ type: "MetaMask", contract: "0x0000000000000000000000000000000000000aaa", pairAddress: "0x0000000000000000000000000000000000000aab" }],
+          },
+        },
+        riskScore: 16,
+        trapRiskScore: 10,
+        sellPressureScore: 14,
+      },
+      {
+        name: "CoinRoute",
+        symbol: "COIN",
+        chain: "coinbase",
+        liquidityUsd: 500_000,
+        volume24h: 700_000,
+        priceUsd: 1.5,
+        sourceTruthScore: 72,
+        proofScore: 70,
+        evidenceQualityScore: 70,
+        dataConfidenceScore: 72,
+        proofCarryingAlphaContractScore: 70,
+        alphaEvolutionGovernorScore: 72,
+        autonomousAlphaOSScore: 70,
+        causalMarketTwinScore: 68,
+        smallCapHunterScore: 76,
+        smallCapHunter: {
+          purchaseRoute: {
+            purchasable: true,
+            preferredRoute: "Coinbase",
+            status: "Available Route Detected",
+            score: 72,
+            routes: [{ type: "Coinbase" }],
+          },
+        },
+        riskScore: 20,
+        trapRiskScore: 14,
+        sellPressureScore: 12,
+      },
+      {
+        name: "NoRoute",
+        symbol: "NORT",
+        chain: "research",
+        liquidityUsd: 600_000,
+        volume24h: 800_000,
+        proofCarryingAlphaContractScore: 82,
+        alphaEvolutionGovernorScore: 82,
+        autonomousAlphaOSScore: 82,
+        smallCapHunterScore: 82,
+        riskScore: 10,
+      },
+      {
+        name: "UnsafeRoute",
+        symbol: "RISK",
+        chain: "base",
+        address: "0x0000000000000000000000000000000000000bad",
+        liquidityUsd: 300_000,
+        volume24h: 500_000,
+        sourceTruthScore: 80,
+        proofScore: 80,
+        smallCapHunter: {
+          purchaseRoute: {
+            purchasable: true,
+            preferredRoute: "MetaMask",
+            status: "Available Route Detected",
+            score: 70,
+            routes: [{ type: "MetaMask", contract: "0x0000000000000000000000000000000000000bad" }],
+          },
+        },
+        alphaEvolutionGovernorScore: 80,
+        riskScore: 85,
+        trapRiskScore: 88,
+      },
+    ],
+    { budgetUsd: 100, targetCount: 2 }
+  );
+  const selected = results.filter((project) => project.proofOfAlphaExecutionTwinSelected);
+  const noRoute = results.find((project) => project.symbol === "NORT");
+  const unsafe = results.find((project) => project.symbol === "RISK");
+
+  assert.equal(selected.length, 2);
+  assert.deepEqual(
+    selected.map((project) => project.proofOfAlphaExecutionTwinRank),
+    [1, 2]
+  );
+  assert.ok(selected.every((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate"));
+  assert.deepEqual(
+    selected.map((project) => project.proofOfAlphaExecutionTwinRoute).sort(),
+    ["Coinbase", "MetaMask"]
+  );
+  assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "Execution Route Block");
+  assert.equal(unsafe.proofOfAlphaExecutionTwinVerdict, "Execution Safety Block");
+  assert.ok(selected[0].proofOfAlphaExecutionTwin.paperExecution.reviewWindows.includes("30d"));
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

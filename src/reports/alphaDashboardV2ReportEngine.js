@@ -6,6 +6,7 @@ import { summarizeSourceTruth } from "../engines/sourceTruthEngine.js";
 import { summarizeGithubIntelligencePro } from "../engines/githubIntelligenceProEngine.js";
 import { summarizeAutonomousAlphaOS } from "../engines/autonomousAlphaOSEngine.js";
 import { summarizeSmallCapHunter } from "../engines/smallCapHunterEngine.js";
+import { summarizeProofOfAlphaExecutionTwin } from "../engines/proofOfAlphaExecutionTwinEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -44,6 +45,10 @@ function compact(project = {}) {
     smallCapBand: project.smallCapBand || "Unknown",
     smallCapPurchaseRoute: project.smallCapHunter?.purchaseRoute?.preferredRoute || "Unavailable",
     smallCapPurchaseRouteStatus: project.smallCapHunter?.purchaseRoute?.status || "Unknown",
+    executionTwinScore: project.proofOfAlphaExecutionTwinScore || 0,
+    executionTwinVerdict: project.proofOfAlphaExecutionTwinVerdict || "Unknown",
+    executionTwinRoute: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
+    executionTwinSlippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,
     paperOutcomeLabScore: project.paperOutcomeLabScore || 0,
     paperOutcomeLabVerdict: project.paperOutcomeLabVerdict || "Unknown",
     strategy: project.bestAutonomousStrategy?.name || "No Strategy",
@@ -66,6 +71,7 @@ export function buildAlphaDashboardV2(projects = []) {
   const sourceTruth = summarizeSourceTruth(safeProjects);
   const githubPro = summarizeGithubIntelligencePro(safeProjects);
   const smallCapHunter = summarizeSmallCapHunter(safeProjects);
+  const executionTwin = summarizeProofOfAlphaExecutionTwin(safeProjects);
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
@@ -88,6 +94,7 @@ export function buildAlphaDashboardV2(projects = []) {
       bestSource: sourceTruth.sources?.[0] || null,
       bestGithubProject: githubPro.topRepositories?.[0] || null,
       smallCapResearchPicks: smallCapHunter.topTwo || [],
+      executionTwinPicks: executionTwin.topExecutions || [],
     },
     counts: {
       alphaOSStrongBuy: alphaOS.counts?.strongBuyResearch || 0,
@@ -108,9 +115,13 @@ export function buildAlphaDashboardV2(projects = []) {
       smallCapHunterWatch: smallCapHunter.watchCount || 0,
       smallCapHunterRiskBlocks: smallCapHunter.riskBlocks || 0,
       smallCapHunterPurchaseRouteBlocks: smallCapHunter.purchaseRouteBlocks || 0,
+      executionTwinPicks: executionTwin.selectedCount || 0,
+      executionTwinRouteBlocks: executionTwin.routeBlocks || 0,
+      executionTwinSafetyBlocks: executionTwin.safetyBlocks || 0,
     },
     topCandidates,
     smallCapHunter,
+    executionTwin,
     paperTradingOutcomeLab: paperLab,
     autoLearningWeightOptimizer: optimizer,
     sourceTruth,
@@ -120,6 +131,7 @@ export function buildAlphaDashboardV2(projects = []) {
       "Increase trust only when source truth, causal driver, and paper outcome evidence agree.",
       "A best-available candidate is not a buy signal; it is the strongest candidate when the field is weak.",
       "Small-Cap Hunter picks are research candidates for manual verification, not buy recommendations.",
+      "Execution Twin picks are paper-execution simulations and must be verified inside the actual Coinbase or MetaMask trade flow.",
     ],
   };
 }

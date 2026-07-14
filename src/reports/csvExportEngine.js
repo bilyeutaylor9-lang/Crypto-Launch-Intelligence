@@ -79,6 +79,14 @@ export function writeCsvReport(projects = []) {
     "smallCapPaperBudgetUsd",
     "smallCapLiquidityImpactPct",
     "smallCapWarnings",
+    "executionTwinSelected",
+    "executionTwinRank",
+    "executionTwinScore",
+    "executionTwinVerdict",
+    "executionTwinConfidence",
+    "executionTwinRoute",
+    "executionTwinSlippagePct",
+    "executionTwinSafetyBlockers",
     "confidenceAdjustedRank",
     "confidenceAdjustedScore",
     "institutionalRankScore",
@@ -274,6 +282,16 @@ export function writeCsvReport(projects = []) {
     p.smallCapHunter?.execution?.estimatedLiquidityImpactPct ?? "",
     Array.isArray(p.smallCapHunter?.warnings)
       ? p.smallCapHunter.warnings.join("; ")
+      : "",
+    p.proofOfAlphaExecutionTwinSelected ? "yes" : "",
+    p.proofOfAlphaExecutionTwinRank ?? "",
+    p.proofOfAlphaExecutionTwinScore ?? "",
+    p.proofOfAlphaExecutionTwinVerdict ?? "",
+    p.proofOfAlphaExecutionTwinConfidence ?? "",
+    p.proofOfAlphaExecutionTwinRoute ?? "",
+    p.proofOfAlphaExecutionTwinSlippagePct ?? "",
+    Array.isArray(p.proofOfAlphaExecutionTwin?.safety?.blockers)
+      ? p.proofOfAlphaExecutionTwin.safety.blockers.join("; ")
       : "",
     p.confidenceAdjustedRank ?? "",
     p.confidenceAdjustedScore ?? "",

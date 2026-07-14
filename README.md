@@ -21,6 +21,7 @@ This is not a simple token screener. It is a layered research system with:
 - Autonomous Alpha Knowledge Graph
 - Causal Market Twin scenario engine
 - Small-Cap Hunter for two best-available $100 paper-research candidates with Coinbase/MetaMask route gating
+- Proof-of-Alpha Execution Twin for route-verified $100 paper execution simulations
 - Self-evolving Alpha OS with thesis generation
 - Paper-trade strategy simulation
 - Outcome learning
@@ -82,6 +83,7 @@ npm run alpha:graph
 npm run causal:twin
 npm run alpha:governor
 npm run small-caps
+npm run execution-twin
 ```
 
 ## What Makes It Different
@@ -148,6 +150,7 @@ The project now behaves like a miniature autonomous research organization.
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
+| Proof-of-Alpha Execution Twin | Simulates whether a $100 paper execution is actually route-verified, liquid enough, safe enough, and linked to a falsifiable alpha thesis | `reports/proof-of-alpha-execution-twin.json` |
 
 ## Autonomous Alpha OS
 
@@ -332,6 +335,27 @@ By default, Small-Cap Hunter will not select a token unless it detects one of th
 
 You can loosen that gate for research experiments with `SMALL_CAP_REQUIRE_PURCHASE_ROUTE=false`, but the safer default is to require route proof.
 
+## Proof-of-Alpha Execution Twin
+
+The Execution Twin is the accountability layer above Small-Cap Hunter.
+
+It asks:
+
+- Can a normal user actually reach this token through Coinbase or MetaMask?
+- Is there enough visible liquidity for a $100 paper execution?
+- Is estimated slippage tolerable?
+- Is the route backed by contract or pair proof?
+- Are risk, trap, unlock, sell-pressure, and red-team warnings low enough?
+- Is the alpha thesis backed by contracts, governor, AI OS, or breakout evidence?
+
+Key command:
+
+```bash
+npm run execution-twin
+```
+
+The report is `reports/proof-of-alpha-execution-twin.json`. It includes selected paper executions, route blocks, safety blocks, estimated slippage, manual checks, and invalidation rules. This is still research software, not a live trade quote.
+
 ## Outcome Lab and Auto-Learning
 
 The next intelligence layer makes the AI accountable.
@@ -502,6 +526,7 @@ Every scan can generate a full research packet:
 | `reports/alpha-evolution-governor.json` | Meta-governor operating report |
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
 | `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with Coinbase/MetaMask route status, $100 paper plan, structure score, upside score, and risk warnings |
+| `reports/proof-of-alpha-execution-twin.json` | Route-verified $100 paper execution simulations with slippage, safety, thesis, and invalidation checks |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -577,6 +602,7 @@ npm run causal:twin
 npm run alpha:governor
 npm run alpha:queue
 npm run small-caps
+npm run execution-twin
 npm run source-truth
 npm run github-pro
 ```
@@ -646,6 +672,7 @@ cat examples/alpha-contract-leaderboard.json
 cat examples/alpha-evolution-governor.json
 cat examples/alpha-evolution-queue.json
 cat examples/small-cap-hunter.json
+cat examples/proof-of-alpha-execution-twin.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

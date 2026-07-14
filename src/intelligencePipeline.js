@@ -87,6 +87,7 @@ import { analyzeAutonomousAlphaKnowledgeGraphBatch } from "./engines/autonomousA
 import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
+import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1106,6 +1107,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = analyzeCausalMarketTwinBatch(results);
   results = analyzeAlphaEvolutionGovernorBatch(results);
   results = analyzeSmallCapHunterBatch(results, options.smallCapHunter || {});
+  results = analyzeProofOfAlphaExecutionTwinBatch(results, options.executionTwin || {});
 
   if (options.saveMemory !== false) {
     try {
@@ -1390,6 +1392,14 @@ export function summarizePipelineResults(results = []) {
     .filter((p) => p.smallCapHunter)
     .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
     .slice(0, 10);
+  const executionTwinSelections = safeResults.filter((p) => p.proofOfAlphaExecutionTwinSelected);
+  const executionTwinRouteBlocks = safeResults.filter((p) => p.proofOfAlphaExecutionTwinVerdict === "Execution Route Block");
+  const executionTwinSafetyBlocks = safeResults.filter((p) => p.proofOfAlphaExecutionTwinVerdict === "Execution Safety Block");
+  const executionTwinLiquidityBlocks = safeResults.filter((p) => p.proofOfAlphaExecutionTwinVerdict === "Execution Liquidity Block");
+  const topExecutionTwinSetups = [...safeResults]
+    .filter((p) => p.proofOfAlphaExecutionTwin)
+    .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))
+    .slice(0, 10);
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
@@ -1504,6 +1514,10 @@ export function summarizePipelineResults(results = []) {
     smallCapHunterWatchCount: smallCapHunterWatch.length,
     smallCapHunterRiskBlockCount: smallCapHunterRiskBlocks.length,
     smallCapHunterPurchaseRouteBlockCount: smallCapHunterPurchaseRouteBlocks.length,
+    executionTwinSelectedCount: executionTwinSelections.length,
+    executionTwinRouteBlockCount: executionTwinRouteBlocks.length,
+    executionTwinSafetyBlockCount: executionTwinSafetyBlocks.length,
+    executionTwinLiquidityBlockCount: executionTwinLiquidityBlocks.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1775,6 +1789,21 @@ export function summarizePipelineResults(results = []) {
       paperPlan: project.smallCapHunter?.paperPlan || {},
       reasons: project.smallCapHunter?.reasons || [],
       warnings: project.smallCapHunter?.warnings || [],
+    })),
+    topExecutionTwinSetups: topExecutionTwinSetups.map((project) => ({
+      rank: project.proofOfAlphaExecutionTwinRank || null,
+      selected: Boolean(project.proofOfAlphaExecutionTwinSelected),
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.proofOfAlphaExecutionTwinScore || 0,
+      verdict: project.proofOfAlphaExecutionTwinVerdict || "Unknown",
+      confidence: project.proofOfAlphaExecutionTwinConfidence || "Unknown",
+      route: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
+      slippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,
+      quote: project.proofOfAlphaExecutionTwin?.quote || {},
+      safety: project.proofOfAlphaExecutionTwin?.safety || {},
+      paperExecution: project.proofOfAlphaExecutionTwin?.paperExecution || {},
     })),
 
     strongSmartMoneyAccumulationCount: safeResults.filter(

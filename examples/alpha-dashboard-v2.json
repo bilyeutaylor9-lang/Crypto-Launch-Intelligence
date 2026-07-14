@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T04:37:36.627Z",
+  "generatedAt": "2026-07-14T05:40:24.869Z",
   "totalProjects": 8,
   "headline": {
     "topCandidate": {
@@ -23,6 +23,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 42,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.307,
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -49,7 +53,8 @@
       "avgTrustScore": 90
     },
     "bestGithubProject": null,
-    "smallCapResearchPicks": []
+    "smallCapResearchPicks": [],
+    "executionTwinPicks": []
   },
   "counts": {
     "alphaOSStrongBuy": 0,
@@ -67,7 +72,10 @@
     "smallCapHunterPicks": 0,
     "smallCapHunterWatch": 0,
     "smallCapHunterRiskBlocks": 1,
-    "smallCapHunterPurchaseRouteBlocks": 7
+    "smallCapHunterPurchaseRouteBlocks": 7,
+    "executionTwinPicks": 0,
+    "executionTwinRouteBlocks": 8,
+    "executionTwinSafetyBlocks": 0
   },
   "topCandidates": [
     {
@@ -91,6 +99,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 42,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.307,
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -129,6 +141,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 42,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.314,
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -169,6 +185,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 41,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.303,
       "paperOutcomeLabScore": 47,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -207,6 +227,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 41,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.33,
       "paperOutcomeLabScore": 48,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
@@ -245,6 +269,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 40,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.31,
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
@@ -283,6 +311,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 40,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.321,
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
@@ -321,6 +353,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 39,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.317,
       "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -359,6 +395,10 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 40,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.326,
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
@@ -378,7 +418,7 @@
     }
   ],
   "smallCapHunter": {
-    "generatedAt": "2026-07-14T04:37:36.626Z",
+    "generatedAt": "2026-07-14T05:40:24.868Z",
     "name": "Small-Cap Hunter",
     "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
     "totalProjects": 8,
@@ -934,8 +974,520 @@
       }
     ]
   },
+  "executionTwin": {
+    "generatedAt": "2026-07-14T05:40:24.868Z",
+    "name": "Proof-of-Alpha Execution Twin",
+    "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
+    "totalProjects": 8,
+    "twinProjects": 8,
+    "selectedCount": 0,
+    "routeBlocks": 8,
+    "liquidityBlocks": 0,
+    "safetyBlocks": 0,
+    "topExecutions": [],
+    "topProjects": [
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "score": 42,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.307,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "liquidityImpactPct": 0.087,
+          "volumeImpactPct": 0.3077,
+          "estimatedSlippagePct": 0.307,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 72,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.307,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "score": 42,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.314,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "liquidityImpactPct": 0.0909,
+          "volumeImpactPct": 0.3333,
+          "estimatedSlippagePct": 0.314,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.314,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "score": 41,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.33,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "liquidityImpactPct": 0.1,
+          "volumeImpactPct": 0.4,
+          "estimatedSlippagePct": 0.33,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 33,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 57,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.33,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Jupiter",
+        "symbol": "JUP",
+        "chain": "solana",
+        "score": 41,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.303,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 117500,
+          "volume24h": 33750,
+          "liquidityImpactPct": 0.0851,
+          "volumeImpactPct": 0.2963,
+          "estimatedSlippagePct": 0.303,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 38,
+          "risk": 70,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.303,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.31,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "liquidityImpactPct": 0.0889,
+          "volumeImpactPct": 0.32,
+          "estimatedSlippagePct": 0.31,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 78,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 57,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route.",
+            "Risk stack is too high for execution verification.",
+            "Red-team block is active."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.31,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.326,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "liquidityImpactPct": 0.0976,
+          "volumeImpactPct": 0.381,
+          "estimatedSlippagePct": 0.326,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 56,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.326,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.321,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "liquidityImpactPct": 0.0952,
+          "volumeImpactPct": 0.3636,
+          "estimatedSlippagePct": 0.321,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 56,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.321,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "chain": "ethereum",
+        "score": 39,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.317,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 107500,
+          "volume24h": 28750,
+          "liquidityImpactPct": 0.093,
+          "volumeImpactPct": 0.3478,
+          "estimatedSlippagePct": 0.317,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 55,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.317,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      }
+    ]
+  },
   "paperTradingOutcomeLab": {
-    "generatedAt": "2026-07-14T04:37:36.622Z",
+    "generatedAt": "2026-07-14T05:40:24.866Z",
     "memory": {
       "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
       "totalRecords": 5,
@@ -1294,7 +1846,7 @@
     ]
   },
   "autoLearningWeightOptimizer": {
-    "generatedAt": "2026-07-14T04:37:36.623Z",
+    "generatedAt": "2026-07-14T05:40:24.867Z",
     "memorySamples": 5,
     "evaluatedSamples": 0,
     "globalPaperWinRate": 0,
@@ -1365,7 +1917,7 @@
     }
   },
   "sourceTruth": {
-    "generatedAt": "2026-07-14T04:37:36.624Z",
+    "generatedAt": "2026-07-14T05:40:24.867Z",
     "totalProjects": 8,
     "verifiedStacks": 0,
     "weakStacks": 0,
@@ -1476,7 +2028,7 @@
     ]
   },
   "githubIntelligencePro": {
-    "generatedAt": "2026-07-14T04:37:36.625Z",
+    "generatedAt": "2026-07-14T05:40:24.867Z",
     "totalProjects": 8,
     "repoProjects": 0,
     "missingRepoProjects": 8,
@@ -1507,6 +2059,7 @@
     "Treat every Alpha OS call as research until paper outcome history confirms the strategy.",
     "Increase trust only when source truth, causal driver, and paper outcome evidence agree.",
     "A best-available candidate is not a buy signal; it is the strongest candidate when the field is weak.",
-    "Small-Cap Hunter picks are research candidates for manual verification, not buy recommendations."
+    "Small-Cap Hunter picks are research candidates for manual verification, not buy recommendations.",
+    "Execution Twin picks are paper-execution simulations and must be verified inside the actual Coinbase or MetaMask trade flow."
   ]
 }

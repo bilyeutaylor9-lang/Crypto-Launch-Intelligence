@@ -195,6 +195,9 @@ function printSummary(summary) {
   console.log(`Small-Cap Watch: ${summary.smallCapHunterWatchCount}`);
   console.log(`Small-Cap Risk Blocks: ${summary.smallCapHunterRiskBlockCount}`);
   console.log(`Small-Cap Route Blocks: ${summary.smallCapHunterPurchaseRouteBlockCount}`);
+  console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
+  console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
+  console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -241,6 +244,11 @@ function printTopProjects(results) {
     if (project.smallCapHunterSelected) {
       console.log(
         `   Small-Cap Hunter: #${project.smallCapHunterSelectionRank} (${project.smallCapHunterScore || 0}) via ${project.smallCapHunter?.purchaseRoute?.preferredRoute || "unverified route"}`
+      );
+    }
+    if (project.proofOfAlphaExecutionTwinSelected) {
+      console.log(
+        `   Execution Twin: #${project.proofOfAlphaExecutionTwinRank} (${project.proofOfAlphaExecutionTwinScore || 0}) via ${project.proofOfAlphaExecutionTwinRoute || "unverified route"}`
       );
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
@@ -317,6 +325,7 @@ function printReportPaths(paths) {
   console.log(`Governor:      ${paths.alphaEvolutionGovernorPath}`);
   console.log(`Gov Queue:     ${paths.alphaEvolutionQueuePath}`);
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
+  console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

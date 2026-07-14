@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-14T04:37:41.415Z",
-  "totalEngines": 110,
-  "wiredIntoPipeline": 86,
-  "stateOfArtReady": 93,
+  "generatedAt": "2026-07-14T05:40:28.393Z",
+  "totalEngines": 111,
+  "wiredIntoPipeline": 87,
+  "stateOfArtReady": 94,
   "readinessScore": 89,
   "categoryCounts": {
     "intelligence": 43,
     "ai": 14,
-    "learning": 19,
+    "learning": 20,
     "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
@@ -1709,6 +1709,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "proofOfAlphaExecutionTwinEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeProofOfAlphaExecutionTwin",
+        "analyzeProofOfAlphaExecutionTwinBatch",
+        "summarizeProofOfAlphaExecutionTwin"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

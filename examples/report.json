@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-14T04:37:34.625Z",
+  "generatedAt": "2026-07-14T05:40:23.033Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-14T04:36:54.548Z",
-    "completedAt": "2026-07-14T04:37:34.621Z",
+    "startedAt": "2026-07-14T05:39:46.764Z",
+    "completedAt": "2026-07-14T05:40:23.032Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required."
   },
@@ -30,7 +30,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -789,6 +789,18 @@
             "Cap band: Unknown Cap.",
             "Structure 57, upside 45, execution 71, risk 78.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 40,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 32, thesis score 36.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -3326,7 +3338,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.568Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -5072,7 +5084,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -6340,7 +6352,7 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:25.218Z",
+            "searchedAt": "2026-07-14T05:40:14.995Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -6350,30 +6362,30 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:25.218Z"
+            "calledAt": "2026-07-14T05:40:14.995Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:25.219Z"
+            "calledAt": "2026-07-14T05:40:14.995Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-eigen",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:25.219Z"
+            "calledAt": "2026-07-14T05:40:14.995Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:25.219Z"
+            "calledAt": "2026-07-14T05:40:14.996Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:25.219Z"
+            "calledAt": "2026-07-14T05:40:14.996Z"
           }
         ],
         "evidence": [
@@ -8746,7 +8758,7 @@
         "name": "EigenLayer",
         "symbol": "EIGEN",
         "chain": "ethereum",
-        "createdAt": "2026-07-14T04:37:33.875Z",
+        "createdAt": "2026-07-14T05:40:22.458Z",
         "status": "open",
         "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -10411,7 +10423,92 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 40,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.31,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "liquidityImpactPct": 0.0889,
+          "volumeImpactPct": 0.32,
+          "estimatedSlippagePct": 0.31,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 78,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 57,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route.",
+            "Risk stack is too high for execution verification.",
+            "Red-team block is active."
+          ]
+        },
+        "thesisScore": 36,
+        "outcomeMemoryScore": 39,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.31,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+          "contractVerdict": "Accountable Priority Research",
+          "governorVerdict": "Governor Risk Block",
+          "smallCapVerdict": "Small-Cap Risk Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Render",
@@ -10434,7 +10531,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -11151,6 +11248,18 @@
             "Cap band: Unknown Cap.",
             "Structure 52, upside 34, execution 71, risk 75.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 40,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 32, thesis score 34.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -13483,7 +13592,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.568Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -15195,7 +15304,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -16469,7 +16578,7 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:26.320Z",
+            "searchedAt": "2026-07-14T05:40:15.841Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -16479,30 +16588,30 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:26.320Z"
+            "calledAt": "2026-07-14T05:40:15.841Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:26.320Z"
+            "calledAt": "2026-07-14T05:40:15.841Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-rndr",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:26.321Z"
+            "calledAt": "2026-07-14T05:40:15.841Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:26.321Z"
+            "calledAt": "2026-07-14T05:40:15.841Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:26.321Z"
+            "calledAt": "2026-07-14T05:40:15.841Z"
           }
         ],
         "evidence": [
@@ -18889,7 +18998,7 @@
         "name": "Render",
         "symbol": "RNDR",
         "chain": "solana",
-        "createdAt": "2026-07-14T04:37:33.878Z",
+        "createdAt": "2026-07-14T05:40:22.460Z",
         "status": "open",
         "thesis": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -21956,7 +22065,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 40,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.326,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "liquidityImpactPct": 0.0976,
+          "volumeImpactPct": 0.381,
+          "estimatedSlippagePct": 0.326,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 56,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 34,
+        "outcomeMemoryScore": 39,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.326,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-rndr:qhzloy",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Risk Block",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Bittensor",
@@ -21979,7 +22171,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.549Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -22717,6 +22909,18 @@
             "Cap band: Unknown Cap.",
             "Structure 56, upside 39, execution 71, risk 73.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 41,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 33, thesis score 38.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -25173,7 +25377,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.568Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -26897,7 +27101,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -28171,7 +28375,7 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:27.410Z",
+            "searchedAt": "2026-07-14T05:40:16.698Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -28181,30 +28385,30 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:27.410Z"
+            "calledAt": "2026-07-14T05:40:16.698Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:27.410Z"
+            "calledAt": "2026-07-14T05:40:16.698Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tao",
             "chain": "bittensor",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:27.410Z"
+            "calledAt": "2026-07-14T05:40:16.698Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:27.410Z"
+            "calledAt": "2026-07-14T05:40:16.699Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:27.410Z"
+            "calledAt": "2026-07-14T05:40:16.699Z"
           }
         ],
         "evidence": [
@@ -30567,7 +30771,7 @@
         "name": "Bittensor",
         "symbol": "TAO",
         "chain": "bittensor",
-        "createdAt": "2026-07-14T04:37:33.878Z",
+        "createdAt": "2026-07-14T05:40:22.461Z",
         "status": "open",
         "thesis": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -33661,7 +33865,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 41,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.33,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 41,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "liquidityImpactPct": 0.1,
+          "volumeImpactPct": 0.4,
+          "estimatedSlippagePct": 0.33,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 33,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 57,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 38,
+        "outcomeMemoryScore": 41,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.33,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-tao:e6m79e",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Priority Research",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Akash Network",
@@ -33684,7 +33971,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -34403,6 +34690,18 @@
             "Cap band: Unknown Cap.",
             "Structure 55, upside 35, execution 71, risk 75.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 40,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 32, thesis score 35.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -36786,7 +37085,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.569Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -38486,7 +38785,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -39754,7 +40053,7 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:28.904Z",
+            "searchedAt": "2026-07-14T05:40:17.624Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -39764,30 +40063,30 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:28.904Z"
+            "calledAt": "2026-07-14T05:40:17.624Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:28.904Z"
+            "calledAt": "2026-07-14T05:40:17.625Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-akt",
             "chain": "cosmos",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:28.904Z"
+            "calledAt": "2026-07-14T05:40:17.625Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:28.904Z"
+            "calledAt": "2026-07-14T05:40:17.625Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:28.904Z"
+            "calledAt": "2026-07-14T05:40:17.625Z"
           }
         ],
         "evidence": [
@@ -42160,7 +42459,7 @@
         "name": "Akash Network",
         "symbol": "AKT",
         "chain": "cosmos",
-        "createdAt": "2026-07-14T04:37:33.878Z",
+        "createdAt": "2026-07-14T05:40:22.461Z",
         "status": "open",
         "thesis": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
         "predictionWindow": "30d",
@@ -45239,7 +45538,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 40,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.321,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 40,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "liquidityImpactPct": 0.0952,
+          "volumeImpactPct": 0.3636,
+          "estimatedSlippagePct": 0.321,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 56,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 35,
+        "outcomeMemoryScore": 39,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.321,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-akt:36yiei",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Risk Block",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Celestia",
@@ -45262,7 +45644,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -45989,6 +46371,18 @@
             "Cap band: Unknown Cap.",
             "Structure 64, upside 34, execution 71, risk 72.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 42,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 37, thesis score 39.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -48388,7 +48782,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-14T04:37:14.242Z",
+          "timestamp": "2026-07-14T05:40:05.567Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -50097,7 +50491,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -51365,7 +51759,7 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:29.870Z",
+            "searchedAt": "2026-07-14T05:40:18.857Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -51375,30 +51769,30 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:29.870Z"
+            "calledAt": "2026-07-14T05:40:18.857Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:29.870Z"
+            "calledAt": "2026-07-14T05:40:18.857Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tia",
             "chain": "celestia",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:29.870Z"
+            "calledAt": "2026-07-14T05:40:18.857Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:29.870Z"
+            "calledAt": "2026-07-14T05:40:18.857Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:29.871Z"
+            "calledAt": "2026-07-14T05:40:18.857Z"
           }
         ],
         "evidence": [
@@ -53786,7 +54180,7 @@
         "name": "Celestia",
         "symbol": "TIA",
         "chain": "celestia",
-        "createdAt": "2026-07-14T04:37:33.878Z",
+        "createdAt": "2026-07-14T05:40:22.461Z",
         "status": "open",
         "thesis": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",
@@ -56872,7 +57266,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 42,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.307,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 42,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "liquidityImpactPct": 0.087,
+          "volumeImpactPct": 0.3077,
+          "estimatedSlippagePct": 0.307,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 72,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 39,
+        "outcomeMemoryScore": 42,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.307,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-tia:2mv2os",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Priority Research",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Ondo",
@@ -56895,7 +57372,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -57642,6 +58119,18 @@
             "Cap band: Unknown Cap.",
             "Structure 52, upside 38, execution 71, risk 75.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 39,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 32, thesis score 33.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -59977,7 +60466,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.569Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -61678,7 +62167,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -62952,7 +63441,7 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:30.843Z",
+            "searchedAt": "2026-07-14T05:40:20.158Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -62962,30 +63451,30 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:30.843Z"
+            "calledAt": "2026-07-14T05:40:20.158Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:30.843Z"
+            "calledAt": "2026-07-14T05:40:20.158Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-ondo",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:30.843Z"
+            "calledAt": "2026-07-14T05:40:20.158Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:30.843Z"
+            "calledAt": "2026-07-14T05:40:20.158Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:30.843Z"
+            "calledAt": "2026-07-14T05:40:20.158Z"
           }
         ],
         "evidence": [
@@ -65405,7 +65894,7 @@
         "name": "Ondo",
         "symbol": "ONDO",
         "chain": "ethereum",
-        "createdAt": "2026-07-14T04:37:33.879Z",
+        "createdAt": "2026-07-14T05:40:22.462Z",
         "status": "open",
         "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
         "predictionWindow": "30d",
@@ -68882,7 +69371,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 39,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.317,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 39,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 107500,
+          "volume24h": 28750,
+          "liquidityImpactPct": 0.093,
+          "volumeImpactPct": 0.3478,
+          "estimatedSlippagePct": 0.317,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 32,
+          "risk": 75,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 55,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 33,
+        "outcomeMemoryScore": 39,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.317,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Risk Block",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Pendle",
@@ -68905,7 +69477,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -69630,6 +70202,18 @@
             "Cap band: Unknown Cap.",
             "Structure 64, upside 35, execution 71, risk 73.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 42,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 37, thesis score 39.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -71975,7 +72559,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.568Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -73682,7 +74266,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -74950,7 +75534,7 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:31.827Z",
+            "searchedAt": "2026-07-14T05:40:21.032Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -74960,30 +75544,30 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:31.827Z"
+            "calledAt": "2026-07-14T05:40:21.032Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:31.827Z"
+            "calledAt": "2026-07-14T05:40:21.032Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-pendle",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:31.827Z"
+            "calledAt": "2026-07-14T05:40:21.032Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:31.827Z"
+            "calledAt": "2026-07-14T05:40:21.032Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:31.827Z"
+            "calledAt": "2026-07-14T05:40:21.032Z"
           }
         ],
         "evidence": [
@@ -77372,7 +77956,7 @@
         "name": "Pendle",
         "symbol": "PENDLE",
         "chain": "ethereum",
-        "createdAt": "2026-07-14T04:37:33.879Z",
+        "createdAt": "2026-07-14T05:40:22.462Z",
         "status": "open",
         "thesis": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",
@@ -80646,7 +81230,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 42,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.314,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 42,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 110000,
+          "volume24h": 30000,
+          "liquidityImpactPct": 0.0909,
+          "volumeImpactPct": 0.3333,
+          "estimatedSlippagePct": 0.314,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 39,
+        "outcomeMemoryScore": 42,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.314,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-pendle:omxj6",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Priority Research",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     },
     {
       "name": "Jupiter",
@@ -80669,7 +81336,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-14T04:36:54.550Z",
+      "discoveredAt": "2026-07-14T05:39:46.766Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -81392,6 +82059,18 @@
             "Cap band: Unknown Cap.",
             "Structure 64, upside 28, execution 71, risk 70.",
             "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification."
+          ]
+        },
+        {
+          "engine": "Proof-of-Alpha Execution Twin",
+          "signal": "Execution Route Block",
+          "score": 41,
+          "confidence": 0.38,
+          "impact": "Negative",
+          "reasons": [
+            "Route Unavailable: No Coinbase/MetaMask Route Detected.",
+            "Execution score 87, safety score 38, thesis score 34.",
+            "No verified Coinbase/MetaMask execution route."
           ]
         }
       ],
@@ -83702,7 +84381,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-14T04:37:14.243Z",
+          "timestamp": "2026-07-14T05:40:05.568Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -85349,7 +86028,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-14T04:37:24.124Z",
+        "generatedAt": "2026-07-14T05:40:13.994Z",
         "memorySamples": 5,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -86617,7 +87296,7 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-14T04:37:32.843Z",
+            "searchedAt": "2026-07-14T05:40:21.890Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -86627,30 +87306,30 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-14T04:37:32.843Z"
+            "calledAt": "2026-07-14T05:40:21.890Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-14T04:37:32.843Z"
+            "calledAt": "2026-07-14T05:40:21.890Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-jup",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-14T04:37:32.843Z"
+            "calledAt": "2026-07-14T05:40:21.890Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-14T04:37:32.844Z"
+            "calledAt": "2026-07-14T05:40:21.890Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-14T04:37:32.844Z"
+            "calledAt": "2026-07-14T05:40:21.890Z"
           }
         ],
         "evidence": [
@@ -89026,7 +89705,7 @@
         "name": "Jupiter",
         "symbol": "JUP",
         "chain": "solana",
-        "createdAt": "2026-07-14T04:37:33.879Z",
+        "createdAt": "2026-07-14T05:40:22.462Z",
         "status": "open",
         "thesis": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion..",
         "predictionWindow": "30d",
@@ -92270,7 +92949,90 @@
         "selectionRank": null
       },
       "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null
+      "smallCapHunterSelectionRank": null,
+      "proofOfAlphaExecutionTwinScore": 41,
+      "proofOfAlphaExecutionTwinVerdict": "Execution Route Block",
+      "proofOfAlphaExecutionTwinConfidence": "Low",
+      "proofOfAlphaExecutionTwinRoute": "Unavailable",
+      "proofOfAlphaExecutionTwinSlippagePct": 0.303,
+      "proofOfAlphaExecutionTwinSelected": false,
+      "proofOfAlphaExecutionTwin": {
+        "name": "Proof-of-Alpha Execution Twin",
+        "score": 41,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": {
+          "detected": false,
+          "preferredRoute": "Unavailable",
+          "status": "No Coinbase/MetaMask Route Detected",
+          "confidence": 0,
+          "routes": [],
+          "blockers": [
+            "No Coinbase or MetaMask-compatible route proof."
+          ]
+        },
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 117500,
+          "volume24h": 33750,
+          "liquidityImpactPct": 0.0851,
+          "volumeImpactPct": 0.2963,
+          "estimatedSlippagePct": 0.303,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 38,
+          "risk": 70,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "thesisScore": 34,
+        "outcomeMemoryScore": 41,
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.303,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "alphaContractLink": {
+          "contractId": "alpha-contract:research-seed-jup:1hg7vn3",
+          "contractVerdict": "Invalidation Hit",
+          "governorVerdict": "Governor Risk Block",
+          "smallCapVerdict": "Small-Cap Purchase Route Block"
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ],
+        "selected": false,
+        "rank": null
+      },
+      "proofOfAlphaExecutionTwinRank": null
     }
   ]
 }

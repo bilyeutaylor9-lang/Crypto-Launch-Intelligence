@@ -42,6 +42,9 @@ export function writeHtmlReport(projects = []) {
   const smallCapPicks = ranked
     .filter((project) => project.smallCapHunterSelected)
     .sort((a, b) => Number(a.smallCapHunterSelectionRank || 999) - Number(b.smallCapHunterSelectionRank || 999));
+  const executionTwinPicks = ranked
+    .filter((project) => project.proofOfAlphaExecutionTwinSelected)
+    .sort((a, b) => Number(a.proofOfAlphaExecutionTwinRank || 999) - Number(b.proofOfAlphaExecutionTwinRank || 999));
   const confidenceRanked = [...projects].sort(
     (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
   );
@@ -96,6 +99,11 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.smallCapHunter?.purchaseRoute?.preferredRoute || "")}</td>
           <td>${esc(p.smallCapHunter?.purchaseRoute?.status || "")}</td>
           <td>${esc(p.smallCapHunter?.paperPlan?.totalPaperBudgetUsd ?? "")}</td>
+          <td>${esc(p.proofOfAlphaExecutionTwinRank ?? "")}</td>
+          <td>${esc(p.proofOfAlphaExecutionTwinScore ?? "")}</td>
+          <td>${esc(p.proofOfAlphaExecutionTwinVerdict || "")}</td>
+          <td>${esc(p.proofOfAlphaExecutionTwinRoute || "")}</td>
+          <td>${esc(p.proofOfAlphaExecutionTwinSlippagePct ?? "")}</td>
           <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
           <td>${esc(p.confidenceAdjustedScore ?? "")}</td>
           <td>${esc(p.narrativeHeatScore ?? "")}</td>
@@ -277,6 +285,11 @@ export function writeHtmlReport(projects = []) {
       <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
       <p>Small-Cap Research Picks</p>
     </div>
+
+    <div class="card">
+      <h2>${executionTwinPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
+      <p>Execution-Verified Picks</p>
+    </div>
   </div>
 
   <h2 class="section-title">Institutional Confidence Ranking</h2>
@@ -337,6 +350,11 @@ export function writeHtmlReport(projects = []) {
         <th>Purchase Route</th>
         <th>Route Status</th>
         <th>Paper Budget</th>
+        <th>Exec Rank</th>
+        <th>Exec Score</th>
+        <th>Exec Verdict</th>
+        <th>Exec Route</th>
+        <th>Exec Slippage</th>
         <th>Adj Rank</th>
         <th>Adj Score</th>
         <th>Heat</th>
