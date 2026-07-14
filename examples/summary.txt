@@ -1,11 +1,11 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/13/2026, 11:21:01 PM
+Generated: 7/14/2026, 2:08:19 AM
 
 Projects scanned: 8
 Market regime: Risk-Off
 Healthy breadth: 0%
 High-conviction breadth: 0%
-Average opportunity score: 5.00
+Average opportunity score: 1.00
 Strong buy candidates: 0
 High-conviction candidates: 0
 Priority research queue: 0
@@ -40,7 +40,7 @@ Alpha Governor rechecks: 1
 Alpha Governor risk blocks: 4
 Thin/developing proof setups: 8
 Hot narrative setups: 6
-Improving projects: 2
+Improving projects: 0
 Reliable source setups: 0
 High trap-risk setups: 0
 AI strong-buy candidates: 1
@@ -57,7 +57,7 @@ Top project:
 EigenLayer (EIGEN)
 
 Top score:
-11.00
+6.00
 
 Top research queue:
 None
@@ -90,39 +90,38 @@ Top proof-carrying alpha contracts:
 1. Bittensor (TAO) - contract 54, Invalidation Hit
 2. Akash Network (AKT) - contract 52, Invalidation Hit
 3. Render (RNDR) - contract 51, Invalidation Hit
-4. Ondo (ONDO) - contract 51, Invalidation Hit
-5. Pendle (PENDLE) - contract 51, Invalidation Hit
+4. Celestia (TIA) - contract 51, Invalidation Hit
+5. Ondo (ONDO) - contract 51, Invalidation Hit
 
 Top Alpha Evolution Governor queue:
 1. Bittensor (TAO) - governor 56, Governor Priority Research - Risk-Contained Priority Research
 2. EigenLayer (EIGEN) - governor 55, Governor Risk Block - Block
 3. Akash Network (AKT) - governor 55, Governor Priority Research - Risk-Contained Priority Research
 4. Celestia (TIA) - governor 55, Governor Priority Research - Risk-Contained Priority Research
-5. Pendle (PENDLE) - governor 55, Governor Risk Block - Block
+5. Ondo (ONDO) - governor 55, Governor Risk Block - Block
 
 Top confidence-adjusted setups:
-1. EigenLayer (EIGEN) - adjusted 33, source 15, trap 12
-2. Render (RNDR) - adjusted 32, source 15, trap 12
-3. Bittensor (TAO) - adjusted 32, source 15, trap 12
-4. Akash Network (AKT) - adjusted 31, source 15, trap 12
-5. Celestia (TIA) - adjusted 29, source 15, trap 12
+1. EigenLayer (EIGEN) - adjusted 31, source 15, trap 12
+2. Bittensor (TAO) - adjusted 29, source 15, trap 12
+3. Render (RNDR) - adjusted 29, source 15, trap 12
+4. Akash Network (AKT) - adjusted 29, source 15, trap 12
+5. Celestia (TIA) - adjusted 27, source 15, trap 12
 
 Top narrative heat setups:
 1. EigenLayer (EIGEN) - heat 84, Hot Rotation
-2. Render (RNDR) - heat 94, Hot Rotation
-3. Bittensor (TAO) - heat 100, Hot Rotation
+2. Bittensor (TAO) - heat 100, Hot Rotation
+3. Render (RNDR) - heat 94, Hot Rotation
 4. Akash Network (AKT) - heat 100, Hot Rotation
 5. Celestia (TIA) - heat 72, Hot Rotation
 
 Top improving projects:
-1. EigenLayer (EIGEN) - change 62, improving
-2. Render (RNDR) - change 58, improving
+None
 
 Top trap-risk warnings:
 None
 
 Top AI strong-buy candidates:
-1. EigenLayer (EIGEN) - council 60, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
+1. EigenLayer (EIGEN) - council 59, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
 
 Files generated:
 - reports/report.html

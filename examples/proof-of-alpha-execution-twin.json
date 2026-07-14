@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:06.686Z",
+  "generatedAt": "2026-07-14T10:08:54.113Z",
   "name": "Proof-of-Alpha Execution Twin",
   "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
   "totalProjects": 8,
@@ -138,68 +138,6 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "score": 43,
-      "verdict": "Execution Route Block",
-      "confidence": "Low",
-      "route": "Unavailable",
-      "slippagePct": 0.326,
-      "quote": {
-        "budgetUsd": 100,
-        "priceUsd": null,
-        "estimatedTokens": null,
-        "liquidityUsd": 102500,
-        "volume24h": 26250,
-        "liquidityImpactPct": 0.0976,
-        "volumeImpactPct": 0.381,
-        "estimatedSlippagePct": 0.326,
-        "score": 87,
-        "blocker": null
-      },
-      "safety": {
-        "score": 37,
-        "risk": 73,
-        "contractKnown": false,
-        "pairKnown": true,
-        "sourceProof": 73,
-        "blockers": [
-          "No verified Coinbase/MetaMask execution route."
-        ]
-      },
-      "paperExecution": {
-        "mode": "Paper execution simulation only",
-        "budgetUsd": 100,
-        "preferredRoute": "Unavailable",
-        "estimatedTokens": null,
-        "estimatedSlippagePct": 0.326,
-        "simulatedEntryPriceUsd": null,
-        "reviewWindows": [
-          "1h",
-          "24h",
-          "7d",
-          "30d",
-          "90d"
-        ]
-      },
-      "invalidationRules": [
-        "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-        "Estimated $100 slippage rises above 5%.",
-        "Risk, trap, unlock, or sell-pressure score rises above 78.",
-        "Token contract or pair cannot be manually verified.",
-        "Alpha thesis/gov/proof score drops below 50 on the next scan."
-      ],
-      "requiredManualChecks": [
-        "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-        "Confirm slippage and fees inside the actual trade screen before any real order.",
-        "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-        "Confirm unlocks, emissions, insiders, and top-holder concentration."
-      ]
-    },
-    {
-      "rank": null,
-      "selected": false,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
@@ -236,6 +174,68 @@
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
         "estimatedSlippagePct": 0.321,
+        "simulatedEntryPriceUsd": null,
+        "reviewWindows": [
+          "1h",
+          "24h",
+          "7d",
+          "30d",
+          "90d"
+        ]
+      },
+      "invalidationRules": [
+        "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+        "Estimated $100 slippage rises above 5%.",
+        "Risk, trap, unlock, or sell-pressure score rises above 78.",
+        "Token contract or pair cannot be manually verified.",
+        "Alpha thesis/gov/proof score drops below 50 on the next scan."
+      ],
+      "requiredManualChecks": [
+        "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+        "Confirm slippage and fees inside the actual trade screen before any real order.",
+        "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+        "Confirm unlocks, emissions, insiders, and top-holder concentration."
+      ]
+    },
+    {
+      "rank": null,
+      "selected": false,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "score": 43,
+      "verdict": "Execution Route Block",
+      "confidence": "Low",
+      "route": "Unavailable",
+      "slippagePct": 0.307,
+      "quote": {
+        "budgetUsd": 100,
+        "priceUsd": null,
+        "estimatedTokens": null,
+        "liquidityUsd": 115000,
+        "volume24h": 32500,
+        "liquidityImpactPct": 0.087,
+        "volumeImpactPct": 0.3077,
+        "estimatedSlippagePct": 0.307,
+        "score": 87,
+        "blocker": null
+      },
+      "safety": {
+        "score": 38,
+        "risk": 71,
+        "contractKnown": false,
+        "pairKnown": true,
+        "sourceProof": 74,
+        "blockers": [
+          "No verified Coinbase/MetaMask execution route."
+        ]
+      },
+      "paperExecution": {
+        "mode": "Paper execution simulation only",
+        "budgetUsd": 100,
+        "preferredRoute": "Unavailable",
+        "estimatedTokens": null,
+        "estimatedSlippagePct": 0.307,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",
@@ -324,23 +324,23 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "score": 42,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 43,
       "verdict": "Execution Route Block",
       "confidence": "Low",
       "route": "Unavailable",
-      "slippagePct": 0.307,
+      "slippagePct": 0.314,
       "quote": {
         "budgetUsd": 100,
         "priceUsd": null,
         "estimatedTokens": null,
-        "liquidityUsd": 115000,
-        "volume24h": 32500,
-        "liquidityImpactPct": 0.087,
-        "volumeImpactPct": 0.3077,
-        "estimatedSlippagePct": 0.307,
+        "liquidityUsd": 110000,
+        "volume24h": 30000,
+        "liquidityImpactPct": 0.0909,
+        "volumeImpactPct": 0.3333,
+        "estimatedSlippagePct": 0.314,
         "score": 87,
         "blocker": null
       },
@@ -359,7 +359,7 @@
         "budgetUsd": 100,
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
-        "estimatedSlippagePct": 0.307,
+        "estimatedSlippagePct": 0.314,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",
@@ -386,23 +386,23 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
       "score": 42,
       "verdict": "Execution Route Block",
       "confidence": "Low",
       "route": "Unavailable",
-      "slippagePct": 0.314,
+      "slippagePct": 0.326,
       "quote": {
         "budgetUsd": 100,
         "priceUsd": null,
         "estimatedTokens": null,
-        "liquidityUsd": 110000,
-        "volume24h": 30000,
-        "liquidityImpactPct": 0.0909,
-        "volumeImpactPct": 0.3333,
-        "estimatedSlippagePct": 0.314,
+        "liquidityUsd": 102500,
+        "volume24h": 26250,
+        "liquidityImpactPct": 0.0976,
+        "volumeImpactPct": 0.381,
+        "estimatedSlippagePct": 0.326,
         "score": 87,
         "blocker": null
       },
@@ -411,7 +411,7 @@
         "risk": 73,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 73,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -421,7 +421,7 @@
         "budgetUsd": 100,
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
-        "estimatedSlippagePct": 0.314,
+        "estimatedSlippagePct": 0.326,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",

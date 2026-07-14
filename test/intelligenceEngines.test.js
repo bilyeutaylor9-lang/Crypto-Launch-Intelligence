@@ -51,6 +51,16 @@ import { runNativeDiscoveryMesh } from "../src/data/native/nativeDiscoveryMesh.j
 import { analyzeActiveLiquidityTruth } from "../src/engines/activeLiquidityTruthEngine.js";
 import { analyzeOrganicBuyerClassifier } from "../src/engines/organicBuyerClassifierEngine.js";
 import { analyzeDeployerReputation } from "../src/engines/deployerReputationEngine.js";
+import { analyzeProjectIdentity } from "../src/engines/projectIdentityEngine.js";
+import { analyzeWalletCluster } from "../src/engines/walletClusterEngine.js";
+import { analyzeBundledLaunch } from "../src/engines/bundledLaunchEngine.js";
+import { analyzeWashTrading } from "../src/engines/washTradingEngine.js";
+import { analyzeSmartWalletArrival } from "../src/engines/smartWalletArrivalEngine.js";
+import { analyzeBuyerRetention } from "../src/engines/buyerRetentionEngine.js";
+import { analyzeOrganicBuyer } from "../src/engines/organicBuyerEngine.js";
+import { analyzeInstantSafetyGate } from "../src/engines/instantSafetyGateEngine.js";
+import { analyzeCandidateLifecycle } from "../src/engines/candidateLifecycleEngine.js";
+import { analyzeDiscoveryDecision } from "../src/engines/discoveryDecisionEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -2047,6 +2057,113 @@ test("native liquidity, buyer, and deployer engines score fresh pool quality", (
   assert.ok(deployer.deployerReputationScore >= 60);
   assert.equal(riskyDeployer.deployerReputationVerdict, "Deployer Risk Block");
   assert.ok(riskyDeployer.deployerRiskScore >= 75);
+});
+
+test("discovery decision engine passes clean organic early pools and caps critical safety failures", () => {
+  const clean = {
+    name: "Clean Native Launch",
+    symbol: "CNL",
+    chain: "base",
+    address: "0x1111111111111111111111111111111111111111",
+    website: "https://cleannative.example",
+    twitter: "https://x.com/cleannative",
+    deployer: "0xdeployer",
+    liquidityUsd: 420000,
+    nativeDiscoveryScore: 82,
+    discoveryPriorityScore: 78,
+    sourceTruthScore: 72,
+    organicBuyerScore: 78,
+    activeLiquidityTruthScore: 74,
+    liquidityControlRisk: 22,
+    deployerReputationScore: 76,
+    deployerRiskScore: 18,
+    buySimulationPassed: true,
+    sellSimulationPassed: true,
+    buyTaxPct: 1,
+    sellTaxPct: 1,
+    ownerRenounced: true,
+    lpLocked: true,
+    uniqueBuyers24h: 220,
+    independentBuyers24h: 174,
+    sameFunderBuyers24h: 18,
+    sniperBuyers24h: 12,
+    deployerConnectedBuyers: 4,
+    repeatBuyers24h: 38,
+    smartWalletBuyers: 5,
+    catalystScore: 72,
+    launchReadinessScore: 68,
+    githubProScore: 66,
+    tokenomicsScore: 62,
+    nativeLifecycleStage: "BUYER_MILESTONE",
+    nativeLifecycle: {
+      firstSeenAt: new Date().toISOString(),
+      currentStage: "BUYER_MILESTONE",
+      buyerState: {
+        uniqueBuyers: 220,
+        independentBuyers: 174,
+        sameFunderBuyers: 18,
+        sniperBuyers: 12,
+      },
+    },
+  };
+  const cleanDecision = [
+    analyzeProjectIdentity,
+    analyzeOrganicBuyerClassifier,
+    analyzeWalletCluster,
+    analyzeBundledLaunch,
+    analyzeWashTrading,
+    analyzeSmartWalletArrival,
+    analyzeBuyerRetention,
+    analyzeOrganicBuyer,
+    analyzeInstantSafetyGate,
+    analyzeCandidateLifecycle,
+    analyzeDiscoveryDecision,
+  ].reduce((project, engine) => engine(project), clean);
+
+  assert.equal(cleanDecision.instantSafetyStatus, "PASS");
+  assert.equal(cleanDecision.organicDemandFirewallStatus, "PASS");
+  assert.equal(cleanDecision.discoveryDecisionTier, "PASS");
+  assert.ok(cleanDecision.discoveryDecisionScore >= 70);
+  assert.equal(cleanDecision.candidateLifecycleStage, "EARLY_TRACTION");
+  assert.ok(cleanDecision.projectIdentityGraph.walletGraph.buyerBreakdown.independentBuyers >= 170);
+
+  const unsafe = analyzeDiscoveryDecision(
+    analyzeCandidateLifecycle(
+      analyzeInstantSafetyGate(
+        analyzeOrganicBuyer(
+          analyzeWashTrading(
+            analyzeBundledLaunch(
+              analyzeWalletCluster(
+                analyzeOrganicBuyerClassifier(
+                  analyzeProjectIdentity({
+                    ...clean,
+                    symbol: "BAD",
+                    sellSimulationPassed: false,
+                    honeypotRiskScore: 95,
+                    hiddenTransferRestriction: true,
+                    blacklistAuthority: true,
+                    ownerRenounced: false,
+                    lpLocked: false,
+                    sameFunderBuyers24h: 150,
+                    sniperBuyers24h: 60,
+                    independentBuyers24h: 10,
+                    deployerConnectedBuyers: 55,
+                    washTradeWallets: 20,
+                    buyVolumeUsd: 100000,
+                    sellVolumeUsd: 98000,
+                  })
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
+  assert.equal(unsafe.instantSafetyStatus, "CRITICAL");
+  assert.ok(["CRITICAL", "RESTRICTED"].includes(unsafe.discoveryDecisionTier));
+  assert.ok(unsafe.discoveryDecisionScore <= 44);
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

@@ -18,6 +18,7 @@ This is not a simple token screener. It is a layered research system with:
 - 10,000-candidate wide scan mode
 - Discovery Truth Network with canonical source manifest, lifecycle lanes, evidence-family independence, and rejected-candidate shadow watchlist
 - Native Discovery Mesh for early pool lifecycle events, first real buyers, usable liquidity, and deployer reputation checks
+- Discovery Decision Engine with project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted ranking, and missed-winner lab
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -91,6 +92,7 @@ npm run organic-integrity
 npm run discovery-truth
 npm run native-mesh
 npm run native-report
+npm run decision-engine
 ```
 
 ## What Makes It Different
@@ -108,6 +110,7 @@ The system does not trust one score. It builds a full research case:
 - Discovery breadth: finds projects from many free sources instead of one API.
 - Discovery truth: separates active live sources from planned sources and ranks prelaunch, new-pool, and established-emerging projects differently.
 - Native discovery: normalizes pool lifecycle events across EVM factories and Solana programs into one launch timeline.
+- Decision firewall: verifies identity, buyer quality, safety, lifecycle stage, and risk caps before ranking an early pool.
 - Signal fusion: combines market, liquidity, narrative, catalyst, GitHub, social, roadmap, and risk data.
 - Organic demand checks: discounts raw holders, tx counts, displayed liquidity, extreme yield, and source-disagreement traps.
 - Agent debate: multiple AI-style specialist agents argue the bull case, bear case, proof gaps, and invalidation rules.
@@ -126,7 +129,8 @@ flowchart LR
   A2["Native Pool Events"] --> B
   B --> C["Discovery Truth + Identity Graph"]
   C --> D["Candidate Rescue + AI Discovery Swarm"]
-  D --> E["Core Intelligence Pipeline"]
+  D --> D2["Discovery Decision Engine"]
+  D2 --> E["Core Intelligence Pipeline"]
   E --> F["Proof + Organic Demand + Risk Engines"]
   F --> G["AI Council + Research OS"]
   G --> H["Strategy Lab + Causal Alpha Brain"]
@@ -483,6 +487,15 @@ npm run native-report
 
 The native mesh is offline-safe by default. It can ingest stored or mock pool events immediately, and live RPC/WebSocket collection can be enabled later with protocol-specific environment variables from `src/data/native/nativePoolConfig.js`.
 
+Discovery Decision Engine:
+
+```bash
+npm run decision-engine
+node src/cli.js decision-engine
+```
+
+This layer turns raw discovery into ranked research by resolving project identity, separating organic buyers from same-funder and bot clusters, applying an instant safety gate, assigning lifecycle stage, and capping candidates that fail contract or sell-simulation checks.
+
 ## Intelligence Flow
 
 Each project moves through a layered pipeline:
@@ -492,14 +505,17 @@ Each project moves through a layered pipeline:
 3. Narrative, launch, roadmap, and catalyst analysis
 4. GitHub, developer, community, and social analysis
 5. Wallet, whale, smart-money, and capital-flow analysis
-6. Native lifecycle, first-buyer quality, usable-liquidity, and deployer-reputation analysis
-7. Risk, trap, sell-pressure, tokenomics, vesting, and unlock analysis
-8. Proof, confidence, source reliability, and explainability scoring
-9. AI Council debate and Research OS lifecycle routing
-10. Simulation Brain, Quantum Brain, Market Scientist, and Outcome Judge
-11. Dossier Swarm, Commander, Investigator, and Portfolio War Room
-12. Strategy Lab, Causal Alpha Brain, and Autonomous Alpha OS
-13. Watchtower alerts, reports, dashboard publishing, and memory updates
+6. Project identity graph, wallet relationship graph, social/domain resolver, and bytecode lineage
+7. Organic buyer firewall, wallet clusters, bundled launch, wash trading, retention, and smart-wallet arrival
+8. Instant safety gate, usable-liquidity, deployer reputation, and candidate lifecycle stage
+9. Discovery Decision ranking and missed-winner recall lab
+10. Risk, trap, sell-pressure, tokenomics, vesting, and unlock analysis
+11. Proof, confidence, source reliability, and explainability scoring
+12. AI Council debate and Research OS lifecycle routing
+13. Simulation Brain, Quantum Brain, Market Scientist, and Outcome Judge
+14. Dossier Swarm, Commander, Investigator, and Portfolio War Room
+15. Strategy Lab, Causal Alpha Brain, and Autonomous Alpha OS
+16. Watchtower alerts, reports, dashboard publishing, and memory updates
 
 ## Self-Learning Memory
 
@@ -562,6 +578,7 @@ Every scan can generate a full research packet:
 | `reports/organic-demand-integrity.json` | Organic demand, hard exit liquidity, admin-control, yield sustainability, holder authenticity, and valuation-disagreement checks |
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
+| `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -642,6 +659,7 @@ npm run organic-integrity
 npm run discovery-truth
 npm run native-mesh
 npm run native-report
+npm run decision-engine
 npm run source-truth
 npm run github-pro
 ```
@@ -678,6 +696,7 @@ node src/cli.js scan
 node src/cli.js wide
 node src/cli.js alpha-os
 node src/cli.js native-mesh
+node src/cli.js decision-engine
 node src/cli.js explain AKT
 ```
 
@@ -717,6 +736,7 @@ cat examples/alpha-evolution-queue.json
 cat examples/small-cap-hunter.json
 cat examples/proof-of-alpha-execution-twin.json
 cat examples/native-discovery-mesh.json
+cat examples/discovery-decision-engine.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

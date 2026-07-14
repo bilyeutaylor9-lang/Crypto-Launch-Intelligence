@@ -115,6 +115,7 @@ Commands:
   crypto-launch native-mesh       Run native pool lifecycle mesh
   crypto-launch native-events     Print native event store summary
   crypto-launch native-report     Print Native Discovery Mesh report
+  crypto-launch decision-engine   Print Discovery Decision Engine report
   crypto-launch governor          Print Alpha Evolution Governor report
   crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
@@ -311,6 +312,11 @@ switch (command) {
   case "native-report":
   case "native-discovery-report":
     runNpm("native-report", args);
+    break;
+  case "decision-engine":
+  case "discovery-decision":
+  case "decision-report":
+    runNpm("decision-engine", args);
     break;
   case "governor":
   case "alpha-governor":

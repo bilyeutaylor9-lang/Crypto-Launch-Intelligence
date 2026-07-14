@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:06.685Z",
+  "generatedAt": "2026-07-14T10:08:54.111Z",
   "name": "Small-Cap Hunter",
   "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
   "totalProjects": 8,
@@ -231,7 +231,7 @@
       "structureScore": 64,
       "upsideScore": 34,
       "executionScore": 71,
-      "riskScore": 72,
+      "riskScore": 71,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -299,7 +299,7 @@
       "structureScore": 64,
       "upsideScore": 35,
       "executionScore": 71,
-      "riskScore": 73,
+      "riskScore": 72,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:06.687Z",
+  "generatedAt": "2026-07-14T10:08:54.114Z",
   "name": "Organic Demand and Economic Integrity",
   "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
   "totalProjects": 8,
@@ -49,44 +49,6 @@
       ]
     },
     {
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "score": 60,
-      "verdict": "Thin Integrity Data",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "organicDemandScore": 41,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22878,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 437.1,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4371.01,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 43710.11,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -120,6 +82,44 @@
         {
           "sellUsd": 10000000,
           "estimatedStablecoinImpactPct": 44802.87,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 60,
+      "verdict": "Thin Integrity Data",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "organicDemandScore": 41,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22878,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 437.1,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4371.01,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 43710.11,
           "pass": false
         }
       ]

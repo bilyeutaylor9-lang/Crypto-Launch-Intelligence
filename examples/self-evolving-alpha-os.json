@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:03.761Z",
+  "generatedAt": "2026-07-14T09:08:36.155Z",
   "name": "Self-Evolving Alpha OS",
   "description": "Master research OS that fuses identity graph, world model, hypothesis lab, experiment lab, agent society, alpha autopsy, regime adaptation, and thesis generation.",
   "totalProjects": 8,
@@ -12,11 +12,11 @@
     "name": "EigenLayer",
     "symbol": "EIGEN",
     "chain": "ethereum",
-    "score": 39,
+    "score": 38,
     "decision": "Research Block",
     "confidence": "Developing",
-    "pipelineScore": 11,
-    "highTechAlphaScore": 50,
+    "pipelineScore": 6,
+    "highTechAlphaScore": 49,
     "breakoutBrainScore": 33,
     "autonomousResearchScore": 39,
     "sourceTruthScore": 53,
@@ -144,7 +144,7 @@
       "committeeDecision": "Committee Block"
     },
     "worldModel": {
-      "score": 51,
+      "score": 50,
       "primaryNarrative": "ai",
       "nodes": [
         "project:EigenLayer",
@@ -307,7 +307,7 @@
         "github": 1.15,
         "risk": 1.35
       },
-      "score": 45,
+      "score": 44,
       "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
     },
     "operatorPlan": {
@@ -321,11 +321,11 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 39,
+      "score": 38,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 11,
-      "highTechAlphaScore": 50,
+      "pipelineScore": 6,
+      "highTechAlphaScore": 49,
       "breakoutBrainScore": 33,
       "autonomousResearchScore": 39,
       "sourceTruthScore": 53,
@@ -453,7 +453,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 51,
+        "score": 50,
         "primaryNarrative": "ai",
         "nodes": [
           "project:EigenLayer",
@@ -616,7 +616,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 45,
+        "score": 44,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -632,7 +632,7 @@
       "score": 36,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 7,
+      "pipelineScore": 1,
       "highTechAlphaScore": 50,
       "breakoutBrainScore": 27,
       "autonomousResearchScore": 32,
@@ -760,7 +760,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 50,
+        "score": 49,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Bittensor",
@@ -803,7 +803,7 @@
             "strength": 72
           }
         ],
-        "summary": "World model is usable but still needs stronger proof."
+        "summary": "World model is sparse; treat this as early research only."
       },
       "hypothesisLab": {
         "hypotheses": [
@@ -816,7 +816,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 72,
+            "score": 71,
             "status": "Supported"
           },
           {
@@ -842,7 +842,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 72,
+          "score": 71,
           "status": "Supported"
         },
         "risk": {
@@ -852,7 +852,7 @@
           "score": 72,
           "status": "Active Risk"
         },
-        "netScore": 62
+        "netScore": 61
       },
       "experimentLab": {
         "experiments": [
@@ -932,10 +932,10 @@
       "score": 34,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 5,
+      "pipelineScore": 0,
       "highTechAlphaScore": 49,
       "breakoutBrainScore": 22,
-      "autonomousResearchScore": 32,
+      "autonomousResearchScore": 31,
       "sourceTruthScore": 52,
       "proofScore": 0,
       "riskScore": 73,
@@ -1016,7 +1016,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 41,
+            "score": 40,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -1055,7 +1055,7 @@
         "watchVotes": 0,
         "challenges": 0,
         "blocks": 1,
-        "consensusScore": 27,
+        "consensusScore": 26,
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
@@ -1115,7 +1115,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 72,
+            "score": 71,
             "status": "Supported"
           },
           {
@@ -1141,7 +1141,7 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 72,
+          "score": 71,
           "status": "Supported"
         },
         "risk": {
@@ -1151,7 +1151,7 @@
           "score": 73,
           "status": "Active Risk"
         },
-        "netScore": 62
+        "netScore": 61
       },
       "experimentLab": {
         "experiments": [
@@ -1231,8 +1231,8 @@
       "score": 32,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 7,
-      "highTechAlphaScore": 47,
+      "pipelineScore": 1,
+      "highTechAlphaScore": 46,
       "breakoutBrainScore": 19,
       "autonomousResearchScore": 29,
       "sourceTruthScore": 49,
@@ -1414,8 +1414,8 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 68,
-            "status": "Supported"
+            "score": 67,
+            "status": "Needs Evidence"
           },
           {
             "id": "smart_money_flow_confirmation",
@@ -1440,8 +1440,8 @@
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 68,
-          "status": "Supported"
+          "score": 67,
+          "status": "Needs Evidence"
         },
         "risk": {
           "id": "trap_rejection",
@@ -1450,7 +1450,7 @@
           "score": 73,
           "status": "Active Risk"
         },
-        "netScore": 58
+        "netScore": 57
       },
       "experimentLab": {
         "experiments": [
@@ -1514,7 +1514,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 39,
+        "score": 38,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -1530,13 +1530,13 @@
       "score": 31,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 1,
-      "highTechAlphaScore": 47,
-      "breakoutBrainScore": 22,
+      "pipelineScore": 0,
+      "highTechAlphaScore": 48,
+      "breakoutBrainScore": 23,
       "autonomousResearchScore": 31,
       "sourceTruthScore": 52,
       "proofScore": 0,
-      "riskScore": 73,
+      "riskScore": 72,
       "thesis": {
         "project": "Pendle",
         "symbol": "PENDLE",
@@ -1639,13 +1639,13 @@
           },
           {
             "name": "Simulation Agent",
-            "score": 35,
+            "score": 36,
             "vote": "Reject",
             "reason": "Judges scenario and high-tech stack agreement."
           },
           {
             "name": "Risk Agent",
-            "score": 73,
+            "score": 72,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -1698,7 +1698,7 @@
             "from": "project:Pendle",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 73
+            "strength": 72
           }
         ],
         "summary": "World model is sparse; treat this as early research only."
@@ -1708,7 +1708,7 @@
           {
             "id": "catalyst_liquidity_breakout",
             "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 39,
+            "score": 40,
             "status": "Weak"
           },
           {
@@ -1733,7 +1733,7 @@
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 73,
+            "score": 72,
             "status": "Active Risk"
           }
         ],
@@ -1747,7 +1747,7 @@
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 73,
+          "score": 72,
           "status": "Active Risk"
         },
         "netScore": 47
@@ -1779,7 +1779,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 73,
+            "score": 72,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -1789,7 +1789,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 73,
+            "score": 72,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -1830,13 +1830,13 @@
       "score": 30,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 5,
-      "highTechAlphaScore": 46,
+      "pipelineScore": 0,
+      "highTechAlphaScore": 47,
       "breakoutBrainScore": 21,
       "autonomousResearchScore": 31,
       "sourceTruthScore": 52,
       "proofScore": 0,
-      "riskScore": 72,
+      "riskScore": 71,
       "thesis": {
         "project": "Celestia",
         "symbol": "TIA",
@@ -1944,7 +1944,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 72,
+            "score": 71,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -1957,7 +1957,7 @@
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 43,
+        "score": 42,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Celestia",
@@ -1997,7 +1997,7 @@
             "from": "project:Celestia",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 72
+            "strength": 71
           }
         ],
         "summary": "World model is sparse; treat this as early research only."
@@ -2032,7 +2032,7 @@
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 72,
+            "score": 71,
             "status": "Active Risk"
           }
         ],
@@ -2046,10 +2046,10 @@
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 72,
+          "score": 71,
           "status": "Active Risk"
         },
-        "netScore": 47
+        "netScore": 48
       },
       "experimentLab": {
         "experiments": [
@@ -2078,7 +2078,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 72,
+            "score": 71,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2088,7 +2088,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 72,
+            "score": 71,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2096,7 +2096,7 @@
         "summary": "Experiment lab found scoring changes worth testing."
       },
       "alphaAutopsy": {
-        "riskScore": 57,
+        "riskScore": 56,
         "failureModes": [
           "resembles prior false positives",
           "proof stack is thin"
@@ -2129,7 +2129,7 @@
       "score": 30,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 4,
+      "pipelineScore": 0,
       "highTechAlphaScore": 48,
       "breakoutBrainScore": 26,
       "autonomousResearchScore": 31,
@@ -2413,7 +2413,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 28,
+        "score": 27,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {

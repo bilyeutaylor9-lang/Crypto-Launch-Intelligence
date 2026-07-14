@@ -63,6 +63,17 @@ import { analyzeOrganicDemandIntegrityBatch } from "./engines/organicDemandInteg
 import { analyzeActiveLiquidityTruthBatch } from "./engines/activeLiquidityTruthEngine.js";
 import { analyzeOrganicBuyerClassifierBatch } from "./engines/organicBuyerClassifierEngine.js";
 import { analyzeDeployerReputationBatch } from "./engines/deployerReputationEngine.js";
+import { analyzeProjectIdentityBatch } from "./engines/projectIdentityEngine.js";
+import { analyzeWalletClusterBatch } from "./engines/walletClusterEngine.js";
+import { analyzeBundledLaunchBatch } from "./engines/bundledLaunchEngine.js";
+import { analyzeWashTradingBatch } from "./engines/washTradingEngine.js";
+import { analyzeSmartWalletArrivalBatch } from "./engines/smartWalletArrivalEngine.js";
+import { analyzeBuyerRetentionBatch } from "./engines/buyerRetentionEngine.js";
+import { analyzeOrganicBuyerBatch } from "./engines/organicBuyerEngine.js";
+import { analyzeInstantSafetyGateBatch } from "./engines/instantSafetyGateEngine.js";
+import { analyzeCandidateLifecycleBatch } from "./engines/candidateLifecycleEngine.js";
+import { analyzeDiscoveryDecisionBatch } from "./engines/discoveryDecisionEngine.js";
+import { analyzeMissedWinnerLabBatch } from "./engines/missedWinnerLabEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
@@ -179,6 +190,11 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.activeLiquidityTruthScore, weight: 0.9 },
     { score: project.organicBuyerScore, weight: 0.9 },
     { score: project.deployerReputationScore, weight: 0.7 },
+    { score: project.identityResolutionScore, weight: 0.6 },
+    { score: project.organicDemandFirewallScore, weight: 1.0 },
+    { score: project.instantSafetyScore, weight: 1.0 },
+    { score: project.candidateLifecycleReadinessScore, weight: 0.7 },
+    { score: project.discoveryDecisionScore, weight: 1.3 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -235,6 +251,9 @@ function weightedInstitutionalScore(project = {}) {
   if (num(project.riskScore) >= 85) score -= 20;
   if (num(project.liquidityControlRisk) >= 70) score -= 8;
   if (num(project.deployerRiskScore) >= 70) score -= 12;
+  if (num(project.instantSafetyRiskScore) >= 70) score -= 16;
+  if (num(project.organicDemandFirewallRisk) >= 70) score -= 12;
+  if (num(project.identityRiskScore) >= 70) score -= 9;
 
   if (num(project.smartMoneyAccumulationScore) >= 80 && prePumpScore >= 70) {
     score += 5;
@@ -254,6 +273,14 @@ function weightedInstitutionalScore(project = {}) {
     num(project.activeLiquidityTruthScore) >= 55
   ) {
     score += 5;
+  }
+
+  if (
+    project.discoveryDecisionTier === "PASS" &&
+    project.instantSafetyStatus === "PASS" &&
+    ["PASS", "WATCH"].includes(project.organicDemandFirewallStatus)
+  ) {
+    score += 6;
   }
 
   if (
@@ -298,6 +325,7 @@ function buildSignalProfile(project = {}) {
       { score: project.exchangeProbabilityScore, weight: 0.8 },
       { score: project.catalystCalendarScore, weight: 0.9 },
       { score: project.nativeDiscoveryScore, weight: 1.1 },
+      { score: project.candidateLifecycleReadinessScore, weight: 0.8 },
     ]),
     market: weightedAverage([
       { score: project.marketRankScore, weight: 1.2 },
@@ -321,6 +349,8 @@ function buildSignalProfile(project = {}) {
       { score: project.liquidityExpansionScore, weight: 0.8 },
       { score: project.activeLiquidityTruthScore, weight: 1.0 },
       { score: project.organicBuyerScore, weight: 0.9 },
+      { score: project.organicDemandFirewallScore, weight: 1.1 },
+      { score: project.instantSafetyScore, weight: 0.8 },
     ]),
     smartMoney: weightedAverage([
       { score: project.whaleScore ?? project.whaleActivityScore, weight: 0.9 },
@@ -337,6 +367,8 @@ function buildSignalProfile(project = {}) {
       { score: project.baselineScore, weight: 0.8 },
       { score: project.organicEconomicIntegrityScore, weight: 1.0 },
       { score: project.deployerReputationScore, weight: 0.8 },
+      { score: project.identityResolutionScore, weight: 0.7 },
+      { score: project.discoveryDecisionScore, weight: 0.9 },
     ]),
     devCommunity: weightedAverage([
       { score: project.developerActivityScore ?? project.developerScore, weight: 0.9 },
@@ -397,6 +429,12 @@ function buildSignalProfile(project = {}) {
       { score: project.economicIntegrityRiskScore, weight: 1.2 },
       { score: project.liquidityControlRisk, weight: 1.0 },
       { score: project.deployerRiskScore, weight: 1.0 },
+      { score: project.instantSafetyRiskScore, weight: 1.3 },
+      { score: project.organicDemandFirewallRisk, weight: 1.1 },
+      { score: project.identityRiskScore, weight: 0.8 },
+      { score: project.walletClusterRiskScore, weight: 0.8 },
+      { score: project.washTradingRiskScore, weight: 0.8 },
+      { score: project.bundledLaunchRiskScore, weight: 0.7 },
     ]),
   };
 
@@ -448,6 +486,13 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (project.organicBuyerVerdict === "First Real Buyers Confirmed") tags.push("First Real Buyers");
   if (project.activeLiquidityTruthVerdict === "Usable Exit Liquidity Confirmed") tags.push("Usable Liquidity");
   if (project.deployerReputationVerdict === "Constructive Deployer History") tags.push("Constructive Deployer");
+  if (project.projectIdentityVerdict === "Identity Resolved") tags.push("Identity Resolved");
+  if (project.instantSafetyStatus === "PASS") tags.push("Safety Gate Passed");
+  if (project.organicDemandFirewallStatus === "PASS") tags.push("Organic Demand Firewall Passed");
+  if (project.discoveryDecisionTier === "PASS") tags.push("Discovery Decision Pass");
+  if (["EARLY_TRACTION", "VALIDATED_GROWTH"].includes(project.candidateLifecycleStage)) {
+    tags.push("Lifecycle-Adjusted Candidate");
+  }
 
   return tags;
 }
@@ -511,6 +556,18 @@ function buildRiskFlags(project = {}, profile = {}) {
   if (num(project.deployerRiskScore) >= 75) risks.push("Deployer reputation block");
   else if (num(project.deployerRiskScore) >= 60) risks.push("Deployer reputation verification required");
   if (project.organicBuyerVerdict === "Buyer Quality Unproven") risks.push("First-buyer quality unproven");
+  if (["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus)) {
+    risks.push(`Instant safety gate ${String(project.instantSafetyStatus).toLowerCase()}`);
+  }
+  if (["CRITICAL", "RESTRICTED"].includes(project.organicDemandFirewallStatus)) {
+    risks.push(`Organic demand firewall ${String(project.organicDemandFirewallStatus).toLowerCase()}`);
+  }
+  if (project.projectIdentityVerdict === "Identity Risk") risks.push("Identity graph risk");
+  if (num(project.walletClusterRiskScore) >= 70) risks.push("Manipulated wallet cluster risk");
+  if (num(project.washTradingRiskScore) >= 70) risks.push("Wash trading risk");
+  if (num(project.bundledLaunchRiskScore) >= 70) risks.push("Bundled launch risk");
+  if (project.discoveryDecisionTier === "CRITICAL") risks.push("Discovery decision critical block");
+  if (project.discoveryDecisionTier === "RESTRICTED") risks.push("Discovery decision restricted");
 
   return [...new Set(risks)];
 }
@@ -864,6 +921,9 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.nativeDiscoveryScore) >= 75 && num(project.organicBuyerScore) >= 65) bonus += 5;
   if (num(project.activeLiquidityTruthScore) >= 70 && num(project.liquidityControlRisk) < 45) bonus += 4;
   if (num(project.deployerReputationScore) >= 72 && num(project.deployerRiskScore) < 45) bonus += 3;
+  if (project.discoveryDecisionTier === "PASS") bonus += 5;
+  if (project.instantSafetyStatus === "PASS" && project.organicDemandFirewallStatus === "PASS") bonus += 4;
+  if (num(project.candidateLifecycleReadinessScore) >= 80) bonus += 3;
 
   if (profile.risk >= 85) penalty += 18;
   else if (profile.risk >= 70) penalty += 10;
@@ -897,6 +957,15 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.deployerRiskScore) >= 75) penalty += 12;
   else if (num(project.deployerRiskScore) >= 60) penalty += 7;
   if (project.organicBuyerVerdict === "Buyer Quality Unproven" && num(project.nativeDiscoveryScore) > 0) penalty += 5;
+  if (project.instantSafetyStatus === "CRITICAL") penalty += 28;
+  else if (project.instantSafetyStatus === "RESTRICTED") penalty += 16;
+  else if (project.instantSafetyStatus === "UNVERIFIED") penalty += 7;
+  if (project.organicDemandFirewallStatus === "CRITICAL") penalty += 22;
+  else if (project.organicDemandFirewallStatus === "RESTRICTED") penalty += 13;
+  if (num(project.walletClusterRiskScore) >= 75) penalty += 9;
+  if (num(project.washTradingRiskScore) >= 75) penalty += 9;
+  if (num(project.bundledLaunchRiskScore) >= 75) penalty += 8;
+  if (project.projectIdentityVerdict === "Identity Risk") penalty += 10;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const dynamicWeightAdjustment = project.dynamicEngineWeights
@@ -938,6 +1007,9 @@ function classifyProject(project = {}) {
   const score = num(project.pipelineScore);
 
   if (project.organicDemandVerdict === "Institutional Integrity Block") return "Integrity Block";
+  if (project.instantSafetyStatus === "CRITICAL") return "Critical Safety Block";
+  if (project.discoveryDecisionTier === "CRITICAL") return "Critical Discovery Block";
+  if (project.instantSafetyStatus === "RESTRICTED" || project.discoveryDecisionTier === "RESTRICTED") return "Restricted Research";
   if (project.prePump?.status === "ALREADY_PUMPED") return "Already Pumped";
   if (project.prePump?.status === "LATE_CHASE") return "Late Chase";
   if (num(project.stakingRiskScore) >= 70) return "High Staking Risk";
@@ -998,6 +1070,10 @@ function buildDataConfidence(project = {}, breakdown = {}) {
     num(project.nativeDiscoveryScore) > 0,
     num(project.activeLiquidityTruthScore) > 0,
     num(project.organicBuyerScore) > 0,
+    num(project.identityResolutionScore) > 0,
+    num(project.instantSafetyScore) > 0,
+    num(project.organicDemandFirewallScore) > 0,
+    num(project.discoveryDecisionScore) > 0,
     historicalExamples >= 8,
   ].filter(Boolean).length;
   const penalty =
@@ -1151,10 +1227,21 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Source Reliability", analyzeSourceReliabilityBatch, results);
   results = await runEngine("Source Truth", analyzeSourceTruthBatch, results);
   results = await runEngine("GitHub Intelligence Pro", analyzeGithubIntelligenceProBatch, results);
+  results = await runEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
   results = await runEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
   results = await runEngine("Organic Buyer Classifier", analyzeOrganicBuyerClassifierBatch, results);
   results = await runEngine("Deployer Reputation", analyzeDeployerReputationBatch, results);
+  results = await runEngine("Wallet Cluster", analyzeWalletClusterBatch, results);
+  results = await runEngine("Bundled Launch", analyzeBundledLaunchBatch, results);
+  results = await runEngine("Wash Trading", analyzeWashTradingBatch, results);
+  results = await runEngine("Smart Wallet Arrival", analyzeSmartWalletArrivalBatch, results);
+  results = await runEngine("Buyer Retention", analyzeBuyerRetentionBatch, results);
+  results = await runEngine("Organic Buyer Firewall", analyzeOrganicBuyerBatch, results);
+  results = await runEngine("Instant Safety Gate", analyzeInstantSafetyGateBatch, results);
   results = await runEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
+  results = await runEngine("Candidate Lifecycle", analyzeCandidateLifecycleBatch, results);
+  results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);
+  results = await runEngine("Missed Winner Lab", analyzeMissedWinnerLabBatch, results, options.missedWinnerLab || {});
 
   results = addFinalScoring(results);
   results = analyzeProjectChangeBatch(results);

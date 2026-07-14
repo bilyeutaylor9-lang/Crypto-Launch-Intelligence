@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:02.638Z",
+  "generatedAt": "2026-07-14T09:08:30.653Z",
   "memorySamples": 5,
   "evaluatedSamples": 0,
   "globalPaperWinRate": 0,
@@ -9,7 +9,7 @@
       "id": "strategy",
       "label": "Strategy Lab",
       "weight": 1.04,
-      "avgProjectScore": 72,
+      "avgProjectScore": 71,
       "memorySignal": 0,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -27,7 +27,7 @@
       "id": "simulation",
       "label": "Simulation Brain",
       "weight": 0.92,
-      "avgProjectScore": 42,
+      "avgProjectScore": 43,
       "memorySignal": 0,
       "confidence": 30,
       "action": "Collect More Outcomes"

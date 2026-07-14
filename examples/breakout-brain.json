@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:21:03.754Z",
+  "generatedAt": "2026-07-14T09:08:36.110Z",
   "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
   "totalProjects": 8,
   "simulatedProjects": 8,
@@ -15,7 +15,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineRank": 1,
-      "pipelineScore": 11,
+      "pipelineScore": 6,
       "breakoutBrainScore": 33,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 27,
@@ -26,7 +26,7 @@
       "confidence": "Medium",
       "confidenceScore": 71,
       "simulations": 4096,
-      "positiveProbability": 73,
+      "positiveProbability": 72,
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 2,
@@ -42,11 +42,11 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 50
+          "score": 49
         },
         {
           "driver": "Learning",
-          "score": 40
+          "score": 39
         },
         {
           "driver": "Flows",
@@ -78,8 +78,8 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineRank": 3,
-      "pipelineScore": 7,
+      "pipelineRank": 2,
+      "pipelineScore": 1,
       "breakoutBrainScore": 27,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 19,
@@ -102,7 +102,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 52
+          "score": 51
         },
         {
           "driver": "Catalyst",
@@ -142,13 +142,13 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineRank": 6,
-      "pipelineScore": 4,
+      "pipelineScore": 0,
       "breakoutBrainScore": 26,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 19,
       "blowUpProbabilitySoon": 19,
       "expectedReturn30dPct": 14,
-      "bestCaseReturnPct": 49,
+      "bestCaseReturnPct": 50,
       "bearCaseReturnPct": -23,
       "confidence": "Medium",
       "confidenceScore": 71,
@@ -157,11 +157,11 @@
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 3,
-      "asymmetryRatio": 2.13,
+      "asymmetryRatio": 2.17,
       "topDrivers": [
         {
           "driver": "Institutional Stack",
-          "score": 47
+          "score": 48
         },
         {
           "driver": "Narrative",
@@ -205,7 +205,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineRank": 1,
-      "pipelineScore": 11,
+      "pipelineScore": 6,
       "breakoutBrainScore": 33,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 27,
@@ -216,7 +216,7 @@
       "confidence": "Medium",
       "confidenceScore": 71,
       "simulations": 4096,
-      "positiveProbability": 73,
+      "positiveProbability": 72,
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 2,
@@ -232,11 +232,11 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 50
+          "score": 49
         },
         {
           "driver": "Learning",
-          "score": 40
+          "score": 39
         },
         {
           "driver": "Flows",
@@ -268,8 +268,8 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineRank": 3,
-      "pipelineScore": 7,
+      "pipelineRank": 2,
+      "pipelineScore": 1,
       "breakoutBrainScore": 27,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 19,
@@ -292,7 +292,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 52
+          "score": 51
         },
         {
           "driver": "Catalyst",
@@ -332,13 +332,13 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineRank": 6,
-      "pipelineScore": 4,
+      "pipelineScore": 0,
       "breakoutBrainScore": 26,
       "breakoutBrainDecision": "Best Available Breakout Candidate",
       "breakoutProbabilitySoon": 19,
       "blowUpProbabilitySoon": 19,
       "expectedReturn30dPct": 14,
-      "bestCaseReturnPct": 49,
+      "bestCaseReturnPct": 50,
       "bearCaseReturnPct": -23,
       "confidence": "Medium",
       "confidenceScore": 71,
@@ -347,11 +347,11 @@
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 3,
-      "asymmetryRatio": 2.13,
+      "asymmetryRatio": 2.17,
       "topDrivers": [
         {
           "driver": "Institutional Stack",
-          "score": 47
+          "score": 48
         },
         {
           "driver": "Narrative",
@@ -393,26 +393,26 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineRank": 7,
-      "pipelineScore": 1,
-      "breakoutBrainScore": 22,
+      "pipelineScore": 0,
+      "breakoutBrainScore": 23,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 14,
       "blowUpProbabilitySoon": 14,
       "expectedReturn30dPct": 9,
-      "bestCaseReturnPct": 43,
+      "bestCaseReturnPct": 44,
       "bearCaseReturnPct": -26,
       "confidence": "Medium",
       "confidenceScore": 71,
       "simulations": 4096,
-      "positiveProbability": 60,
+      "positiveProbability": 61,
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 4,
-      "asymmetryRatio": 1.65,
+      "asymmetryRatio": 1.69,
       "topDrivers": [
         {
           "driver": "Institutional Stack",
-          "score": 46
+          "score": 47
         },
         {
           "driver": "Narrative",
@@ -456,14 +456,14 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineRank": 4,
-      "pipelineScore": 5,
+      "pipelineScore": 0,
       "breakoutBrainScore": 22,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 12,
       "blowUpProbabilitySoon": 12,
       "expectedReturn30dPct": 9,
       "bestCaseReturnPct": 42,
-      "bearCaseReturnPct": -25,
+      "bearCaseReturnPct": -26,
       "confidence": "Medium",
       "confidenceScore": 71,
       "simulations": 4096,
@@ -471,7 +471,7 @@
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 3,
-      "asymmetryRatio": 1.68,
+      "asymmetryRatio": 1.62,
       "topDrivers": [
         {
           "driver": "Narrative",
@@ -479,11 +479,11 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 48
+          "score": 47
         },
         {
           "driver": "Learning",
-          "score": 40
+          "score": 39
         },
         {
           "driver": "Catalyst",
@@ -519,7 +519,7 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineRank": 5,
-      "pipelineScore": 5,
+      "pipelineScore": 0,
       "breakoutBrainScore": 21,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 12,
@@ -581,8 +581,8 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineRank": 2,
-      "pipelineScore": 7,
+      "pipelineRank": 3,
+      "pipelineScore": 1,
       "breakoutBrainScore": 19,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 8,
@@ -605,7 +605,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 47
+          "score": 46
         },
         {
           "driver": "Learning",

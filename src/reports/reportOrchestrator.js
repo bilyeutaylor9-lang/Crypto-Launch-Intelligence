@@ -33,6 +33,7 @@ import { writeProofOfAlphaExecutionTwinReport } from "./proofOfAlphaExecutionTwi
 import { writeOrganicDemandIntegrityReport } from "./organicDemandIntegrityReportEngine.js";
 import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
 import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngine.js";
+import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -129,6 +130,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: nativeDiscoveryMeshPath,
   } = writeNativeDiscoveryMeshReport(projects, meta);
   const {
+    filePath: discoveryDecisionPath,
+  } = writeDiscoveryDecisionReport(projects, meta);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -192,6 +196,7 @@ export function generateReports(projects = [], meta = {}) {
     organicDemandIntegrityPath,
     discoveryTruthPath,
     nativeDiscoveryMeshPath,
+    discoveryDecisionPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

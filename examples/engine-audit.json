@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-07-14T06:21:06.751Z",
-  "totalEngines": 115,
-  "wiredIntoPipeline": 91,
-  "stateOfArtReady": 98,
+  "generatedAt": "2026-07-14T10:08:54.056Z",
+  "totalEngines": 126,
+  "wiredIntoPipeline": 102,
+  "stateOfArtReady": 109,
   "readinessScore": 90,
   "categoryCounts": {
-    "intelligence": 45,
-    "market-flow": 7,
+    "intelligence": 50,
+    "market-flow": 9,
     "ai": 14,
     "learning": 20,
-    "narrative-launch": 9,
-    "discovery": 13,
+    "narrative-launch": 10,
+    "discovery": 14,
     "risk": 2,
-    "wallet-flow": 5
+    "wallet-flow": 7
   },
   "topEngines": [
     {
@@ -873,6 +873,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "bundledLaunchEngine.js",
+      "category": "narrative-launch",
+      "exports": [
+        "analyzeBundledLaunch",
+        "analyzeBundledLaunchBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "buyPressureEngine.js",
       "category": "market-flow",
       "exports": [
@@ -885,6 +899,34 @@
       "wiredInPipeline": true,
       "advancedSignals": 4,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "buyerRetentionEngine.js",
+      "category": "market-flow",
+      "exports": [
+        "analyzeBuyerRetention",
+        "analyzeBuyerRetentionBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 85,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "candidateLifecycleEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeCandidateLifecycle",
+        "analyzeCandidateLifecycleBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
       "status": "state-of-art-ready"
     },
     {
@@ -1055,6 +1097,21 @@
       "advancedSignals": 1,
       "readinessScore": 35,
       "status": "needs-upgrade"
+    },
+    {
+      "file": "discoveryDecisionEngine.js",
+      "category": "discovery",
+      "exports": [
+        "analyzeDiscoveryDecision",
+        "analyzeDiscoveryDecisionBatch",
+        "summarizeDiscoveryDecision"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "discoveryFilterEngine.js",
@@ -1273,6 +1330,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "instantSafetyGateEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeInstantSafetyGate",
+        "analyzeInstantSafetyGateBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 95,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "institutionalLearningEngine.js",
       "category": "learning",
       "exports": [
@@ -1404,6 +1475,20 @@
       "advancedSignals": 0,
       "readinessScore": 20,
       "status": "needs-upgrade"
+    },
+    {
+      "file": "missedWinnerLabEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeMissedWinnerLab",
+        "analyzeMissedWinnerLabBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 85,
+      "status": "state-of-art-ready"
     },
     {
       "file": "momentumCompressionEngine.js",
@@ -1597,6 +1682,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "organicBuyerEngine.js",
+      "category": "market-flow",
+      "exports": [
+        "analyzeOrganicBuyer",
+        "analyzeOrganicBuyerBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "organicDemandIntegrityEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1737,6 +1836,21 @@
       "wiredInPipeline": true,
       "advancedSignals": 6,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "projectIdentityEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeProjectIdentity",
+        "analyzeProjectIdentityBatch",
+        "summarizeProjectIdentity"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 95,
       "status": "state-of-art-ready"
     },
     {
@@ -1990,6 +2104,20 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "smartWalletArrivalEngine.js",
+      "category": "wallet-flow",
+      "exports": [
+        "analyzeSmartWalletArrival",
+        "analyzeSmartWalletArrivalBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 85,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "smartWalletEngine.js",
       "category": "wallet-flow",
       "exports": [
@@ -2185,6 +2313,34 @@
       "wiredInPipeline": true,
       "advancedSignals": 3,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "walletClusterEngine.js",
+      "category": "wallet-flow",
+      "exports": [
+        "analyzeWalletCluster",
+        "analyzeWalletClusterBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "washTradingEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeWashTrading",
+        "analyzeWashTradingBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
       "status": "state-of-art-ready"
     },
     {
