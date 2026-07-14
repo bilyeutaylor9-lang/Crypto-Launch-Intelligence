@@ -93,6 +93,8 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.smallCapHunterScore ?? "")}</td>
           <td>${esc(p.smallCapHunterVerdict || "")}</td>
           <td>${esc(p.smallCapBand || "")}</td>
+          <td>${esc(p.smallCapHunter?.purchaseRoute?.preferredRoute || "")}</td>
+          <td>${esc(p.smallCapHunter?.purchaseRoute?.status || "")}</td>
           <td>${esc(p.smallCapHunter?.paperPlan?.totalPaperBudgetUsd ?? "")}</td>
           <td>${esc(p.confidenceAdjustedRank ?? "")}</td>
           <td>${esc(p.confidenceAdjustedScore ?? "")}</td>
@@ -332,6 +334,8 @@ export function writeHtmlReport(projects = []) {
         <th>Small Cap Score</th>
         <th>Small Cap Verdict</th>
         <th>Cap Band</th>
+        <th>Purchase Route</th>
+        <th>Route Status</th>
         <th>Paper Budget</th>
         <th>Adj Rank</th>
         <th>Adj Score</th>

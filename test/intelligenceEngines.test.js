@@ -1577,6 +1577,11 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
         name: "BuilderMicro",
         symbol: "BLDR",
         chain: "base",
+        address: "0x000000000000000000000000000000000000b1d2",
+        pairAddress: "0x000000000000000000000000000000000000b1d3",
+        source: "dexscreener-search",
+        dex: "uniswap",
+        discoverySources: ["dexscreener-search", "github"],
         marketCap: 12_000_000,
         liquidityUsd: 240_000,
         volume24h: 420_000,
@@ -1604,7 +1609,10 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
       {
         name: "StructureSmall",
         symbol: "STRC",
-        chain: "solana",
+        chain: "coinbase",
+        source: "coinbase",
+        exchange: "Coinbase",
+        url: "https://www.coinbase.com/price/strc",
         marketCap: 54_000_000,
         liquidityUsd: 115_000,
         volume24h: 180_000,
@@ -1628,9 +1636,37 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
         sellPressureScore: 22,
       },
       {
+        name: "NoRouteAlpha",
+        symbol: "NORT",
+        chain: "research",
+        marketCap: 8_000_000,
+        liquidityUsd: 350_000,
+        volume24h: 500_000,
+        sourceTruthScore: 80,
+        proofScore: 80,
+        evidenceQualityScore: 78,
+        dataConfidenceScore: 76,
+        githubProScore: 75,
+        roadmapProfitabilityScore: 74,
+        alphaKnowledgeGraphScore: 76,
+        prePump: { score: 80 },
+        prePumpPatternScore: 78,
+        narrativeHeatScore: 78,
+        liveCatalystRadarScore: 76,
+        breakoutBrainScore: 80,
+        aiEcosystemScore: 78,
+        autonomousAlphaOSScore: 76,
+        riskScore: 12,
+        trapRiskScore: 10,
+        sellPressureScore: 10,
+      },
+      {
         name: "TrapMicro",
         symbol: "TRAP",
         chain: "ethereum",
+        address: "0x0000000000000000000000000000000000007a9a",
+        source: "dexscreener-search",
+        dex: "uniswap",
         marketCap: 4_000_000,
         liquidityUsd: 180_000,
         volume24h: 900_000,
@@ -1650,15 +1686,22 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
   );
   const selected = results.filter((project) => project.smallCapHunterSelected);
   const trap = results.find((project) => project.symbol === "TRAP");
+  const noRoute = results.find((project) => project.symbol === "NORT");
 
   assert.equal(selected.length, 2);
   assert.deepEqual(
     selected.map((project) => project.smallCapHunterSelectionRank),
     [1, 2]
   );
+  assert.equal(noRoute.smallCapHunterVerdict, "Small-Cap Purchase Route Block");
+  assert.equal(noRoute.smallCapHunterSelected, false);
   assert.equal(trap.smallCapHunterVerdict, "Small-Cap Risk Block");
   assert.equal(trap.smallCapHunterSelected, false);
   assert.equal(selected[0].smallCapHunter.paperPlan.totalPaperBudgetUsd, 100);
+  assert.deepEqual(
+    selected.map((project) => project.smallCapHunter.purchaseRoute.preferredRoute).sort(),
+    ["Coinbase", "MetaMask"]
+  );
   assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
 });

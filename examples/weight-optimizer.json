@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.537Z",
-  "memorySamples": 4,
+  "generatedAt": "2026-07-14T04:37:36.623Z",
+  "memorySamples": 5,
   "evaluatedSamples": 0,
   "globalPaperWinRate": 0,
   "globalAverageReturnPct": 0,
@@ -8,8 +8,8 @@
     {
       "id": "strategy",
       "label": "Strategy Lab",
-      "weight": 1.02,
-      "avgProjectScore": 66,
+      "weight": 1.03,
+      "avgProjectScore": 68,
       "memorySignal": 0,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -61,7 +61,7 @@
     }
   ],
   "weights": {
-    "strategy": 1.02,
+    "strategy": 1.03,
     "causal": 1.23,
     "simulation": 0.89,
     "proof": 1.2,

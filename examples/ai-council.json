@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.471Z",
+  "generatedAt": "2026-07-14T04:37:36.309Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -530,7 +530,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Narrative Scout: Narrative evidence is not strong enough by itself."
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
         ],
         "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -561,7 +561,7 @@
         },
         {
           "name": "Learning Engine",
-          "score": 41,
+          "score": 38,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -879,7 +879,7 @@
       "rank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
-      "score": 50,
+      "score": 49,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
@@ -893,7 +893,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 50,
+            "value": 49,
             "required": ">= 78"
           },
           {
@@ -911,7 +911,7 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 4,
+            "value": 1,
             "required": ">= 55"
           },
           {
@@ -978,7 +978,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 33,
+          "score": 31,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -996,7 +996,7 @@
         },
         {
           "name": "Learning Engine",
-          "score": 43,
+          "score": 40,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -1024,12 +1024,12 @@
       "rank": 6,
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 50,
+      "score": 49,
       "verdict": "AI Pass For Now",
       "confidence": "Developing",
       "caveat": "",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 23,
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 22,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -1038,7 +1038,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 50,
+            "value": 49,
             "required": ">= 78"
           },
           {
@@ -1062,7 +1062,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 23,
+            "value": 22,
             "required": ">= 65"
           },
           {
@@ -1123,7 +1123,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 29,
+          "score": 28,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -1141,7 +1141,7 @@
         },
         {
           "name": "Learning Engine",
-          "score": 43,
+          "score": 42,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -1313,166 +1313,166 @@
   ],
   "agentPerformance": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/agent-performance-memory.json",
-    "records": 514,
+    "records": 10559,
     "outcomes": 0,
     "agents": [
       {
         "name": "Narrative Scout",
-        "observations": 514,
+        "observations": 10559,
         "bullish": 0,
-        "cautious": 437,
+        "cautious": 10429,
         "averageScore": 32,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Quant Forecaster",
-        "observations": 514,
+        "observations": 10559,
         "bullish": 0,
-        "cautious": 514,
+        "cautious": 10559,
         "averageScore": 33,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Flow Analyst",
-        "observations": 514,
+        "observations": 10559,
         "bullish": 0,
-        "cautious": 514,
+        "cautious": 9327,
         "averageScore": 21,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Research Analyst",
-        "observations": 514,
-        "bullish": 0,
-        "cautious": 362,
+        "observations": 10559,
+        "bullish": 20,
+        "cautious": 7993,
         "averageScore": 55,
         "reliability": 66,
         "weight": 1.21
       },
       {
         "name": "Learning Engine",
-        "observations": 514,
+        "observations": 10559,
         "bullish": 0,
-        "cautious": 509,
+        "cautious": 10500,
         "averageScore": 41,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Risk Officer",
-        "observations": 514,
-        "bullish": 430,
-        "cautious": 2,
+        "observations": 10559,
+        "bullish": 10350,
+        "cautious": 10,
         "averageScore": 77,
         "reliability": 69,
         "weight": 1.23
       },
       {
         "name": "Roadmap Profit Agent",
-        "observations": 520,
+        "observations": 10664,
         "bullish": 0,
-        "cautious": 478,
+        "cautious": 10420,
         "averageScore": 36,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Roadmap Agent",
-        "observations": 800,
-        "bullish": 12,
-        "cautious": 414,
+        "observations": 19153,
+        "bullish": 15,
+        "cautious": 9987,
         "averageScore": 35,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "GitHub Agent",
-        "observations": 998,
+        "observations": 21088,
         "bullish": 0,
-        "cautious": 499,
+        "cautious": 10544,
         "averageScore": 33,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Tokenomics Agent",
-        "observations": 993,
-        "bullish": 493,
-        "cautious": 494,
+        "observations": 20806,
+        "bullish": 10535,
+        "cautious": 10262,
         "averageScore": 78,
         "reliability": 69,
         "weight": 1.23
       },
       {
         "name": "Catalyst Agent",
-        "observations": 549,
+        "observations": 13663,
         "bullish": 0,
-        "cautious": 506,
+        "cautious": 11546,
         "averageScore": 24,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Liquidity Agent",
-        "observations": 958,
-        "bullish": 0,
-        "cautious": 465,
+        "observations": 14426,
+        "bullish": 993,
+        "cautious": 4571,
         "averageScore": 47,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Narrative Agent",
-        "observations": 499,
+        "observations": 10544,
         "bullish": 0,
-        "cautious": 397,
+        "cautious": 10383,
         "averageScore": 31,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Profitability Agent",
-        "observations": 499,
+        "observations": 10544,
         "bullish": 0,
-        "cautious": 499,
+        "cautious": 10544,
         "averageScore": 29,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Research Agent",
-        "observations": 346,
+        "observations": 10255,
         "bullish": 0,
         "cautious": 0,
         "averageScore": 65,
-        "reliability": 61,
-        "weight": 1.18
+        "reliability": 67,
+        "weight": 1.22
       },
       {
         "name": "Commander",
-        "observations": 998,
+        "observations": 21088,
         "bullish": 0,
-        "cautious": 499,
+        "cautious": 10543,
         "averageScore": 45,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Causal Brain",
-        "observations": 499,
-        "bullish": 0,
-        "cautious": 97,
+        "observations": 10544,
+        "bullish": 331,
+        "cautious": 1009,
         "averageScore": 51,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Strategy Lab",
-        "observations": 499,
-        "bullish": 268,
+        "observations": 10544,
+        "bullish": 4561,
         "cautious": 0,
         "averageScore": 63,
         "reliability": 67,
@@ -1480,7 +1480,7 @@
       },
       {
         "name": "Simulation Desk",
-        "observations": 499,
+        "observations": 10544,
         "bullish": 0,
         "cautious": 0,
         "averageScore": 34,
@@ -1489,75 +1489,84 @@
       },
       {
         "name": "Proof Officer",
-        "observations": 499,
+        "observations": 10544,
         "bullish": 0,
-        "cautious": 499,
+        "cautious": 10544,
         "averageScore": 48,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Risk Governor",
-        "observations": 499,
+        "observations": 10544,
         "bullish": 0,
-        "cautious": 499,
+        "cautious": 10544,
         "averageScore": 25,
         "reliability": 65,
         "weight": 1.21
       },
       {
         "name": "Paper Trading Lab",
-        "observations": 460,
+        "observations": 10505,
         "bullish": 0,
-        "cautious": 75,
+        "cautious": 796,
         "averageScore": 46,
-        "reliability": 63,
-        "weight": 1.19
+        "reliability": 65,
+        "weight": 1.21
       },
       {
         "name": "Weight Optimizer",
-        "observations": 460,
-        "bullish": 12,
-        "cautious": 5,
+        "observations": 10505,
+        "bullish": 1021,
+        "cautious": 7,
         "averageScore": 53,
-        "reliability": 64,
-        "weight": 1.2
+        "reliability": 65,
+        "weight": 1.21
       },
       {
         "name": "Source Truth",
-        "observations": 460,
-        "bullish": 0,
-        "cautious": 198,
+        "observations": 10505,
+        "bullish": 1,
+        "cautious": 2720,
         "averageScore": 37,
-        "reliability": 63,
-        "weight": 1.19
+        "reliability": 65,
+        "weight": 1.21
       },
       {
         "name": "GitHub Pro",
-        "observations": 460,
+        "observations": 10505,
         "bullish": 0,
-        "cautious": 460,
+        "cautious": 10505,
         "averageScore": 0,
-        "reliability": 63,
-        "weight": 1.19
+        "reliability": 65,
+        "weight": 1.21
       },
       {
         "name": "Autonomous Research Orchestrator",
-        "observations": 326,
+        "observations": 10371,
         "bullish": 0,
-        "cautious": 326,
+        "cautious": 10371,
         "averageScore": 16,
-        "reliability": 58,
-        "weight": 1.16
+        "reliability": 65,
+        "weight": 1.21
       },
       {
         "name": "Risk Agent",
-        "observations": 587,
+        "observations": 10692,
         "bullish": 0,
-        "cautious": 566,
+        "cautious": 10663,
         "averageScore": 38,
         "reliability": 65,
         "weight": 1.21
+      },
+      {
+        "name": "Simulation Agent",
+        "observations": 80,
+        "bullish": 0,
+        "cautious": 0,
+        "averageScore": 65,
+        "reliability": 50,
+        "weight": 1.1
       }
     ],
     "weights": {
@@ -1575,19 +1584,20 @@
       "Liquidity Agent": 1.21,
       "Narrative Agent": 1.21,
       "Profitability Agent": 1.21,
-      "Research Agent": 1.18,
+      "Research Agent": 1.22,
       "Commander": 1.21,
       "Causal Brain": 1.21,
       "Strategy Lab": 1.22,
       "Simulation Desk": 1.21,
       "Proof Officer": 1.21,
       "Risk Governor": 1.21,
-      "Paper Trading Lab": 1.19,
-      "Weight Optimizer": 1.2,
-      "Source Truth": 1.19,
-      "GitHub Pro": 1.19,
-      "Autonomous Research Orchestrator": 1.16,
-      "Risk Agent": 1.21
+      "Paper Trading Lab": 1.21,
+      "Weight Optimizer": 1.21,
+      "Source Truth": 1.21,
+      "GitHub Pro": 1.21,
+      "Autonomous Research Orchestrator": 1.21,
+      "Risk Agent": 1.21,
+      "Simulation Agent": 1.1
     }
   }
 }

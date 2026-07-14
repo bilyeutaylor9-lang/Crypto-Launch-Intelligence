@@ -1,11 +1,11 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/12/2026, 11:51:10 PM
+Generated: 7/13/2026, 9:37:34 PM
 
 Projects scanned: 8
 Market regime: Risk-Off
 Healthy breadth: 0%
 High-conviction breadth: 0%
-Average opportunity score: 3.00
+Average opportunity score: 2.88
 Strong buy candidates: 0
 High-conviction candidates: 0
 Priority research queue: 0
@@ -31,8 +31,8 @@ Institutional confidence setups: 0
 High vesting pressure setups: 0
 Proof-backed setups: 0
 Proof-carrying alpha candidates: 0
-Accountable contract research: 0
-Alpha contract invalidations: 8
+Accountable contract research: 1
+Alpha contract invalidations: 7
 Alpha contract receipts: 8
 Alpha Governor promotes: 0
 Alpha Governor priority research: 3
@@ -91,14 +91,14 @@ Top proof-carrying alpha contracts:
 2. Pendle (PENDLE) - contract 51, Invalidation Hit
 3. Akash Network (AKT) - contract 50, Invalidation Hit
 4. Celestia (TIA) - contract 50, Invalidation Hit
-5. EigenLayer (EIGEN) - contract 49, Invalidation Hit
+5. Render (RNDR) - contract 49, Invalidation Hit
 
 Top Alpha Evolution Governor queue:
-1. Celestia (TIA) - governor 54, Governor Priority Research - Risk-Contained Priority Research
-2. Pendle (PENDLE) - governor 54, Governor Priority Research - Risk-Contained Priority Research
-3. Bittensor (TAO) - governor 51, Governor Priority Research - Risk-Contained Priority Research
-4. EigenLayer (EIGEN) - governor 50, Governor Risk Block - Block
-5. Akash Network (AKT) - governor 50, Governor Risk Block - Block
+1. Celestia (TIA) - governor 55, Governor Priority Research - Risk-Contained Priority Research
+2. Pendle (PENDLE) - governor 55, Governor Priority Research - Risk-Contained Priority Research
+3. EigenLayer (EIGEN) - governor 51, Governor Risk Block - Block
+4. Bittensor (TAO) - governor 51, Governor Priority Research - Risk-Contained Priority Research
+5. Jupiter (JUP) - governor 51, Governor Risk Block - Block
 
 Top confidence-adjusted setups:
 1. Celestia (TIA) - adjusted 31, source 15, trap 12

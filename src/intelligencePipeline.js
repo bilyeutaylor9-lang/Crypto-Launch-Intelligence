@@ -1385,6 +1385,7 @@ export function summarizePipelineResults(results = []) {
   const smallCapHunterSelections = safeResults.filter((p) => p.smallCapHunterSelected);
   const smallCapHunterWatch = safeResults.filter((p) => p.smallCapHunterVerdict === "Small-Cap Watch");
   const smallCapHunterRiskBlocks = safeResults.filter((p) => p.smallCapHunterVerdict === "Small-Cap Risk Block");
+  const smallCapHunterPurchaseRouteBlocks = safeResults.filter((p) => p.smallCapHunterVerdict === "Small-Cap Purchase Route Block");
   const topSmallCapHunterSetups = [...safeResults]
     .filter((p) => p.smallCapHunter)
     .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
@@ -1502,6 +1503,7 @@ export function summarizePipelineResults(results = []) {
     smallCapHunterSelectedCount: smallCapHunterSelections.length,
     smallCapHunterWatchCount: smallCapHunterWatch.length,
     smallCapHunterRiskBlockCount: smallCapHunterRiskBlocks.length,
+    smallCapHunterPurchaseRouteBlockCount: smallCapHunterPurchaseRouteBlocks.length,
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
@@ -1769,6 +1771,7 @@ export function summarizePipelineResults(results = []) {
       upsideScore: project.smallCapUpsideScore || 0,
       executionScore: project.smallCapExecutionScore || 0,
       riskScore: project.smallCapRiskScore || 0,
+      purchaseRoute: project.smallCapHunter?.purchaseRoute || {},
       paperPlan: project.smallCapHunter?.paperPlan || {},
       reasons: project.smallCapHunter?.reasons || [],
       warnings: project.smallCapHunter?.warnings || [],

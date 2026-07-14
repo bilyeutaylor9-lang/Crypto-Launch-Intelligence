@@ -2,6 +2,43 @@ const DEFAULT_TARGET_COUNT = Number(process.env.SMALL_CAP_TARGET_COUNT || 2);
 const DEFAULT_BUDGET_USD = Number(process.env.SMALL_CAP_PAPER_BUDGET_USD || 100);
 const DEFAULT_MAX_CAP = Number(process.env.SMALL_CAP_MAX_MARKET_CAP || 300_000_000);
 const DEFAULT_MIN_LIQUIDITY = Number(process.env.SMALL_CAP_MIN_LIQUIDITY || 5_000);
+const DEFAULT_REQUIRE_PURCHASE_ROUTE = process.env.SMALL_CAP_REQUIRE_PURCHASE_ROUTE !== "false";
+
+const METAMASK_COMPATIBLE_CHAINS = new Set([
+  "ethereum",
+  "eth",
+  "base",
+  "arbitrum",
+  "arbitrum-one",
+  "optimism",
+  "op",
+  "polygon",
+  "matic",
+  "bsc",
+  "bnb",
+  "binance-smart-chain",
+  "avalanche",
+  "avax",
+  "fantom",
+  "ftm",
+  "celo",
+  "linea",
+  "zksync",
+  "zk-sync",
+  "scroll",
+  "blast",
+  "mantle",
+  "mode",
+]);
+
+const DEX_ROUTE_SOURCES = new Set([
+  "dexscreener",
+  "dexscreener-search",
+  "dexscreener-profiles",
+  "dexscreener-boosts",
+  "geckoterminal",
+  "birdeye",
+]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -27,6 +64,124 @@ function liquidity(project = {}) {
 
 function volume24h(project = {}) {
   return num(project.volume24h || project.volume || project.marketData?.volume24h || project.rawCandidate?.volume24h);
+}
+
+function norm(value = "") {
+  return String(value || "").trim().toLowerCase();
+}
+
+function textBlob(project = {}) {
+  return [
+    project.source,
+    project.exchange,
+    project.listingExchange,
+    project.cex,
+    project.dex,
+    project.url,
+    project.description,
+    project.category,
+    ...(project.discoverySources || []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function isCoinbaseRoute(project = {}) {
+  const text = textBlob(project);
+  const listingText = [
+    project.exchange,
+    project.listingExchange,
+    project.cex,
+    project.source,
+    project.url,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    norm(project.source) === "coinbase" ||
+    norm(project.exchange).includes("coinbase") ||
+    norm(project.chain) === "coinbase" ||
+    text.includes("coinbase listed") ||
+    listingText.includes("coinbase.com") ||
+    listingText.includes("coinbase exchange") ||
+    listingText.includes("coinbase listing")
+  );
+}
+
+function isMetaMaskCompatibleChain(chain = "") {
+  return METAMASK_COMPATIBLE_CHAINS.has(norm(chain));
+}
+
+function isDexRoute(project = {}) {
+  const sources = new Set(
+    [project.source, project.dex, ...(project.discoverySources || [])]
+      .map(norm)
+      .filter(Boolean)
+  );
+
+  return (
+    [...sources].some((source) => DEX_ROUTE_SOURCES.has(source)) ||
+    norm(project.dex).includes("swap") ||
+    norm(project.url).includes("dexscreener.com") ||
+    norm(project.url).includes("geckoterminal.com")
+  );
+}
+
+function purchaseRoute(project = {}) {
+  const coinbase = isCoinbaseRoute(project);
+  const chainSupported = isMetaMaskCompatibleChain(project.chain);
+  const hasContract = Boolean(project.address || project.tokenAddress || project.contractAddress);
+  const hasPair = Boolean(project.pairAddress);
+  const dexRoute = isDexRoute(project);
+  const metamask = chainSupported && (hasContract || (dexRoute && hasPair));
+  const routes = [];
+
+  if (coinbase) {
+    routes.push({
+      type: "Coinbase",
+      status: "Detected",
+      confidence: 72,
+      reason: "Coinbase listing or Coinbase market source detected.",
+      url: project.url || "",
+    });
+  }
+
+  if (metamask) {
+    routes.push({
+      type: "MetaMask",
+      status: hasContract ? "Detected" : "Needs Pair Verification",
+      confidence: hasContract ? 70 : 54,
+      reason: hasContract
+        ? "Wallet-compatible chain and token contract detected."
+        : "Wallet-compatible chain and DEX pair detected, but token contract still needs manual verification.",
+      chain: project.chain || "unknown",
+      contract: project.address || project.tokenAddress || project.contractAddress || "",
+      pairAddress: project.pairAddress || "",
+      url: project.url || "",
+    });
+  }
+
+  const best = routes.sort((a, b) => num(b.confidence) - num(a.confidence))[0] || null;
+
+  return {
+    status: routes.length ? "Available Route Detected" : "No Coinbase/MetaMask Route Detected",
+    purchasable: routes.length > 0,
+    preferredRoute: best?.type || "Unavailable",
+    score: routes.length ? Math.max(...routes.map((route) => num(route.confidence))) : 0,
+    routes,
+    mustVerify: routes.length
+      ? [
+          "Confirm the asset is available in your Coinbase region or inside MetaMask before any real trade.",
+          "Verify exact token contract, network, pair, slippage, fees, taxes, and wallet support.",
+        ]
+      : [
+          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route.",
+        ],
+  };
 }
 
 function maxRisk(project = {}) {
@@ -147,6 +302,7 @@ function smallCapScore(project = {}, options = {}) {
   const cap = marketCap(project);
   const band = capBand(cap, num(options.maxMarketCap || DEFAULT_MAX_CAP));
   const execution = executionScore(project, budgetUsd, minLiquidity);
+  const route = purchaseRoute(project);
   const structure = structureScore(project);
   const upside = upsideScore(project);
   const consensus = consensusScore(project);
@@ -155,11 +311,12 @@ function smallCapScore(project = {}, options = {}) {
   const score = Math.round(
     clamp(
       band.score * 0.14 +
-        execution.score * 0.16 +
-        structure * 0.23 +
-        upside * 0.22 +
-        consensus * 0.14 +
-        riskIntegrity * 0.11
+        execution.score * 0.14 +
+        route.score * 0.12 +
+        structure * 0.21 +
+        upside * 0.2 +
+        consensus * 0.12 +
+        riskIntegrity * 0.07
     )
   );
 
@@ -168,6 +325,7 @@ function smallCapScore(project = {}, options = {}) {
     cap,
     band,
     execution,
+    purchaseRoute: route,
     structure,
     upside,
     consensus,
@@ -178,9 +336,11 @@ function smallCapScore(project = {}, options = {}) {
 
 function verdictFor(metrics = {}, options = {}) {
   const minLiquidity = num(options.minLiquidity || DEFAULT_MIN_LIQUIDITY);
+  const requirePurchaseRoute = options.requirePurchaseRoute ?? DEFAULT_REQUIRE_PURCHASE_ROUTE;
 
   if (metrics.risk >= 78) return "Small-Cap Risk Block";
   if (!metrics.band.eligible) return "Too Large For Small-Cap Hunt";
+  if (requirePurchaseRoute && !metrics.purchaseRoute.purchasable) return "Small-Cap Purchase Route Block";
   if (metrics.execution.liquidityUsd > 0 && metrics.execution.liquidityUsd < minLiquidity) {
     return "Small-Cap Liquidity Block";
   }
@@ -203,6 +363,7 @@ function reasons(project = {}, metrics = {}) {
   if (metrics.structure >= 55) output.push("Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.");
   if (metrics.consensus >= 55) output.push("AI/OS/governor consensus is stronger than the scan baseline.");
   if (metrics.execution.score >= 55) output.push("$100 paper-size execution looks structurally reasonable from visible liquidity/volume.");
+  if (metrics.purchaseRoute.purchasable) output.push(`${metrics.purchaseRoute.preferredRoute} purchase route detected; verify availability before acting.`);
   if (project.alphaEvolutionGovernorVerdict === "Governor Priority Research") output.push("Alpha Governor marked it as priority research.");
   if (project.breakoutBrainSelected) output.push("Breakout Brain selected it as a best-available breakout setup.");
 
@@ -216,6 +377,7 @@ function warnings(project = {}, metrics = {}) {
   ];
 
   if (!metrics.cap) output.push("Market cap/FDV is unknown; verify cap before treating it as a true small cap.");
+  if (!metrics.purchaseRoute.purchasable) output.push("No Coinbase or MetaMask route was detected; do not select without route proof.");
   if (metrics.risk >= 55) output.push("Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.");
   if (metrics.structure < 45) output.push("Structure is not strong enough without more source/GitHub/roadmap proof.");
   if (project.aiDisagreement?.level === "High") output.push("AI council disagreement is high; require manual confirmation.");
@@ -270,17 +432,20 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
       moduleScores: {
         capFit: metrics.band.score,
         execution: metrics.execution.score,
+        purchaseRoute: metrics.purchaseRoute.score,
         structure: metrics.structure,
         upside: metrics.upside,
         consensus: metrics.consensus,
         riskIntegrity: metrics.riskIntegrity,
       },
       execution: metrics.execution,
+      purchaseRoute: metrics.purchaseRoute,
       reasons: reasons(project, metrics),
       warnings: warnings(project, metrics),
       paperPlan: paperPlan(project, metrics, options),
       mustVerify: [
         "Official token contract, pair, chain, and website.",
+        "Coinbase availability or MetaMask token contract/pair route.",
         "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
         "Recent roadmap/catalyst evidence from official or trusted sources.",
         "Token unlocks, emissions, team allocation, and insider sell pressure.",
@@ -308,8 +473,14 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
 function eligibleForSelection(project = {}) {
   return (
     project.smallCapHunter &&
-    !["Small-Cap Risk Block", "Small-Cap Liquidity Block", "Too Large For Small-Cap Hunt"].includes(project.smallCapHunterVerdict) &&
+    ![
+      "Small-Cap Risk Block",
+      "Small-Cap Liquidity Block",
+      "Small-Cap Purchase Route Block",
+      "Too Large For Small-Cap Hunt",
+    ].includes(project.smallCapHunterVerdict) &&
     num(project.smallCapHunterScore) > 0 &&
+    project.smallCapHunter?.purchaseRoute?.purchasable &&
     project.redTeamReview?.status !== "Block"
   );
 }
@@ -380,6 +551,7 @@ export function summarizeSmallCapHunter(projects = []) {
     researchCandidates: hunted.filter((project) => project.smallCapHunterVerdict === "Top-2 Small-Cap Research Candidate").length,
     watchCount: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Watch").length,
     riskBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Risk Block").length,
+    purchaseRouteBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Purchase Route Block").length,
     topProjects: [...hunted]
       .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
       .slice(0, 50)
@@ -402,6 +574,7 @@ function compact(project = {}) {
     upsideScore: project.smallCapUpsideScore || 0,
     executionScore: project.smallCapExecutionScore || 0,
     riskScore: project.smallCapRiskScore || 0,
+    purchaseRoute: project.smallCapHunter?.purchaseRoute || {},
     liquidityUsd: project.smallCapHunter?.execution?.liquidityUsd || 0,
     volume24h: project.smallCapHunter?.execution?.volume24h || 0,
     estimatedLiquidityImpactPct: project.smallCapHunter?.execution?.estimatedLiquidityImpactPct ?? null,

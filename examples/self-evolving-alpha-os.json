@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.564Z",
+  "generatedAt": "2026-07-14T04:37:38.752Z",
   "name": "Self-Evolving Alpha OS",
   "description": "Master research OS that fuses identity graph, world model, hypothesis lab, experiment lab, agent society, alpha autopsy, regime adaptation, and thesis generation.",
   "totalProjects": 8,
@@ -1235,10 +1235,10 @@
       "confidence": "Low",
       "pipelineScore": 3,
       "highTechAlphaScore": 45,
-      "breakoutBrainScore": 15,
+      "breakoutBrainScore": 14,
       "autonomousResearchScore": 23,
       "sourceTruthScore": 52,
-      "proofScore": 4,
+      "proofScore": 1,
       "riskScore": 75,
       "thesis": {
         "project": "Akash Network",
@@ -1317,7 +1317,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 26,
+            "score": 25,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -1428,7 +1428,7 @@
           {
             "id": "evidence_first_promotion",
             "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 31,
+            "score": 30,
             "status": "Weak"
           },
           {
@@ -1460,7 +1460,7 @@
             "id": "raise_evidence_gate",
             "name": "Raise evidence gate before promotion",
             "expectedImpact": "Blocks weak thesis",
-            "score": 27,
+            "score": 26,
             "recommendation": "Observe"
           },
           {
@@ -1474,7 +1474,7 @@
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
             "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 30,
+            "score": 29,
             "recommendation": "Observe"
           },
           {
@@ -2131,7 +2131,7 @@
       "decision": "Research Block",
       "confidence": "Developing",
       "pipelineScore": 0,
-      "highTechAlphaScore": 45,
+      "highTechAlphaScore": 46,
       "breakoutBrainScore": 15,
       "autonomousResearchScore": 27,
       "sourceTruthScore": 52,
@@ -2273,7 +2273,7 @@
             "from": "project:Jupiter",
             "to": "narrative:launchpad",
             "relation": "exposed_to",
-            "strength": 57
+            "strength": 58
           },
           {
             "from": "project:Jupiter",
@@ -2313,7 +2313,7 @@
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 43,
+            "score": 44,
             "status": "Weak"
           },
           {
@@ -2429,13 +2429,13 @@
       "score": 24,
       "decision": "Research Block",
       "confidence": "Low",
-      "pipelineScore": 2,
-      "highTechAlphaScore": 44,
-      "breakoutBrainScore": 19,
-      "autonomousResearchScore": 24,
+      "pipelineScore": 1,
+      "highTechAlphaScore": 45,
+      "breakoutBrainScore": 18,
+      "autonomousResearchScore": 23,
       "sourceTruthScore": 49,
       "proofScore": 1,
-      "riskScore": 76,
+      "riskScore": 75,
       "thesis": {
         "project": "Ondo",
         "symbol": "ONDO",
@@ -2513,7 +2513,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 25,
+            "score": 24,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -2543,7 +2543,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 76,
+            "score": 75,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -2572,7 +2572,7 @@
             "from": "project:Ondo",
             "to": "narrative:rwa",
             "relation": "exposed_to",
-            "strength": 51
+            "strength": 52
           },
           {
             "from": "project:Ondo",
@@ -2596,7 +2596,7 @@
             "from": "project:Ondo",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 76
+            "strength": 75
           }
         ],
         "summary": "World model is sparse; treat this as early research only."
@@ -2631,7 +2631,7 @@
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 76,
+            "score": 75,
             "status": "Active Risk"
           }
         ],
@@ -2645,10 +2645,10 @@
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 76,
+          "score": 75,
           "status": "Active Risk"
         },
-        "netScore": 29
+        "netScore": 30
       },
       "experimentLab": {
         "experiments": [
@@ -2670,14 +2670,14 @@
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
             "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 33,
+            "score": 32,
             "recommendation": "Observe"
           },
           {
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 76,
+            "score": 75,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2687,7 +2687,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 76,
+            "score": 75,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2695,7 +2695,7 @@
         "summary": "Experiment lab found scoring changes worth testing."
       },
       "alphaAutopsy": {
-        "riskScore": 60,
+        "riskScore": 59,
         "failureModes": [
           "resembles prior false positives",
           "proof stack is thin"

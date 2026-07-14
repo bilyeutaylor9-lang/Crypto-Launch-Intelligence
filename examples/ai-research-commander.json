@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.524Z",
+  "generatedAt": "2026-07-14T04:37:36.423Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
@@ -563,9 +563,9 @@
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 64,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 58,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 23,
@@ -723,15 +723,15 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 67,
+      "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
-      "bestStrategy": "Truth-Verified Alpha",
+      "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 62,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 32,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 47,
+      "paperOutcomeLabScore": 48,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 60,
       "sourceTruthScore": 52,
@@ -871,8 +871,8 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 63,
-      "strategyLabVerdict": "Strategy Watch",
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
@@ -890,10 +890,10 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 23,
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 22,
       "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "commanderScore": 29,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -963,12 +963,12 @@
           "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 24,
+      "alphaInvestigatorScore": 25,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Ondo",
         "symbol": "ONDO",
-        "score": 24,
+        "score": 25,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -1020,10 +1020,10 @@
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 52,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 28,
-      "alphaOSVerdict": "OS Risk Block",
-      "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 42,
+      "alphaOSScore": 30,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 43,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 56,
       "sourceTruthScore": 49,
@@ -1169,9 +1169,9 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 63,
-      "strategyLabVerdict": "Strategy Watch",
-      "bestStrategy": "Truth-Verified Alpha",
+      "strategyLabScore": 66,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 55,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 27,
@@ -1179,7 +1179,7 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 44,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 55,
+      "autoLearningWeightScore": 56,
       "sourceTruthScore": 49,
       "githubProScore": 0
     }

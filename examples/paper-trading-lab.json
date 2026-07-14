@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.537Z",
+  "generatedAt": "2026-07-14T04:37:36.622Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-    "totalRecords": 4,
+    "totalRecords": 5,
     "evaluatedRecords": 0,
-    "openRecords": 4,
+    "openRecords": 5,
     "winners": 0,
     "losers": 0,
     "winRate": 0,
@@ -13,12 +13,12 @@
       {
         "id": "truth_verified_alpha",
         "name": "Truth-Verified Alpha",
-        "observations": 3,
+        "observations": 4,
         "evaluated": 0,
         "winners": 0,
         "losers": 0,
         "avgReturnPct": 0,
-        "avgAlphaOSScore": 40,
+        "avgAlphaOSScore": 43,
         "avgRiskScore": 12,
         "winRate": 0,
         "lossRate": 0,
@@ -40,6 +40,50 @@
       }
     ],
     "topOpenTrades": [
+      {
+        "id": "169197",
+        "name": "Coinbase (Ondo Tokenized Stock)",
+        "symbol": "COINON",
+        "chain": "coinlore",
+        "strategyId": "truth_verified_alpha",
+        "strategyName": "Truth-Verified Alpha",
+        "openedAt": "2026-07-13T07:46:53.366Z",
+        "updatedAt": "2026-07-13T07:46:53.366Z",
+        "entryPriceUsd": 156.33,
+        "latestPriceUsd": 156.33,
+        "latestReturnPct": 0,
+        "daysOpen": 0,
+        "outcomeLabel": "Open",
+        "alphaOSVerdict": "OS Best Available Candidate",
+        "alphaOSScore": 51,
+        "causalAlphaScore": 64,
+        "strategyLabScore": 78,
+        "paperTradeScore": 63,
+        "proofScore": 0,
+        "sourceTruthScore": 51,
+        "githubProScore": 3,
+        "riskScore": 12,
+        "expectedReturn30dPct": 22,
+        "breakoutProbability30d": 36,
+        "entryTriggers": [
+          "Proof, source reliability, and AI confidence all improve together.",
+          "Causal and simulation layers agree on the same core driver.",
+          "Red-team review is clear or only lightly challenged."
+        ],
+        "invalidationRules": [
+          "Evidence quality deteriorates or sources conflict.",
+          "AI agents disagree because risk is rising.",
+          "Outcome judge downgrades the setup after reality checks.",
+          "Autonomous Strategy Lab score drops below 50.",
+          "Causal Alpha Brain downgrades the primary driver."
+        ],
+        "checkpoints": {
+          "1d": null,
+          "7d": null,
+          "30d": null,
+          "90d": null
+        }
+      },
       {
         "id": "0x742fa2694712b96caa0244ebabff2300955d9d2e",
         "name": "robin",
@@ -254,9 +298,9 @@
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 47,
+      "score": 48,
       "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
@@ -276,7 +320,7 @@
       "symbol": "EIGEN",
       "score": 44,
       "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Risk Block"
@@ -286,7 +330,7 @@
       "symbol": "RNDR",
       "score": 44,
       "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
@@ -304,12 +348,12 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 42,
+      "score": 43,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
-      "alphaOSVerdict": "OS Risk Block"
+      "alphaOSVerdict": "OS Reject"
     }
   ]
 }

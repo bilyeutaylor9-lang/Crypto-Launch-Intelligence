@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.438Z",
+  "generatedAt": "2026-07-14T04:37:34.787Z",
   "totalProjects": 8,
   "counts": {
     "topConfidenceAdjusted": 8,
@@ -225,7 +225,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -289,7 +289,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -709,7 +709,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Narrative Scout: Narrative evidence is not strong enough by itself."
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
         ],
         "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -718,7 +718,7 @@
         "1h": 4,
         "24h": 5,
         "7d": 45,
-        "30d": 20,
+        "30d": 18,
         "90d": 60,
         "bestHorizon": "90d"
       },
@@ -872,7 +872,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T06:51:09.834Z",
+          "timestamp": "2026-07-14T04:37:14.242Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -1380,7 +1380,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -1444,7 +1444,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -1925,7 +1925,7 @@
         "decisionState": "Uncollapsed Alpha",
         "summary": "Uncollapsed Alpha: bull 28%, bear 24%, entropy High."
       },
-      "worldModelScore": 25,
+      "worldModelScore": 24,
       "knowledgeGraph": {
         "nodes": {
           "project": "Pendle",
@@ -1948,7 +1948,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -2012,7 +2012,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -2150,7 +2150,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 22,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -2166,7 +2166,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -2306,8 +2306,7 @@
         "finalMemo": "Pendle is a Do Not Promote. Do not promote until blockers clear."
       },
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -2327,7 +2326,7 @@
       "institutionalRankScore": 29,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 57,
+      "narrativeHeatScore": 58,
       "narrativeHeatState": "Active",
       "projectChangeScore": 50,
       "projectChangeState": "stable",
@@ -2562,7 +2561,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -2663,7 +2662,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 57,
+                "value": 58,
                 "interpretation": "needs work"
               },
               {
@@ -3116,7 +3115,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -3676,7 +3675,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -3962,8 +3961,7 @@
         "finalMemo": "Bittensor is a Do Not Promote. Do not promote until blockers clear."
       },
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -3990,7 +3988,7 @@
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -4001,7 +3999,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 50,
+            "value": 49,
             "required": ">= 78"
           },
           {
@@ -4019,7 +4017,7 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 4,
+            "value": 1,
             "required": ">= 55"
           },
           {
@@ -4082,7 +4080,7 @@
         "1h": 3,
         "24h": 5,
         "7d": 45,
-        "30d": 23,
+        "30d": 21,
         "90d": 60,
         "bestHorizon": "90d"
       },
@@ -4237,7 +4235,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -4273,11 +4271,11 @@
           ]
         }
       ],
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -4446,7 +4444,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -4488,7 +4486,7 @@
               },
               {
                 "label": "proofScore",
-                "value": 4,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -4530,7 +4528,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Akash Network is led by signalCombos 59, narrative 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "Akash Network is led by narrative 53, prePumpPattern 50, signalCombos 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 6,
@@ -4538,19 +4536,19 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 23,
-      "institutionalRankScore": 23,
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 22,
+      "institutionalRankScore": 22,
       "confidence": "Developing",
       "dataConfidence": "High",
-      "narrativeHeatScore": 51,
+      "narrativeHeatScore": 52,
       "narrativeHeatState": "Active",
-      "projectChangeScore": 50,
+      "projectChangeScore": 48,
       "projectChangeState": "stable",
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -4561,7 +4559,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 50,
+            "value": 49,
             "required": ">= 78"
           },
           {
@@ -4585,7 +4583,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 23,
+            "value": 22,
             "required": ">= 65"
           },
           {
@@ -4639,7 +4637,7 @@
       },
       "strongBuyLifecycleStage": "Candidate",
       "multiTimeframeIntelligence": {
-        "1h": 3,
+        "1h": 0,
         "24h": 8,
         "7d": 40,
         "30d": 25,
@@ -4648,15 +4646,15 @@
       },
       "scenarioPlan": {
         "bullCase": {
-          "score": 41,
+          "score": 40,
           "thesis": "Upside scenario requires roadmap/catalyst confirmation, liquidity expansion, and low trap risk."
         },
         "baseCase": {
-          "score": 25,
+          "score": 24,
           "thesis": "Base scenario assumes current evidence persists without a major new catalyst."
         },
         "bearCase": {
-          "score": 16,
+          "score": 15,
           "thesis": "Bear scenario is driven by trap risk, sell pressure, unlocks, or weak proof."
         },
         "invalidation": [
@@ -4733,13 +4731,13 @@
       },
       "simulationBrainScore": 32,
       "simulationDecision": "Do Not Promote",
-      "breakoutProbability30d": 29,
-      "expectedReturn30dPct": 14,
+      "breakoutProbability30d": 28,
+      "expectedReturn30dPct": 13,
       "bearCaseDrawdownPct": -38,
       "closestMarketAnalogs": [
         {
           "name": "social hype liquidity trap",
-          "similarity": 76,
+          "similarity": 75,
           "examples": [
             "thin-liquidity meme rotations",
             "bot-amplified microcaps"
@@ -4748,7 +4746,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 71,
+          "similarity": 70,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -4757,7 +4755,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 66,
+          "similarity": 65,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -4785,7 +4783,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -4793,7 +4791,7 @@
           "marketCap": 0,
           "liquidityUsd": 107500,
           "volume24h": 28750,
-          "score": 2,
+          "score": 1,
           "riskScore": 0,
           "tier": "Low Priority",
           "action": null
@@ -4821,19 +4819,19 @@
           ]
         }
       ],
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 16,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 16,
         "consensus": {
           "approve": 0,
-          "watch": 2,
-          "reject": 5,
+          "watch": 1,
+          "reject": 6,
           "challenge": 0,
           "block": 0,
           "clear": 1,
-          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
         },
         "agents": [
           {
@@ -4890,13 +4888,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 48,
-            "vote": "Watch",
+            "score": 45,
+            "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 51,
+                "value": 52,
                 "interpretation": "needs work"
               },
               {
@@ -4906,7 +4904,7 @@
               },
               {
                 "label": "xSocialScore",
-                "value": 36,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -4967,7 +4965,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 40,
+            "score": 39,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -4978,7 +4976,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 76,
+                "value": 75,
                 "interpretation": "risk"
               },
               {
@@ -5020,13 +5018,13 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 22,
+            "score": 19,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 37,
+                "value": 36,
                 "interpretation": "needs work"
               },
               {
@@ -5346,7 +5344,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -5632,8 +5630,7 @@
         "finalMemo": "Bittensor is a Do Not Promote. Do not promote until blockers clear."
       },
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -5660,7 +5657,7 @@
       "sourceReliabilityScore": 15,
       "trapRiskScore": 20,
       "trapRiskLevel": "Low",
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "aiEcosystemVerdict": "AI Pass For Now",
       "aiEcosystemCaveat": "",
       "strongBuyEvidenceGate": {
@@ -5671,7 +5668,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 50,
+            "value": 49,
             "required": ">= 78"
           },
           {
@@ -5689,7 +5686,7 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 4,
+            "value": 1,
             "required": ">= 55"
           },
           {
@@ -5752,7 +5749,7 @@
         "1h": 3,
         "24h": 5,
         "7d": 45,
-        "30d": 23,
+        "30d": 21,
         "90d": 60,
         "bestHorizon": "90d"
       },
@@ -5907,7 +5904,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -5943,11 +5940,11 @@
           ]
         }
       ],
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "projectDossierSwarm": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -6116,7 +6113,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -6158,7 +6155,7 @@
               },
               {
                 "label": "proofScore",
-                "value": 4,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -6200,7 +6197,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Akash Network is led by signalCombos 59, narrative 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "Akash Network is led by narrative 53, prePumpPattern 50, signalCombos 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 2,
@@ -6474,7 +6471,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -6983,7 +6980,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -7047,7 +7044,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -7464,7 +7461,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Narrative Scout: Narrative evidence is not strong enough by itself."
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
         ],
         "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -7473,7 +7470,7 @@
         "1h": 4,
         "24h": 5,
         "7d": 45,
-        "30d": 20,
+        "30d": 18,
         "90d": 60,
         "bestHorizon": "90d"
       },
@@ -7627,7 +7624,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-13T06:51:09.834Z",
+          "timestamp": "2026-07-14T04:37:14.242Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -8086,7 +8083,7 @@
         "decisionState": "Uncollapsed Alpha",
         "summary": "Uncollapsed Alpha: bull 28%, bear 24%, entropy High."
       },
-      "worldModelScore": 25,
+      "worldModelScore": 24,
       "knowledgeGraph": {
         "nodes": {
           "project": "Pendle",
@@ -8109,7 +8106,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -8173,7 +8170,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -8311,7 +8308,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 22,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -8327,7 +8324,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -8467,8 +8464,7 @@
         "finalMemo": "Pendle is a Do Not Promote. Do not promote until blockers clear."
       },
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -8693,7 +8689,7 @@
             "name": "Ondo",
             "symbol": "ONDO",
             "chain": "ethereum",
-            "score": 23
+            "score": 22
           }
         ]
       },
@@ -8757,7 +8753,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-13T06:51:09.835Z",
+          "timestamp": "2026-07-14T04:37:14.243Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -9098,9 +9094,9 @@
     {
       "key": "solana",
       "currentCount": 2,
-      "historicalCount": 185,
+      "historicalCount": 201,
       "currentSharePct": 25,
-      "heatScore": 82,
+      "heatScore": 83,
       "momentum": 7,
       "state": "Active"
     },
@@ -9125,7 +9121,16 @@
     {
       "key": "stablecoins",
       "currentCount": 1,
-      "historicalCount": 29,
+      "historicalCount": 34,
+      "currentSharePct": 12.5,
+      "heatScore": 46,
+      "momentum": 0,
+      "state": "Quiet"
+    },
+    {
+      "key": "perps",
+      "currentCount": 1,
+      "historicalCount": 26,
       "currentSharePct": 12.5,
       "heatScore": 45,
       "momentum": 1,
@@ -9134,18 +9139,9 @@
     {
       "key": "launchpads",
       "currentCount": 1,
-      "historicalCount": 28,
+      "historicalCount": 30,
       "currentSharePct": 12.5,
       "heatScore": 45,
-      "momentum": 1,
-      "state": "Quiet"
-    },
-    {
-      "key": "perps",
-      "currentCount": 1,
-      "historicalCount": 24,
-      "currentSharePct": 12.5,
-      "heatScore": 44,
       "momentum": 1,
       "state": "Quiet"
     },
@@ -9161,7 +9157,7 @@
     {
       "key": "base",
       "currentCount": 0,
-      "historicalCount": 235,
+      "historicalCount": 233,
       "currentSharePct": 0,
       "heatScore": 28,
       "momentum": -19,
@@ -9170,19 +9166,19 @@
     {
       "key": "zkPrivacy",
       "currentCount": 0,
-      "historicalCount": 68,
+      "historicalCount": 88,
       "currentSharePct": 0,
-      "heatScore": 22,
-      "momentum": -15,
+      "heatScore": 23,
+      "momentum": -16,
       "state": "Quiet"
     },
     {
       "key": "prediction",
       "currentCount": 0,
-      "historicalCount": 35,
+      "historicalCount": 45,
       "currentSharePct": 0,
-      "heatScore": 19,
-      "momentum": -12,
+      "heatScore": 20,
+      "momentum": -13,
       "state": "Quiet"
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.630Z",
+  "generatedAt": "2026-07-14T04:37:41.303Z",
   "counts": {
     "promote": 0,
     "priorityResearch": 3,
@@ -14,7 +14,7 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 54,
+      "score": 55,
       "verdict": "Governor Priority Research",
       "action": "Risk-Contained Priority Research",
       "reviewCadence": "Wait for risk compression",
@@ -25,7 +25,7 @@
       "sourceTruthScore": 52,
       "riskScore": 72,
       "moduleScores": {
-        "contractAccountability": 61,
+        "contractAccountability": 62,
         "outcomeAccountability": 40,
         "evidenceStack": 81,
         "agentAlignment": 45,
@@ -33,8 +33,8 @@
         "researchCompleteness": 42,
         "riskFirewall": 10,
         "learningLoop": 53,
-        "knowledgeGraph": 55,
-        "marketTwin": 56
+        "knowledgeGraph": 57,
+        "marketTwin": 62
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -117,14 +117,14 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Celestia is Governor Risk Block because contract accountability 61, evidence 81, agent alignment 45, risk firewall 10, outcome accountability 40, knowledge graph 55, and market twin 56."
+      "explanation": "Celestia is Governor Risk Block because contract accountability 62, evidence 81, agent alignment 45, risk firewall 10, outcome accountability 40, knowledge graph 57, and market twin 62."
     },
     {
       "rank": 2,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "score": 54,
+      "score": 55,
       "verdict": "Governor Priority Research",
       "action": "Risk-Contained Priority Research",
       "reviewCadence": "Wait for risk compression",
@@ -135,16 +135,16 @@
       "sourceTruthScore": 52,
       "riskScore": 73,
       "moduleScores": {
-        "contractAccountability": 62,
+        "contractAccountability": 63,
         "outcomeAccountability": 40,
         "evidenceStack": 81,
         "agentAlignment": 45,
         "discoveryBreadth": 30,
         "researchCompleteness": 45,
         "riskFirewall": 10,
-        "learningLoop": 51,
+        "learningLoop": 54,
         "knowledgeGraph": 57,
-        "marketTwin": 56
+        "marketTwin": 61
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -227,10 +227,10 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Pendle is Governor Risk Block because contract accountability 62, evidence 81, agent alignment 45, risk firewall 10, outcome accountability 40, knowledge graph 57, and market twin 56."
+      "explanation": "Pendle is Governor Risk Block because contract accountability 63, evidence 81, agent alignment 45, risk firewall 10, outcome accountability 40, knowledge graph 57, and market twin 61."
     },
     {
-      "rank": 3,
+      "rank": 4,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -252,9 +252,9 @@
         "discoveryBreadth": 30,
         "researchCompleteness": 37,
         "riskFirewall": 10,
-        "learningLoop": 55,
+        "learningLoop": 57,
         "knowledgeGraph": 55,
-        "marketTwin": 56
+        "marketTwin": 61
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -337,43 +337,42 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Bittensor is Governor Risk Block because contract accountability 62, evidence 65, agent alignment 44, risk firewall 10, outcome accountability 39, knowledge graph 55, and market twin 56."
+      "explanation": "Bittensor is Governor Risk Block because contract accountability 62, evidence 65, agent alignment 44, risk firewall 10, outcome accountability 39, knowledge graph 55, and market twin 61."
     }
   ],
   "recheckQueue": [],
   "evidenceGapQueue": [],
   "riskBlockQueue": [
     {
-      "rank": 4,
+      "rank": 3,
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 50,
+      "score": 51,
       "verdict": "Governor Risk Block",
       "action": "Block",
       "reviewCadence": "Wait for risk compression",
       "pipelineScore": 9,
-      "proofContractScore": 49,
-      "proofContractVerdict": "Invalidation Hit",
+      "proofContractScore": 43,
+      "proofContractVerdict": "Accountable Priority Research",
       "outcomeJudgeScore": 39,
       "sourceTruthScore": 53,
       "riskScore": 78,
       "moduleScores": {
-        "contractAccountability": 58,
+        "contractAccountability": 51,
         "outcomeAccountability": 38,
         "evidenceStack": 66,
         "agentAlignment": 33,
         "discoveryBreadth": 30,
         "researchCompleteness": 48,
-        "riskFirewall": 10,
-        "learningLoop": 52,
+        "riskFirewall": 22,
+        "learningLoop": 54,
         "knowledgeGraph": 56,
-        "marketTwin": 55
+        "marketTwin": 62
       },
       "blockers": [
         "Risk firewall is too weak.",
         "Red-team review is blocking the setup.",
-        "Prior contract hit an invalidation rule.",
         "Project resembles prior false positives."
       ],
       "missingProof": [
@@ -387,6 +386,114 @@
       "nextSteps": [
         "Risk firewall is too weak.",
         "Red-team review is blocking the setup.",
+        "Project resembles prior false positives."
+      ],
+      "upgradeDirectives": [
+        {
+          "system": "Knowledge Graph",
+          "priority": "Medium",
+          "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory."
+        },
+        {
+          "system": "Causal Market Twin",
+          "priority": "Medium",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths."
+        },
+        {
+          "system": "Outcome Brain",
+          "priority": "High",
+          "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes."
+        },
+        {
+          "system": "Source Mesh",
+          "priority": "High",
+          "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references."
+        },
+        {
+          "system": "Agent Council",
+          "priority": "High",
+          "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis."
+        },
+        {
+          "system": "Risk Firewall",
+          "priority": "Critical",
+          "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks."
+        },
+        {
+          "system": "Contract Accountability",
+          "priority": "High",
+          "task": "Strengthen public receipt rules and define the next invalidation review."
+        },
+        {
+          "system": "Missing Proof",
+          "priority": "High",
+          "task": "Add more independent discovery sources."
+        },
+        {
+          "system": "Missing Proof",
+          "priority": "High",
+          "task": "Run deeper roadmap, catalyst, website, GitHub, and social research."
+        },
+        {
+          "system": "Missing Proof",
+          "priority": "High",
+          "task": "Collect more outcome or paper-trade evidence."
+        },
+        {
+          "system": "Missing Proof",
+          "priority": "High",
+          "task": "Find and verify the official GitHub repository."
+        },
+        {
+          "system": "Missing Proof",
+          "priority": "High",
+          "task": "Confirm the project across more trusted sources."
+        }
+      ],
+      "explanation": "EigenLayer is Governor Risk Block because contract accountability 51, evidence 66, agent alignment 33, risk firewall 22, outcome accountability 38, knowledge graph 56, and market twin 62."
+    },
+    {
+      "rank": 5,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "score": 51,
+      "verdict": "Governor Risk Block",
+      "action": "Block",
+      "reviewCadence": "Wait for risk compression",
+      "pipelineScore": 0,
+      "proofContractScore": 39,
+      "proofContractVerdict": "Invalidation Hit",
+      "outcomeJudgeScore": 44,
+      "sourceTruthScore": 52,
+      "riskScore": 70,
+      "moduleScores": {
+        "contractAccountability": 50,
+        "outcomeAccountability": 39,
+        "evidenceStack": 81,
+        "agentAlignment": 42,
+        "discoveryBreadth": 30,
+        "researchCompleteness": 35,
+        "riskFirewall": 10,
+        "learningLoop": 53,
+        "knowledgeGraph": 57,
+        "marketTwin": 59
+      },
+      "blockers": [
+        "Risk firewall is too weak.",
+        "Prior contract hit an invalidation rule.",
+        "Project resembles prior false positives."
+      ],
+      "missingProof": [
+        "Add more independent discovery sources.",
+        "Run deeper roadmap, catalyst, website, GitHub, and social research.",
+        "Collect more outcome or paper-trade evidence.",
+        "Find and verify the official GitHub repository.",
+        "Confirm the project across more trusted sources.",
+        "Verify liquidity quality, depth, and concentration."
+      ],
+      "nextSteps": [
+        "Risk firewall is too weak.",
         "Prior contract hit an invalidation rule.",
         "Project resembles prior false positives."
       ],
@@ -423,7 +530,7 @@
         },
         {
           "system": "Contract Accountability",
-          "priority": "Medium",
+          "priority": "High",
           "task": "Strengthen public receipt rules and define the next invalidation review."
         },
         {
@@ -452,10 +559,10 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "EigenLayer is Governor Risk Block because contract accountability 58, evidence 66, agent alignment 33, risk firewall 10, outcome accountability 38, knowledge graph 56, and market twin 55."
+      "explanation": "Jupiter is Governor Risk Block because contract accountability 50, evidence 81, agent alignment 42, risk firewall 10, outcome accountability 39, knowledge graph 57, and market twin 59."
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
@@ -470,16 +577,16 @@
       "sourceTruthScore": 52,
       "riskScore": 75,
       "moduleScores": {
-        "contractAccountability": 61,
+        "contractAccountability": 62,
         "outcomeAccountability": 37,
         "evidenceStack": 65,
-        "agentAlignment": 42,
+        "agentAlignment": 41,
         "discoveryBreadth": 30,
-        "researchCompleteness": 38,
+        "researchCompleteness": 37,
         "riskFirewall": 10,
-        "learningLoop": 54,
-        "knowledgeGraph": 54,
-        "marketTwin": 54
+        "learningLoop": 52,
+        "knowledgeGraph": 55,
+        "marketTwin": 60
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -502,12 +609,12 @@
       "upgradeDirectives": [
         {
           "system": "Knowledge Graph",
-          "priority": "High",
+          "priority": "Medium",
           "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory."
         },
         {
           "system": "Causal Market Twin",
-          "priority": "High",
+          "priority": "Medium",
           "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths."
         },
         {
@@ -561,116 +668,7 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Akash Network is Governor Risk Block because contract accountability 61, evidence 65, agent alignment 42, risk firewall 10, outcome accountability 37, knowledge graph 54, and market twin 54."
-    },
-    {
-      "rank": 6,
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "chain": "solana",
-      "score": 50,
-      "verdict": "Governor Risk Block",
-      "action": "Block",
-      "reviewCadence": "Wait for risk compression",
-      "pipelineScore": 0,
-      "proofContractScore": 39,
-      "proofContractVerdict": "Invalidation Hit",
-      "outcomeJudgeScore": 44,
-      "sourceTruthScore": 52,
-      "riskScore": 70,
-      "moduleScores": {
-        "contractAccountability": 49,
-        "outcomeAccountability": 39,
-        "evidenceStack": 81,
-        "agentAlignment": 42,
-        "discoveryBreadth": 30,
-        "researchCompleteness": 35,
-        "riskFirewall": 10,
-        "learningLoop": 50,
-        "knowledgeGraph": 56,
-        "marketTwin": 54
-      },
-      "blockers": [
-        "Risk firewall is too weak.",
-        "Prior contract hit an invalidation rule.",
-        "Project resembles prior false positives."
-      ],
-      "missingProof": [
-        "Add more independent discovery sources.",
-        "Run deeper roadmap, catalyst, website, GitHub, and social research.",
-        "Collect more outcome or paper-trade evidence.",
-        "Find and verify the official GitHub repository.",
-        "Confirm the project across more trusted sources.",
-        "Verify liquidity quality, depth, and concentration."
-      ],
-      "nextSteps": [
-        "Risk firewall is too weak.",
-        "Prior contract hit an invalidation rule.",
-        "Project resembles prior false positives."
-      ],
-      "upgradeDirectives": [
-        {
-          "system": "Knowledge Graph",
-          "priority": "Medium",
-          "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory."
-        },
-        {
-          "system": "Causal Market Twin",
-          "priority": "High",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths."
-        },
-        {
-          "system": "Outcome Brain",
-          "priority": "High",
-          "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes."
-        },
-        {
-          "system": "Source Mesh",
-          "priority": "High",
-          "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references."
-        },
-        {
-          "system": "Agent Council",
-          "priority": "High",
-          "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis."
-        },
-        {
-          "system": "Risk Firewall",
-          "priority": "Critical",
-          "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks."
-        },
-        {
-          "system": "Contract Accountability",
-          "priority": "High",
-          "task": "Strengthen public receipt rules and define the next invalidation review."
-        },
-        {
-          "system": "Missing Proof",
-          "priority": "High",
-          "task": "Add more independent discovery sources."
-        },
-        {
-          "system": "Missing Proof",
-          "priority": "High",
-          "task": "Run deeper roadmap, catalyst, website, GitHub, and social research."
-        },
-        {
-          "system": "Missing Proof",
-          "priority": "High",
-          "task": "Collect more outcome or paper-trade evidence."
-        },
-        {
-          "system": "Missing Proof",
-          "priority": "High",
-          "task": "Find and verify the official GitHub repository."
-        },
-        {
-          "system": "Missing Proof",
-          "priority": "High",
-          "task": "Confirm the project across more trusted sources."
-        }
-      ],
-      "explanation": "Jupiter is Governor Risk Block because contract accountability 49, evidence 81, agent alignment 42, risk firewall 10, outcome accountability 39, knowledge graph 56, and market twin 54."
+      "explanation": "Akash Network is Governor Risk Block because contract accountability 62, evidence 65, agent alignment 41, risk firewall 10, outcome accountability 37, knowledge graph 55, and market twin 60."
     },
     {
       "rank": 7,
@@ -695,9 +693,9 @@
         "discoveryBreadth": 30,
         "researchCompleteness": 30,
         "riskFirewall": 10,
-        "learningLoop": 54,
-        "knowledgeGraph": 53,
-        "marketTwin": 54
+        "learningLoop": 56,
+        "knowledgeGraph": 54,
+        "marketTwin": 58
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -725,7 +723,7 @@
         },
         {
           "system": "Causal Market Twin",
-          "priority": "High",
+          "priority": "Medium",
           "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths."
         },
         {
@@ -779,34 +777,34 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Render is Governor Risk Block because contract accountability 60, evidence 65, agent alignment 40, risk firewall 10, outcome accountability 37, knowledge graph 53, and market twin 54."
+      "explanation": "Render is Governor Risk Block because contract accountability 60, evidence 65, agent alignment 40, risk firewall 10, outcome accountability 37, knowledge graph 54, and market twin 58."
     },
     {
       "rank": 8,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 48,
+      "score": 49,
       "verdict": "Governor Risk Block",
       "action": "Block",
       "reviewCadence": "Wait for risk compression",
-      "pipelineScore": 2,
-      "proofContractScore": 44,
+      "pipelineScore": 1,
+      "proofContractScore": 45,
       "proofContractVerdict": "Invalidation Hit",
       "outcomeJudgeScore": 39,
       "sourceTruthScore": 49,
-      "riskScore": 76,
+      "riskScore": 75,
       "moduleScores": {
-        "contractAccountability": 54,
+        "contractAccountability": 55,
         "outcomeAccountability": 37,
         "evidenceStack": 64,
         "agentAlignment": 41,
         "discoveryBreadth": 30,
-        "researchCompleteness": 34,
+        "researchCompleteness": 33,
         "riskFirewall": 10,
-        "learningLoop": 54,
+        "learningLoop": 56,
         "knowledgeGraph": 54,
-        "marketTwin": 52
+        "marketTwin": 58
       },
       "blockers": [
         "Risk firewall is too weak.",
@@ -834,7 +832,7 @@
         },
         {
           "system": "Causal Market Twin",
-          "priority": "High",
+          "priority": "Medium",
           "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths."
         },
         {
@@ -859,7 +857,7 @@
         },
         {
           "system": "Contract Accountability",
-          "priority": "High",
+          "priority": "Medium",
           "task": "Strengthen public receipt rules and define the next invalidation review."
         },
         {
@@ -888,7 +886,7 @@
           "task": "Confirm the project across more trusted sources."
         }
       ],
-      "explanation": "Ondo is Governor Risk Block because contract accountability 54, evidence 64, agent alignment 41, risk firewall 10, outcome accountability 37, knowledge graph 54, and market twin 52."
+      "explanation": "Ondo is Governor Risk Block because contract accountability 55, evidence 64, agent alignment 41, risk firewall 10, outcome accountability 37, knowledge graph 54, and market twin 58."
     }
   ],
   "directiveLeaderboard": [
@@ -909,17 +907,17 @@
           "priority": "Critical"
         },
         {
-          "symbol": "TAO",
-          "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks.",
-          "priority": "Critical"
-        },
-        {
           "symbol": "EIGEN",
           "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks.",
           "priority": "Critical"
         },
         {
-          "symbol": "AKT",
+          "symbol": "TAO",
+          "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks.",
+          "priority": "Critical"
+        },
+        {
+          "symbol": "JUP",
           "task": "Recheck trap, unlock, sell pressure, liquidity concentration, bot, and false-positive risks.",
           "priority": "Critical"
         }
@@ -975,17 +973,17 @@
           "priority": "High"
         },
         {
-          "symbol": "TAO",
-          "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes.",
-          "priority": "High"
-        },
-        {
           "symbol": "EIGEN",
           "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes.",
           "priority": "High"
         },
         {
-          "symbol": "AKT",
+          "symbol": "TAO",
+          "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes.",
+          "priority": "High"
+        },
+        {
+          "symbol": "JUP",
           "task": "Grade this setup against 1h, 24h, 7d, 30d, and 90d outcomes.",
           "priority": "High"
         }
@@ -1008,17 +1006,17 @@
           "priority": "High"
         },
         {
-          "symbol": "TAO",
-          "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references.",
-          "priority": "High"
-        },
-        {
           "symbol": "EIGEN",
           "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references.",
           "priority": "High"
         },
         {
-          "symbol": "AKT",
+          "symbol": "TAO",
+          "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references.",
+          "priority": "High"
+        },
+        {
+          "symbol": "JUP",
           "task": "Expand source coverage with official site, docs, GitHub, news, DEX, and ecosystem references.",
           "priority": "High"
         }
@@ -1041,51 +1039,18 @@
           "priority": "High"
         },
         {
-          "symbol": "TAO",
-          "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis.",
-          "priority": "High"
-        },
-        {
           "symbol": "EIGEN",
           "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis.",
           "priority": "High"
         },
         {
-          "symbol": "AKT",
+          "symbol": "TAO",
           "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis.",
           "priority": "High"
-        }
-      ]
-    },
-    {
-      "system": "Causal Market Twin",
-      "critical": 0,
-      "high": 4,
-      "medium": 4,
-      "examples": [
-        {
-          "symbol": "TIA",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
-          "priority": "Medium"
         },
         {
-          "symbol": "PENDLE",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
-          "priority": "Medium"
-        },
-        {
-          "symbol": "TAO",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
-          "priority": "Medium"
-        },
-        {
-          "symbol": "EIGEN",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
-          "priority": "Medium"
-        },
-        {
-          "symbol": "AKT",
-          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
+          "symbol": "JUP",
+          "task": "Run bull, bear, fraud, catalyst, liquidity, GitHub, and tokenomics agents against the thesis.",
           "priority": "High"
         }
       ]
@@ -1093,8 +1058,8 @@
     {
       "system": "Knowledge Graph",
       "critical": 0,
-      "high": 3,
-      "medium": 5,
+      "high": 2,
+      "medium": 6,
       "examples": [
         {
           "symbol": "TIA",
@@ -1107,19 +1072,19 @@
           "priority": "Medium"
         },
         {
-          "symbol": "TAO",
-          "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory.",
-          "priority": "Medium"
-        },
-        {
           "symbol": "EIGEN",
           "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory.",
           "priority": "Medium"
         },
         {
-          "symbol": "AKT",
+          "symbol": "TAO",
           "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory.",
-          "priority": "High"
+          "priority": "Medium"
+        },
+        {
+          "symbol": "JUP",
+          "task": "Link project identity, sources, roadmap, GitHub, narratives, peers, and prior outcomes into graph memory.",
+          "priority": "Medium"
         }
       ]
     },
@@ -1140,18 +1105,51 @@
           "priority": "Medium"
         },
         {
+          "symbol": "EIGEN",
+          "task": "Strengthen public receipt rules and define the next invalidation review.",
+          "priority": "High"
+        },
+        {
           "symbol": "TAO",
           "task": "Strengthen public receipt rules and define the next invalidation review.",
           "priority": "Medium"
         },
         {
-          "symbol": "EIGEN",
+          "symbol": "JUP",
           "task": "Strengthen public receipt rules and define the next invalidation review.",
+          "priority": "High"
+        }
+      ]
+    },
+    {
+      "system": "Causal Market Twin",
+      "critical": 0,
+      "high": 0,
+      "medium": 8,
+      "examples": [
+        {
+          "symbol": "TIA",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
           "priority": "Medium"
         },
         {
-          "symbol": "AKT",
-          "task": "Strengthen public receipt rules and define the next invalidation review.",
+          "symbol": "PENDLE",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
+          "priority": "Medium"
+        },
+        {
+          "symbol": "EIGEN",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
+          "priority": "Medium"
+        },
+        {
+          "symbol": "TAO",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
+          "priority": "Medium"
+        },
+        {
+          "symbol": "JUP",
+          "task": "Run scenario review across bull, base, bear, listing, liquidity drain, narrative rotation, and invalidation paths.",
           "priority": "Medium"
         }
       ]

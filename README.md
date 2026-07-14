@@ -20,7 +20,7 @@ This is not a simple token screener. It is a layered research system with:
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
 - Causal Market Twin scenario engine
-- Small-Cap Hunter for two best-available $100 paper-research candidates
+- Small-Cap Hunter for two best-available $100 paper-research candidates with Coinbase/MetaMask route gating
 - Self-evolving Alpha OS with thesis generation
 - Paper-trade strategy simulation
 - Outcome learning
@@ -147,7 +147,7 @@ The project now behaves like a miniature autonomous research organization.
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
-| Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
+| Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
 
 ## Autonomous Alpha OS
 
@@ -310,6 +310,7 @@ Small-Cap Hunter is built for small-account research mode.
 It searches the full scan output for two best-available candidates that are:
 
 - Small enough to still have asymmetric upside potential
+- Detectable through Coinbase or a MetaMask-compatible wallet route
 - Liquid enough for a $100 paper-sized plan
 - Supported by source truth, proof, roadmap, GitHub, graph, or catalyst structure
 - Confirmed by AI/OS/governor consensus where available
@@ -323,6 +324,13 @@ npm run small-caps
 ```
 
 The output is `reports/small-cap-hunter.json`. It includes the top two candidates, score, cap band, liquidity impact estimate, paper plan, warnings, and manual verification checklist. This is research software only, not a buy list.
+
+By default, Small-Cap Hunter will not select a token unless it detects one of these routes:
+
+- Coinbase source, Coinbase exchange field, or Coinbase market URL
+- MetaMask-compatible chain plus a token contract or DEX pair route from free DEX sources
+
+You can loosen that gate for research experiments with `SMALL_CAP_REQUIRE_PURCHASE_ROUTE=false`, but the safer default is to require route proof.
 
 ## Outcome Lab and Auto-Learning
 
@@ -493,7 +501,7 @@ Every scan can generate a full research packet:
 | `reports/causal-market-twin.json` | Scenario probabilities, expected return, best/worst paths, and next experiments |
 | `reports/alpha-evolution-governor.json` | Meta-governor operating report |
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
-| `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with $100 paper plan, structure score, upside score, and risk warnings |
+| `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with Coinbase/MetaMask route status, $100 paper plan, structure score, upside score, and risk warnings |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |

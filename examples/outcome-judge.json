@@ -1,16 +1,24 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.516Z",
+  "generatedAt": "2026-07-14T04:37:36.404Z",
   "totalProjects": 8,
   "trackedProjects": 0,
   "coldStartProjects": 8,
-  "reliabilitySampleCount": 1386,
+  "reliabilitySampleCount": 1390,
   "strongestEngines": [
     {
+      "engine": "quantumBrain",
+      "samples": 1,
+      "hitRate": 100,
+      "missRate": 0,
+      "trustScore": 82,
+      "confidence": "Cold Start"
+    },
+    {
       "engine": "narrativeHeat",
-      "samples": 25,
+      "samples": 29,
       "hitRate": 28,
-      "missRate": 36,
-      "trustScore": 37,
+      "missRate": 41,
+      "trustScore": 36,
       "confidence": "Medium"
     },
     {
@@ -31,10 +39,10 @@
     },
     {
       "engine": "alphaLab",
-      "samples": 6,
-      "hitRate": 17,
-      "missRate": 33,
-      "trustScore": 12,
+      "samples": 7,
+      "hitRate": 29,
+      "missRate": 29,
+      "trustScore": 22,
       "confidence": "Low"
     },
     {
@@ -55,14 +63,6 @@
     },
     {
       "engine": "aiEcosystem",
-      "samples": 0,
-      "hitRate": 0,
-      "missRate": 0,
-      "trustScore": 7,
-      "confidence": "Cold Start"
-    },
-    {
-      "engine": "simulationBrain",
       "samples": 0,
       "hitRate": 0,
       "missRate": 0,
@@ -265,9 +265,9 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 1,
       "simulationBrainScore": 32,
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "outcomeJudgeScore": 39,
       "outcomeJudgeStatus": "Cold Start",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
@@ -315,7 +315,7 @@
       "chain": "cosmos",
       "pipelineScore": 3,
       "simulationBrainScore": 27,
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "outcomeJudgeScore": 38,
       "outcomeJudgeStatus": "Cold Start",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
@@ -439,9 +439,9 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 1,
       "simulationBrainScore": 32,
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "outcomeJudgeScore": 39,
       "outcomeJudgeStatus": "Cold Start",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
@@ -513,7 +513,7 @@
       "chain": "cosmos",
       "pipelineScore": 3,
       "simulationBrainScore": 27,
-      "aiEcosystemScore": 50,
+      "aiEcosystemScore": 49,
       "outcomeJudgeScore": 38,
       "outcomeJudgeStatus": "Cold Start",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",

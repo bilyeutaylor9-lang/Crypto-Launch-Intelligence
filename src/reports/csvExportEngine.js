@@ -72,6 +72,10 @@ export function writeCsvReport(projects = []) {
     "smallCapUpsideScore",
     "smallCapExecutionScore",
     "smallCapRiskScore",
+    "smallCapPurchaseRoute",
+    "smallCapPurchaseRouteStatus",
+    "smallCapPurchaseRouteScore",
+    "smallCapDetectedRoutes",
     "smallCapPaperBudgetUsd",
     "smallCapLiquidityImpactPct",
     "smallCapWarnings",
@@ -260,6 +264,12 @@ export function writeCsvReport(projects = []) {
     p.smallCapUpsideScore ?? "",
     p.smallCapExecutionScore ?? "",
     p.smallCapRiskScore ?? "",
+    p.smallCapHunter?.purchaseRoute?.preferredRoute ?? "",
+    p.smallCapHunter?.purchaseRoute?.status ?? "",
+    p.smallCapHunter?.purchaseRoute?.score ?? "",
+    Array.isArray(p.smallCapHunter?.purchaseRoute?.routes)
+      ? p.smallCapHunter.purchaseRoute.routes.map((route) => route.type).join("; ")
+      : "",
     p.smallCapHunter?.paperPlan?.totalPaperBudgetUsd ?? "",
     p.smallCapHunter?.execution?.estimatedLiquidityImpactPct ?? "",
     Array.isArray(p.smallCapHunter?.warnings)

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.562Z",
+  "generatedAt": "2026-07-14T04:37:38.743Z",
   "description": "Breakout Brain ranks near-term breakout research candidates using deterministic Monte Carlo quantum scenario simulations. It is not financial advice.",
   "totalProjects": 8,
   "simulatedProjects": 8,
@@ -121,8 +121,7 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -162,7 +161,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 44
+          "score": 45
         },
         {
           "driver": "Catalyst",
@@ -183,8 +182,7 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -309,8 +307,7 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -350,7 +347,7 @@
         },
         {
           "driver": "Institutional Stack",
-          "score": 44
+          "score": 45
         },
         {
           "driver": "Catalyst",
@@ -371,8 +368,7 @@
         "Proof gap remains; verify roadmap, liquidity, team, and source stack."
       ],
       "alphaTags": [
-        "Narrative Heat",
-        "Top-2 Small-Cap Research Candidate"
+        "Narrative Heat"
       ],
       "riskFlags": [
         "Resembles prior outcome traps",
@@ -450,26 +446,26 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineRank": 6,
-      "pipelineScore": 2,
-      "breakoutBrainScore": 19,
+      "pipelineScore": 1,
+      "breakoutBrainScore": 18,
       "breakoutBrainDecision": "Low Breakout Priority",
-      "breakoutProbabilitySoon": 18,
-      "blowUpProbabilitySoon": 18,
-      "expectedReturn30dPct": 11,
-      "bestCaseReturnPct": 49,
+      "breakoutProbabilitySoon": 16,
+      "blowUpProbabilitySoon": 16,
+      "expectedReturn30dPct": 9,
+      "bestCaseReturnPct": 46,
       "bearCaseReturnPct": -28,
       "confidence": "Medium",
       "confidenceScore": 63,
       "simulations": 4096,
-      "positiveProbability": 61,
+      "positiveProbability": 60,
       "doubleProbability": 0,
       "tripleProbability": 0,
       "collapseProbability": 6,
-      "asymmetryRatio": 1.75,
+      "asymmetryRatio": 1.64,
       "topDrivers": [
         {
           "driver": "Narrative",
-          "score": 45
+          "score": 46
         },
         {
           "driver": "Catalyst",
@@ -484,8 +480,8 @@
           "score": 39
         },
         {
-          "driver": "Social",
-          "score": 31
+          "driver": "Flows",
+          "score": 28
         }
       ],
       "riskControls": [
@@ -510,33 +506,33 @@
       "chain": "cosmos",
       "pipelineRank": 4,
       "pipelineScore": 3,
-      "breakoutBrainScore": 15,
+      "breakoutBrainScore": 14,
       "breakoutBrainDecision": "Low Breakout Priority",
       "breakoutProbabilitySoon": 10,
       "blowUpProbabilitySoon": 10,
       "expectedReturn30dPct": 5,
-      "bestCaseReturnPct": 40,
-      "bearCaseReturnPct": -30,
+      "bestCaseReturnPct": 39,
+      "bearCaseReturnPct": -31,
       "confidence": "Medium",
-      "confidenceScore": 64,
+      "confidenceScore": 63,
       "simulations": 4096,
       "positiveProbability": 55,
       "doubleProbability": 0,
       "tripleProbability": 0,
-      "collapseProbability": 6,
-      "asymmetryRatio": 1.33,
+      "collapseProbability": 7,
+      "asymmetryRatio": 1.26,
       "topDrivers": [
         {
           "driver": "Narrative",
           "score": 64
         },
         {
-          "driver": "Learning",
-          "score": 40
+          "driver": "Institutional Stack",
+          "score": 41
         },
         {
-          "driver": "Institutional Stack",
-          "score": 40
+          "driver": "Learning",
+          "score": 38
         },
         {
           "driver": "Catalyst",
@@ -560,7 +556,7 @@
         "AI analyst rejection",
         "Weak liquidity support"
       ],
-      "thesis": "Akash Network is led by signalCombos 59, narrative 53, prePumpPattern 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
+      "thesis": "Akash Network is led by narrative 53, prePumpPattern 50, signalCombos 50. Key tags: Narrative Heat. Main risk: Resembles prior outcome traps."
     },
     {
       "rank": 7,
@@ -652,11 +648,11 @@
         },
         {
           "driver": "Learning",
-          "score": 39
+          "score": 40
         },
         {
           "driver": "Institutional Stack",
-          "score": 39
+          "score": 40
         },
         {
           "driver": "Flows",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.520Z",
+  "generatedAt": "2026-07-14T04:37:36.412Z",
   "totalProjects": 8,
   "dossieredProjects": 8,
   "counts": {
@@ -806,7 +806,7 @@
       "pipelineScore": 3,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Pass For Now",
@@ -814,7 +814,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -983,7 +983,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -1025,7 +1025,7 @@
               },
               {
                 "label": "proofScore",
-                "value": 4,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -1065,26 +1065,26 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 1,
       "simulationBrainScore": 32,
       "outcomeJudgeScore": 39,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 16,
       "dossierSwarmDecision": "Do Not Promote",
-      "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
+      "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Pass For Now",
       "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 16,
         "consensus": {
           "approve": 0,
-          "watch": 2,
-          "reject": 5,
+          "watch": 1,
+          "reject": 6,
           "challenge": 0,
           "block": 0,
           "clear": 1,
-          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
         },
         "agents": [
           {
@@ -1141,13 +1141,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 48,
-            "vote": "Watch",
+            "score": 45,
+            "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 51,
+                "value": 52,
                 "interpretation": "needs work"
               },
               {
@@ -1157,7 +1157,7 @@
               },
               {
                 "label": "xSocialScore",
-                "value": 36,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -1218,7 +1218,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 40,
+            "score": 39,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -1229,7 +1229,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 76,
+                "value": 75,
                 "interpretation": "risk"
               },
               {
@@ -1271,13 +1271,13 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 22,
+            "score": 19,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 37,
+                "value": 36,
                 "interpretation": "needs work"
               },
               {
@@ -1689,7 +1689,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 22,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -1705,7 +1705,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -1932,7 +1932,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 57,
+                "value": 58,
                 "interpretation": "needs work"
               },
               {
@@ -2904,7 +2904,7 @@
       "pipelineScore": 3,
       "simulationBrainScore": 27,
       "outcomeJudgeScore": 38,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 20,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Pass For Now",
@@ -2912,7 +2912,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 20,
         "consensus": {
           "approve": 0,
           "watch": 2,
@@ -3081,7 +3081,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 37,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -3123,7 +3123,7 @@
               },
               {
                 "label": "proofScore",
-                "value": 4,
+                "value": 1,
                 "interpretation": "needs work"
               }
             ],
@@ -3163,26 +3163,26 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 1,
       "simulationBrainScore": 32,
       "outcomeJudgeScore": 39,
-      "dossierSwarmScore": 21,
+      "dossierSwarmScore": 16,
       "dossierSwarmDecision": "Do Not Promote",
-      "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
+      "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Pass For Now",
       "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 21,
+        "score": 16,
         "consensus": {
           "approve": 0,
-          "watch": 2,
-          "reject": 5,
+          "watch": 1,
+          "reject": 6,
           "challenge": 0,
           "block": 0,
           "clear": 1,
-          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
         },
         "agents": [
           {
@@ -3239,13 +3239,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 48,
-            "vote": "Watch",
+            "score": 45,
+            "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 51,
+                "value": 52,
                 "interpretation": "needs work"
               },
               {
@@ -3255,7 +3255,7 @@
               },
               {
                 "label": "xSocialScore",
-                "value": 36,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -3316,7 +3316,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 40,
+            "score": 39,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -3327,7 +3327,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 76,
+                "value": 75,
                 "interpretation": "risk"
               },
               {
@@ -3369,13 +3369,13 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 22,
+            "score": 19,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
               {
                 "label": "agentAverage",
-                "value": 37,
+                "value": 36,
                 "interpretation": "needs work"
               },
               {
@@ -3787,7 +3787,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 23,
+            "score": 22,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -3803,7 +3803,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 25,
+                "value": 24,
                 "interpretation": "needs work"
               }
             ],
@@ -4030,7 +4030,7 @@
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 57,
+                "value": 58,
                 "interpretation": "needs work"
               },
               {
@@ -4231,8 +4231,8 @@
       "samples": 8,
       "averageScore": 44,
       "approve": 0,
-      "watch": 5,
-      "reject": 3,
+      "watch": 4,
+      "reject": 4,
       "challenge": 0,
       "block": 0
     },

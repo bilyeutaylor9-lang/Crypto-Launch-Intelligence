@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.603Z",
+  "generatedAt": "2026-07-14T04:37:40.131Z",
   "totalReceipts": 8,
   "publicReceipts": [
     {
@@ -103,31 +103,6 @@
       }
     },
     {
-      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
-      "symbol": "EIGEN",
-      "score": 49,
-      "verdict": "Invalidation Hit",
-      "confidence": "Medium",
-      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
-      "receipt": {
-        "headline": "EIGEN contract: Medium confidence, score 41.",
-        "mustProve": [
-          "Contract score stays at or above 35.",
-          "Risk score remains below 78.",
-          "Liquidity does not drop more than 30% from entry.",
-          "Source truth or proof score stays above 45.",
-          "Catalyst, liquidity expansion, or capital flow remains active."
-        ],
-        "invalidationRules": [
-          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
-          "Liquidity falls more than 40% from entry.",
-          "Both source truth and proof fall below 35.",
-          "Agent committee or Alpha OS flips to a block decision."
-        ],
-        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
-      }
-    },
-    {
       "contractId": "alpha-contract:research-seed-rndr:qhzloy",
       "symbol": "RNDR",
       "score": 49,
@@ -155,7 +130,7 @@
     {
       "contractId": "alpha-contract:research-seed-ondo:1nul8jw",
       "symbol": "ONDO",
-      "score": 44,
+      "score": 45,
       "verdict": "Invalidation Hit",
       "confidence": "Developing",
       "thesis": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window..",
@@ -175,6 +150,32 @@
           "Agent committee or Alpha OS flips to a block decision."
         ],
         "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d."
+      }
+    },
+    {
+      "contractId": "alpha-contract:research-seed-eigen:obdf5d",
+      "symbol": "EIGEN",
+      "score": 43,
+      "verdict": "Accountable Priority Research",
+      "confidence": "Medium",
+      "thesis": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window..",
+      "receipt": {
+        "headline": "EIGEN contract: Medium confidence, score 41.",
+        "mustProve": [
+          "Contract score stays at or above 35.",
+          "Risk score remains below 78.",
+          "Liquidity does not drop more than 30% from entry.",
+          "Source truth or proof score stays above 45.",
+          "Catalyst, liquidity expansion, or capital flow remains active."
+        ],
+        "invalidationRules": [
+          "Risk, sell pressure, trap, unlock, or bot risk rises above 70.",
+          "Liquidity falls more than 40% from entry.",
+          "Both source truth and proof fall below 35.",
+          "Agent committee or Alpha OS flips to a block decision."
+        ],
+        "accountability": "This contract must be re-judged at 1h, 24h, 7d, 30d, and 90d.",
+        "caveat": "Best-available research floor: promoted for accountable research only, not as a buy signal."
       }
     },
     {

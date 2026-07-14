@@ -194,6 +194,7 @@ function printSummary(summary) {
   console.log(`Small-Cap Hunter Picks: ${summary.smallCapHunterSelectedCount}`);
   console.log(`Small-Cap Watch: ${summary.smallCapHunterWatchCount}`);
   console.log(`Small-Cap Risk Blocks: ${summary.smallCapHunterRiskBlockCount}`);
+  console.log(`Small-Cap Route Blocks: ${summary.smallCapHunterPurchaseRouteBlockCount}`);
   console.log(`Paper Strategy Promotions: ${summary.paperOutcomePromotionCount}`);
   console.log(`Verified Source Stacks: ${summary.verifiedSourceStackCount}`);
   console.log(`Healthy GitHub Signals: ${summary.healthyGithubSignalCount}`);
@@ -238,7 +239,9 @@ function printTopProjects(results) {
       );
     }
     if (project.smallCapHunterSelected) {
-      console.log(`   Small-Cap Hunter: #${project.smallCapHunterSelectionRank} (${project.smallCapHunterScore || 0})`);
+      console.log(
+        `   Small-Cap Hunter: #${project.smallCapHunterSelectionRank} (${project.smallCapHunterScore || 0}) via ${project.smallCapHunter?.purchaseRoute?.preferredRoute || "unverified route"}`
+      );
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);

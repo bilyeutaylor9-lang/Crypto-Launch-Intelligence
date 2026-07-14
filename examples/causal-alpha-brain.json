@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T06:51:10.533Z",
+  "generatedAt": "2026-07-14T04:37:36.609Z",
   "totalProjects": 8,
   "strongBuyCandidates": 0,
   "priorityResearch": 0,
@@ -31,8 +31,8 @@
         },
         {
           "remove": "Strategy Fit",
-          "scoreWithoutDriver": 52,
-          "estimatedImpact": 10,
+          "scoreWithoutDriver": 51,
+          "estimatedImpact": 11,
           "interpretation": "Strategy Fit is not yet strong enough to carry the thesis alone."
         },
         {
