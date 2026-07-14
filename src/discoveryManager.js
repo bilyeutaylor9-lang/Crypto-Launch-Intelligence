@@ -10,6 +10,7 @@ import { getExpandedMarketDataProviderBatch } from "./data/expandedMarketDataCon
 import { getFallbackResearchSeedCandidates } from "./data/fallbackResearchSeedConnector.js";
 import { getGoogleNewsDiscoveryCandidates } from "./data/googleNewsDiscoveryConnector.js";
 import { getGithubProjectDiscoveryCandidates } from "./data/githubProjectDiscoveryConnector.js";
+import { getNativeDiscoveryMeshCandidates } from "./data/native/nativeDiscoveryMesh.js";
 import { buildCandidateRescueExpansion } from "./data/candidateRescueExpansionEngine.js";
 import { runAIDiscoverySwarm } from "./data/aiDiscoverySwarmEngine.js";
 import {
@@ -337,6 +338,7 @@ function discoveryPriority(project = {}) {
   const narrativeAcceleration = clamp(narrativeHits * 14 + num(project.narrativeHeatScore) * 0.35);
   const smartWalletArrival = clamp(num(project.smartWalletScore || project.smartMoneyAccumulationScore));
   const developerAcceleration = clamp(num(project.githubVelocityScore || project.developerActivityScore || project.githubProScore));
+  const nativeDiscovery = clamp(num(project.nativeDiscoveryScore));
   const launchProximity = clamp(
     lane === "prelaunch"
       ? narrativeHits * 12 + (text.includes("tge") || text.includes("mainnet") ? 30 : 0)
@@ -359,6 +361,7 @@ function discoveryPriority(project = {}) {
       narrativeAcceleration * 0.1 +
       smartWalletArrival * 0.08 +
       developerAcceleration * 0.05 +
+      nativeDiscovery * 0.12 +
       launchProximity * 0.05 -
       manipulationRisk * 0.2 -
       seedPenalty
@@ -405,6 +408,11 @@ export async function runDiscoveryManager(options = {}) {
       process.env.GITHUB_DISCOVERY_LIMIT ||
       (wideScan ? 500 : 120)
   );
+  const nativeDiscoveryLimit = num(
+    options.nativeDiscoveryLimit ||
+      process.env.NATIVE_DISCOVERY_LIMIT ||
+      (wideScan ? 1000 : 250)
+  );
   const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
   const seedSupplementThreshold = num(
     options.seedSupplementThreshold ||
@@ -449,6 +457,13 @@ export async function runDiscoveryManager(options = {}) {
   const githubDiscovery = await routedSource(sourceRouterPlan, "githubProjectDiscovery", "GitHubProjectDiscovery", () =>
     getGithubProjectDiscoveryCandidates({ limit: githubDiscoveryLimit })
   );
+  const nativeDiscovery = await routedSource(sourceRouterPlan, "nativeDiscoveryMesh", "NativeDiscoveryMesh", () =>
+    getNativeDiscoveryMeshCandidates({
+      limit: nativeDiscoveryLimit,
+      collectConnectors: options.nativeDiscovery?.collectConnectors ?? process.env.NATIVE_DISCOVERY_COLLECT === "true",
+      includeRaw: options.nativeDiscovery?.includeRaw ?? true,
+    })
+  );
 
   const dexResults = normalizeResults(dex.output, []);
   const geckoResults = normalizeResults(gecko.output, []);
@@ -458,6 +473,7 @@ export async function runDiscoveryManager(options = {}) {
   const expandedMarketResults = normalizeResults(expandedMarket.output, []);
   const googleNewsResults = normalizeResults(googleNews.output, []);
   const githubDiscoveryResults = normalizeResults(githubDiscovery.output, []);
+  const nativeDiscoveryResults = normalizeResults(nativeDiscovery.output, []);
   const freeMarketProviders = providerResultsFrom(freeMarket.output);
   const expandedMarketProviders = providerResultsFrom(expandedMarket.output);
   const providerHealth = summarizeProviders([
@@ -474,6 +490,7 @@ export async function runDiscoveryManager(options = {}) {
     ...expandedMarketResults.map((p) => enrichDiscoverySource(p, p.source || "expanded-market")),
     ...googleNewsResults.map((p) => enrichDiscoverySource(p, "google-news")),
     ...githubDiscoveryResults.map((p) => enrichDiscoverySource(p, "github-project-discovery")),
+    ...nativeDiscoveryResults.map((p) => enrichDiscoverySource(p, "native-discovery-mesh")),
   ];
 
   const liveDedupedPool = dedupeAndMerge(rawPool);
@@ -516,6 +533,7 @@ export async function runDiscoveryManager(options = {}) {
             expandedMarketData: expandedMarket,
             googleNewsDiscovery: googleNews,
             githubProjectDiscovery: githubDiscovery,
+            nativeDiscoveryMesh: nativeDiscovery,
           },
         },
         options.candidateRescue || {}
@@ -584,6 +602,7 @@ export async function runDiscoveryManager(options = {}) {
       "gemini",
       "google-news",
       "github-project-discovery",
+      "native-discovery-mesh",
       "research-seed-supplement",
       "ai-discovery-swarm",
       "candidate-rescue",
@@ -598,6 +617,7 @@ export async function runDiscoveryManager(options = {}) {
       expandedMarketResults.length +
       googleNewsResults.length +
       githubDiscoveryResults.length +
+      nativeDiscoveryResults.length +
       fallbackSeedResults.length +
       (aiDiscoverySwarm.candidates?.length || 0) +
       (rescueExpansion.candidates?.length || 0),
@@ -607,6 +627,7 @@ export async function runDiscoveryManager(options = {}) {
     seedSupplementCount: fallbackSeedResults.length,
     seedSupplementThreshold,
     aiDiscoverySwarmCount: aiDiscoverySwarm.candidates?.length || 0,
+    nativeDiscoveryMeshCount: nativeDiscoveryResults.length,
     candidateRescueCount: rescueExpansion.candidates?.length || 0,
     dedupedCount: dedupedPool.length,
     acceptedCount: candidatePool.length,
@@ -724,6 +745,15 @@ export async function runDiscoveryManager(options = {}) {
         enabled: process.env.DISABLE_GITHUB_DISCOVERY !== "true",
         error: githubDiscovery.error,
         report: githubDiscovery.output?.report,
+      },
+
+      nativeDiscoveryMesh: {
+        status: nativeDiscovery.status,
+        durationMs: nativeDiscovery.durationMs,
+        scannedTokens: nativeDiscoveryResults.length,
+        enabled: process.env.DISABLE_NATIVE_DISCOVERY_MESH !== "true",
+        error: nativeDiscovery.error,
+        report: nativeDiscovery.output?.report,
       },
 
       researchSeeds: {

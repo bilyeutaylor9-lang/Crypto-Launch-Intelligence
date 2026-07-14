@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:53.469Z",
+  "generatedAt": "2026-07-14T06:21:02.353Z",
   "totalProjects": 8,
   "strongBuyCandidateCount": 1,
   "strongBuyCandidates": [
@@ -7,12 +7,12 @@
       "rank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 56,
+      "score": 60,
       "verdict": "Best Available Strong Buy Candidate",
       "confidence": "Medium",
       "caveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
-      "pipelineScore": 10,
-      "confidenceAdjustedScore": 29,
+      "pipelineScore": 11,
+      "confidenceAdjustedScore": 33,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -21,7 +21,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 56,
+            "value": 60,
             "required": ">= 78"
           },
           {
@@ -39,25 +39,25 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 6,
+            "value": 0,
             "required": ">= 55"
           },
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 29,
+            "value": 33,
             "required": ">= 65"
           },
           {
             "name": "Trap risk",
             "passed": true,
-            "value": 20,
+            "value": 12,
             "required": "< 55"
           },
           {
             "name": "Risk officer",
             "passed": true,
-            "value": 80,
+            "value": 88,
             "required": ">= 60"
           }
         ],
@@ -93,7 +93,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Learning Engine: Historical memory does not yet show a strong winner fit.",
-          "Research Analyst: Research evidence is still developing."
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
         ],
         "moderator": "EigenLayer does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -106,7 +106,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 37,
+          "score": 38,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -118,13 +118,13 @@
         },
         {
           "name": "Research Analyst",
-          "score": 47,
-          "stance": "cautious",
+          "score": 57,
+          "stance": "watching",
           "message": "Research evidence is still developing."
         },
         {
           "name": "Learning Engine",
-          "score": 44,
+          "score": 45,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -136,7 +136,7 @@
         },
         {
           "name": "Risk Officer",
-          "score": 80,
+          "score": 88,
           "stance": "cleared",
           "message": "No dominant trap or risk cluster blocks the thesis."
         }
@@ -154,12 +154,12 @@
       "rank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 56,
+      "score": 60,
       "verdict": "Best Available Strong Buy Candidate",
       "confidence": "Medium",
       "caveat": "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
-      "pipelineScore": 10,
-      "confidenceAdjustedScore": 29,
+      "pipelineScore": 11,
+      "confidenceAdjustedScore": 33,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -168,7 +168,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 56,
+            "value": 60,
             "required": ">= 78"
           },
           {
@@ -186,25 +186,25 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 6,
+            "value": 0,
             "required": ">= 55"
           },
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 29,
+            "value": 33,
             "required": ">= 65"
           },
           {
             "name": "Trap risk",
             "passed": true,
-            "value": 20,
+            "value": 12,
             "required": "< 55"
           },
           {
             "name": "Risk officer",
             "passed": true,
-            "value": 80,
+            "value": 88,
             "required": ">= 60"
           }
         ],
@@ -240,7 +240,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Learning Engine: Historical memory does not yet show a strong winner fit.",
-          "Research Analyst: Research evidence is still developing."
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
         ],
         "moderator": "EigenLayer does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -253,7 +253,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 37,
+          "score": 38,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -265,13 +265,13 @@
         },
         {
           "name": "Research Analyst",
-          "score": 47,
-          "stance": "cautious",
+          "score": 57,
+          "stance": "watching",
           "message": "Research evidence is still developing."
         },
         {
           "name": "Learning Engine",
-          "score": 44,
+          "score": 45,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -283,7 +283,7 @@
         },
         {
           "name": "Risk Officer",
-          "score": 80,
+          "score": 88,
           "stance": "cleared",
           "message": "No dominant trap or risk cluster blocks the thesis."
         }
@@ -299,12 +299,12 @@
       "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 53,
+      "score": 56,
       "verdict": "AI Watchlist",
-      "confidence": "Developing",
+      "confidence": "Medium",
       "caveat": "",
-      "pipelineScore": 5,
-      "confidenceAdjustedScore": 27,
+      "pipelineScore": 7,
+      "confidenceAdjustedScore": 32,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -313,7 +313,7 @@
           {
             "name": "Council score",
             "passed": false,
-            "value": 53,
+            "value": 56,
             "required": ">= 78"
           },
           {
@@ -331,25 +331,25 @@
           {
             "name": "Proof score",
             "passed": false,
-            "value": 4,
+            "value": 0,
             "required": ">= 55"
           },
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 27,
+            "value": 32,
             "required": ">= 65"
           },
           {
             "name": "Trap risk",
             "passed": true,
-            "value": 20,
+            "value": 12,
             "required": "< 55"
           },
           {
             "name": "Risk officer",
             "passed": true,
-            "value": 85,
+            "value": 88,
             "required": ">= 60"
           }
         ],
@@ -385,7 +385,7 @@
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
           "Quant Forecaster: Composite scores need more confirmation.",
           "Learning Engine: Historical memory does not yet show a strong winner fit.",
-          "Research Analyst: Research evidence is still developing."
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
         ],
         "moderator": "Bittensor does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       },
@@ -398,7 +398,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 34,
+          "score": 35,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -410,13 +410,13 @@
         },
         {
           "name": "Research Analyst",
-          "score": 45,
-          "stance": "cautious",
+          "score": 56,
+          "stance": "watching",
           "message": "Research evidence is still developing."
         },
         {
           "name": "Learning Engine",
-          "score": 43,
+          "score": 44,
           "stance": "cautious",
           "message": "Historical memory does not yet show a strong winner fit."
         },
@@ -428,7 +428,7 @@
         },
         {
           "name": "Risk Officer",
-          "score": 85,
+          "score": 88,
           "stance": "cleared",
           "message": "No dominant trap or risk cluster blocks the thesis."
         }
@@ -441,14 +441,159 @@
       ]
     },
     {
-      "rank": 7,
-      "name": "Pendle",
-      "symbol": "PENDLE",
+      "rank": 4,
+      "name": "Akash Network",
+      "symbol": "AKT",
       "score": 53,
       "verdict": "AI Watchlist",
       "confidence": "Developing",
       "caveat": "",
-      "pipelineScore": 0,
+      "pipelineScore": 5,
+      "confidenceAdjustedScore": 31,
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 53,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 0,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 31,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 12,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 88,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "No major positive change detected yet."
+        ],
+        "catalysts": [
+          "No confirmed catalyst cluster yet."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "debate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
+        ],
+        "moderator": "Akash Network does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "agents": [
+        {
+          "name": "Narrative Scout",
+          "score": 51,
+          "stance": "watching",
+          "message": "Narrative evidence is not strong enough by itself."
+        },
+        {
+          "name": "Quant Forecaster",
+          "score": 32,
+          "stance": "cautious",
+          "message": "Composite scores need more confirmation."
+        },
+        {
+          "name": "Flow Analyst",
+          "score": 19,
+          "stance": "cautious",
+          "message": "Flow and smart-money support are not yet decisive."
+        },
+        {
+          "name": "Research Analyst",
+          "score": 56,
+          "stance": "watching",
+          "message": "Research evidence is still developing."
+        },
+        {
+          "name": "Learning Engine",
+          "score": 41,
+          "stance": "cautious",
+          "message": "Historical memory does not yet show a strong winner fit."
+        },
+        {
+          "name": "Roadmap Profit Agent",
+          "score": 27,
+          "stance": "cautious",
+          "message": "Roadmap profitability needs stronger confirmation."
+        },
+        {
+          "name": "Risk Officer",
+          "score": 88,
+          "stance": "cleared",
+          "message": "No dominant trap or risk cluster blocks the thesis."
+        }
+      ],
+      "conversation": [
+        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
+        "Quant Forecaster: Composite scores need more confirmation.",
+        "Flow Analyst: Flow and smart-money support are not yet decisive.",
+        "Moderator: Akash Network does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 53,
+      "verdict": "AI Watchlist",
+      "confidence": "Developing",
+      "caveat": "",
+      "pipelineScore": 5,
       "confidenceAdjustedScore": 29,
       "strongBuyEvidenceGate": {
         "passed": 3,
@@ -507,6 +652,441 @@
       },
       "whyNow": {
         "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "No major positive change detected yet."
+        ],
+        "catalysts": [
+          "No confirmed catalyst cluster yet."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "debate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
+          "Narrative Scout: Narrative evidence is not strong enough by itself."
+        ],
+        "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "agents": [
+        {
+          "name": "Narrative Scout",
+          "score": 40,
+          "stance": "cautious",
+          "message": "Narrative evidence is not strong enough by itself."
+        },
+        {
+          "name": "Quant Forecaster",
+          "score": 32,
+          "stance": "cautious",
+          "message": "Composite scores need more confirmation."
+        },
+        {
+          "name": "Flow Analyst",
+          "score": 19,
+          "stance": "cautious",
+          "message": "Flow and smart-money support are not yet decisive."
+        },
+        {
+          "name": "Research Analyst",
+          "score": 56,
+          "stance": "watching",
+          "message": "Research evidence is still developing."
+        },
+        {
+          "name": "Learning Engine",
+          "score": 40,
+          "stance": "cautious",
+          "message": "Historical memory does not yet show a strong winner fit."
+        },
+        {
+          "name": "Roadmap Profit Agent",
+          "score": 37,
+          "stance": "cautious",
+          "message": "Roadmap profitability needs stronger confirmation."
+        },
+        {
+          "name": "Risk Officer",
+          "score": 88,
+          "stance": "cleared",
+          "message": "No dominant trap or risk cluster blocks the thesis."
+        }
+      ],
+      "conversation": [
+        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
+        "Narrative Scout: Narrative evidence is not strong enough by itself.",
+        "Quant Forecaster: Composite scores need more confirmation.",
+        "Moderator: Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "score": 53,
+      "verdict": "AI Watchlist",
+      "confidence": "Developing",
+      "caveat": "",
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 27,
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 53,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 0,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 27,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 12,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 88,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "It is the strongest relative candidate in the current scan."
+        ],
+        "whatChanged": [
+          "No major positive change detected yet."
+        ],
+        "catalysts": [
+          "Catalyst engine sees a launch/listing/news timing cluster."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "debate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
+        ],
+        "moderator": "Ondo does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "agents": [
+        {
+          "name": "Narrative Scout",
+          "score": 47,
+          "stance": "cautious",
+          "message": "Narrative evidence is not strong enough by itself."
+        },
+        {
+          "name": "Quant Forecaster",
+          "score": 29,
+          "stance": "cautious",
+          "message": "Composite scores need more confirmation."
+        },
+        {
+          "name": "Flow Analyst",
+          "score": 19,
+          "stance": "cautious",
+          "message": "Flow and smart-money support are not yet decisive."
+        },
+        {
+          "name": "Research Analyst",
+          "score": 48,
+          "stance": "cautious",
+          "message": "Research evidence is still developing."
+        },
+        {
+          "name": "Learning Engine",
+          "score": 44,
+          "stance": "cautious",
+          "message": "Historical memory does not yet show a strong winner fit."
+        },
+        {
+          "name": "Roadmap Profit Agent",
+          "score": 39,
+          "stance": "cautious",
+          "message": "Roadmap profitability needs stronger confirmation."
+        },
+        {
+          "name": "Risk Officer",
+          "score": 88,
+          "stance": "cleared",
+          "message": "No dominant trap or risk cluster blocks the thesis."
+        }
+      ],
+      "conversation": [
+        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
+        "Narrative Scout: Narrative evidence is not strong enough by itself.",
+        "Quant Forecaster: Composite scores need more confirmation.",
+        "Moderator: Ondo does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 52,
+      "verdict": "AI Watchlist",
+      "confidence": "Developing",
+      "caveat": "",
+      "pipelineScore": 7,
+      "confidenceAdjustedScore": 32,
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 52,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 0,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 32,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 12,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 88,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
+          "Narrative heat is elevated."
+        ],
+        "whatChanged": [
+          "Project trend is improving since prior scans."
+        ],
+        "catalysts": [
+          "No confirmed catalyst cluster yet."
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+        ],
+        "agentAgreement": "1/7"
+      },
+      "debate": {
+        "bullCase": [
+          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
+          "Flow Analyst: Flow and smart-money support are not yet decisive.",
+          "Quant Forecaster: Composite scores need more confirmation.",
+          "Learning Engine: Historical memory does not yet show a strong winner fit."
+        ],
+        "moderator": "Render does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      },
+      "agents": [
+        {
+          "name": "Narrative Scout",
+          "score": 58,
+          "stance": "watching",
+          "message": "Narrative evidence is not strong enough by itself."
+        },
+        {
+          "name": "Quant Forecaster",
+          "score": 30,
+          "stance": "cautious",
+          "message": "Composite scores need more confirmation."
+        },
+        {
+          "name": "Flow Analyst",
+          "score": 19,
+          "stance": "cautious",
+          "message": "Flow and smart-money support are not yet decisive."
+        },
+        {
+          "name": "Research Analyst",
+          "score": 48,
+          "stance": "cautious",
+          "message": "Research evidence is still developing."
+        },
+        {
+          "name": "Learning Engine",
+          "score": 45,
+          "stance": "cautious",
+          "message": "Historical memory does not yet show a strong winner fit."
+        },
+        {
+          "name": "Roadmap Profit Agent",
+          "score": 13,
+          "stance": "cautious",
+          "message": "Roadmap profitability needs stronger confirmation."
+        },
+        {
+          "name": "Risk Officer",
+          "score": 88,
+          "stance": "cleared",
+          "message": "No dominant trap or risk cluster blocks the thesis."
+        }
+      ],
+      "conversation": [
+        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
+        "Quant Forecaster: Composite scores need more confirmation.",
+        "Flow Analyst: Flow and smart-money support are not yet decisive.",
+        "Moderator: Render does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 52,
+      "verdict": "AI Watchlist",
+      "confidence": "Developing",
+      "caveat": "",
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 27,
+      "strongBuyEvidenceGate": {
+        "passed": 3,
+        "total": 7,
+        "readyForTrueStrongBuy": false,
+        "checks": [
+          {
+            "name": "Council score",
+            "passed": false,
+            "value": 52,
+            "required": ">= 78"
+          },
+          {
+            "name": "Agent agreement",
+            "passed": false,
+            "value": 1,
+            "required": ">= 4 bullish agents"
+          },
+          {
+            "name": "Data confidence",
+            "passed": true,
+            "value": 100,
+            "required": ">= 58"
+          },
+          {
+            "name": "Proof score",
+            "passed": false,
+            "value": 0,
+            "required": ">= 55"
+          },
+          {
+            "name": "Confidence-adjusted score",
+            "passed": false,
+            "value": 27,
+            "required": ">= 65"
+          },
+          {
+            "name": "Trap risk",
+            "passed": true,
+            "value": 12,
+            "required": "< 55"
+          },
+          {
+            "name": "Risk officer",
+            "passed": true,
+            "value": 88,
+            "required": ">= 60"
+          }
+        ],
+        "blockers": [
+          "Council score",
+          "Agent agreement",
+          "Proof score",
+          "Confidence-adjusted score"
+        ]
+      },
+      "whyNow": {
+        "whyThisProject": [
           "It is the strongest relative candidate in the current scan."
         ],
         "whatChanged": [
@@ -528,8 +1108,8 @@
         ],
         "bearCase": [
           "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Narrative Scout: Narrative evidence is not strong enough by itself.",
           "Quant Forecaster: Composite scores need more confirmation.",
+          "Narrative Scout: Narrative evidence is not strong enough by itself.",
           "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
         ],
         "moderator": "Pendle does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
@@ -543,7 +1123,7 @@
         },
         {
           "name": "Quant Forecaster",
-          "score": 38,
+          "score": 32,
           "stance": "cautious",
           "message": "Composite scores need more confirmation."
         },
@@ -594,7 +1174,7 @@
       "confidence": "Developing",
       "caveat": "",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 26,
       "strongBuyEvidenceGate": {
         "passed": 3,
         "total": 7,
@@ -627,7 +1207,7 @@
           {
             "name": "Confidence-adjusted score",
             "passed": false,
-            "value": 28,
+            "value": 26,
             "required": ">= 65"
           },
           {
@@ -728,586 +1308,6 @@
         "Narrative Scout: Narrative evidence is not strong enough by itself.",
         "Quant Forecaster: Composite scores need more confirmation.",
         "Moderator: Jupiter does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      ]
-    },
-    {
-      "rank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "score": 50,
-      "verdict": "AI Pass For Now",
-      "confidence": "Developing",
-      "caveat": "",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 22,
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 50,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 1,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 22,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 80,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "It is the strongest relative candidate in the current scan."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "Catalyst engine sees a launch/listing/news timing cluster."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "debate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Research Analyst: Research evidence is still developing.",
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation."
-        ],
-        "moderator": "Ondo does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "agents": [
-        {
-          "name": "Narrative Scout",
-          "score": 47,
-          "stance": "cautious",
-          "message": "Narrative evidence is not strong enough by itself."
-        },
-        {
-          "name": "Quant Forecaster",
-          "score": 28,
-          "stance": "cautious",
-          "message": "Composite scores need more confirmation."
-        },
-        {
-          "name": "Flow Analyst",
-          "score": 19,
-          "stance": "cautious",
-          "message": "Flow and smart-money support are not yet decisive."
-        },
-        {
-          "name": "Research Analyst",
-          "score": 39,
-          "stance": "cautious",
-          "message": "Research evidence is still developing."
-        },
-        {
-          "name": "Learning Engine",
-          "score": 43,
-          "stance": "cautious",
-          "message": "Historical memory does not yet show a strong winner fit."
-        },
-        {
-          "name": "Roadmap Profit Agent",
-          "score": 39,
-          "stance": "cautious",
-          "message": "Roadmap profitability needs stronger confirmation."
-        },
-        {
-          "name": "Risk Officer",
-          "score": 80,
-          "stance": "cleared",
-          "message": "No dominant trap or risk cluster blocks the thesis."
-        }
-      ],
-      "conversation": [
-        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
-        "Narrative Scout: Narrative evidence is not strong enough by itself.",
-        "Quant Forecaster: Composite scores need more confirmation.",
-        "Moderator: Ondo does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 49,
-      "verdict": "AI Pass For Now",
-      "confidence": "Developing",
-      "caveat": "",
-      "pipelineScore": 4,
-      "confidenceAdjustedScore": 27,
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 49,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 1,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 27,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 80,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "Narrative heat is elevated."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "No confirmed catalyst cluster yet."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "debate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Learning Engine: Historical memory does not yet show a strong winner fit."
-        ],
-        "moderator": "Akash Network does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "agents": [
-        {
-          "name": "Narrative Scout",
-          "score": 51,
-          "stance": "watching",
-          "message": "Narrative evidence is not strong enough by itself."
-        },
-        {
-          "name": "Quant Forecaster",
-          "score": 32,
-          "stance": "cautious",
-          "message": "Composite scores need more confirmation."
-        },
-        {
-          "name": "Flow Analyst",
-          "score": 19,
-          "stance": "cautious",
-          "message": "Flow and smart-money support are not yet decisive."
-        },
-        {
-          "name": "Research Analyst",
-          "score": 45,
-          "stance": "cautious",
-          "message": "Research evidence is still developing."
-        },
-        {
-          "name": "Learning Engine",
-          "score": 40,
-          "stance": "cautious",
-          "message": "Historical memory does not yet show a strong winner fit."
-        },
-        {
-          "name": "Roadmap Profit Agent",
-          "score": 27,
-          "stance": "cautious",
-          "message": "Roadmap profitability needs stronger confirmation."
-        },
-        {
-          "name": "Risk Officer",
-          "score": 80,
-          "stance": "cleared",
-          "message": "No dominant trap or risk cluster blocks the thesis."
-        }
-      ],
-      "conversation": [
-        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
-        "Quant Forecaster: Composite scores need more confirmation.",
-        "Flow Analyst: Flow and smart-money support are not yet decisive.",
-        "Moderator: Akash Network does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      ]
-    },
-    {
-      "rank": 5,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "score": 49,
-      "verdict": "AI Pass For Now",
-      "confidence": "Developing",
-      "caveat": "",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 24,
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 49,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 1,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 24,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 80,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "Narrative heat is elevated."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "No confirmed catalyst cluster yet."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "debate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Learning Engine: Historical memory does not yet show a strong winner fit."
-        ],
-        "moderator": "Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "agents": [
-        {
-          "name": "Narrative Scout",
-          "score": 40,
-          "stance": "cautious",
-          "message": "Narrative evidence is not strong enough by itself."
-        },
-        {
-          "name": "Quant Forecaster",
-          "score": 31,
-          "stance": "cautious",
-          "message": "Composite scores need more confirmation."
-        },
-        {
-          "name": "Flow Analyst",
-          "score": 19,
-          "stance": "cautious",
-          "message": "Flow and smart-money support are not yet decisive."
-        },
-        {
-          "name": "Research Analyst",
-          "score": 45,
-          "stance": "cautious",
-          "message": "Research evidence is still developing."
-        },
-        {
-          "name": "Learning Engine",
-          "score": 39,
-          "stance": "cautious",
-          "message": "Historical memory does not yet show a strong winner fit."
-        },
-        {
-          "name": "Roadmap Profit Agent",
-          "score": 37,
-          "stance": "cautious",
-          "message": "Roadmap profitability needs stronger confirmation."
-        },
-        {
-          "name": "Risk Officer",
-          "score": 80,
-          "stance": "cleared",
-          "message": "No dominant trap or risk cluster blocks the thesis."
-        }
-      ],
-      "conversation": [
-        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
-        "Narrative Scout: Narrative evidence is not strong enough by itself.",
-        "Quant Forecaster: Composite scores need more confirmation.",
-        "Moderator: Celestia does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      ]
-    },
-    {
-      "rank": 2,
-      "name": "Render",
-      "symbol": "RNDR",
-      "score": 48,
-      "verdict": "AI Pass For Now",
-      "confidence": "Developing",
-      "caveat": "",
-      "pipelineScore": 5,
-      "confidenceAdjustedScore": 27,
-      "strongBuyEvidenceGate": {
-        "passed": 3,
-        "total": 7,
-        "readyForTrueStrongBuy": false,
-        "checks": [
-          {
-            "name": "Council score",
-            "passed": false,
-            "value": 48,
-            "required": ">= 78"
-          },
-          {
-            "name": "Agent agreement",
-            "passed": false,
-            "value": 1,
-            "required": ">= 4 bullish agents"
-          },
-          {
-            "name": "Data confidence",
-            "passed": true,
-            "value": 100,
-            "required": ">= 58"
-          },
-          {
-            "name": "Proof score",
-            "passed": false,
-            "value": 4,
-            "required": ">= 55"
-          },
-          {
-            "name": "Confidence-adjusted score",
-            "passed": false,
-            "value": 27,
-            "required": ">= 65"
-          },
-          {
-            "name": "Trap risk",
-            "passed": true,
-            "value": 20,
-            "required": "< 55"
-          },
-          {
-            "name": "Risk officer",
-            "passed": true,
-            "value": 80,
-            "required": ">= 60"
-          }
-        ],
-        "blockers": [
-          "Council score",
-          "Agent agreement",
-          "Proof score",
-          "Confidence-adjusted score"
-        ]
-      },
-      "whyNow": {
-        "whyThisProject": [
-          "Narrative heat is elevated."
-        ],
-        "whatChanged": [
-          "No major positive change detected yet."
-        ],
-        "catalysts": [
-          "No confirmed catalyst cluster yet."
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-        ],
-        "agentAgreement": "1/7"
-      },
-      "debate": {
-        "bullCase": [
-          "Risk Officer: No dominant trap or risk cluster blocks the thesis."
-        ],
-        "bearCase": [
-          "Roadmap Profit Agent: Roadmap profitability needs stronger confirmation.",
-          "Flow Analyst: Flow and smart-money support are not yet decisive.",
-          "Quant Forecaster: Composite scores need more confirmation.",
-          "Research Analyst: Research evidence is still developing."
-        ],
-        "moderator": "Render does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
-      },
-      "agents": [
-        {
-          "name": "Narrative Scout",
-          "score": 58,
-          "stance": "watching",
-          "message": "Narrative evidence is not strong enough by itself."
-        },
-        {
-          "name": "Quant Forecaster",
-          "score": 29,
-          "stance": "cautious",
-          "message": "Composite scores need more confirmation."
-        },
-        {
-          "name": "Flow Analyst",
-          "score": 19,
-          "stance": "cautious",
-          "message": "Flow and smart-money support are not yet decisive."
-        },
-        {
-          "name": "Research Analyst",
-          "score": 39,
-          "stance": "cautious",
-          "message": "Research evidence is still developing."
-        },
-        {
-          "name": "Learning Engine",
-          "score": 44,
-          "stance": "cautious",
-          "message": "Historical memory does not yet show a strong winner fit."
-        },
-        {
-          "name": "Roadmap Profit Agent",
-          "score": 13,
-          "stance": "cautious",
-          "message": "Roadmap profitability needs stronger confirmation."
-        },
-        {
-          "name": "Risk Officer",
-          "score": 80,
-          "stance": "cleared",
-          "message": "No dominant trap or risk cluster blocks the thesis."
-        }
-      ],
-      "conversation": [
-        "Risk Officer: No dominant trap or risk cluster blocks the thesis.",
-        "Quant Forecaster: Composite scores need more confirmation.",
-        "Flow Analyst: Flow and smart-money support are not yet decisive.",
-        "Moderator: Render does not clear every strong-buy gate yet. Blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score."
       ]
     }
   ],

@@ -47,6 +47,10 @@ import { analyzeAlphaEvolutionGovernorBatch } from "../src/engines/alphaEvolutio
 import { analyzeSmallCapHunterBatch } from "../src/engines/smallCapHunterEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "../src/engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeOrganicDemandIntegrity } from "../src/engines/organicDemandIntegrityEngine.js";
+import { runNativeDiscoveryMesh } from "../src/data/native/nativeDiscoveryMesh.js";
+import { analyzeActiveLiquidityTruth } from "../src/engines/activeLiquidityTruthEngine.js";
+import { analyzeOrganicBuyerClassifier } from "../src/engines/organicBuyerClassifierEngine.js";
+import { analyzeDeployerReputation } from "../src/engines/deployerReputationEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
@@ -1897,6 +1901,152 @@ test("organic demand integrity can confirm cleaner economic demand", () => {
   assert.equal(result.organicDemandStrongBuyEligible, true);
   assert.ok(result.organicEconomicIntegrityScore >= 75);
   assert.ok(result.economicIntegrityRiskScore < 45);
+});
+
+test("native discovery mesh converts pool lifecycle events into early candidates", async () => {
+  const tokenAddress = "0x1111111111111111111111111111111111111111";
+  const poolAddress = "0x2222222222222222222222222222222222222222";
+  const events = [
+    {
+      eventType: "TOKEN_DEPLOYED",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      deployer: "0xdeployer",
+      transactionHash: "0xaaa",
+      timestamp: "2026-07-10T00:00:00.000Z",
+      evidenceConfidence: 70,
+    },
+    {
+      eventType: "POOL_CREATED",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      poolAddress,
+      transactionHash: "0xbbb",
+      timestamp: "2026-07-10T00:03:00.000Z",
+      evidenceConfidence: 72,
+    },
+    {
+      eventType: "FIRST_LIQUIDITY_ADDED",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      poolAddress,
+      transactionHash: "0xccc",
+      timestamp: "2026-07-10T00:05:00.000Z",
+      displayedLiquidityUsd: 280000,
+      activeLiquidityUsd: 210000,
+      stableExitLiquidityUsd: 125000,
+      evidenceConfidence: 74,
+    },
+    {
+      eventType: "FIRST_SWAP",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      poolAddress,
+      transactionHash: "0xddd",
+      timestamp: "2026-07-10T00:08:00.000Z",
+      buyVolumeUsd: 42000,
+      sellVolumeUsd: 9000,
+      evidenceConfidence: 76,
+    },
+    {
+      eventType: "FIRST_EXTERNAL_BUYER",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      poolAddress,
+      transactionHash: "0xeee",
+      timestamp: "2026-07-10T00:10:00.000Z",
+      uniqueBuyers: 42,
+      independentBuyers: 34,
+      sameFunderBuyers: 3,
+      sniperBuyers: 4,
+      buyVolumeUsd: 62000,
+      sellVolumeUsd: 12000,
+      evidenceConfidence: 78,
+    },
+    {
+      eventType: "BUYER_MILESTONE",
+      chain: "base",
+      protocol: "aerodrome",
+      tokenAddress,
+      poolAddress,
+      transactionHash: "0xfff",
+      timestamp: "2026-07-10T00:16:00.000Z",
+      uniqueBuyers: 58,
+      independentBuyers: 49,
+      sameFunderBuyers: 4,
+      sniperBuyers: 5,
+      evidenceConfidence: 80,
+    },
+  ];
+
+  const result = await runNativeDiscoveryMesh({ events, persist: false, skipStore: true });
+  const candidate = result.candidates[0];
+
+  assert.ok(candidate);
+  assert.equal(candidate.source, "native-discovery-mesh");
+  assert.equal(candidate.discoveryLane, "new-pool");
+  assert.ok(candidate.nativeDiscoveryScore >= 60);
+  assert.equal(candidate.nativeLifecycleStage, "BUYER_MILESTONE");
+  assert.ok(candidate.independentBuyers24h >= 49);
+});
+
+test("native liquidity, buyer, and deployer engines score fresh pool quality", () => {
+  const baseProject = {
+    symbol: "NATIVE",
+    liquidityUsd: 1_000_000,
+    protocolControlledLiquidityPct: 72,
+    nativeLifecycle: {
+      buyerState: {
+        uniqueBuyers: 80,
+        independentBuyers: 62,
+        sameFunderBuyers: 6,
+        sniperBuyers: 8,
+        buyVolumeUsd: 180000,
+        sellVolumeUsd: 45000,
+      },
+      liquidityState: {
+        displayedLiquidityUsd: 1_000_000,
+        activeLiquidityUsd: 520_000,
+        stableExitLiquidityUsd: 240_000,
+      },
+      deployerNetFlow: -16000,
+    },
+    deployerHistory: {
+      priorDeployments: 8,
+      successfulLaunches: 3,
+      walletAgeDays: 420,
+      priorRugs: 0,
+      lpRemovalHistory: 0,
+    },
+  };
+  const liquidity = analyzeActiveLiquidityTruth(baseProject);
+  const buyers = analyzeOrganicBuyerClassifier(baseProject);
+  const deployer = analyzeDeployerReputation(baseProject);
+  const riskyDeployer = analyzeDeployerReputation({
+    ...baseProject,
+    deployerHistory: {
+      priorDeployments: 12,
+      successfulLaunches: 1,
+      walletAgeDays: 14,
+      priorRugs: 2,
+      lpRemovalHistory: 1,
+      reusedBytecodeRisk: 85,
+      fundingSourceRisk: 75,
+    },
+  });
+
+  assert.ok(liquidity.activeLiquidityTruth.sellTests.some((testItem) => testItem.sellUsd === 1_000_000));
+  assert.ok(liquidity.liquidityControlRisk >= 45);
+  assert.ok(buyers.organicBuyerScore >= 65);
+  assert.equal(buyers.organicBuyerVerdict, "First Real Buyers Confirmed");
+  assert.ok(deployer.deployerReputationScore >= 60);
+  assert.equal(riskyDeployer.deployerReputationVerdict, "Deployer Risk Block");
+  assert.ok(riskyDeployer.deployerRiskScore >= 75);
 });
 
 test("provider status classification handles auth, rate limits, region blocks, and outages", () => {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:56.363Z",
+  "generatedAt": "2026-07-14T06:21:06.693Z",
   "memoryFile": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/source-router-memory.json",
   "runs": 16,
   "strongestSources": [
@@ -72,6 +72,17 @@
   ],
   "weakestSources": [
     {
+      "source": "nativeDiscoveryMesh",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
+      "cooldownUntil": null
+    },
+    {
       "source": "dexscreener",
       "trustScore": 49,
       "runs": 9,
@@ -124,17 +135,6 @@
       "lastStatus": "USED",
       "lastError": null,
       "lastCandidateCount": 20,
-      "cooldownUntil": null
-    },
-    {
-      "source": "githubProjectDiscovery",
-      "trustScore": 91,
-      "runs": 16,
-      "successes": 16,
-      "failures": 0,
-      "lastStatus": "SUCCESS",
-      "lastError": null,
-      "lastCandidateCount": 157,
       "cooldownUntil": null
     }
   ],
@@ -258,6 +258,17 @@
       "lastStatus": "SUCCESS",
       "lastError": null,
       "lastCandidateCount": 45,
+      "cooldownUntil": null
+    },
+    {
+      "source": "nativeDiscoveryMesh",
+      "trustScore": 15,
+      "runs": 0,
+      "successes": 0,
+      "failures": 0,
+      "lastStatus": "UNKNOWN",
+      "lastError": null,
+      "lastCandidateCount": 0,
       "cooldownUntil": null
     }
   ]

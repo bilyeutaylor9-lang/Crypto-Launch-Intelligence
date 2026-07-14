@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-07-14T06:05:54.453Z",
+  "generatedAt": "2026-07-14T06:21:03.761Z",
   "totalTheses": 8,
   "theses": [
     {
       "project": "EigenLayer",
       "symbol": "EIGEN",
       "decision": "Research Block",
-      "confidence": "Low",
+      "confidence": "Developing",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Catalyst window is active.",
@@ -32,13 +32,13 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "EigenLayer is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Bittensor",
       "symbol": "TAO",
       "decision": "Research Block",
-      "confidence": "Low",
+      "confidence": "Developing",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Narrative heat is entering rotation.",
@@ -63,7 +63,67 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "Bittensor is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+    },
+    {
+      "project": "Akash Network",
+      "symbol": "AKT",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "whyNow": [
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Akash Network is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+    },
+    {
+      "project": "Render",
+      "symbol": "RNDR",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "whyNow": [
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Render is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Pendle",
@@ -73,8 +133,7 @@
       "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
         "Catalyst window is active.",
-        "Narrative heat is entering rotation.",
-        "Breakout Brain selected it as a top-three scenario candidate."
+        "Narrative heat is entering rotation."
       ],
       "risks": [
         "Risk cluster is elevated.",
@@ -98,71 +157,11 @@
       "summary": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     },
     {
-      "project": "Akash Network",
-      "symbol": "AKT",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-      "whyNow": [
-        "Narrative heat is entering rotation."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-    },
-    {
-      "project": "Render",
-      "symbol": "RNDR",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-      "whyNow": [
-        "Narrative heat is entering rotation."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-    },
-    {
       "project": "Celestia",
       "symbol": "TIA",
       "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "confidence": "Developing",
+      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
         "Narrative heat is entering rotation."
       ],
@@ -185,12 +184,43 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
+    },
+    {
+      "project": "Ondo",
+      "symbol": "ONDO",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
+      "whyNow": [
+        "Catalyst window is active.",
+        "Breakout Brain selected it as a top-three scenario candidate."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Ondo is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     },
     {
       "project": "Jupiter",
       "symbol": "JUP",
-      "decision": "Research Block",
+      "decision": "Reject For Now",
       "confidence": "Developing",
       "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
@@ -199,8 +229,7 @@
       "risks": [
         "Risk cluster is elevated.",
         "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
+        "Builder evidence is weak or missing."
       ],
       "confirms": [
         "Official roadmap or catalyst source is verified.",
@@ -215,37 +244,7 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
-    },
-    {
-      "project": "Ondo",
-      "symbol": "ONDO",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-      "whyNow": [
-        "Catalyst window is active."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window.."
+      "summary": "Jupiter is Reject For Now with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     }
   ]
 }

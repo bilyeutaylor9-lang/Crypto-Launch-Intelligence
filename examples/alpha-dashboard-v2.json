@@ -1,56 +1,56 @@
 {
-  "generatedAt": "2026-07-14T06:05:53.659Z",
+  "generatedAt": "2026-07-14T06:21:02.641Z",
   "totalProjects": 8,
   "headline": {
     "topCandidate": {
       "rank": 1,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "pipelineScore": 0,
-      "alphaOSScore": 38,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 7,
+      "alphaOSScore": 41,
       "alphaOSVerdict": "OS Best Available Candidate",
-      "autoLearningWeightScore": 63,
+      "autoLearningWeightScore": 68,
       "alphaKnowledgeGraphScore": 54,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 41,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Watch",
+      "causalMarketTwinScore": 45,
       "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 2,
+      "causalMarketTwinExpectedReturnPct": 9,
       "smallCapHunterSelected": false,
       "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 44,
+      "smallCapHunterScore": 45,
       "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 42,
+      "executionTwinScore": 44,
       "executionTwinVerdict": "Execution Route Block",
       "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.314,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 41250,
-      "paperOutcomeLabScore": 49,
+      "executionTwinSlippagePct": 0.33,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 22320,
+      "paperOutcomeLabScore": 53,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "causalDriver": "Evidence Quality",
       "sourceTruthScore": 52,
       "sourceTruthVerdict": "Thin Source Stack",
       "githubProScore": 0,
       "githubProVerdict": "No Repo Signal",
-      "risk": 73,
+      "risk": 72,
       "nextActions": [
         "Verify the primary causal driver against raw evidence before any live decision.",
         "Run paper-trade tracking through the expected holding window.",
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Narrative Gravity.",
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Why-Now Catalyst.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ]
     },
-    "alphaOSBrief": "Top OS candidate: Pendle (OS Best Available Candidate).",
+    "alphaOSBrief": "Top OS candidate: Bittensor (OS Best Available Candidate).",
     "paperWinRate": 0,
     "evaluatedPaperTrades": 0,
     "bestSource": {
@@ -78,8 +78,8 @@
     "healthyGithubSignals": 0,
     "smallCapHunterPicks": 0,
     "smallCapHunterWatch": 0,
-    "smallCapHunterRiskBlocks": 1,
-    "smallCapHunterPurchaseRouteBlocks": 7,
+    "smallCapHunterRiskBlocks": 0,
+    "smallCapHunterPurchaseRouteBlocks": 8,
     "executionTwinPicks": 0,
     "executionTwinRouteBlocks": 8,
     "executionTwinSafetyBlocks": 0,
@@ -90,12 +90,290 @@
   "topCandidates": [
     {
       "rank": 1,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "pipelineScore": 7,
+      "alphaOSScore": 41,
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "autoLearningWeightScore": 68,
+      "alphaKnowledgeGraphScore": 54,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Watch",
+      "causalMarketTwinScore": 45,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 9,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 45,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 44,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.33,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 22320,
+      "paperOutcomeLabScore": 53,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "causalDriver": "Evidence Quality",
+      "sourceTruthScore": 52,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 72,
+      "nextActions": [
+        "Verify the primary causal driver against raw evidence before any live decision.",
+        "Run paper-trade tracking through the expected holding window.",
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Why-Now Catalyst.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 11,
+      "alphaOSScore": 33,
+      "alphaOSVerdict": "OS Risk Block",
+      "autoLearningWeightScore": 65,
+      "alphaKnowledgeGraphScore": 57,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
+      "causalMarketTwinScore": 45,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 12,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 46,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 43,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.31,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 25110,
+      "paperOutcomeLabScore": 50,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "causalDriver": "Why-Now Catalyst",
+      "sourceTruthScore": 53,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 76,
+      "nextActions": [
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Risk Drag.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 5,
+      "alphaOSScore": 38,
+      "alphaOSVerdict": "OS Reject",
+      "autoLearningWeightScore": 65,
+      "alphaKnowledgeGraphScore": 52,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
+      "causalMarketTwinScore": 43,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 8,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 44,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 43,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.321,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 23436,
+      "paperOutcomeLabScore": 51,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "causalDriver": "Evidence Quality",
+      "sourceTruthScore": 52,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 73,
+      "nextActions": [
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Builder Proof.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "pipelineScore": 7,
+      "alphaOSScore": 36,
+      "alphaOSVerdict": "OS Reject",
+      "autoLearningWeightScore": 64,
+      "alphaKnowledgeGraphScore": 51,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
+      "causalMarketTwinScore": 41,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 7,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 43,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 43,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.326,
+      "organicIntegrityScore": 60,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 22878,
+      "paperOutcomeLabScore": 50,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "causalDriver": "Evidence Quality",
+      "sourceTruthScore": 49,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 73,
+      "nextActions": [
+        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
+        "Resolve blocker: Risk Drag.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineScore": 5,
+      "alphaOSScore": 36,
+      "alphaOSVerdict": "OS Reject",
+      "autoLearningWeightScore": 64,
+      "alphaKnowledgeGraphScore": 53,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Watch",
+      "causalMarketTwinScore": 41,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 5,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 44,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 42,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.307,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 25668,
+      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "causalDriver": "Evidence Quality",
+      "sourceTruthScore": 52,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 72,
+      "nextActions": [
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Builder Proof.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 4,
+      "alphaOSScore": 38,
+      "alphaOSVerdict": "OS Reject",
+      "autoLearningWeightScore": 63,
+      "alphaKnowledgeGraphScore": 53,
+      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
+      "causalMarketTwinScore": 42,
+      "causalMarketTwinVerdict": "Twin Reject",
+      "causalMarketTwinExpectedReturnPct": 5,
+      "smallCapHunterSelected": false,
+      "smallCapHunterSelectionRank": null,
+      "smallCapHunterScore": 43,
+      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
+      "smallCapBand": "Unknown Cap",
+      "smallCapPurchaseRoute": "Unavailable",
+      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
+      "executionTwinScore": 43,
+      "executionTwinVerdict": "Execution Route Block",
+      "executionTwinRoute": "Unavailable",
+      "executionTwinSlippagePct": 0.317,
+      "organicIntegrityScore": 60,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 23994,
+      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "causalDriver": "Evidence Quality",
+      "sourceTruthScore": 49,
+      "sourceTruthVerdict": "Thin Source Stack",
+      "githubProScore": 0,
+      "githubProVerdict": "No Repo Signal",
+      "risk": 74,
+      "nextActions": [
+        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
+        "Resolve blocker: Builder Proof.",
+        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
+        "Wait for risk compression before promotion."
+      ]
+    },
+    {
+      "rank": 4,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "pipelineScore": 0,
-      "alphaOSScore": 38,
-      "alphaOSVerdict": "OS Best Available Candidate",
+      "pipelineScore": 1,
+      "alphaOSScore": 37,
+      "alphaOSVerdict": "OS Reject",
       "autoLearningWeightScore": 63,
       "alphaKnowledgeGraphScore": 54,
       "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
@@ -113,10 +391,10 @@
       "executionTwinVerdict": "Execution Route Block",
       "executionTwinRoute": "Unavailable",
       "executionTwinSlippagePct": 0.314,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 41250,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 24552,
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -128,8 +406,6 @@
       "githubProVerdict": "No Repo Signal",
       "risk": 73,
       "nextActions": [
-        "Verify the primary causal driver against raw evidence before any live decision.",
-        "Run paper-trade tracking through the expected holding window.",
         "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
         "Resolve blocker: Narrative Gravity.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
@@ -137,19 +413,19 @@
       ]
     },
     {
-      "rank": 3,
+      "rank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
       "alphaOSScore": 31,
       "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 61,
+      "autoLearningWeightScore": 62,
       "alphaKnowledgeGraphScore": 51,
       "alphaKnowledgeGraphVerdict": "Knowledge Graph Watch",
-      "causalMarketTwinScore": 39,
+      "causalMarketTwinScore": 42,
       "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 0,
+      "causalMarketTwinExpectedReturnPct": 3,
       "smallCapHunterSelected": false,
       "smallCapHunterSelectionRank": null,
       "smallCapHunterScore": 42,
@@ -157,14 +433,14 @@
       "smallCapBand": "Unknown Cap",
       "smallCapPurchaseRoute": "Unavailable",
       "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 41,
+      "executionTwinScore": 42,
       "executionTwinVerdict": "Execution Route Block",
       "executionTwinRoute": "Unavailable",
       "executionTwinSlippagePct": 0.303,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 44063,
+      "organicIntegrityScore": 61,
+      "organicDemandVerdict": "Thin Integrity Data",
+      "economicIntegrityRiskScore": 19,
+      "hardExitLiquidityUsd": 26226,
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
@@ -174,293 +450,17 @@
       "sourceTruthVerdict": "Thin Source Stack",
       "githubProScore": 0,
       "githubProVerdict": "No Repo Signal",
-      "risk": 70,
+      "risk": 69,
       "nextActions": [
         "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
         "Resolve blocker: Builder Proof.",
         "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
         "Wait for risk compression before promotion."
       ]
-    },
-    {
-      "rank": 2,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "pipelineScore": 5,
-      "alphaOSScore": 32,
-      "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 60,
-      "alphaKnowledgeGraphScore": 50,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 40,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 8,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 43,
-      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 41,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.33,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 37500,
-      "paperOutcomeLabScore": 48,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "causalDriver": "Narrative Gravity",
-      "sourceTruthScore": 52,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 73,
-      "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 8,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "pipelineScore": 10,
-      "alphaOSScore": 24,
-      "alphaOSVerdict": "OS Risk Block",
-      "autoLearningWeightScore": 57,
-      "alphaKnowledgeGraphScore": 52,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 40,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 10,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 44,
-      "smallCapHunterVerdict": "Small-Cap Risk Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 40,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.31,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 42188,
-      "paperOutcomeLabScore": 44,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "causalDriver": "Why-Now Catalyst",
-      "sourceTruthScore": 53,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 78,
-      "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 5,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "pipelineScore": 4,
-      "alphaOSScore": 29,
-      "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 57,
-      "alphaKnowledgeGraphScore": 48,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 37,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 7,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 41,
-      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 40,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.321,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 39375,
-      "paperOutcomeLabScore": 44,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "causalDriver": "Narrative Gravity",
-      "sourceTruthScore": 52,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 75,
-      "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 6,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineScore": 3,
-      "alphaOSScore": 27,
-      "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 56,
-      "alphaKnowledgeGraphScore": 49,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 36,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 4,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 41,
-      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 39,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.307,
-      "organicIntegrityScore": 63,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 43125,
-      "paperOutcomeLabScore": 43,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "causalDriver": "Strategy Fit",
-      "sourceTruthScore": 52,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 74,
-      "nextActions": [
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 2,
-      "alphaOSScore": 30,
-      "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 56,
-      "alphaKnowledgeGraphScore": 49,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 36,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 3,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 41,
-      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 39,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.317,
-      "organicIntegrityScore": 62,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 40313,
-      "paperOutcomeLabScore": 43,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "causalDriver": "Strategy Fit",
-      "sourceTruthScore": 49,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 75,
-      "nextActions": [
-        "Watch trigger: Proof, source reliability, and AI confidence all improve together.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
-    },
-    {
-      "rank": 7,
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "pipelineScore": 5,
-      "alphaOSScore": 27,
-      "alphaOSVerdict": "OS Reject",
-      "autoLearningWeightScore": 56,
-      "alphaKnowledgeGraphScore": 46,
-      "alphaKnowledgeGraphVerdict": "Knowledge Graph Risk Block",
-      "causalMarketTwinScore": 35,
-      "causalMarketTwinVerdict": "Twin Reject",
-      "causalMarketTwinExpectedReturnPct": 6,
-      "smallCapHunterSelected": false,
-      "smallCapHunterSelectionRank": null,
-      "smallCapHunterScore": 40,
-      "smallCapHunterVerdict": "Small-Cap Purchase Route Block",
-      "smallCapBand": "Unknown Cap",
-      "smallCapPurchaseRoute": "Unavailable",
-      "smallCapPurchaseRouteStatus": "No Coinbase/MetaMask Route Detected",
-      "executionTwinScore": 39,
-      "executionTwinVerdict": "Execution Route Block",
-      "executionTwinRoute": "Unavailable",
-      "executionTwinSlippagePct": 0.326,
-      "organicIntegrityScore": 62,
-      "organicDemandVerdict": "Economic Integrity Watch",
-      "economicIntegrityRiskScore": 13,
-      "hardExitLiquidityUsd": 38438,
-      "paperOutcomeLabScore": 44,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "causalDriver": "Narrative Gravity",
-      "sourceTruthScore": 49,
-      "sourceTruthVerdict": "Thin Source Stack",
-      "githubProScore": 0,
-      "githubProVerdict": "No Repo Signal",
-      "risk": 75,
-      "nextActions": [
-        "Watch trigger: Commit/activity quality continues improving across multiple scans.",
-        "Resolve blocker: Evidence Quality.",
-        "Upgrade proof with roadmap, GitHub, tokenomics, and source verification.",
-        "Wait for risk compression before promotion."
-      ]
     }
   ],
   "smallCapHunter": {
-    "generatedAt": "2026-07-14T06:05:53.657Z",
+    "generatedAt": "2026-07-14T06:21:02.639Z",
     "name": "Small-Cap Hunter",
     "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
     "totalProjects": 8,
@@ -470,8 +470,8 @@
     "topTwo": [],
     "researchCandidates": 0,
     "watchCount": 0,
-    "riskBlocks": 1,
-    "purchaseRouteBlocks": 7,
+    "riskBlocks": 0,
+    "purchaseRouteBlocks": 8,
     "topProjects": [
       {
         "selectionRank": null,
@@ -479,14 +479,14 @@
         "name": "EigenLayer",
         "symbol": "EIGEN",
         "chain": "ethereum",
-        "score": 44,
-        "verdict": "Small-Cap Risk Block",
+        "score": 46,
+        "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
-        "structureScore": 57,
-        "upsideScore": 45,
+        "structureScore": 65,
+        "upsideScore": 46,
         "executionScore": 71,
-        "riskScore": 78,
+        "riskScore": 76,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -545,86 +545,17 @@
       {
         "selectionRank": null,
         "selected": false,
-        "name": "Pendle",
-        "symbol": "PENDLE",
-        "chain": "ethereum",
-        "score": 44,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "score": 45,
         "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
         "structureScore": 64,
-        "upsideScore": 35,
+        "upsideScore": 40,
         "executionScore": 71,
-        "riskScore": 73,
-        "purchaseRoute": {
-          "status": "No Coinbase/MetaMask Route Detected",
-          "purchasable": false,
-          "preferredRoute": "Unavailable",
-          "score": 0,
-          "routes": [],
-          "mustVerify": [
-            "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-            "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
-          ]
-        },
-        "liquidityUsd": 110000,
-        "volume24h": 30000,
-        "estimatedLiquidityImpactPct": 0.091,
-        "paperPlan": {
-          "label": "$100 Paper Plan",
-          "mode": "Paper research plan only",
-          "totalPaperBudgetUsd": 100,
-          "maxPaperBudgetForThisCandidateUsd": 50,
-          "starterTrancheUsd": 20,
-          "confirmationTrancheUsd": 17.5,
-          "finalValidationTrancheUsd": 12.5,
-          "estimatedLiquidityImpactPct": 0.091,
-          "confirmationTriggers": [
-            "Verify official contract/pair and source identity.",
-            "Confirm visible liquidity and expected slippage manually.",
-            "Confirm roadmap/catalyst and GitHub/source proof are real.",
-            "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
-          ],
-          "note": "This is a research simulation for a small account size, not a recommendation to buy."
-        },
-        "reasons": [
-          "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
-          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
-          "Alpha Governor marked it as priority research.",
-          "Breakout Brain selected it as a best-available breakout setup."
-        ],
-        "warnings": [
-          "Research only; not financial advice or a buy recommendation.",
-          "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
-          "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
-          "No Coinbase or MetaMask route was detected; do not select without route proof.",
-          "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
-          "AI council disagreement is high; require manual confirmation."
-        ],
-        "mustVerify": [
-          "Official token contract, pair, chain, and website.",
-          "Coinbase availability or MetaMask token contract/pair route.",
-          "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
-          "Recent roadmap/catalyst evidence from official or trusted sources.",
-          "Token unlocks, emissions, team allocation, and insider sell pressure.",
-          "Whether the token is available in your jurisdiction and exchange/wallet setup."
-        ]
-      },
-      {
-        "selectionRank": null,
-        "selected": false,
-        "name": "Bittensor",
-        "symbol": "TAO",
-        "chain": "bittensor",
-        "score": 43,
-        "verdict": "Small-Cap Purchase Route Block",
-        "marketCap": 0,
-        "capBand": "Unknown Cap",
-        "structureScore": 56,
-        "upsideScore": 39,
-        "executionScore": 71,
-        "riskScore": 73,
+        "riskScore": 72,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -683,84 +614,17 @@
       {
         "selectionRank": null,
         "selected": false,
-        "name": "Jupiter",
-        "symbol": "JUP",
-        "chain": "solana",
-        "score": 42,
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "score": 44,
         "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
         "structureScore": 64,
-        "upsideScore": 28,
+        "upsideScore": 36,
         "executionScore": 71,
-        "riskScore": 70,
-        "purchaseRoute": {
-          "status": "No Coinbase/MetaMask Route Detected",
-          "purchasable": false,
-          "preferredRoute": "Unavailable",
-          "score": 0,
-          "routes": [],
-          "mustVerify": [
-            "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-            "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
-          ]
-        },
-        "liquidityUsd": 117500,
-        "volume24h": 33750,
-        "estimatedLiquidityImpactPct": 0.085,
-        "paperPlan": {
-          "label": "$100 Paper Plan",
-          "mode": "Paper research plan only",
-          "totalPaperBudgetUsd": 100,
-          "maxPaperBudgetForThisCandidateUsd": 50,
-          "starterTrancheUsd": 20,
-          "confirmationTrancheUsd": 17.5,
-          "finalValidationTrancheUsd": 12.5,
-          "estimatedLiquidityImpactPct": 0.085,
-          "confirmationTriggers": [
-            "Verify official contract/pair and source identity.",
-            "Confirm visible liquidity and expected slippage manually.",
-            "Confirm roadmap/catalyst and GitHub/source proof are real.",
-            "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
-          ],
-          "note": "This is a research simulation for a small account size, not a recommendation to buy."
-        },
-        "reasons": [
-          "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
-          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
-        ],
-        "warnings": [
-          "Research only; not financial advice or a buy recommendation.",
-          "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
-          "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
-          "No Coinbase or MetaMask route was detected; do not select without route proof.",
-          "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
-          "AI council disagreement is high; require manual confirmation."
-        ],
-        "mustVerify": [
-          "Official token contract, pair, chain, and website.",
-          "Coinbase availability or MetaMask token contract/pair route.",
-          "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
-          "Recent roadmap/catalyst evidence from official or trusted sources.",
-          "Token unlocks, emissions, team allocation, and insider sell pressure.",
-          "Whether the token is available in your jurisdiction and exchange/wallet setup."
-        ]
-      },
-      {
-        "selectionRank": null,
-        "selected": false,
-        "name": "Akash Network",
-        "symbol": "AKT",
-        "chain": "cosmos",
-        "score": 41,
-        "verdict": "Small-Cap Purchase Route Block",
-        "marketCap": 0,
-        "capBand": "Unknown Cap",
-        "structureScore": 55,
-        "upsideScore": 35,
-        "executionScore": 71,
-        "riskScore": 75,
+        "riskScore": 73,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -821,14 +685,14 @@
         "name": "Celestia",
         "symbol": "TIA",
         "chain": "celestia",
-        "score": 41,
+        "score": 44,
         "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
-        "structureScore": 56,
-        "upsideScore": 33,
+        "structureScore": 64,
+        "upsideScore": 34,
         "executionScore": 71,
-        "riskScore": 74,
+        "riskScore": 72,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -852,6 +716,141 @@
           "confirmationTrancheUsd": 17.5,
           "finalValidationTrancheUsd": 12.5,
           "estimatedLiquidityImpactPct": 0.087,
+          "confirmationTriggers": [
+            "Verify official contract/pair and source identity.",
+            "Confirm visible liquidity and expected slippage manually.",
+            "Confirm roadmap/catalyst and GitHub/source proof are real.",
+            "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+          ],
+          "note": "This is a research simulation for a small account size, not a recommendation to buy."
+        },
+        "reasons": [
+          "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+          "Alpha Governor marked it as priority research."
+        ],
+        "warnings": [
+          "Research only; not financial advice or a buy recommendation.",
+          "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+          "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+          "No Coinbase or MetaMask route was detected; do not select without route proof.",
+          "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+          "AI council disagreement is high; require manual confirmation."
+        ],
+        "mustVerify": [
+          "Official token contract, pair, chain, and website.",
+          "Coinbase availability or MetaMask token contract/pair route.",
+          "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+          "Recent roadmap/catalyst evidence from official or trusted sources.",
+          "Token unlocks, emissions, team allocation, and insider sell pressure.",
+          "Whether the token is available in your jurisdiction and exchange/wallet setup."
+        ]
+      },
+      {
+        "selectionRank": null,
+        "selected": false,
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "score": 44,
+        "verdict": "Small-Cap Purchase Route Block",
+        "marketCap": 0,
+        "capBand": "Unknown Cap",
+        "structureScore": 64,
+        "upsideScore": 35,
+        "executionScore": 71,
+        "riskScore": 73,
+        "purchaseRoute": {
+          "status": "No Coinbase/MetaMask Route Detected",
+          "purchasable": false,
+          "preferredRoute": "Unavailable",
+          "score": 0,
+          "routes": [],
+          "mustVerify": [
+            "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+            "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
+          ]
+        },
+        "liquidityUsd": 110000,
+        "volume24h": 30000,
+        "estimatedLiquidityImpactPct": 0.091,
+        "paperPlan": {
+          "label": "$100 Paper Plan",
+          "mode": "Paper research plan only",
+          "totalPaperBudgetUsd": 100,
+          "maxPaperBudgetForThisCandidateUsd": 50,
+          "starterTrancheUsd": 20,
+          "confirmationTrancheUsd": 17.5,
+          "finalValidationTrancheUsd": 12.5,
+          "estimatedLiquidityImpactPct": 0.091,
+          "confirmationTriggers": [
+            "Verify official contract/pair and source identity.",
+            "Confirm visible liquidity and expected slippage manually.",
+            "Confirm roadmap/catalyst and GitHub/source proof are real.",
+            "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+          ],
+          "note": "This is a research simulation for a small account size, not a recommendation to buy."
+        },
+        "reasons": [
+          "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+        ],
+        "warnings": [
+          "Research only; not financial advice or a buy recommendation.",
+          "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+          "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+          "No Coinbase or MetaMask route was detected; do not select without route proof.",
+          "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+          "AI council disagreement is high; require manual confirmation."
+        ],
+        "mustVerify": [
+          "Official token contract, pair, chain, and website.",
+          "Coinbase availability or MetaMask token contract/pair route.",
+          "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+          "Recent roadmap/catalyst evidence from official or trusted sources.",
+          "Token unlocks, emissions, team allocation, and insider sell pressure.",
+          "Whether the token is available in your jurisdiction and exchange/wallet setup."
+        ]
+      },
+      {
+        "selectionRank": null,
+        "selected": false,
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "score": 43,
+        "verdict": "Small-Cap Purchase Route Block",
+        "marketCap": 0,
+        "capBand": "Unknown Cap",
+        "structureScore": 59,
+        "upsideScore": 35,
+        "executionScore": 71,
+        "riskScore": 73,
+        "purchaseRoute": {
+          "status": "No Coinbase/MetaMask Route Detected",
+          "purchasable": false,
+          "preferredRoute": "Unavailable",
+          "score": 0,
+          "routes": [],
+          "mustVerify": [
+            "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+            "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
+          ]
+        },
+        "liquidityUsd": 102500,
+        "volume24h": 26250,
+        "estimatedLiquidityImpactPct": 0.098,
+        "paperPlan": {
+          "label": "$100 Paper Plan",
+          "mode": "Paper research plan only",
+          "totalPaperBudgetUsd": 100,
+          "maxPaperBudgetForThisCandidateUsd": 50,
+          "starterTrancheUsd": 20,
+          "confirmationTrancheUsd": 17.5,
+          "finalValidationTrancheUsd": 12.5,
+          "estimatedLiquidityImpactPct": 0.098,
           "confirmationTriggers": [
             "Verify official contract/pair and source identity.",
             "Confirm visible liquidity and expected slippage manually.",
@@ -888,14 +887,14 @@
         "name": "Ondo",
         "symbol": "ONDO",
         "chain": "ethereum",
-        "score": 41,
+        "score": 43,
         "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
-        "structureScore": 52,
+        "structureScore": 59,
         "upsideScore": 38,
         "executionScore": 71,
-        "riskScore": 75,
+        "riskScore": 74,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -929,7 +928,9 @@
         },
         "reasons": [
           "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+          "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+          "Breakout Brain selected it as a best-available breakout setup."
         ],
         "warnings": [
           "Research only; not financial advice or a buy recommendation.",
@@ -951,17 +952,17 @@
       {
         "selectionRank": null,
         "selected": false,
-        "name": "Render",
-        "symbol": "RNDR",
+        "name": "Jupiter",
+        "symbol": "JUP",
         "chain": "solana",
-        "score": 40,
+        "score": 42,
         "verdict": "Small-Cap Purchase Route Block",
         "marketCap": 0,
         "capBand": "Unknown Cap",
-        "structureScore": 52,
-        "upsideScore": 34,
+        "structureScore": 64,
+        "upsideScore": 28,
         "executionScore": 71,
-        "riskScore": 75,
+        "riskScore": 69,
         "purchaseRoute": {
           "status": "No Coinbase/MetaMask Route Detected",
           "purchasable": false,
@@ -973,9 +974,9 @@
             "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
           ]
         },
-        "liquidityUsd": 102500,
-        "volume24h": 26250,
-        "estimatedLiquidityImpactPct": 0.098,
+        "liquidityUsd": 117500,
+        "volume24h": 33750,
+        "estimatedLiquidityImpactPct": 0.085,
         "paperPlan": {
           "label": "$100 Paper Plan",
           "mode": "Paper research plan only",
@@ -984,7 +985,7 @@
           "starterTrancheUsd": 20,
           "confirmationTrancheUsd": 17.5,
           "finalValidationTrancheUsd": 12.5,
-          "estimatedLiquidityImpactPct": 0.098,
+          "estimatedLiquidityImpactPct": 0.085,
           "confirmationTriggers": [
             "Verify official contract/pair and source identity.",
             "Confirm visible liquidity and expected slippage manually.",
@@ -995,6 +996,7 @@
         },
         "reasons": [
           "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+          "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
           "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
         ],
         "warnings": [
@@ -1017,7 +1019,7 @@
     ]
   },
   "executionTwin": {
-    "generatedAt": "2026-07-14T06:05:53.658Z",
+    "generatedAt": "2026-07-14T06:21:02.639Z",
     "name": "Proof-of-Alpha Execution Twin",
     "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
     "totalProjects": 8,
@@ -1028,6 +1030,379 @@
     "safetyBlocks": 0,
     "topExecutions": [],
     "topProjects": [
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "score": 44,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.33,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 100000,
+          "volume24h": 25000,
+          "liquidityImpactPct": 0.1,
+          "volumeImpactPct": 0.4,
+          "estimatedSlippagePct": 0.33,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 72,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.33,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "score": 43,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.31,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 112500,
+          "volume24h": 31250,
+          "liquidityImpactPct": 0.0889,
+          "volumeImpactPct": 0.32,
+          "estimatedSlippagePct": 0.31,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 76,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route.",
+            "Red-team block is active."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.31,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "score": 43,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.326,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 102500,
+          "volume24h": 26250,
+          "liquidityImpactPct": 0.0976,
+          "volumeImpactPct": 0.381,
+          "estimatedSlippagePct": 0.326,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 73,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.326,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "score": 43,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.321,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 105000,
+          "volume24h": 27500,
+          "liquidityImpactPct": 0.0952,
+          "volumeImpactPct": 0.3636,
+          "estimatedSlippagePct": 0.321,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 73,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.321,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "chain": "ethereum",
+        "score": 43,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.317,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 107500,
+          "volume24h": 28750,
+          "liquidityImpactPct": 0.093,
+          "volumeImpactPct": 0.3478,
+          "estimatedSlippagePct": 0.317,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 74,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 73,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.317,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
+      {
+        "rank": null,
+        "selected": false,
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "score": 42,
+        "verdict": "Execution Route Block",
+        "confidence": "Low",
+        "route": "Unavailable",
+        "slippagePct": 0.307,
+        "quote": {
+          "budgetUsd": 100,
+          "priceUsd": null,
+          "estimatedTokens": null,
+          "liquidityUsd": 115000,
+          "volume24h": 32500,
+          "liquidityImpactPct": 0.087,
+          "volumeImpactPct": 0.3077,
+          "estimatedSlippagePct": 0.307,
+          "score": 87,
+          "blocker": null
+        },
+        "safety": {
+          "score": 37,
+          "risk": 72,
+          "contractKnown": false,
+          "pairKnown": true,
+          "sourceProof": 74,
+          "blockers": [
+            "No verified Coinbase/MetaMask execution route."
+          ]
+        },
+        "paperExecution": {
+          "mode": "Paper execution simulation only",
+          "budgetUsd": 100,
+          "preferredRoute": "Unavailable",
+          "estimatedTokens": null,
+          "estimatedSlippagePct": 0.307,
+          "simulatedEntryPriceUsd": null,
+          "reviewWindows": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "90d"
+          ]
+        },
+        "invalidationRules": [
+          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+          "Estimated $100 slippage rises above 5%.",
+          "Risk, trap, unlock, or sell-pressure score rises above 78.",
+          "Token contract or pair cannot be manually verified.",
+          "Alpha thesis/gov/proof score drops below 50 on the next scan."
+        ],
+        "requiredManualChecks": [
+          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+          "Confirm slippage and fees inside the actual trade screen before any real order.",
+          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
+          "Confirm unlocks, emissions, insiders, and top-holder concentration."
+        ]
+      },
       {
         "rank": null,
         "selected": false,
@@ -1093,72 +1468,10 @@
       {
         "rank": null,
         "selected": false,
-        "name": "Bittensor",
-        "symbol": "TAO",
-        "chain": "bittensor",
-        "score": 41,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.33,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 100000,
-          "volume24h": 25000,
-          "liquidityImpactPct": 0.1,
-          "volumeImpactPct": 0.4,
-          "estimatedSlippagePct": 0.33,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 33,
-          "risk": 73,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 57,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.33,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
-      },
-      {
-        "rank": null,
-        "selected": false,
         "name": "Jupiter",
         "symbol": "JUP",
         "chain": "solana",
-        "score": 41,
+        "score": 42,
         "verdict": "Execution Route Block",
         "confidence": "Low",
         "route": "Unavailable",
@@ -1177,7 +1490,7 @@
         },
         "safety": {
           "score": 38,
-          "risk": 70,
+          "risk": 69,
           "contractKnown": false,
           "pairKnown": true,
           "sourceProof": 74,
@@ -1213,323 +1526,11 @@
           "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
           "Confirm unlocks, emissions, insiders, and top-holder concentration."
         ]
-      },
-      {
-        "rank": null,
-        "selected": false,
-        "name": "EigenLayer",
-        "symbol": "EIGEN",
-        "chain": "ethereum",
-        "score": 40,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.31,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 112500,
-          "volume24h": 31250,
-          "liquidityImpactPct": 0.0889,
-          "volumeImpactPct": 0.32,
-          "estimatedSlippagePct": 0.31,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 32,
-          "risk": 78,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 57,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route.",
-            "Risk stack is too high for execution verification.",
-            "Red-team block is active."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.31,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
-      },
-      {
-        "rank": null,
-        "selected": false,
-        "name": "Akash Network",
-        "symbol": "AKT",
-        "chain": "cosmos",
-        "score": 40,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.321,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 105000,
-          "volume24h": 27500,
-          "liquidityImpactPct": 0.0952,
-          "volumeImpactPct": 0.3636,
-          "estimatedSlippagePct": 0.321,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 32,
-          "risk": 75,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 56,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.321,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
-      },
-      {
-        "rank": null,
-        "selected": false,
-        "name": "Render",
-        "symbol": "RNDR",
-        "chain": "solana",
-        "score": 39,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.326,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 102500,
-          "volume24h": 26250,
-          "liquidityImpactPct": 0.0976,
-          "volumeImpactPct": 0.381,
-          "estimatedSlippagePct": 0.326,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 32,
-          "risk": 75,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 56,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.326,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
-      },
-      {
-        "rank": null,
-        "selected": false,
-        "name": "Celestia",
-        "symbol": "TIA",
-        "chain": "celestia",
-        "score": 39,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.307,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 115000,
-          "volume24h": 32500,
-          "liquidityImpactPct": 0.087,
-          "volumeImpactPct": 0.3077,
-          "estimatedSlippagePct": 0.307,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 32,
-          "risk": 74,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 56,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.307,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
-      },
-      {
-        "rank": null,
-        "selected": false,
-        "name": "Ondo",
-        "symbol": "ONDO",
-        "chain": "ethereum",
-        "score": 39,
-        "verdict": "Execution Route Block",
-        "confidence": "Low",
-        "route": "Unavailable",
-        "slippagePct": 0.317,
-        "quote": {
-          "budgetUsd": 100,
-          "priceUsd": null,
-          "estimatedTokens": null,
-          "liquidityUsd": 107500,
-          "volume24h": 28750,
-          "liquidityImpactPct": 0.093,
-          "volumeImpactPct": 0.3478,
-          "estimatedSlippagePct": 0.317,
-          "score": 87,
-          "blocker": null
-        },
-        "safety": {
-          "score": 32,
-          "risk": 75,
-          "contractKnown": false,
-          "pairKnown": true,
-          "sourceProof": 55,
-          "blockers": [
-            "No verified Coinbase/MetaMask execution route."
-          ]
-        },
-        "paperExecution": {
-          "mode": "Paper execution simulation only",
-          "budgetUsd": 100,
-          "preferredRoute": "Unavailable",
-          "estimatedTokens": null,
-          "estimatedSlippagePct": 0.317,
-          "simulatedEntryPriceUsd": null,
-          "reviewWindows": [
-            "1h",
-            "24h",
-            "7d",
-            "30d",
-            "90d"
-          ]
-        },
-        "invalidationRules": [
-          "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
-          "Estimated $100 slippage rises above 5%.",
-          "Risk, trap, unlock, or sell-pressure score rises above 78.",
-          "Token contract or pair cannot be manually verified.",
-          "Alpha thesis/gov/proof score drops below 50 on the next scan."
-        ],
-        "requiredManualChecks": [
-          "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
-          "Confirm slippage and fees inside the actual trade screen before any real order.",
-          "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
-          "Confirm unlocks, emissions, insiders, and top-holder concentration."
-        ]
       }
     ]
   },
   "organicIntegrity": {
-    "generatedAt": "2026-07-14T06:05:53.658Z",
+    "generatedAt": "2026-07-14T06:21:02.640Z",
     "name": "Organic Demand and Economic Integrity",
     "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
     "totalProjects": 8,
@@ -1544,35 +1545,36 @@
         "name": "EigenLayer",
         "symbol": "EIGEN",
         "chain": "ethereum",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 42188,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 25110,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 237.04,
+            "estimatedStablecoinImpactPct": 398.25,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2370.37,
+            "estimatedStablecoinImpactPct": 3982.48,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 23703.7,
+            "estimatedStablecoinImpactPct": 39824.77,
             "pass": false
           }
         ]
@@ -1581,35 +1583,36 @@
         "name": "Render",
         "symbol": "RNDR",
         "chain": "solana",
-        "score": 62,
-        "verdict": "Economic Integrity Watch",
+        "score": 60,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 41,
-        "economicSustainabilityScore": 67,
-        "hardExitLiquidityUsd": 38438,
+        "economicSustainabilityScore": 65,
+        "hardExitLiquidityUsd": 22878,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 260.16,
+            "estimatedStablecoinImpactPct": 437.1,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2601.63,
+            "estimatedStablecoinImpactPct": 4371.01,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 26016.26,
+            "estimatedStablecoinImpactPct": 43710.11,
             "pass": false
           }
         ]
@@ -1618,35 +1621,36 @@
         "name": "Bittensor",
         "symbol": "TAO",
         "chain": "bittensor",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 37500,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 22320,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 266.67,
+            "estimatedStablecoinImpactPct": 448.03,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2666.67,
+            "estimatedStablecoinImpactPct": 4480.29,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 26666.67,
+            "estimatedStablecoinImpactPct": 44802.87,
             "pass": false
           }
         ]
@@ -1655,35 +1659,36 @@
         "name": "Akash Network",
         "symbol": "AKT",
         "chain": "cosmos",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 39375,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 23436,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 253.97,
+            "estimatedStablecoinImpactPct": 426.69,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2539.68,
+            "estimatedStablecoinImpactPct": 4266.94,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 25396.83,
+            "estimatedStablecoinImpactPct": 42669.4,
             "pass": false
           }
         ]
@@ -1692,35 +1697,36 @@
         "name": "Celestia",
         "symbol": "TIA",
         "chain": "celestia",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 43125,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 25668,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 231.88,
+            "estimatedStablecoinImpactPct": 389.59,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2318.84,
+            "estimatedStablecoinImpactPct": 3895.9,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 23188.41,
+            "estimatedStablecoinImpactPct": 38959.02,
             "pass": false
           }
         ]
@@ -1729,35 +1735,36 @@
         "name": "Ondo",
         "symbol": "ONDO",
         "chain": "ethereum",
-        "score": 62,
-        "verdict": "Economic Integrity Watch",
+        "score": 60,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 41,
-        "economicSustainabilityScore": 67,
-        "hardExitLiquidityUsd": 40313,
+        "economicSustainabilityScore": 65,
+        "hardExitLiquidityUsd": 23994,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 248.06,
+            "estimatedStablecoinImpactPct": 416.77,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2480.62,
+            "estimatedStablecoinImpactPct": 4167.71,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 24806.2,
+            "estimatedStablecoinImpactPct": 41677.09,
             "pass": false
           }
         ]
@@ -1766,35 +1773,36 @@
         "name": "Pendle",
         "symbol": "PENDLE",
         "chain": "ethereum",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 41250,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 24552,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 242.42,
+            "estimatedStablecoinImpactPct": 407.3,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2424.24,
+            "estimatedStablecoinImpactPct": 4072.99,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 24242.42,
+            "estimatedStablecoinImpactPct": 40729.88,
             "pass": false
           }
         ]
@@ -1803,35 +1811,36 @@
         "name": "Jupiter",
         "symbol": "JUP",
         "chain": "solana",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 44063,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 26226,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 226.95,
+            "estimatedStablecoinImpactPct": 381.3,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2269.5,
+            "estimatedStablecoinImpactPct": 3813.01,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 22695.04,
+            "estimatedStablecoinImpactPct": 38130.1,
             "pass": false
           }
         ]
@@ -1842,35 +1851,36 @@
         "name": "EigenLayer",
         "symbol": "EIGEN",
         "chain": "ethereum",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 42188,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 25110,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 237.04,
+            "estimatedStablecoinImpactPct": 398.25,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2370.37,
+            "estimatedStablecoinImpactPct": 3982.48,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 23703.7,
+            "estimatedStablecoinImpactPct": 39824.77,
             "pass": false
           }
         ]
@@ -1879,35 +1889,36 @@
         "name": "Bittensor",
         "symbol": "TAO",
         "chain": "bittensor",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 37500,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 22320,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 266.67,
+            "estimatedStablecoinImpactPct": 448.03,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2666.67,
+            "estimatedStablecoinImpactPct": 4480.29,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 26666.67,
+            "estimatedStablecoinImpactPct": 44802.87,
             "pass": false
           }
         ]
@@ -1916,35 +1927,36 @@
         "name": "Akash Network",
         "symbol": "AKT",
         "chain": "cosmos",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 39375,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 23436,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 253.97,
+            "estimatedStablecoinImpactPct": 426.69,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2539.68,
+            "estimatedStablecoinImpactPct": 4266.94,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 25396.83,
+            "estimatedStablecoinImpactPct": 42669.4,
             "pass": false
           }
         ]
@@ -1953,35 +1965,36 @@
         "name": "Celestia",
         "symbol": "TIA",
         "chain": "celestia",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 43125,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 25668,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 231.88,
+            "estimatedStablecoinImpactPct": 389.59,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2318.84,
+            "estimatedStablecoinImpactPct": 3895.9,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 23188.41,
+            "estimatedStablecoinImpactPct": 38959.02,
             "pass": false
           }
         ]
@@ -1990,35 +2003,36 @@
         "name": "Pendle",
         "symbol": "PENDLE",
         "chain": "ethereum",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 41250,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 24552,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 242.42,
+            "estimatedStablecoinImpactPct": 407.3,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2424.24,
+            "estimatedStablecoinImpactPct": 4072.99,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 24242.42,
+            "estimatedStablecoinImpactPct": 40729.88,
             "pass": false
           }
         ]
@@ -2027,35 +2041,36 @@
         "name": "Jupiter",
         "symbol": "JUP",
         "chain": "solana",
-        "score": 63,
-        "verdict": "Economic Integrity Watch",
+        "score": 61,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 42,
-        "economicSustainabilityScore": 68,
-        "hardExitLiquidityUsd": 44063,
+        "economicSustainabilityScore": 66,
+        "hardExitLiquidityUsd": 26226,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 226.95,
+            "estimatedStablecoinImpactPct": 381.3,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2269.5,
+            "estimatedStablecoinImpactPct": 3813.01,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 22695.04,
+            "estimatedStablecoinImpactPct": 38130.1,
             "pass": false
           }
         ]
@@ -2064,35 +2079,36 @@
         "name": "Render",
         "symbol": "RNDR",
         "chain": "solana",
-        "score": 62,
-        "verdict": "Economic Integrity Watch",
+        "score": 60,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 41,
-        "economicSustainabilityScore": 67,
-        "hardExitLiquidityUsd": 38438,
+        "economicSustainabilityScore": 65,
+        "hardExitLiquidityUsd": 22878,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 260.16,
+            "estimatedStablecoinImpactPct": 437.1,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2601.63,
+            "estimatedStablecoinImpactPct": 4371.01,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 26016.26,
+            "estimatedStablecoinImpactPct": 43710.11,
             "pass": false
           }
         ]
@@ -2101,35 +2117,36 @@
         "name": "Ondo",
         "symbol": "ONDO",
         "chain": "ethereum",
-        "score": 62,
-        "verdict": "Economic Integrity Watch",
+        "score": 60,
+        "verdict": "Thin Integrity Data",
         "strongBuyEligible": false,
-        "riskScore": 13,
+        "riskScore": 19,
         "penalty": 0,
         "organicDemandScore": 41,
-        "economicSustainabilityScore": 67,
-        "hardExitLiquidityUsd": 40313,
+        "economicSustainabilityScore": 65,
+        "hardExitLiquidityUsd": 23994,
         "organicActivityShare": null,
         "blockers": [],
         "warnings": [
           "Holder count is missing.",
+          "Displayed liquidity is much larger than conservative exit liquidity.",
           "$1M simulated sell overwhelms hard exit liquidity.",
           "No reliable market-cap input was found."
         ],
         "sellTests": [
           {
             "sellUsd": 100000,
-            "estimatedStablecoinImpactPct": 248.06,
+            "estimatedStablecoinImpactPct": 416.77,
             "pass": false
           },
           {
             "sellUsd": 1000000,
-            "estimatedStablecoinImpactPct": 2480.62,
+            "estimatedStablecoinImpactPct": 4167.71,
             "pass": false
           },
           {
             "sellUsd": 10000000,
-            "estimatedStablecoinImpactPct": 24806.2,
+            "estimatedStablecoinImpactPct": 41677.09,
             "pass": false
           }
         ]
@@ -2137,7 +2154,7 @@
     ]
   },
   "paperTradingOutcomeLab": {
-    "generatedAt": "2026-07-14T06:05:53.656Z",
+    "generatedAt": "2026-07-14T06:21:02.637Z",
     "memory": {
       "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
       "totalRecords": 5,
@@ -2414,21 +2431,71 @@
     "downgradeStrategyCount": 0,
     "topPaperCandidates": [
       {
-        "name": "Pendle",
-        "symbol": "PENDLE",
-        "score": 49,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "score": 53,
         "verdict": "Collect More Outcomes",
-        "strategy": "Truth-Verified Alpha",
+        "strategy": "GitHub Builder Momentum",
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Best Available Candidate"
       },
       {
-        "name": "Bittensor",
-        "symbol": "TAO",
-        "score": 48,
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "score": 51,
         "verdict": "Collect More Outcomes",
         "strategy": "GitHub Builder Momentum",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Reject"
+      },
+      {
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "score": 50,
+        "verdict": "Collect More Outcomes",
+        "strategy": "GitHub Builder Momentum",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Risk Block"
+      },
+      {
+        "name": "Render",
+        "symbol": "RNDR",
+        "score": 50,
+        "verdict": "Collect More Outcomes",
+        "strategy": "GitHub Builder Momentum",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Reject"
+      },
+      {
+        "name": "Celestia",
+        "symbol": "TIA",
+        "score": 49,
+        "verdict": "Collect More Outcomes",
+        "strategy": "Truth-Verified Alpha",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Reject"
+      },
+      {
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "score": 49,
+        "verdict": "Collect More Outcomes",
+        "strategy": "Truth-Verified Alpha",
+        "strategyWinRate": 0,
+        "strategySamples": 0,
+        "alphaOSVerdict": "OS Reject"
+      },
+      {
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "score": 49,
+        "verdict": "Collect More Outcomes",
+        "strategy": "Truth-Verified Alpha",
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Reject"
@@ -2442,61 +2509,11 @@
         "strategyWinRate": 0,
         "strategySamples": 0,
         "alphaOSVerdict": "OS Reject"
-      },
-      {
-        "name": "EigenLayer",
-        "symbol": "EIGEN",
-        "score": 44,
-        "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Risk Block"
-      },
-      {
-        "name": "Render",
-        "symbol": "RNDR",
-        "score": 44,
-        "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Reject"
-      },
-      {
-        "name": "Akash Network",
-        "symbol": "AKT",
-        "score": 44,
-        "verdict": "Collect More Outcomes",
-        "strategy": "GitHub Builder Momentum",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Reject"
-      },
-      {
-        "name": "Celestia",
-        "symbol": "TIA",
-        "score": 43,
-        "verdict": "Collect More Outcomes",
-        "strategy": "Truth-Verified Alpha",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Reject"
-      },
-      {
-        "name": "Ondo",
-        "symbol": "ONDO",
-        "score": 43,
-        "verdict": "Collect More Outcomes",
-        "strategy": "Truth-Verified Alpha",
-        "strategyWinRate": 0,
-        "strategySamples": 0,
-        "alphaOSVerdict": "OS Reject"
       }
     ]
   },
   "autoLearningWeightOptimizer": {
-    "generatedAt": "2026-07-14T06:05:53.656Z",
+    "generatedAt": "2026-07-14T06:21:02.638Z",
     "memorySamples": 5,
     "evaluatedSamples": 0,
     "globalPaperWinRate": 0,
@@ -2505,8 +2522,8 @@
       {
         "id": "strategy",
         "label": "Strategy Lab",
-        "weight": 1.02,
-        "avgProjectScore": 67,
+        "weight": 1.04,
+        "avgProjectScore": 72,
         "memorySignal": 0,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -2514,8 +2531,8 @@
       {
         "id": "causal",
         "label": "Causal Brain",
-        "weight": 1.23,
-        "avgProjectScore": 57,
+        "weight": 1.24,
+        "avgProjectScore": 61,
         "memorySignal": 50,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -2523,8 +2540,8 @@
       {
         "id": "simulation",
         "label": "Simulation Brain",
-        "weight": 0.88,
-        "avgProjectScore": 32,
+        "weight": 0.92,
+        "avgProjectScore": 42,
         "memorySignal": 0,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -2541,8 +2558,8 @@
       {
         "id": "risk",
         "label": "Risk Governor",
-        "weight": 1.33,
-        "avgProjectScore": 82,
+        "weight": 1.35,
+        "avgProjectScore": 88,
         "memorySignal": 50,
         "confidence": 30,
         "action": "Collect More Outcomes"
@@ -2558,16 +2575,16 @@
       }
     ],
     "weights": {
-      "strategy": 1.02,
-      "causal": 1.23,
-      "simulation": 0.88,
+      "strategy": 1.04,
+      "causal": 1.24,
+      "simulation": 0.92,
       "proof": 1.2,
-      "risk": 1.33,
+      "risk": 1.35,
       "github": 1
     }
   },
   "sourceTruth": {
-    "generatedAt": "2026-07-14T06:05:53.657Z",
+    "generatedAt": "2026-07-14T06:21:02.638Z",
     "totalProjects": 8,
     "verifiedStacks": 0,
     "weakStacks": 0,
@@ -2678,7 +2695,7 @@
     ]
   },
   "githubIntelligencePro": {
-    "generatedAt": "2026-07-14T06:05:53.657Z",
+    "generatedAt": "2026-07-14T06:21:02.639Z",
     "totalProjects": 8,
     "repoProjects": 0,
     "missingRepoProjects": 8,

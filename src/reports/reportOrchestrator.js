@@ -32,6 +32,7 @@ import { writeSmallCapHunterReport } from "./smallCapHunterReportEngine.js";
 import { writeProofOfAlphaExecutionTwinReport } from "./proofOfAlphaExecutionTwinReportEngine.js";
 import { writeOrganicDemandIntegrityReport } from "./organicDemandIntegrityReportEngine.js";
 import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
+import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -125,6 +126,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: discoveryTruthPath,
   } = writeDiscoveryTruthReport(meta);
   const {
+    filePath: nativeDiscoveryMeshPath,
+  } = writeNativeDiscoveryMeshReport(projects, meta);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -187,6 +191,7 @@ export function generateReports(projects = [], meta = {}) {
     proofOfAlphaExecutionTwinPath,
     organicDemandIntegrityPath,
     discoveryTruthPath,
+    nativeDiscoveryMeshPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

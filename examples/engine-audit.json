@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-07-14T06:05:56.420Z",
-  "totalEngines": 112,
-  "wiredIntoPipeline": 88,
-  "stateOfArtReady": 95,
-  "readinessScore": 89,
+  "generatedAt": "2026-07-14T06:21:06.751Z",
+  "totalEngines": 115,
+  "wiredIntoPipeline": 91,
+  "stateOfArtReady": 98,
+  "readinessScore": 90,
   "categoryCounts": {
-    "intelligence": 44,
+    "intelligence": 45,
+    "market-flow": 7,
     "ai": 14,
     "learning": 20,
-    "market-flow": 5,
     "narrative-launch": 9,
     "discovery": 13,
     "risk": 2,
@@ -26,6 +26,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "activeLiquidityTruthEngine.js",
+      "category": "market-flow",
+      "exports": [
+        "simulateMassExit",
+        "analyzeActiveLiquidityTruth",
+        "analyzeActiveLiquidityTruthBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -301,22 +316,6 @@
       "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
-    },
-    {
-      "file": "capitalFlowEngine.js",
-      "category": "market-flow",
-      "exports": [
-        "calculateCapitalFlow",
-        "scoreCapitalFlow",
-        "analyzeCapitalFlow",
-        "analyzeCapitalFlowBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 3,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
     }
   ],
   "needsUpgrade": [
@@ -555,6 +554,21 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "activeLiquidityTruthEngine.js",
+      "category": "market-flow",
+      "exports": [
+        "simulateMassExit",
+        "analyzeActiveLiquidityTruth",
+        "analyzeActiveLiquidityTruthBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -994,6 +1008,21 @@
       "wiredInPipeline": true,
       "advancedSignals": 3,
       "readinessScore": 85,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "deployerReputationEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeDeployerReputation",
+        "analyzeDeployerReputationBatch",
+        "summarizeDeployerReputation"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 100,
       "status": "state-of-art-ready"
     },
     {
@@ -1551,6 +1580,20 @@
       "wiredInPipeline": true,
       "advancedSignals": 4,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "organicBuyerClassifierEngine.js",
+      "category": "market-flow",
+      "exports": [
+        "analyzeOrganicBuyerClassifier",
+        "analyzeOrganicBuyerClassifierBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 90,
       "status": "state-of-art-ready"
     },
     {

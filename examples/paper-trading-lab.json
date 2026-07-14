@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:53.656Z",
+  "generatedAt": "2026-07-14T06:21:02.637Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
     "totalRecords": 5,
@@ -276,19 +276,19 @@
   "downgradeStrategyCount": 0,
   "topPaperCandidates": [
     {
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "score": 49,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "score": 53,
       "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
+      "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Best Available Candidate"
     },
     {
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "score": 48,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 51,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
@@ -296,19 +296,9 @@
       "alphaOSVerdict": "OS Reject"
     },
     {
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "score": 46,
-      "verdict": "Collect More Outcomes",
-      "strategy": "Truth-Verified Alpha",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
-    },
-    {
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 44,
+      "score": 50,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
@@ -318,17 +308,7 @@
     {
       "name": "Render",
       "symbol": "RNDR",
-      "score": 44,
-      "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
-    },
-    {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 44,
+      "score": 50,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
@@ -338,7 +318,7 @@
     {
       "name": "Celestia",
       "symbol": "TIA",
-      "score": 43,
+      "score": 49,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
@@ -348,7 +328,27 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 43,
+      "score": 49,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "score": 49,
+      "verdict": "Collect More Outcomes",
+      "strategy": "Truth-Verified Alpha",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "score": 46,
       "verdict": "Collect More Outcomes",
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,

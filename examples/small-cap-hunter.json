@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:56.356Z",
+  "generatedAt": "2026-07-14T06:21:06.685Z",
   "name": "Small-Cap Hunter",
   "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
   "totalProjects": 8,
@@ -9,8 +9,8 @@
   "topTwo": [],
   "researchCandidates": 0,
   "watchCount": 0,
-  "riskBlocks": 1,
-  "purchaseRouteBlocks": 7,
+  "riskBlocks": 0,
+  "purchaseRouteBlocks": 8,
   "topProjects": [
     {
       "selectionRank": null,
@@ -18,14 +18,14 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 44,
-      "verdict": "Small-Cap Risk Block",
+      "score": 46,
+      "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 57,
-      "upsideScore": 45,
+      "structureScore": 65,
+      "upsideScore": 46,
       "executionScore": 71,
-      "riskScore": 78,
+      "riskScore": 76,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -84,86 +84,17 @@
     {
       "selectionRank": null,
       "selected": false,
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "score": 44,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 45,
       "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 64,
-      "upsideScore": 35,
+      "upsideScore": 40,
       "executionScore": 71,
-      "riskScore": 73,
-      "purchaseRoute": {
-        "status": "No Coinbase/MetaMask Route Detected",
-        "purchasable": false,
-        "preferredRoute": "Unavailable",
-        "score": 0,
-        "routes": [],
-        "mustVerify": [
-          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
-        ]
-      },
-      "liquidityUsd": 110000,
-      "volume24h": 30000,
-      "estimatedLiquidityImpactPct": 0.091,
-      "paperPlan": {
-        "label": "$100 Paper Plan",
-        "mode": "Paper research plan only",
-        "totalPaperBudgetUsd": 100,
-        "maxPaperBudgetForThisCandidateUsd": 50,
-        "starterTrancheUsd": 20,
-        "confirmationTrancheUsd": 17.5,
-        "finalValidationTrancheUsd": 12.5,
-        "estimatedLiquidityImpactPct": 0.091,
-        "confirmationTriggers": [
-          "Verify official contract/pair and source identity.",
-          "Confirm visible liquidity and expected slippage manually.",
-          "Confirm roadmap/catalyst and GitHub/source proof are real.",
-          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
-        ],
-        "note": "This is a research simulation for a small account size, not a recommendation to buy."
-      },
-      "reasons": [
-        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
-        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
-        "Alpha Governor marked it as priority research.",
-        "Breakout Brain selected it as a best-available breakout setup."
-      ],
-      "warnings": [
-        "Research only; not financial advice or a buy recommendation.",
-        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
-        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
-        "No Coinbase or MetaMask route was detected; do not select without route proof.",
-        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
-        "AI council disagreement is high; require manual confirmation."
-      ],
-      "mustVerify": [
-        "Official token contract, pair, chain, and website.",
-        "Coinbase availability or MetaMask token contract/pair route.",
-        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
-        "Recent roadmap/catalyst evidence from official or trusted sources.",
-        "Token unlocks, emissions, team allocation, and insider sell pressure.",
-        "Whether the token is available in your jurisdiction and exchange/wallet setup."
-      ]
-    },
-    {
-      "selectionRank": null,
-      "selected": false,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "score": 43,
-      "verdict": "Small-Cap Purchase Route Block",
-      "marketCap": 0,
-      "capBand": "Unknown Cap",
-      "structureScore": 56,
-      "upsideScore": 39,
-      "executionScore": 71,
-      "riskScore": 73,
+      "riskScore": 72,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -222,84 +153,17 @@
     {
       "selectionRank": null,
       "selected": false,
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "chain": "solana",
-      "score": 42,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 44,
       "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 64,
-      "upsideScore": 28,
+      "upsideScore": 36,
       "executionScore": 71,
-      "riskScore": 70,
-      "purchaseRoute": {
-        "status": "No Coinbase/MetaMask Route Detected",
-        "purchasable": false,
-        "preferredRoute": "Unavailable",
-        "score": 0,
-        "routes": [],
-        "mustVerify": [
-          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
-        ]
-      },
-      "liquidityUsd": 117500,
-      "volume24h": 33750,
-      "estimatedLiquidityImpactPct": 0.085,
-      "paperPlan": {
-        "label": "$100 Paper Plan",
-        "mode": "Paper research plan only",
-        "totalPaperBudgetUsd": 100,
-        "maxPaperBudgetForThisCandidateUsd": 50,
-        "starterTrancheUsd": 20,
-        "confirmationTrancheUsd": 17.5,
-        "finalValidationTrancheUsd": 12.5,
-        "estimatedLiquidityImpactPct": 0.085,
-        "confirmationTriggers": [
-          "Verify official contract/pair and source identity.",
-          "Confirm visible liquidity and expected slippage manually.",
-          "Confirm roadmap/catalyst and GitHub/source proof are real.",
-          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
-        ],
-        "note": "This is a research simulation for a small account size, not a recommendation to buy."
-      },
-      "reasons": [
-        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
-        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
-      ],
-      "warnings": [
-        "Research only; not financial advice or a buy recommendation.",
-        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
-        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
-        "No Coinbase or MetaMask route was detected; do not select without route proof.",
-        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
-        "AI council disagreement is high; require manual confirmation."
-      ],
-      "mustVerify": [
-        "Official token contract, pair, chain, and website.",
-        "Coinbase availability or MetaMask token contract/pair route.",
-        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
-        "Recent roadmap/catalyst evidence from official or trusted sources.",
-        "Token unlocks, emissions, team allocation, and insider sell pressure.",
-        "Whether the token is available in your jurisdiction and exchange/wallet setup."
-      ]
-    },
-    {
-      "selectionRank": null,
-      "selected": false,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "score": 41,
-      "verdict": "Small-Cap Purchase Route Block",
-      "marketCap": 0,
-      "capBand": "Unknown Cap",
-      "structureScore": 55,
-      "upsideScore": 35,
-      "executionScore": 71,
-      "riskScore": 75,
+      "riskScore": 73,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -360,14 +224,14 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 41,
+      "score": 44,
       "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 56,
-      "upsideScore": 33,
+      "structureScore": 64,
+      "upsideScore": 34,
       "executionScore": 71,
-      "riskScore": 74,
+      "riskScore": 72,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -391,6 +255,141 @@
         "confirmationTrancheUsd": 17.5,
         "finalValidationTrancheUsd": 12.5,
         "estimatedLiquidityImpactPct": 0.087,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Alpha Governor marked it as priority research."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "No Coinbase or MetaMask route was detected; do not select without route proof.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Coinbase availability or MetaMask token contract/pair route.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 44,
+      "verdict": "Small-Cap Purchase Route Block",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 64,
+      "upsideScore": 35,
+      "executionScore": 71,
+      "riskScore": 73,
+      "purchaseRoute": {
+        "status": "No Coinbase/MetaMask Route Detected",
+        "purchasable": false,
+        "preferredRoute": "Unavailable",
+        "score": 0,
+        "routes": [],
+        "mustVerify": [
+          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
+        ]
+      },
+      "liquidityUsd": 110000,
+      "volume24h": 30000,
+      "estimatedLiquidityImpactPct": 0.091,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.091,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "No Coinbase or MetaMask route was detected; do not select without route proof.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "AI council disagreement is high; require manual confirmation."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Coinbase availability or MetaMask token contract/pair route.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 43,
+      "verdict": "Small-Cap Purchase Route Block",
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 59,
+      "upsideScore": 35,
+      "executionScore": 71,
+      "riskScore": 73,
+      "purchaseRoute": {
+        "status": "No Coinbase/MetaMask Route Detected",
+        "purchasable": false,
+        "preferredRoute": "Unavailable",
+        "score": 0,
+        "routes": [],
+        "mustVerify": [
+          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
+        ]
+      },
+      "liquidityUsd": 102500,
+      "volume24h": 26250,
+      "estimatedLiquidityImpactPct": 0.098,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.098,
         "confirmationTriggers": [
           "Verify official contract/pair and source identity.",
           "Confirm visible liquidity and expected slippage manually.",
@@ -427,14 +426,14 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 41,
+      "score": 43,
       "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 52,
+      "structureScore": 59,
       "upsideScore": 38,
       "executionScore": 71,
-      "riskScore": 75,
+      "riskScore": 74,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -468,7 +467,9 @@
       },
       "reasons": [
         "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Breakout Brain selected it as a best-available breakout setup."
       ],
       "warnings": [
         "Research only; not financial advice or a buy recommendation.",
@@ -490,17 +491,17 @@
     {
       "selectionRank": null,
       "selected": false,
-      "name": "Render",
-      "symbol": "RNDR",
+      "name": "Jupiter",
+      "symbol": "JUP",
       "chain": "solana",
-      "score": 40,
+      "score": 42,
       "verdict": "Small-Cap Purchase Route Block",
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 52,
-      "upsideScore": 34,
+      "structureScore": 64,
+      "upsideScore": 28,
       "executionScore": 71,
-      "riskScore": 75,
+      "riskScore": 69,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -512,9 +513,9 @@
           "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
         ]
       },
-      "liquidityUsd": 102500,
-      "volume24h": 26250,
-      "estimatedLiquidityImpactPct": 0.098,
+      "liquidityUsd": 117500,
+      "volume24h": 33750,
+      "estimatedLiquidityImpactPct": 0.085,
       "paperPlan": {
         "label": "$100 Paper Plan",
         "mode": "Paper research plan only",
@@ -523,7 +524,7 @@
         "starterTrancheUsd": 20,
         "confirmationTrancheUsd": 17.5,
         "finalValidationTrancheUsd": 12.5,
-        "estimatedLiquidityImpactPct": 0.098,
+        "estimatedLiquidityImpactPct": 0.085,
         "confirmationTriggers": [
           "Verify official contract/pair and source identity.",
           "Confirm visible liquidity and expected slippage manually.",
@@ -534,6 +535,7 @@
       },
       "reasons": [
         "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
         "$100 paper-size execution looks structurally reasonable from visible liquidity/volume."
       ],
       "warnings": [

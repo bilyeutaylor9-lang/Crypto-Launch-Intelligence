@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:53.523Z",
+  "generatedAt": "2026-07-14T06:21:02.441Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -14,7 +14,7 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 10,
+      "pipelineScore": 11,
       "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
@@ -57,7 +57,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -65,7 +65,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 4,
       "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -90,7 +90,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -98,7 +98,7 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "pipelineScore": 0,
+      "pipelineScore": 1,
       "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -142,7 +142,7 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 10,
+      "pipelineScore": 11,
       "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
@@ -185,7 +185,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -193,7 +193,7 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
+      "pipelineScore": 4,
       "liveCatalystRadarScore": 68,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -218,7 +218,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -226,7 +226,7 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "pipelineScore": 0,
+      "pipelineScore": 1,
       "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
@@ -268,7 +268,7 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 5,
+      "pipelineScore": 7,
       "liveCatalystRadarScore": 56,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -293,7 +293,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -301,7 +301,7 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "pipelineScore": 4,
+      "pipelineScore": 5,
       "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -326,7 +326,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -334,7 +334,7 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 3,
+      "pipelineScore": 5,
       "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -359,7 +359,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -367,7 +367,7 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 5,
+      "pipelineScore": 7,
       "liveCatalystRadarScore": 49,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -392,7 +392,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {

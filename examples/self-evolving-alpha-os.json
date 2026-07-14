@@ -1,32 +1,32 @@
 {
-  "generatedAt": "2026-07-14T06:05:54.453Z",
+  "generatedAt": "2026-07-14T06:21:03.761Z",
   "name": "Self-Evolving Alpha OS",
   "description": "Master research OS that fuses identity graph, world model, hypothesis lab, experiment lab, agent society, alpha autopsy, regime adaptation, and thesis generation.",
   "totalProjects": 8,
   "scoredProjects": 8,
   "alphaCandidates": 0,
   "priorityResearch": 0,
-  "researchBlocks": 8,
+  "researchBlocks": 7,
   "topProject": {
     "rank": 1,
     "name": "EigenLayer",
     "symbol": "EIGEN",
     "chain": "ethereum",
-    "score": 35,
+    "score": 39,
     "decision": "Research Block",
-    "confidence": "Low",
-    "pipelineScore": 10,
-    "highTechAlphaScore": 47,
-    "breakoutBrainScore": 24,
-    "autonomousResearchScore": 31,
+    "confidence": "Developing",
+    "pipelineScore": 11,
+    "highTechAlphaScore": 50,
+    "breakoutBrainScore": 33,
+    "autonomousResearchScore": 39,
     "sourceTruthScore": 53,
-    "proofScore": 6,
-    "riskScore": 78,
+    "proofScore": 0,
+    "riskScore": 76,
     "thesis": {
       "project": "EigenLayer",
       "symbol": "EIGEN",
       "decision": "Research Block",
-      "confidence": "Low",
+      "confidence": "Developing",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Catalyst window is active.",
@@ -52,7 +52,7 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "EigenLayer is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     "identityGraph": {
       "id": "research-seed-eigen",
@@ -101,7 +101,7 @@
         },
         {
           "name": "Research Agent",
-          "score": 30,
+          "score": 45,
           "vote": "Reject",
           "reason": "Judges source-backed evidence and unanswered questions."
         },
@@ -125,13 +125,13 @@
         },
         {
           "name": "Simulation Agent",
-          "score": 33,
+          "score": 41,
           "vote": "Reject",
           "reason": "Judges scenario and high-tech stack agreement."
         },
         {
           "name": "Risk Agent",
-          "score": 78,
+          "score": 76,
           "vote": "Block",
           "reason": "Challenges traps, bot risk, unlocks, and false positives."
         }
@@ -140,11 +140,11 @@
       "watchVotes": 0,
       "challenges": 0,
       "blocks": 1,
-      "consensusScore": 29,
+      "consensusScore": 33,
       "committeeDecision": "Committee Block"
     },
     "worldModel": {
-      "score": 50,
+      "score": 51,
       "primaryNarrative": "ai",
       "nodes": [
         "project:EigenLayer",
@@ -184,7 +184,7 @@
           "from": "project:EigenLayer",
           "to": "risk:profile",
           "relation": "challenged_by",
-          "strength": 78
+          "strength": 76
         }
       ],
       "summary": "World model is usable but still needs stronger proof."
@@ -194,13 +194,13 @@
         {
           "id": "catalyst_liquidity_breakout",
           "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-          "score": 49,
+          "score": 52,
           "status": "Needs Evidence"
         },
         {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 60,
+          "score": 61,
           "status": "Needs Evidence"
         },
         {
@@ -212,31 +212,31 @@
         {
           "id": "evidence_first_promotion",
           "thesis": "Source truth and proof quality are high enough for promotion.",
-          "score": 33,
-          "status": "Weak"
+          "score": 58,
+          "status": "Needs Evidence"
         },
         {
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 78,
+          "score": 76,
           "status": "Active Risk"
         }
       ],
       "strongest": {
         "id": "builder_narrative_compounding",
         "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-        "score": 60,
+        "score": 61,
         "status": "Needs Evidence"
       },
       "risk": {
         "id": "trap_rejection",
         "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
         "bearish": true,
-        "score": 78,
+        "score": 76,
         "status": "Active Risk"
       },
-      "netScore": 47
+      "netScore": 49
     },
     "experimentLab": {
       "experiments": [
@@ -244,7 +244,7 @@
           "id": "raise_evidence_gate",
           "name": "Raise evidence gate before promotion",
           "expectedImpact": "Blocks weak thesis",
-          "score": 28,
+          "score": 42,
           "recommendation": "Observe"
         },
         {
@@ -258,14 +258,14 @@
           "id": "prioritize_breakout_brain",
           "name": "Prioritize Breakout Brain and simulation agreement",
           "expectedImpact": "Promotes top-three scenario pick",
-          "score": 35,
+          "score": 44,
           "recommendation": "Observe"
         },
         {
           "id": "penalize_false_positive_similarity",
           "name": "Increase trap/autopsy penalty",
           "expectedImpact": "Reduces bad candidates",
-          "score": 78,
+          "score": 76,
           "defensive": true,
           "recommendation": "Activate"
         }
@@ -282,7 +282,7 @@
           "id": "penalize_false_positive_similarity",
           "name": "Increase trap/autopsy penalty",
           "expectedImpact": "Reduces bad candidates",
-          "score": 78,
+          "score": 76,
           "defensive": true,
           "recommendation": "Activate"
         }
@@ -290,7 +290,7 @@
       "summary": "Experiment lab found scoring changes worth testing."
     },
     "alphaAutopsy": {
-      "riskScore": 60,
+      "riskScore": 59,
       "failureModes": [
         "resembles prior false positives",
         "proof stack is thin"
@@ -307,7 +307,7 @@
         "github": 1.15,
         "risk": 1.35
       },
-      "score": 42,
+      "score": 45,
       "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
     },
     "operatorPlan": {
@@ -321,21 +321,21 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 35,
+      "score": 39,
       "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 10,
-      "highTechAlphaScore": 47,
-      "breakoutBrainScore": 24,
-      "autonomousResearchScore": 31,
+      "confidence": "Developing",
+      "pipelineScore": 11,
+      "highTechAlphaScore": 50,
+      "breakoutBrainScore": 33,
+      "autonomousResearchScore": 39,
       "sourceTruthScore": 53,
-      "proofScore": 6,
-      "riskScore": 78,
+      "proofScore": 0,
+      "riskScore": 76,
       "thesis": {
         "project": "EigenLayer",
         "symbol": "EIGEN",
         "decision": "Research Block",
-        "confidence": "Low",
+        "confidence": "Developing",
         "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
         "whyNow": [
           "Catalyst window is active.",
@@ -361,7 +361,7 @@
           "Source truth weakens or contradiction count rises.",
           "Trap risk, bot risk, or false-positive similarity increases."
         ],
-        "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+        "summary": "EigenLayer is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
       "identityGraph": {
         "id": "research-seed-eigen",
@@ -410,7 +410,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 30,
+            "score": 45,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -434,13 +434,13 @@
           },
           {
             "name": "Simulation Agent",
-            "score": 33,
+            "score": 41,
             "vote": "Reject",
             "reason": "Judges scenario and high-tech stack agreement."
           },
           {
             "name": "Risk Agent",
-            "score": 78,
+            "score": 76,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -449,11 +449,11 @@
         "watchVotes": 0,
         "challenges": 0,
         "blocks": 1,
-        "consensusScore": 29,
+        "consensusScore": 33,
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 50,
+        "score": 51,
         "primaryNarrative": "ai",
         "nodes": [
           "project:EigenLayer",
@@ -493,7 +493,7 @@
             "from": "project:EigenLayer",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 78
+            "strength": 76
           }
         ],
         "summary": "World model is usable but still needs stronger proof."
@@ -503,13 +503,13 @@
           {
             "id": "catalyst_liquidity_breakout",
             "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 49,
+            "score": 52,
             "status": "Needs Evidence"
           },
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 60,
+            "score": 61,
             "status": "Needs Evidence"
           },
           {
@@ -521,31 +521,31 @@
           {
             "id": "evidence_first_promotion",
             "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 33,
-            "status": "Weak"
+            "score": 58,
+            "status": "Needs Evidence"
           },
           {
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 78,
+            "score": 76,
             "status": "Active Risk"
           }
         ],
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 60,
+          "score": 61,
           "status": "Needs Evidence"
         },
         "risk": {
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 78,
+          "score": 76,
           "status": "Active Risk"
         },
-        "netScore": 47
+        "netScore": 49
       },
       "experimentLab": {
         "experiments": [
@@ -553,7 +553,7 @@
             "id": "raise_evidence_gate",
             "name": "Raise evidence gate before promotion",
             "expectedImpact": "Blocks weak thesis",
-            "score": 28,
+            "score": 42,
             "recommendation": "Observe"
           },
           {
@@ -567,14 +567,14 @@
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
             "expectedImpact": "Promotes top-three scenario pick",
-            "score": 35,
+            "score": 44,
             "recommendation": "Observe"
           },
           {
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 78,
+            "score": 76,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -591,7 +591,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 78,
+            "score": 76,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -599,7 +599,7 @@
         "summary": "Experiment lab found scoring changes worth testing."
       },
       "alphaAutopsy": {
-        "riskScore": 60,
+        "riskScore": 59,
         "failureModes": [
           "resembles prior false positives",
           "proof stack is thin"
@@ -616,7 +616,7 @@
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 42,
+        "score": 45,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -629,21 +629,21 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 33,
+      "score": 36,
       "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 5,
-      "highTechAlphaScore": 47,
-      "breakoutBrainScore": 21,
-      "autonomousResearchScore": 24,
+      "confidence": "Developing",
+      "pipelineScore": 7,
+      "highTechAlphaScore": 50,
+      "breakoutBrainScore": 27,
+      "autonomousResearchScore": 32,
       "sourceTruthScore": 52,
-      "proofScore": 4,
-      "riskScore": 73,
+      "proofScore": 0,
+      "riskScore": 72,
       "thesis": {
         "project": "Bittensor",
         "symbol": "TAO",
         "decision": "Research Block",
-        "confidence": "Low",
+        "confidence": "Developing",
         "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
         "whyNow": [
           "Narrative heat is entering rotation.",
@@ -668,7 +668,7 @@
           "Source truth weakens or contradiction count rises.",
           "Trap risk, bot risk, or false-positive similarity increases."
         ],
-        "summary": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+        "summary": "Bittensor is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
       },
       "identityGraph": {
         "id": "research-seed-tao",
@@ -717,7 +717,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 26,
+            "score": 41,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -741,13 +741,13 @@
           },
           {
             "name": "Simulation Agent",
-            "score": 33,
+            "score": 41,
             "vote": "Reject",
             "reason": "Judges scenario and high-tech stack agreement."
           },
           {
             "name": "Risk Agent",
-            "score": 73,
+            "score": 72,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -756,11 +756,11 @@
         "watchVotes": 0,
         "challenges": 0,
         "blocks": 1,
-        "consensusScore": 26,
+        "consensusScore": 29,
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 49,
+        "score": 50,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Bittensor",
@@ -800,23 +800,23 @@
             "from": "project:Bittensor",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 73
+            "strength": 72
           }
         ],
-        "summary": "World model is sparse; treat this as early research only."
+        "summary": "World model is usable but still needs stronger proof."
       },
       "hypothesisLab": {
         "hypotheses": [
           {
             "id": "catalyst_liquidity_breakout",
             "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 37,
+            "score": 39,
             "status": "Weak"
           },
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 70,
+            "score": 72,
             "status": "Supported"
           },
           {
@@ -828,31 +828,31 @@
           {
             "id": "evidence_first_promotion",
             "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 29,
-            "status": "Weak"
+            "score": 54,
+            "status": "Needs Evidence"
           },
           {
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 73,
+            "score": 72,
             "status": "Active Risk"
           }
         ],
         "strongest": {
           "id": "builder_narrative_compounding",
           "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 70,
+          "score": 72,
           "status": "Supported"
         },
         "risk": {
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 73,
+          "score": 72,
           "status": "Active Risk"
         },
-        "netScore": 60
+        "netScore": 62
       },
       "experimentLab": {
         "experiments": [
@@ -860,7 +860,7 @@
             "id": "raise_evidence_gate",
             "name": "Raise evidence gate before promotion",
             "expectedImpact": "Blocks weak thesis",
-            "score": 28,
+            "score": 43,
             "recommendation": "Observe"
           },
           {
@@ -874,7 +874,306 @@
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
             "expectedImpact": "Promotes top-three scenario pick",
+            "score": 43,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 72,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "activeExperiments": [
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 72,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "summary": "Experiment lab found scoring changes worth testing."
+      },
+      "alphaAutopsy": {
+        "riskScore": 57,
+        "failureModes": [
+          "resembles prior false positives",
+          "proof stack is thin"
+        ],
+        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
+        "action": "Require extra evidence before promotion."
+      },
+      "regimeAdaptation": {
+        "regime": "Risk-Off",
+        "weights": {
+          "narrative": 1.25,
+          "liquidity": 1.3,
+          "catalyst": 1.18,
+          "github": 1.15,
+          "risk": 1.35
+        },
+        "score": 42,
+        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
+      },
+      "operatorPlan": {
+        "nextAction": "Do not promote until block reason is disproven.",
+        "recheckWindow": "48-72h"
+      }
+    },
+    {
+      "rank": 3,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 34,
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "pipelineScore": 5,
+      "highTechAlphaScore": 49,
+      "breakoutBrainScore": 22,
+      "autonomousResearchScore": 32,
+      "sourceTruthScore": 52,
+      "proofScore": 0,
+      "riskScore": 73,
+      "thesis": {
+        "project": "Akash Network",
+        "symbol": "AKT",
+        "decision": "Research Block",
+        "confidence": "Developing",
+        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+        "whyNow": [
+          "Narrative heat is entering rotation."
+        ],
+        "risks": [
+          "Risk cluster is elevated.",
+          "Proof stack is thin.",
+          "Builder evidence is weak or missing.",
+          "Agent committee has a block vote."
+        ],
+        "confirms": [
+          "Official roadmap or catalyst source is verified.",
+          "Liquidity and volume remain stable after the scan.",
+          "Source truth and proof scores improve together.",
+          "Risk agent clears trap, unlock, and bot concerns.",
+          "Outcome memory shows similar setups performing well."
+        ],
+        "invalidates": [
+          "Liquidity drops or sell pressure spikes.",
+          "Catalyst cannot be verified by official or independent sources.",
+          "Source truth weakens or contradiction count rises.",
+          "Trap risk, bot risk, or false-positive similarity increases."
+        ],
+        "summary": "Akash Network is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      },
+      "identityGraph": {
+        "id": "research-seed-akt",
+        "confidence": 78,
+        "identityCount": 6,
+        "identities": [
+          {
+            "type": "symbol",
+            "value": "AKT"
+          },
+          {
+            "type": "name",
+            "value": "Akash Network"
+          },
+          {
+            "type": "chain",
+            "value": "cosmos"
+          },
+          {
+            "type": "pair",
+            "value": "research-seed-akt"
+          },
+          {
+            "type": "source",
+            "value": "research-seed"
+          },
+          {
+            "type": "discovery_source",
+            "value": "research-seed"
+          }
+        ],
+        "duplicateRisk": "Identity has enough anchors for downstream merging.",
+        "mergeKeys": [
+          "symbol:AKT",
+          "chain:cosmos",
+          "pair:research-seed-akt"
+        ]
+      },
+      "agentSociety": {
+        "agents": [
+          {
+            "name": "Discovery Agent",
+            "score": 18,
+            "vote": "Reject",
+            "reason": "Judges whether the project deserves scan attention."
+          },
+          {
+            "name": "Research Agent",
+            "score": 41,
+            "vote": "Reject",
+            "reason": "Judges source-backed evidence and unanswered questions."
+          },
+          {
+            "name": "Catalyst Agent",
+            "score": 36,
+            "vote": "Reject",
+            "reason": "Judges whether timing matters soon."
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 28,
+            "vote": "Reject",
+            "reason": "Judges flow, liquidity, and execution quality."
+          },
+          {
+            "name": "Builder Agent",
+            "score": 0,
+            "vote": "Reject",
+            "reason": "Judges public builder activity."
+          },
+          {
+            "name": "Simulation Agent",
+            "score": 36,
+            "vote": "Reject",
+            "reason": "Judges scenario and high-tech stack agreement."
+          },
+          {
+            "name": "Risk Agent",
+            "score": 73,
+            "vote": "Block",
+            "reason": "Challenges traps, bot risk, unlocks, and false positives."
+          }
+        ],
+        "promoteVotes": 0,
+        "watchVotes": 0,
+        "challenges": 0,
+        "blocks": 1,
+        "consensusScore": 27,
+        "committeeDecision": "Committee Block"
+      },
+      "worldModel": {
+        "score": 48,
+        "primaryNarrative": "ai",
+        "nodes": [
+          "project:Akash Network",
+          "chain:cosmos",
+          "narrative:ai",
+          "source:research-seed",
+          "catalyst:roadmap",
+          "wallet:smart-money",
+          "risk:high"
+        ],
+        "relationships": [
+          {
+            "from": "project:Akash Network",
+            "to": "narrative:ai",
+            "relation": "exposed_to",
+            "strength": 100
+          },
+          {
+            "from": "project:Akash Network",
+            "to": "chain:cosmos",
+            "relation": "runs_on",
+            "strength": 55
+          },
+          {
+            "from": "project:Akash Network",
+            "to": "catalyst:roadmap",
+            "relation": "may_be_moved_by",
+            "strength": 50
+          },
+          {
+            "from": "project:Akash Network",
+            "to": "wallet:smart-money",
+            "relation": "watched_by",
+            "strength": 3
+          },
+          {
+            "from": "project:Akash Network",
+            "to": "risk:profile",
+            "relation": "challenged_by",
+            "strength": 73
+          }
+        ],
+        "summary": "World model is sparse; treat this as early research only."
+      },
+      "hypothesisLab": {
+        "hypotheses": [
+          {
+            "id": "catalyst_liquidity_breakout",
+            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
             "score": 35,
+            "status": "Weak"
+          },
+          {
+            "id": "builder_narrative_compounding",
+            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+            "score": 72,
+            "status": "Supported"
+          },
+          {
+            "id": "smart_money_flow_confirmation",
+            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
+            "score": 3,
+            "status": "Weak"
+          },
+          {
+            "id": "evidence_first_promotion",
+            "thesis": "Source truth and proof quality are high enough for promotion.",
+            "score": 57,
+            "status": "Needs Evidence"
+          },
+          {
+            "id": "trap_rejection",
+            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+            "bearish": true,
+            "score": 73,
+            "status": "Active Risk"
+          }
+        ],
+        "strongest": {
+          "id": "builder_narrative_compounding",
+          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+          "score": 72,
+          "status": "Supported"
+        },
+        "risk": {
+          "id": "trap_rejection",
+          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+          "bearish": true,
+          "score": 73,
+          "status": "Active Risk"
+        },
+        "netScore": 62
+      },
+      "experimentLab": {
+        "experiments": [
+          {
+            "id": "raise_evidence_gate",
+            "name": "Raise evidence gate before promotion",
+            "expectedImpact": "Blocks weak thesis",
+            "score": 43,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "increase_catalyst_weight",
+            "name": "Increase catalyst weight for the next 30 days",
+            "expectedImpact": "No timing edge yet",
+            "score": 36,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "prioritize_breakout_brain",
+            "name": "Prioritize Breakout Brain and simulation agreement",
+            "expectedImpact": "Keeps scenario edge in watch mode",
+            "score": 38,
             "recommendation": "Observe"
           },
           {
@@ -925,15 +1224,314 @@
       }
     },
     {
-      "rank": 3,
+      "rank": 4,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 32,
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "pipelineScore": 7,
+      "highTechAlphaScore": 47,
+      "breakoutBrainScore": 19,
+      "autonomousResearchScore": 29,
+      "sourceTruthScore": 49,
+      "proofScore": 0,
+      "riskScore": 73,
+      "thesis": {
+        "project": "Render",
+        "symbol": "RNDR",
+        "decision": "Research Block",
+        "confidence": "Developing",
+        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+        "whyNow": [
+          "Narrative heat is entering rotation."
+        ],
+        "risks": [
+          "Risk cluster is elevated.",
+          "Proof stack is thin.",
+          "Builder evidence is weak or missing.",
+          "Agent committee has a block vote."
+        ],
+        "confirms": [
+          "Official roadmap or catalyst source is verified.",
+          "Liquidity and volume remain stable after the scan.",
+          "Source truth and proof scores improve together.",
+          "Risk agent clears trap, unlock, and bot concerns.",
+          "Outcome memory shows similar setups performing well."
+        ],
+        "invalidates": [
+          "Liquidity drops or sell pressure spikes.",
+          "Catalyst cannot be verified by official or independent sources.",
+          "Source truth weakens or contradiction count rises.",
+          "Trap risk, bot risk, or false-positive similarity increases."
+        ],
+        "summary": "Render is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      },
+      "identityGraph": {
+        "id": "research-seed-rndr",
+        "confidence": 78,
+        "identityCount": 6,
+        "identities": [
+          {
+            "type": "symbol",
+            "value": "RNDR"
+          },
+          {
+            "type": "name",
+            "value": "Render"
+          },
+          {
+            "type": "chain",
+            "value": "solana"
+          },
+          {
+            "type": "pair",
+            "value": "research-seed-rndr"
+          },
+          {
+            "type": "source",
+            "value": "research-seed"
+          },
+          {
+            "type": "discovery_source",
+            "value": "research-seed"
+          }
+        ],
+        "duplicateRisk": "Identity has enough anchors for downstream merging.",
+        "mergeKeys": [
+          "symbol:RNDR",
+          "chain:solana",
+          "pair:research-seed-rndr"
+        ]
+      },
+      "agentSociety": {
+        "agents": [
+          {
+            "name": "Discovery Agent",
+            "score": 18,
+            "vote": "Reject",
+            "reason": "Judges whether the project deserves scan attention."
+          },
+          {
+            "name": "Research Agent",
+            "score": 38,
+            "vote": "Reject",
+            "reason": "Judges source-backed evidence and unanswered questions."
+          },
+          {
+            "name": "Catalyst Agent",
+            "score": 27,
+            "vote": "Reject",
+            "reason": "Judges whether timing matters soon."
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 28,
+            "vote": "Reject",
+            "reason": "Judges flow, liquidity, and execution quality."
+          },
+          {
+            "name": "Builder Agent",
+            "score": 0,
+            "vote": "Reject",
+            "reason": "Judges public builder activity."
+          },
+          {
+            "name": "Simulation Agent",
+            "score": 34,
+            "vote": "Reject",
+            "reason": "Judges scenario and high-tech stack agreement."
+          },
+          {
+            "name": "Risk Agent",
+            "score": 73,
+            "vote": "Block",
+            "reason": "Challenges traps, bot risk, unlocks, and false positives."
+          }
+        ],
+        "promoteVotes": 0,
+        "watchVotes": 0,
+        "challenges": 0,
+        "blocks": 1,
+        "consensusScore": 25,
+        "committeeDecision": "Committee Block"
+      },
+      "worldModel": {
+        "score": 49,
+        "primaryNarrative": "ai",
+        "nodes": [
+          "project:Render",
+          "chain:solana",
+          "narrative:ai",
+          "source:research-seed",
+          "catalyst:roadmap",
+          "wallet:smart-money",
+          "risk:high"
+        ],
+        "relationships": [
+          {
+            "from": "project:Render",
+            "to": "narrative:ai",
+            "relation": "exposed_to",
+            "strength": 94
+          },
+          {
+            "from": "project:Render",
+            "to": "chain:solana",
+            "relation": "runs_on",
+            "strength": 55
+          },
+          {
+            "from": "project:Render",
+            "to": "catalyst:roadmap",
+            "relation": "may_be_moved_by",
+            "strength": 49
+          },
+          {
+            "from": "project:Render",
+            "to": "wallet:smart-money",
+            "relation": "watched_by",
+            "strength": 3
+          },
+          {
+            "from": "project:Render",
+            "to": "risk:profile",
+            "relation": "challenged_by",
+            "strength": 73
+          }
+        ],
+        "summary": "World model is sparse; treat this as early research only."
+      },
+      "hypothesisLab": {
+        "hypotheses": [
+          {
+            "id": "catalyst_liquidity_breakout",
+            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
+            "score": 34,
+            "status": "Weak"
+          },
+          {
+            "id": "builder_narrative_compounding",
+            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+            "score": 68,
+            "status": "Supported"
+          },
+          {
+            "id": "smart_money_flow_confirmation",
+            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
+            "score": 3,
+            "status": "Weak"
+          },
+          {
+            "id": "evidence_first_promotion",
+            "thesis": "Source truth and proof quality are high enough for promotion.",
+            "score": 55,
+            "status": "Needs Evidence"
+          },
+          {
+            "id": "trap_rejection",
+            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+            "bearish": true,
+            "score": 73,
+            "status": "Active Risk"
+          }
+        ],
+        "strongest": {
+          "id": "builder_narrative_compounding",
+          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+          "score": 68,
+          "status": "Supported"
+        },
+        "risk": {
+          "id": "trap_rejection",
+          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+          "bearish": true,
+          "score": 73,
+          "status": "Active Risk"
+        },
+        "netScore": 58
+      },
+      "experimentLab": {
+        "experiments": [
+          {
+            "id": "raise_evidence_gate",
+            "name": "Raise evidence gate before promotion",
+            "expectedImpact": "Blocks weak thesis",
+            "score": 41,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "increase_catalyst_weight",
+            "name": "Increase catalyst weight for the next 30 days",
+            "expectedImpact": "No timing edge yet",
+            "score": 27,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "prioritize_breakout_brain",
+            "name": "Prioritize Breakout Brain and simulation agreement",
+            "expectedImpact": "Keeps scenario edge in watch mode",
+            "score": 37,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 73,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "activeExperiments": [
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 73,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "summary": "Experiment lab found scoring changes worth testing."
+      },
+      "alphaAutopsy": {
+        "riskScore": 58,
+        "failureModes": [
+          "resembles prior false positives",
+          "proof stack is thin"
+        ],
+        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
+        "action": "Require extra evidence before promotion."
+      },
+      "regimeAdaptation": {
+        "regime": "Risk-Off",
+        "weights": {
+          "narrative": 1.25,
+          "liquidity": 1.3,
+          "catalyst": 1.18,
+          "github": 1.15,
+          "risk": 1.35
+        },
+        "score": 39,
+        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
+      },
+      "operatorPlan": {
+        "nextAction": "Do not promote until block reason is disproven.",
+        "recheckWindow": "48-72h"
+      }
+    },
+    {
+      "rank": 5,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
       "score": 31,
       "decision": "Research Block",
       "confidence": "Developing",
-      "pipelineScore": 0,
-      "highTechAlphaScore": 48,
+      "pipelineScore": 1,
+      "highTechAlphaScore": 47,
       "breakoutBrainScore": 22,
       "autonomousResearchScore": 31,
       "sourceTruthScore": 52,
@@ -947,8 +1545,7 @@
         "primaryDriver": "Source truth and proof quality are high enough for promotion.",
         "whyNow": [
           "Catalyst window is active.",
-          "Narrative heat is entering rotation.",
-          "Breakout Brain selected it as a top-three scenario candidate."
+          "Narrative heat is entering rotation."
         ],
         "risks": [
           "Risk cluster is elevated.",
@@ -1042,7 +1639,7 @@
           },
           {
             "name": "Simulation Agent",
-            "score": 36,
+            "score": 35,
             "vote": "Reject",
             "reason": "Judges scenario and high-tech stack agreement."
           },
@@ -1174,7 +1771,7 @@
           {
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
-            "expectedImpact": "Promotes top-three scenario pick",
+            "expectedImpact": "Keeps scenario edge in watch mode",
             "score": 38,
             "recommendation": "Observe"
           },
@@ -1226,624 +1823,26 @@
       }
     },
     {
-      "rank": 4,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "score": 30,
-      "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 4,
-      "highTechAlphaScore": 45,
-      "breakoutBrainScore": 14,
-      "autonomousResearchScore": 23,
-      "sourceTruthScore": 52,
-      "proofScore": 1,
-      "riskScore": 75,
-      "thesis": {
-        "project": "Akash Network",
-        "symbol": "AKT",
-        "decision": "Research Block",
-        "confidence": "Low",
-        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-        "whyNow": [
-          "Narrative heat is entering rotation."
-        ],
-        "risks": [
-          "Risk cluster is elevated.",
-          "Proof stack is thin.",
-          "Builder evidence is weak or missing.",
-          "Agent committee has a block vote."
-        ],
-        "confirms": [
-          "Official roadmap or catalyst source is verified.",
-          "Liquidity and volume remain stable after the scan.",
-          "Source truth and proof scores improve together.",
-          "Risk agent clears trap, unlock, and bot concerns.",
-          "Outcome memory shows similar setups performing well."
-        ],
-        "invalidates": [
-          "Liquidity drops or sell pressure spikes.",
-          "Catalyst cannot be verified by official or independent sources.",
-          "Source truth weakens or contradiction count rises.",
-          "Trap risk, bot risk, or false-positive similarity increases."
-        ],
-        "summary": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-      },
-      "identityGraph": {
-        "id": "research-seed-akt",
-        "confidence": 78,
-        "identityCount": 6,
-        "identities": [
-          {
-            "type": "symbol",
-            "value": "AKT"
-          },
-          {
-            "type": "name",
-            "value": "Akash Network"
-          },
-          {
-            "type": "chain",
-            "value": "cosmos"
-          },
-          {
-            "type": "pair",
-            "value": "research-seed-akt"
-          },
-          {
-            "type": "source",
-            "value": "research-seed"
-          },
-          {
-            "type": "discovery_source",
-            "value": "research-seed"
-          }
-        ],
-        "duplicateRisk": "Identity has enough anchors for downstream merging.",
-        "mergeKeys": [
-          "symbol:AKT",
-          "chain:cosmos",
-          "pair:research-seed-akt"
-        ]
-      },
-      "agentSociety": {
-        "agents": [
-          {
-            "name": "Discovery Agent",
-            "score": 18,
-            "vote": "Reject",
-            "reason": "Judges whether the project deserves scan attention."
-          },
-          {
-            "name": "Research Agent",
-            "score": 25,
-            "vote": "Reject",
-            "reason": "Judges source-backed evidence and unanswered questions."
-          },
-          {
-            "name": "Catalyst Agent",
-            "score": 36,
-            "vote": "Reject",
-            "reason": "Judges whether timing matters soon."
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 28,
-            "vote": "Reject",
-            "reason": "Judges flow, liquidity, and execution quality."
-          },
-          {
-            "name": "Builder Agent",
-            "score": 0,
-            "vote": "Reject",
-            "reason": "Judges public builder activity."
-          },
-          {
-            "name": "Simulation Agent",
-            "score": 28,
-            "vote": "Reject",
-            "reason": "Judges scenario and high-tech stack agreement."
-          },
-          {
-            "name": "Risk Agent",
-            "score": 75,
-            "vote": "Block",
-            "reason": "Challenges traps, bot risk, unlocks, and false positives."
-          }
-        ],
-        "promoteVotes": 0,
-        "watchVotes": 0,
-        "challenges": 0,
-        "blocks": 1,
-        "consensusScore": 23,
-        "committeeDecision": "Committee Block"
-      },
-      "worldModel": {
-        "score": 47,
-        "primaryNarrative": "ai",
-        "nodes": [
-          "project:Akash Network",
-          "chain:cosmos",
-          "narrative:ai",
-          "source:research-seed",
-          "catalyst:roadmap",
-          "wallet:smart-money",
-          "risk:high"
-        ],
-        "relationships": [
-          {
-            "from": "project:Akash Network",
-            "to": "narrative:ai",
-            "relation": "exposed_to",
-            "strength": 100
-          },
-          {
-            "from": "project:Akash Network",
-            "to": "chain:cosmos",
-            "relation": "runs_on",
-            "strength": 55
-          },
-          {
-            "from": "project:Akash Network",
-            "to": "catalyst:roadmap",
-            "relation": "may_be_moved_by",
-            "strength": 50
-          },
-          {
-            "from": "project:Akash Network",
-            "to": "wallet:smart-money",
-            "relation": "watched_by",
-            "strength": 3
-          },
-          {
-            "from": "project:Akash Network",
-            "to": "risk:profile",
-            "relation": "challenged_by",
-            "strength": 75
-          }
-        ],
-        "summary": "World model is sparse; treat this as early research only."
-      },
-      "hypothesisLab": {
-        "hypotheses": [
-          {
-            "id": "catalyst_liquidity_breakout",
-            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 33,
-            "status": "Weak"
-          },
-          {
-            "id": "builder_narrative_compounding",
-            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 70,
-            "status": "Supported"
-          },
-          {
-            "id": "smart_money_flow_confirmation",
-            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
-            "score": 3,
-            "status": "Weak"
-          },
-          {
-            "id": "evidence_first_promotion",
-            "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 30,
-            "status": "Weak"
-          },
-          {
-            "id": "trap_rejection",
-            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-            "bearish": true,
-            "score": 75,
-            "status": "Active Risk"
-          }
-        ],
-        "strongest": {
-          "id": "builder_narrative_compounding",
-          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 70,
-          "status": "Supported"
-        },
-        "risk": {
-          "id": "trap_rejection",
-          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-          "bearish": true,
-          "score": 75,
-          "status": "Active Risk"
-        },
-        "netScore": 59
-      },
-      "experimentLab": {
-        "experiments": [
-          {
-            "id": "raise_evidence_gate",
-            "name": "Raise evidence gate before promotion",
-            "expectedImpact": "Blocks weak thesis",
-            "score": 26,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "increase_catalyst_weight",
-            "name": "Increase catalyst weight for the next 30 days",
-            "expectedImpact": "No timing edge yet",
-            "score": 36,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "prioritize_breakout_brain",
-            "name": "Prioritize Breakout Brain and simulation agreement",
-            "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 29,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "activeExperiments": [
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "summary": "Experiment lab found scoring changes worth testing."
-      },
-      "alphaAutopsy": {
-        "riskScore": 59,
-        "failureModes": [
-          "resembles prior false positives",
-          "proof stack is thin"
-        ],
-        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
-        "action": "Require extra evidence before promotion."
-      },
-      "regimeAdaptation": {
-        "regime": "Risk-Off",
-        "weights": {
-          "narrative": 1.25,
-          "liquidity": 1.3,
-          "catalyst": 1.18,
-          "github": 1.15,
-          "risk": 1.35
-        },
-        "score": 38,
-        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
-      },
-      "operatorPlan": {
-        "nextAction": "Do not promote until block reason is disproven.",
-        "recheckWindow": "48-72h"
-      }
-    },
-    {
-      "rank": 5,
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "score": 28,
-      "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 5,
-      "highTechAlphaScore": 44,
-      "breakoutBrainScore": 12,
-      "autonomousResearchScore": 20,
-      "sourceTruthScore": 49,
-      "proofScore": 4,
-      "riskScore": 75,
-      "thesis": {
-        "project": "Render",
-        "symbol": "RNDR",
-        "decision": "Research Block",
-        "confidence": "Low",
-        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-        "whyNow": [
-          "Narrative heat is entering rotation."
-        ],
-        "risks": [
-          "Risk cluster is elevated.",
-          "Proof stack is thin.",
-          "Builder evidence is weak or missing.",
-          "Agent committee has a block vote."
-        ],
-        "confirms": [
-          "Official roadmap or catalyst source is verified.",
-          "Liquidity and volume remain stable after the scan.",
-          "Source truth and proof scores improve together.",
-          "Risk agent clears trap, unlock, and bot concerns.",
-          "Outcome memory shows similar setups performing well."
-        ],
-        "invalidates": [
-          "Liquidity drops or sell pressure spikes.",
-          "Catalyst cannot be verified by official or independent sources.",
-          "Source truth weakens or contradiction count rises.",
-          "Trap risk, bot risk, or false-positive similarity increases."
-        ],
-        "summary": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-      },
-      "identityGraph": {
-        "id": "research-seed-rndr",
-        "confidence": 78,
-        "identityCount": 6,
-        "identities": [
-          {
-            "type": "symbol",
-            "value": "RNDR"
-          },
-          {
-            "type": "name",
-            "value": "Render"
-          },
-          {
-            "type": "chain",
-            "value": "solana"
-          },
-          {
-            "type": "pair",
-            "value": "research-seed-rndr"
-          },
-          {
-            "type": "source",
-            "value": "research-seed"
-          },
-          {
-            "type": "discovery_source",
-            "value": "research-seed"
-          }
-        ],
-        "duplicateRisk": "Identity has enough anchors for downstream merging.",
-        "mergeKeys": [
-          "symbol:RNDR",
-          "chain:solana",
-          "pair:research-seed-rndr"
-        ]
-      },
-      "agentSociety": {
-        "agents": [
-          {
-            "name": "Discovery Agent",
-            "score": 18,
-            "vote": "Reject",
-            "reason": "Judges whether the project deserves scan attention."
-          },
-          {
-            "name": "Research Agent",
-            "score": 24,
-            "vote": "Reject",
-            "reason": "Judges source-backed evidence and unanswered questions."
-          },
-          {
-            "name": "Catalyst Agent",
-            "score": 27,
-            "vote": "Reject",
-            "reason": "Judges whether timing matters soon."
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 28,
-            "vote": "Reject",
-            "reason": "Judges flow, liquidity, and execution quality."
-          },
-          {
-            "name": "Builder Agent",
-            "score": 0,
-            "vote": "Reject",
-            "reason": "Judges public builder activity."
-          },
-          {
-            "name": "Simulation Agent",
-            "score": 26,
-            "vote": "Reject",
-            "reason": "Judges scenario and high-tech stack agreement."
-          },
-          {
-            "name": "Risk Agent",
-            "score": 75,
-            "vote": "Block",
-            "reason": "Challenges traps, bot risk, unlocks, and false positives."
-          }
-        ],
-        "promoteVotes": 0,
-        "watchVotes": 0,
-        "challenges": 0,
-        "blocks": 1,
-        "consensusScore": 21,
-        "committeeDecision": "Committee Block"
-      },
-      "worldModel": {
-        "score": 48,
-        "primaryNarrative": "ai",
-        "nodes": [
-          "project:Render",
-          "chain:solana",
-          "narrative:ai",
-          "source:research-seed",
-          "catalyst:roadmap",
-          "wallet:smart-money",
-          "risk:high"
-        ],
-        "relationships": [
-          {
-            "from": "project:Render",
-            "to": "narrative:ai",
-            "relation": "exposed_to",
-            "strength": 94
-          },
-          {
-            "from": "project:Render",
-            "to": "chain:solana",
-            "relation": "runs_on",
-            "strength": 55
-          },
-          {
-            "from": "project:Render",
-            "to": "catalyst:roadmap",
-            "relation": "may_be_moved_by",
-            "strength": 49
-          },
-          {
-            "from": "project:Render",
-            "to": "wallet:smart-money",
-            "relation": "watched_by",
-            "strength": 3
-          },
-          {
-            "from": "project:Render",
-            "to": "risk:profile",
-            "relation": "challenged_by",
-            "strength": 75
-          }
-        ],
-        "summary": "World model is sparse; treat this as early research only."
-      },
-      "hypothesisLab": {
-        "hypotheses": [
-          {
-            "id": "catalyst_liquidity_breakout",
-            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 32,
-            "status": "Weak"
-          },
-          {
-            "id": "builder_narrative_compounding",
-            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 66,
-            "status": "Needs Evidence"
-          },
-          {
-            "id": "smart_money_flow_confirmation",
-            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
-            "score": 3,
-            "status": "Weak"
-          },
-          {
-            "id": "evidence_first_promotion",
-            "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 30,
-            "status": "Weak"
-          },
-          {
-            "id": "trap_rejection",
-            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-            "bearish": true,
-            "score": 75,
-            "status": "Active Risk"
-          }
-        ],
-        "strongest": {
-          "id": "builder_narrative_compounding",
-          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 66,
-          "status": "Needs Evidence"
-        },
-        "risk": {
-          "id": "trap_rejection",
-          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-          "bearish": true,
-          "score": 75,
-          "status": "Active Risk"
-        },
-        "netScore": 55
-      },
-      "experimentLab": {
-        "experiments": [
-          {
-            "id": "raise_evidence_gate",
-            "name": "Raise evidence gate before promotion",
-            "expectedImpact": "Blocks weak thesis",
-            "score": 26,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "increase_catalyst_weight",
-            "name": "Increase catalyst weight for the next 30 days",
-            "expectedImpact": "No timing edge yet",
-            "score": 27,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "prioritize_breakout_brain",
-            "name": "Prioritize Breakout Brain and simulation agreement",
-            "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 28,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "activeExperiments": [
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "summary": "Experiment lab found scoring changes worth testing."
-      },
-      "alphaAutopsy": {
-        "riskScore": 59,
-        "failureModes": [
-          "resembles prior false positives",
-          "proof stack is thin"
-        ],
-        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
-        "action": "Require extra evidence before promotion."
-      },
-      "regimeAdaptation": {
-        "regime": "Risk-Off",
-        "weights": {
-          "narrative": 1.25,
-          "liquidity": 1.3,
-          "catalyst": 1.18,
-          "github": 1.15,
-          "risk": 1.35
-        },
-        "score": 36,
-        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
-      },
-      "operatorPlan": {
-        "nextAction": "Do not promote until block reason is disproven.",
-        "recheckWindow": "48-72h"
-      }
-    },
-    {
       "rank": 6,
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 26,
+      "score": 30,
       "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 3,
-      "highTechAlphaScore": 43,
-      "breakoutBrainScore": 13,
-      "autonomousResearchScore": 22,
+      "confidence": "Developing",
+      "pipelineScore": 5,
+      "highTechAlphaScore": 46,
+      "breakoutBrainScore": 21,
+      "autonomousResearchScore": 31,
       "sourceTruthScore": 52,
-      "proofScore": 1,
-      "riskScore": 74,
+      "proofScore": 0,
+      "riskScore": 72,
       "thesis": {
         "project": "Celestia",
         "symbol": "TIA",
         "decision": "Research Block",
-        "confidence": "Low",
-        "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+        "confidence": "Developing",
+        "primaryDriver": "Source truth and proof quality are high enough for promotion.",
         "whyNow": [
           "Narrative heat is entering rotation."
         ],
@@ -1866,7 +1865,7 @@
           "Source truth weakens or contradiction count rises.",
           "Trap risk, bot risk, or false-positive similarity increases."
         ],
-        "summary": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+        "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
       },
       "identityGraph": {
         "id": "research-seed-tia",
@@ -1915,7 +1914,7 @@
           },
           {
             "name": "Research Agent",
-            "score": 25,
+            "score": 40,
             "vote": "Reject",
             "reason": "Judges source-backed evidence and unanswered questions."
           },
@@ -1939,13 +1938,13 @@
           },
           {
             "name": "Simulation Agent",
-            "score": 27,
+            "score": 35,
             "vote": "Reject",
             "reason": "Judges scenario and high-tech stack agreement."
           },
           {
             "name": "Risk Agent",
-            "score": 74,
+            "score": 72,
             "vote": "Block",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
@@ -1954,11 +1953,11 @@
         "watchVotes": 0,
         "challenges": 0,
         "blocks": 1,
-        "consensusScore": 24,
+        "consensusScore": 27,
         "committeeDecision": "Committee Block"
       },
       "worldModel": {
-        "score": 41,
+        "score": 43,
         "primaryNarrative": "ai",
         "nodes": [
           "project:Celestia",
@@ -1998,7 +1997,7 @@
             "from": "project:Celestia",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 74
+            "strength": 72
           }
         ],
         "summary": "World model is sparse; treat this as early research only."
@@ -2008,13 +2007,13 @@
           {
             "id": "catalyst_liquidity_breakout",
             "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 32,
+            "score": 35,
             "status": "Weak"
           },
           {
             "id": "builder_narrative_compounding",
             "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 51,
+            "score": 53,
             "status": "Needs Evidence"
           },
           {
@@ -2026,31 +2025,31 @@
           {
             "id": "evidence_first_promotion",
             "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 30,
-            "status": "Weak"
+            "score": 57,
+            "status": "Needs Evidence"
           },
           {
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 74,
+            "score": 72,
             "status": "Active Risk"
           }
         ],
         "strongest": {
-          "id": "builder_narrative_compounding",
-          "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-          "score": 51,
+          "id": "evidence_first_promotion",
+          "thesis": "Source truth and proof quality are high enough for promotion.",
+          "score": 57,
           "status": "Needs Evidence"
         },
         "risk": {
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 74,
+          "score": 72,
           "status": "Active Risk"
         },
-        "netScore": 40
+        "netScore": 47
       },
       "experimentLab": {
         "experiments": [
@@ -2058,7 +2057,7 @@
             "id": "raise_evidence_gate",
             "name": "Raise evidence gate before promotion",
             "expectedImpact": "Blocks weak thesis",
-            "score": 26,
+            "score": 43,
             "recommendation": "Observe"
           },
           {
@@ -2072,7 +2071,307 @@
             "id": "prioritize_breakout_brain",
             "name": "Prioritize Breakout Brain and simulation agreement",
             "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 29,
+            "score": 37,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 72,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "activeExperiments": [
+          {
+            "id": "penalize_false_positive_similarity",
+            "name": "Increase trap/autopsy penalty",
+            "expectedImpact": "Reduces bad candidates",
+            "score": 72,
+            "defensive": true,
+            "recommendation": "Activate"
+          }
+        ],
+        "summary": "Experiment lab found scoring changes worth testing."
+      },
+      "alphaAutopsy": {
+        "riskScore": 57,
+        "failureModes": [
+          "resembles prior false positives",
+          "proof stack is thin"
+        ],
+        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
+        "action": "Require extra evidence before promotion."
+      },
+      "regimeAdaptation": {
+        "regime": "Risk-Off",
+        "weights": {
+          "narrative": 1.25,
+          "liquidity": 1.3,
+          "catalyst": 1.18,
+          "github": 1.15,
+          "risk": 1.35
+        },
+        "score": 34,
+        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
+      },
+      "operatorPlan": {
+        "nextAction": "Do not promote until block reason is disproven.",
+        "recheckWindow": "48-72h"
+      }
+    },
+    {
+      "rank": 7,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "score": 30,
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "pipelineScore": 4,
+      "highTechAlphaScore": 48,
+      "breakoutBrainScore": 26,
+      "autonomousResearchScore": 31,
+      "sourceTruthScore": 49,
+      "proofScore": 0,
+      "riskScore": 74,
+      "thesis": {
+        "project": "Ondo",
+        "symbol": "ONDO",
+        "decision": "Research Block",
+        "confidence": "Developing",
+        "primaryDriver": "Source truth and proof quality are high enough for promotion.",
+        "whyNow": [
+          "Catalyst window is active.",
+          "Breakout Brain selected it as a top-three scenario candidate."
+        ],
+        "risks": [
+          "Risk cluster is elevated.",
+          "Proof stack is thin.",
+          "Builder evidence is weak or missing.",
+          "Agent committee has a block vote."
+        ],
+        "confirms": [
+          "Official roadmap or catalyst source is verified.",
+          "Liquidity and volume remain stable after the scan.",
+          "Source truth and proof scores improve together.",
+          "Risk agent clears trap, unlock, and bot concerns.",
+          "Outcome memory shows similar setups performing well."
+        ],
+        "invalidates": [
+          "Liquidity drops or sell pressure spikes.",
+          "Catalyst cannot be verified by official or independent sources.",
+          "Source truth weakens or contradiction count rises.",
+          "Trap risk, bot risk, or false-positive similarity increases."
+        ],
+        "summary": "Ondo is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
+      },
+      "identityGraph": {
+        "id": "research-seed-ondo",
+        "confidence": 78,
+        "identityCount": 6,
+        "identities": [
+          {
+            "type": "symbol",
+            "value": "ONDO"
+          },
+          {
+            "type": "name",
+            "value": "Ondo"
+          },
+          {
+            "type": "chain",
+            "value": "ethereum"
+          },
+          {
+            "type": "pair",
+            "value": "research-seed-ondo"
+          },
+          {
+            "type": "source",
+            "value": "research-seed"
+          },
+          {
+            "type": "discovery_source",
+            "value": "research-seed"
+          }
+        ],
+        "duplicateRisk": "Identity has enough anchors for downstream merging.",
+        "mergeKeys": [
+          "symbol:ONDO",
+          "chain:ethereum",
+          "pair:research-seed-ondo"
+        ]
+      },
+      "agentSociety": {
+        "agents": [
+          {
+            "name": "Discovery Agent",
+            "score": 18,
+            "vote": "Reject",
+            "reason": "Judges whether the project deserves scan attention."
+          },
+          {
+            "name": "Research Agent",
+            "score": 39,
+            "vote": "Reject",
+            "reason": "Judges source-backed evidence and unanswered questions."
+          },
+          {
+            "name": "Catalyst Agent",
+            "score": 50,
+            "vote": "Reject",
+            "reason": "Judges whether timing matters soon."
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 28,
+            "vote": "Reject",
+            "reason": "Judges flow, liquidity, and execution quality."
+          },
+          {
+            "name": "Builder Agent",
+            "score": 0,
+            "vote": "Reject",
+            "reason": "Judges public builder activity."
+          },
+          {
+            "name": "Simulation Agent",
+            "score": 39,
+            "vote": "Reject",
+            "reason": "Judges scenario and high-tech stack agreement."
+          },
+          {
+            "name": "Risk Agent",
+            "score": 74,
+            "vote": "Block",
+            "reason": "Challenges traps, bot risk, unlocks, and false positives."
+          }
+        ],
+        "promoteVotes": 0,
+        "watchVotes": 0,
+        "challenges": 0,
+        "blocks": 1,
+        "consensusScore": 29,
+        "committeeDecision": "Committee Block"
+      },
+      "worldModel": {
+        "score": 43,
+        "primaryNarrative": "rwa",
+        "nodes": [
+          "project:Ondo",
+          "chain:ethereum",
+          "narrative:rwa",
+          "source:research-seed",
+          "catalyst:roadmap",
+          "wallet:smart-money",
+          "risk:high"
+        ],
+        "relationships": [
+          {
+            "from": "project:Ondo",
+            "to": "narrative:rwa",
+            "relation": "exposed_to",
+            "strength": 52
+          },
+          {
+            "from": "project:Ondo",
+            "to": "chain:ethereum",
+            "relation": "runs_on",
+            "strength": 55
+          },
+          {
+            "from": "project:Ondo",
+            "to": "catalyst:roadmap",
+            "relation": "may_be_moved_by",
+            "strength": 68
+          },
+          {
+            "from": "project:Ondo",
+            "to": "wallet:smart-money",
+            "relation": "watched_by",
+            "strength": 3
+          },
+          {
+            "from": "project:Ondo",
+            "to": "risk:profile",
+            "relation": "challenged_by",
+            "strength": 74
+          }
+        ],
+        "summary": "World model is sparse; treat this as early research only."
+      },
+      "hypothesisLab": {
+        "hypotheses": [
+          {
+            "id": "catalyst_liquidity_breakout",
+            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
+            "score": 43,
+            "status": "Weak"
+          },
+          {
+            "id": "builder_narrative_compounding",
+            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
+            "score": 39,
+            "status": "Weak"
+          },
+          {
+            "id": "smart_money_flow_confirmation",
+            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
+            "score": 3,
+            "status": "Weak"
+          },
+          {
+            "id": "evidence_first_promotion",
+            "thesis": "Source truth and proof quality are high enough for promotion.",
+            "score": 55,
+            "status": "Needs Evidence"
+          },
+          {
+            "id": "trap_rejection",
+            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+            "bearish": true,
+            "score": 74,
+            "status": "Active Risk"
+          }
+        ],
+        "strongest": {
+          "id": "evidence_first_promotion",
+          "thesis": "Source truth and proof quality are high enough for promotion.",
+          "score": 55,
+          "status": "Needs Evidence"
+        },
+        "risk": {
+          "id": "trap_rejection",
+          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
+          "bearish": true,
+          "score": 74,
+          "status": "Active Risk"
+        },
+        "netScore": 44
+      },
+      "experimentLab": {
+        "experiments": [
+          {
+            "id": "raise_evidence_gate",
+            "name": "Raise evidence gate before promotion",
+            "expectedImpact": "Blocks weak thesis",
+            "score": 40,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "increase_catalyst_weight",
+            "name": "Increase catalyst weight for the next 30 days",
+            "expectedImpact": "Improves timing",
+            "score": 50,
+            "recommendation": "Observe"
+          },
+          {
+            "id": "prioritize_breakout_brain",
+            "name": "Prioritize Breakout Brain and simulation agreement",
+            "expectedImpact": "Promotes top-three scenario pick",
+            "score": 41,
             "recommendation": "Observe"
           },
           {
@@ -2097,7 +2396,7 @@
         "summary": "Experiment lab found scoring changes worth testing."
       },
       "alphaAutopsy": {
-        "riskScore": 58,
+        "riskScore": 59,
         "failureModes": [
           "resembles prior false positives",
           "proof stack is thin"
@@ -2108,13 +2407,13 @@
       "regimeAdaptation": {
         "regime": "Risk-Off",
         "weights": {
-          "narrative": 1.25,
+          "narrative": 0.82,
           "liquidity": 1.3,
-          "catalyst": 1.18,
+          "catalyst": 1,
           "github": 1.15,
           "risk": 1.35
         },
-        "score": 32,
+        "score": 28,
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
@@ -2123,12 +2422,12 @@
       }
     },
     {
-      "rank": 7,
+      "rank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
       "score": 26,
-      "decision": "Research Block",
+      "decision": "Reject For Now",
       "confidence": "Developing",
       "pipelineScore": 0,
       "highTechAlphaScore": 45,
@@ -2136,11 +2435,11 @@
       "autonomousResearchScore": 27,
       "sourceTruthScore": 52,
       "proofScore": 0,
-      "riskScore": 70,
+      "riskScore": 69,
       "thesis": {
         "project": "Jupiter",
         "symbol": "JUP",
-        "decision": "Research Block",
+        "decision": "Reject For Now",
         "confidence": "Developing",
         "primaryDriver": "Source truth and proof quality are high enough for promotion.",
         "whyNow": [
@@ -2149,8 +2448,7 @@
         "risks": [
           "Risk cluster is elevated.",
           "Proof stack is thin.",
-          "Builder evidence is weak or missing.",
-          "Agent committee has a block vote."
+          "Builder evidence is weak or missing."
         ],
         "confirms": [
           "Official roadmap or catalyst source is verified.",
@@ -2165,7 +2463,7 @@
           "Source truth weakens or contradiction count rises.",
           "Trap risk, bot risk, or false-positive similarity increases."
         ],
-        "summary": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
+        "summary": "Jupiter is Reject For Now with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
       },
       "identityGraph": {
         "id": "research-seed-jup",
@@ -2244,17 +2542,17 @@
           },
           {
             "name": "Risk Agent",
-            "score": 70,
-            "vote": "Block",
+            "score": 69,
+            "vote": "Challenge",
             "reason": "Challenges traps, bot risk, unlocks, and false positives."
           }
         ],
         "promoteVotes": 0,
         "watchVotes": 0,
-        "challenges": 0,
-        "blocks": 1,
+        "challenges": 1,
+        "blocks": 0,
         "consensusScore": 25,
-        "committeeDecision": "Committee Block"
+        "committeeDecision": "Committee Reject"
       },
       "worldModel": {
         "score": 34,
@@ -2297,7 +2595,7 @@
             "from": "project:Jupiter",
             "to": "risk:profile",
             "relation": "challenged_by",
-            "strength": 70
+            "strength": 69
           }
         ],
         "summary": "World model is sparse; treat this as early research only."
@@ -2332,7 +2630,7 @@
             "id": "trap_rejection",
             "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
             "bearish": true,
-            "score": 70,
+            "score": 69,
             "status": "Active Risk"
           }
         ],
@@ -2346,7 +2644,7 @@
           "id": "trap_rejection",
           "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
           "bearish": true,
-          "score": 70,
+          "score": 69,
           "status": "Active Risk"
         },
         "netScore": 48
@@ -2378,7 +2676,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 70,
+            "score": 69,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2388,7 +2686,7 @@
             "id": "penalize_false_positive_similarity",
             "name": "Increase trap/autopsy penalty",
             "expectedImpact": "Reduces bad candidates",
-            "score": 70,
+            "score": 69,
             "defensive": true,
             "recommendation": "Activate"
           }
@@ -2417,306 +2715,7 @@
         "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
       },
       "operatorPlan": {
-        "nextAction": "Do not promote until block reason is disproven.",
-        "recheckWindow": "48-72h"
-      }
-    },
-    {
-      "rank": 8,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "score": 24,
-      "decision": "Research Block",
-      "confidence": "Low",
-      "pipelineScore": 2,
-      "highTechAlphaScore": 45,
-      "breakoutBrainScore": 18,
-      "autonomousResearchScore": 23,
-      "sourceTruthScore": 49,
-      "proofScore": 1,
-      "riskScore": 75,
-      "thesis": {
-        "project": "Ondo",
-        "symbol": "ONDO",
-        "decision": "Research Block",
-        "confidence": "Low",
-        "primaryDriver": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-        "whyNow": [
-          "Catalyst window is active."
-        ],
-        "risks": [
-          "Risk cluster is elevated.",
-          "Proof stack is thin.",
-          "Builder evidence is weak or missing.",
-          "Agent committee has a block vote."
-        ],
-        "confirms": [
-          "Official roadmap or catalyst source is verified.",
-          "Liquidity and volume remain stable after the scan.",
-          "Source truth and proof scores improve together.",
-          "Risk agent clears trap, unlock, and bot concerns.",
-          "Outcome memory shows similar setups performing well."
-        ],
-        "invalidates": [
-          "Liquidity drops or sell pressure spikes.",
-          "Catalyst cannot be verified by official or independent sources.",
-          "Source truth weakens or contradiction count rises.",
-          "Trap risk, bot risk, or false-positive similarity increases."
-        ],
-        "summary": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window.."
-      },
-      "identityGraph": {
-        "id": "research-seed-ondo",
-        "confidence": 78,
-        "identityCount": 6,
-        "identities": [
-          {
-            "type": "symbol",
-            "value": "ONDO"
-          },
-          {
-            "type": "name",
-            "value": "Ondo"
-          },
-          {
-            "type": "chain",
-            "value": "ethereum"
-          },
-          {
-            "type": "pair",
-            "value": "research-seed-ondo"
-          },
-          {
-            "type": "source",
-            "value": "research-seed"
-          },
-          {
-            "type": "discovery_source",
-            "value": "research-seed"
-          }
-        ],
-        "duplicateRisk": "Identity has enough anchors for downstream merging.",
-        "mergeKeys": [
-          "symbol:ONDO",
-          "chain:ethereum",
-          "pair:research-seed-ondo"
-        ]
-      },
-      "agentSociety": {
-        "agents": [
-          {
-            "name": "Discovery Agent",
-            "score": 18,
-            "vote": "Reject",
-            "reason": "Judges whether the project deserves scan attention."
-          },
-          {
-            "name": "Research Agent",
-            "score": 24,
-            "vote": "Reject",
-            "reason": "Judges source-backed evidence and unanswered questions."
-          },
-          {
-            "name": "Catalyst Agent",
-            "score": 50,
-            "vote": "Reject",
-            "reason": "Judges whether timing matters soon."
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 28,
-            "vote": "Reject",
-            "reason": "Judges flow, liquidity, and execution quality."
-          },
-          {
-            "name": "Builder Agent",
-            "score": 0,
-            "vote": "Reject",
-            "reason": "Judges public builder activity."
-          },
-          {
-            "name": "Simulation Agent",
-            "score": 31,
-            "vote": "Reject",
-            "reason": "Judges scenario and high-tech stack agreement."
-          },
-          {
-            "name": "Risk Agent",
-            "score": 75,
-            "vote": "Block",
-            "reason": "Challenges traps, bot risk, unlocks, and false positives."
-          }
-        ],
-        "promoteVotes": 0,
-        "watchVotes": 0,
-        "challenges": 0,
-        "blocks": 1,
-        "consensusScore": 25,
-        "committeeDecision": "Committee Block"
-      },
-      "worldModel": {
-        "score": 42,
-        "primaryNarrative": "rwa",
-        "nodes": [
-          "project:Ondo",
-          "chain:ethereum",
-          "narrative:rwa",
-          "source:research-seed",
-          "catalyst:roadmap",
-          "wallet:smart-money",
-          "risk:high"
-        ],
-        "relationships": [
-          {
-            "from": "project:Ondo",
-            "to": "narrative:rwa",
-            "relation": "exposed_to",
-            "strength": 52
-          },
-          {
-            "from": "project:Ondo",
-            "to": "chain:ethereum",
-            "relation": "runs_on",
-            "strength": 55
-          },
-          {
-            "from": "project:Ondo",
-            "to": "catalyst:roadmap",
-            "relation": "may_be_moved_by",
-            "strength": 68
-          },
-          {
-            "from": "project:Ondo",
-            "to": "wallet:smart-money",
-            "relation": "watched_by",
-            "strength": 3
-          },
-          {
-            "from": "project:Ondo",
-            "to": "risk:profile",
-            "relation": "challenged_by",
-            "strength": 75
-          }
-        ],
-        "summary": "World model is sparse; treat this as early research only."
-      },
-      "hypothesisLab": {
-        "hypotheses": [
-          {
-            "id": "catalyst_liquidity_breakout",
-            "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-            "score": 41,
-            "status": "Weak"
-          },
-          {
-            "id": "builder_narrative_compounding",
-            "thesis": "Builder activity plus narrative heat can compound attention over a longer window.",
-            "score": 38,
-            "status": "Weak"
-          },
-          {
-            "id": "smart_money_flow_confirmation",
-            "thesis": "Smart-money and capital-flow agreement can confirm early demand.",
-            "score": 3,
-            "status": "Weak"
-          },
-          {
-            "id": "evidence_first_promotion",
-            "thesis": "Source truth and proof quality are high enough for promotion.",
-            "score": 28,
-            "status": "Weak"
-          },
-          {
-            "id": "trap_rejection",
-            "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-            "bearish": true,
-            "score": 75,
-            "status": "Active Risk"
-          }
-        ],
-        "strongest": {
-          "id": "catalyst_liquidity_breakout",
-          "thesis": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-          "score": 41,
-          "status": "Weak"
-        },
-        "risk": {
-          "id": "trap_rejection",
-          "thesis": "Risk cluster may invalidate the opportunity despite upside signals.",
-          "bearish": true,
-          "score": 75,
-          "status": "Active Risk"
-        },
-        "netScore": 30
-      },
-      "experimentLab": {
-        "experiments": [
-          {
-            "id": "raise_evidence_gate",
-            "name": "Raise evidence gate before promotion",
-            "expectedImpact": "Blocks weak thesis",
-            "score": 25,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "increase_catalyst_weight",
-            "name": "Increase catalyst weight for the next 30 days",
-            "expectedImpact": "Improves timing",
-            "score": 50,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "prioritize_breakout_brain",
-            "name": "Prioritize Breakout Brain and simulation agreement",
-            "expectedImpact": "Keeps scenario edge in watch mode",
-            "score": 32,
-            "recommendation": "Observe"
-          },
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "activeExperiments": [
-          {
-            "id": "penalize_false_positive_similarity",
-            "name": "Increase trap/autopsy penalty",
-            "expectedImpact": "Reduces bad candidates",
-            "score": 75,
-            "defensive": true,
-            "recommendation": "Activate"
-          }
-        ],
-        "summary": "Experiment lab found scoring changes worth testing."
-      },
-      "alphaAutopsy": {
-        "riskScore": 59,
-        "failureModes": [
-          "resembles prior false positives",
-          "proof stack is thin"
-        ],
-        "learningUpdate": "Autopsy recommends stronger penalties for resembles prior false positives and proof stack is thin.",
-        "action": "Require extra evidence before promotion."
-      },
-      "regimeAdaptation": {
-        "regime": "Risk-Off",
-        "weights": {
-          "narrative": 0.82,
-          "liquidity": 1.3,
-          "catalyst": 1,
-          "github": 1.15,
-          "risk": 1.35
-        },
-        "score": 25,
-        "summary": "Regime is defensive; liquidity, proof, and risk controls matter more."
-      },
-      "operatorPlan": {
-        "nextAction": "Do not promote until block reason is disproven.",
+        "nextAction": "Keep in watch memory and re-score after new evidence.",
         "recheckWindow": "48-72h"
       }
     }
@@ -2726,7 +2725,7 @@
       "project": "EigenLayer",
       "symbol": "EIGEN",
       "decision": "Research Block",
-      "confidence": "Low",
+      "confidence": "Developing",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Catalyst window is active.",
@@ -2752,13 +2751,13 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "EigenLayer is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Bittensor",
       "symbol": "TAO",
       "decision": "Research Block",
-      "confidence": "Low",
+      "confidence": "Developing",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Narrative heat is entering rotation.",
@@ -2783,7 +2782,67 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Bittensor is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "Bittensor is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+    },
+    {
+      "project": "Akash Network",
+      "symbol": "AKT",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "whyNow": [
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Akash Network is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+    },
+    {
+      "project": "Render",
+      "symbol": "RNDR",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "whyNow": [
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Render is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Pendle",
@@ -2793,8 +2852,7 @@
       "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
         "Catalyst window is active.",
-        "Narrative heat is entering rotation.",
-        "Breakout Brain selected it as a top-three scenario candidate."
+        "Narrative heat is entering rotation."
       ],
       "risks": [
         "Risk cluster is elevated.",
@@ -2818,71 +2876,11 @@
       "summary": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     },
     {
-      "project": "Akash Network",
-      "symbol": "AKT",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-      "whyNow": [
-        "Narrative heat is entering rotation."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Akash Network is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-    },
-    {
-      "project": "Render",
-      "symbol": "RNDR",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
-      "whyNow": [
-        "Narrative heat is entering rotation."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Render is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
-    },
-    {
       "project": "Celestia",
       "symbol": "TIA",
       "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
+      "confidence": "Developing",
+      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
         "Narrative heat is entering rotation."
       ],
@@ -2905,12 +2903,43 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Celestia is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
+    },
+    {
+      "project": "Ondo",
+      "symbol": "ONDO",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
+      "whyNow": [
+        "Catalyst window is active.",
+        "Breakout Brain selected it as a top-three scenario candidate."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Ondo is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     },
     {
       "project": "Jupiter",
       "symbol": "JUP",
-      "decision": "Research Block",
+      "decision": "Reject For Now",
       "confidence": "Developing",
       "primaryDriver": "Source truth and proof quality are high enough for promotion.",
       "whyNow": [
@@ -2919,8 +2948,7 @@
       "risks": [
         "Risk cluster is elevated.",
         "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
+        "Builder evidence is weak or missing."
       ],
       "confirms": [
         "Official roadmap or catalyst source is verified.",
@@ -2935,37 +2963,7 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "Jupiter is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
-    },
-    {
-      "project": "Ondo",
-      "symbol": "ONDO",
-      "decision": "Research Block",
-      "confidence": "Low",
-      "primaryDriver": "Catalyst plus liquidity expansion can create a near-term breakout window.",
-      "whyNow": [
-        "Catalyst window is active."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Ondo is Research Block with Low confidence. Primary driver: Catalyst plus liquidity expansion can create a near-term breakout window.."
+      "summary": "Jupiter is Reject For Now with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     }
   ],
   "operatingDoctrine": [

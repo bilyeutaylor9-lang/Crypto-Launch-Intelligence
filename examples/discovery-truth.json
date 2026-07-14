@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:56.360Z",
+  "generatedAt": "2026-07-14T06:21:06.689Z",
   "name": "Discovery Truth Network",
   "mode": "demo",
   "scannedAt": null,
@@ -168,6 +168,30 @@
       "chains": [
         "prelaunch",
         "multi-chain"
+      ]
+    },
+    {
+      "lastSuccessAt": null,
+      "uniqueCandidates24h": 0,
+      "overlapRate": 0,
+      "errorRate": 0,
+      "cursor": null,
+      "id": "nativeDiscoveryMesh",
+      "label": "Native Discovery Mesh",
+      "category": "chain",
+      "evidenceFamily": "chain-event",
+      "status": "IMPLEMENTED",
+      "candidateGenerator": true,
+      "enrichmentProvider": true,
+      "requiresKey": false,
+      "chains": [
+        "base",
+        "solana",
+        "ethereum",
+        "bsc",
+        "polygon",
+        "arbitrum",
+        "avalanche"
       ]
     },
     {

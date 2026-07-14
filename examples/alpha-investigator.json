@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:53.531Z",
+  "generatedAt": "2026-07-14T06:21:02.450Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -11,10 +11,10 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 10,
-      "confidenceAdjustedScore": 29,
+      "pipelineScore": 11,
+      "confidenceAdjustedScore": 33,
       "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 36,
+      "commanderScore": 43,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -84,12 +84,12 @@
           "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 31,
+      "alphaInvestigatorScore": 32,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "EigenLayer",
         "symbol": "EIGEN",
-        "score": 31,
+        "score": 32,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -137,24 +137,24 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 36,
+      "warRoomScore": 42,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 66,
+      "strategyLabScore": 73,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 59,
+      "causalAlphaScore": 65,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 24,
+      "alphaOSScore": 33,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 44,
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
+      "autoLearningWeightScore": 65,
       "sourceTruthScore": 53,
       "githubProScore": 0
     },
@@ -163,10 +163,10 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "pipelineScore": 2,
-      "confidenceAdjustedScore": 22,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 29,
+      "pipelineScore": 4,
+      "confidenceAdjustedScore": 27,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -281,24 +281,24 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 27,
+      "warRoomScore": 33,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 63,
-      "strategyLabVerdict": "Strategy Watch",
+      "strategyLabScore": 70,
+      "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 52,
+      "causalAlphaScore": 58,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 30,
+      "alphaOSScore": 38,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 56,
+      "autoLearningWeightScore": 63,
       "sourceTruthScore": 49,
       "githubProScore": 0
     },
@@ -307,8 +307,8 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 27,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 40,
       "commanderVerdict": "Low Priority Research",
@@ -426,14 +426,14 @@
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 69,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 38,
-      "alphaOSVerdict": "OS Best Available Candidate",
-      "alphaOSMode": "Best Available Paper Candidate",
+      "alphaOSScore": 37,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 63,
@@ -445,10 +445,10 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 5,
-      "confidenceAdjustedScore": 27,
+      "pipelineScore": 7,
+      "confidenceAdjustedScore": 32,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 31,
+      "commanderScore": 39,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -578,25 +578,25 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 31,
-      "warRoomAllocation": "Ignore",
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 77,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 62,
+      "causalAlphaScore": 68,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 32,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 48,
+      "alphaOSScore": 41,
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "alphaOSMode": "Best Available Paper Candidate",
+      "paperOutcomeLabScore": 53,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 60,
+      "autoLearningWeightScore": 68,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -605,10 +605,10 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "pipelineScore": 4,
-      "confidenceAdjustedScore": 27,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 31,
+      "pipelineScore": 5,
+      "confidenceAdjustedScore": 31,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 39,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -672,12 +672,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorScore": 23,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Akash Network",
         "symbol": "AKT",
-        "score": 22,
+        "score": 23,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -726,25 +726,25 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 28,
-      "warRoomAllocation": "Ignore",
+      "warRoomScore": 34,
+      "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 67,
+      "strategyLabScore": 73,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 57,
+      "causalAlphaScore": 63,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 29,
+      "alphaOSScore": 38,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 44,
+      "paperOutcomeLabScore": 51,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 57,
+      "autoLearningWeightScore": 65,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -753,10 +753,10 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "pipelineScore": 3,
-      "confidenceAdjustedScore": 24,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 30,
+      "pipelineScore": 5,
+      "confidenceAdjustedScore": 29,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -820,12 +820,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 22,
+      "alphaInvestigatorScore": 23,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Celestia",
         "symbol": "TIA",
-        "score": 22,
+        "score": 23,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -875,25 +875,25 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 28,
-      "warRoomAllocation": "Ignore",
+      "warRoomScore": 34,
+      "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 63,
-      "strategyLabVerdict": "Strategy Watch",
+      "strategyLabScore": 70,
+      "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 55,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 27,
+      "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 43,
+      "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 56,
+      "autoLearningWeightScore": 64,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -903,7 +903,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 28,
+      "confidenceAdjustedScore": 26,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
@@ -1015,7 +1015,7 @@
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 69,
+      "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 54,
@@ -1025,7 +1025,7 @@
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 61,
+      "autoLearningWeightScore": 62,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -1034,10 +1034,10 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 5,
-      "confidenceAdjustedScore": 27,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 27,
+      "pipelineScore": 7,
+      "confidenceAdjustedScore": 32,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 35,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         {
@@ -1114,12 +1114,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 19,
+      "alphaInvestigatorScore": 20,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Render",
         "symbol": "RNDR",
-        "score": 19,
+        "score": 20,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -1161,7 +1161,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 24,
+      "warRoomScore": 30,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -1169,17 +1169,17 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 66,
+      "strategyLabScore": 73,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 55,
+      "causalAlphaScore": 62,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 27,
+      "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 44,
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 56,
+      "autoLearningWeightScore": 64,
       "sourceTruthScore": 49,
       "githubProScore": 0
     }

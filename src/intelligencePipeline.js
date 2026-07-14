@@ -60,6 +60,9 @@ import { analyzeSourceReliabilityBatch } from "./engines/sourceReliabilityEngine
 import { analyzeSourceTruthBatch } from "./engines/sourceTruthEngine.js";
 import { analyzeGithubIntelligenceProBatch } from "./engines/githubIntelligenceProEngine.js";
 import { analyzeOrganicDemandIntegrityBatch } from "./engines/organicDemandIntegrityEngine.js";
+import { analyzeActiveLiquidityTruthBatch } from "./engines/activeLiquidityTruthEngine.js";
+import { analyzeOrganicBuyerClassifierBatch } from "./engines/organicBuyerClassifierEngine.js";
+import { analyzeDeployerReputationBatch } from "./engines/deployerReputationEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "./engines/confidenceAdjustedRankEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
@@ -172,6 +175,10 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.sourceTruthScore, weight: 0.7 },
     { score: project.githubProScore, weight: 0.6 },
     { score: project.organicEconomicIntegrityScore, weight: 0.9 },
+    { score: project.nativeDiscoveryScore, weight: 1.0 },
+    { score: project.activeLiquidityTruthScore, weight: 0.9 },
+    { score: project.organicBuyerScore, weight: 0.9 },
+    { score: project.deployerReputationScore, weight: 0.7 },
     { score: project.developerActivityScore ?? project.developerScore, weight: 0.7 },
     { score: project.githubScore ?? project.githubQualityScore, weight: 0.5 },
     { score: project.communityGrowthScore ?? project.communityScore, weight: 0.6 },
@@ -226,6 +233,8 @@ function weightedInstitutionalScore(project = {}) {
   if (num(project.trapRiskScore) >= 60) score -= 10;
   if (num(project.riskScore) >= 70) score -= 12;
   if (num(project.riskScore) >= 85) score -= 20;
+  if (num(project.liquidityControlRisk) >= 70) score -= 8;
+  if (num(project.deployerRiskScore) >= 70) score -= 12;
 
   if (num(project.smartMoneyAccumulationScore) >= 80 && prePumpScore >= 70) {
     score += 5;
@@ -237,6 +246,14 @@ function weightedInstitutionalScore(project = {}) {
 
   if (num(project.buyPressureScore) >= 70 && num(project.capitalFlowScore) >= 70) {
     score += 4;
+  }
+
+  if (
+    num(project.nativeDiscoveryScore) >= 70 &&
+    num(project.organicBuyerScore) >= 65 &&
+    num(project.activeLiquidityTruthScore) >= 55
+  ) {
+    score += 5;
   }
 
   if (
@@ -280,6 +297,7 @@ function buildSignalProfile(project = {}) {
       { score: project.stakingMomentumScore, weight: 0.8 },
       { score: project.exchangeProbabilityScore, weight: 0.8 },
       { score: project.catalystCalendarScore, weight: 0.9 },
+      { score: project.nativeDiscoveryScore, weight: 1.1 },
     ]),
     market: weightedAverage([
       { score: project.marketRankScore, weight: 1.2 },
@@ -301,6 +319,8 @@ function buildSignalProfile(project = {}) {
       { score: project.buyPressureScore, weight: 1.0 },
       { score: project.liquidityScore, weight: 0.9 },
       { score: project.liquidityExpansionScore, weight: 0.8 },
+      { score: project.activeLiquidityTruthScore, weight: 1.0 },
+      { score: project.organicBuyerScore, weight: 0.9 },
     ]),
     smartMoney: weightedAverage([
       { score: project.whaleScore ?? project.whaleActivityScore, weight: 0.9 },
@@ -316,6 +336,7 @@ function buildSignalProfile(project = {}) {
       { score: project.ecosystemIntegrationScore, weight: 0.9 },
       { score: project.baselineScore, weight: 0.8 },
       { score: project.organicEconomicIntegrityScore, weight: 1.0 },
+      { score: project.deployerReputationScore, weight: 0.8 },
     ]),
     devCommunity: weightedAverage([
       { score: project.developerActivityScore ?? project.developerScore, weight: 0.9 },
@@ -374,6 +395,8 @@ function buildSignalProfile(project = {}) {
       { score: project.xBotRiskScore, weight: 0.6 },
       { score: project.externalRiskScore, weight: 0.7 },
       { score: project.economicIntegrityRiskScore, weight: 1.2 },
+      { score: project.liquidityControlRisk, weight: 1.0 },
+      { score: project.deployerRiskScore, weight: 1.0 },
     ]),
   };
 
@@ -421,6 +444,10 @@ function buildAlphaTags(project = {}, profile = {}) {
   if (["accelerating", "improving"].includes(project.projectChangeState)) tags.push("Improving Since Last Scan");
   if (project.organicDemandVerdict === "Organic Demand Confirmed") tags.push("Organic Demand Confirmed");
   if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") tags.push("Tradable Anomaly");
+  if (num(project.nativeDiscoveryScore) >= 70) tags.push("Native Launch Mesh");
+  if (project.organicBuyerVerdict === "First Real Buyers Confirmed") tags.push("First Real Buyers");
+  if (project.activeLiquidityTruthVerdict === "Usable Exit Liquidity Confirmed") tags.push("Usable Liquidity");
+  if (project.deployerReputationVerdict === "Constructive Deployer History") tags.push("Constructive Deployer");
 
   return tags;
 }
@@ -479,6 +506,11 @@ function buildRiskFlags(project = {}, profile = {}) {
   if ((project.economicIntegrityBlockers || []).some((blocker) => /privileged|admin|mint/i.test(blocker))) {
     risks.push("Privileged control risk");
   }
+  if (num(project.liquidityControlRisk) >= 75) risks.push("Native liquidity control risk");
+  else if (num(project.liquidityControlRisk) >= 60) risks.push("Usable liquidity verification required");
+  if (num(project.deployerRiskScore) >= 75) risks.push("Deployer reputation block");
+  else if (num(project.deployerRiskScore) >= 60) risks.push("Deployer reputation verification required");
+  if (project.organicBuyerVerdict === "Buyer Quality Unproven") risks.push("First-buyer quality unproven");
 
   return [...new Set(risks)];
 }
@@ -829,6 +861,9 @@ function advancedScoreBreakdown(project = {}) {
   if (["accelerating", "improving"].includes(project.projectChangeState)) bonus += 3;
   if (num(project.sourceReliabilityScore) >= 70) bonus += 2;
   if (project.organicDemandVerdict === "Organic Demand Confirmed") bonus += 4;
+  if (num(project.nativeDiscoveryScore) >= 75 && num(project.organicBuyerScore) >= 65) bonus += 5;
+  if (num(project.activeLiquidityTruthScore) >= 70 && num(project.liquidityControlRisk) < 45) bonus += 4;
+  if (num(project.deployerReputationScore) >= 72 && num(project.deployerRiskScore) < 45) bonus += 3;
 
   if (profile.risk >= 85) penalty += 18;
   else if (profile.risk >= 70) penalty += 10;
@@ -857,6 +892,11 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.economicIntegrityPenalty) > 0) penalty += num(project.economicIntegrityPenalty);
   if (project.organicDemandVerdict === "Institutional Integrity Block") penalty += 10;
   if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") penalty += 6;
+  if (num(project.liquidityControlRisk) >= 75) penalty += 9;
+  else if (num(project.liquidityControlRisk) >= 60) penalty += 5;
+  if (num(project.deployerRiskScore) >= 75) penalty += 12;
+  else if (num(project.deployerRiskScore) >= 60) penalty += 7;
+  if (project.organicBuyerVerdict === "Buyer Quality Unproven" && num(project.nativeDiscoveryScore) > 0) penalty += 5;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const dynamicWeightAdjustment = project.dynamicEngineWeights
@@ -955,6 +995,9 @@ function buildDataConfidence(project = {}, breakdown = {}) {
     num(project.xSocialScore) > 0,
     num(project.smartMoneyAccumulationScore) > 0,
     num(project.catalystScore) > 0,
+    num(project.nativeDiscoveryScore) > 0,
+    num(project.activeLiquidityTruthScore) > 0,
+    num(project.organicBuyerScore) > 0,
     historicalExamples >= 8,
   ].filter(Boolean).length;
   const penalty =
@@ -1108,6 +1151,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Source Reliability", analyzeSourceReliabilityBatch, results);
   results = await runEngine("Source Truth", analyzeSourceTruthBatch, results);
   results = await runEngine("GitHub Intelligence Pro", analyzeGithubIntelligenceProBatch, results);
+  results = await runEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
+  results = await runEngine("Organic Buyer Classifier", analyzeOrganicBuyerClassifierBatch, results);
+  results = await runEngine("Deployer Reputation", analyzeDeployerReputationBatch, results);
   results = await runEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
 
   results = addFinalScoring(results);

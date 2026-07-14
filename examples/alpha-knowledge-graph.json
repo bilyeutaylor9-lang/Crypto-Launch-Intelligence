@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:55.891Z",
+  "generatedAt": "2026-07-14T06:21:05.968Z",
   "totalProjects": 8,
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/alpha-knowledge-graph.json",
@@ -6419,7 +6419,7 @@
   "graphedProjects": 8,
   "alphaCandidates": 0,
   "priorityResearch": 0,
-  "riskBlocks": 7,
+  "riskBlocks": 5,
   "topRelations": {
     "ai": 8,
     "restaking": 5,
@@ -6441,6 +6441,514 @@
   "topProjects": [
     {
       "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "graphScore": 57,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 45,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 12,
+      "upsideProbability": 85,
+      "downsideProbability": 8,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Why-Now Catalyst",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 21,
+        "edges": 27,
+        "sources": 7,
+        "narratives": 3,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 51,
+        "catalystContext": 57,
+        "memoryScore": 26,
+        "riskIntegrity": 24
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 39,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 2
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -44,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 2
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure."
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "graphScore": 54,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Watch",
+      "twinScore": 45,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 9,
+      "upsideProbability": 80,
+      "downsideProbability": 14,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 49,
+        "catalystContext": 40,
+        "memoryScore": 21,
+        "riskIntegrity": 28
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 36,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -42,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 8
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure."
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "graphScore": 52,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 43,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 8,
+      "upsideProbability": 80,
+      "downsideProbability": 14,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 46,
+        "catalystContext": 30,
+        "memoryScore": 21,
+        "riskIntegrity": 27
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 31,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -43,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 8
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 4,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "graphScore": 53,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 42,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 5,
+      "upsideProbability": 80,
+      "downsideProbability": 14,
+      "dominantRelation": "narrative:rwa",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 23,
+        "edges": 29,
+        "sources": 7,
+        "narratives": 5,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 80,
+        "relationStrength": 100,
+        "engineAgreement": 46,
+        "catalystContext": 40,
+        "memoryScore": 18,
+        "riskIntegrity": 26
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 31,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -43,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 8
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure."
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "graphScore": 51,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Watch",
+      "twinScore": 42,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 3,
+      "upsideProbability": 86,
+      "downsideProbability": 7,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 38,
+        "catalystContext": 27,
+        "memoryScore": 24,
+        "riskIntegrity": 31
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 21,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 0
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -41,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 1
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "graphScore": 51,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Risk Block",
+      "twinScore": 41,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 7,
+      "upsideProbability": 79,
+      "downsideProbability": 15,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 80,
+        "relationStrength": 100,
+        "engineAgreement": 42,
+        "catalystContext": 22,
+        "memoryScore": 22,
+        "riskIntegrity": 27
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 28,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -43,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 9
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "graphScore": 53,
+      "graphConfidence": "Developing",
+      "graphVerdict": "Knowledge Graph Watch",
+      "twinScore": 41,
+      "twinConfidence": "Developing",
+      "twinVerdict": "Twin Reject",
+      "expectedReturnPct": 5,
+      "upsideProbability": 80,
+      "downsideProbability": 14,
+      "dominantRelation": "narrative:ai",
+      "primaryCausalDriver": "Evidence Quality",
+      "memoryScans": 2,
+      "graphSize": {
+        "nodes": 22,
+        "edges": 28,
+        "sources": 7,
+        "narratives": 4,
+        "neighbors": 7
+      },
+      "moduleScores": {
+        "sourceCoverage": 35,
+        "evidenceQuality": 81,
+        "relationStrength": 100,
+        "engineAgreement": 45,
+        "catalystContext": 35,
+        "memoryScore": 21,
+        "riskIntegrity": 28
+      },
+      "bestScenario": {
+        "id": "bull_case",
+        "label": "Bull Case",
+        "expectedMovePct": 29,
+        "triggers": [
+          "Narrative heat keeps expanding.",
+          "Catalyst proof confirms on schedule.",
+          "Liquidity and smart-money signals remain supportive."
+        ],
+        "invalidatesIf": [
+          "Liquidity expansion stalls while attention rises.",
+          "Source truth or proof score drops below 45."
+        ],
+        "probability": 1
+      },
+      "worstScenario": {
+        "id": "invalidation_case",
+        "label": "Invalidation Case",
+        "expectedMovePct": -42,
+        "triggers": [
+          "Alpha contract invalidation fires.",
+          "Red-team, source, or risk firewall blocks the thesis."
+        ],
+        "invalidatesIf": [
+          "Invalidation evidence is disproven and proof quality recovers."
+        ],
+        "probability": 8
+      },
+      "missingProof": [
+        "Add more independent sources to the graph.",
+        "Find and verify the official GitHub repository.",
+        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
+      ],
+      "experiments": [
+        "Verify official website, docs, contract, and exchange/DEX source identity.",
+        "Find the official GitHub and check recent commits, releases, and contributors.",
+        "Recheck liquidity depth, concentration, migration, and sell pressure.",
+        "Confirm the next roadmap catalyst from multiple sources."
+      ]
+    },
+    {
+      "rank": 8,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
@@ -6467,7 +6975,7 @@
         "sourceCoverage": 35,
         "evidenceQuality": 81,
         "relationStrength": 100,
-        "engineAgreement": 47,
+        "engineAgreement": 46,
         "catalystContext": 38,
         "memoryScore": 24,
         "riskIntegrity": 27
@@ -6509,514 +7017,6 @@
         "Verify official website, docs, contract, and exchange/DEX source identity.",
         "Find the official GitHub and check recent commits, releases, and contributors.",
         "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 2,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "graphScore": 52,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 40,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 10,
-      "upsideProbability": 85,
-      "downsideProbability": 9,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Why-Now Catalyst",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 21,
-        "edges": 27,
-        "sources": 7,
-        "narratives": 3,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 66,
-        "relationStrength": 100,
-        "engineAgreement": 46,
-        "catalystContext": 57,
-        "memoryScore": 26,
-        "riskIntegrity": 22
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 37,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -46,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 2
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 3,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "graphScore": 50,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 40,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 8,
-      "upsideProbability": 80,
-      "downsideProbability": 14,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 100,
-        "engineAgreement": 45,
-        "catalystContext": 40,
-        "memoryScore": 21,
-        "riskIntegrity": 27
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 33,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -44,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 8
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 4,
-      "name": "Jupiter",
-      "symbol": "JUP",
-      "chain": "solana",
-      "graphScore": 51,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Watch",
-      "twinScore": 39,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 0,
-      "upsideProbability": 80,
-      "downsideProbability": 14,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Evidence Quality",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 81,
-        "relationStrength": 100,
-        "engineAgreement": 38,
-        "catalystContext": 27,
-        "memoryScore": 24,
-        "riskIntegrity": 30
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 21,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 0
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -42,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 8
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
-      ]
-    },
-    {
-      "rank": 5,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "graphScore": 48,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 37,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 7,
-      "upsideProbability": 81,
-      "downsideProbability": 13,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 100,
-        "engineAgreement": 42,
-        "catalystContext": 30,
-        "memoryScore": 21,
-        "riskIntegrity": 25
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 29,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -45,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 7
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
-      ]
-    },
-    {
-      "rank": 6,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "graphScore": 49,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 36,
-      "twinConfidence": "Low",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 4,
-      "upsideProbability": 81,
-      "downsideProbability": 13,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Strategy Fit",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 100,
-        "engineAgreement": 40,
-        "catalystContext": 35,
-        "memoryScore": 21,
-        "riskIntegrity": 26
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 26,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -45,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 7
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
-      ]
-    },
-    {
-      "rank": 7,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "graphScore": 49,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 36,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 3,
-      "upsideProbability": 80,
-      "downsideProbability": 14,
-      "dominantRelation": "narrative:rwa",
-      "primaryCausalDriver": "Strategy Fit",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 23,
-        "edges": 29,
-        "sources": 7,
-        "narratives": 5,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 64,
-        "relationStrength": 100,
-        "engineAgreement": 40,
-        "catalystContext": 40,
-        "memoryScore": 18,
-        "riskIntegrity": 25
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 28,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -45,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 8
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure."
-      ]
-    },
-    {
-      "rank": 8,
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "graphScore": 46,
-      "graphConfidence": "Developing",
-      "graphVerdict": "Knowledge Graph Risk Block",
-      "twinScore": 35,
-      "twinConfidence": "Developing",
-      "twinVerdict": "Twin Reject",
-      "expectedReturnPct": 6,
-      "upsideProbability": 80,
-      "downsideProbability": 14,
-      "dominantRelation": "narrative:ai",
-      "primaryCausalDriver": "Narrative Gravity",
-      "memoryScans": 2,
-      "graphSize": {
-        "nodes": 22,
-        "edges": 28,
-        "sources": 7,
-        "narratives": 4,
-        "neighbors": 7
-      },
-      "moduleScores": {
-        "sourceCoverage": 35,
-        "evidenceQuality": 65,
-        "relationStrength": 100,
-        "engineAgreement": 37,
-        "catalystContext": 22,
-        "memoryScore": 22,
-        "riskIntegrity": 25
-      },
-      "bestScenario": {
-        "id": "bull_case",
-        "label": "Bull Case",
-        "expectedMovePct": 26,
-        "triggers": [
-          "Narrative heat keeps expanding.",
-          "Catalyst proof confirms on schedule.",
-          "Liquidity and smart-money signals remain supportive."
-        ],
-        "invalidatesIf": [
-          "Liquidity expansion stalls while attention rises.",
-          "Source truth or proof score drops below 45."
-        ],
-        "probability": 1
-      },
-      "worstScenario": {
-        "id": "invalidation_case",
-        "label": "Invalidation Case",
-        "expectedMovePct": -45,
-        "triggers": [
-          "Alpha contract invalidation fires.",
-          "Red-team, source, or risk firewall blocks the thesis."
-        ],
-        "invalidatesIf": [
-          "Invalidation evidence is disproven and proof quality recovers."
-        ],
-        "probability": 8
-      },
-      "missingProof": [
-        "Add more independent sources to the graph.",
-        "Find and verify the official GitHub repository.",
-        "Resolve risk, sell pressure, unlock, or trap warnings before promotion."
-      ],
-      "experiments": [
-        "Verify official website, docs, contract, and exchange/DEX source identity.",
-        "Find the official GitHub and check recent commits, releases, and contributors.",
-        "Recheck liquidity depth, concentration, migration, and sell pressure.",
-        "Confirm the next roadmap catalyst from multiple sources."
       ]
     }
   ],

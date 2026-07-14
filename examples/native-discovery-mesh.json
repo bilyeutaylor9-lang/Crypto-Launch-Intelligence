@@ -1,0 +1,390 @@
+{
+  "generatedAt": "2026-07-14T06:21:06.690Z",
+  "status": "WAITING_FOR_NATIVE_EVENTS",
+  "summary": {
+    "generatedAt": "2026-07-14T06:21:06.690Z",
+    "status": "WAITING_FOR_NATIVE_EVENTS",
+    "candidateCount": 0,
+    "lifecycleCount": 0,
+    "byStage": {},
+    "byChain": {},
+    "highConvictionNativeCandidates": 0,
+    "topCandidates": []
+  },
+  "discoverySourceReport": null,
+  "eventStore": {
+    "dataDir": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/native-discovery",
+    "rawEvents": 0,
+    "confirmedEvents": 0,
+    "checkpoints": 0,
+    "deadLetters": 0,
+    "byType": {},
+    "latestEventAt": null
+  },
+  "protocolCoverage": {
+    "totalProtocols": 15,
+    "configuredProtocols": 0,
+    "unconfiguredProtocols": 15,
+    "byChain": {
+      "base": {
+        "total": 4,
+        "configured": 0,
+        "protocols": [
+          "base-aerodrome-v2",
+          "base-aerodrome-slipstream",
+          "base-uniswap-v3",
+          "base-uniswap-v4"
+        ]
+      },
+      "solana": {
+        "total": 6,
+        "configured": 0,
+        "protocols": [
+          "solana-pump-migrations",
+          "solana-raydium-launchlab",
+          "solana-raydium-cpmm",
+          "solana-raydium-clmm",
+          "solana-meteora-dbc",
+          "solana-meteora-dlmm"
+        ]
+      },
+      "multi-evm": {
+        "total": 1,
+        "configured": 0,
+        "protocols": [
+          "evm-contract-deployments"
+        ]
+      },
+      "bsc": {
+        "total": 2,
+        "configured": 0,
+        "protocols": [
+          "bnb-pancakeswap-v2",
+          "bnb-pancakeswap-v3"
+        ]
+      },
+      "polygon": {
+        "total": 1,
+        "configured": 0,
+        "protocols": [
+          "polygon-quickswap-algebra"
+        ]
+      },
+      "arbitrum": {
+        "total": 1,
+        "configured": 0,
+        "protocols": [
+          "arbitrum-camelot"
+        ]
+      }
+    },
+    "requiredEnvironmentVariables": [
+      "BASE_AERODROME_FACTORY",
+      "BASE_AERODROME_SLIPSTREAM_FACTORY",
+      "SOLANA_PUMP_FUN_PROGRAM",
+      "SOLANA_RAYDIUM_LAUNCHLAB_PROGRAM",
+      "BASE_UNISWAP_V3_FACTORY",
+      "SOLANA_RAYDIUM_CPMM_PROGRAM",
+      "SOLANA_RAYDIUM_CLMM_PROGRAM",
+      "SOLANA_METEORA_DBC_PROGRAM",
+      "EVM_DEPLOYMENT_RADAR_RPC_URL",
+      "BASE_UNISWAP_V4_POOL_MANAGER",
+      "SOLANA_METEORA_DLMM_PROGRAM",
+      "BSC_PANCAKESWAP_V2_FACTORY",
+      "BSC_PANCAKESWAP_V3_FACTORY",
+      "POLYGON_QUICKSWAP_ALGEBRA_FACTORY",
+      "ARBITRUM_CAMELOT_FACTORY"
+    ],
+    "protocols": [
+      {
+        "id": "base-aerodrome-v2",
+        "chain": "base",
+        "chainId": 8453,
+        "family": "evm-factory",
+        "protocol": "aerodrome",
+        "protocolVersion": "volatile-stable-v2",
+        "factoryEnv": "BASE_AERODROME_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 100,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "base-aerodrome-slipstream",
+        "chain": "base",
+        "chainId": 8453,
+        "family": "evm-factory",
+        "protocol": "aerodrome-slipstream",
+        "protocolVersion": "cl",
+        "factoryEnv": "BASE_AERODROME_SLIPSTREAM_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "POOL_INITIALIZED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 100,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-pump-migrations",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "pump-fun",
+        "protocolVersion": "migration",
+        "programEnv": "SOLANA_PUMP_FUN_PROGRAM",
+        "eventKinds": [
+          "TOKEN_DEPLOYED",
+          "FIRST_EXTERNAL_BUYER",
+          "POOL_CREATED",
+          "FIRST_SWAP"
+        ],
+        "priority": 100,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-raydium-launchlab",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "raydium-launchlab",
+        "protocolVersion": "launchlab",
+        "programEnv": "SOLANA_RAYDIUM_LAUNCHLAB_PROGRAM",
+        "eventKinds": [
+          "TOKEN_DEPLOYED",
+          "FIRST_LIQUIDITY_ADDED",
+          "POOL_CREATED"
+        ],
+        "priority": 96,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "base-uniswap-v3",
+        "chain": "base",
+        "chainId": 8453,
+        "family": "evm-factory",
+        "protocol": "uniswap-v3",
+        "protocolVersion": "v3",
+        "factoryEnv": "BASE_UNISWAP_V3_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "POOL_INITIALIZED",
+          "FIRST_SWAP"
+        ],
+        "priority": 94,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-raydium-cpmm",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "raydium-cpmm",
+        "protocolVersion": "cpmm",
+        "programEnv": "SOLANA_RAYDIUM_CPMM_PROGRAM",
+        "eventKinds": [
+          "POOL_CREATED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 94,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-raydium-clmm",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "raydium-clmm",
+        "protocolVersion": "clmm",
+        "programEnv": "SOLANA_RAYDIUM_CLMM_PROGRAM",
+        "eventKinds": [
+          "POOL_CREATED",
+          "POOL_INITIALIZED",
+          "FIRST_SWAP"
+        ],
+        "priority": 92,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-meteora-dbc",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "meteora-dbc",
+        "protocolVersion": "dbc",
+        "programEnv": "SOLANA_METEORA_DBC_PROGRAM",
+        "eventKinds": [
+          "TOKEN_DEPLOYED",
+          "FIRST_EXTERNAL_BUYER",
+          "POOL_CREATED"
+        ],
+        "priority": 92,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "evm-contract-deployments",
+        "chain": "multi-evm",
+        "family": "evm-deployment",
+        "protocol": "contract-deployment-radar",
+        "protocolVersion": "erc20-classifier",
+        "rpcEnv": "EVM_DEPLOYMENT_RADAR_RPC_URL",
+        "eventKinds": [
+          "TOKEN_DEPLOYED"
+        ],
+        "priority": 90,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "base-uniswap-v4",
+        "chain": "base",
+        "chainId": 8453,
+        "family": "evm-factory",
+        "protocol": "uniswap-v4",
+        "protocolVersion": "v4",
+        "factoryEnv": "BASE_UNISWAP_V4_POOL_MANAGER",
+        "eventKinds": [
+          "POOL_INITIALIZED",
+          "FIRST_SWAP"
+        ],
+        "priority": 88,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "solana-meteora-dlmm",
+        "chain": "solana",
+        "family": "solana-program",
+        "protocol": "meteora-dlmm",
+        "protocolVersion": "dlmm",
+        "programEnv": "SOLANA_METEORA_DLMM_PROGRAM",
+        "eventKinds": [
+          "POOL_CREATED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 88,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "bnb-pancakeswap-v2",
+        "chain": "bsc",
+        "chainId": 56,
+        "family": "evm-factory",
+        "protocol": "pancakeswap-v2",
+        "protocolVersion": "v2",
+        "factoryEnv": "BSC_PANCAKESWAP_V2_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 86,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "bnb-pancakeswap-v3",
+        "chain": "bsc",
+        "chainId": 56,
+        "family": "evm-factory",
+        "protocol": "pancakeswap-v3",
+        "protocolVersion": "v3",
+        "factoryEnv": "BSC_PANCAKESWAP_V3_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "POOL_INITIALIZED",
+          "FIRST_SWAP"
+        ],
+        "priority": 86,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "polygon-quickswap-algebra",
+        "chain": "polygon",
+        "chainId": 137,
+        "family": "evm-factory",
+        "protocol": "quickswap-algebra",
+        "protocolVersion": "algebra",
+        "factoryEnv": "POLYGON_QUICKSWAP_ALGEBRA_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "POOL_INITIALIZED",
+          "FIRST_SWAP"
+        ],
+        "priority": 82,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      },
+      {
+        "id": "arbitrum-camelot",
+        "chain": "arbitrum",
+        "chainId": 42161,
+        "family": "evm-factory",
+        "protocol": "camelot",
+        "protocolVersion": "factory",
+        "factoryEnv": "ARBITRUM_CAMELOT_FACTORY",
+        "eventKinds": [
+          "POOL_CREATED",
+          "FIRST_LIQUIDITY_ADDED",
+          "FIRST_SWAP"
+        ],
+        "priority": 78,
+        "factoryAddress": null,
+        "programId": null,
+        "rpcUrl": null,
+        "configured": false
+      }
+    ]
+  },
+  "topCandidates": [],
+  "missedOpportunityLab": {
+    "purpose": "Compare native lifecycle candidates that failed later stages against candidates the scanner eventually ranked highly.",
+    "trackedCandidates": 0,
+    "watchFor": [
+      "pool created but no real external buyers",
+      "first buyer cluster came from same funding source",
+      "liquidity expanded before smart-wallet arrival",
+      "developer sold before buyer milestone",
+      "high score rejected by usable-liquidity simulation"
+    ]
+  }
+}

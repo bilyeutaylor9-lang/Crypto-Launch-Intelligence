@@ -112,6 +112,9 @@ Commands:
   crypto-launch execution-twin    Print Proof-of-Alpha Execution Twin report
   crypto-launch organic-integrity Print Organic Demand Integrity report
   crypto-launch discovery-truth   Print Discovery Truth Network report
+  crypto-launch native-mesh       Run native pool lifecycle mesh
+  crypto-launch native-events     Print native event store summary
+  crypto-launch native-report     Print Native Discovery Mesh report
   crypto-launch governor          Print Alpha Evolution Governor report
   crypto-launch queue             Print Alpha Evolution operating queue
   crypto-launch debate            Print agent-society debate summary
@@ -296,6 +299,18 @@ switch (command) {
   case "truth-network":
   case "source-truth-network":
     runNpm("discovery-truth", args);
+    break;
+  case "native-mesh":
+  case "native-discovery":
+    runNpm("native-mesh", args);
+    break;
+  case "native-events":
+  case "native-event-store":
+    runNpm("native-events", args);
+    break;
+  case "native-report":
+  case "native-discovery-report":
+    runNpm("native-report", args);
     break;
   case "governor":
   case "alpha-governor":

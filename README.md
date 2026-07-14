@@ -17,6 +17,7 @@ This is not a simple token screener. It is a layered research system with:
 - Free-source project discovery
 - 10,000-candidate wide scan mode
 - Discovery Truth Network with canonical source manifest, lifecycle lanes, evidence-family independence, and rejected-candidate shadow watchlist
+- Native Discovery Mesh for early pool lifecycle events, first real buyers, usable liquidity, and deployer reputation checks
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -88,6 +89,8 @@ npm run small-caps
 npm run execution-twin
 npm run organic-integrity
 npm run discovery-truth
+npm run native-mesh
+npm run native-report
 ```
 
 ## What Makes It Different
@@ -104,6 +107,7 @@ The system does not trust one score. It builds a full research case:
 
 - Discovery breadth: finds projects from many free sources instead of one API.
 - Discovery truth: separates active live sources from planned sources and ranks prelaunch, new-pool, and established-emerging projects differently.
+- Native discovery: normalizes pool lifecycle events across EVM factories and Solana programs into one launch timeline.
 - Signal fusion: combines market, liquidity, narrative, catalyst, GitHub, social, roadmap, and risk data.
 - Organic demand checks: discounts raw holders, tx counts, displayed liquidity, extreme yield, and source-disagreement traps.
 - Agent debate: multiple AI-style specialist agents argue the bull case, bear case, proof gaps, and invalidation rules.
@@ -119,6 +123,7 @@ The system does not trust one score. It builds a full research case:
 ```mermaid
 flowchart LR
   A["Free Data Sources"] --> B["Discovery Manager"]
+  A2["Native Pool Events"] --> B
   B --> C["Discovery Truth + Identity Graph"]
   C --> D["Candidate Rescue + AI Discovery Swarm"]
   D --> E["Core Intelligence Pipeline"]
@@ -451,6 +456,7 @@ Supported discovery and research sources include:
 - Crypto RSS feeds
 - Project websites
 - Same-domain free web crawler
+- Native pool event store and checkpointed listener framework
 - Built-in research seed fallback
 - Candidate rescue expansion
 
@@ -467,6 +473,16 @@ npm run source-router
 npm run discovery-truth
 ```
 
+Native Discovery Mesh commands:
+
+```bash
+npm run native-mesh
+npm run native-events
+npm run native-report
+```
+
+The native mesh is offline-safe by default. It can ingest stored or mock pool events immediately, and live RPC/WebSocket collection can be enabled later with protocol-specific environment variables from `src/data/native/nativePoolConfig.js`.
+
 ## Intelligence Flow
 
 Each project moves through a layered pipeline:
@@ -476,13 +492,14 @@ Each project moves through a layered pipeline:
 3. Narrative, launch, roadmap, and catalyst analysis
 4. GitHub, developer, community, and social analysis
 5. Wallet, whale, smart-money, and capital-flow analysis
-6. Risk, trap, sell-pressure, tokenomics, vesting, and unlock analysis
-7. Proof, confidence, source reliability, and explainability scoring
-8. AI Council debate and Research OS lifecycle routing
-9. Simulation Brain, Quantum Brain, Market Scientist, and Outcome Judge
-10. Dossier Swarm, Commander, Investigator, and Portfolio War Room
-11. Strategy Lab, Causal Alpha Brain, and Autonomous Alpha OS
-12. Watchtower alerts, reports, dashboard publishing, and memory updates
+6. Native lifecycle, first-buyer quality, usable-liquidity, and deployer-reputation analysis
+7. Risk, trap, sell-pressure, tokenomics, vesting, and unlock analysis
+8. Proof, confidence, source reliability, and explainability scoring
+9. AI Council debate and Research OS lifecycle routing
+10. Simulation Brain, Quantum Brain, Market Scientist, and Outcome Judge
+11. Dossier Swarm, Commander, Investigator, and Portfolio War Room
+12. Strategy Lab, Causal Alpha Brain, and Autonomous Alpha OS
+13. Watchtower alerts, reports, dashboard publishing, and memory updates
 
 ## Self-Learning Memory
 
@@ -501,6 +518,9 @@ Memory files include:
 - `data/paper-trading-outcomes.json`
 - `data/alpha-contracts.json`
 - `data/alpha-evolution-governor-memory.json`
+- `data/native-discovery/raw-events.json`
+- `data/native-discovery/confirmed-events.json`
+- `data/native-discovery/checkpoints.json`
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
@@ -541,6 +561,7 @@ Every scan can generate a full research packet:
 | `reports/proof-of-alpha-execution-twin.json` | Route-verified $100 paper execution simulations with slippage, safety, thesis, and invalidation checks |
 | `reports/organic-demand-integrity.json` | Organic demand, hard exit liquidity, admin-control, yield sustainability, holder authenticity, and valuation-disagreement checks |
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
+| `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -619,6 +640,8 @@ npm run small-caps
 npm run execution-twin
 npm run organic-integrity
 npm run discovery-truth
+npm run native-mesh
+npm run native-report
 npm run source-truth
 npm run github-pro
 ```
@@ -634,6 +657,7 @@ npm run paper-memory
 npm run contract-memory
 npm run graph-memory
 npm run evolution-memory
+npm run native-events
 npm run source-router
 ```
 
@@ -653,6 +677,7 @@ node src/cli.js demo
 node src/cli.js scan
 node src/cli.js wide
 node src/cli.js alpha-os
+node src/cli.js native-mesh
 node src/cli.js explain AKT
 ```
 
@@ -664,6 +689,8 @@ The scanner works without paid keys, but optional keys can improve coverage:
 export BIRDEYE_API_KEY="your_birdeye_key"
 export X_BEARER_TOKEN="your_x_bearer_token"
 export CRYPTOPANIC_API_KEY="your_cryptopanic_key"
+export BASE_AERODROME_FACTORY="optional_factory_address"
+export SOLANA_RAYDIUM_CPMM_PROGRAM="optional_program_id"
 ```
 
 GitHub repository secrets can use the same names.
@@ -689,6 +716,7 @@ cat examples/alpha-evolution-governor.json
 cat examples/alpha-evolution-queue.json
 cat examples/small-cap-hunter.json
 cat examples/proof-of-alpha-execution-twin.json
+cat examples/native-discovery-mesh.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

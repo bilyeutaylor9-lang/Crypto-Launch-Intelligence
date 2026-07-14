@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T06:05:56.359Z",
+  "generatedAt": "2026-07-14T06:21:06.687Z",
   "name": "Organic Demand and Economic Integrity",
   "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
   "totalProjects": 8,
@@ -14,35 +14,36 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 42188,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25110,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 237.04,
+          "estimatedStablecoinImpactPct": 398.25,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2370.37,
+          "estimatedStablecoinImpactPct": 3982.48,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 23703.7,
+          "estimatedStablecoinImpactPct": 39824.77,
           "pass": false
         }
       ]
@@ -51,35 +52,36 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 62,
-      "verdict": "Economic Integrity Watch",
+      "score": 60,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 41,
-      "economicSustainabilityScore": 67,
-      "hardExitLiquidityUsd": 38438,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22878,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 260.16,
+          "estimatedStablecoinImpactPct": 437.1,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2601.63,
+          "estimatedStablecoinImpactPct": 4371.01,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 26016.26,
+          "estimatedStablecoinImpactPct": 43710.11,
           "pass": false
         }
       ]
@@ -88,35 +90,36 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 37500,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22320,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 266.67,
+          "estimatedStablecoinImpactPct": 448.03,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2666.67,
+          "estimatedStablecoinImpactPct": 4480.29,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 26666.67,
+          "estimatedStablecoinImpactPct": 44802.87,
           "pass": false
         }
       ]
@@ -125,35 +128,36 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 39375,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23436,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 253.97,
+          "estimatedStablecoinImpactPct": 426.69,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2539.68,
+          "estimatedStablecoinImpactPct": 4266.94,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 25396.83,
+          "estimatedStablecoinImpactPct": 42669.4,
           "pass": false
         }
       ]
@@ -162,35 +166,36 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 43125,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25668,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 231.88,
+          "estimatedStablecoinImpactPct": 389.59,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2318.84,
+          "estimatedStablecoinImpactPct": 3895.9,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 23188.41,
+          "estimatedStablecoinImpactPct": 38959.02,
           "pass": false
         }
       ]
@@ -199,35 +204,36 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 62,
-      "verdict": "Economic Integrity Watch",
+      "score": 60,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 41,
-      "economicSustainabilityScore": 67,
-      "hardExitLiquidityUsd": 40313,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 23994,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 248.06,
+          "estimatedStablecoinImpactPct": 416.77,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2480.62,
+          "estimatedStablecoinImpactPct": 4167.71,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 24806.2,
+          "estimatedStablecoinImpactPct": 41677.09,
           "pass": false
         }
       ]
@@ -236,35 +242,36 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 41250,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 24552,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 242.42,
+          "estimatedStablecoinImpactPct": 407.3,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2424.24,
+          "estimatedStablecoinImpactPct": 4072.99,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 24242.42,
+          "estimatedStablecoinImpactPct": 40729.88,
           "pass": false
         }
       ]
@@ -273,35 +280,36 @@
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 44063,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 26226,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 226.95,
+          "estimatedStablecoinImpactPct": 381.3,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2269.5,
+          "estimatedStablecoinImpactPct": 3813.01,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 22695.04,
+          "estimatedStablecoinImpactPct": 38130.1,
           "pass": false
         }
       ]
@@ -312,35 +320,36 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 42188,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25110,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 237.04,
+          "estimatedStablecoinImpactPct": 398.25,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2370.37,
+          "estimatedStablecoinImpactPct": 3982.48,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 23703.7,
+          "estimatedStablecoinImpactPct": 39824.77,
           "pass": false
         }
       ]
@@ -349,35 +358,36 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 37500,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22320,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 266.67,
+          "estimatedStablecoinImpactPct": 448.03,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2666.67,
+          "estimatedStablecoinImpactPct": 4480.29,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 26666.67,
+          "estimatedStablecoinImpactPct": 44802.87,
           "pass": false
         }
       ]
@@ -386,35 +396,36 @@
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 39375,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23436,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 253.97,
+          "estimatedStablecoinImpactPct": 426.69,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2539.68,
+          "estimatedStablecoinImpactPct": 4266.94,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 25396.83,
+          "estimatedStablecoinImpactPct": 42669.4,
           "pass": false
         }
       ]
@@ -423,35 +434,36 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 43125,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25668,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 231.88,
+          "estimatedStablecoinImpactPct": 389.59,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2318.84,
+          "estimatedStablecoinImpactPct": 3895.9,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 23188.41,
+          "estimatedStablecoinImpactPct": 38959.02,
           "pass": false
         }
       ]
@@ -460,35 +472,36 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 41250,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 24552,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 242.42,
+          "estimatedStablecoinImpactPct": 407.3,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2424.24,
+          "estimatedStablecoinImpactPct": 4072.99,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 24242.42,
+          "estimatedStablecoinImpactPct": 40729.88,
           "pass": false
         }
       ]
@@ -497,35 +510,36 @@
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
+      "score": 61,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 42,
-      "economicSustainabilityScore": 68,
-      "hardExitLiquidityUsd": 44063,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 26226,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 226.95,
+          "estimatedStablecoinImpactPct": 381.3,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2269.5,
+          "estimatedStablecoinImpactPct": 3813.01,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 22695.04,
+          "estimatedStablecoinImpactPct": 38130.1,
           "pass": false
         }
       ]
@@ -534,35 +548,36 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 62,
-      "verdict": "Economic Integrity Watch",
+      "score": 60,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 41,
-      "economicSustainabilityScore": 67,
-      "hardExitLiquidityUsd": 38438,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22878,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 260.16,
+          "estimatedStablecoinImpactPct": 437.1,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2601.63,
+          "estimatedStablecoinImpactPct": 4371.01,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 26016.26,
+          "estimatedStablecoinImpactPct": 43710.11,
           "pass": false
         }
       ]
@@ -571,35 +586,36 @@
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 62,
-      "verdict": "Economic Integrity Watch",
+      "score": 60,
+      "verdict": "Thin Integrity Data",
       "strongBuyEligible": false,
-      "riskScore": 13,
+      "riskScore": 19,
       "penalty": 0,
       "organicDemandScore": 41,
-      "economicSustainabilityScore": 67,
-      "hardExitLiquidityUsd": 40313,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 23994,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
         "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
         "$1M simulated sell overwhelms hard exit liquidity.",
         "No reliable market-cap input was found."
       ],
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 248.06,
+          "estimatedStablecoinImpactPct": 416.77,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 2480.62,
+          "estimatedStablecoinImpactPct": 4167.71,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 24806.2,
+          "estimatedStablecoinImpactPct": 41677.09,
           "pass": false
         }
       ]
