@@ -27,6 +27,8 @@ import {
   shouldRunSource,
 } from "./data/adaptiveSourceRouter.js";
 
+const DEFAULT_WIDE_SCAN_TARGET = 39000;
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -43,6 +45,53 @@ function normalizeResults(output, fallback = []) {
   if (Array.isArray(output?.tokens)) return output.tokens;
   if (Array.isArray(output?.data)) return output.data;
   return fallback;
+}
+
+export function resolveDiscoveryLimits(options = {}) {
+  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
+  const targetCandidates = num(
+    options.targetCandidates ||
+      process.env.DISCOVERY_TARGET_CANDIDATES ||
+      options.wideLimit ||
+      process.env.WIDE_SCAN_LIMIT ||
+      DEFAULT_WIDE_SCAN_TARGET
+  );
+  const wideLimit = targetCandidates;
+  const scanLimit = num(
+    options.maxCandidates ||
+      process.env.DISCOVERY_SCAN_LIMIT ||
+      (wideScan ? wideLimit : 1000)
+  );
+
+  return {
+    wideScan,
+    targetCandidates,
+    wideLimit,
+    scanLimit,
+    maxTokens: num(options.maxTokens || process.env.MAX_TOKENS || (wideScan ? 750 : 200)),
+    freeLimit: num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || (wideScan ? wideLimit : 100)),
+    expandedLimit: num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || (wideScan ? wideLimit : 100)),
+    googleNewsLimit: num(
+      options.googleNewsLimit ||
+        process.env.GOOGLE_NEWS_DISCOVERY_LIMIT ||
+        (wideScan ? 1000 : 120)
+    ),
+    githubDiscoveryLimit: num(
+      options.githubDiscoveryLimit ||
+        process.env.GITHUB_DISCOVERY_LIMIT ||
+        (wideScan ? 1000 : 120)
+    ),
+    nativeDiscoveryLimit: num(
+      options.nativeDiscoveryLimit ||
+        process.env.NATIVE_DISCOVERY_LIMIT ||
+        (wideScan ? 5000 : 250)
+    ),
+    seedSupplementThreshold: num(
+      options.seedSupplementThreshold ||
+        process.env.RESEARCH_SEED_SUPPLEMENT_THRESHOLD ||
+        (wideScan ? Math.min(5000, Math.ceil(wideLimit * 0.15)) : 150)
+    ),
+  };
 }
 
 function keyForProject(project = {}) {
@@ -373,13 +422,8 @@ function discoveryPriority(project = {}) {
 }
 
 function rankAndLimitCandidates(projects = [], options = {}) {
-  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
-  const wideLimit = num(options.wideLimit || process.env.WIDE_SCAN_LIMIT || 10000);
-  const limit = num(
-    options.maxCandidates ||
-      process.env.DISCOVERY_SCAN_LIMIT ||
-      (wideScan ? wideLimit : 1000)
-  );
+  const limits = resolveDiscoveryLimits(options);
+  const limit = limits.scanLimit;
   const ranked = [...projects]
     .map((project) => ({
       ...project,
@@ -396,33 +440,20 @@ function rankAndLimitCandidates(projects = [], options = {}) {
 
 export async function runDiscoveryManager(options = {}) {
   const startedAt = Date.now();
-  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
-  const wideLimit = num(options.wideLimit || process.env.WIDE_SCAN_LIMIT || 10000);
-
-  const maxTokens = num(options.maxTokens || process.env.MAX_TOKENS || (wideScan ? 750 : 200));
-  const freeLimit = num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || (wideScan ? wideLimit : 100));
-  const expandedLimit = num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || (wideScan ? wideLimit : 100));
-  const googleNewsLimit = num(
-    options.googleNewsLimit ||
-      process.env.GOOGLE_NEWS_DISCOVERY_LIMIT ||
-      (wideScan ? 500 : 120)
-  );
-  const githubDiscoveryLimit = num(
-    options.githubDiscoveryLimit ||
-      process.env.GITHUB_DISCOVERY_LIMIT ||
-      (wideScan ? 500 : 120)
-  );
-  const nativeDiscoveryLimit = num(
-    options.nativeDiscoveryLimit ||
-      process.env.NATIVE_DISCOVERY_LIMIT ||
-      (wideScan ? 1000 : 250)
-  );
+  const limits = resolveDiscoveryLimits(options);
+  const {
+    wideScan,
+    targetCandidates,
+    wideLimit,
+    maxTokens,
+    freeLimit,
+    expandedLimit,
+    googleNewsLimit,
+    githubDiscoveryLimit,
+    nativeDiscoveryLimit,
+    seedSupplementThreshold,
+  } = limits;
   const fallbackSeedsEnabled = options.fallbackSeeds ?? process.env.DISABLE_RESEARCH_SEEDS !== "true";
-  const seedSupplementThreshold = num(
-    options.seedSupplementThreshold ||
-      process.env.RESEARCH_SEED_SUPPLEMENT_THRESHOLD ||
-      (wideScan ? 1000 : 150)
-  );
   const candidateRescueEnabled =
     options.candidateRescue?.enabled ?? process.env.DISABLE_CANDIDATE_RESCUE !== "true";
   const aiDiscoverySwarmEnabled =
@@ -637,7 +668,23 @@ export async function runDiscoveryManager(options = {}) {
     acceptedCount: candidatePool.length,
     acceptedBeforeLimitCount: qualityGate.accepted.length,
     scanLimit: candidateRanking.limit,
+    targetCandidates,
     wideLimit,
+    sourceLimits: {
+      maxTokens,
+      freeLimit,
+      expandedLimit,
+      googleNewsLimit,
+      githubDiscoveryLimit,
+      nativeDiscoveryLimit,
+    },
+    targetCoverage: {
+      targetCandidates,
+      acceptedBeforeLimitCount: qualityGate.accepted.length,
+      acceptedAfterLimitCount: candidatePool.length,
+      targetMet: candidatePool.length >= targetCandidates,
+      shortfall: Math.max(0, targetCandidates - candidatePool.length),
+    },
     rejectedCount: dexRejectedTokens + qualityGate.rejected.length,
     providerHealth,
 

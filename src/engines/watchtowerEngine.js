@@ -22,10 +22,30 @@ function severityFor(delta = 0, high = 20, critical = 35) {
 }
 
 function alert(project = {}, previous = {}, fields = {}) {
+  const opportunityAlert = /priority|score spike|social|liquidity|pre-breakout|smart money/i.test(fields.type || "");
+  const sniperAwareFields =
+    project.sniperIntegrityGate && opportunityAlert && project.sniperQualified !== true
+      ? {
+          ...fields,
+          severity: fields.severity === "Critical" ? "Medium" : fields.severity === "High" ? "Medium" : fields.severity,
+          action: "Research only until Sniper Integrity Gate passes",
+          sniperState: project.sniperState,
+          sniperQualified: Boolean(project.sniperQualified),
+          sniperBlockingReasons: project.sniperBlockingReasons || [],
+        }
+      : project.sniperIntegrityGate
+      ? {
+          ...fields,
+          sniperState: project.sniperState,
+          sniperQualified: Boolean(project.sniperQualified),
+          sniperBlockingReasons: project.sniperBlockingReasons || [],
+        }
+      : fields;
+
   return {
     id: [
       Date.now(),
-      fields.type,
+      sniperAwareFields.type,
       projectWatchId(project),
       Math.random().toString(16).slice(2, 8),
     ].join("-"),
@@ -37,7 +57,7 @@ function alert(project = {}, previous = {}, fields = {}) {
     previousScore: num(previous.score),
     currentScore: num(project.pipelineScore ?? project.opportunityScore ?? project.score),
     status: "open",
-    ...fields,
+    ...sniperAwareFields,
   };
 }
 
@@ -54,6 +74,24 @@ function detectProjectAlerts(project = {}, previous = null) {
   const scoreDelta = currentScore - previousScore;
 
   if (!previous) {
+    if (project.sniperQualified && project.sniperState === "ARMED") {
+      alerts.push(
+        alert(project, {}, {
+          severity: "Critical",
+          type: "ARMED Sniper Candidate",
+          message: `${project.name || project.symbol || "Project"} passed Sniper Integrity Gate.`,
+          action: "Review ARMED sniper thesis, liquidity, and invalidation plan",
+          metrics: {
+            sniperScore: num(project.sniperScore),
+            confidenceAdjustedSniperScore: num(project.confidenceAdjustedSniperScore),
+            preConsensusGapScore: num(project.preConsensusGapScore),
+            sniperReasons: project.sniperReasons || [],
+          },
+        })
+      );
+      return alerts;
+    }
+
     if (currentScore >= 80 || project.aiDecision === "Priority Watch") {
       alerts.push(
         alert(project, {}, {

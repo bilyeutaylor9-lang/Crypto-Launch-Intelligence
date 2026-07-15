@@ -31,6 +31,13 @@ function compact(project = {}) {
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
     pipelineScore: project.pipelineScore || 0,
+    finalSelectionState: project.finalSelectionState || "UNKNOWN",
+    finalSelectionQualified: Boolean(project.finalSelectionQualified),
+    finalIntegrityScore: project.finalIntegrityScore || 0,
+    finalIntegrityVerdict: project.finalIntegrityVerdict || "Unknown",
+    finalBlockingReasons: project.finalBlockingReasons || [],
+    finalIdentityState: project.finalIdentityState || "UNKNOWN",
+    permanentProjectKey: project.permanentProjectKey || "",
     alphaOSScore: project.autonomousAlphaOSScore || 0,
     alphaOSVerdict: project.autonomousAlphaOSVerdict || "Unknown",
     autoLearningWeightScore: project.autoLearningWeightScore || 0,
@@ -78,6 +85,10 @@ export function buildAlphaDashboardV2(projects = []) {
   const smallCapHunter = summarizeSmallCapHunter(safeProjects);
   const executionTwin = summarizeProofOfAlphaExecutionTwin(safeProjects);
   const organicIntegrity = summarizeOrganicDemandIntegrity(safeProjects);
+  const qualifiedCandidates = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED");
+  const blockedCandidates = safeProjects.filter((project) => project.finalSelectionState === "BLOCKED");
+  const identityConflicts = safeProjects.filter((project) => project.finalSelectionState === "IDENTITY_CONFLICT");
+  const insufficientData = safeProjects.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA");
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
@@ -101,6 +112,7 @@ export function buildAlphaDashboardV2(projects = []) {
       bestGithubProject: githubPro.topRepositories?.[0] || null,
       smallCapResearchPicks: smallCapHunter.topTwo || [],
       executionTwinPicks: executionTwin.topExecutions || [],
+      qualifiedCandidates: qualifiedCandidates.map(compact).slice(0, 10),
       organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
     },
     counts: {
@@ -125,6 +137,10 @@ export function buildAlphaDashboardV2(projects = []) {
       executionTwinPicks: executionTwin.selectedCount || 0,
       executionTwinRouteBlocks: executionTwin.routeBlocks || 0,
       executionTwinSafetyBlocks: executionTwin.safetyBlocks || 0,
+      finalQualifiedCandidates: qualifiedCandidates.length,
+      finalBlockedCandidates: blockedCandidates.length,
+      finalIdentityConflicts: identityConflicts.length,
+      finalInsufficientData: insufficientData.length,
       organicDemandConfirmed: organicIntegrity.confirmedOrganicDemand || 0,
       organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
       tradableAnomalies: organicIntegrity.tradableAnomalies || 0,
@@ -141,8 +157,9 @@ export function buildAlphaDashboardV2(projects = []) {
       "Treat every Alpha OS call as research until paper outcome history confirms the strategy.",
       "Increase trust only when source truth, causal driver, and paper outcome evidence agree.",
       "A best-available candidate is not a buy signal; it is the strongest candidate when the field is weak.",
-      "Small-Cap Hunter picks are research candidates for manual verification, not buy recommendations.",
-      "Execution Twin picks are paper-execution simulations and must be verified inside the actual Coinbase or MetaMask trade flow.",
+      "Final Selection Integrity is the source of truth for qualified candidates.",
+      "Research leads are not picks until final identity, liquidity, route, execution, risk, and purchase checks pass.",
+      "Small-Cap Hunter and Execution Twin selections are evidence only when finalSelectionQualified is false.",
       "Organic Integrity blocks protect against raw holder, transaction, liquidity, yield, and admin-control illusions.",
     ],
   };

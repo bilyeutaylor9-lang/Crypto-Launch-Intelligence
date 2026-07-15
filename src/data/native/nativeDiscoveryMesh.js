@@ -129,6 +129,68 @@ function nativeScore(lifecycle = {}) {
   return Math.round(clamp(stageScore + buyerScore + liquidityScore + flowScore + confidenceScore - failurePenalty));
 }
 
+function normalizedPoolFromLifecycle(lifecycle = {}) {
+  const liquidity = lifecycle.liquidityState || {};
+  const buyers = lifecycle.buyerState || {};
+  const currentLiquidity = num(liquidity.displayedLiquidityUsd || liquidity.activeLiquidityUsd);
+  const initialLiquidity = Math.max(
+    0,
+    currentLiquidity - num(liquidity.liquidityExpansionUsd) + num(liquidity.lpRemovalUsd)
+  );
+  const liquidityGrowthRate =
+    initialLiquidity > 0
+      ? Number((((currentLiquidity - initialLiquidity) / initialLiquidity) * 100).toFixed(2))
+      : currentLiquidity > 0
+      ? 100
+      : 0;
+  const buySellImbalance =
+    num(buyers.buyVolumeUsd) + num(buyers.sellVolumeUsd) > 0
+      ? Number(
+          (
+            ((num(buyers.buyVolumeUsd) - num(buyers.sellVolumeUsd)) /
+              (num(buyers.buyVolumeUsd) + num(buyers.sellVolumeUsd))) *
+            100
+          ).toFixed(2)
+        )
+      : 0;
+  const lpConcentration = clamp(
+    num(lifecycle.lpConcentration) ||
+      num(latestValue(lifecycle.events || [], "lpConcentration")) ||
+      (num(liquidity.usableLiquidityRatio) < 0.35 ? 78 : 38)
+  );
+  const estimatedSlippage =
+    currentLiquidity > 0
+      ? Number(Math.min(25, (100 / currentLiquidity) * 180).toFixed(3))
+      : null;
+  const contractRisk = clamp(
+    (lifecycle.failureEvents || []).length * 28 +
+      (num(lifecycle.deployerNetFlow) < -10_000 ? 22 : 0) +
+      (lpConcentration >= 75 ? 18 : 0)
+  );
+
+  return {
+    chainId: lifecycle.chainId || lifecycle.chain || "unknown",
+    dex: lifecycle.dex || lifecycle.protocol || "unknown",
+    factoryAddress: lifecycle.factoryAddress || latestValue(lifecycle.events || [], "factoryAddress") || "",
+    poolAddress: lifecycle.poolAddress || "",
+    tokenAddress: lifecycle.tokenAddress || "",
+    quoteTokenAddress: lifecycle.quoteToken || "",
+    creationBlock: latestValue(lifecycle.events || [], "creationBlock") || latestValue(lifecycle.events || [], "blockNumber") || null,
+    creationTimestamp: lifecycle.firstSeenAt || null,
+    initialLiquidityUsd: Math.round(initialLiquidity),
+    currentLiquidityUsd: Math.round(currentLiquidity),
+    liquidityGrowthRate,
+    volumeAcceleration: Math.round(clamp(Math.log10(Math.max(1, num(buyers.buyVolumeUsd) + num(buyers.sellVolumeUsd))) * 15)),
+    buySellImbalance,
+    uniqueBuyerGrowth: buyers.independentBuyers || buyers.uniqueBuyers || 0,
+    smartWalletParticipation: maxValue(lifecycle.events || [], "smartWalletParticipation"),
+    lpConcentration: Math.round(lpConcentration),
+    estimatedSlippage,
+    contractRisk: Math.round(contractRisk),
+    identityStatus: lifecycle.tokenAddress ? "TOKEN_CONTRACT_OBSERVED" : "POOL_ONLY",
+  };
+}
+
 export function buildNativeLifecycle(events = []) {
   const normalized = (Array.isArray(events) ? events : [events]).filter(Boolean).map((event) => normalizeNativeEvent(event));
   const sorted = normalized.sort((a, b) => String(a.timestamp || "").localeCompare(String(b.timestamp || "")));
@@ -182,6 +244,7 @@ export function nativeCandidateFromLifecycle(lifecycle = {}) {
   const buyers = lifecycle.buyerState || {};
   const source = lifecycle.protocol || "native-discovery-mesh";
   const score = num(lifecycle.nativeDiscoveryScore);
+  const normalizedPool = normalizedPoolFromLifecycle(lifecycle);
 
   return {
     id: lifecycle.projectId,
@@ -200,11 +263,20 @@ export function nativeCandidateFromLifecycle(lifecycle = {}) {
     discoveryPriorityScore: Math.round(clamp(score + num(lifecycle.stageProgressPct) * 0.25)),
     nativeDiscoveryScore: score,
     nativeLifecycle: lifecycle,
+    normalizedNativePool: normalizedPool,
     nativeLifecycleStage: lifecycle.currentStage,
     nativeEvidenceConfidence: lifecycle.evidenceConfidence,
     liquidityUsd: liquidity.displayedLiquidityUsd,
     activeLiquidityUsd: liquidity.activeLiquidityUsd,
     stableExitLiquidityUsd: liquidity.stableExitLiquidityUsd,
+    liquidityGrowthRate: normalizedPool.liquidityGrowthRate,
+    volumeAcceleration: normalizedPool.volumeAcceleration,
+    buySellImbalance: normalizedPool.buySellImbalance,
+    uniqueBuyerGrowth: normalizedPool.uniqueBuyerGrowth,
+    lpConcentration: normalizedPool.lpConcentration,
+    estimatedSlippage: normalizedPool.estimatedSlippage,
+    contractRisk: normalizedPool.contractRisk,
+    identityStatus: normalizedPool.identityStatus,
     hardExitLiquidityUsd: liquidity.stableExitLiquidityUsd,
     volume24h: Math.max(num(buyers.buyVolumeUsd), num(buyers.sellVolumeUsd)),
     buyVolumeUsd: buyers.buyVolumeUsd,

@@ -100,9 +100,27 @@ import { analyzeSelfEvolvingAlphaOSBatch } from "./engines/selfEvolvingAlphaOSEn
 import { analyzeProofCarryingAlphaContractBatch } from "./engines/proofCarryingAlphaContractEngine.js";
 import { analyzeAutonomousAlphaKnowledgeGraphBatch } from "./engines/autonomousAlphaKnowledgeGraphEngine.js";
 import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.js";
+import { analyzeAutonomousCausalAlphaNetworkBatch } from "./engines/autonomousCausalAlphaNetworkEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
+import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
+import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
+import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
+import { analyzeDistressedMicrocapTrapBatch } from "./engines/distressedMicrocapTrapEngine.js";
+import { analyzePreConsensusBreakoutHunterBatch } from "./engines/preConsensusBreakoutHunterEngine.js";
+import {
+  analyzeFinalSelectionIntegrityBatch,
+  validateFinalSelectionInvariants,
+} from "./engines/finalSelectionIntegrityEngine.js";
+import { analyzeSniperOutcomeLabelsBatch } from "./engines/sniperOutcomeLabelEngine.js";
+import { analyzeSniperPointInTimeBatch } from "./engines/sniperPointInTimeEngine.js";
+import { analyzeSniperLifecycleStateBatch } from "./engines/sniperLifecycleStateEngine.js";
+import { analyzeSniperEvidenceFamiliesBatch } from "./engines/sniperEvidenceFamilyEngine.js";
+import {
+  analyzeSniperIntegrityGateBatch,
+  validateSniperIntegrityInvariants,
+} from "./engines/sniperIntegrityGateEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -117,6 +135,7 @@ import { saveAutonomousResearchMemory } from "./learning/autonomousResearchMemor
 import { saveAlphaContracts } from "./learning/alphaContractStore.js";
 import { saveAlphaEvolutionMemory } from "./learning/alphaEvolutionMemoryStore.js";
 import { saveAlphaKnowledgeGraph } from "./learning/alphaKnowledgeGraphStore.js";
+import { saveCausalAlphaEvents } from "./learning/causalAlphaEventLake.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1243,39 +1262,69 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);
   results = await runEngine("Missed Winner Lab", analyzeMissedWinnerLabBatch, results, options.missedWinnerLab || {});
 
-  results = addFinalScoring(results);
-  results = analyzeProjectChangeBatch(results);
-  results = analyzeOpportunityProofBatch(results);
-  results = analyzeTrapRiskBatch(results);
-  results = analyzeConfidenceAdjustedRankBatch(results);
-  results = analyzeAIEcosystemCouncilBatch(results);
-  results = analyzeResearchOperatingSystemBatch(results);
-  results = analyzeAutonomousAlphaLabBatch(results);
-  results = analyzeQuantumReasoningBrainBatch(results);
-  results = analyzeWorldModelBrainBatch(results);
-  results = analyzeAutonomousMarketScientistBatch(results);
-  results = analyzeSelfTrainingMarketSimulationBrainBatch(results);
-  results = analyzeAutonomousOutcomeJudgeBatch(results, options.outcomeJudge || {});
-  results = analyzeLiveCatalystRadarBatch(results);
-  results = analyzeProjectDossierSwarmBatch(results, options.dossierSwarm || {});
-  results = analyzeAIResearchCommanderBatch(results);
-  results = analyzeAutonomousAlphaInvestigatorBatch(results);
-  results = analyzeAIPortfolioWarRoomBatch(results);
-  results = analyzeAutonomousStrategyLabBatch(results);
-  results = analyzeCausalAlphaBrainBatch(results);
-  results = analyzeAutonomousAlphaOSBatch(results);
-  results = analyzePaperTradingOutcomeLabBatch(results);
-  results = analyzeAutoLearningWeightOptimizerBatch(results);
-  results = analyzeBreakoutBrainBatch(results, options.breakoutBrain || {});
-  results = analyzeAutonomousResearchOrchestratorBatch(results, options.autonomousResearch || {});
-  results = analyzeHighTechAlphaStackBatch(results);
-  results = analyzeSelfEvolvingAlphaOSBatch(results);
-  results = analyzeProofCarryingAlphaContractBatch(results);
-  results = analyzeAutonomousAlphaKnowledgeGraphBatch(results);
-  results = analyzeCausalMarketTwinBatch(results);
-  results = analyzeAlphaEvolutionGovernorBatch(results);
-  results = analyzeSmallCapHunterBatch(results, options.smallCapHunter || {});
-  results = analyzeProofOfAlphaExecutionTwinBatch(results, options.executionTwin || {});
+  results = await runEngine("Final Scoring", addFinalScoring, results);
+  results = await runEngine("Project Change Detection", analyzeProjectChangeBatch, results);
+  results = await runEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
+  results = await runEngine("Trap Risk", analyzeTrapRiskBatch, results);
+  results = await runEngine("Confidence-Adjusted Rank", analyzeConfidenceAdjustedRankBatch, results);
+  results = await runEngine("AI Ecosystem Council", analyzeAIEcosystemCouncilBatch, results);
+  results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
+  results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
+  results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
+  results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results);
+  results = await runEngine("Autonomous Market Scientist", analyzeAutonomousMarketScientistBatch, results);
+  results = await runEngine("Self-Training Market Simulation Brain", analyzeSelfTrainingMarketSimulationBrainBatch, results);
+  results = await runEngine("Autonomous Outcome Judge", analyzeAutonomousOutcomeJudgeBatch, results, options.outcomeJudge || {});
+  results = await runEngine("Live Catalyst Radar", analyzeLiveCatalystRadarBatch, results);
+  results = await runEngine("Project Dossier Swarm", analyzeProjectDossierSwarmBatch, results, options.dossierSwarm || {});
+  results = await runEngine("AI Research Commander", analyzeAIResearchCommanderBatch, results);
+  results = await runEngine("Autonomous Alpha Investigator", analyzeAutonomousAlphaInvestigatorBatch, results);
+  results = await runEngine("AI Portfolio War Room", analyzeAIPortfolioWarRoomBatch, results);
+  results = await runEngine("Autonomous Strategy Lab", analyzeAutonomousStrategyLabBatch, results);
+  results = await runEngine("Causal Alpha Brain", analyzeCausalAlphaBrainBatch, results);
+  results = await runEngine("Autonomous Alpha OS", analyzeAutonomousAlphaOSBatch, results);
+  results = await runEngine("Paper Trading Outcome Lab", analyzePaperTradingOutcomeLabBatch, results);
+  results = await runEngine("Auto-Learning Weight Optimizer", analyzeAutoLearningWeightOptimizerBatch, results);
+  results = await runEngine("Breakout Brain", analyzeBreakoutBrainBatch, results, options.breakoutBrain || {});
+  results = await runEngine("Autonomous Research Orchestrator", analyzeAutonomousResearchOrchestratorBatch, results, options.autonomousResearch || {});
+  results = await runEngine("High-Tech Alpha Stack", analyzeHighTechAlphaStackBatch, results);
+  results = await runEngine("Self-Evolving Alpha OS", analyzeSelfEvolvingAlphaOSBatch, results);
+  results = await runEngine("Proof-Carrying Alpha Contract", analyzeProofCarryingAlphaContractBatch, results);
+  results = await runEngine("Autonomous Alpha Knowledge Graph", analyzeAutonomousAlphaKnowledgeGraphBatch, results);
+  results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
+  results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
+  results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
+  results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
+  results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
+  results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
+  results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
+  results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);
+  results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
+  results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
+  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
+  results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});
+  results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
+  results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
+  results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
+
+  const finalIntegrity = validateFinalSelectionInvariants(results);
+  if (finalIntegrity.status !== "PASS") {
+    const warning = `Final selection integrity warning: ${finalIntegrity.violationCount} invariant violation(s) detected.`;
+    if (options.strictFinalSelectionIntegrity) {
+      throw new Error(warning);
+    }
+    console.log(warning);
+  }
+
+  const sniperIntegrity = validateSniperIntegrityInvariants(results);
+  if (sniperIntegrity.status !== "PASS") {
+    const warning = `Sniper integrity warning: ${sniperIntegrity.violationCount} invariant violation(s) detected.`;
+    if (options.strictSniperIntegrity) {
+      throw new Error(warning);
+    }
+    console.log(warning);
+  }
 
   if (options.saveMemory !== false) {
     try {
@@ -1336,6 +1385,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       saveAlphaKnowledgeGraph(results);
     } catch (error) {
       console.log(`Alpha knowledge graph save failed: ${error.message}`);
+    }
+
+    try {
+      saveCausalAlphaEvents(results);
+    } catch (error) {
+      console.log(`Causal alpha event lake save failed: ${error.message}`);
     }
 
     try {
@@ -1534,6 +1589,16 @@ export function summarizePipelineResults(results = []) {
   const topCausalMarketTwinSetups = [...safeResults]
     .sort((a, b) => num(b.causalMarketTwinScore) - num(a.causalMarketTwinScore))
     .slice(0, 10);
+  const causalNetworkArmed = safeResults.filter((p) => p.autonomousCausalProjectState === "ARMED");
+  const causalNetworkPriority = safeResults.filter(
+    (p) => p.autonomousCausalNetworkVerdict === "Causal Network Priority Research"
+  );
+  const causalNetworkBlocks = safeResults.filter((p) => p.autonomousCausalProjectState === "BLOCKED");
+  const causalNetworkLowFragility = safeResults.filter((p) => p.causalEvidenceFragility === "Low");
+  const topCausalNetworkSetups = [...safeResults]
+    .filter((p) => p.autonomousCausalAlphaNetwork)
+    .sort((a, b) => num(b.autonomousCausalNetworkScore) - num(a.autonomousCausalNetworkScore))
+    .slice(0, 10);
   const alphaGovernorPromotes = safeResults.filter(
     (p) => p.alphaEvolutionGovernorVerdict === "Governor Promote"
   );
@@ -1568,6 +1633,30 @@ export function summarizePipelineResults(results = []) {
     .filter((p) => p.proofOfAlphaExecutionTwin)
     .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))
     .slice(0, 10);
+  const finalQualifiedCandidates = safeResults.filter((p) => p.finalSelectionState === "QUALIFIED");
+  const finalResearchOnlyCandidates = safeResults.filter((p) => p.finalSelectionState === "RESEARCH_ONLY");
+  const finalBlockedCandidates = safeResults.filter((p) => p.finalSelectionState === "BLOCKED");
+  const finalIdentityConflicts = safeResults.filter((p) => p.finalSelectionState === "IDENTITY_CONFLICT");
+  const finalInsufficientData = safeResults.filter((p) => p.finalSelectionState === "INSUFFICIENT_DATA");
+  const finalIntegrityDeselections = safeResults.filter((p) =>
+    (p.selectionAuditTrail || []).some((entry) => entry.engine === "Final Selection Integrity")
+  );
+  const preConsensusAnalyzed = safeResults.filter((p) => p.preConsensusBreakoutHunter);
+  const exceptionalPreConsensus = safeResults.filter((p) => p.preConsensusTier === "Exceptional Pre-Consensus Candidate");
+  const highConvictionPreConsensus = safeResults.filter((p) => p.preConsensusTier === "High-Conviction Research Candidate");
+  const quietAccumulationDetected = safeResults.filter((p) => p.quietAccumulationDetected);
+  const alreadyPumpedPreConsensus = safeResults.filter((p) =>
+    ["ALREADY_PUMPED", "LATE_CHASE"].includes(p.preBreakoutMomentumStage)
+  );
+  const blockedPreConsensus = safeResults.filter((p) => (p.preConsensusHardBlockers || []).length > 0);
+  const sniperAnalyzed = safeResults.filter((p) => p.sniperIntegrityGate);
+  const armedSniperCandidates = safeResults.filter((p) => p.sniperQualified && p.sniperState === "ARMED");
+  const sniperQuietAccumulation = safeResults.filter((p) => p.sniperState === "QUIET_ACCUMULATION");
+  const sniperFundamentalsAccelerating = safeResults.filter((p) => p.sniperState === "FUNDAMENTALS_ACCELERATING");
+  const sniperLateChase = safeResults.filter((p) => p.sniperState === "LATE_CHASE");
+  const sniperDistressed = safeResults.filter((p) => ["DISTRESSED", "RECOVERY_ATTEMPT"].includes(p.sniperState));
+  const sniperBlocked = safeResults.filter((p) => (p.sniperBlockingReasons || []).length > 0);
+  const sniperInsufficientData = safeResults.filter((p) => p.sniperDataStatus === "INSUFFICIENT");
   const organicDemandConfirmed = safeResults.filter((p) => p.organicDemandVerdict === "Organic Demand Confirmed");
   const organicIntegrityBlocks = safeResults.filter((p) => p.organicDemandVerdict === "Institutional Integrity Block");
   const tradableAnomalies = safeResults.filter((p) => p.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand");
@@ -1681,6 +1770,10 @@ export function summarizePipelineResults(results = []) {
     causalMarketTwinStrongBuyCount: causalMarketTwinStrongBuy.length,
     causalMarketTwinPriorityCount: causalMarketTwinPriority.length,
     causalMarketTwinRiskBlockCount: causalMarketTwinRiskBlocks.length,
+    causalNetworkArmedCount: causalNetworkArmed.length,
+    causalNetworkPriorityCount: causalNetworkPriority.length,
+    causalNetworkBlockCount: causalNetworkBlocks.length,
+    causalNetworkLowFragilityCount: causalNetworkLowFragility.length,
     alphaGovernorPromoteCount: alphaGovernorPromotes.length,
     alphaGovernorPriorityCount: alphaGovernorPriority.length,
     alphaGovernorRecheckCount: alphaGovernorRechecks.length,
@@ -1694,6 +1787,26 @@ export function summarizePipelineResults(results = []) {
     executionTwinRouteBlockCount: executionTwinRouteBlocks.length,
     executionTwinSafetyBlockCount: executionTwinSafetyBlocks.length,
     executionTwinLiquidityBlockCount: executionTwinLiquidityBlocks.length,
+    finalQualifiedCandidateCount: finalQualifiedCandidates.length,
+    finalResearchOnlyCandidateCount: finalResearchOnlyCandidates.length,
+    finalBlockedCandidateCount: finalBlockedCandidates.length,
+    finalIdentityConflictCount: finalIdentityConflicts.length,
+    finalInsufficientDataCount: finalInsufficientData.length,
+    finalIntegrityDeselectionCount: finalIntegrityDeselections.length,
+    preConsensusAnalyzedCount: preConsensusAnalyzed.length,
+    exceptionalPreConsensusCount: exceptionalPreConsensus.length,
+    highConvictionPreConsensusCount: highConvictionPreConsensus.length,
+    quietAccumulationDetectedCount: quietAccumulationDetected.length,
+    alreadyPumpedPreConsensusCount: alreadyPumpedPreConsensus.length,
+    blockedPreConsensusCount: blockedPreConsensus.length,
+    sniperAnalyzedCount: sniperAnalyzed.length,
+    armedSniperCandidateCount: armedSniperCandidates.length,
+    sniperQuietAccumulationCount: sniperQuietAccumulation.length,
+    sniperFundamentalsAcceleratingCount: sniperFundamentalsAccelerating.length,
+    sniperLateChaseCount: sniperLateChase.length,
+    sniperDistressedCount: sniperDistressed.length,
+    sniperBlockedCount: sniperBlocked.length,
+    sniperInsufficientDataCount: sniperInsufficientData.length,
     organicDemandConfirmedCount: organicDemandConfirmed.length,
     organicIntegrityBlockCount: organicIntegrityBlocks.length,
     tradableAnomalyCount: tradableAnomalies.length,
@@ -1937,6 +2050,23 @@ export function summarizePipelineResults(results = []) {
       worstScenario: project.causalMarketTwin?.worstScenario || null,
       experiments: project.causalMarketTwin?.experiments || [],
     })),
+    topCausalNetworkSetups: topCausalNetworkSetups.map((project) => ({
+      rank: project.autonomousCausalNetworkRank || 0,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      state: project.autonomousCausalProjectState || "Unknown",
+      score: project.autonomousCausalNetworkScore || 0,
+      confidence: project.autonomousCausalNetworkConfidence || "Unknown",
+      verdict: project.autonomousCausalNetworkVerdict || "Unknown",
+      sequenceScore: project.autonomousCausalAlphaNetwork?.causalSequence?.sequenceScore || 0,
+      patternSuccessRate: project.causalPatternSuccessRate || 0,
+      patternSampleSize: project.causalPatternSampleSize || 0,
+      evidenceFragility: project.causalEvidenceFragility || "Unknown",
+      weakestDependency: project.autonomousCausalAlphaNetwork?.counterfactual?.weakestDependency || "unknown",
+      nextRequiredConfirmation: project.autonomousCausalAlphaNetwork?.hypothesis?.nextRequiredConfirmation || "",
+      invalidations: project.autonomousCausalAlphaNetwork?.hypothesis?.invalidations || [],
+    })),
     topAlphaEvolutionGovernorSetups: topAlphaGovernorSetups.map((project) => ({
       rank: project.alphaEvolutionGovernorRank || 0,
       name: project.name || "Unknown",
@@ -1959,6 +2089,10 @@ export function summarizePipelineResults(results = []) {
       chain: project.chain || "unknown",
       score: project.smallCapHunterScore || 0,
       verdict: project.smallCapHunterVerdict || "Unknown",
+      finalSelectionState: project.finalSelectionState || "UNKNOWN",
+      finalIntegrityVerdict: project.finalIntegrityVerdict || "Unknown",
+      finalBlockingReasons: project.finalBlockingReasons || [],
+      finalWarningReasons: project.finalWarningReasons || [],
       marketCap: project.smallCapMarketCap || 0,
       capBand: project.smallCapBand || "Unknown",
       structureScore: project.smallCapStructureScore || 0,
@@ -1978,6 +2112,10 @@ export function summarizePipelineResults(results = []) {
       chain: project.chain || "unknown",
       score: project.proofOfAlphaExecutionTwinScore || 0,
       verdict: project.proofOfAlphaExecutionTwinVerdict || "Unknown",
+      finalSelectionState: project.finalSelectionState || "UNKNOWN",
+      finalIntegrityVerdict: project.finalIntegrityVerdict || "Unknown",
+      finalBlockingReasons: project.finalBlockingReasons || [],
+      finalWarningReasons: project.finalWarningReasons || [],
       confidence: project.proofOfAlphaExecutionTwinConfidence || "Unknown",
       route: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
       slippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,

@@ -53,6 +53,8 @@ const PUBLIC_REPORTS = [
   "discovery-truth.json",
   "native-discovery-mesh.json",
   "discovery-decision-engine.json",
+  "pre-consensus-breakout-hunter.json",
+  "sniper-report.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -470,6 +472,8 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./proof-of-alpha-execution-twin.json">Execution Twin</a>
         <a class="button" href="./organic-demand-integrity.json">Organic Integrity</a>
         <a class="button" href="./discovery-truth.json">Discovery Truth</a>
+        <a class="button" href="./pre-consensus-breakout-hunter.json">Pre-Consensus</a>
+        <a class="button" href="./sniper-report.json">Sniper</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
         <a class="button" href="./autonomous-research.json">Research Brain</a>

@@ -103,6 +103,11 @@ export function writeSummaryReport(projects = []) {
   const alphaGovernorRiskBlocks = ranked.filter(
     (p) => p.alphaEvolutionGovernorVerdict === "Governor Risk Block"
   );
+  const causalNetworkArmed = ranked.filter((p) => p.autonomousCausalProjectState === "ARMED");
+  const causalNetworkPriority = ranked.filter(
+    (p) => p.autonomousCausalNetworkVerdict === "Causal Network Priority Research"
+  );
+  const causalNetworkBlocks = ranked.filter((p) => p.autonomousCausalProjectState === "BLOCKED");
   const thinProof = ranked.filter((p) => ["Thin", "Developing"].includes(p.proofStrength));
   const hotNarratives = ranked.filter((p) => Number(p.narrativeHeatScore || 0) >= 65);
   const improvingProjects = ranked.filter((p) =>
@@ -201,6 +206,18 @@ export function writeSummaryReport(projects = []) {
       return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - governor ${p.alphaEvolutionGovernorScore || 0}, ${p.alphaEvolutionGovernorVerdict || "Unknown"} - ${p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review"}`;
     })
     .join("\n");
+  const topCausalNetwork = [...ranked]
+    .filter((p) => p.autonomousCausalAlphaNetwork)
+    .sort(
+      (a, b) =>
+        Number(b.autonomousCausalNetworkScore || 0) -
+        Number(a.autonomousCausalNetworkScore || 0)
+    )
+    .slice(0, 5)
+    .map((p, index) => {
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - network ${p.autonomousCausalNetworkScore || 0}, ${p.autonomousCausalProjectState || "WATCH"}, fragility ${p.causalEvidenceFragility || "Unknown"} - ${p.autonomousCausalAlphaNetwork?.hypothesis?.nextRequiredConfirmation || "Retest next scan"}`;
+    })
+    .join("\n");
   const topConfidenceAdjusted = confidenceAdjusted
     .slice(0, 5)
     .map((p, index) => {
@@ -280,6 +297,9 @@ Alpha Governor promotes: ${alphaGovernorPromotes.length}
 Alpha Governor priority research: ${alphaGovernorPriority.length}
 Alpha Governor rechecks: ${alphaGovernorRechecks.length}
 Alpha Governor risk blocks: ${alphaGovernorRiskBlocks.length}
+Autonomous causal network ARMED: ${causalNetworkArmed.length}
+Autonomous causal network priority research: ${causalNetworkPriority.length}
+Autonomous causal network blocks: ${causalNetworkBlocks.length}
 Thin/developing proof setups: ${thinProof.length}
 Hot narrative setups: ${hotNarratives.length}
 Improving projects: ${improvingProjects.length}
@@ -334,6 +354,9 @@ ${topAlphaContracts || "None"}
 Top Alpha Evolution Governor queue:
 ${topAlphaGovernor || "None"}
 
+Top autonomous causal network:
+${topCausalNetwork || "None"}
+
 Top confidence-adjusted setups:
 ${topConfidenceAdjusted || "None"}
 
@@ -361,6 +384,7 @@ Files generated:
 - reports/alpha-contract-receipts.json
 - reports/alpha-evolution-governor.json
 - reports/alpha-evolution-queue.json
+- reports/autonomous-causal-alpha-network.json
 - reports/institutional-vnext.json
 - reports/state-of-art-signals.json
 - reports/ai-council.json

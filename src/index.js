@@ -67,7 +67,9 @@ function scoreOf(project = {}) {
 function normalizeForReports(projects = []) {
   return [...projects]
     .map((project) => {
-      const score = scoreOf(project);
+      const score = project.finalSelectionState
+        ? num(project.pipelineScore ?? project.opportunityScore ?? project.score)
+        : scoreOf(project);
       const tier = project.pipelineTier || project.tier || tierForScore(score);
 
       return {
@@ -113,6 +115,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
   console.log(
     `Discovery Mode: ${discovery.mode || "standard"} | Raw: ${discovery.rawCount || 0} | Deduped: ${discovery.dedupedCount || 0} | Accepted Before Cap: ${discovery.acceptedBeforeLimitCount ?? discovery.acceptedCount ?? discoveredList.length} | Scan Cap: ${discovery.scanLimit || "none"}`
   );
+  if (discovery.targetCoverage) {
+    console.log(
+      `Discovery Target: ${discovery.targetCoverage.targetCandidates || discovery.targetCandidates || "none"} | Accepted: ${discovery.targetCoverage.acceptedAfterLimitCount || discoveredList.length} | Target Met: ${discovery.targetCoverage.targetMet ? "yes" : "no"} | Shortfall: ${discovery.targetCoverage.shortfall || 0}`
+    );
+  }
   if (discovery.candidateRescue) {
     console.log(
       `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`
@@ -189,6 +196,10 @@ function printSummary(summary) {
   console.log(`Causal Twin Strong Buys: ${summary.causalMarketTwinStrongBuyCount}`);
   console.log(`Causal Twin Priority: ${summary.causalMarketTwinPriorityCount}`);
   console.log(`Causal Twin Risk Blocks: ${summary.causalMarketTwinRiskBlockCount}`);
+  console.log(`Causal Network ARMED: ${summary.causalNetworkArmedCount}`);
+  console.log(`Causal Network Priority: ${summary.causalNetworkPriorityCount}`);
+  console.log(`Causal Network Blocks: ${summary.causalNetworkBlockCount}`);
+  console.log(`Causal Network Low Fragility: ${summary.causalNetworkLowFragilityCount}`);
   console.log(`Alpha Governor Promotes: ${summary.alphaGovernorPromoteCount}`);
   console.log(`Alpha Governor Priority: ${summary.alphaGovernorPriorityCount}`);
   console.log(`Alpha Governor Risk Blocks: ${summary.alphaGovernorRiskBlockCount}`);
@@ -199,6 +210,22 @@ function printSummary(summary) {
   console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
   console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
   console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
+  console.log(`Final Qualified Candidates: ${summary.finalQualifiedCandidateCount}`);
+  console.log(`Final Blocked Candidates: ${summary.finalBlockedCandidateCount}`);
+  console.log(`Final Identity Conflicts: ${summary.finalIdentityConflictCount}`);
+  console.log(`Final Insufficient Data: ${summary.finalInsufficientDataCount}`);
+  console.log(`Final Integrity Deselections: ${summary.finalIntegrityDeselectionCount}`);
+  console.log(`Pre-Consensus Analyzed: ${summary.preConsensusAnalyzedCount}`);
+  console.log(`Pre-Consensus Exceptional: ${summary.exceptionalPreConsensusCount}`);
+  console.log(`Pre-Consensus High Conviction: ${summary.highConvictionPreConsensusCount}`);
+  console.log(`Quiet Accumulation: ${summary.quietAccumulationDetectedCount}`);
+  console.log(`Pre-Consensus Late/Already Pumped: ${summary.alreadyPumpedPreConsensusCount}`);
+  console.log(`Pre-Consensus Blocked: ${summary.blockedPreConsensusCount}`);
+  console.log(`Sniper ARMED Candidates: ${summary.armedSniperCandidateCount}`);
+  console.log(`Sniper Quiet Accumulation: ${summary.sniperQuietAccumulationCount}`);
+  console.log(`Sniper Fundamentals Accelerating: ${summary.sniperFundamentalsAcceleratingCount}`);
+  console.log(`Sniper Blocked: ${summary.sniperBlockedCount}`);
+  console.log(`Sniper Insufficient Data: ${summary.sniperInsufficientDataCount}`);
   console.log(`Organic Demand Confirmed: ${summary.organicDemandConfirmedCount}`);
   console.log(`Organic Integrity Blocks: ${summary.organicIntegrityBlockCount}`);
   console.log(`Tradable Anomalies: ${summary.tradableAnomalyCount}`);
@@ -245,6 +272,11 @@ function printTopProjects(results) {
         `   Market Twin: ${project.causalMarketTwinVerdict} (${project.causalMarketTwinScore || 0}, EV ${project.causalMarketTwinExpectedReturnPct || 0}%)`
       );
     }
+    if (project.autonomousCausalNetworkVerdict) {
+      console.log(
+        `   Causal Network: ${project.autonomousCausalNetworkVerdict} (${project.autonomousCausalNetworkScore || 0}, ${project.autonomousCausalProjectState || "WATCH"})`
+      );
+    }
     if (project.smallCapHunterSelected) {
       console.log(
         `   Small-Cap Hunter: #${project.smallCapHunterSelectionRank} (${project.smallCapHunterScore || 0}) via ${project.smallCapHunter?.purchaseRoute?.preferredRoute || "unverified route"}`
@@ -261,6 +293,12 @@ function printTopProjects(results) {
       );
     }
     console.log(`   Tier: ${project.pipelineTier || project.tier || "Unknown"}`);
+    if (project.finalSelectionState) {
+      console.log(`   Final Selection: ${project.finalSelectionState} / ${project.finalIntegrityVerdict || "Unknown"}`);
+      if (project.finalBlockingReasons?.length) {
+        console.log(`   Final Blockers: ${project.finalBlockingReasons.slice(0, 3).join("; ")}`);
+      }
+    }
     console.log(`   Confidence: ${project.confidence || "Unknown"} / Data: ${project.dataConfidence || "Unknown"}`);
     console.log(`   Conviction: ${project.conviction || "Unknown"}`);
     console.log(`   Action: ${project.executionPlan?.action || "Unknown"}`);
@@ -331,12 +369,15 @@ function printReportPaths(paths) {
   console.log(`Receipts:       ${paths.alphaContractReceiptsPath}`);
   console.log(`Alpha Graph:    ${paths.alphaKnowledgeGraphPath}`);
   console.log(`Market Twin:    ${paths.causalMarketTwinPath}`);
+  console.log(`Causal Network: ${paths.autonomousCausalNetworkPath}`);
   console.log(`Governor:      ${paths.alphaEvolutionGovernorPath}`);
   console.log(`Gov Queue:     ${paths.alphaEvolutionQueuePath}`);
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
+  console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
+  console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

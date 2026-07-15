@@ -28,12 +28,15 @@ import { writeSelfEvolvingAlphaOSReport } from "./selfEvolvingAlphaOSReportEngin
 import { writeProofCarryingAlphaContractReport } from "./proofCarryingAlphaContractReportEngine.js";
 import { writeAlphaEvolutionGovernorReport } from "./alphaEvolutionGovernorReportEngine.js";
 import { writeKnowledgeGraphTwinReports } from "./knowledgeGraphTwinReportEngine.js";
+import { writeAutonomousCausalAlphaNetworkReport } from "./autonomousCausalAlphaNetworkReportEngine.js";
 import { writeSmallCapHunterReport } from "./smallCapHunterReportEngine.js";
 import { writeProofOfAlphaExecutionTwinReport } from "./proofOfAlphaExecutionTwinReportEngine.js";
 import { writeOrganicDemandIntegrityReport } from "./organicDemandIntegrityReportEngine.js";
 import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
 import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngine.js";
 import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js";
+import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
+import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -111,6 +114,9 @@ export function generateReports(projects = [], meta = {}) {
     causalMarketTwinPath,
   } = writeKnowledgeGraphTwinReports(projects);
   const {
+    filePath: autonomousCausalNetworkPath,
+  } = writeAutonomousCausalAlphaNetworkReport(projects);
+  const {
     filePath: alphaEvolutionGovernorPath,
     queuePath: alphaEvolutionQueuePath,
   } = writeAlphaEvolutionGovernorReport(projects);
@@ -132,6 +138,12 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: discoveryDecisionPath,
   } = writeDiscoveryDecisionReport(projects, meta);
+  const {
+    filePath: preConsensusBreakoutPath,
+  } = writePreConsensusBreakoutReport(projects);
+  const {
+    filePath: sniperReportPath,
+  } = writeSniperReport(projects);
   const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
@@ -189,6 +201,7 @@ export function generateReports(projects = [], meta = {}) {
     alphaContractReceiptsPath,
     alphaKnowledgeGraphPath,
     causalMarketTwinPath,
+    autonomousCausalNetworkPath,
     alphaEvolutionGovernorPath,
     alphaEvolutionQueuePath,
     smallCapHunterPath,
@@ -197,6 +210,8 @@ export function generateReports(projects = [], meta = {}) {
     discoveryTruthPath,
     nativeDiscoveryMeshPath,
     discoveryDecisionPath,
+    preConsensusBreakoutPath,
+    sniperReportPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

@@ -21,6 +21,8 @@ export function resolveProjectIdentityGraph(project = {}) {
   const bytecodeLineage = resolveBytecodeLineage(base);
   const identityEvidenceCount =
     (base.projectIdentity?.evidence || []).length +
+    (base.projectIdentity?.exchangeAssetIds || []).length +
+    (base.projectIdentity?.externalAssetIds || []).length +
     walletGraph.nodes.length +
     crossChain.contracts.length +
     socialDomain.domains.length +

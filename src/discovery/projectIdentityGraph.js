@@ -45,6 +45,23 @@ export function projectIdentitySignals(project = {}) {
     project.repository,
     ...(Array.isArray(project.repositories) ? project.repositories : []),
   ].map(clean).filter(Boolean);
+  const exchangeAssetIds = [
+    project.verifiedExchangeAssetId,
+    project.exchangeAssetId,
+    project.coinbaseAssetId,
+    project.binanceAssetId,
+    project.krakenAssetId,
+    project.listingAssetId,
+  ].map(clean).filter(Boolean);
+  const externalAssetIds = [
+    project.verifiedCoinGeckoId,
+    project.coinGeckoId,
+    project.coingeckoId,
+    project.verifiedCoinMarketCapId,
+    project.coinMarketCapId,
+    project.cmcId,
+    project.assetId,
+  ].map(clean).filter(Boolean);
   const socialAccounts = [
     project.x,
     project.twitter,
@@ -68,6 +85,8 @@ export function projectIdentitySignals(project = {}) {
     websites: [...new Set(websites)],
     domains: [...new Set(domains)],
     repositories: [...new Set(repositories)],
+    exchangeAssetIds: [...new Set(exchangeAssetIds)],
+    externalAssetIds: [...new Set(externalAssetIds)],
     socialAccounts: [...new Set(socialAccounts)],
     tokenContracts: [...new Set(tokenContracts)],
     poolAddresses: [...new Set(poolAddresses)],
@@ -80,7 +99,9 @@ export function identityKeyForProject(project = {}) {
 
   if (signals.tokenContracts[0]) return `${signals.chain}:token:${signals.tokenContracts[0]}`;
   if (signals.poolAddresses[0]) return `${signals.chain}:pool:${signals.poolAddresses[0]}`;
-  if (signals.domains[0]) return `domain:${signals.domains[0]}`;
+  if (signals.exchangeAssetIds[0]) return `exchange:${signals.exchangeAssetIds[0]}`;
+  if (signals.externalAssetIds[0]) return `asset:${signals.externalAssetIds[0]}`;
+  if (signals.domains[0]) return `${signals.chain}:domain:${signals.domains[0]}`;
   if (signals.repositories[0]) return `repo:${signals.repositories[0]}`;
   if (signals.socialAccounts[0]) return `social:${signals.socialAccounts[0]}`;
 
@@ -92,6 +113,8 @@ export function attachProjectIdentity(project = {}) {
   const projectId = project.projectId || hashId([
     signals.tokenContracts[0],
     signals.poolAddresses[0],
+    signals.exchangeAssetIds[0],
+    signals.externalAssetIds[0],
     signals.domains[0],
     signals.repositories[0],
     signals.socialAccounts[0],
@@ -109,6 +132,8 @@ export function attachProjectIdentity(project = {}) {
       evidence: [
         ...(signals.tokenContracts.length ? ["contract"] : []),
         ...(signals.poolAddresses.length ? ["pool"] : []),
+        ...(signals.exchangeAssetIds.length ? ["exchangeAssetId"] : []),
+        ...(signals.externalAssetIds.length ? ["externalAssetId"] : []),
         ...(signals.domains.length ? ["domain"] : []),
         ...(signals.repositories.length ? ["repository"] : []),
         ...(signals.socialAccounts.length ? ["social"] : []),
@@ -136,6 +161,12 @@ export function buildProjectIdentityGraph(projects = []) {
     }
     for (const domain of enriched.projectIdentity.domains) {
       edges.push({ projectId: enriched.projectId, type: "domain", value: domain, confidence: 0.82 });
+    }
+    for (const assetId of enriched.projectIdentity.exchangeAssetIds || []) {
+      edges.push({ projectId: enriched.projectId, type: "exchangeAssetId", value: assetId, confidence: 0.9 });
+    }
+    for (const assetId of enriched.projectIdentity.externalAssetIds || []) {
+      edges.push({ projectId: enriched.projectId, type: "externalAssetId", value: assetId, confidence: 0.86 });
     }
     for (const repository of enriched.projectIdentity.repositories) {
       edges.push({ projectId: enriched.projectId, type: "repository", value: repository, confidence: 0.78 });
