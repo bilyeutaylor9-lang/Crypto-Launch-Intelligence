@@ -146,7 +146,12 @@ export const ENGINE_CONTRACTS = [
       requiredAny: [
         ["organicDemandVerdict", "organicEconomicIntegrityScore", "economicIntegrityRiskScore"],
       ],
-      scoreFields: ["organicEconomicIntegrityScore", "economicIntegrityRiskScore"],
+      scoreFields: [
+        "organicEconomicIntegrityScore",
+        "economicIntegrityRiskScore",
+        "activityAuthenticityRiskScore",
+        "supplyIntegrityRiskScore",
+      ],
       evidenceRequiredWhenScored: true,
     },
     timeoutMs: 7000,

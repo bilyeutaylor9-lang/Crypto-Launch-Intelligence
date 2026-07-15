@@ -1850,25 +1850,37 @@ test("organic demand integrity downgrades LGNS-style big-number anomalies", () =
     chain: "polygon",
     description:
       "Algorithmic non-stablecoin with compounding staking, referral rewards, rank rewards, withdrawal pool income, mint role and setRatio controls.",
-    liquidityUsd: 220_000_000,
+    liquidityUsd: 240_700_000,
+    volume24h: 20_200_000,
     stablecoinReservesUsd: 80_000_000,
     protocolOwnedLiquidityPct: 90,
     liquidityProviders: 30,
     holders: 2_450_000,
     uniqueBuyers24h: 120,
+    uniqueTraders24h: 2_100,
     activeHolders30d: 1_000,
     holdersOver100Usd: 500,
-    transactions24h: 140_000,
-    approvalTransactions24h: 75_000,
-    transferTransactions24h: 55_000,
-    rewardClaims24h: 8_000,
+    transactions24h: 635_000,
+    approvalTransactions24h: 320_000,
+    transferTransactions24h: 250_000,
+    rewardClaims24h: 48_000,
     buyTransactions24h: 900,
     sellTransactions24h: 700,
+    top50WalletTransactionPct: 82,
+    repeatWalletTransactionPct: 76,
+    circularFlowRiskScore: 74,
+    sameSizeTradePct: 63,
+    topPoolVolumePct: 94,
     repetitiveTransactionScore: 80,
     dailyYieldPct: 0.9,
     contractFunctions: ["mint", "grantRole", "revokeRole", "setRatio", "setMainPair", "burnFrom"],
     marketCap: 389_000_000,
     dexScreenerMarketCap: 5_000_000_000,
+    geckoTerminalFdv: 8_160_000_000,
+    coinGeckoFdv: 324_000,
+    bitgetTotalSupply: 3_410_000_000,
+    coinGeckoTotalSupply: 150_000,
+    coinMarketCapSupplyUnavailable: true,
     circulatingSupply: 0,
     sourceTruthScore: 48,
   });
@@ -1876,9 +1888,17 @@ test("organic demand integrity downgrades LGNS-style big-number anomalies", () =
   assert.equal(result.organicDemandVerdict, "Institutional Integrity Block");
   assert.ok(result.economicIntegrityRiskScore >= 70);
   assert.ok(result.economicIntegrityPenalty >= 18);
+  assert.ok(result.organicEconomicIntegrityScore <= 42);
+  assert.ok(result.activityAuthenticityRiskScore >= 70);
+  assert.ok(result.supplyIntegrityRiskScore >= 70);
+  assert.ok(result.economicIntegrityScoreCapReasons.some((reason) => /activity|supply|market/i.test(reason)));
   assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Yield")));
   assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Displayed liquidity")));
+  assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Activity authenticity")));
+  assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Supply or valuation")));
   assert.equal(result.organicDemandStrongBuyEligible, false);
+  assert.ok(result.organicDemandIntegrity.requiredProof.some((proof) => proof.includes("Unique trader ratio")));
+  assert.ok(result.organicDemandIntegrity.requiredProof.some((proof) => proof.includes("Cross-source")));
 });
 
 test("organic demand integrity can confirm cleaner economic demand", () => {

@@ -325,6 +325,8 @@ function maxRiskScore(project = {}) {
     num(project.signalProfile?.risk),
     num(project.smallCapRiskScore),
     num(project.economicIntegrityRiskScore),
+    num(project.activityAuthenticityRiskScore),
+    num(project.supplyIntegrityRiskScore),
     num(project.deployerRiskScore),
     num(project.walletClusterRiskScore),
     num(project.washTradingRiskScore),

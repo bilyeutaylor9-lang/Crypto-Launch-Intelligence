@@ -59,6 +59,12 @@ Run the wide free-source scan:
 npm run scan:wide
 ```
 
+Run the explicit 39,000-project scan:
+
+```bash
+npm run scan:39000
+```
+
 Run the maximum Alpha OS scan:
 
 ```bash
@@ -113,7 +119,7 @@ The system does not trust one score. It builds a full research case:
 - Native discovery: normalizes pool lifecycle events across EVM factories and Solana programs into one launch timeline.
 - Decision firewall: verifies identity, buyer quality, safety, lifecycle stage, and risk caps before ranking an early pool.
 - Signal fusion: combines market, liquidity, narrative, catalyst, GitHub, social, roadmap, and risk data.
-- Organic demand checks: discounts raw holders, tx counts, displayed liquidity, extreme yield, and source-disagreement traps.
+- Organic demand checks: discounts raw holders, tx counts, repeated-wallet activity, circular volume, displayed liquidity, extreme yield, and source-disagreement traps.
 - Agent debate: multiple AI-style specialist agents argue the bull case, bear case, proof gaps, and invalidation rules.
 - Causal reasoning: identifies which signal is actually driving the opportunity.
 - Knowledge graph memory: links projects, chains, narratives, sources, GitHub, catalysts, peer clusters, and past scans.
@@ -169,7 +175,7 @@ The project now behaves like a miniature autonomous research organization.
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
 | Proof-of-Alpha Execution Twin | Simulates whether a $100 paper execution is actually route-verified, liquid enough, safe enough, and linked to a falsifiable alpha thesis | `reports/proof-of-alpha-execution-twin.json` |
-| Organic Demand Integrity | Separates real demand from dust holders, repetitive calls, protocol-owned liquidity, extreme yield, privileged controls, and valuation disagreement | `reports/organic-demand-integrity.json` |
+| Organic Demand Integrity | Separates real demand from dust holders, repeat-wallet activity, circular volume, repetitive trade sizes, protocol-owned liquidity, extreme yield, privileged controls, supply contradictions, and valuation disagreement | `reports/organic-demand-integrity.json` |
 | Discovery Truth Network | Audits active source coverage, discovery lanes, identity evidence, shadow rejects, and independent evidence families | `reports/discovery-truth.json` |
 
 ## Autonomous Alpha OS

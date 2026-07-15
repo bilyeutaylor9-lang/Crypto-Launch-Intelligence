@@ -139,6 +139,10 @@ export function writeCsvReport(projects = []) {
     "economicSustainabilityScore",
     "organicDemandVerdict",
     "economicIntegrityRiskScore",
+    "activityAuthenticityRiskScore",
+    "supplyIntegrityRiskScore",
+    "economicIntegrityScoreCap",
+    "economicIntegrityScoreCapReasons",
     "economicIntegrityPenalty",
     "hardExitLiquidityUsd",
     "organicActivityShare",
@@ -405,6 +409,12 @@ export function writeCsvReport(projects = []) {
     p.economicSustainabilityScore ?? "",
     p.organicDemandVerdict ?? "",
     p.economicIntegrityRiskScore ?? "",
+    p.activityAuthenticityRiskScore ?? "",
+    p.supplyIntegrityRiskScore ?? "",
+    p.economicIntegrityScoreCap ?? "",
+    Array.isArray(p.economicIntegrityScoreCapReasons)
+      ? p.economicIntegrityScoreCapReasons.join("; ")
+      : "",
     p.economicIntegrityPenalty ?? "",
     p.hardExitLiquidityUsd ?? "",
     p.organicActivityShare ?? "",

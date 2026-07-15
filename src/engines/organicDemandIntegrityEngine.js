@@ -239,6 +239,170 @@ function analyzeActivityQuality(project = {}) {
   };
 }
 
+function analyzeActivityAuthenticity(project = {}) {
+  const volume = getVolume(project);
+  const totalTransactions = firstNumber(project, ["transactions24h", "txCount24h", "contractCalls24h"]);
+  const buys = firstNumber(project, ["buyTransactions24h", "buys24h", "txns.h24.buys"]);
+  const sells = firstNumber(project, ["sellTransactions24h", "sells24h", "txns.h24.sells"]);
+  const swaps = firstNumber(project, ["swapTransactions24h", "dexSwaps24h", "economicTransactions24h"]);
+  const economicTransactions = buys + sells + swaps;
+  const uniqueTraders = firstNumber(project, [
+    "uniqueTraders24h",
+    "uniqueTraderCount24h",
+    "uniqueWallets24h",
+    "activeTradingWallets24h",
+  ]);
+  const uniqueBuyers = firstNumber(project, ["uniqueBuyers24h", "buyers24h", "independentBuyers24h"]);
+  const top10WalletTxPct = clamp(firstNumber(project, [
+    "top10WalletTransactionPct",
+    "top10TxWalletSharePct",
+    "walletConcentration.top10TransactionPct",
+  ]));
+  const top50WalletTxPct = clamp(firstNumber(project, [
+    "top50WalletTransactionPct",
+    "top50TxWalletSharePct",
+    "walletConcentration.top50TransactionPct",
+  ]));
+  const top100WalletTxPct = clamp(firstNumber(project, [
+    "top100WalletTransactionPct",
+    "top100TxWalletSharePct",
+    "walletConcentration.top100TransactionPct",
+  ]));
+  const repeatWalletPct = clamp(firstNumber(project, [
+    "repeatWalletTransactionPct",
+    "repeatWalletConcentrationPct",
+    "sameWalletTransactionPct",
+  ]));
+  const circularFlowRisk = clamp(firstNumber(project, [
+    "circularFlowRiskScore",
+    "circularFlowScore",
+    "roundTripWalletRiskScore",
+    "recycledVolumeRiskScore",
+  ]));
+  const sameSizeTradePct = clamp(firstNumber(project, [
+    "sameSizeTradePct",
+    "similarTradeSizePct",
+    "repetitiveTradeSizePct",
+  ]));
+  const repetitiveTradeRisk = clamp(firstNumber(project, [
+    "repetitiveTradeSizeRiskScore",
+    "tradeSizePatternRisk",
+    "repetitiveTransactionScore",
+    "transactionPatternRisk",
+    "botTransactionRisk",
+  ]));
+  const topPoolVolumePct = clamp(firstNumber(project, [
+    "topPoolVolumePct",
+    "largestPoolVolumePct",
+    "singlePoolVolumePct",
+    "pool.volumeConcentrationPct",
+  ]));
+  const topWalletVolumePct = clamp(firstNumber(project, [
+    "topWalletVolumePct",
+    "top10WalletVolumePct",
+    "walletVolumeConcentrationPct",
+  ]));
+  const transactionsForRatio = Math.max(totalTransactions, economicTransactions);
+  const uniqueTraderRatio = transactionsForRatio > 0 && uniqueTraders > 0 ? uniqueTraders / transactionsForRatio : null;
+  const uniqueBuyerRatio = transactionsForRatio > 0 && uniqueBuyers > 0 ? uniqueBuyers / transactionsForRatio : null;
+  const averageTradeUsd = economicTransactions > 0 && volume > 0 ? volume / economicTransactions : totalTransactions > 0 && volume > 0 ? volume / totalTransactions : null;
+  const warnings = [];
+
+  let risk = 0;
+  let proof = 0;
+
+  if (totalTransactions >= 50_000 && !uniqueTraders && !uniqueBuyers) {
+    warnings.push("Extreme transaction count lacks unique-trader proof.");
+    risk += 30;
+  }
+  if (uniqueTraderRatio !== null) {
+    if (uniqueTraderRatio < 0.01) {
+      warnings.push("Unique traders are tiny relative to transaction count.");
+      risk += 26;
+    } else if (uniqueTraderRatio < 0.03) {
+      warnings.push("Unique trader ratio is weak relative to transaction count.");
+      risk += 16;
+    } else if (uniqueTraderRatio >= 0.12) {
+      proof += 20;
+    } else if (uniqueTraderRatio >= 0.05) {
+      proof += 10;
+    }
+  }
+  if (uniqueBuyerRatio !== null) {
+    if (uniqueBuyerRatio < 0.005) risk += 12;
+    else if (uniqueBuyerRatio >= 0.04) proof += 10;
+  }
+  if (repeatWalletPct >= 70) {
+    warnings.push("Most transactions appear to come from repeat wallets.");
+    risk += 24;
+  } else if (repeatWalletPct >= 45) {
+    warnings.push("Repeat-wallet concentration is elevated.");
+    risk += 14;
+  }
+  if (top10WalletTxPct >= 55 || top50WalletTxPct >= 75 || top100WalletTxPct >= 88) {
+    warnings.push("Transaction activity is concentrated in a small wallet set.");
+    risk += 22;
+  } else if (top50WalletTxPct > 0 && top50WalletTxPct <= 35) {
+    proof += 10;
+  }
+  if (circularFlowRisk >= 70) {
+    warnings.push("Circular or recycled wallet flow risk is high.");
+    risk += 26;
+  } else if (circularFlowRisk >= 45) {
+    warnings.push("Circular wallet flow risk needs verification.");
+    risk += 14;
+  }
+  if (sameSizeTradePct >= 55 || repetitiveTradeRisk >= 70) {
+    warnings.push("Trade stream contains repetitive or similarly sized activity.");
+    risk += 22;
+  } else if (repetitiveTradeRisk <= 20 && repetitiveTradeRisk > 0) {
+    proof += 8;
+  }
+  if (topPoolVolumePct >= 90) {
+    warnings.push("Volume depends heavily on one pool.");
+    risk += 18;
+  } else if (topPoolVolumePct >= 75) {
+    warnings.push("Volume-source concentration is elevated.");
+    risk += 10;
+  }
+  if (topWalletVolumePct >= 45) {
+    warnings.push("Wallet-level volume concentration is elevated.");
+    risk += 18;
+  }
+  if (averageTradeUsd !== null && totalTransactions >= 100_000 && averageTradeUsd < 75) {
+    warnings.push("Very high transaction count is paired with tiny average trade size.");
+    risk += 18;
+  }
+  if (volume >= 1_000_000 && economicTransactions === 0) {
+    warnings.push("High reported volume lacks explicit economic swap breakdown.");
+    risk += 16;
+  }
+  if (uniqueTraders >= 1_000 && economicTransactions >= 1_000 && repeatWalletPct > 0 && repeatWalletPct < 35) proof += 16;
+
+  return {
+    score: Math.round(clamp(58 + proof - risk)),
+    risk: Math.round(clamp(risk)),
+    volume24h: volume,
+    totalTransactions,
+    economicTransactions,
+    uniqueTraders,
+    uniqueBuyers,
+    uniqueTraderRatio: uniqueTraderRatio === null ? null : Number((uniqueTraderRatio * 100).toFixed(3)),
+    uniqueBuyerRatio: uniqueBuyerRatio === null ? null : Number((uniqueBuyerRatio * 100).toFixed(3)),
+    averageTradeUsd: averageTradeUsd === null ? null : Number(averageTradeUsd.toFixed(2)),
+    top10WalletTxPct,
+    top50WalletTxPct,
+    top100WalletTxPct,
+    repeatWalletPct,
+    circularFlowRisk,
+    sameSizeTradePct,
+    repetitiveTradeRisk,
+    topPoolVolumePct,
+    topWalletVolumePct,
+    warnings,
+  };
+}
+
 function analyzeExitLiquidity(project = {}) {
   const displayedLiquidityUsd = getLiquidity(project);
   const stablecoinReservesUsd = firstNumber(project, [
@@ -506,8 +670,157 @@ function analyzeDataQuality(project = {}) {
   };
 }
 
-function verdictFor({ score = 0, risk = 0, organic = 0, sustainability = 0, blockers = [], liquidity = 0, volume = 0 } = {}) {
+function collectNumberEntries(project = {}, paths = []) {
+  return paths
+    .map(({ label, path }) => ({
+      label,
+      value: firstNumber(project, [path]),
+    }))
+    .filter((entry) => entry.value > 0);
+}
+
+function dispersionFor(values = []) {
+  const active = values.map(num).filter((value) => value > 0);
+  if (active.length < 2) return 1;
+  return Math.max(...active) / Math.min(...active);
+}
+
+function analyzeSupplyIntegrity(project = {}) {
+  const supplyEntries = collectNumberEntries(project, [
+    { label: "circulatingSupply", path: "circulatingSupply" },
+    { label: "totalSupply", path: "totalSupply" },
+    { label: "maxSupply", path: "maxSupply" },
+    { label: "marketData.circulatingSupply", path: "marketData.circulatingSupply" },
+    { label: "marketData.totalSupply", path: "marketData.totalSupply" },
+    { label: "rawCandidate.circulatingSupply", path: "rawCandidate.circulatingSupply" },
+    { label: "rawCandidate.totalSupply", path: "rawCandidate.totalSupply" },
+    { label: "coinGeckoCirculatingSupply", path: "coinGeckoCirculatingSupply" },
+    { label: "coinGeckoTotalSupply", path: "coinGeckoTotalSupply" },
+    { label: "coinGeckoMaxSupply", path: "coinGeckoMaxSupply" },
+    { label: "coinMarketCapCirculatingSupply", path: "coinMarketCapCirculatingSupply" },
+    { label: "coinMarketCapTotalSupply", path: "coinMarketCapTotalSupply" },
+    { label: "bitgetTotalSupply", path: "bitgetTotalSupply" },
+    { label: "geckoTerminalTotalSupply", path: "geckoTerminalTotalSupply" },
+  ]);
+  const valuationEntries = collectNumberEntries(project, [
+    { label: "marketCap", path: "marketCap" },
+    { label: "circulatingMarketCap", path: "circulatingMarketCap" },
+    { label: "verifiedMarketCap", path: "verifiedMarketCap" },
+    { label: "fdv", path: "fdv" },
+    { label: "fullyDilutedValue", path: "fullyDilutedValue" },
+    { label: "fullyDilutedValuation", path: "fullyDilutedValuation" },
+    { label: "dexScreenerMarketCap", path: "dexScreenerMarketCap" },
+    { label: "dexMarketCap", path: "dexMarketCap" },
+    { label: "geckoTerminalFdv", path: "geckoTerminalFdv" },
+    { label: "geckoTerminalMarketCap", path: "geckoTerminalMarketCap" },
+    { label: "coinGeckoMarketCap", path: "coinGeckoMarketCap" },
+    { label: "coinGeckoFdv", path: "coinGeckoFdv" },
+    { label: "coinMarketCapMarketCap", path: "coinMarketCapMarketCap" },
+    { label: "coinMarketCapFdv", path: "coinMarketCapFdv" },
+    { label: "bitgetMarketCap", path: "bitgetMarketCap" },
+    { label: "bitgetFdv", path: "bitgetFdv" },
+    { label: "selfReportedMarketCap", path: "selfReportedMarketCap" },
+    { label: "certikMarketCap", path: "certikMarketCap" },
+  ]);
+  const missingSupplyFlags = [
+    project.circulatingSupplyUnavailable,
+    project.maxSupplyUnavailable,
+    project.coinMarketCapSupplyUnavailable,
+    project.coinGeckoSupplyUnavailable,
+    project.supplyUnavailable,
+  ].some(Boolean);
+  const liquidity = getLiquidity(project);
+  const volume = getVolume(project);
+  const supplyDispersion = dispersionFor(supplyEntries.map((entry) => entry.value));
+  const valuationDispersion = dispersionFor(valuationEntries.map((entry) => entry.value));
+  const hasValuation = valuationEntries.length > 0;
+  const hasLargeMarketSignal = liquidity >= 1_000_000 || volume >= 1_000_000 || valuationEntries.some((entry) => entry.value >= 100_000_000);
+  const warnings = [];
+  let risk = 0;
+  let proof = 0;
+
+  if (supplyEntries.length >= 2 && supplyDispersion >= 1_000) {
+    warnings.push("Supply estimates disagree by more than 1000x.");
+    risk += 36;
+  } else if (supplyEntries.length >= 2 && supplyDispersion >= 100) {
+    warnings.push("Supply estimates disagree by more than 100x.");
+    risk += 28;
+  } else if (supplyEntries.length >= 2 && supplyDispersion >= 10) {
+    warnings.push("Supply estimates disagree by more than 10x.");
+    risk += 18;
+  } else if (supplyEntries.length >= 2) {
+    proof += 14;
+  }
+
+  if (valuationEntries.length >= 2 && valuationDispersion >= 1_000) {
+    warnings.push("Valuation sources disagree by more than 1000x.");
+    risk += 36;
+  } else if (valuationEntries.length >= 2 && valuationDispersion >= 100) {
+    warnings.push("Valuation sources disagree by more than 100x.");
+    risk += 28;
+  } else if (valuationEntries.length >= 2 && valuationDispersion >= 10) {
+    warnings.push("Valuation sources disagree by more than 10x.");
+    risk += 18;
+  } else if (valuationEntries.length >= 2) {
+    proof += 12;
+  }
+
+  if (!supplyEntries.length && hasLargeMarketSignal) {
+    warnings.push("Large market activity has no reliable supply input.");
+    risk += 24;
+  }
+  if (missingSupplyFlags && hasLargeMarketSignal) {
+    warnings.push("One or more major sources report unavailable supply.");
+    risk += 18;
+  }
+  if (!firstNumber(project, ["circulatingSupply", "marketData.circulatingSupply", "coinGeckoCirculatingSupply", "coinMarketCapCirculatingSupply"]) && hasValuation) {
+    warnings.push("Valuation exists without confirmed circulating supply.");
+    risk += 18;
+  }
+  if (supplyEntries.length === 1 && hasLargeMarketSignal) {
+    warnings.push("Only one supply source is present for a large-signal project.");
+    risk += 12;
+  }
+
+  return {
+    score: Math.round(clamp(62 + proof - risk)),
+    risk: Math.round(clamp(risk)),
+    supplyEntries,
+    valuationEntries,
+    supplySourceCount: supplyEntries.length,
+    valuationSourceCount: valuationEntries.length,
+    supplyDispersion: Number(supplyDispersion.toFixed(2)),
+    valuationDispersion: Number(valuationDispersion.toFixed(2)),
+    missingSupplyFlags,
+    warnings,
+  };
+}
+
+function scoreCapFor(modules = {}, context = {}) {
+  const caps = [];
+  const liquidity = num(context.liquidity);
+  const volume = num(context.volume);
+
+  if (modules.activityAuthenticity.risk >= 75) caps.push({ cap: 38, reason: "Severe activity-authenticity risk caps score." });
+  else if (modules.activityAuthenticity.risk >= 60) caps.push({ cap: 45, reason: "Activity-authenticity risk caps score." });
+  if (modules.supplyIntegrity.risk >= 75) caps.push({ cap: 38, reason: "Severe supply-integrity risk caps score." });
+  else if (modules.supplyIntegrity.risk >= 60) caps.push({ cap: 45, reason: "Supply-integrity risk caps score." });
+  if ((liquidity >= 50_000_000 || volume >= 10_000_000) && (modules.activityAuthenticity.risk >= 50 || modules.supplyIntegrity.risk >= 50)) {
+    caps.push({ cap: 42, reason: "Large market numbers require verified organic activity and reconciled supply." });
+  }
+  if ((modules.dataQuality.risk >= 35 || modules.supplyIntegrity.risk >= 45) && modules.activityAuthenticity.risk >= 45) {
+    caps.push({ cap: 44, reason: "Activity and valuation uncertainty combine into a score-reversal cap." });
+  }
+
+  return {
+    cap: caps.length ? Math.min(...caps.map((item) => item.cap)) : 100,
+    reasons: caps.map((item) => item.reason),
+  };
+}
+
+function verdictFor({ score = 0, risk = 0, organic = 0, sustainability = 0, blockers = [], liquidity = 0, volume = 0, cap = 100 } = {}) {
   if (risk >= 78 || blockers.length >= 4) return "Institutional Integrity Block";
+  if (cap <= 42 && (liquidity >= 1_000_000 || volume >= 1_000_000)) return "Institutional Integrity Block";
   if ((liquidity >= 1_000_000 || volume >= 1_000_000) && (organic < 50 || sustainability < 50)) {
     return "Tradable Anomaly / Verify Organic Demand";
   }
@@ -522,10 +835,12 @@ function buildBlockers(modules = {}) {
 
   if (modules.holder.risk >= 45) blockers.push("Holder count may be inflated by dust, Sybil, or distribution wallets.");
   if (modules.activity.risk >= 45) blockers.push("Transaction activity may be approvals, transfers, rewards, or repetitive protocol calls.");
+  if (modules.activityAuthenticity.risk >= 50) blockers.push("Activity authenticity is unproven: unique traders, repeat wallets, circular flow, or trade-size distribution require verification.");
   if (modules.exitLiquidity.risk >= 40) blockers.push("Displayed liquidity may overstate hard stablecoin exit liquidity.");
   if (modules.admin.risk >= 55) blockers.push("Privileged contract controls require admin-role, multisig, and timelock verification.");
   if (modules.yield.risk >= 55) blockers.push("Yield, compounding, referral, or issuance structure may be economically unsustainable.");
   if (modules.dataQuality.risk >= 35) blockers.push("Market cap, circulating supply, or source data is inconsistent.");
+  if (modules.supplyIntegrity.risk >= 45) blockers.push("Supply or valuation sources materially disagree or are unavailable.");
 
   return blockers;
 }
@@ -533,44 +848,65 @@ function buildBlockers(modules = {}) {
 export function analyzeOrganicDemandIntegrity(project = {}) {
   const holder = analyzeHolderQuality(project);
   const activity = analyzeActivityQuality(project);
+  const activityAuthenticity = analyzeActivityAuthenticity(project);
   const exitLiquidity = analyzeExitLiquidity(project);
   const admin = analyzeAdminControls(project);
   const yieldModel = analyzeYieldSustainability(project);
   const dataQuality = analyzeDataQuality(project);
+  const supplyIntegrity = analyzeSupplyIntegrity(project);
+  const liquidity = getLiquidity(project);
+  const volume = getVolume(project);
   const blockers = buildBlockers({
     holder,
     activity,
+    activityAuthenticity,
     exitLiquidity,
     admin,
     yield: yieldModel,
     dataQuality,
+    supplyIntegrity,
   });
   const organicDemandScore = weightedAverage([
     { score: holder.score, weight: 1.2 },
     { score: activity.score, weight: 1.3 },
+    { score: activityAuthenticity.score, weight: 1.2 },
     { score: dataQuality.score, weight: 0.7 },
+    { score: supplyIntegrity.score, weight: 0.9 },
   ]);
   const economicSustainabilityScore = weightedAverage([
     { score: exitLiquidity.score, weight: 1.2 },
     { score: admin.score, weight: 1.0 },
     { score: yieldModel.score, weight: 1.1 },
     { score: dataQuality.score, weight: 0.9 },
+    { score: supplyIntegrity.score, weight: 0.8 },
   ]);
   const riskScore = weightedAverage([
     { score: holder.risk, weight: 1.0 },
     { score: activity.risk, weight: 1.1 },
+    { score: activityAuthenticity.risk, weight: 1.2 },
     { score: exitLiquidity.risk, weight: 1.2 },
     { score: admin.risk, weight: 1.2 },
     { score: yieldModel.risk, weight: 1.3 },
     { score: dataQuality.risk, weight: 0.9 },
+    { score: supplyIntegrity.risk, weight: 1.1 },
   ]);
-  const score = weightedAverage([
+  const rawScore = weightedAverage([
     { score: organicDemandScore, weight: 1.1 },
     { score: economicSustainabilityScore, weight: 1.2 },
     { score: 100 - riskScore, weight: 0.7 },
   ]);
-  const liquidity = getLiquidity(project);
-  const volume = getVolume(project);
+  const cap = scoreCapFor(
+    {
+      activityAuthenticity,
+      supplyIntegrity,
+      dataQuality,
+    },
+    {
+      liquidity,
+      volume,
+    }
+  );
+  const score = Math.round(clamp(Math.min(rawScore, cap.cap)));
   const verdict = verdictFor({
     score,
     risk: riskScore,
@@ -579,12 +915,15 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     blockers,
     liquidity,
     volume,
+    cap: cap.cap,
   });
   const penalty =
     riskScore >= 85 ? 30 :
     riskScore >= 75 ? 24 :
     riskScore >= 65 ? 18 :
     riskScore >= 55 ? 12 :
+    cap.cap <= 42 ? 18 :
+    cap.cap < rawScore ? 12 :
     score < 45 ? 8 :
     0;
   const strongBuyEligible =
@@ -595,18 +934,25 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
   const warnings = [
     ...holder.warnings,
     ...activity.warnings,
+    ...activityAuthenticity.warnings,
     ...exitLiquidity.warnings,
     ...admin.warnings,
     ...yieldModel.warnings,
     ...dataQuality.warnings,
+    ...supplyIntegrity.warnings,
   ];
 
   return {
     ...project,
     organicDemandScore,
     economicSustainabilityScore,
+    organicEconomicIntegrityRawScore: rawScore,
     organicEconomicIntegrityScore: score,
+    economicIntegrityScoreCap: cap.cap,
+    economicIntegrityScoreCapReasons: cap.reasons,
     economicIntegrityRiskScore: riskScore,
+    activityAuthenticityRiskScore: activityAuthenticity.risk,
+    supplyIntegrityRiskScore: supplyIntegrity.risk,
     economicIntegrityPenalty: penalty,
     organicDemandVerdict: verdict,
     organicDemandStrongBuyEligible: strongBuyEligible,
@@ -622,18 +968,26 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
       strongBuyEligible,
       riskScore,
       penalty,
+      rawScore,
+      scoreCap: cap.cap,
+      scoreCapReasons: cap.reasons,
       organicDemandScore,
       economicSustainabilityScore,
       holder,
       activity,
+      activityAuthenticity,
       exitLiquidity,
       admin,
       yieldModel,
       dataQuality,
+      supplyIntegrity,
       blockers,
       warnings,
       requiredProof: [
         "DEX swaps and new outside capital, not only approvals/transfers/rewards.",
+        "Unique trader ratio, repeat-wallet concentration, circular-flow checks, and trade-size distribution.",
+        "Volume-source concentration by pool and wallet cluster.",
+        "Cross-source circulating, total, max supply, FDV, and market-cap reconciliation.",
         "Holder balance buckets above $10, $100, and $1,000.",
         "Stablecoin-only exit liquidity after $100K, $1M, and $10M simulated sells.",
         "Admin, mint, fee, pair, multisig, and timelock verification.",
@@ -650,6 +1004,7 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
         impact: verdict.includes("Block") ? "Negative" : verdict.includes("Confirmed") ? "Positive" : "Risk Control",
         reasons: [
           `Organic demand ${organicDemandScore}, economic sustainability ${economicSustainabilityScore}, risk ${riskScore}.`,
+          cap.reasons[0] || "No score-reversal cap applied.",
           blockers[0] || "No major organic-demand blocker detected.",
           `Hard exit liquidity estimate: $${exitLiquidity.hardExitLiquidityUsd.toLocaleString()}.`,
         ],
@@ -668,6 +1023,11 @@ function compact(project = {}) {
     strongBuyEligible: Boolean(project.organicDemandStrongBuyEligible),
     riskScore: project.economicIntegrityRiskScore || 0,
     penalty: project.economicIntegrityPenalty || 0,
+    rawScore: project.organicEconomicIntegrityRawScore || project.organicEconomicIntegrityScore || 0,
+    scoreCap: project.economicIntegrityScoreCap ?? null,
+    scoreCapReasons: project.economicIntegrityScoreCapReasons || [],
+    activityAuthenticityRiskScore: project.activityAuthenticityRiskScore || 0,
+    supplyIntegrityRiskScore: project.supplyIntegrityRiskScore || 0,
     organicDemandScore: project.organicDemandScore || 0,
     economicSustainabilityScore: project.economicSustainabilityScore || 0,
     hardExitLiquidityUsd: project.hardExitLiquidityUsd || 0,

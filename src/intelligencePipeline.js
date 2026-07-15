@@ -272,6 +272,8 @@ function weightedInstitutionalScore(project = {}) {
   if (num(project.deployerRiskScore) >= 70) score -= 12;
   if (num(project.instantSafetyRiskScore) >= 70) score -= 16;
   if (num(project.organicDemandFirewallRisk) >= 70) score -= 12;
+  if (num(project.activityAuthenticityRiskScore) >= 70) score -= 12;
+  if (num(project.supplyIntegrityRiskScore) >= 70) score -= 12;
   if (num(project.identityRiskScore) >= 70) score -= 9;
 
   if (num(project.smartMoneyAccumulationScore) >= 80 && prePumpScore >= 70) {
@@ -446,6 +448,8 @@ function buildSignalProfile(project = {}) {
       { score: project.xBotRiskScore, weight: 0.6 },
       { score: project.externalRiskScore, weight: 0.7 },
       { score: project.economicIntegrityRiskScore, weight: 1.2 },
+      { score: project.activityAuthenticityRiskScore, weight: 1.0 },
+      { score: project.supplyIntegrityRiskScore, weight: 1.0 },
       { score: project.liquidityControlRisk, weight: 1.0 },
       { score: project.deployerRiskScore, weight: 1.0 },
       { score: project.instantSafetyRiskScore, weight: 1.3 },
@@ -563,6 +567,15 @@ function buildRiskFlags(project = {}, profile = {}) {
     risks.push("Extreme economic-model risk");
   } else if (num(project.economicIntegrityRiskScore) >= 60) {
     risks.push("Economic verification required");
+  }
+  if (num(project.activityAuthenticityRiskScore) >= 70) {
+    risks.push("Activity authenticity firewall risk");
+  }
+  if (num(project.supplyIntegrityRiskScore) >= 70) {
+    risks.push("Supply integrity firewall risk");
+  }
+  if ((project.economicIntegrityScoreCapReasons || []).length) {
+    risks.push("Economic integrity score cap applied");
   }
   if (num(project.hardExitLiquidityUsd) > 0 && num(project.liquidityUsd ?? project.liquidity) / num(project.hardExitLiquidityUsd) >= 4) {
     risks.push("Hard exit liquidity risk");
@@ -969,6 +982,9 @@ function advancedScoreBreakdown(project = {}) {
   else if (num(project.trapRiskScore) >= 60) penalty += 8;
   if (num(project.sourceReliabilityScore) > 0 && num(project.sourceReliabilityScore) < 40) penalty += 4;
   if (num(project.economicIntegrityPenalty) > 0) penalty += num(project.economicIntegrityPenalty);
+  if (num(project.activityAuthenticityRiskScore) >= 70) penalty += 10;
+  if (num(project.supplyIntegrityRiskScore) >= 70) penalty += 10;
+  if ((project.economicIntegrityScoreCapReasons || []).length) penalty += 6;
   if (project.organicDemandVerdict === "Institutional Integrity Block") penalty += 10;
   if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") penalty += 6;
   if (num(project.liquidityControlRisk) >= 75) penalty += 9;
