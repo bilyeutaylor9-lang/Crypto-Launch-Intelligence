@@ -113,6 +113,8 @@
     "alpha:pre-consensus": "cat reports/pre-consensus-breakout-hunter.json",
     "sniper": "cat reports/sniper-report.json",
     "alpha:sniper": "cat reports/sniper-report.json",
+    "universe-ledger": "cat reports/universe-ledger.json",
+    "ledger:universe": "node src/learning/universeLedgerStore.js",
     "discovery-truth": "cat reports/discovery-truth.json",
     "native-discovery": "cat reports/native-discovery-mesh.json",
     "alpha:decision": "cat reports/discovery-decision-engine.json",

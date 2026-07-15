@@ -26,6 +26,7 @@ import {
   saveSourceRoutingOutcome,
   shouldRunSource,
 } from "./data/adaptiveSourceRouter.js";
+import { saveUniverseLedger } from "./learning/universeLedgerStore.js";
 
 const DEFAULT_WIDE_SCAN_TARGET = 39000;
 
@@ -592,6 +593,14 @@ export async function runDiscoveryManager(options = {}) {
   const qualityGate = applyQualityGate(dedupedPool, options);
   const candidateRanking = rankAndLimitCandidates(qualityGate.accepted, options);
   const candidatePool = candidateRanking.limited;
+  const rankedByKey = new Map(candidateRanking.ranked.map((project) => [keyForProject(project), project]));
+  const ledgerPool = dedupedPool.map((project) => {
+    const rankedProject = rankedByKey.get(keyForProject(project));
+    return rankedProject || {
+      ...project,
+      discoveryPriorityScore: discoveryPriority(project),
+    };
+  });
 
   const dexScannedTokens = getReportNumber(dex.output, [
     "discoveredTokens",
@@ -849,6 +858,24 @@ export async function runDiscoveryManager(options = {}) {
 
   if (options.saveSourceRouter !== false && sourceRouterPlan.sources?.length) {
     discovery.sourceRouterReport = saveSourceRoutingOutcome(discovery);
+  }
+
+  if (options.saveUniverseLedger !== false) {
+    try {
+      discovery.universeLedger = saveUniverseLedger(ledgerPool, {
+        selected: candidatePool,
+        rejected: qualityGate.rejected,
+        ranked: candidateRanking.ranked,
+        targetCandidates,
+        observedAt: discovery.scannedAt,
+      });
+    } catch (error) {
+      discovery.universeLedger = {
+        status: "FAILED",
+        error: error.message,
+      };
+      console.warn(`Universe ledger save failed: ${error.message}`);
+    }
   }
 
   return discovery;

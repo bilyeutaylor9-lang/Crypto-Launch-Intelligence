@@ -55,6 +55,7 @@ const PUBLIC_REPORTS = [
   "discovery-decision-engine.json",
   "pre-consensus-breakout-hunter.json",
   "sniper-report.json",
+  "universe-ledger.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -117,6 +118,7 @@ function writeLandingPage(copiedFiles = []) {
   const nativeDiscoveryMesh = readJsonReport("native-discovery-mesh.json") || {};
   const discoveryDecision = readJsonReport("discovery-decision-engine.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
+  const universeLedger = readJsonReport("universe-ledger.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
@@ -177,6 +179,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Native Stage", nativeDiscoveryMesh.topCandidates?.[0]?.stage || "N/A"],
     ["Decision Pass", discoveryDecision.summary?.pass ?? "N/A"],
     ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? "N/A"],
+    ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? "N/A"],
+    ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],

@@ -37,6 +37,7 @@ import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngin
 import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js";
 import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
 import { writeSniperReport } from "./sniperReportEngine.js";
+import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -145,6 +146,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: sniperReportPath,
   } = writeSniperReport(projects);
   const {
+    filePath: universeLedgerPath,
+  } = writeUniverseLedgerReport(meta);
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -212,6 +216,7 @@ export function generateReports(projects = [], meta = {}) {
     discoveryDecisionPath,
     preConsensusBreakoutPath,
     sniperReportPath,
+    universeLedgerPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,

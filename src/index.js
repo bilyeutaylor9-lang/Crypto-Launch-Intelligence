@@ -135,6 +135,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `GitHub Discovery: ${discovery.sourceReports?.githubProjectDiscovery?.scannedTokens || 0} | AI Swarm: ${discovery.aiDiscoverySwarmCount || 0}`
     );
   }
+  if (discovery.universeLedger?.totals) {
+    console.log(
+      `Universe Ledger: ${discovery.universeLedger.savedProjects || 0} saved | Promoted: ${discovery.universeLedger.totals.promoted || 0} | Research: ${discovery.universeLedger.totals.researchOnly || 0} | Blocked: ${discovery.universeLedger.totals.blocked || 0}`
+    );
+  }
 }
 
 function printSummary(summary) {
@@ -378,6 +383,7 @@ function printReportPaths(paths) {
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
+  console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

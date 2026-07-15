@@ -8,6 +8,82 @@ discover -> research -> score -> debate -> simulate -> dossier -> alert -> track
 
 The goal is not to create louder signals. The goal is to create accountable research: every thesis should have evidence, confidence, invalidation, and a later outcome grade.
 
+## 2026-2030 Master Execution Roadmap
+
+The long-term vision is to turn the scanner into an accountable intelligence institution. Progress should be measured by point-in-time evidence coverage, reproducible conclusions, and outcome-calibrated decisions, not by the raw number of engines.
+
+### 2026: Trustworthy Production Foundation
+
+Deliver:
+
+- 39,000-project universe ledger with one record per discovered project
+- Canonical identity enforcement before promotion
+- Universal baseline stage for all projects
+- Evidence-family deduplication across `identity`, `safety`, `liquidity`, `buyerQuality`, `smartParticipants`, `development`, `productDelivery`, `adoption`, `revenue`, `catalysts`, `tokenEconomics`, `marketStructure`, `narrative`, and `manipulationRisk`
+- Authoritative final fields: `finalState`, `finalQualified`, `finalConfidence`, `finalBlockingReasons`, `finalEvidenceFamilies`, and `finalInvalidationConditions`
+- Resume-safe batch processing, provider health, report consistency tests, and point-in-time event records
+
+Success:
+
+- Every discovered project is either promoted, research-only, deferred, or blocked with a clear reason.
+- The system accepts `no qualified candidates` as a valid outcome.
+- Public reports do not contradict final risk state.
+
+### 2027: Production Runtime and Private Alpha
+
+Deliver:
+
+- Event queue, worker pools, dead-letter handling, checkpoints, and bounded concurrency
+- Scanner health dashboard and source-contract tests
+- State-transition alerts for `QUIET_ACCUMULATION -> FUNDAMENTALS_ACCELERATING`, `FUNDAMENTALS_ACCELERATING -> ARMED`, `ARMED -> BREAKOUT_STARTING`, and `ARMED -> INVALIDATED`
+- Private alpha dashboard with full-universe explorer, evidence timelines, source health, scanner health, and historical performance
+
+Success:
+
+- Scans resume after failure without losing project accounting.
+- Alert performance is measurable.
+- First recurring research users or pilots exist.
+
+### 2028: Pre-Consensus Gap Platform
+
+Deliver:
+
+- Pre-consensus gap score: verified acceleration minus price recognition minus social saturation
+- Wallet reputation v1, developer time series, adoption time series, catalyst verification, and outcome scheduler
+- Historical replay by lifecycle, market regime, chain, and narrative
+
+Success:
+
+- Strong alerts are based on state transitions and underrecognized acceleration, not static ranking.
+- Outcome labels track `25%`, `50%`, `2x`, `3x`, and `5x` before defined drawdown.
+
+### 2029: Professional Product Surface
+
+Deliver:
+
+- Research terminal, team workspaces, API access, custom universes, exports, and private watchlists
+- Ecosystem radar for chains, launchpads, accelerators, venture funds, and developer ecosystems
+- Risk Watchtower for contracts, liquidity, governance, wallet clusters, and dependency exposure
+
+Success:
+
+- Revenue begins shifting from one-off reports to subscriptions, APIs, and ecosystem monitoring.
+- Users can inspect evidence, uncertainty, and invalidation conditions for every serious call.
+
+### 2030: Evidence API and Institutional Diligence
+
+Deliver:
+
+- Identity API, evidence API, catalyst API, risk API, and protocol-health exports
+- Wallet and developer reputation histories
+- Calibration reports by lifecycle and regime
+- Correct-rejection, late-alert, missed-winner, failed-breakout, and untradeable-winner accounting
+
+Success:
+
+- The system has millions of timestamped observations and thousands of completed outcome histories.
+- External users trust the platform as an evidence layer, not a promotion channel.
+
 ## Month 1: Live Catalyst Radar
 
 Build the time-sensitive event layer.
