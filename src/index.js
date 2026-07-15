@@ -384,6 +384,7 @@ function printReportPaths(paths) {
   console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
+  console.log(`OP Readiness:   ${paths.opModeReadinessPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

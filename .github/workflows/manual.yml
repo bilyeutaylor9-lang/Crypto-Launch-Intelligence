@@ -27,6 +27,66 @@ jobs:
 
       - name: Run Intelligence Scanner
         run: node src/index.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.5' }}
+          GITHUB_TOKEN: ${{ github.token }}
+          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+          COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+          COINCAP_API_KEY: ${{ secrets.COINCAP_API_KEY }}
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+          CRYPTOCOMPARE_API_KEY: ${{ secrets.CRYPTOCOMPARE_API_KEY }}
+          DEXTOOLS_API_KEY: ${{ secrets.DEXTOOLS_API_KEY }}
+          MESSARI_API_KEY: ${{ secrets.MESSARI_API_KEY }}
+          MOBULA_API_KEY: ${{ secrets.MOBULA_API_KEY }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          CRYPTOPANIC_API_KEY: ${{ secrets.CRYPTOPANIC_API_KEY }}
+          REDDIT_API_KEY: ${{ secrets.REDDIT_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
+          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          OPTIMISTIC_ETHERSCAN_API_KEY: ${{ secrets.OPTIMISTIC_ETHERSCAN_API_KEY }}
+          POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
+          SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
+          SOLSCAN_API_KEY: ${{ secrets.SOLSCAN_API_KEY }}
+          ARKHAM_API_KEY: ${{ secrets.ARKHAM_API_KEY }}
+          NANSEN_API_KEY: ${{ secrets.NANSEN_API_KEY }}
+          DEBANK_API_KEY: ${{ secrets.DEBANK_API_KEY }}
+          ZERION_API_KEY: ${{ secrets.ZERION_API_KEY }}
+          TOKENSNIFFER_API_KEY: ${{ secrets.TOKENSNIFFER_API_KEY }}
+          NATIVE_DISCOVERY_COLLECT: ${{ vars.NATIVE_DISCOVERY_COLLECT || 'false' }}
+          NATIVE_DISCOVERY_CHAINS: ${{ vars.NATIVE_DISCOVERY_CHAINS || 'base,solana,bsc,polygon,arbitrum' }}
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+          BASE_WS_URL: ${{ secrets.BASE_WS_URL }}
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+          ETHEREUM_WS_URL: ${{ secrets.ETHEREUM_WS_URL }}
+          BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
+          BSC_WS_URL: ${{ secrets.BSC_WS_URL }}
+          POLYGON_RPC_URL: ${{ secrets.POLYGON_RPC_URL }}
+          POLYGON_WS_URL: ${{ secrets.POLYGON_WS_URL }}
+          ARBITRUM_RPC_URL: ${{ secrets.ARBITRUM_RPC_URL }}
+          ARBITRUM_WS_URL: ${{ secrets.ARBITRUM_WS_URL }}
+          SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+          SOLANA_WS_URL: ${{ secrets.SOLANA_WS_URL }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          EVM_DEPLOYMENT_RADAR_RPC_URL: ${{ secrets.EVM_DEPLOYMENT_RADAR_RPC_URL }}
+          BASE_AERODROME_FACTORY: ${{ secrets.BASE_AERODROME_FACTORY }}
+          BASE_AERODROME_SLIPSTREAM_FACTORY: ${{ secrets.BASE_AERODROME_SLIPSTREAM_FACTORY }}
+          BASE_UNISWAP_V3_FACTORY: ${{ secrets.BASE_UNISWAP_V3_FACTORY }}
+          BASE_UNISWAP_V4_POOL_MANAGER: ${{ secrets.BASE_UNISWAP_V4_POOL_MANAGER }}
+          BSC_PANCAKESWAP_V2_FACTORY: ${{ secrets.BSC_PANCAKESWAP_V2_FACTORY }}
+          BSC_PANCAKESWAP_V3_FACTORY: ${{ secrets.BSC_PANCAKESWAP_V3_FACTORY }}
+          POLYGON_QUICKSWAP_ALGEBRA_FACTORY: ${{ secrets.POLYGON_QUICKSWAP_ALGEBRA_FACTORY }}
+          ARBITRUM_CAMELOT_FACTORY: ${{ secrets.ARBITRUM_CAMELOT_FACTORY }}
+          SOLANA_PUMP_FUN_PROGRAM: ${{ secrets.SOLANA_PUMP_FUN_PROGRAM }}
+          SOLANA_RAYDIUM_LAUNCHLAB_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_LAUNCHLAB_PROGRAM }}
+          SOLANA_RAYDIUM_CPMM_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_CPMM_PROGRAM }}
+          SOLANA_RAYDIUM_CLMM_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_CLMM_PROGRAM }}
+          SOLANA_METEORA_DBC_PROGRAM: ${{ secrets.SOLANA_METEORA_DBC_PROGRAM }}
+          SOLANA_METEORA_DLMM_PROGRAM: ${{ secrets.SOLANA_METEORA_DLMM_PROGRAM }}
 
       - name: Upload Reports
         uses: actions/upload-artifact@v4

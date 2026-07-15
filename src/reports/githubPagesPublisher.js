@@ -56,6 +56,7 @@ const PUBLIC_REPORTS = [
   "pre-consensus-breakout-hunter.json",
   "sniper-report.json",
   "universe-ledger.json",
+  "op-mode-readiness.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -119,6 +120,7 @@ function writeLandingPage(copiedFiles = []) {
   const discoveryDecision = readJsonReport("discovery-decision-engine.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const universeLedger = readJsonReport("universe-ledger.json") || {};
+  const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
@@ -181,6 +183,10 @@ function writeLandingPage(copiedFiles = []) {
     ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? "N/A"],
     ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? "N/A"],
     ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? "N/A"],
+    ["OP Mode", opModeReadiness.status || "N/A"],
+    ["OP Score", opModeReadiness.score ?? "N/A"],
+    ["Native Ready", opModeReadiness.native?.liveReadyProtocols ?? "N/A"],
+    ["Missing Key Groups", opModeReadiness.keys?.missingGroups ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],

@@ -1,0 +1,574 @@
+import fs from "fs";
+import path from "path";
+import "../config/loadEnv.js";
+import { getAllSources } from "../data/dataSourceManager.js";
+import { NATIVE_PROTOCOLS } from "../data/native/nativePoolConfig.js";
+
+const REPORT_DIR = path.resolve("reports");
+const REPORT_FILE = path.join(REPORT_DIR, "op-mode-readiness.json");
+const DATA_DIR = path.resolve("data");
+
+const KEY_GROUPS = [
+  {
+    id: "ai",
+    label: "AI research brain",
+    target: 1,
+    weight: 1.3,
+    items: [
+      { env: "OPENAI_API_KEY", label: "OpenAI API key" },
+      { env: "OPENAI_MODEL", label: "OpenAI model", optional: true },
+    ],
+  },
+  {
+    id: "market",
+    label: "Market and listing coverage",
+    target: 4,
+    weight: 1.1,
+    items: [
+      { env: "BIRDEYE_API_KEY", label: "Birdeye" },
+      { env: "COINGECKO_DEMO_API_KEY", label: "CoinGecko demo key", optional: true },
+      { env: "COINCAP_API_KEY", label: "CoinCap" },
+      { env: "COINMARKETCAP_API_KEY", label: "CoinMarketCap" },
+      { env: "CRYPTOCOMPARE_API_KEY", label: "CryptoCompare" },
+      { env: "DEXTOOLS_API_KEY", label: "DexTools" },
+      { env: "MESSARI_API_KEY", label: "Messari", optional: true },
+      { env: "MOBULA_API_KEY", label: "Mobula", optional: true },
+    ],
+  },
+  {
+    id: "social-news",
+    label: "Social and news intelligence",
+    target: 2,
+    weight: 1,
+    items: [
+      {
+        oneOf: ["X_BEARER_TOKEN", "TWITTER_BEARER_TOKEN", "X_API_KEY", "TWITTER_API_KEY"],
+        label: "X/Twitter search",
+      },
+      { env: "CRYPTOPANIC_API_KEY", label: "CryptoPanic" },
+      { env: "REDDIT_API_KEY", label: "Reddit", optional: true },
+      { env: "TELEGRAM_BOT_TOKEN", label: "Telegram", optional: true },
+      { env: "DISCORD_BOT_TOKEN", label: "Discord", optional: true },
+    ],
+  },
+  {
+    id: "developer",
+    label: "Developer and repo velocity",
+    target: 1,
+    weight: 0.8,
+    items: [{ env: "GITHUB_TOKEN", label: "GitHub token" }],
+  },
+  {
+    id: "explorer",
+    label: "Explorer and contract truth",
+    target: 4,
+    weight: 1,
+    items: [
+      { env: "ETHERSCAN_API_KEY", label: "Etherscan" },
+      { env: "BASESCAN_API_KEY", label: "BaseScan" },
+      { env: "BSCSCAN_API_KEY", label: "BscScan" },
+      { env: "ARBISCAN_API_KEY", label: "Arbiscan" },
+      { env: "OPTIMISTIC_ETHERSCAN_API_KEY", label: "Optimistic Etherscan", optional: true },
+      { env: "POLYGONSCAN_API_KEY", label: "PolygonScan" },
+      { env: "SNOWTRACE_API_KEY", label: "Snowtrace", optional: true },
+      { env: "SOLSCAN_API_KEY", label: "Solscan" },
+    ],
+  },
+  {
+    id: "wallet",
+    label: "Wallet and smart-money truth",
+    target: 2,
+    weight: 1.1,
+    items: [
+      { env: "ARKHAM_API_KEY", label: "Arkham" },
+      { env: "NANSEN_API_KEY", label: "Nansen" },
+      { env: "DEBANK_API_KEY", label: "DeBank", optional: true },
+      { env: "ZERION_API_KEY", label: "Zerion", optional: true },
+    ],
+  },
+  {
+    id: "risk",
+    label: "Extra safety checks",
+    target: 1,
+    weight: 0.7,
+    items: [{ env: "TOKENSNIFFER_API_KEY", label: "TokenSniffer" }],
+  },
+];
+
+const CHAIN_RPC_ENVS = {
+  base: ["BASE_RPC_URL", "BASE_WS_URL"],
+  ethereum: ["ETHEREUM_RPC_URL", "ETHEREUM_WS_URL"],
+  bsc: ["BSC_RPC_URL", "BSC_WS_URL"],
+  polygon: ["POLYGON_RPC_URL", "POLYGON_WS_URL"],
+  arbitrum: ["ARBITRUM_RPC_URL", "ARBITRUM_WS_URL"],
+  optimism: ["OPTIMISM_RPC_URL", "OPTIMISM_WS_URL"],
+  avalanche: ["AVALANCHE_RPC_URL", "AVALANCHE_WS_URL"],
+  solana: ["SOLANA_RPC_URL", "SOLANA_WS_URL", "HELIUS_API_KEY"],
+  "multi-evm": ["EVM_DEPLOYMENT_RADAR_RPC_URL", "ETHEREUM_RPC_URL", "BASE_RPC_URL"],
+};
+
+const DATASET_SPECS = [
+  {
+    id: "universe-ledger",
+    label: "39,000-project universe ledger",
+    file: "universe-ledger.json",
+    critical: true,
+  },
+  {
+    id: "scan-history",
+    label: "Scan memory",
+    file: "scan-history.json",
+    critical: true,
+  },
+  {
+    id: "outcome-snapshots",
+    label: "Outcome labels",
+    file: "outcome-snapshots.json",
+    critical: true,
+  },
+  {
+    id: "paper-trading",
+    label: "Paper-trading outcomes",
+    file: "paper-trading-outcomes.json",
+    critical: true,
+  },
+  {
+    id: "alpha-contracts",
+    label: "Proof-carrying thesis contracts",
+    file: "alpha-contracts.json",
+  },
+  {
+    id: "agent-performance",
+    label: "Agent performance memory",
+    file: "agent-performance-memory.json",
+  },
+  {
+    id: "research-memory",
+    label: "Internet research memory",
+    file: "internet-research-memory.json",
+  },
+  {
+    id: "source-router",
+    label: "Adaptive source router memory",
+    file: "source-router-memory.json",
+  },
+  {
+    id: "native-events",
+    label: "Native confirmed launch events",
+    file: "native-discovery/confirmed-events.json",
+    critical: true,
+  },
+  {
+    id: "causal-event-lake",
+    label: "Causal alpha event lake",
+    file: "causal-alpha-event-lake.json",
+  },
+];
+
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function clamp(value = 0, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, num(value)));
+}
+
+function isPresent(value = "") {
+  const text = String(value || "").trim();
+  if (!text) return false;
+  return !/^(your_|optional_|example|changeme|replace_me)/i.test(text);
+}
+
+function hasEnv(env = process.env, key = "") {
+  return isPresent(env[key]);
+}
+
+function keyStatus(item = {}, env = process.env) {
+  const keys = item.oneOf || [item.env];
+  const presentKeys = keys.filter((key) => hasEnv(env, key));
+
+  return {
+    label: item.label || keys.join(" or "),
+    keys,
+    optional: Boolean(item.optional),
+    present: presentKeys.length > 0,
+    presentKeys,
+    missingKeys: presentKeys.length ? [] : keys,
+  };
+}
+
+function groupStatus(group = {}, env = process.env) {
+  const items = (group.items || []).map((item) => keyStatus(item, env));
+  const requiredItems = items.filter((item) => !item.optional);
+  const presentRequired = requiredItems.filter((item) => item.present).length;
+  const target = Math.max(1, num(group.target || requiredItems.length));
+  const score = Math.round(clamp((presentRequired / target) * 100));
+
+  return {
+    id: group.id,
+    label: group.label,
+    target,
+    weight: num(group.weight || 1),
+    score,
+    status: presentRequired >= target ? "READY" : presentRequired > 0 ? "PARTIAL" : "MISSING",
+    presentRequired,
+    requiredItems: requiredItems.length,
+    missingRequired: requiredItems.filter((item) => !item.present).map((item) => item.label),
+    items,
+  };
+}
+
+function weightedAverage(items = []) {
+  const active = items.filter((item) => num(item.weight) > 0);
+  const totalWeight = active.reduce((sum, item) => sum + num(item.weight), 0);
+  if (!totalWeight) return 0;
+  return Math.round(active.reduce((sum, item) => sum + num(item.score) * num(item.weight), 0) / totalWeight);
+}
+
+export function buildKeyReadiness(env = process.env) {
+  const groups = KEY_GROUPS.map((group) => groupStatus(group, env));
+  const missingCriticalKeys = groups.flatMap((group) =>
+    group.items
+      .filter((item) => !item.optional && !item.present)
+      .map((item) => ({
+        group: group.id,
+        label: item.label,
+        keys: item.keys,
+      }))
+  );
+
+  return {
+    score: weightedAverage(groups),
+    groups,
+    missingCriticalKeys,
+    presentGroups: groups.filter((group) => group.status === "READY").length,
+    partialGroups: groups.filter((group) => group.status === "PARTIAL").length,
+    missingGroups: groups.filter((group) => group.status === "MISSING").length,
+  };
+}
+
+export function buildSourceReadiness() {
+  const sources = getAllSources({ includeDisabled: true });
+  const enabled = sources.filter((source) => source.enabled);
+  const categories = sources.reduce((acc, source) => {
+    const category = source.category || "other";
+    acc[category] = acc[category] || {
+      total: 0,
+      enabled: 0,
+      missingKey: 0,
+      sources: [],
+    };
+    acc[category].total += 1;
+    acc[category].enabled += source.enabled ? 1 : 0;
+    acc[category].missingKey += source.requiresKey && !source.hasKey ? 1 : 0;
+    acc[category].sources.push({
+      name: source.name,
+      enabled: source.enabled,
+      requiresKey: source.requiresKey,
+      hasKey: source.hasKey,
+      envKey: source.envKey,
+      tier: source.tier,
+    });
+    return acc;
+  }, {});
+  const missingKeySources = sources
+    .filter((source) => source.requiresKey && !source.hasKey)
+    .map((source) => ({
+      name: source.name,
+      category: source.category,
+      envKey: source.envKey,
+      alternateEnvKeys: source.alternateEnvKeys || [],
+      priority: source.priority,
+      tier: source.tier,
+    }));
+
+  return {
+    score: Math.round(clamp((enabled.length / Math.max(1, sources.length)) * 100)),
+    totalSources: sources.length,
+    enabledSources: enabled.length,
+    freeEnabledSources: enabled.filter((source) => !source.requiresKey).length,
+    premiumEnabledSources: enabled.filter((source) => source.requiresKey).length,
+    missingKeySources,
+    categories,
+  };
+}
+
+function chainRpcKeys(protocol = {}) {
+  return CHAIN_RPC_ENVS[protocol.chain] || CHAIN_RPC_ENVS["multi-evm"] || [];
+}
+
+function nativeProtocolStatus(protocol = {}, env = process.env) {
+  const protocolKeys = [protocol.factoryEnv, protocol.programEnv, protocol.rpcEnv].filter(Boolean);
+  const protocolKeyPresent = protocolKeys.some((key) => hasEnv(env, key));
+  const rpcKeys = [...new Set([...(protocol.rpcEnv ? [protocol.rpcEnv] : []), ...chainRpcKeys(protocol)])];
+  const rpcPresent = rpcKeys.some((key) => hasEnv(env, key));
+  const liveReady =
+    protocol.family === "evm-deployment"
+      ? rpcPresent
+      : protocol.family === "evm-factory" || protocol.family === "solana-program"
+      ? protocolKeyPresent && rpcPresent
+      : protocolKeyPresent || rpcPresent;
+  const status = liveReady
+    ? "LIVE_READY"
+    : protocolKeyPresent
+    ? "MISSING_RPC"
+    : rpcPresent
+    ? "MISSING_PROTOCOL_ID"
+    : "UNCONFIGURED";
+
+  return {
+    id: protocol.id,
+    chain: protocol.chain,
+    family: protocol.family,
+    protocol: protocol.protocol,
+    priority: protocol.priority,
+    status,
+    liveReady,
+    configuredForDecoding: protocolKeyPresent,
+    protocolKeys,
+    rpcKeys,
+    missingProtocolKeys: protocolKeyPresent ? [] : protocolKeys,
+    missingRpcKeys: rpcPresent ? [] : rpcKeys,
+  };
+}
+
+export function buildNativeReadiness(env = process.env) {
+  const protocols = NATIVE_PROTOCOLS.map((protocol) => nativeProtocolStatus(protocol, env)).sort(
+    (a, b) => b.priority - a.priority
+  );
+  const liveReady = protocols.filter((protocol) => protocol.liveReady);
+  const decodingReady = protocols.filter((protocol) => protocol.configuredForDecoding);
+  const byChain = protocols.reduce((acc, protocol) => {
+    acc[protocol.chain] = acc[protocol.chain] || {
+      total: 0,
+      liveReady: 0,
+      configuredForDecoding: 0,
+      protocols: [],
+    };
+    acc[protocol.chain].total += 1;
+    acc[protocol.chain].liveReady += protocol.liveReady ? 1 : 0;
+    acc[protocol.chain].configuredForDecoding += protocol.configuredForDecoding ? 1 : 0;
+    acc[protocol.chain].protocols.push(protocol.id);
+    return acc;
+  }, {});
+
+  return {
+    score: Math.round(clamp((liveReady.length / Math.max(1, protocols.length)) * 100)),
+    totalProtocols: protocols.length,
+    liveReadyProtocols: liveReady.length,
+    decodingReadyProtocols: decodingReady.length,
+    unconfiguredProtocols: protocols.length - decodingReady.length,
+    byChain,
+    requiredEnvironmentVariables: [
+      ...new Set(protocols.flatMap((protocol) => [...protocol.protocolKeys, ...protocol.rpcKeys])),
+    ],
+    protocols,
+  };
+}
+
+function readJson(filePath = "") {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function countJsonItems(value) {
+  if (Array.isArray(value)) return value.length;
+  if (!value || typeof value !== "object") return 0;
+  if (value.projects && typeof value.projects === "object") return Object.keys(value.projects).length;
+  if (Array.isArray(value.records)) return value.records.length;
+  if (Array.isArray(value.runs)) return value.runs.length;
+  if (Array.isArray(value.alerts)) return value.alerts.length;
+  if (Array.isArray(value.outcomes)) return value.outcomes.length;
+  if (Array.isArray(value.contracts)) return value.contracts.length;
+  if (Array.isArray(value.rawEvents)) return value.rawEvents.length;
+  if (Array.isArray(value.confirmedEvents)) return value.confirmedEvents.length;
+  return Object.keys(value).length;
+}
+
+function datasetStatus(spec = {}, dataDir = DATA_DIR) {
+  const filePath = path.join(dataDir, spec.file);
+  const exists = fs.existsSync(filePath);
+  const parsed = readJson(filePath);
+  const records = countJsonItems(parsed);
+  const bytes = exists ? fs.statSync(filePath).size : 0;
+
+  return {
+    id: spec.id,
+    label: spec.label,
+    critical: Boolean(spec.critical),
+    file: filePath,
+    exists,
+    records,
+    bytes,
+    status: !exists ? "MISSING" : records > 0 ? "ACTIVE" : "EMPTY",
+  };
+}
+
+export function buildDatasetReadiness(options = {}) {
+  const dataDir = options.dataDir || DATA_DIR;
+  const datasets = DATASET_SPECS.map((spec) => datasetStatus(spec, dataDir));
+  const active = datasets.filter((dataset) => dataset.status === "ACTIVE");
+  const critical = datasets.filter((dataset) => dataset.critical);
+  const criticalActive = critical.filter((dataset) => dataset.status === "ACTIVE");
+
+  return {
+    score: Math.round(clamp((active.length / Math.max(1, datasets.length)) * 100)),
+    criticalScore: Math.round(clamp((criticalActive.length / Math.max(1, critical.length)) * 100)),
+    activeDatasets: active.length,
+    totalDatasets: datasets.length,
+    missingCriticalDatasets: critical.filter((dataset) => dataset.status !== "ACTIVE"),
+    datasets,
+  };
+}
+
+function workflowEnvReadiness(repoRoot = path.resolve(".")) {
+  const workflowFiles = [
+    path.join(repoRoot, ".github/workflows/pages-dashboard.yml"),
+    path.join(repoRoot, ".github/workflows/manual.yml"),
+  ];
+  const requiredKeys = [
+    "OPENAI_API_KEY",
+    "BIRDEYE_API_KEY",
+    "X_BEARER_TOKEN",
+    "CRYPTOPANIC_API_KEY",
+    "GITHUB_TOKEN",
+    "BASESCAN_API_KEY",
+    "SOLSCAN_API_KEY",
+    "EVM_DEPLOYMENT_RADAR_RPC_URL",
+  ];
+  const files = workflowFiles.map((file) => {
+    const exists = fs.existsSync(file);
+    const text = exists ? fs.readFileSync(file, "utf8") : "";
+    const presentKeys = requiredKeys.filter((key) => text.includes(key));
+    return {
+      file,
+      exists,
+      presentKeys,
+      missingKeys: requiredKeys.filter((key) => !presentKeys.includes(key)),
+      score: Math.round(clamp((presentKeys.length / requiredKeys.length) * 100)),
+    };
+  });
+
+  return {
+    score: Math.round(files.reduce((sum, file) => sum + file.score, 0) / Math.max(1, files.length)),
+    files,
+  };
+}
+
+function opStatus(score = 0) {
+  if (score >= 85) return "OP_READY";
+  if (score >= 65) return "ALPHA_READY";
+  if (score >= 45) return "DEGRADED_BUT_USABLE";
+  return "SETUP_REQUIRED";
+}
+
+function nextActions(report = {}) {
+  const actions = [];
+
+  if (report.keys.missingCriticalKeys.length) {
+    actions.push({
+      priority: "critical",
+      action: "Add missing API keys as local .env values and GitHub Secrets.",
+      missing: report.keys.missingCriticalKeys.slice(0, 12),
+    });
+  }
+  if (report.native.liveReadyProtocols === 0) {
+    actions.push({
+      priority: "critical",
+      action: "Configure at least one native launch lane with protocol IDs plus RPC/WebSocket access.",
+      missing: report.native.requiredEnvironmentVariables.slice(0, 16),
+    });
+  }
+  if (report.datasets.criticalScore < 100) {
+    actions.push({
+      priority: "high",
+      action: "Run scans long enough to populate outcome, ledger, native-event, and paper-trading memory.",
+      missing: report.datasets.missingCriticalDatasets.map((dataset) => dataset.id),
+    });
+  }
+  if (report.sources.categories.wallet?.enabled === 0) {
+    actions.push({
+      priority: "high",
+      action: "Add at least one wallet intelligence source so smart-money and deployer labels stop relying on weak proxies.",
+      missing: ["ARKHAM_API_KEY", "NANSEN_API_KEY", "DEBANK_API_KEY"],
+    });
+  }
+  if (report.automation.score < 100) {
+    actions.push({
+      priority: "medium",
+      action: "Keep GitHub Actions env wiring aligned with OP Mode keys so cloud scans match local scans.",
+      missing: report.automation.files.flatMap((file) => file.missingKeys).slice(0, 12),
+    });
+  }
+
+  return actions;
+}
+
+export function buildOpModeReadiness(options = {}) {
+  const env = options.env || process.env;
+  const keys = buildKeyReadiness(env);
+  const sources = buildSourceReadiness();
+  const native = buildNativeReadiness(env);
+  const datasets = buildDatasetReadiness(options);
+  const automation = workflowEnvReadiness(options.repoRoot || path.resolve("."));
+  const score = Math.round(
+    keys.score * 0.25 +
+      sources.score * 0.15 +
+      native.score * 0.25 +
+      Math.max(datasets.score, datasets.criticalScore) * 0.2 +
+      automation.score * 0.15
+  );
+  const report = {
+    generatedAt: new Date().toISOString(),
+    name: "OP Mode Readiness Report",
+    description:
+      "A setup and evidence audit for turning Crypto Launch Intelligence into an institutional-grade scanner. It reports missing keys, source gaps, native-launch coverage, memory datasets, workflow wiring, and next actions without exposing secret values.",
+    score,
+    status: opStatus(score),
+    keys,
+    sources,
+    native,
+    datasets,
+    automation,
+  };
+
+  return {
+    ...report,
+    nextActions: nextActions(report),
+  };
+}
+
+export function writeOpModeReadinessReport(options = {}) {
+  fs.mkdirSync(REPORT_DIR, { recursive: true });
+  const report = buildOpModeReadiness(options);
+  fs.writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2));
+  return {
+    filePath: REPORT_FILE,
+    report,
+  };
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { filePath, report } = writeOpModeReadinessReport();
+  console.log(
+    JSON.stringify(
+      {
+        filePath,
+        status: report.status,
+        score: report.score,
+        missingKeyGroups: report.keys.groups
+          .filter((group) => group.status !== "READY")
+          .map((group) => ({ id: group.id, status: group.status, missing: group.missingRequired })),
+        liveReadyNativeProtocols: report.native.liveReadyProtocols,
+        missingCriticalDatasets: report.datasets.missingCriticalDatasets.map((dataset) => dataset.id),
+        nextActions: report.nextActions,
+      },
+      null,
+      2
+    )
+  );
+}

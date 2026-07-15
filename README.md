@@ -15,7 +15,7 @@ It scans free market, launch, social, GitHub, roadmap, liquidity, narrative, cat
 This is not a simple token screener. It is a layered research system with:
 
 - Free-source project discovery
-- 10,000-candidate wide scan mode
+- 39,000-candidate wide scan mode
 - Discovery Truth Network with canonical source manifest, lifecycle lanes, evidence-family independence, and rejected-candidate shadow watchlist
 - Native Discovery Mesh for early pool lifecycle events, first real buyers, usable liquidity, and deployer reputation checks
 - Discovery Decision Engine with project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted ranking, and missed-winner lab
@@ -464,7 +464,7 @@ Supported discovery and research sources include:
 - Built-in research seed fallback
 - Candidate rescue expansion
 
-Wide scan mode targets up to 10,000 free-source candidates:
+Wide scan mode targets up to 39,000 free-source candidates:
 
 ```bash
 npm run scan:wide
@@ -587,6 +587,7 @@ Every scan can generate a full research packet:
 | `reports/dossier-swarm.json` | Specialist project research packets |
 | `reports/portfolio-war-room.json` | Narrative battle map and allocation buckets |
 | `reports/source-router.json` | Free-source provider health |
+| `reports/op-mode-readiness.json` | OP Mode setup audit for keys, native protocols, memory datasets, source coverage, and GitHub Actions wiring |
 | `reports/engine-audit.json` | Engine import and readiness audit |
 | `reports/roadmap.json` | Public roadmap data |
 
@@ -700,19 +701,47 @@ node src/cli.js decision-engine
 node src/cli.js explain AKT
 ```
 
+## OP Mode Readiness
+
+The fastest way to make the scanner stronger is to improve its outside truth: API keys, native event access, historical outcomes, wallet labels, and execution-route evidence.
+
+Run the OP Mode setup audit:
+
+```bash
+npm run op:check
+npm run op:readiness
+```
+
+This writes `reports/op-mode-readiness.json` and checks:
+
+- AI research configuration
+- Market, social, news, explorer, wallet, and safety API coverage
+- Native launch/pool protocol identifiers
+- Chain RPC/WebSocket readiness
+- Memory datasets for outcomes, paper trades, source routing, native events, and universe accounting
+- GitHub Actions environment wiring
+
+The report never prints secret values. It only reports which key names or protocol settings are present or missing.
+
 ## Optional API Keys
 
 The scanner works without paid keys, but optional keys can improve coverage:
 
 ```bash
 export BIRDEYE_API_KEY="your_birdeye_key"
+export OPENAI_API_KEY="your_openai_key"
+export GITHUB_TOKEN="your_github_token"
 export X_BEARER_TOKEN="your_x_bearer_token"
 export CRYPTOPANIC_API_KEY="your_cryptopanic_key"
+export BASESCAN_API_KEY="your_basescan_key"
+export SOLSCAN_API_KEY="your_solscan_key"
 export BASE_AERODROME_FACTORY="optional_factory_address"
+export BASE_RPC_URL="optional_base_rpc_url"
 export SOLANA_RAYDIUM_CPMM_PROGRAM="optional_program_id"
+export SOLANA_RPC_URL="optional_solana_rpc_url"
 ```
 
-GitHub repository secrets can use the same names.
+For the complete OP Mode template, see `.env.example`. GitHub repository secrets can use the same names.
 
 ## Example Output
 

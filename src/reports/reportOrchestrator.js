@@ -38,6 +38,7 @@ import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js
 import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
 import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
+import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 
 export function generateReports(projects = [], meta = {}) {
@@ -149,6 +150,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: universeLedgerPath,
   } = writeUniverseLedgerReport(meta);
   const {
+    filePath: opModeReadinessPath,
+  } = writeOpModeReadinessReport();
+  const {
     filePath: sourceRouterPath,
   } = writeSourceRouterReport();
   const {
@@ -217,6 +221,7 @@ export function generateReports(projects = [], meta = {}) {
     preConsensusBreakoutPath,
     sniperReportPath,
     universeLedgerPath,
+    opModeReadinessPath,
     sourceRouterPath,
     engineAuditPath,
     alertsPath,
