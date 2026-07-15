@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Run Intelligence Scanner
-        run: npm run scan:39000
+        run: npm run scan:free-max
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.5' }}

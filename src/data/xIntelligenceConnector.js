@@ -93,6 +93,15 @@ function scorePosts(posts = []) {
 }
 
 async function fetchXSearch(query = "", options = {}) {
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
+
+  if (freeOnly) {
+    return {
+      status: "SKIPPED_FREE_ONLY",
+      posts: [],
+    };
+  }
+
   const bearer = process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN;
 
   if (!bearer || !hasFetch() || !query) {

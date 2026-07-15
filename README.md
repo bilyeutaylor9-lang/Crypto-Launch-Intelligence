@@ -20,6 +20,7 @@ This is not a simple token screener. It is a layered research system with:
 - Native Discovery Mesh for early pool lifecycle events, first real buyers, usable liquidity, and deployer reputation checks
 - Discovery Decision Engine with project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted ranking, and missed-winner lab
 - Evidence-Calibrated Parallel Intelligence Kernel with engine contracts, evidence ledgers, calibrated scores, and final decision overrides
+- Institutional Data Provenance Ledger for source, timestamp, confidence, observation type, source agreement, and promotion readiness
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -97,6 +98,7 @@ npm run alpha:governor
 npm run small-caps
 npm run execution-twin
 npm run organic-integrity
+npm run provenance
 npm run discovery-truth
 npm run native-mesh
 npm run native-report
@@ -130,6 +132,7 @@ The system does not trust one score. It builds a full research case:
 - Outcome memory: compares old calls against later market behavior.
 - Dashboard publishing: turns every scan into a public GitHub Pages intelligence dashboard.
 - Self-auditing kernel: checks engine contracts, evidence coverage, source independence, identity confidence, safety gates, and final-decision provenance.
+- Institutional provenance: requires source lineage, freshness, direct observation, and cross-source agreement before a project can receive institutional-ready data status.
 
 ## System Architecture
 
@@ -173,6 +176,7 @@ The project now behaves like a miniature autonomous research organization.
 | High-Tech Alpha Stack | Adds ten command modules for consensus, contradictions, stress, manipulation, catalysts, rotation, fit, gaps, and readiness | `reports/high-tech-alpha-stack.json` |
 | Self-Evolving Alpha OS | Builds identity graphs, world models, hypotheses, experiments, agent society debate, autopsy, regime adaptation, and thesis output | `reports/self-evolving-alpha-os.json` |
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
+| Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |

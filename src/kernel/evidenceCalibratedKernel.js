@@ -3,6 +3,7 @@ import path from "path";
 import { getSourceManifest, summarizeSourceManifest } from "../config/sourceManifest.js";
 import { summarizeSourceRouter } from "../data/adaptiveSourceRouter.js";
 import { analyzeSignalPerformance } from "../learning/signalPerformanceEngine.js";
+import { buildInstitutionalDataProvenanceLedger } from "./institutionalDataProvenanceLedger.js";
 import { getEngineContracts } from "./engineContractManifest.js";
 
 function num(value = 0) {
@@ -360,7 +361,12 @@ function multiplier(score = 0, floor = 0.25, ceiling = 1.1) {
   return clamp(floor + (clamp(score) / 100) * (ceiling - floor), floor, ceiling);
 }
 
-export function buildEvidenceCalibratedScore(project = {}, ledger = buildEvidenceLedger(project), audit = auditProjectContracts(project)) {
+export function buildEvidenceCalibratedScore(
+  project = {},
+  ledger = buildEvidenceLedger(project),
+  audit = auditProjectContracts(project),
+  provenance = buildInstitutionalDataProvenanceLedger(project)
+) {
   const rawScore = rawSignalScore(project);
   const identityConfidence = clamp(average([project.identityResolutionScore, project.projectIdentity?.score, project.finalQualified ? 75 : 0]));
   const safetyScore = clamp(100 - riskScore(project));
@@ -374,6 +380,7 @@ export function buildEvidenceCalibratedScore(project = {}, ledger = buildEvidenc
   const safetyMultiplier = multiplier(safetyScore, 0.25, 1.1);
   const calibrationMultiplier = multiplier(historicalCalibration, 0.7, 1.05);
   const contractMultiplier = multiplier(contractScore, 0.45, 1.05);
+  const provenanceMultiplier = multiplier(provenance.score, 0.75, 1.06);
   const finalScore = Math.round(
     clamp(
       rawScore *
@@ -383,7 +390,8 @@ export function buildEvidenceCalibratedScore(project = {}, ledger = buildEvidenc
         identityConfidenceMultiplier *
         safetyMultiplier *
         calibrationMultiplier *
-        contractMultiplier
+        contractMultiplier *
+        provenanceMultiplier
     )
   );
 
@@ -399,6 +407,7 @@ export function buildEvidenceCalibratedScore(project = {}, ledger = buildEvidenc
       safety: Number(safetyMultiplier.toFixed(2)),
       historicalCalibration: Number(calibrationMultiplier.toFixed(2)),
       contractAudit: Number(contractMultiplier.toFixed(2)),
+      provenance: Number(provenanceMultiplier.toFixed(2)),
     },
     components: {
       evidenceCoverage: ledger.evidenceCoverage,
@@ -408,12 +417,14 @@ export function buildEvidenceCalibratedScore(project = {}, ledger = buildEvidenc
       safetyScore,
       historicalCalibration,
       contractScore,
+      provenanceScore: provenance.score,
+      provenanceReadiness: provenance.institutionalReadiness,
       riskScore: riskScore(project),
     },
   };
 }
 
-export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audit = {}) {
+export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audit = {}, provenance = {}) {
   const blockers = [];
   const warnings = [];
   const promotionRequirements = [];
@@ -438,6 +449,9 @@ export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audi
   if (ledger.confirmedFamilies < 4) warnings.push("Fewer than four confirmed evidence families");
   if (audit.contractPassRate < 50) warnings.push("Engine contract pass rate below 50%");
   if (audit.blockingFailures?.length) blockers.push("Blocking engine contract failed");
+  if (provenance.institutionalReadiness === "BLOCKED") blockers.push("Institutional data provenance blocked this project");
+  if (num(provenance.score) > 0 && num(provenance.score) < 60) warnings.push("Institutional provenance score is below promotion quality");
+  if ((provenance.blockers || []).length) warnings.push(...provenance.blockers.slice(0, 3));
 
   if (!project.address && !project.pairAddress && !project.projectIdentity) {
     promotionRequirements.push("Resolve token, pool, or project identity");
@@ -451,6 +465,12 @@ export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audi
   }
   if (!["PASS", "WATCH"].includes(project.organicDemandFirewallStatus || "WATCH")) {
     promotionRequirements.push("Pass organic buyer and demand integrity firewall");
+  }
+  if (num(provenance.score) > 0 && num(provenance.score) < 68) {
+    promotionRequirements.push("Raise institutional data provenance score above 68");
+  }
+  if (["INSUFFICIENT_PROVENANCE", "DEGRADED_USABLE"].includes(provenance.institutionalReadiness)) {
+    promotionRequirements.push("Resolve provenance warnings before institutional promotion");
   }
 
   const forceResearchOnly =
@@ -709,8 +729,9 @@ export function buildAdvancedBrainKernel(project = {}, scoring = {}, ledger = {}
 export function analyzeEvidenceCalibratedProject(project = {}) {
   const ledger = buildEvidenceLedger(project);
   const audit = auditProjectContracts(project);
-  const scoring = buildEvidenceCalibratedScore(project, ledger, audit);
-  const decision = buildFinalDecision(project, scoring, ledger, audit);
+  const provenance = buildInstitutionalDataProvenanceLedger(project);
+  const scoring = buildEvidenceCalibratedScore(project, ledger, audit, provenance);
+  const decision = buildFinalDecision(project, scoring, ledger, audit, provenance);
   const advancedBrain = buildAdvancedBrainKernel(project, scoring, ledger, audit, decision);
 
   return {
@@ -724,6 +745,7 @@ export function analyzeEvidenceCalibratedProject(project = {}) {
     chainSymbolIdentityId: project.chainSymbolIdentityId || project.projectIdentity?.chainSymbolIdentityId || null,
     symbolInstanceId: project.symbolInstanceId || project.projectIdentity?.symbolInstanceId || null,
     ledger,
+    provenance,
     contractAudit: {
       totalContracts: audit.totalContracts,
       pass: audit.pass,
@@ -1164,6 +1186,7 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
   const analyzed = safeProjects.map(analyzeEvidenceCalibratedProject).sort((a, b) => b.decision.finalScore - a.decision.finalScore);
   const count = (decision) => analyzed.filter((project) => project.decision.finalDecision === decision).length;
   const brainCount = (decision) => analyzed.filter((project) => project.advancedBrain?.brainDecision === decision).length;
+  const provenanceCount = (status) => analyzed.filter((project) => project.provenance?.institutionalReadiness === status).length;
   const contracts = getEngineContracts();
   const phaseGraph = contracts.reduce((acc, contract) => {
     acc[contract.phase] = acc[contract.phase] || [];
@@ -1201,6 +1224,10 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
       averageFinalScore: Math.round(average(analyzed.map((project) => project.decision.finalScore))),
       averageContractPassRate: Math.round(average(analyzed.map((project) => project.contractAudit.contractPassRate))),
       averageEvidenceCoverage: Math.round(average(analyzed.map((project) => project.ledger.evidenceCoverage))),
+      averageProvenanceScore: Math.round(average(analyzed.map((project) => project.provenance?.score))),
+      institutionalProvenanceReady: provenanceCount("INSTITUTIONAL_READY"),
+      provenanceReviewReady: provenanceCount("REVIEW_READY"),
+      provenanceBlocked: provenanceCount("BLOCKED"),
       sourcesConfigured: sourceHealth.sourcesConfigured,
       sourcesSucceeded: sourceHealth.sourcesSucceeded,
       sourcesWithUsableEvidence: sourceHealth.sourcesWithUsableEvidence,
@@ -1234,7 +1261,7 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
     topDecisions: analyzed.slice(0, 25),
     blocked: analyzed.filter((project) => project.decision.finalDecision === "BLOCKED").slice(0, 25),
     evidenceGaps: analyzed
-      .filter((project) => project.ledger.evidenceCoverage < 45 || project.contractAudit.contractPassRate < 50)
+      .filter((project) => project.ledger.evidenceCoverage < 45 || project.contractAudit.contractPassRate < 50 || num(project.provenance?.score) < 60)
       .slice(0, 25),
   };
 }

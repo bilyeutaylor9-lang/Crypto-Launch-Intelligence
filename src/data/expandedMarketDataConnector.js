@@ -342,8 +342,9 @@ export async function getCoinLoreCandidates(options = {}) {
 
 export async function getCryptoCompareCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const apiKey = process.env.CRYPTOCOMPARE_API_KEY || "";
-  const allowNoKey = process.env.CRYPTOCOMPARE_ALLOW_NO_KEY === "true";
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
+  const apiKey = freeOnly ? "" : process.env.CRYPTOCOMPARE_API_KEY || "";
+  const allowNoKey = freeOnly || process.env.CRYPTOCOMPARE_ALLOW_NO_KEY === "true";
 
   if (!apiKey && !allowNoKey) {
     return [];
@@ -860,14 +861,15 @@ function dedupe(projects = []) {
 
 export async function getExpandedMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
   const providerConcurrency = Math.max(
     1,
     Math.min(8, Number(options.providerConcurrency || process.env.MARKET_PROVIDER_CONCURRENCY || 4))
   );
   const sourceCalls = [
-    ["coincap", () => getCoinCapProviderResult({ limit }), true],
+    ["coincap", () => getCoinCapProviderResult({ limit }), true, true],
     ["coinlore", () => getCoinLoreCandidates({ limit })],
-    ["cryptocompare", () => getCryptoCompareCandidates({ limit })],
+    ["cryptocompare", () => getCryptoCompareCandidates({ limit, freeOnly })],
     ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit })],
     ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit })],
     ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit })],
@@ -882,7 +884,7 @@ export async function getExpandedMarketDataProviderBatch(options = {}) {
     ["bitfinex", () => getBitfinexTickerCandidates({ limit })],
     ["bitstamp", () => getBitstampTickerCandidates({ limit })],
     ["gemini", () => getGeminiTickerCandidates({ limit })],
-  ];
+  ].filter(([, , , requiresKey]) => !(freeOnly && requiresKey));
   const providers = await runConcurrent(
     sourceCalls,
     async ([name, fn, returnsProviderResult]) => {

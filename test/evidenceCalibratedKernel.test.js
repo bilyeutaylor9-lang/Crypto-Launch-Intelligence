@@ -11,6 +11,10 @@ import {
   runKernelFixtureAudit,
 } from "../src/kernel/evidenceCalibratedKernel.js";
 import { getEngineContracts } from "../src/kernel/engineContractManifest.js";
+import {
+  buildInstitutionalDataProvenanceLedger,
+  summarizeInstitutionalDataProvenance,
+} from "../src/kernel/institutionalDataProvenanceLedger.js";
 
 function strongProject() {
   const evidence = getEngineContracts().map((contract) => ({
@@ -40,6 +44,15 @@ function strongProject() {
     sourceTruth: { sources: [{ source: "dexscreener" }, { source: "github" }, { source: "coingecko" }] },
     liquidityUsd: 900000,
     volume24h: 180000,
+    marketCap: 42000000,
+    fdv: 52000000,
+    circulatingSupply: 420000000,
+    totalSupply: 520000000,
+    valuationSources: [
+      { source: "dexscreener", type: "marketCap", value: 42000000 },
+      { source: "coingecko", type: "marketCap", value: 43000000 },
+      { source: "geckoterminal", type: "fdv", value: 52000000 },
+    ],
     activeLiquidityTruthScore: 82,
     activeLiquidityTruthVerdict: "Usable Exit Liquidity Confirmed",
     organicBuyerScore: 78,
@@ -111,6 +124,45 @@ test("evidence ledger measures coverage and independent sources", () => {
   assert.ok(ledger.evidenceCoverage >= 70);
 });
 
+test("institutional provenance ledger scores clean source lineage", () => {
+  const provenance = buildInstitutionalDataProvenanceLedger(strongProject(), {
+    now: "2026-07-15T01:00:00.000Z",
+  });
+  const summary = summarizeInstitutionalDataProvenance([strongProject()], {
+    now: "2026-07-15T01:00:00.000Z",
+  });
+
+  assert.ok(provenance.score >= 75);
+  assert.ok(["INSTITUTIONAL_READY", "REVIEW_READY"].includes(provenance.institutionalReadiness));
+  assert.ok(provenance.components.sourceAgreement >= 70);
+  assert.ok(provenance.sourceSummary.sourceCount >= 3);
+  assert.equal(summary.totalProjects, 1);
+  assert.ok(summary.averageProvenanceScore >= 75);
+});
+
+test("institutional provenance ledger blocks severe source disagreement", () => {
+  const conflicted = {
+    ...strongProject(),
+    symbol: "DISAGREE",
+    marketCap: 42000000,
+    fdv: 9000000000,
+    circulatingSupply: 420000000,
+    coinGeckoTotalSupply: 150000,
+    valuationSources: [
+      { source: "dexscreener", type: "marketCap", value: 42000000 },
+      { source: "coingecko", type: "marketCap", value: 320000 },
+      { source: "geckoterminal", type: "fdv", value: 9000000000 },
+    ],
+  };
+  const provenance = buildInstitutionalDataProvenanceLedger(conflicted, {
+    now: "2026-07-15T01:00:00.000Z",
+  });
+
+  assert.equal(provenance.institutionalReadiness, "BLOCKED");
+  assert.ok(provenance.components.sourceAgreement < 50);
+  assert.ok(provenance.blockers.some((blocker) => /disagreement/i.test(blocker)));
+});
+
 test("engine contract audit passes fully evidenced project", () => {
   const audit = auditProjectContracts(strongProject());
 
@@ -127,6 +179,8 @@ test("evidence-calibrated kernel can arm a fully proven setup", () => {
   assert.ok(analyzed.advancedBrain.brainScore >= 80);
   assert.ok(analyzed.advancedBrain.metacognition.canPromote);
   assert.ok(analyzed.scoring.finalScore >= 80);
+  assert.ok(analyzed.provenance.score >= 75);
+  assert.ok(analyzed.scoring.multipliers.provenance >= 1);
   assert.equal(analyzed.decision.promotionRequirements.length, 0);
 });
 
@@ -238,4 +292,6 @@ test("kernel report includes manifest audit, fixture audit, and learning loop", 
   assert.ok(report.learningLoop.tracks.includes("maxUpside7d"));
   assert.equal(report.summary.brain.armed, 1);
   assert.ok(report.summary.brain.averageBrainScore >= 80);
+  assert.ok(report.summary.averageProvenanceScore >= 75);
+  assert.ok(report.topDecisions[0].provenance.score >= 75);
 });

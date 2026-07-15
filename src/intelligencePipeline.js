@@ -121,6 +121,7 @@ import {
   analyzeSniperIntegrityGateBatch,
   validateSniperIntegrityInvariants,
 } from "./engines/sniperIntegrityGateEngine.js";
+import { analyzeInstitutionalDataProvenanceBatch } from "./kernel/institutionalDataProvenanceLedger.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1238,6 +1239,7 @@ function addFinalScoring(projects = []) {
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
   let results = Array.isArray(projects)
     ? [...projects]
     : normalizeEngineOutput(projects, []);
@@ -1256,7 +1258,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("GitHub Quality", analyzeGithubBatch, results);
   results = await runEngine("Community Growth", analyzeCommunityGrowthBatch, results);
   results = await runEngine("Social Acceleration", analyzeSocialAccelerationBatch, results);
-  results = await runEngine("External Intelligence", analyzeExternalIntelligenceBatch, results, options.externalIntelligence || {});
+  results = await runEngine("External Intelligence", analyzeExternalIntelligenceBatch, results, {
+    ...(options.externalIntelligence || {}),
+    freeOnly,
+  });
   results = await runEngine("Web Research Agent", analyzeWebResearchAgentBatch, results, options.webResearchAgent || {});
   results = await runEngine("Roadmap Catalyst Profit", analyzeRoadmapCatalystProfitBatch, results, options.roadmapCatalystProfit || {});
   results = await runEngine("X Social Intelligence", analyzeXSocialIntelligenceBatch, results);
@@ -1370,6 +1375,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
+  results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

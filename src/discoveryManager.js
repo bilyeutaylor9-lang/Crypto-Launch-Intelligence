@@ -26,6 +26,7 @@ import {
   saveSourceRoutingOutcome,
   shouldRunSource,
 } from "./data/adaptiveSourceRouter.js";
+import { getSourceById } from "./config/sourceManifest.js";
 import { saveUniverseLedger } from "./learning/universeLedgerStore.js";
 import {
   resolveDiscoveryExecutionOptions,
@@ -35,6 +36,8 @@ import {
 } from "./discovery/discoveryExecutionGrid.js";
 
 const DEFAULT_WIDE_SCAN_TARGET = 39000;
+const FREE_MAX_COIN_GECKO_PAGES = 10;
+const FREE_MAX_COIN_GECKO_CATEGORIES = 11;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -55,7 +58,9 @@ function normalizeResults(output, fallback = []) {
 }
 
 export function resolveDiscoveryLimits(options = {}) {
-  const wideScan = options.wideScan ?? process.env.WIDE_SCAN === "true";
+  const freeMax = options.freeMax ?? process.env.FREE_MAX_MODE === "true";
+  const freeOnly = freeMax || (options.freeOnly ?? process.env.FREE_ONLY_MODE === "true");
+  const wideScan = options.wideScan ?? (freeMax || process.env.WIDE_SCAN === "true");
   const targetCandidates = num(
     options.targetCandidates ||
       process.env.DISCOVERY_TARGET_CANDIDATES ||
@@ -72,6 +77,8 @@ export function resolveDiscoveryLimits(options = {}) {
 
   return {
     wideScan,
+    freeMax,
+    freeOnly,
     targetCandidates,
     wideLimit,
     scanLimit,
@@ -279,6 +286,24 @@ async function safeSource(name, fn, options = {}) {
 }
 
 async function routedSource(plan = {}, sourceKey = "", name = "", fn, options = {}) {
+  const source = getSourceById(sourceKey);
+  const freeOnly = options.freeOnly ?? (options.freeMax ?? process.env.FREE_ONLY_MODE === "true");
+
+  if (freeOnly && source.requiresKey) {
+    return {
+      name,
+      status: "SKIPPED",
+      durationMs: 0,
+      output: [],
+      error: "Skipped by free-only mode because this source requires an API key",
+      failureType: null,
+      attempted: false,
+      timeoutMs: timeoutMsForDiscoverySource(sourceKey, options),
+      candidateCount: 0,
+      usableEvidence: false,
+    };
+  }
+
   if (!shouldRunSource(plan, sourceKey)) {
     return {
       name,
@@ -556,6 +581,8 @@ export async function runDiscoveryManager(options = {}) {
   const limits = resolveDiscoveryLimits(options);
   const {
     wideScan,
+    freeMax,
+    freeOnly,
     targetCandidates,
     wideLimit,
     maxTokens,
@@ -571,9 +598,26 @@ export async function runDiscoveryManager(options = {}) {
     options.candidateRescue?.enabled ?? process.env.DISABLE_CANDIDATE_RESCUE !== "true";
   const aiDiscoverySwarmEnabled =
     options.aiDiscoverySwarm?.enabled ?? process.env.DISABLE_AI_DISCOVERY_SWARM !== "true";
-  const sourceRouterPlan = options.sourceRouter?.enabled === false
+  const sourceRouterPlan = options.sourceRouter?.enabled === false || freeMax
     ? { sources: [], run: [], skipped: [], prioritized: [] }
     : getSourceRoutingPlan();
+  const executionOptions = freeMax
+    ? {
+        ...options,
+        freeOnly,
+        freeMax,
+        sourceTimeouts: {
+          dexscreener: 120_000,
+          geckoterminal: 60_000,
+          coingecko: 120_000,
+          googleNewsDiscovery: 60_000,
+          githubProjectDiscovery: 60_000,
+          freeMarketData: 60_000,
+          expandedMarketData: 120_000,
+          ...(options.sourceTimeouts || {}),
+        },
+      }
+    : { ...options, freeOnly, freeMax };
 
   const sourceResults = await runDiscoverySourceGrid(
     [
@@ -593,12 +637,16 @@ export async function runDiscoveryManager(options = {}) {
         name: "CoinGecko",
         run: () =>
           getCoinGeckoCandidates({
-            perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
-            pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || (wideScan ? 2 : 1)),
+            perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || (freeMax ? 250 : 100)),
+            pages: num(
+              options.coinGeckoPages ||
+                process.env.COINGECKO_PAGES ||
+                (freeMax ? FREE_MAX_COIN_GECKO_PAGES : wideScan ? 2 : 1)
+            ),
             categoryLimit: num(
               options.coinGeckoCategoryLimit ||
                 process.env.COINGECKO_CATEGORY_LIMIT ||
-                (wideScan ? 8 : 4)
+                (freeMax ? FREE_MAX_COIN_GECKO_CATEGORIES : wideScan ? 8 : 4)
             ),
           }),
       },
@@ -613,17 +661,21 @@ export async function runDiscoveryManager(options = {}) {
       {
         key: "freeMarketData",
         name: "FreeMarketData",
-        run: () => getFreeMarketDataProviderBatch({ limit: freeLimit }),
+        run: () => getFreeMarketDataProviderBatch({ limit: freeLimit, freeOnly }),
       },
       {
         key: "expandedMarketData",
         name: "ExpandedMarketData",
-        run: () => getExpandedMarketDataProviderBatch({ limit: expandedLimit }),
+        run: () => getExpandedMarketDataProviderBatch({ limit: expandedLimit, freeOnly }),
       },
       {
         key: "googleNewsDiscovery",
         name: "GoogleNewsDiscovery",
-        run: () => getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit }),
+        run: () =>
+          getGoogleNewsDiscoveryCandidates({
+            limit: googleNewsLimit,
+            queryLimit: options.googleNewsQueryLimit || (freeMax ? 12 : undefined),
+          }),
       },
       {
         key: "githubProjectDiscovery",
@@ -644,7 +696,7 @@ export async function runDiscoveryManager(options = {}) {
       },
     ],
     sourceRouterPlan,
-    options
+    executionOptions
   );
   const {
     dexscreener: dex,
@@ -774,7 +826,14 @@ export async function runDiscoveryManager(options = {}) {
   const discovery = {
     scannedAt: new Date().toISOString(),
     durationMs: Date.now() - startedAt,
-    mode: wideScan ? "wide" : "standard",
+    mode: freeMax ? "free-max" : wideScan ? "wide" : "standard",
+    freeMode: {
+      enabled: freeOnly,
+      freeMax,
+      policy: freeOnly
+        ? "Only public, no-key discovery and intelligence sources are permitted."
+        : "Paid-key sources may run when configured.",
+    },
 
     // Only sources that returned candidates are reported as used evidence.
     sourcesUsed: sourceExecution.sourcesWithUsableEvidence,

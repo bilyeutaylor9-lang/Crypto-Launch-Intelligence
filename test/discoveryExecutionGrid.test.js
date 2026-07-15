@@ -7,7 +7,8 @@ import {
   runWithTimeBudget,
   timeoutMsForDiscoverySource,
 } from "../src/discovery/discoveryExecutionGrid.js";
-import { runDiscoverySourceGrid } from "../src/discoveryManager.js";
+import { resolveDiscoveryLimits, runDiscoverySourceGrid } from "../src/discoveryManager.js";
+import { analyzeExternalIntelligenceBatch } from "../src/engines/externalIntelligenceEngine.js";
 
 test("discovery execution grid honors its concurrency ceiling and keeps result order", async () => {
   let active = 0;
@@ -75,4 +76,46 @@ test("execution controls support global and per-source time budgets", () => {
     }),
     9_000
   );
+});
+
+test("free-max discovery uses the wide public-source profile", () => {
+  const limits = resolveDiscoveryLimits({ freeMax: true });
+
+  assert.equal(limits.freeMax, true);
+  assert.equal(limits.freeOnly, true);
+  assert.equal(limits.wideScan, true);
+  assert.equal(limits.targetCandidates, 39_000);
+  assert.equal(limits.maxTokens, 750);
+});
+
+test("free-only mode never invokes an API-key discovery source", async () => {
+  let invoked = false;
+  const outcomes = await runDiscoverySourceGrid(
+    [
+      {
+        key: "birdeye",
+        name: "Birdeye",
+        run: async () => {
+          invoked = true;
+          return [{ symbol: "SHOULD_NOT_RUN" }];
+        },
+      },
+    ],
+    { sources: [] },
+    { freeOnly: true }
+  );
+
+  assert.equal(invoked, false);
+  assert.equal(outcomes.birdeye.status, "SKIPPED");
+  assert.match(outcomes.birdeye.error, /free-only mode/i);
+});
+
+test("free-only mode bypasses paid X and news enrichment", async () => {
+  const [project] = await analyzeExternalIntelligenceBatch(
+    [{ name: "Free Mode Token", symbol: "FREE", chain: "base" }],
+    { freeOnly: true }
+  );
+
+  assert.equal(project.externalIntelligence.status.x, "SKIPPED_FREE_ONLY");
+  assert.equal(project.externalIntelligence.status.news, "SKIPPED_FREE_ONLY");
 });

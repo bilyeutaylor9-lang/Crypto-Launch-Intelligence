@@ -65,8 +65,15 @@ function localTextSignals(project = {}) {
 
 export async function analyzeExternalIntelligenceBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const xMap = await getXProjectIntelligenceBatch(safeProjects, options.x || {});
-  const newsMap = await getNewsProjectIntelligenceBatch(safeProjects, options.news || {});
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
+  const xMap = await getXProjectIntelligenceBatch(safeProjects, {
+    ...(options.x || {}),
+    freeOnly,
+  });
+  const newsMap = await getNewsProjectIntelligenceBatch(safeProjects, {
+    ...(options.news || {}),
+    freeOnly,
+  });
   const inlineInternetEnabled =
     options.internet?.enabled === true || process.env.EXTERNAL_INLINE_INTERNET === "true";
   const internetMap = inlineInternetEnabled

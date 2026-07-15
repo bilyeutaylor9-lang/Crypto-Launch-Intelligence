@@ -73,6 +73,15 @@ function scoreNews(items = []) {
 }
 
 async function fetchCryptoPanic(project = {}, options = {}) {
+  const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
+
+  if (freeOnly) {
+    return {
+      status: "SKIPPED_FREE_ONLY",
+      articles: [],
+    };
+  }
+
   const key = process.env.CRYPTOPANIC_API_KEY;
 
   if (!key || !hasFetch()) {

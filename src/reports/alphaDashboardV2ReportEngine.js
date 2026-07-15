@@ -8,6 +8,7 @@ import { summarizeAutonomousAlphaOS } from "../engines/autonomousAlphaOSEngine.j
 import { summarizeSmallCapHunter } from "../engines/smallCapHunterEngine.js";
 import { summarizeProofOfAlphaExecutionTwin } from "../engines/proofOfAlphaExecutionTwinEngine.js";
 import { summarizeOrganicDemandIntegrity } from "../engines/organicDemandIntegrityEngine.js";
+import { summarizeInstitutionalDataProvenance } from "../kernel/institutionalDataProvenanceLedger.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -75,6 +76,11 @@ function compact(project = {}) {
     causalDriver: project.causalSignalGraph?.primaryDriver?.label || "Unknown",
     sourceTruthScore: project.sourceTruthScore || 0,
     sourceTruthVerdict: project.sourceTruthVerdict || "Unknown",
+    institutionalDataProvenanceScore: project.institutionalDataProvenanceScore || project.institutionalDataProvenance?.score || 0,
+    institutionalDataReadiness:
+      project.institutionalDataReadiness ||
+      project.institutionalDataProvenance?.institutionalReadiness ||
+      "Unknown",
     githubProScore: project.githubProScore || 0,
     githubProVerdict: project.githubProVerdict || "Unknown",
     risk: maxRisk(project),
@@ -92,6 +98,7 @@ export function buildAlphaDashboardV2(projects = []) {
   const smallCapHunter = summarizeSmallCapHunter(safeProjects);
   const executionTwin = summarizeProofOfAlphaExecutionTwin(safeProjects);
   const organicIntegrity = summarizeOrganicDemandIntegrity(safeProjects);
+  const institutionalDataProvenance = summarizeInstitutionalDataProvenance(safeProjects);
   const qualifiedCandidates = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED");
   const blockedCandidates = safeProjects.filter((project) => project.finalSelectionState === "BLOCKED");
   const identityConflicts = safeProjects.filter((project) => project.finalSelectionState === "IDENTITY_CONFLICT");
@@ -116,6 +123,7 @@ export function buildAlphaDashboardV2(projects = []) {
       paperWinRate: paperLab.memory?.winRate || 0,
       evaluatedPaperTrades: paperLab.memory?.evaluatedRecords || 0,
       bestSource: sourceTruth.sources?.[0] || null,
+      institutionalDataReady: institutionalDataProvenance.counts?.institutionalReady || 0,
       bestGithubProject: githubPro.topRepositories?.[0] || null,
       smallCapResearchPicks: smallCapHunter.topTwo || [],
       executionTwinPicks: executionTwin.topExecutions || [],
@@ -135,6 +143,9 @@ export function buildAlphaDashboardV2(projects = []) {
       paperDowngrades: paperLab.downgradeStrategyCount || 0,
       verifiedSourceStacks: sourceTruth.verifiedStacks || 0,
       weakSourceStacks: sourceTruth.weakStacks || 0,
+      institutionalDataReady: institutionalDataProvenance.counts?.institutionalReady || 0,
+      provenanceReviewReady: institutionalDataProvenance.counts?.reviewReady || 0,
+      provenanceBlocked: institutionalDataProvenance.counts?.blocked || 0,
       eliteGithubSignals: githubPro.eliteBuilderSignals || 0,
       healthyGithubSignals: githubPro.healthyBuilderSignals || 0,
       smallCapHunterPicks: smallCapHunter.selectedCount || 0,
@@ -156,6 +167,7 @@ export function buildAlphaDashboardV2(projects = []) {
     smallCapHunter,
     executionTwin,
     organicIntegrity,
+    institutionalDataProvenance,
     paperTradingOutcomeLab: paperLab,
     autoLearningWeightOptimizer: optimizer,
     sourceTruth,
@@ -182,12 +194,14 @@ export function writeAlphaDashboardV2Report(projects = []) {
   const weightOptimizerPath = path.join(reportsDir, "weight-optimizer.json");
   const sourceTruthPath = path.join(reportsDir, "source-truth.json");
   const githubProPath = path.join(reportsDir, "github-intelligence-pro.json");
+  const provenancePath = path.join(reportsDir, "institutional-data-provenance-dashboard.json");
 
   fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
   fs.writeFileSync(paperLabPath, JSON.stringify(report.paperTradingOutcomeLab, null, 2));
   fs.writeFileSync(weightOptimizerPath, JSON.stringify(report.autoLearningWeightOptimizer, null, 2));
   fs.writeFileSync(sourceTruthPath, JSON.stringify(report.sourceTruth, null, 2));
   fs.writeFileSync(githubProPath, JSON.stringify(report.githubIntelligencePro, null, 2));
+  fs.writeFileSync(provenancePath, JSON.stringify(report.institutionalDataProvenance, null, 2));
 
   return {
     filePath,
@@ -195,6 +209,7 @@ export function writeAlphaDashboardV2Report(projects = []) {
     weightOptimizerPath,
     sourceTruthPath,
     githubProPath,
+    provenancePath,
     report,
   };
 }

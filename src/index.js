@@ -64,6 +64,26 @@ function scoreOf(project = {}) {
   return Math.max(existing, fused);
 }
 
+function pipelineLimit() {
+  const configured = Number(process.env.INTELLIGENCE_PIPELINE_LIMIT || 0);
+  return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 0;
+}
+
+function selectResearchQueue(projects = []) {
+  const candidates = Array.isArray(projects) ? projects : [];
+  const limit = pipelineLimit();
+
+  if (!limit || candidates.length <= limit) return candidates;
+
+  return [...candidates]
+    .sort(
+      (left, right) =>
+        num(right.discoveryPriorityScore) - num(left.discoveryPriorityScore) ||
+        num(right.independentEvidenceScore) - num(left.independentEvidenceScore)
+    )
+    .slice(0, limit);
+}
+
 function normalizeForReports(projects = []) {
   return [...projects]
     .map((project) => {
@@ -422,11 +442,16 @@ async function main() {
 
     printDiscoveryStats(discoveredProjects, discoveredList);
 
-    console.log("");
-    console.log("Running intelligence pipeline...\n");
+    const researchQueue = selectResearchQueue(discoveredList);
 
-    const pipelineResults = await runIntelligencePipeline(discoveredList, {
+    console.log("");
+    console.log(
+      `Running intelligence pipeline on ${researchQueue.length.toLocaleString()} of ${discoveredList.length.toLocaleString()} discovered projects...\n`
+    );
+
+    const pipelineResults = await runIntelligencePipeline(researchQueue, {
       saveMemory: true,
+      freeOnly: discoveredProjects.freeMode?.enabled === true,
     });
 
     const results = normalizeForReports(pipelineResults);

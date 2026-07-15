@@ -150,6 +150,11 @@ export function writeCsvReport(projects = []) {
     "hardExitLiquidityUsd",
     "organicActivityShare",
     "economicIntegrityBlockers",
+    "institutionalDataProvenanceScore",
+    "institutionalDataReadiness",
+    "institutionalDataSourceCount",
+    "institutionalDataSourceFamilyCount",
+    "institutionalDataBlockers",
     "confidenceAdjustedRank",
     "confidenceAdjustedScore",
     "institutionalRankScore",
@@ -428,6 +433,15 @@ export function writeCsvReport(projects = []) {
     p.organicActivityShare ?? "",
     Array.isArray(p.economicIntegrityBlockers)
       ? p.economicIntegrityBlockers.join("; ")
+      : "",
+    p.institutionalDataProvenanceScore ?? p.institutionalDataProvenance?.score ?? "",
+    p.institutionalDataReadiness ?? p.institutionalDataProvenance?.institutionalReadiness ?? "",
+    p.institutionalDataSourceCount ?? p.institutionalDataProvenance?.sourceSummary?.sourceCount ?? "",
+    p.institutionalDataSourceFamilyCount ?? p.institutionalDataProvenance?.sourceSummary?.sourceFamilyCount ?? "",
+    Array.isArray(p.institutionalDataBlockers)
+      ? p.institutionalDataBlockers.join("; ")
+      : Array.isArray(p.institutionalDataProvenance?.blockers)
+      ? p.institutionalDataProvenance.blockers.join("; ")
       : "",
     p.confidenceAdjustedRank ?? "",
     p.confidenceAdjustedScore ?? "",
