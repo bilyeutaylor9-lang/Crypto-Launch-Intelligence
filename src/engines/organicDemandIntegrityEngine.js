@@ -818,6 +818,199 @@ function scoreCapFor(modules = {}, context = {}) {
   };
 }
 
+function buildResearchTasks(modules = {}, context = {}, cap = {}, verdict = "") {
+  const {
+    holder = {},
+    activity = {},
+    activityAuthenticity = {},
+    exitLiquidity = {},
+    admin = {},
+    yieldModel = {},
+    dataQuality = {},
+    supplyIntegrity = {},
+  } = modules;
+  const tasks = [];
+  const liquidity = num(context.liquidity);
+  const volume = num(context.volume);
+  const holders = num(context.holders);
+  const highMarketSignal = liquidity >= 1_000_000 || volume >= 1_000_000 || holders >= 100_000;
+  const addTask = (id, priority, agent, title, reason, evidenceNeeded = [], sourceHints = []) => {
+    if (tasks.some((task) => task.id === id)) return;
+    tasks.push({
+      id,
+      priority,
+      agent,
+      title,
+      status: "open",
+      reason,
+      evidenceNeeded: evidenceNeeded.filter(Boolean),
+      sourceHints: sourceHints.filter(Boolean),
+    });
+  };
+
+  if (activityAuthenticity.risk >= 50 || (highMarketSignal && activityAuthenticity.score < 60)) {
+    addTask(
+      "verify-activity-authenticity",
+      activityAuthenticity.risk >= 75 ? "critical" : "high",
+      "Wallet Flow Agent",
+      "Verify whether transaction activity is organic trading demand.",
+      (activityAuthenticity.warnings || [])[0] || "High activity needs unique-wallet and trade-pattern proof.",
+      [
+        "Unique trader count versus total transaction count.",
+        "Repeat-wallet transaction concentration.",
+        "Circular or recycled wallet-flow score.",
+        "Same-size trade distribution and bot-pattern review.",
+        "Pool and wallet-level volume concentration.",
+      ],
+      ["DexScreener", "GeckoTerminal", "block explorer wallet traces", "Dune/Flipside community dashboards"]
+    );
+  }
+
+  if (supplyIntegrity.risk >= 45 || (highMarketSignal && verdict !== "Organic Demand Confirmed" && num(supplyIntegrity.supplySourceCount) < 2)) {
+    addTask(
+      "reconcile-supply-valuation",
+      supplyIntegrity.risk >= 75 ? "critical" : "high",
+      "Supply Truth Agent",
+      "Reconcile supply, FDV, and market-cap sources before promotion.",
+      (supplyIntegrity.warnings || [])[0] || "Large market numbers need cross-source supply proof.",
+      [
+        "Circulating, total, and max supply from at least two sources.",
+        "FDV and market cap from DEX and market-data sources.",
+        "Token contract supply check from the chain explorer.",
+        "Official tokenomics page or docs link.",
+      ],
+      ["CoinGecko", "CoinMarketCap", "GeckoTerminal", "Bitget", "Etherscan/Basescan/Solscan", "official docs"]
+    );
+  }
+
+  if (exitLiquidity.risk >= 40 || (liquidity >= 1_000_000 && num(exitLiquidity.hardExitLiquidityUsd) < liquidity * 0.35)) {
+    addTask(
+      "prove-hard-exit-liquidity",
+      exitLiquidity.risk >= 60 ? "critical" : "high",
+      "Liquidity Exit Agent",
+      "Prove hard exit liquidity under realistic sell pressure.",
+      (exitLiquidity.warnings || [])[0] || "Displayed liquidity may not equal usable stablecoin exit liquidity.",
+      [
+        "$100K, $1M, and $10M paper sell impact estimates.",
+        "Stablecoin reserve depth in the active pool.",
+        "LP holder count, lock state, and LP concentration.",
+        "Protocol-owned liquidity share.",
+      ],
+      ["DexScreener", "GeckoTerminal", "Uniswap/Aerodrome/Raydium pool pages", "block explorer LP holders"]
+    );
+  }
+
+  if (admin.risk >= 55) {
+    addTask(
+      "verify-admin-controls",
+      "critical",
+      "Contract Safety Agent",
+      "Verify privileged contract controls and ownership safety.",
+      (admin.warnings || [])[0] || "Privileged controls need owner, multisig, and timelock proof.",
+      [
+        "Owner/admin address and role holders.",
+        "Mint, fee, blacklist, pause, burn, and pair-control permissions.",
+        "Timelock and multisig evidence.",
+        "Renounced ownership or verified governance controls.",
+      ],
+      ["Etherscan/Basescan/Solscan", "GoPlus", "TokenSniffer", "official docs", "audit reports"]
+    );
+  }
+
+  if (yieldModel.risk >= 55) {
+    addTask(
+      "stress-test-yield-model",
+      "high",
+      "Yield Sustainability Agent",
+      "Stress test staking, referral, compounding, and issuance economics.",
+      (yieldModel.warnings || [])[0] || "Yield model needs outside-demand and inflation proof.",
+      [
+        "APR/APY source and reward-token source.",
+        "Inflation, unlock, and emissions schedule.",
+        "Referral or rank-reward mechanics.",
+        "Real dollar return after token inflation and price drawdown.",
+      ],
+      ["official docs", "staking app", "tokenomics docs", "vesting/unlock calendars"]
+    );
+  }
+
+  if (holder.risk >= 45 || activity.risk >= 45) {
+    addTask(
+      "audit-holder-and-transaction-quality",
+      "high",
+      "Organic Demand Agent",
+      "Audit whether holders and transactions represent real outside demand.",
+      (holder.warnings || activity.warnings || [])[0] || "Holder and transaction quality need proof.",
+      [
+        "Holder balance buckets above $10, $100, and $1,000.",
+        "Active-holder share over 30 and 90 days.",
+        "Buyer share versus total holders.",
+        "Economic swaps separated from approvals, transfers, and reward claims.",
+      ],
+      ["block explorer holder pages", "DexScreener", "GeckoTerminal", "community analytics dashboards"]
+    );
+  }
+
+  if (dataQuality.risk >= 35 || (cap.reasons || []).length) {
+    addTask(
+      "resolve-score-cap",
+      (cap.reasons || []).some((reason) => /severe|large market/i.test(reason)) ? "critical" : "medium",
+      "Evidence Auditor Agent",
+      "Resolve score-cap reasons before any high-confidence label.",
+      (cap.reasons || [])[0] || (dataQuality.warnings || [])[0] || "Evidence quality is not strong enough for promotion.",
+      [
+        "Direct source links for every large market, liquidity, holder, and volume claim.",
+        "Contradictory source comparison and final accepted value.",
+        "Timestamped evidence for the current scan.",
+      ],
+      ["provider payloads", "official docs", "market data APIs", "chain explorers"]
+    );
+  }
+
+  if (!tasks.length && verdict !== "Organic Demand Confirmed") {
+    addTask(
+      "build-baseline-proof-pack",
+      "medium",
+      "Research OS Agent",
+      "Build a baseline organic-demand proof pack.",
+      "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+      [
+        "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+        "At least one source link per major positive claim.",
+      ],
+      ["official docs", "CoinGecko", "DexScreener", "GeckoTerminal", "chain explorer"]
+    );
+  }
+
+  const rank = { critical: 3, high: 2, medium: 1, low: 0 };
+  return tasks.sort((a, b) => (rank[b.priority] || 0) - (rank[a.priority] || 0) || a.id.localeCompare(b.id));
+}
+
+function promotionBlockedFor({ verdict = "", riskScore = 0, blockers = [], cap = 100, modules = {}, liquidity = 0, volume = 0 } = {}) {
+  const highMarketSignal = num(liquidity) >= 1_000_000 || num(volume) >= 1_000_000;
+  return Boolean(
+    verdict === "Institutional Integrity Block" ||
+      (verdict === "Tradable Anomaly / Verify Organic Demand" && highMarketSignal) ||
+      (num(cap) <= 42 && highMarketSignal) ||
+      num(riskScore) >= 75 ||
+      (blockers || []).length >= 5 ||
+      num(modules.activityAuthenticity?.risk) >= 75 ||
+      num(modules.supplyIntegrity?.risk) >= 75
+  );
+}
+
+function manualReviewLabelFor({ verdict = "", promotionBlocked = false, riskScore = 0, cap = 100, liquidity = 0, volume = 0 } = {}) {
+  const highMarketSignal = num(liquidity) >= 1_000_000 || num(volume) >= 1_000_000;
+  if (verdict === "Organic Demand Confirmed") return "Organic demand verified";
+  if (promotionBlocked && highMarketSignal) {
+    return "High market activity, low fundamental confidence - manual investigation required";
+  }
+  if (promotionBlocked) return "Institutional integrity block - do not promote";
+  if (verdict === "Tradable Anomaly / Verify Organic Demand") return "Tradable anomaly - verify organic demand before promotion";
+  if (num(cap) < 100 || num(riskScore) >= 60) return "Economic proof incomplete - manual investigation required";
+  return "Research queue open - proof required before promotion";
+}
+
 function verdictFor({ score = 0, risk = 0, organic = 0, sustainability = 0, blockers = [], liquidity = 0, volume = 0, cap = 100 } = {}) {
   if (risk >= 78 || blockers.length >= 4) return "Institutional Integrity Block";
   if (cap <= 42 && (liquidity >= 1_000_000 || volume >= 1_000_000)) return "Institutional Integrity Block";
@@ -941,6 +1134,45 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     ...dataQuality.warnings,
     ...supplyIntegrity.warnings,
   ];
+  const researchTasks = buildResearchTasks(
+    {
+      holder,
+      activity,
+      activityAuthenticity,
+      exitLiquidity,
+      admin,
+      yieldModel,
+      dataQuality,
+      supplyIntegrity,
+    },
+    {
+      liquidity,
+      volume,
+      holders: holder.holders,
+    },
+    cap,
+    verdict
+  );
+  const promotionBlocked = promotionBlockedFor({
+    verdict,
+    riskScore,
+    blockers,
+    cap: cap.cap,
+    liquidity,
+    volume,
+    modules: {
+      activityAuthenticity,
+      supplyIntegrity,
+    },
+  });
+  const manualReviewLabel = manualReviewLabelFor({
+    verdict,
+    promotionBlocked,
+    riskScore,
+    cap: cap.cap,
+    liquidity,
+    volume,
+  });
 
   return {
     ...project,
@@ -956,6 +1188,9 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     economicIntegrityPenalty: penalty,
     organicDemandVerdict: verdict,
     organicDemandStrongBuyEligible: strongBuyEligible,
+    organicDemandPromotionBlocked: promotionBlocked,
+    organicDemandManualReviewLabel: manualReviewLabel,
+    economicIntegrityResearchTasks: researchTasks,
     hardExitLiquidityUsd: exitLiquidity.hardExitLiquidityUsd,
     stablecoinExitLiquidityUsd: exitLiquidity.stablecoinReservesUsd,
     organicActivityShare: activity.organicShare,
@@ -971,6 +1206,9 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
       rawScore,
       scoreCap: cap.cap,
       scoreCapReasons: cap.reasons,
+      promotionBlocked,
+      manualReviewLabel,
+      researchTasks,
       organicDemandScore,
       economicSustainabilityScore,
       holder,
@@ -1006,7 +1244,9 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
           `Organic demand ${organicDemandScore}, economic sustainability ${economicSustainabilityScore}, risk ${riskScore}.`,
           cap.reasons[0] || "No score-reversal cap applied.",
           blockers[0] || "No major organic-demand blocker detected.",
+          manualReviewLabel,
           `Hard exit liquidity estimate: $${exitLiquidity.hardExitLiquidityUsd.toLocaleString()}.`,
+          researchTasks[0]?.title || "No urgent organic-demand research task open.",
         ],
       },
     ],
@@ -1026,6 +1266,10 @@ function compact(project = {}) {
     rawScore: project.organicEconomicIntegrityRawScore || project.organicEconomicIntegrityScore || 0,
     scoreCap: project.economicIntegrityScoreCap ?? null,
     scoreCapReasons: project.economicIntegrityScoreCapReasons || [],
+    promotionBlocked: Boolean(project.organicDemandPromotionBlocked),
+    manualReviewLabel: project.organicDemandManualReviewLabel || "Unknown",
+    researchTaskCount: (project.economicIntegrityResearchTasks || []).length,
+    researchTasks: (project.economicIntegrityResearchTasks || []).slice(0, 6),
     activityAuthenticityRiskScore: project.activityAuthenticityRiskScore || 0,
     supplyIntegrityRiskScore: project.supplyIntegrityRiskScore || 0,
     organicDemandScore: project.organicDemandScore || 0,
@@ -1049,6 +1293,13 @@ export function summarizeOrganicDemandIntegrity(projects = []) {
   const anomalies = analyzed.filter((project) => project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand");
   const confirmed = analyzed.filter((project) => project.organicDemandVerdict === "Organic Demand Confirmed");
   const verification = analyzed.filter((project) => project.organicDemandVerdict === "Economic Verification Required");
+  const manualReviewQueue = [...analyzed]
+    .filter((project) => project.organicDemandPromotionBlocked || (project.economicIntegrityResearchTasks || []).length)
+    .sort((a, b) =>
+      num(b.organicDemandPromotionBlocked) - num(a.organicDemandPromotionBlocked) ||
+      num(b.economicIntegrityRiskScore) - num(a.economicIntegrityRiskScore) ||
+      num(b.activityAuthenticityRiskScore) - num(a.activityAuthenticityRiskScore)
+    );
 
   return {
     generatedAt: new Date().toISOString(),
@@ -1060,6 +1311,10 @@ export function summarizeOrganicDemandIntegrity(projects = []) {
     institutionalBlocks: blocks.length,
     tradableAnomalies: anomalies.length,
     verificationRequired: verification.length,
+    promotionBlocked: analyzed.filter((project) => project.organicDemandPromotionBlocked).length,
+    openResearchTasks: analyzed.reduce((sum, project) => sum + (project.economicIntegrityResearchTasks || []).length, 0),
+    manualReviewRequired: manualReviewQueue.length,
+    manualReviewQueue: manualReviewQueue.slice(0, 50).map(compact),
     topConfirmed: confirmed
       .sort((a, b) => num(b.organicEconomicIntegrityScore) - num(a.organicEconomicIntegrityScore))
       .slice(0, 25)

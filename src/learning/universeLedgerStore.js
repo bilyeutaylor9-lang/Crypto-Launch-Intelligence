@@ -116,7 +116,8 @@ function sourceList(project = {}) {
 
 function hasIdentity(project = {}) {
   const identity = project.projectIdentity || attachProjectIdentity(project).projectIdentity;
-  return (identity.evidence || []).length > 0;
+  const resolvingEvidence = (identity.evidence || []).filter((item) => item !== "symbol");
+  return resolvingEvidence.length > 0;
 }
 
 function hasAnyScore(project = {}, keys = [], threshold = 55) {
@@ -125,11 +126,12 @@ function hasAnyScore(project = {}, keys = [], threshold = 55) {
 
 function evidenceFamilyStatus(project = {}) {
   const identity = project.projectIdentity || attachProjectIdentity(project).projectIdentity;
+  const resolvingIdentityEvidence = (identity.evidence || []).filter((item) => item !== "symbol");
   const sources = sourceList(project);
   const statuses = {
     identity: {
       status: hasIdentity(project) ? "confirmed" : "missing",
-      score: clamp((identity.evidence || []).length * 18 + (project.identityVerified ? 30 : 0)),
+      score: clamp(resolvingIdentityEvidence.length * 18 + (project.identityVerified ? 30 : 0)),
       evidence: identity.evidence || [],
     },
     safety: {
@@ -395,6 +397,10 @@ export function buildUniverseLedgerRecord(project = {}, context = {}) {
       identityKey,
       name: enriched.name || "Unknown",
       symbol: enriched.symbol || "UNKNOWN",
+      symbolIdentity: enriched.symbolIdentity || null,
+      symbolIdentityId: enriched.symbolIdentityId || null,
+      chainSymbolIdentityId: enriched.chainSymbolIdentityId || null,
+      symbolInstanceId: enriched.symbolInstanceId || null,
       chain: enriched.chain || "unknown",
       evidence: enriched.projectIdentity?.evidence || [],
       tokenContracts: enriched.projectIdentity?.tokenContracts || [],

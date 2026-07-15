@@ -121,6 +121,8 @@
     "kernel": "node src/kernel/evidenceCalibratedKernel.js",
     "evidence-kernel": "cat reports/evidence-kernel.json",
     "alpha:kernel": "cat reports/evidence-kernel.json",
+    "integrity-stack": "cat reports/integrity-stack.json",
+    "alpha:integrity": "cat reports/integrity-stack.json",
     "discovery-truth": "cat reports/discovery-truth.json",
     "native-discovery": "cat reports/native-discovery-mesh.json",
     "alpha:decision": "cat reports/discovery-decision-engine.json",

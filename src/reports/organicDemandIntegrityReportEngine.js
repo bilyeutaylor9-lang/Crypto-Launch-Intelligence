@@ -15,6 +15,8 @@ export function writeOrganicDemandIntegrityReport(projects = []) {
       "Reconcile circulating supply, total supply, max supply, FDV, and market cap across sources before allowing a high valuation confidence score.",
       "Discount displayed liquidity when LP control, stablecoin reserves, and hard exit liquidity are unknown.",
       "Block high-confidence status when mint/admin/yield/supply-disagreement risk is unresolved.",
+      "Create open research tasks for every unresolved activity, supply, liquidity, admin, yield, and score-cap gap.",
+      "Do not promote high-market-activity candidates until the manual-review label is cleared.",
     ],
     lgnsLesson: "High liquidity, holders, and activity can describe a tradable anomaly rather than organic investment demand.",
   };

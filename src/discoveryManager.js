@@ -27,6 +27,12 @@ import {
   shouldRunSource,
 } from "./data/adaptiveSourceRouter.js";
 import { saveUniverseLedger } from "./learning/universeLedgerStore.js";
+import {
+  resolveDiscoveryExecutionOptions,
+  runConcurrent,
+  runWithTimeBudget,
+  timeoutMsForDiscoverySource,
+} from "./discovery/discoveryExecutionGrid.js";
 
 const DEFAULT_WIDE_SCAN_TARGET = 39000;
 
@@ -235,17 +241,25 @@ function enrichDiscoverySource(project = {}, source = "unknown") {
   };
 }
 
-async function safeSource(name, fn) {
+async function safeSource(name, fn, options = {}) {
   const startedAt = Date.now();
+  const sourceKey = options.sourceKey || name;
+  const timeoutMs = timeoutMsForDiscoverySource(sourceKey, options);
 
   try {
-    const output = await fn();
+    const output = await runWithTimeBudget(fn, { label: name, timeoutMs });
+    const candidateCount = normalizeResults(output, []).length;
     return {
       name,
       status: "SUCCESS",
       durationMs: Date.now() - startedAt,
       output: output || [],
       error: null,
+      failureType: null,
+      attempted: true,
+      timeoutMs,
+      candidateCount,
+      usableEvidence: candidateCount > 0,
     };
   } catch (error) {
     console.warn(`${name} skipped: ${error.message}`);
@@ -255,11 +269,16 @@ async function safeSource(name, fn) {
       durationMs: Date.now() - startedAt,
       output: [],
       error: error.message,
+      failureType: error.code === "DISCOVERY_SOURCE_TIMEOUT" ? "TIMEOUT" : "ERROR",
+      attempted: true,
+      timeoutMs,
+      candidateCount: 0,
+      usableEvidence: false,
     };
   }
 }
 
-async function routedSource(plan = {}, sourceKey = "", name = "", fn) {
+async function routedSource(plan = {}, sourceKey = "", name = "", fn, options = {}) {
   if (!shouldRunSource(plan, sourceKey)) {
     return {
       name,
@@ -267,10 +286,35 @@ async function routedSource(plan = {}, sourceKey = "", name = "", fn) {
       durationMs: 0,
       output: [],
       error: "Skipped by Adaptive Source Router",
+      failureType: null,
+      attempted: false,
+      timeoutMs: timeoutMsForDiscoverySource(sourceKey, options),
+      candidateCount: 0,
+      usableEvidence: false,
     };
   }
 
-  return safeSource(name, fn);
+  return safeSource(name, fn, { ...options, sourceKey });
+}
+
+export async function runDiscoverySourceGrid(sources = [], plan = {}, options = {}) {
+  const execution = resolveDiscoveryExecutionOptions(options);
+  const outcomes = await runConcurrent(
+    sources,
+    (source) =>
+      routedSource(
+        plan,
+        source.key,
+        source.name,
+        source.run,
+        options
+      ),
+    execution
+  );
+
+  return Object.fromEntries(
+    sources.map((source, index) => [source.key, outcomes[index]])
+  );
 }
 
 function getReportNumber(report = {}, keys = []) {
@@ -304,6 +348,74 @@ function summarizeProviders(providers = []) {
     degraded: byStatus.degraded || 0,
     byStatus,
     providers: safeProviders,
+  };
+}
+
+function buildSourceExecutionTelemetry(sourceOutcomes = {}, providers = []) {
+  const aggregateSources = new Set(["freeMarketData", "expandedMarketData"]);
+  const configured = new Set();
+  const attempted = new Set();
+  const succeeded = new Set();
+  const failed = new Set();
+  const skipped = new Set();
+  const timedOut = new Set();
+  const usableEvidence = new Set();
+
+  const record = ({
+    source = "unknown",
+    status = "UNKNOWN",
+    wasAttempted = true,
+    candidateCount = 0,
+    failureType = null,
+    aggregate = false,
+  } = {}) => {
+    if (!source || source === "unknown") return;
+    configured.add(source);
+    const normalizedStatus = String(status || "UNKNOWN").toUpperCase();
+    const healthy = ["SUCCESS", "USED", "HEALTHY", "OK"].includes(normalizedStatus);
+
+    if (!wasAttempted || normalizedStatus === "SKIPPED" || normalizedStatus === "DISABLED") {
+      skipped.add(source);
+    } else if (healthy) {
+      attempted.add(source);
+      succeeded.add(source);
+    } else {
+      attempted.add(source);
+      failed.add(source);
+    }
+
+    if (failureType === "TIMEOUT") timedOut.add(source);
+    if (!aggregate && healthy && num(candidateCount) > 0) usableEvidence.add(source);
+  };
+
+  for (const [source, outcome] of Object.entries(sourceOutcomes)) {
+    record({
+      source,
+      status: outcome?.status,
+      wasAttempted: outcome?.attempted !== false,
+      candidateCount: outcome?.candidateCount,
+      failureType: outcome?.failureType,
+      aggregate: aggregateSources.has(source),
+    });
+  }
+
+  for (const provider of providers) {
+    record({
+      source: provider.source,
+      status: provider.status,
+      wasAttempted: provider.attempted !== false,
+      candidateCount: provider.candidateCount,
+    });
+  }
+
+  return {
+    sourcesConfigured: [...configured].sort(),
+    sourcesAttempted: [...attempted].sort(),
+    sourcesSucceeded: [...succeeded].sort(),
+    sourcesFailed: [...failed].sort(),
+    sourcesSkipped: [...skipped].sort(),
+    sourcesTimedOut: [...timedOut].sort(),
+    sourcesWithUsableEvidence: [...usableEvidence].sort(),
   };
 }
 
@@ -463,43 +575,88 @@ export async function runDiscoveryManager(options = {}) {
     ? { sources: [], run: [], skipped: [], prioritized: [] }
     : getSourceRoutingPlan();
 
-  const dex = await routedSource(sourceRouterPlan, "dexscreener", "DexScreener", () => scanLiveMarket({ maxTokens }));
-  const gecko = await routedSource(sourceRouterPlan, "geckoterminal", "GeckoTerminal", () => getGeckoTerminalCandidates());
-  const coinGecko = await routedSource(sourceRouterPlan, "coingecko", "CoinGecko", () =>
-    getCoinGeckoCandidates({
-      perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
-      pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || (wideScan ? 2 : 1)),
-      categoryLimit: num(
-        options.coinGeckoCategoryLimit ||
-          process.env.COINGECKO_CATEGORY_LIMIT ||
-          (wideScan ? 8 : 4)
-      ),
-    })
+  const sourceResults = await runDiscoverySourceGrid(
+    [
+      {
+        key: "dexscreener",
+        name: "DexScreener",
+        // Discovery only: the full intelligence pipeline runs once after all sources merge.
+        run: () => scanLiveMarket({ maxTokens, runIntelligence: false }),
+      },
+      {
+        key: "geckoterminal",
+        name: "GeckoTerminal",
+        run: () => getGeckoTerminalCandidates(),
+      },
+      {
+        key: "coingecko",
+        name: "CoinGecko",
+        run: () =>
+          getCoinGeckoCandidates({
+            perPage: num(options.coinGeckoPerPage || process.env.COINGECKO_PER_PAGE || 100),
+            pages: num(options.coinGeckoPages || process.env.COINGECKO_PAGES || (wideScan ? 2 : 1)),
+            categoryLimit: num(
+              options.coinGeckoCategoryLimit ||
+                process.env.COINGECKO_CATEGORY_LIMIT ||
+                (wideScan ? 8 : 4)
+            ),
+          }),
+      },
+      {
+        key: "birdeye",
+        name: "Birdeye",
+        run: () =>
+          getBirdeyeCandidates({
+            limit: num(options.birdeyeLimit || process.env.BIRDEYE_LIMIT || 100),
+          }),
+      },
+      {
+        key: "freeMarketData",
+        name: "FreeMarketData",
+        run: () => getFreeMarketDataProviderBatch({ limit: freeLimit }),
+      },
+      {
+        key: "expandedMarketData",
+        name: "ExpandedMarketData",
+        run: () => getExpandedMarketDataProviderBatch({ limit: expandedLimit }),
+      },
+      {
+        key: "googleNewsDiscovery",
+        name: "GoogleNewsDiscovery",
+        run: () => getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit }),
+      },
+      {
+        key: "githubProjectDiscovery",
+        name: "GitHubProjectDiscovery",
+        run: () => getGithubProjectDiscoveryCandidates({ limit: githubDiscoveryLimit }),
+      },
+      {
+        key: "nativeDiscoveryMesh",
+        name: "NativeDiscoveryMesh",
+        run: () =>
+          getNativeDiscoveryMeshCandidates({
+            limit: nativeDiscoveryLimit,
+            collectConnectors:
+              options.nativeDiscovery?.collectConnectors ??
+              process.env.NATIVE_DISCOVERY_COLLECT === "true",
+            includeRaw: options.nativeDiscovery?.includeRaw ?? true,
+          }),
+      },
+    ],
+    sourceRouterPlan,
+    options
   );
-  const birdeye = await routedSource(sourceRouterPlan, "birdeye", "Birdeye", () =>
-    getBirdeyeCandidates({
-      limit: num(options.birdeyeLimit || process.env.BIRDEYE_LIMIT || 100),
-    })
-  );
-  const freeMarket = await routedSource(sourceRouterPlan, "freeMarketData", "FreeMarketData", () =>
-    getFreeMarketDataProviderBatch({ limit: freeLimit })
-  );
-  const expandedMarket = await routedSource(sourceRouterPlan, "expandedMarketData", "ExpandedMarketData", () =>
-    getExpandedMarketDataProviderBatch({ limit: expandedLimit })
-  );
-  const googleNews = await routedSource(sourceRouterPlan, "googleNewsDiscovery", "GoogleNewsDiscovery", () =>
-    getGoogleNewsDiscoveryCandidates({ limit: googleNewsLimit })
-  );
-  const githubDiscovery = await routedSource(sourceRouterPlan, "githubProjectDiscovery", "GitHubProjectDiscovery", () =>
-    getGithubProjectDiscoveryCandidates({ limit: githubDiscoveryLimit })
-  );
-  const nativeDiscovery = await routedSource(sourceRouterPlan, "nativeDiscoveryMesh", "NativeDiscoveryMesh", () =>
-    getNativeDiscoveryMeshCandidates({
-      limit: nativeDiscoveryLimit,
-      collectConnectors: options.nativeDiscovery?.collectConnectors ?? process.env.NATIVE_DISCOVERY_COLLECT === "true",
-      includeRaw: options.nativeDiscovery?.includeRaw ?? true,
-    })
-  );
+  const {
+    dexscreener: dex,
+    geckoterminal: gecko,
+    coingecko: coinGecko,
+    birdeye,
+    freeMarketData: freeMarket,
+    expandedMarketData: expandedMarket,
+    googleNewsDiscovery: googleNews,
+    githubProjectDiscovery: githubDiscovery,
+    nativeDiscoveryMesh: nativeDiscovery,
+  } = sourceResults;
 
   const dexResults = normalizeResults(dex.output, []);
   const geckoResults = normalizeResults(gecko.output, []);
@@ -513,6 +670,10 @@ export async function runDiscoveryManager(options = {}) {
   const freeMarketProviders = providerResultsFrom(freeMarket.output);
   const expandedMarketProviders = providerResultsFrom(expandedMarket.output);
   const providerHealth = summarizeProviders([
+    ...freeMarketProviders,
+    ...expandedMarketProviders,
+  ]);
+  const sourceExecution = buildSourceExecutionTelemetry(sourceResults, [
     ...freeMarketProviders,
     ...expandedMarketProviders,
   ]);
@@ -615,42 +776,9 @@ export async function runDiscoveryManager(options = {}) {
     durationMs: Date.now() - startedAt,
     mode: wideScan ? "wide" : "standard",
 
-    sourcesUsed: [
-      "dexscreener",
-      "geckoterminal",
-      "coingecko",
-      "birdeye",
-      "coinpaprika",
-      "defillama",
-      "defillama-chain",
-      "binance",
-      "kucoin",
-      "coinbase",
-      "kraken",
-      "coincap",
-      "coinlore",
-      "cryptocompare",
-      "defillama-yields",
-      "defillama-stablecoins",
-      "dexscreener-search",
-      "dexscreener-profiles",
-      "dexscreener-boosts",
-      "okx",
-      "bybit",
-      "gate",
-      "mexc",
-      "bitget",
-      "htx",
-      "bitfinex",
-      "bitstamp",
-      "gemini",
-      "google-news",
-      "github-project-discovery",
-      "native-discovery-mesh",
-      "research-seed-supplement",
-      "ai-discovery-swarm",
-      "candidate-rescue",
-    ],
+    // Only sources that returned candidates are reported as used evidence.
+    sourcesUsed: sourceExecution.sourcesWithUsableEvidence,
+    ...sourceExecution,
 
     discoveredCount:
       dexScannedTokens +
@@ -721,6 +849,10 @@ export async function runDiscoveryManager(options = {}) {
       dexscreener: {
         status: dex.status,
         durationMs: dex.durationMs,
+        attempted: dex.attempted,
+        timeoutMs: dex.timeoutMs,
+        failureType: dex.failureType,
+        usableEvidence: dex.usableEvidence,
         scannedTokens: num(dex.output?.scannedTokens || dexResults.length),
         discoveredTokens: num(dex.output?.discoveredTokens || dexResults.length),
         rejectedTokens: dexRejectedTokens,
@@ -731,6 +863,10 @@ export async function runDiscoveryManager(options = {}) {
       geckoterminal: {
         status: gecko.status,
         durationMs: gecko.durationMs,
+        attempted: gecko.attempted,
+        timeoutMs: gecko.timeoutMs,
+        failureType: gecko.failureType,
+        usableEvidence: gecko.usableEvidence,
         scannedTokens: geckoResults.length,
         enabled: true,
         error: gecko.error,
@@ -739,6 +875,10 @@ export async function runDiscoveryManager(options = {}) {
       coingecko: {
         status: coinGecko.status,
         durationMs: coinGecko.durationMs,
+        attempted: coinGecko.attempted,
+        timeoutMs: coinGecko.timeoutMs,
+        failureType: coinGecko.failureType,
+        usableEvidence: coinGecko.usableEvidence,
         scannedTokens: coinGeckoResults.length,
         enabled: true,
         error: coinGecko.error,
@@ -747,6 +887,10 @@ export async function runDiscoveryManager(options = {}) {
       birdeye: {
         status: birdeye.status,
         durationMs: birdeye.durationMs,
+        attempted: birdeye.attempted,
+        timeoutMs: birdeye.timeoutMs,
+        failureType: birdeye.failureType,
+        usableEvidence: birdeye.usableEvidence,
         scannedTokens: birdeyeResults.length,
         enabled: Boolean(process.env.BIRDEYE_API_KEY),
         error: birdeye.error,
@@ -755,6 +899,10 @@ export async function runDiscoveryManager(options = {}) {
       freeMarketData: {
         status: freeMarket.status,
         durationMs: freeMarket.durationMs,
+        attempted: freeMarket.attempted,
+        timeoutMs: freeMarket.timeoutMs,
+        failureType: freeMarket.failureType,
+        usableEvidence: freeMarket.usableEvidence,
         scannedTokens: freeMarketResults.length,
         enabled: true,
         error: freeMarket.error,
@@ -765,6 +913,10 @@ export async function runDiscoveryManager(options = {}) {
       expandedMarketData: {
         status: expandedMarket.status,
         durationMs: expandedMarket.durationMs,
+        attempted: expandedMarket.attempted,
+        timeoutMs: expandedMarket.timeoutMs,
+        failureType: expandedMarket.failureType,
+        usableEvidence: expandedMarket.usableEvidence,
         scannedTokens: expandedMarketResults.length,
         enabled: true,
         error: expandedMarket.error,
@@ -793,6 +945,10 @@ export async function runDiscoveryManager(options = {}) {
       googleNewsDiscovery: {
         status: googleNews.status,
         durationMs: googleNews.durationMs,
+        attempted: googleNews.attempted,
+        timeoutMs: googleNews.timeoutMs,
+        failureType: googleNews.failureType,
+        usableEvidence: googleNews.usableEvidence,
         scannedTokens: googleNewsResults.length,
         enabled: true,
         error: googleNews.error,
@@ -801,6 +957,10 @@ export async function runDiscoveryManager(options = {}) {
       githubProjectDiscovery: {
         status: githubDiscovery.status,
         durationMs: githubDiscovery.durationMs,
+        attempted: githubDiscovery.attempted,
+        timeoutMs: githubDiscovery.timeoutMs,
+        failureType: githubDiscovery.failureType,
+        usableEvidence: githubDiscovery.usableEvidence,
         scannedTokens: githubDiscoveryResults.length,
         enabled: process.env.DISABLE_GITHUB_DISCOVERY !== "true",
         error: githubDiscovery.error,
@@ -810,6 +970,10 @@ export async function runDiscoveryManager(options = {}) {
       nativeDiscoveryMesh: {
         status: nativeDiscovery.status,
         durationMs: nativeDiscovery.durationMs,
+        attempted: nativeDiscovery.attempted,
+        timeoutMs: nativeDiscovery.timeoutMs,
+        failureType: nativeDiscovery.failureType,
+        usableEvidence: nativeDiscovery.usableEvidence,
         scannedTokens: nativeDiscoveryResults.length,
         enabled: process.env.DISABLE_NATIVE_DISCOVERY_MESH !== "true",
         error: nativeDiscovery.error,

@@ -7,17 +7,26 @@ import {
 } from "./intelligencePipeline.js";
 
 import { filterDiscoveryCandidates } from "./engines/discoveryFilterEngine.js";
+import { runConcurrent } from "./discovery/discoveryExecutionGrid.js";
 
 const DEXSCREENER_BASE = "https://api.dexscreener.com";
 
-async function fetchJson(url) {
-  const response = await fetch(url);
+async function fetchJson(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutMs = Number(options.timeoutMs || process.env.DEXSCREENER_TIMEOUT_MS || 12_000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${url}`);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status} ${url}`);
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json();
 }
 
 async function fetchLatestTokenProfiles() {
@@ -74,6 +83,11 @@ function normalizeDexScreenerPair(pair = {}) {
 
 export async function scanLiveMarket(options = {}) {
   const maxTokens = Number(options.maxTokens || 50);
+  const pairConcurrency = Math.max(
+    1,
+    Math.min(16, Number(options.pairConcurrency || process.env.DEXSCREENER_PAIR_CONCURRENCY || 6))
+  );
+  const runIntelligence = options.runIntelligence ?? true;
 
   const profiles = await fetchLatestTokenProfiles();
   const boosted = await fetchBoostedTokens();
@@ -82,16 +96,20 @@ export async function scanLiveMarket(options = {}) {
     .filter(token => token.chainId && token.tokenAddress)
     .slice(0, maxTokens);
 
-  const allPairs = [];
-
-  for (const token of candidates) {
-    try {
-      const pairs = await fetchTokenPairs(token.chainId, token.tokenAddress);
-      allPairs.push(...pairs.map(normalizeDexScreenerPair));
-    } catch (error) {
-      console.warn(`Skipped ${token.tokenAddress}: ${error.message}`);
-    }
-  }
+  const pairBatches = await runConcurrent(
+    candidates,
+    async (token) => {
+      try {
+        const pairs = await fetchTokenPairs(token.chainId, token.tokenAddress);
+        return pairs.map(normalizeDexScreenerPair);
+      } catch (error) {
+        console.warn(`Skipped ${token.tokenAddress}: ${error.message}`);
+        return [];
+      }
+    },
+    { concurrency: pairConcurrency }
+  );
+  const allPairs = pairBatches.flat();
 
   const discovery = filterDiscoveryCandidates(allPairs, {
     minLiquidityUsd: Number(process.env.MIN_LIQUIDITY_USD || 10000),
@@ -100,8 +118,15 @@ export async function scanLiveMarket(options = {}) {
     maxSellPressureRatio: Number(process.env.MAX_SELL_PRESSURE || 0.85)
   });
 
-  const results = await runIntelligencePipeline(discovery.accepted);
-  const summary = summarizePipelineResults(results);
+  const results = runIntelligence
+    ? await runIntelligencePipeline(discovery.accepted)
+    : discovery.accepted;
+  const summary = runIntelligence
+    ? summarizePipelineResults(results)
+    : {
+        mode: "discovery-only",
+        totalProjects: results.length,
+      };
 
   return {
     scannedAt: new Date().toISOString(),
@@ -111,6 +136,7 @@ export async function scanLiveMarket(options = {}) {
     rejectedTokens: discovery.rejectedCount,
     filters: discovery.filters,
     summary,
+    runIntelligence,
     results,
     rejected: discovery.rejected.slice(0, 25)
   };

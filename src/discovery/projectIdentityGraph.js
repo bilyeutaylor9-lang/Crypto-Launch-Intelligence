@@ -19,6 +19,50 @@ function hashId(parts = []) {
   return `cli_project_${crypto.createHash("sha1").update(input || "unknown").digest("hex").slice(0, 16)}`;
 }
 
+function hashNamespace(prefix = "cli_id", parts = []) {
+  const input = parts.filter(Boolean).join("|").toLowerCase();
+  return `${prefix}_${crypto.createHash("sha1").update(input || "unknown").digest("hex").slice(0, 16)}`;
+}
+
+function normalizeSymbol(value = "") {
+  const symbol = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9._-]+/g, "")
+    .slice(0, 32);
+
+  return symbol || "UNKNOWN";
+}
+
+export function symbolIdentityForProject(project = {}) {
+  const signals = projectIdentitySignals(project);
+  const canonicalSymbol = normalizeSymbol(project.symbol || project.ticker || signals.aliases[0]);
+  const chain = signals.chain || "unknown";
+  const strongestProjectAnchor =
+    signals.tokenContracts[0] ||
+    signals.poolAddresses[0] ||
+    signals.exchangeAssetIds[0] ||
+    signals.externalAssetIds[0] ||
+    signals.domains[0] ||
+    signals.repositories[0] ||
+    signals.socialAccounts[0] ||
+    signals.aliases.join(":") ||
+    "unknown";
+
+  return {
+    symbolIdentityId: hashNamespace("cli_symbol", [canonicalSymbol]),
+    chainSymbolIdentityId: hashNamespace("cli_chain_symbol", [chain, canonicalSymbol]),
+    symbolInstanceId: hashNamespace("cli_symbol_instance", [chain, canonicalSymbol, strongestProjectAnchor]),
+    canonicalSymbol,
+    normalizedSymbol: canonicalSymbol.toLowerCase(),
+    chain,
+    projectAnchor: strongestProjectAnchor,
+    collisionScope: "symbol",
+    chainCollisionScope: "chain-symbol",
+    instanceScope: "project-symbol-instance",
+  };
+}
+
 export function projectIdentitySignals(project = {}) {
   const chain = clean(project.chain || project.chainId || "unknown");
   const tokenContracts = [
@@ -110,6 +154,7 @@ export function identityKeyForProject(project = {}) {
 
 export function attachProjectIdentity(project = {}) {
   const signals = projectIdentitySignals(project);
+  const symbolIdentity = project.symbolIdentity || symbolIdentityForProject(project);
   const projectId = project.projectId || hashId([
     signals.tokenContracts[0],
     signals.poolAddresses[0],
@@ -125,11 +170,20 @@ export function attachProjectIdentity(project = {}) {
   return {
     ...project,
     projectId,
+    symbolIdentity,
+    symbolIdentityId: symbolIdentity.symbolIdentityId,
+    chainSymbolIdentityId: symbolIdentity.chainSymbolIdentityId,
+    symbolInstanceId: symbolIdentity.symbolInstanceId,
     projectIdentity: {
       projectId,
       canonicalName: project.name || project.symbol || "Unknown",
+      symbolIdentity,
+      symbolIdentityId: symbolIdentity.symbolIdentityId,
+      chainSymbolIdentityId: symbolIdentity.chainSymbolIdentityId,
+      symbolInstanceId: symbolIdentity.symbolInstanceId,
       ...signals,
       evidence: [
+        ...(symbolIdentity.canonicalSymbol !== "UNKNOWN" ? ["symbol"] : []),
         ...(signals.tokenContracts.length ? ["contract"] : []),
         ...(signals.poolAddresses.length ? ["pool"] : []),
         ...(signals.exchangeAssetIds.length ? ["exchangeAssetId"] : []),
@@ -153,8 +207,37 @@ export function buildProjectIdentityGraph(projects = []) {
       projectId: enriched.projectId,
       name: enriched.name || "Unknown",
       symbol: enriched.symbol || "UNKNOWN",
+      symbolIdentityId: enriched.symbolIdentityId,
+      chainSymbolIdentityId: enriched.chainSymbolIdentityId,
+      symbolInstanceId: enriched.symbolInstanceId,
       identityEvidence: enriched.projectIdentity.evidence,
     });
+
+    if (enriched.symbolIdentity?.canonicalSymbol) {
+      edges.push({
+        projectId: enriched.projectId,
+        type: "symbolIdentity",
+        value: enriched.symbolIdentity.symbolIdentityId,
+        symbol: enriched.symbolIdentity.canonicalSymbol,
+        confidence: enriched.symbolIdentity.canonicalSymbol === "UNKNOWN" ? 0.2 : 0.72,
+      });
+      edges.push({
+        projectId: enriched.projectId,
+        type: "chainSymbolIdentity",
+        value: enriched.symbolIdentity.chainSymbolIdentityId,
+        symbol: enriched.symbolIdentity.canonicalSymbol,
+        chain: enriched.symbolIdentity.chain,
+        confidence: enriched.symbolIdentity.canonicalSymbol === "UNKNOWN" ? 0.2 : 0.8,
+      });
+      edges.push({
+        projectId: enriched.projectId,
+        type: "symbolInstance",
+        value: enriched.symbolIdentity.symbolInstanceId,
+        symbol: enriched.symbolIdentity.canonicalSymbol,
+        chain: enriched.symbolIdentity.chain,
+        confidence: 0.86,
+      });
+    }
 
     for (const contract of enriched.projectIdentity.tokenContracts) {
       edges.push({ projectId: enriched.projectId, type: "tokenContract", value: contract, confidence: 1 });

@@ -143,6 +143,9 @@ export function writeCsvReport(projects = []) {
     "supplyIntegrityRiskScore",
     "economicIntegrityScoreCap",
     "economicIntegrityScoreCapReasons",
+    "organicDemandPromotionBlocked",
+    "organicDemandManualReviewLabel",
+    "economicIntegrityResearchTasks",
     "economicIntegrityPenalty",
     "hardExitLiquidityUsd",
     "organicActivityShare",
@@ -414,6 +417,11 @@ export function writeCsvReport(projects = []) {
     p.economicIntegrityScoreCap ?? "",
     Array.isArray(p.economicIntegrityScoreCapReasons)
       ? p.economicIntegrityScoreCapReasons.join("; ")
+      : "",
+    p.organicDemandPromotionBlocked ? "true" : "false",
+    p.organicDemandManualReviewLabel ?? "",
+    Array.isArray(p.economicIntegrityResearchTasks)
+      ? p.economicIntegrityResearchTasks.map((task) => `${task.priority || "open"}:${task.title || task.id}`).join("; ")
       : "",
     p.economicIntegrityPenalty ?? "",
     p.hardExitLiquidityUsd ?? "",

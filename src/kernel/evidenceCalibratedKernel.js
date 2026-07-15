@@ -492,11 +492,226 @@ export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audi
   };
 }
 
+function contradictionSeverity(contradictions = []) {
+  return contradictions.reduce((max, contradiction) => {
+    const severity =
+      contradiction.severity === "CRITICAL" ? 100 :
+      contradiction.severity === "HIGH" ? 75 :
+      contradiction.severity === "MEDIUM" ? 50 :
+      contradiction.severity === "LOW" ? 25 :
+      0;
+    return Math.max(max, severity);
+  }, 0);
+}
+
+function buildContradictionMap(project = {}, scoring = {}, ledger = {}, audit = {}, decision = {}) {
+  const contradictions = [];
+  const liquidityValue = num(project.liquidityUsd ?? project.liquidity);
+  const narrativeStrength = average([project.narrativeScore, project.narrativeForecastScore, project.narrativeHeatScore, project.xSocialScore]);
+  const marketProof = average([project.liquidityScore, project.activeLiquidityTruthScore, project.organicBuyerScore, project.sourceTruthScore]);
+  const developmentProof = average([project.githubProScore, project.githubScore, project.developerActivityScore]);
+  const safetyRisk = riskScore(project);
+
+  if (scoring.rawSignalScore >= 78 && scoring.finalScore <= 45) {
+    contradictions.push({
+      type: "RAW_SCORE_COLLAPSE",
+      severity: "HIGH",
+      message: "Raw signal score is strong, but evidence-calibrated score collapsed after confidence and safety multipliers.",
+    });
+  }
+  if (narrativeStrength >= 78 && marketProof < 45) {
+    contradictions.push({
+      type: "NARRATIVE_WITHOUT_MARKET_PROOF",
+      severity: "HIGH",
+      message: "Narrative heat is strong while liquidity, buyer, and source proof are weak.",
+    });
+  }
+  if (developmentProof >= 78 && liquidityValue <= 0 && !project.discoveryLane?.includes("prelaunch")) {
+    contradictions.push({
+      type: "BUILDER_SIGNAL_WITHOUT_MARKET_PROOF",
+      severity: "MEDIUM",
+      message: "Builder evidence is strong, but no live liquidity is validated.",
+    });
+  }
+  if (project.sniperState === "ARMED" && decision.finalDecision !== "ARMED") {
+    contradictions.push({
+      type: "SNIPER_ARMED_BUT_KERNEL_NOT_ARMED",
+      severity: "MEDIUM",
+      message: "Sniper layer appears armed, but the kernel did not clear final promotion.",
+    });
+  }
+  if (decision.finalDecision === "ARMED" && ledger.uniqueSourceCount < 3) {
+    contradictions.push({
+      type: "ARMED_WITH_THIN_SOURCE_STACK",
+      severity: "HIGH",
+      message: "ARMED decision has fewer than three independent evidence sources.",
+    });
+  }
+  if (
+    decision.finalDecision === "ARMED" &&
+    (audit.finalDecisionWarnings?.length >= 3 || num(audit.contractPassRate) < 80)
+  ) {
+    contradictions.push({
+      type: "ARMED_WITH_CONTRACT_WARNINGS",
+      severity: "MEDIUM",
+      message: "ARMED decision still has final-decision contract warnings.",
+    });
+  }
+  if (scoring.rawSignalScore >= 75 && safetyRisk >= 65) {
+    contradictions.push({
+      type: "HIGH_ALPHA_HIGH_RISK",
+      severity: safetyRisk >= 80 ? "CRITICAL" : "HIGH",
+      message: "High alpha score coexists with elevated safety or manipulation risk.",
+    });
+  }
+  if (project.finalSelectionState && project.finalSelectionState !== "QUALIFIED" && scoring.rawSignalScore >= 70) {
+    contradictions.push({
+      type: "SELECTION_LAYER_CONFLICT",
+      severity: "HIGH",
+      message: `Final selection state is ${project.finalSelectionState}, but raw alpha score remains high.`,
+    });
+  }
+
+  return {
+    count: contradictions.length,
+    maxSeverity: contradictionSeverity(contradictions),
+    contradictions,
+  };
+}
+
+function inferMarketRegime(project = {}, ledger = {}, scoring = {}) {
+  const risk = riskScore(project);
+  const liquidityValue = num(project.liquidityUsd ?? project.liquidity);
+  const sourceDepth = ledger.uniqueSourceCount;
+  const narrative = average([project.narrativeScore, project.narrativeForecastScore, project.narrativeHeatScore, project.xSocialScore]);
+  const fundamentals = average([
+    project.githubProScore,
+    project.developerActivityScore,
+    project.organicBuyerScore,
+    project.activeLiquidityTruthScore,
+    project.catalystScore,
+  ]);
+
+  if (risk >= 70) return "RISK_OFF";
+  if (liquidityValue > 0 && liquidityValue < 100000 && narrative >= 70 && fundamentals < 55) return "THIN_LIQUIDITY_HYPE";
+  if (sourceDepth >= 4 && fundamentals >= 65 && scoring.finalScore >= 65) return "EVIDENCE_RISK_ON";
+  if (sourceDepth < 2 || ledger.evidenceCoverage < 35) return "LOW_VISIBILITY";
+  if (narrative >= 65 && fundamentals >= 55) return "SELECTIVE_RISK_ON";
+  return "SELECTIVE";
+}
+
+function confidenceBand(scoring = {}, ledger = {}, audit = {}, contradictionMap = {}) {
+  const uncertainty = clamp(
+    28 -
+      ledger.evidenceCoverage * 0.12 -
+      ledger.uniqueSourceCount * 1.4 -
+      audit.contractPassRate * 0.06 +
+      contradictionMap.maxSeverity * 0.12,
+    5,
+    34
+  );
+
+  return {
+    low: Math.round(clamp(scoring.finalScore - uncertainty)),
+    high: Math.round(clamp(scoring.finalScore + uncertainty)),
+    uncertainty: Math.round(uncertainty),
+    quality:
+      uncertainty <= 10 ? "Tight" :
+      uncertainty <= 18 ? "Usable" :
+      uncertainty <= 26 ? "Wide" :
+      "Very Wide",
+  };
+}
+
+function pressureModel(project = {}, scoring = {}, ledger = {}, audit = {}, contradictionMap = {}) {
+  const promotionPressure = Math.round(
+    clamp(
+      ledger.confirmedFamilies * 7 +
+        ledger.uniqueSourceCount * 4 +
+        num(project.sniperState === "ARMED" ? 12 : 0) +
+        num(project.autonomousCausalProjectState === "ARMED" ? 10 : 0) +
+        num(project.alphaEvolutionGovernorVerdict === "Governor Promote" ? 8 : 0) +
+        scoring.probabilityOfBreakout * 18
+    )
+  );
+  const demotionPressure = Math.round(
+    clamp(
+      riskScore(project) * 0.7 +
+        audit.finalDecisionWarnings.length * 5 +
+        audit.blockingFailures.length * 12 +
+        contradictionMap.maxSeverity * 0.35 +
+        Math.max(0, 55 - ledger.evidenceCoverage) * 0.35
+    )
+  );
+
+  return {
+    promotionPressure,
+    demotionPressure,
+    netPressure: promotionPressure - demotionPressure,
+  };
+}
+
+function brainDecisionFrom(decision = {}, scoring = {}, contradictionMap = {}, pressure = {}, band = {}) {
+  if (decision.finalDecision === "BLOCKED") return "BLOCKED";
+  if (contradictionMap.maxSeverity >= 100) return "BLOCKED";
+  if (contradictionMap.maxSeverity >= 75 && decision.finalDecision === "ARMED" && pressure.netPressure < 20) return "WATCH";
+  if (pressure.netPressure <= -25 && ["ARMED", "WATCH"].includes(decision.finalDecision)) return "RESEARCH_ONLY";
+  if (band.quality === "Very Wide" && decision.finalDecision === "ARMED" && pressure.netPressure < 20) return "WATCH";
+  if (decision.finalDecision === "INSUFFICIENT_DATA") return "INSUFFICIENT_DATA";
+  if (decision.finalDecision === "ARMED" && pressure.netPressure >= 20 && contradictionMap.maxSeverity < 75) return "ARMED";
+  if (scoring.finalScore >= 82 && pressure.netPressure >= 28 && contradictionMap.maxSeverity < 75) return "ARMED";
+  if (scoring.finalScore >= 62 && pressure.netPressure >= 0) return "WATCH";
+  if (scoring.finalScore >= 35) return "RESEARCH_ONLY";
+  return decision.finalDecision || "INSUFFICIENT_DATA";
+}
+
+export function buildAdvancedBrainKernel(project = {}, scoring = {}, ledger = {}, audit = {}, decision = {}) {
+  const contradictionMap = buildContradictionMap(project, scoring, ledger, audit, decision);
+  const regime = inferMarketRegime(project, ledger, scoring);
+  const band = confidenceBand(scoring, ledger, audit, contradictionMap);
+  const pressure = pressureModel(project, scoring, ledger, audit, contradictionMap);
+  const brainDecision = brainDecisionFrom(decision, scoring, contradictionMap, pressure, band);
+  const brainScore = Math.round(
+    clamp(
+      scoring.finalScore +
+        pressure.netPressure * 0.12 -
+        contradictionMap.maxSeverity * 0.08 +
+        (regime === "EVIDENCE_RISK_ON" ? 4 : 0) -
+        (regime === "THIN_LIQUIDITY_HYPE" ? 8 : 0)
+    )
+  );
+
+  return {
+    version: "advanced-brain-kernel-v2",
+    brainDecision,
+    brainScore,
+    regime,
+    confidenceBand: band,
+    pressure,
+    contradictionMap,
+    metacognition: {
+      isDecisionTight: band.quality === "Tight" || band.quality === "Usable",
+      canPromote: ["ARMED", "WATCH"].includes(brainDecision) && contradictionMap.maxSeverity < 75,
+      shouldDemote: brainDecision !== decision.finalDecision,
+      primaryDoubt:
+        contradictionMap.contradictions[0]?.message ||
+        (band.quality === "Very Wide" ? "Decision confidence band is too wide." : "No major contradiction detected."),
+      strongestSupport:
+        ledger.families
+          .filter((family) => family.status === "confirmed")
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .map((family) => `${family.family}:${family.score}`),
+    },
+  };
+}
+
 export function analyzeEvidenceCalibratedProject(project = {}) {
   const ledger = buildEvidenceLedger(project);
   const audit = auditProjectContracts(project);
   const scoring = buildEvidenceCalibratedScore(project, ledger, audit);
   const decision = buildFinalDecision(project, scoring, ledger, audit);
+  const advancedBrain = buildAdvancedBrainKernel(project, scoring, ledger, audit, decision);
 
   return {
     projectId: project.projectId || project.identityKey || `${project.chain || "unknown"}:${compactName(project)}`,
@@ -504,6 +719,10 @@ export function analyzeEvidenceCalibratedProject(project = {}) {
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
     source: project.source || "unknown",
+    symbolIdentity: project.symbolIdentity || project.projectIdentity?.symbolIdentity || null,
+    symbolIdentityId: project.symbolIdentityId || project.projectIdentity?.symbolIdentityId || null,
+    chainSymbolIdentityId: project.chainSymbolIdentityId || project.projectIdentity?.chainSymbolIdentityId || null,
+    symbolInstanceId: project.symbolInstanceId || project.projectIdentity?.symbolInstanceId || null,
     ledger,
     contractAudit: {
       totalContracts: audit.totalContracts,
@@ -521,7 +740,14 @@ export function analyzeEvidenceCalibratedProject(project = {}) {
       audits: audit.audits,
     },
     scoring,
-    decision,
+    decision: {
+      ...decision,
+      brainDecision: advancedBrain.brainDecision,
+      brainScore: advancedBrain.brainScore,
+      brainRegime: advancedBrain.regime,
+      brainDemoted: advancedBrain.brainDecision !== decision.finalDecision,
+    },
+    advancedBrain,
   };
 }
 
@@ -937,6 +1163,7 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const analyzed = safeProjects.map(analyzeEvidenceCalibratedProject).sort((a, b) => b.decision.finalScore - a.decision.finalScore);
   const count = (decision) => analyzed.filter((project) => project.decision.finalDecision === decision).length;
+  const brainCount = (decision) => analyzed.filter((project) => project.advancedBrain?.brainDecision === decision).length;
   const contracts = getEngineContracts();
   const phaseGraph = contracts.reduce((acc, contract) => {
     acc[contract.phase] = acc[contract.phase] || [];
@@ -981,6 +1208,22 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
       fixtureAuditPassRate: Math.round(clamp((fixtureAudit.passed / Math.max(1, fixtureAudit.totalFixtures)) * 100)),
       opModeStatus: opReadiness?.status || "UNKNOWN",
       opModeScore: opReadiness?.score ?? null,
+      brain: {
+        armed: brainCount("ARMED"),
+        watch: brainCount("WATCH"),
+        researchOnly: brainCount("RESEARCH_ONLY"),
+        blocked: brainCount("BLOCKED"),
+        insufficientData: brainCount("INSUFFICIENT_DATA"),
+        demotions: analyzed.filter((project) => project.decision.brainDemoted).length,
+        averageBrainScore: Math.round(average(analyzed.map((project) => project.advancedBrain?.brainScore))),
+        averageUncertainty: Math.round(average(analyzed.map((project) => project.advancedBrain?.confidenceBand?.uncertainty))),
+        highContradictionCount: analyzed.filter((project) => project.advancedBrain?.contradictionMap?.maxSeverity >= 75).length,
+        regimes: analyzed.reduce((acc, project) => {
+          const regime = project.advancedBrain?.regime || "UNKNOWN";
+          acc[regime] = (acc[regime] || 0) + 1;
+          return acc;
+        }, {}),
+      },
     },
     phaseGraph,
     engineContracts: contracts,

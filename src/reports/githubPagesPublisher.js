@@ -56,6 +56,7 @@ const PUBLIC_REPORTS = [
   "pre-consensus-breakout-hunter.json",
   "sniper-report.json",
   "universe-ledger.json",
+  "integrity-stack.json",
   "op-mode-readiness.json",
   "evidence-kernel.json",
   "source-truth.json",
@@ -121,6 +122,7 @@ function writeLandingPage(copiedFiles = []) {
   const discoveryDecision = readJsonReport("discovery-decision-engine.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const universeLedger = readJsonReport("universe-ledger.json") || {};
+  const integrityStack = readJsonReport("integrity-stack.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
   const evidenceKernel = readJsonReport("evidence-kernel.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
@@ -185,6 +187,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? "N/A"],
     ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? "N/A"],
     ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? "N/A"],
+    ["Integrity Stack", integrityStack.status || "N/A"],
+    ["Integrity Score", integrityStack.readinessScore ?? "N/A"],
     ["OP Mode", opModeReadiness.status || "N/A"],
     ["OP Score", opModeReadiness.score ?? "N/A"],
     ["Native Ready", opModeReadiness.native?.liveReadyProtocols ?? "N/A"],
@@ -499,6 +503,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
+        <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./alerts.json">Alerts</a>
       </div>
     </div>

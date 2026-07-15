@@ -8,19 +8,32 @@
  * Adds free/no-key market-wide sources.
  */
 
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    headers: { accept: "application/json" }
-  });
+import { runConcurrent, runWithTimeBudget } from "../discovery/discoveryExecutionGrid.js";
 
-  if (!response.ok) {
-    const error = new Error(`Request failed: ${response.status} ${url}`);
-    error.status = response.status;
-    error.url = url;
-    throw error;
+async function fetchJson(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000)
+  );
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { accept: "application/json" }
+    });
+
+    if (!response.ok) {
+      const error = new Error(`Request failed: ${response.status} ${url}`);
+      error.status = response.status;
+      error.url = url;
+      throw error;
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json();
 }
 
 function n(value = 0) {
@@ -52,6 +65,9 @@ function classifyProviderStatus(error = {}) {
   const status = Number(error.status || error.httpStatus || 0);
   const message = String(error.message || "").toLowerCase();
 
+  if (error.code === "DISCOVERY_SOURCE_TIMEOUT" || message.includes("time budget")) {
+    return "temporarily_unavailable";
+  }
   if (status === 401 || message.includes("unauthorized") || message.includes("authentication")) {
     return "authentication_required";
   }
@@ -89,11 +105,14 @@ function providerEnvelope({
   };
 }
 
-async function runProvider(source = "", fn) {
+async function runProvider(source = "", fn, options = {}) {
   const startedAt = Date.now();
 
   try {
-    const candidates = await fn();
+    const candidates = await runWithTimeBudget(fn, {
+      label: source,
+      timeoutMs: Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000),
+    });
     return providerEnvelope({ source, startedAt, candidates });
   } catch (error) {
     const status = classifyProviderStatus(error);
@@ -337,6 +356,10 @@ export async function getKrakenTickerCandidates(options = {}) {
 
 export async function getFreeMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
+  const providerConcurrency = Math.max(
+    1,
+    Math.min(8, Number(options.providerConcurrency || process.env.MARKET_PROVIDER_CONCURRENCY || 4))
+  );
 
   const sourceCalls = [
     ["coinpaprika", () => getCoinPaprikaCandidates({ limit })],
@@ -348,16 +371,19 @@ export async function getFreeMarketDataProviderBatch(options = {}) {
     ["kraken", () => getKrakenTickerCandidates({ limit: 50 })]
   ];
 
-  const providers = [];
+  const providers = await runConcurrent(
+    sourceCalls,
+    async ([name, fn]) => {
+      const result = await runProvider(name, fn, options);
 
-  for (const [name, fn] of sourceCalls) {
-    const result = await runProvider(name, fn);
-    providers.push(result);
+      if (result.status !== "healthy") {
+        console.warn(`${name} skipped: ${result.errorMessage || result.status}`);
+      }
 
-    if (result.status !== "healthy") {
-      console.warn(`${name} skipped: ${result.errorMessage || result.status}`);
-    }
-  }
+      return result;
+    },
+    { concurrency: providerConcurrency }
+  );
 
   return {
     candidates: providers.flatMap((provider) => provider.candidates || []),

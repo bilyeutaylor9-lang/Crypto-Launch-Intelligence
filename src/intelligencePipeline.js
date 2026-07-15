@@ -611,6 +611,9 @@ function buildRiskFlags(project = {}, profile = {}) {
   if ((project.economicIntegrityScoreCapReasons || []).length) {
     risks.push("Economic integrity score cap applied");
   }
+  if (project.organicDemandPromotionBlocked) {
+    risks.push("Organic demand proof queue unresolved");
+  }
   if (num(project.hardExitLiquidityUsd) > 0 && num(project.liquidityUsd ?? project.liquidity) / num(project.hardExitLiquidityUsd) >= 4) {
     risks.push("Hard exit liquidity risk");
   }
@@ -758,6 +761,13 @@ function buildResearchChecklist(project = {}, profile = {}) {
   }
   if (project.organicDemandIntegrity) {
     checklist.push("Verify organic demand: DEX swaps, holder balance buckets, hard exit liquidity, admin roles, and real yield after inflation.");
+  }
+  if ((project.economicIntegrityResearchTasks || []).length) {
+    checklist.push(
+      ...project.economicIntegrityResearchTasks
+        .slice(0, 3)
+        .map((task) => `${task.agent || "Research Agent"}: ${task.title}`)
+    );
   }
   if (!checklist.length) {
     checklist.push("Wait for stronger cross-signal confirmation before deeper research.");
@@ -1019,6 +1029,7 @@ function advancedScoreBreakdown(project = {}) {
   if (num(project.activityAuthenticityRiskScore) >= 70) penalty += 10;
   if (num(project.supplyIntegrityRiskScore) >= 70) penalty += 10;
   if ((project.economicIntegrityScoreCapReasons || []).length) penalty += 6;
+  if (project.organicDemandPromotionBlocked) penalty += 12;
   if (project.organicDemandVerdict === "Institutional Integrity Block") penalty += 10;
   if (project.organicDemandVerdict === "Tradable Anomaly / Verify Organic Demand") penalty += 6;
   if (num(project.liquidityControlRisk) >= 75) penalty += 9;
@@ -2186,6 +2197,10 @@ export function summarizePipelineResults(results = []) {
       riskScore: project.economicIntegrityRiskScore || 0,
       penalty: project.economicIntegrityPenalty || 0,
       hardExitLiquidityUsd: project.hardExitLiquidityUsd || 0,
+      promotionBlocked: Boolean(project.organicDemandPromotionBlocked),
+      manualReviewLabel: project.organicDemandManualReviewLabel || "Unknown",
+      researchTaskCount: (project.economicIntegrityResearchTasks || []).length,
+      researchTasks: (project.economicIntegrityResearchTasks || []).slice(0, 5),
       blockers: project.economicIntegrityBlockers || [],
     })),
 

@@ -296,6 +296,94 @@ function consensusScore(project = {}) {
   ]);
 }
 
+function preHitPressureScore(project = {}) {
+  const smartMoney = average([
+    project.smartWalletArrivalScore,
+    project.smartWalletScore,
+    project.smartWalletPerformanceScore,
+    project.smartMoneyAccumulationScore,
+    project.smartMoneyRotationScore,
+    project.whaleActivityScore,
+    project.buyPressureScore,
+    project.capitalFlowScore,
+  ]);
+  const earlyTiming = average([
+    project.prePump?.score,
+    project.prePumpPatternScore,
+    project.earlyBreakoutScore,
+    project.breakoutBrainScore,
+    project.breakoutProbabilitySoon,
+    project.momentumCompressionScore,
+    project.momentumShiftScore,
+    project.volatilityExpansionScore,
+    project.liquidityExpansionScore,
+    project.opportunityTimingScore,
+  ]);
+  const catalystPressure = average([
+    project.liveCatalystRadarScore,
+    project.catalystCalendarScore,
+    project.catalystScore,
+    project.roadmapProfitabilityScore,
+    project.exchangeProbabilityScore,
+    project.narrativeForecastScore,
+    project.narrativeHeatScore,
+    project.socialAccelerationScore,
+    project.communityGrowthScore,
+  ]);
+  const demandQuality = average([
+    project.organicBuyerScore,
+    project.organicBuyerClassifierScore,
+    project.organicDemandIntegrityScore,
+    project.buyerRetentionScore,
+    project.activeLiquidityTruthScore,
+    project.sourceTruthScore,
+    project.sourceReliabilityScore,
+  ]);
+  const identityConfidence = average([
+    project.projectIdentityScore,
+    project.identityConfidence,
+    project.finalIdentityScore,
+    project.evidenceQualityScore,
+    project.dataConfidenceScore,
+  ]);
+  const trapPenalty = Math.max(
+    num(project.trapRiskScore),
+    num(project.washTradingScore),
+    num(project.bundledLaunchScore),
+    num(project.sellPressureScore),
+    num(project.distressedMicrocapTrapScore),
+    project.distressedTrapBlock ? 90 : 0
+  );
+  const score = Math.round(
+    clamp(
+      smartMoney * 0.24 +
+        earlyTiming * 0.24 +
+        catalystPressure * 0.2 +
+        demandQuality * 0.18 +
+        identityConfidence * 0.14 -
+        trapPenalty * 0.18
+    )
+  );
+
+  return {
+    score,
+    smartMoney,
+    earlyTiming,
+    catalystPressure,
+    demandQuality,
+    identityConfidence,
+    trapPenalty,
+    verdict:
+      score >= 72 && trapPenalty < 45
+        ? "Pre-Hit Pressure"
+        : score >= 58 && trapPenalty < 60
+        ? "Building Pressure"
+        : trapPenalty >= 70
+        ? "Trap Pressure"
+        : "Weak Pressure",
+  };
+}
+
 function smallCapScore(project = {}, options = {}) {
   const budgetUsd = num(options.budgetUsd || DEFAULT_BUDGET_USD);
   const minLiquidity = num(options.minLiquidity || DEFAULT_MIN_LIQUIDITY);
@@ -306,16 +394,18 @@ function smallCapScore(project = {}, options = {}) {
   const structure = structureScore(project);
   const upside = upsideScore(project);
   const consensus = consensusScore(project);
+  const preHit = preHitPressureScore(project);
   const risk = maxRisk(project);
   const riskIntegrity = clamp(100 - risk);
   const score = Math.round(
     clamp(
-      band.score * 0.14 +
-        execution.score * 0.14 +
-        route.score * 0.12 +
-        structure * 0.21 +
-        upside * 0.2 +
-        consensus * 0.12 +
+      band.score * 0.1 +
+        execution.score * 0.12 +
+        route.score * 0.1 +
+        structure * 0.16 +
+        upside * 0.17 +
+        consensus * 0.1 +
+        preHit.score * 0.18 +
         riskIntegrity * 0.07
     )
   );
@@ -329,6 +419,7 @@ function smallCapScore(project = {}, options = {}) {
     structure,
     upside,
     consensus,
+    preHit,
     risk,
     riskIntegrity,
   };
@@ -362,6 +453,7 @@ function reasons(project = {}, metrics = {}) {
   if (metrics.upside >= 55) output.push("Upside stack has narrative, catalyst, pre-pump, or breakout support.");
   if (metrics.structure >= 55) output.push("Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.");
   if (metrics.consensus >= 55) output.push("AI/OS/governor consensus is stronger than the scan baseline.");
+  if (metrics.preHit?.score >= 58) output.push(`${metrics.preHit.verdict}: smart money, catalyst, timing, and organic-demand pressure are lining up.`);
   if (metrics.execution.score >= 55) output.push("$100 paper-size execution looks structurally reasonable from visible liquidity/volume.");
   if (metrics.purchaseRoute.purchasable) output.push(`${metrics.purchaseRoute.preferredRoute} purchase route detected; verify availability before acting.`);
   if (project.alphaEvolutionGovernorVerdict === "Governor Priority Research") output.push("Alpha Governor marked it as priority research.");
@@ -379,6 +471,8 @@ function warnings(project = {}, metrics = {}) {
   if (!metrics.cap) output.push("Market cap/FDV is unknown; verify cap before treating it as a true small cap.");
   if (!metrics.purchaseRoute.purchasable) output.push("No Coinbase or MetaMask route was detected; do not select without route proof.");
   if (metrics.risk >= 55) output.push("Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.");
+  if (metrics.preHit?.trapPenalty >= 60) output.push("Pre-hit pressure is contaminated by trap, wash, bundled-launch, or sell-pressure signals.");
+  if (metrics.preHit?.identityConfidence < 35) output.push("Identity confidence is weak; symbol/name collision checks need manual verification.");
   if (metrics.structure < 45) output.push("Structure is not strong enough without more source/GitHub/roadmap proof.");
   if (project.aiDisagreement?.level === "High") output.push("AI council disagreement is high; require manual confirmation.");
   if (project.redTeamReview?.status === "Block") output.push("Red-team block is active; do not promote without resolving it.");
@@ -421,6 +515,7 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
     smallCapBand: metrics.band.label,
     smallCapStructureScore: metrics.structure,
     smallCapUpsideScore: metrics.upside,
+    smallCapPreHitPressureScore: metrics.preHit.score,
     smallCapExecutionScore: metrics.execution.score,
     smallCapRiskScore: metrics.risk,
     smallCapHunter: {
@@ -436,8 +531,10 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
         structure: metrics.structure,
         upside: metrics.upside,
         consensus: metrics.consensus,
+        preHitPressure: metrics.preHit.score,
         riskIntegrity: metrics.riskIntegrity,
       },
+      preHitPressure: metrics.preHit,
       execution: metrics.execution,
       purchaseRoute: metrics.purchaseRoute,
       reasons: reasons(project, metrics),
@@ -462,7 +559,7 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
         impact: verdict === "Small-Cap Research Candidate" ? "Positive" : verdict.includes("Block") ? "Negative" : "Neutral",
         reasons: [
           `Cap band: ${metrics.band.label}.`,
-          `Structure ${metrics.structure}, upside ${metrics.upside}, execution ${metrics.execution.score}, risk ${metrics.risk}.`,
+          `Structure ${metrics.structure}, upside ${metrics.upside}, pre-hit pressure ${metrics.preHit.score}, execution ${metrics.execution.score}, risk ${metrics.risk}.`,
           metrics.execution.warning,
         ],
       },
@@ -578,6 +675,8 @@ function compact(project = {}) {
     structureScore: project.smallCapStructureScore || 0,
     upsideScore: project.smallCapUpsideScore || 0,
     executionScore: project.smallCapExecutionScore || 0,
+    preHitPressureScore: project.smallCapPreHitPressureScore || 0,
+    preHitPressure: project.smallCapHunter?.preHitPressure || {},
     riskScore: project.smallCapRiskScore || 0,
     purchaseRoute: project.smallCapHunter?.purchaseRoute || {},
     liquidityUsd: project.smallCapHunter?.execution?.liquidityUsd || 0,

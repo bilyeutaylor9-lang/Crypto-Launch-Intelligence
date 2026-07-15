@@ -5,6 +5,7 @@ import {
   analyzeEvidenceCalibratedKernel,
   analyzeEvidenceCalibratedProject,
   auditProjectContracts,
+  buildAdvancedBrainKernel,
   buildEvidenceLedger,
   buildSourceHealthKernel,
   runKernelFixtureAudit,
@@ -122,6 +123,9 @@ test("evidence-calibrated kernel can arm a fully proven setup", () => {
   const analyzed = analyzeEvidenceCalibratedProject(strongProject());
 
   assert.equal(analyzed.decision.finalDecision, "ARMED");
+  assert.equal(analyzed.decision.brainDecision, "ARMED");
+  assert.ok(analyzed.advancedBrain.brainScore >= 80);
+  assert.ok(analyzed.advancedBrain.metacognition.canPromote);
   assert.ok(analyzed.scoring.finalScore >= 80);
   assert.equal(analyzed.decision.promotionRequirements.length, 0);
 });
@@ -142,8 +146,62 @@ test("evidence-calibrated kernel blocks high raw score with critical safety risk
   const analyzed = analyzeEvidenceCalibratedProject(trap);
 
   assert.equal(analyzed.decision.finalDecision, "BLOCKED");
+  assert.equal(analyzed.decision.brainDecision, "BLOCKED");
+  assert.ok(analyzed.advancedBrain.contradictionMap.maxSeverity >= 75);
   assert.ok(analyzed.decision.blockers.some((blocker) => /safety|risk|wallet/i.test(blocker)));
   assert.ok(analyzed.scoring.finalScore < analyzed.scoring.rawSignalScore);
+});
+
+test("advanced brain demotes narrative heat without market proof", () => {
+  const hype = {
+    ...strongProject(),
+    name: "Narrative Mirage",
+    symbol: "MIRAGE",
+    liquidityUsd: 16000,
+    activeLiquidityTruthScore: 12,
+    organicBuyerScore: 10,
+    sourceTruthScore: 24,
+    narrativeScore: 96,
+    narrativeForecastScore: 94,
+    narrativeHeatScore: 96,
+    xSocialScore: 92,
+    pipelineScore: 91,
+    evidence: [
+      {
+        engine: "narrative",
+        source: "x-social",
+        family: "narrative",
+        signal: "viral narrative",
+        score: 96,
+        confidence: 0.72,
+      },
+    ],
+  };
+  const analyzed = analyzeEvidenceCalibratedProject(hype);
+
+  assert.ok(analyzed.advancedBrain.contradictionMap.contradictions.some((item) => item.type === "NARRATIVE_WITHOUT_MARKET_PROOF"));
+  assert.equal(analyzed.advancedBrain.regime, "THIN_LIQUIDITY_HYPE");
+  assert.notEqual(analyzed.decision.brainDecision, "ARMED");
+});
+
+test("advanced brain exposes confidence bands and pressure model", () => {
+  const analyzed = analyzeEvidenceCalibratedProject(strongProject());
+  const rebuilt = buildAdvancedBrainKernel(
+    strongProject(),
+    analyzed.scoring,
+    analyzed.ledger,
+    {
+      ...analyzed.contractAudit,
+      finalDecisionWarnings: [],
+      blockingFailures: [],
+    },
+    analyzed.decision
+  );
+
+  assert.ok(rebuilt.confidenceBand.low <= analyzed.scoring.finalScore);
+  assert.ok(rebuilt.confidenceBand.high >= analyzed.scoring.finalScore);
+  assert.ok(rebuilt.pressure.promotionPressure > rebuilt.pressure.demotionPressure);
+  assert.ok(rebuilt.metacognition.strongestSupport.length > 0);
 });
 
 test("source health kernel summarizes provider attempts and usable evidence", () => {
@@ -178,4 +236,6 @@ test("kernel report includes manifest audit, fixture audit, and learning loop", 
   assert.equal(report.fixtureAudit.failed.length, 0);
   assert.equal(fixtureAudit.failed.length, 0);
   assert.ok(report.learningLoop.tracks.includes("maxUpside7d"));
+  assert.equal(report.summary.brain.armed, 1);
+  assert.ok(report.summary.brain.averageBrainScore >= 80);
 });

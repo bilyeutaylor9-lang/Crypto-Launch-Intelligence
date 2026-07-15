@@ -582,6 +582,9 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
 
   if (project.aiDecision === "Reject") blockingReasons.push("AI decision rejected the project.");
   if (project.allocationBucket === "Defensive Avoid") blockingReasons.push("Allocation bucket is Defensive Avoid.");
+  if (project.organicDemandPromotionBlocked) {
+    blockingReasons.push(project.organicDemandManualReviewLabel || "Organic-demand promotion is blocked until proof tasks are resolved.");
+  }
   blockingReasons.push(...verdicts.blockingVerdictReasons);
   blockingReasons.push(...identity.blockers);
   warningReasons.push(...identity.warnings);

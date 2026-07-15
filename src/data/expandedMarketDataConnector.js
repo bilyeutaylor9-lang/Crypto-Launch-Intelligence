@@ -1,5 +1,7 @@
 // src/data/expandedMarketDataConnector.js
 
+import { runConcurrent, runWithTimeBudget } from "../discovery/discoveryExecutionGrid.js";
+
 const HOT_SEARCH_TERMS = [
   "ai",
   "agent",
@@ -56,7 +58,10 @@ function fromPair(pair = "") {
 
 async function fetchJson(url, options = {}) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), Number(options.timeoutMs || 12000));
+  const timer = setTimeout(
+    () => controller.abort(),
+    Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000)
+  );
 
   try {
     const response = await fetch(url, {
@@ -85,6 +90,9 @@ export function classifyProviderStatus(error = {}) {
   const status = Number(error.status || error.httpStatus || 0);
   const message = String(error.message || error.errorMessage || "").toLowerCase();
 
+  if (error.code === "DISCOVERY_SOURCE_TIMEOUT" || message.includes("time budget")) {
+    return "temporarily_unavailable";
+  }
   if (status === 401 || message.includes("unauthorized") || message.includes("authentication")) {
     return "authentication_required";
   }
@@ -122,12 +130,38 @@ function providerEnvelope({
   };
 }
 
-async function runProvider(source = "", fn) {
+async function runProvider(source = "", fn, options = {}) {
   const startedAt = Date.now();
 
   try {
-    const candidates = await fn();
+    const candidates = await runWithTimeBudget(fn, {
+      label: source,
+      timeoutMs: Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000),
+    });
     return providerEnvelope({ source, startedAt, candidates });
+  } catch (error) {
+    const status = classifyProviderStatus(error);
+    return providerEnvelope({
+      source,
+      status,
+      startedAt,
+      candidates: [],
+      attempted: true,
+      httpStatus: error.status || null,
+      errorCode: status,
+      errorMessage: error.message,
+    });
+  }
+}
+
+async function runProviderResult(source = "", fn, options = {}) {
+  const startedAt = Date.now();
+
+  try {
+    return await runWithTimeBudget(fn, {
+      label: source,
+      timeoutMs: Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000),
+    });
   } catch (error) {
     const status = classifyProviderStatus(error);
     return providerEnvelope({
@@ -826,6 +860,10 @@ function dedupe(projects = []) {
 
 export async function getExpandedMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
+  const providerConcurrency = Math.max(
+    1,
+    Math.min(8, Number(options.providerConcurrency || process.env.MARKET_PROVIDER_CONCURRENCY || 4))
+  );
   const sourceCalls = [
     ["coincap", () => getCoinCapProviderResult({ limit }), true],
     ["coinlore", () => getCoinLoreCandidates({ limit })],
@@ -845,17 +883,22 @@ export async function getExpandedMarketDataProviderBatch(options = {}) {
     ["bitstamp", () => getBitstampTickerCandidates({ limit })],
     ["gemini", () => getGeminiTickerCandidates({ limit })],
   ];
-  const providers = [];
+  const providers = await runConcurrent(
+    sourceCalls,
+    async ([name, fn, returnsProviderResult]) => {
+      const result = returnsProviderResult
+        ? await runProviderResult(name, fn, options)
+        : await runProvider(name, fn, options);
 
-  for (const [name, fn, returnsProviderResult] of sourceCalls) {
-    const result = returnsProviderResult ? await fn() : await runProvider(name, fn);
-    providers.push(result);
+      if (result.status !== "healthy") {
+        const message = result.errorMessage || result.errorCode || result.status;
+        console.warn(`${name} skipped: ${message}`);
+      }
 
-    if (result.status !== "healthy") {
-      const message = result.errorMessage || result.errorCode || result.status;
-      console.warn(`${name} skipped: ${message}`);
-    }
-  }
+      return result;
+    },
+    { concurrency: providerConcurrency }
+  );
 
   return {
     candidates: dedupe(providers.flatMap((provider) => provider.candidates || [])),

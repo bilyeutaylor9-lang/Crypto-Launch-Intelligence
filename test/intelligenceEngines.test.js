@@ -1914,6 +1914,12 @@ test("organic demand integrity downgrades LGNS-style big-number anomalies", () =
   assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Activity authenticity")));
   assert.ok(result.economicIntegrityBlockers.some((blocker) => blocker.includes("Supply or valuation")));
   assert.equal(result.organicDemandStrongBuyEligible, false);
+  assert.equal(result.organicDemandPromotionBlocked, true);
+  assert.match(result.organicDemandManualReviewLabel, /manual investigation required/i);
+  assert.ok(result.economicIntegrityResearchTasks.length >= 5);
+  assert.ok(result.economicIntegrityResearchTasks.some((task) => task.id === "verify-activity-authenticity"));
+  assert.ok(result.economicIntegrityResearchTasks.some((task) => task.id === "reconcile-supply-valuation"));
+  assert.ok(result.economicIntegrityResearchTasks.some((task) => task.priority === "critical"));
   assert.ok(result.organicDemandIntegrity.requiredProof.some((proof) => proof.includes("Unique trader ratio")));
   assert.ok(result.organicDemandIntegrity.requiredProof.some((proof) => proof.includes("Cross-source")));
 });
@@ -1946,6 +1952,9 @@ test("organic demand integrity can confirm cleaner economic demand", () => {
 
   assert.equal(result.organicDemandVerdict, "Organic Demand Confirmed");
   assert.equal(result.organicDemandStrongBuyEligible, true);
+  assert.equal(result.organicDemandPromotionBlocked, false);
+  assert.equal(result.organicDemandManualReviewLabel, "Organic demand verified");
+  assert.equal(result.economicIntegrityResearchTasks.length, 0);
   assert.ok(result.organicEconomicIntegrityScore >= 75);
   assert.ok(result.economicIntegrityRiskScore < 45);
 });

@@ -38,6 +38,7 @@ import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js
 import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
 import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
+import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
 import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
@@ -151,6 +152,10 @@ export function generateReports(projects = [], meta = {}) {
     filePath: universeLedgerPath,
   } = writeUniverseLedgerReport(meta);
   const {
+    filePath: integrityStackPath,
+    report: integrityStack,
+  } = writeIntegrityStackReport(projects, meta);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -159,6 +164,7 @@ export function generateReports(projects = [], meta = {}) {
   } = writeEvidenceCalibratedKernelReport(projects, {
     ...meta,
     opModeReadiness,
+    integrityStack,
   });
   const {
     filePath: sourceRouterPath,
@@ -229,6 +235,7 @@ export function generateReports(projects = [], meta = {}) {
     preConsensusBreakoutPath,
     sniperReportPath,
     universeLedgerPath,
+    integrityStackPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

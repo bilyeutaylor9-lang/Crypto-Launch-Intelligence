@@ -109,6 +109,28 @@ test("late risk rejection deselects an early candidate", () => {
   assert.ok(result.selectionAuditTrail.length >= 2);
 });
 
+test("organic demand proof block deselects an early candidate", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      organicDemandPromotionBlocked: true,
+      organicDemandManualReviewLabel: "High market activity, low fundamental confidence - manual investigation required",
+      economicIntegrityResearchTasks: [
+        {
+          id: "verify-activity-authenticity",
+          priority: "critical",
+          title: "Verify whether transaction activity is organic trading demand.",
+        },
+      ],
+    }),
+  ]);
+
+  assert.equal(result.smallCapHunterSelected, false);
+  assert.equal(result.proofOfAlphaExecutionTwinSelected, false);
+  assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "BLOCKED");
+  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("manual investigation required")));
+});
+
 test("duplicate ticker projects keep separate permanent identities", () => {
   const results = analyzeFinalSelectionIntegrityBatch([
     qualifiedFixture({
