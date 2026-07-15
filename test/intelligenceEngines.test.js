@@ -62,6 +62,7 @@ import { analyzeInstantSafetyGate } from "../src/engines/instantSafetyGateEngine
 import { analyzeCandidateLifecycle } from "../src/engines/candidateLifecycleEngine.js";
 import { analyzeDiscoveryDecision } from "../src/engines/discoveryDecisionEngine.js";
 import { analyzeQuantumOutcomeField } from "../src/engines/quantumOutcomeFieldEngine.js";
+import { runEngine } from "../src/intelligencePipeline.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 import { getBinanceMarketConfig, getBinanceTickerCandidates } from "../src/data/freeMarketDataConnector.js";
 import {
@@ -1720,6 +1721,22 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
   );
   assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
+  assert.ok(selected.every((project) => project.smallCapPreHitPressureScore > 0));
+  assert.ok(selected.every((project) => project.smallCapHunter.preHitPressure));
+});
+
+test("engine watchdog returns the last safe project list when a brain step stalls", async () => {
+  const projects = [{ name: "Watchdog Token", symbol: "DOG", chain: "base" }];
+  const startedAt = Date.now();
+  const results = await runEngine(
+    "World Model Brain",
+    () => new Promise(() => {}),
+    projects,
+    { timeoutMs: 5 }
+  );
+
+  assert.deepEqual(results, projects);
+  assert.ok(Date.now() - startedAt < 500);
 });
 
 test("proof of alpha execution twin selects route-verified paper executions and blocks unsafe paths", () => {

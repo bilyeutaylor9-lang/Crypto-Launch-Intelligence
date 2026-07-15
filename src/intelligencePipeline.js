@@ -155,7 +155,40 @@ function normalizeEngineOutput(output, fallback = []) {
   return fallback;
 }
 
-async function runEngine(name, engine, projects, options = {}) {
+function engineTimeoutEnvName(name = "") {
+  return `${String(name || "ENGINE")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")}_TIMEOUT_MS`;
+}
+
+function engineTimeoutMs(name = "", options = {}) {
+  const explicit = num(options.timeoutMs);
+  if (explicit > 0) return explicit;
+
+  const scoped = num(process.env[engineTimeoutEnvName(name)]);
+  if (scoped > 0) return scoped;
+
+  const global = num(process.env.ENGINE_TIMEOUT_MS);
+  if (global > 0) return global;
+
+  return 0;
+}
+
+function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
+  if (!timeoutMs) return promise;
+
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${name} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
+export async function runEngine(name, engine, projects, options = {}) {
   const safeProjects = Array.isArray(projects)
     ? projects
     : normalizeEngineOutput(projects, []);
@@ -168,7 +201,8 @@ async function runEngine(name, engine, projects, options = {}) {
 
     console.log(`Running ${name}...`);
 
-    const output = await engine(safeProjects, options);
+    const timeoutMs = engineTimeoutMs(name, options);
+    const output = await withEngineTimeout(engine(safeProjects, options), timeoutMs, name);
     return normalizeEngineOutput(output, safeProjects);
   } catch (error) {
     console.log(`${name} failed: ${error.message}`);
@@ -1287,7 +1321,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
   results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
   results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
-  results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results);
+  results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results, {
+    timeoutMs: num(process.env.WORLD_MODEL_BRAIN_TIMEOUT_MS || 15000),
+  });
   results = await runEngine("Autonomous Market Scientist", analyzeAutonomousMarketScientistBatch, results);
   results = await runEngine("Self-Training Market Simulation Brain", analyzeSelfTrainingMarketSimulationBrainBatch, results);
   results = await runEngine("Autonomous Outcome Judge", analyzeAutonomousOutcomeJudgeBatch, results, options.outcomeJudge || {});
