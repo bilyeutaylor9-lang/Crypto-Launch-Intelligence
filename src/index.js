@@ -385,6 +385,7 @@ function printReportPaths(paths) {
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
   console.log(`OP Readiness:   ${paths.opModeReadinessPath}`);
+  console.log(`Evidence Kernel: ${paths.evidenceKernelPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

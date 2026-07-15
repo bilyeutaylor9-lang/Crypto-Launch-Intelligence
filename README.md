@@ -19,6 +19,7 @@ This is not a simple token screener. It is a layered research system with:
 - Discovery Truth Network with canonical source manifest, lifecycle lanes, evidence-family independence, and rejected-candidate shadow watchlist
 - Native Discovery Mesh for early pool lifecycle events, first real buyers, usable liquidity, and deployer reputation checks
 - Discovery Decision Engine with project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted ranking, and missed-winner lab
+- Evidence-Calibrated Parallel Intelligence Kernel with engine contracts, evidence ledgers, calibrated scores, and final decision overrides
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -120,6 +121,7 @@ The system does not trust one score. It builds a full research case:
 - Paper simulation: tracks strategy ideas before treating them as trusted.
 - Outcome memory: compares old calls against later market behavior.
 - Dashboard publishing: turns every scan into a public GitHub Pages intelligence dashboard.
+- Self-auditing kernel: checks engine contracts, evidence coverage, source independence, identity confidence, safety gates, and final-decision provenance.
 
 ## System Architecture
 
@@ -194,6 +196,42 @@ Possible verdicts:
 - `OS Reject`
 
 The system can still name a best available paper candidate when no project clears the true strong-buy gate. That helps avoid the scanner returning nothing while still keeping risk warnings visible.
+
+## Evidence-Calibrated Kernel
+
+The Evidence-Calibrated Parallel Intelligence Kernel is the audit layer above the engine stack.
+
+It enforces four rules:
+
+- No score without evidence.
+- No final decision without provenance.
+- No promotion without safety gates.
+- No engine without an audit contract.
+
+Run or inspect it:
+
+```bash
+npm run kernel
+npm run evidence-kernel
+npm run alpha:kernel
+```
+
+The report is `reports/evidence-kernel.json`.
+
+It produces:
+
+- Engine contract audits by phase and dependency
+- Source health, circuit-breaker, rate-limit, auth, and region-block reporting
+- Manifest audit coverage for registered engines, exports, timeouts, failure modes, and evidence requirements
+- Fixture audit results for clean winners, fake-volume traps, missing identity, duplicate tickers, low-liquidity hype, native pools, late pumps, and quiet accumulation
+- Learning-loop context for which signals have worked or misled later
+- Per-project evidence ledger
+- Evidence coverage, source independence, identity confidence, safety, calibration, and contract-audit multipliers
+- Evidence-calibrated final score
+- Final decision: `ARMED`, `WATCH`, `RESEARCH_ONLY`, `BLOCKED`, or `INSUFFICIENT_DATA`
+- Blockers, warnings, promotion requirements, and invalidation triggers
+
+This layer can override high raw scores when provenance is weak. For example, high narrative with bad liquidity stays research-only or blocked, strong wallet signals with identity conflict are blocked, and GitHub strength without token or pool proof stays research-only.
 
 ## Self-Evolving Alpha OS
 
@@ -588,6 +626,7 @@ Every scan can generate a full research packet:
 | `reports/portfolio-war-room.json` | Narrative battle map and allocation buckets |
 | `reports/source-router.json` | Free-source provider health |
 | `reports/op-mode-readiness.json` | OP Mode setup audit for keys, native protocols, memory datasets, source coverage, and GitHub Actions wiring |
+| `reports/evidence-kernel.json` | Self-auditing evidence-calibrated kernel with source health, manifest audit, fixture audit, learning context, score multipliers, final decisions, blockers, and promotion requirements |
 | `reports/engine-audit.json` | Engine import and readiness audit |
 | `reports/roadmap.json` | Public roadmap data |
 

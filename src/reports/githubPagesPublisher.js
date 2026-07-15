@@ -57,6 +57,7 @@ const PUBLIC_REPORTS = [
   "sniper-report.json",
   "universe-ledger.json",
   "op-mode-readiness.json",
+  "evidence-kernel.json",
   "source-truth.json",
   "github-intelligence-pro.json",
   "autonomous-research.json",
@@ -121,6 +122,7 @@ function writeLandingPage(copiedFiles = []) {
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const universeLedger = readJsonReport("universe-ledger.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
+  const evidenceKernel = readJsonReport("evidence-kernel.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
   const autonomousResearch = readJsonReport("autonomous-research.json") || {};
   const sourceRouter = readJsonReport("source-router.json") || {};
@@ -187,6 +189,13 @@ function writeLandingPage(copiedFiles = []) {
     ["OP Score", opModeReadiness.score ?? "N/A"],
     ["Native Ready", opModeReadiness.native?.liveReadyProtocols ?? "N/A"],
     ["Missing Key Groups", opModeReadiness.keys?.missingGroups ?? "N/A"],
+    ["Kernel ARMED", evidenceKernel.summary?.armed ?? "N/A"],
+    ["Kernel Watch", evidenceKernel.summary?.watch ?? "N/A"],
+    ["Kernel Score", evidenceKernel.summary?.averageFinalScore ?? "N/A"],
+    ["Contract Pass", evidenceKernel.summary?.averageContractPassRate ?? "N/A"],
+    ["Kernel Sources", evidenceKernel.summary?.sourcesWithUsableEvidence ?? "N/A"],
+    ["Manifest Score", evidenceKernel.summary?.manifestScore ?? "N/A"],
+    ["Fixture Pass", evidenceKernel.summary?.fixtureAuditPassRate ?? "N/A"],
     ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
     ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
     ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
