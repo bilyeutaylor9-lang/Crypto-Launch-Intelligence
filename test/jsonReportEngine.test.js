@@ -37,3 +37,33 @@ test("JSON report summarizes wide discovery without serializing raw candidate po
   assert.equal("shadowRejectedCandidates" in report.meta.discovery, false);
   assert.doesNotMatch(reportText, /providerPayload/);
 });
+
+test("JSON report bounds an oversized enriched project while preserving final decision fields", () => {
+  const reportPath = writeJsonReport([
+    {
+      name: "Bounded Candidate",
+      symbol: "BND",
+      chain: "base",
+      finalSelectionState: "RESEARCH_ONLY",
+      finalSelectionQualified: false,
+      finalIntegrityScore: 42,
+      pipelineScore: 71,
+      riskScore: 34,
+      hugeResearchPayload: "e".repeat(200_000),
+      nestedEngineOutput: Array.from({ length: 500 }, (_, index) => ({
+        index,
+        payload: "n".repeat(4_096),
+      })),
+    },
+  ]);
+
+  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  const [project] = report.projects;
+
+  assert.equal(project.name, "Bounded Candidate");
+  assert.equal(project.symbol, "BND");
+  assert.equal(project.finalSelectionState, "RESEARCH_ONLY");
+  assert.equal(project.pipelineScore, 71);
+  assert.equal(report.meta.reportSerialization.truncatedProjects, 1);
+  assert.ok(fs.statSync(reportPath).size < 100_000);
+});
