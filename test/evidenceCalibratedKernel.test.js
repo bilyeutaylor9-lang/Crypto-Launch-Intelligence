@@ -16,6 +16,8 @@ import {
   summarizeInstitutionalDataProvenance,
 } from "../src/kernel/institutionalDataProvenanceLedger.js";
 
+const FIXTURE_NOW = new Date().toISOString();
+
 function strongProject() {
   const evidence = getEngineContracts().map((contract) => ({
     engine: contract.id,
@@ -34,7 +36,7 @@ function strongProject() {
     pairAddress: "0xkernelpair",
     source: "dexscreener",
     discoverySources: ["dexscreener", "github", "coingecko", "base-rpc"],
-    discoveredAt: "2026-07-15T00:00:00.000Z",
+    discoveredAt: FIXTURE_NOW,
     projectIdentity: { score: 88, evidence: ["address", "github", "domain"] },
     projectIdentityVerdict: "Identity Resolved",
     identityResolutionScore: 88,

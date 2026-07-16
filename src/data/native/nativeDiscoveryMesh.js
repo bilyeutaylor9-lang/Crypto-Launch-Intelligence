@@ -212,6 +212,7 @@ export function buildNativeLifecycle(events = []) {
     chainId: first.chainId || latest.chainId || null,
     protocol: first.protocol || latest.protocol || "unknown",
     dex: first.dex || latest.dex || first.protocol || "unknown",
+    factoryAddress: latestValue(sorted, "factoryAddress") || first.factoryAddress || "",
     tokenAddress: latestValue(sorted, "tokenAddress") || first.tokenAddress || "",
     poolAddress: latestValue(sorted, "poolAddress") || first.poolAddress || "",
     baseToken: latestValue(sorted, "baseToken") || first.baseToken || "",
@@ -347,8 +348,10 @@ export async function runNativeDiscoveryMesh(options = {}) {
   const connectorReports = [];
 
   if (options.collectConnectors) {
-    const evm = await getEvmFactoryEventCandidates({ ...options, persist: false });
-    const solana = await getSolanaProgramEventCandidates({ ...options, persist: false });
+    const [evm, solana] = await Promise.all([
+      getEvmFactoryEventCandidates({ ...options, persist: false, collect: true }),
+      getSolanaProgramEventCandidates({ ...options, persist: false }),
+    ]);
     connectorEvents.push(...evm.events, ...solana.events);
     connectorReports.push(evm.report, solana.report);
   }
@@ -366,6 +369,9 @@ export async function runNativeDiscoveryMesh(options = {}) {
 
   if (options.persist !== false && providedEvents.length) {
     recordNativeEvents(providedEvents, { confirmed: Boolean(options.confirmed) });
+  }
+  if (options.persist !== false && connectorEvents.length) {
+    recordNativeEvents(connectorEvents, { confirmed: Boolean(options.confirmed) });
   }
 
   const lifecycles = [...groupEvents(events).values()]

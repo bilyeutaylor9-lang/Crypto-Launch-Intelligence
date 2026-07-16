@@ -34,7 +34,7 @@ export const ENGINE_CONTRACTS = [
     },
     outputContract: {
       requiredAny: [["sourceTruthScore", "sourceTruthVerdict", "sourceTruth"]],
-      scoreFields: ["sourceTruthScore", "evidenceQualityScore"],
+      scoreFields: ["sourceTruthScore"],
       evidenceRequiredWhenScored: true,
     },
     timeoutMs: 7000,
@@ -173,7 +173,7 @@ export const ENGINE_CONTRACTS = [
     },
     outputContract: {
       requiredAny: [["githubProScore", "githubProVerdict"]],
-      scoreFields: ["githubProScore", "developerActivityScore", "githubScore"],
+      scoreFields: ["githubProScore", "developerActivityScore"],
       evidenceRequiredWhenScored: true,
     },
     timeoutMs: 7000,
@@ -195,7 +195,7 @@ export const ENGINE_CONTRACTS = [
     },
     outputContract: {
       requiredAny: [["roadmapProfitabilityScore", "roadmapCatalystVerdict", "roadmapMilestones"]],
-      scoreFields: ["roadmapProfitabilityScore", "catalystScore", "catalystCalendarScore"],
+      scoreFields: ["roadmapProfitabilityScore", "catalystScore"],
       evidenceRequiredWhenScored: true,
     },
     timeoutMs: 7000,

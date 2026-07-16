@@ -58,10 +58,18 @@ function confidenceForScore(score = 0) {
   return "Low";
 }
 
-function scoreOf(project = {}) {
-  const existing = num(project.opportunityScore ?? project.pipelineScore ?? project.score);
-  const fused = weightedScore(project);
-  return Math.max(existing, fused);
+export function scoreOf(project = {}) {
+  const current = num(project.pipelineScore ?? project.opportunityScore ?? project.score);
+  const fallback = weightedScore(project);
+  const authoritativeScore = current || fallback;
+
+  // Final integrity is allowed to lower a score. It must never be used to boost one.
+  if (project.finalSelectionState && project.finalSelectionState !== "QUALIFIED") {
+    const integrityScore = num(project.finalIntegrityScore);
+    return integrityScore > 0 ? Math.min(authoritativeScore, integrityScore) : authoritativeScore;
+  }
+
+  return authoritativeScore;
 }
 
 function pipelineLimit() {

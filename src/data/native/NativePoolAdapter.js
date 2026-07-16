@@ -48,6 +48,7 @@ export function normalizeNativeEvent(event = {}, defaults = {}) {
     protocol: lower(event.protocol || defaults.protocol || "unknown"),
     protocolVersion: event.protocolVersion || defaults.protocolVersion || null,
     dex: event.dex || defaults.dex || event.protocol || defaults.protocol || "unknown",
+    factoryAddress: lower(event.factoryAddress || defaults.factoryAddress || ""),
     poolAddress: lower(event.poolAddress || event.pairAddress || event.pool || ""),
     tokenAddress: lower(event.tokenAddress || event.baseToken || event.baseTokenAddress || ""),
     baseToken: lower(event.baseToken || event.tokenAddress || event.baseTokenAddress || ""),

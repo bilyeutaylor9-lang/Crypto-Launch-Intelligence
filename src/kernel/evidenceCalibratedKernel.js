@@ -726,10 +726,12 @@ export function buildAdvancedBrainKernel(project = {}, scoring = {}, ledger = {}
   };
 }
 
-export function analyzeEvidenceCalibratedProject(project = {}) {
+export function analyzeEvidenceCalibratedProject(project = {}, options = {}) {
   const ledger = buildEvidenceLedger(project);
   const audit = auditProjectContracts(project);
-  const provenance = buildInstitutionalDataProvenanceLedger(project);
+  const provenance = buildInstitutionalDataProvenanceLedger(project, {
+    now: options.now,
+  });
   const scoring = buildEvidenceCalibratedScore(project, ledger, audit, provenance);
   const decision = buildFinalDecision(project, scoring, ledger, audit, provenance);
   const advancedBrain = buildAdvancedBrainKernel(project, scoring, ledger, audit, decision);
@@ -999,8 +1001,10 @@ function kernelAuditBaseProject() {
   };
 }
 
-export function runKernelFixtureAudit() {
+export function runKernelFixtureAudit(options = {}) {
   const base = kernelAuditBaseProject();
+  // Fixture timestamps are intentionally fixed, so the audit must use a fixed clock too.
+  const now = options.now || base.discoveredAt || new Date().toISOString();
   const fixtures = [
     {
       fixture: "clean winner",
@@ -1109,7 +1113,7 @@ export function runKernelFixtureAudit() {
     },
   ];
   const results = fixtures.map((fixture) => {
-    const analyzed = analyzeEvidenceCalibratedProject(fixture.project);
+    const analyzed = analyzeEvidenceCalibratedProject(fixture.project, { now });
     const passed = fixture.expectation(analyzed.decision, analyzed);
 
     return {
@@ -1183,7 +1187,9 @@ export function buildLearningLoopKernel(projects = []) {
 
 export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const analyzed = safeProjects.map(analyzeEvidenceCalibratedProject).sort((a, b) => b.decision.finalScore - a.decision.finalScore);
+  const analyzed = safeProjects
+    .map((project) => analyzeEvidenceCalibratedProject(project, { now: meta.now || meta.completedAt }))
+    .sort((a, b) => b.decision.finalScore - a.decision.finalScore);
   const count = (decision) => analyzed.filter((project) => project.decision.finalDecision === decision).length;
   const brainCount = (decision) => analyzed.filter((project) => project.advancedBrain?.brainDecision === decision).length;
   const provenanceCount = (status) => analyzed.filter((project) => project.provenance?.institutionalReadiness === status).length;
@@ -1202,7 +1208,7 @@ export function analyzeEvidenceCalibratedKernel(projects = [], meta = {}) {
   const opReadiness = meta.discovery?.opModeReadiness || meta.opModeReadiness || null;
   const sourceHealth = buildSourceHealthKernel(analyzed, meta);
   const engineManifestAudit = buildEngineManifestAudit();
-  const fixtureAudit = runKernelFixtureAudit();
+  const fixtureAudit = runKernelFixtureAudit({ now: meta.now || meta.completedAt });
   const learningLoop = buildLearningLoopKernel(safeProjects);
 
   return {

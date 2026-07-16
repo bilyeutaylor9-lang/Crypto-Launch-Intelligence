@@ -7,6 +7,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "aerodrome",
     protocolVersion: "volatile-stable-v2",
     factoryEnv: "BASE_AERODROME_FACTORY",
+    rpcEnv: "BASE_RPC_URL",
+    eventTopic0Env: "BASE_AERODROME_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_CREATED", "FIRST_LIQUIDITY_ADDED", "FIRST_SWAP"],
     priority: 100,
   },
@@ -18,6 +21,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "aerodrome-slipstream",
     protocolVersion: "cl",
     factoryEnv: "BASE_AERODROME_SLIPSTREAM_FACTORY",
+    rpcEnv: "BASE_RPC_URL",
+    eventTopic0Env: "BASE_AERODROME_SLIPSTREAM_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_CREATED", "POOL_INITIALIZED", "FIRST_LIQUIDITY_ADDED", "FIRST_SWAP"],
     priority: 100,
   },
@@ -29,6 +35,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "uniswap-v3",
     protocolVersion: "v3",
     factoryEnv: "BASE_UNISWAP_V3_FACTORY",
+    rpcEnv: "BASE_RPC_URL",
+    eventTopic0Env: "BASE_UNISWAP_V3_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_CREATED", "POOL_INITIALIZED", "FIRST_SWAP"],
     priority: 94,
   },
@@ -40,6 +49,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "uniswap-v4",
     protocolVersion: "v4",
     factoryEnv: "BASE_UNISWAP_V4_POOL_MANAGER",
+    rpcEnv: "BASE_RPC_URL",
+    eventTopic0Env: "BASE_UNISWAP_V4_POOL_INITIALIZED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_INITIALIZED", "FIRST_SWAP"],
     priority: 88,
   },
@@ -111,6 +123,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "pancakeswap-v2",
     protocolVersion: "v2",
     factoryEnv: "BSC_PANCAKESWAP_V2_FACTORY",
+    rpcEnv: "BSC_RPC_URL",
+    eventTopic0Env: "BSC_PANCAKESWAP_V2_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 0,
     eventKinds: ["POOL_CREATED", "FIRST_LIQUIDITY_ADDED", "FIRST_SWAP"],
     priority: 86,
   },
@@ -122,6 +137,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "pancakeswap-v3",
     protocolVersion: "v3",
     factoryEnv: "BSC_PANCAKESWAP_V3_FACTORY",
+    rpcEnv: "BSC_RPC_URL",
+    eventTopic0Env: "BSC_PANCAKESWAP_V3_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_CREATED", "POOL_INITIALIZED", "FIRST_SWAP"],
     priority: 86,
   },
@@ -133,6 +151,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "quickswap-algebra",
     protocolVersion: "algebra",
     factoryEnv: "POLYGON_QUICKSWAP_ALGEBRA_FACTORY",
+    rpcEnv: "POLYGON_RPC_URL",
+    eventTopic0Env: "POLYGON_QUICKSWAP_ALGEBRA_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 1,
     eventKinds: ["POOL_CREATED", "POOL_INITIALIZED", "FIRST_SWAP"],
     priority: 82,
   },
@@ -144,6 +165,9 @@ export const NATIVE_PROTOCOLS = [
     protocol: "camelot",
     protocolVersion: "factory",
     factoryEnv: "ARBITRUM_CAMELOT_FACTORY",
+    rpcEnv: "ARBITRUM_RPC_URL",
+    eventTopic0Env: "ARBITRUM_CAMELOT_POOL_CREATED_TOPIC0",
+    poolAddressDataWord: 0,
     eventKinds: ["POOL_CREATED", "FIRST_LIQUIDITY_ADDED", "FIRST_SWAP"],
     priority: 78,
   },
@@ -169,17 +193,23 @@ export function getNativeProtocolConfigs(options = {}) {
 
   return NATIVE_PROTOCOLS
     .filter((config) => !enabledChains.size || enabledChains.has(config.chain))
-    .map((config) => ({
-      ...config,
-      factoryAddress: config.factoryEnv ? process.env[config.factoryEnv] || null : null,
-      programId: config.programEnv ? process.env[config.programEnv] || null : null,
-      rpcUrl: config.rpcEnv ? process.env[config.rpcEnv] || null : null,
-      configured: Boolean(
-        (config.factoryEnv && process.env[config.factoryEnv]) ||
-          (config.programEnv && process.env[config.programEnv]) ||
-          (config.rpcEnv && process.env[config.rpcEnv])
-      ),
-    }))
+    .map((config) => {
+      const factoryAddress = config.factoryEnv ? process.env[config.factoryEnv] || null : null;
+      const programId = config.programEnv ? process.env[config.programEnv] || null : null;
+      const rpcUrl = config.rpcEnv ? process.env[config.rpcEnv] || null : null;
+      const eventTopic0 = config.eventTopic0Env ? process.env[config.eventTopic0Env] || null : null;
+      const evmFactoryConfigured = Boolean(factoryAddress && rpcUrl && eventTopic0);
+      const otherProtocolConfigured = Boolean(programId || (config.rpcEnv && rpcUrl && !config.factoryEnv));
+
+      return {
+        ...config,
+        factoryAddress,
+        programId,
+        rpcUrl,
+        eventTopic0,
+        configured: config.family === "evm-factory" ? evmFactoryConfigured : otherProtocolConfigured,
+      };
+    })
     .sort((a, b) => b.priority - a.priority);
 }
 
@@ -204,7 +234,7 @@ export function summarizeNativeProtocolCoverage(options = {}) {
     unconfiguredProtocols: protocols.length - configured.length,
     byChain,
     requiredEnvironmentVariables: protocols
-      .map((protocol) => protocol.factoryEnv || protocol.programEnv || protocol.rpcEnv)
+      .flatMap((protocol) => [protocol.factoryEnv, protocol.programEnv, protocol.rpcEnv, protocol.eventTopic0Env])
       .filter(Boolean),
     protocols,
   };
