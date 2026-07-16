@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T13:34:15.157Z",
+  "generatedAt": "2026-07-16T13:54:21.732Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-16T13:34:01.522Z",
-    "completedAt": "2026-07-16T13:34:15.141Z",
+    "startedAt": "2026-07-16T13:54:08.242Z",
+    "completedAt": "2026-07-16T13:54:21.717Z",
     "scannedProjects": 8,
     "note": "Generated from built-in research seed projects. No API keys required.",
     "reportSerialization": {
@@ -70,6 +70,13 @@
         "Local AI Consensus: 50",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 28,
@@ -383,7 +390,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -997,7 +1004,7 @@
             "6 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -2721,7 +2728,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -3656,7 +3663,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-16T13:34:10.609Z",
+          "timestamp": "2026-07-16T13:54:17.158Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -4777,7 +4784,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -5605,7 +5612,7 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.418Z",
+            "searchedAt": "2026-07-16T13:54:19.005Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -5615,30 +5622,30 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.418Z"
+            "calledAt": "2026-07-16T13:54:19.005Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.418Z"
+            "calledAt": "2026-07-16T13:54:19.005Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-eigen",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.418Z"
+            "calledAt": "2026-07-16T13:54:19.006Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.418Z"
+            "calledAt": "2026-07-16T13:54:19.006Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.419Z"
+            "calledAt": "2026-07-16T13:54:19.006Z"
           }
         ],
         "evidence": [
@@ -6179,182 +6186,7 @@
         ],
         "summary": "Controlled research loop completed with a watch-level research result."
       },
-      "highTechAlphaScore": 50,
-      "highTechAlphaVerdict": "High-Tech Reject",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 37,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 47,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 77,
-        "catalyst_chain_reaction": 53,
-        "narrative_rotation_radar": 44,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 45
-      },
-      "highTechAlphaStack": {
-        "score": 50,
-        "verdict": "High-Tech Reject",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 37,
-            "grade": "Weak",
-            "summary": "1/9 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 65",
-              "Causal Alpha: 64",
-              "AI Council: 59",
-              "Source Truth: 53",
-              "Simulation: 43"
-            ],
-            "risks": [
-              "4 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 69,
-            "grade": "Strong",
-            "summary": "1 material contradiction(s) need review.",
-            "signals": [],
-            "risks": [
-              "hot narrative but weak proof"
-            ]
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 47,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 35.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 77,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 53,
-            "grade": "Developing",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Catalyst Calendar Alert."
-            ],
-            "risks": []
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 44,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 56."
-            ],
-            "risks": [
-              "Narrative breadth is weak."
-            ]
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 55,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: GitHub Builder Momentum."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Meta-Consensus Lattice above 60.",
-          "Improve Narrative Rotation Radar above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 1
+      "highTechAlphaScore": 50
     },
     {
       "name": "Bittensor",
@@ -6408,6 +6240,13 @@
         "Attention Gap: 48",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 26,
@@ -6692,7 +6531,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -7285,7 +7124,7 @@
             "7 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -8941,7 +8780,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -9859,7 +9698,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-16T13:34:10.609Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -10970,7 +10809,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -11799,7 +11638,7 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.421Z",
+            "searchedAt": "2026-07-16T13:54:19.008Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -11809,30 +11648,30 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.008Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.008Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tao",
             "chain": "bittensor",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.008Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.008Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.008Z"
           }
         ],
         "evidence": [
@@ -12380,180 +12219,7 @@
         "summary": "Controlled research loop found too many unanswered questions to promote."
       },
       "highTechAlphaScore": 50,
-      "highTechAlphaVerdict": "High-Tech Reject",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 40,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 47,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 48,
-        "narrative_rotation_radar": 47,
-        "portfolio_fit_optimizer": 56,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 44
-      },
-      "highTechAlphaStack": {
-        "score": 50,
-        "verdict": "High-Tech Reject",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 40,
-            "grade": "Weak",
-            "summary": "2/9 active agents support the thesis.",
-            "signals": [
-              "Causal Alpha: 68",
-              "Auto Weights: 68",
-              "AI Council: 55",
-              "Source Truth: 52",
-              "Simulation: 48"
-            ],
-            "risks": [
-              "3 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 69,
-            "grade": "Strong",
-            "summary": "1 material contradiction(s) need review.",
-            "signals": [],
-            "risks": [
-              "hot narrative but weak proof"
-            ]
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 47,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 35.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 81,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 48,
-            "grade": "Weak",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Staking Change."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 47,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 60."
-            ],
-            "risks": []
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 56,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: GitHub Builder Momentum."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 44,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Meta-Consensus Lattice above 60.",
-          "Improve Execution Readiness Planner above 60."
-        ],
-        "killSwitches": [
-          "Liquidity Stress Test remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 2,
-      "selfEvolvingAlphaOSScore": 36
+      "highTechAlphaVerdict": "High-Tech Reject"
     },
     {
       "name": "Ondo",
@@ -12607,6 +12273,13 @@
         "Local AI Consensus: 50",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 27,
@@ -12899,7 +12572,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -13501,7 +13174,7 @@
             "6 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -15127,7 +14800,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -16013,7 +15686,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-16T13:34:10.610Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -17114,7 +16787,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -17943,7 +17616,7 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.423Z",
+            "searchedAt": "2026-07-16T13:54:19.010Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -17953,30 +17626,30 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-ondo",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           }
         ],
         "evidence": [
@@ -18512,184 +18185,7 @@
         "summary": "Controlled research loop found too many unanswered questions to promote."
       },
       "highTechAlphaScore": 49,
-      "highTechAlphaVerdict": "High-Tech Reject",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 40,
-        "contradiction_resolver": 84,
-        "alpha_half_life": 41,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 80,
-        "catalyst_chain_reaction": 41,
-        "narrative_rotation_radar": 35,
-        "portfolio_fit_optimizer": 54,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 43
-      },
-      "highTechAlphaStack": {
-        "score": 49,
-        "verdict": "High-Tech Reject",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 40,
-            "grade": "Weak",
-            "summary": "0/8 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 64",
-              "Causal Alpha: 58",
-              "AI Council: 54",
-              "Source Truth: 49",
-              "Simulation: 46"
-            ],
-            "risks": [
-              "3 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 84,
-            "grade": "Elite",
-            "summary": "No major contradictions detected across high-level signals.",
-            "signals": [
-              "Signal stack is internally consistent."
-            ],
-            "risks": []
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 41,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 28.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 80,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 41,
-            "grade": "Weak",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Catalyst Calendar Alert."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 35,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 45."
-            ],
-            "risks": [
-              "Narrative breadth is weak."
-            ]
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 54,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: Truth-Verified Alpha."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 43,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Narrative Rotation Radar above 60.",
-          "Improve Meta-Consensus Lattice above 60."
-        ],
-        "killSwitches": [
-          "Liquidity Stress Test remains below 40.",
-          "Narrative Rotation Radar remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 3,
-      "selfEvolvingAlphaOSScore": 30
+      "highTechAlphaVerdict": "High-Tech Reject"
     },
     {
       "name": "Akash Network",
@@ -18743,6 +18239,13 @@
         "Attention Gap: 47",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 25,
@@ -19027,7 +18530,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -19601,7 +19104,7 @@
             "6 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -21234,7 +20737,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -22152,7 +21655,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-16T13:34:10.609Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -23249,7 +22752,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -24077,7 +23580,7 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.421Z",
+            "searchedAt": "2026-07-16T13:54:19.009Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -24087,30 +23590,30 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.421Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-akt",
             "chain": "cosmos",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           }
         ],
         "evidence": [
@@ -24652,182 +24155,7 @@
         "summary": "Controlled research loop completed with a watch-level research result."
       },
       "highTechAlphaScore": 48,
-      "highTechAlphaVerdict": "High-Tech Reject",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 34,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 46,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 40,
-        "narrative_rotation_radar": 47,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 42
-      },
-      "highTechAlphaStack": {
-        "score": 48,
-        "verdict": "High-Tech Reject",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 34,
-            "grade": "Poor",
-            "summary": "1/9 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 65",
-              "Causal Alpha: 63",
-              "AI Council: 54",
-              "Source Truth: 52",
-              "Simulation: 41"
-            ],
-            "risks": [
-              "4 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 69,
-            "grade": "Strong",
-            "summary": "1 material contradiction(s) need review.",
-            "signals": [],
-            "risks": [
-              "hot narrative but weak proof"
-            ]
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 46,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 34.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 81,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 40,
-            "grade": "Weak",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Staking Change."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 47,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 60."
-            ],
-            "risks": []
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 55,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: GitHub Builder Momentum."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 42,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Meta-Consensus Lattice above 60.",
-          "Improve Catalyst Chain Reaction Map above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 4,
-      "selfEvolvingAlphaOSScore": 34
+      "highTechAlphaVerdict": "High-Tech Reject"
     },
     {
       "name": "Celestia",
@@ -24881,6 +24209,13 @@
         "Local AI Consensus: 50",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 25,
@@ -25165,7 +24500,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -25748,7 +25083,7 @@
             "6 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -27383,7 +26718,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -28298,7 +27633,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-16T13:34:10.610Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -29395,7 +28730,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -30223,7 +29558,7 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.422Z",
+            "searchedAt": "2026-07-16T13:54:19.009Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -30233,30 +29568,30 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tia",
             "chain": "celestia",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.009Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.422Z"
+            "calledAt": "2026-07-16T13:54:19.010Z"
           }
         ],
         "evidence": [
@@ -30798,188 +30133,7 @@
         "summary": "Controlled research loop completed with a watch-level research result."
       },
       "highTechAlphaScore": 46,
-      "highTechAlphaVerdict": "High-Tech Blocked",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 30,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 44,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 38,
-        "narrative_rotation_radar": 35,
-        "portfolio_fit_optimizer": 54,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 41
-      },
-      "highTechAlphaStack": {
-        "score": 46,
-        "verdict": "High-Tech Blocked",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 30,
-            "grade": "Poor",
-            "summary": "0/9 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 63",
-              "Causal Alpha: 59",
-              "AI Council: 53",
-              "Source Truth: 52",
-              "Simulation: 41"
-            ],
-            "risks": [
-              "4 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 69,
-            "grade": "Strong",
-            "summary": "1 material contradiction(s) need review.",
-            "signals": [],
-            "risks": [
-              "hot narrative but weak proof"
-            ]
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 44,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 31.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 81,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 38,
-            "grade": "Weak",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Staking Change."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 35,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 45."
-            ],
-            "risks": [
-              "Narrative breadth is weak."
-            ]
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 54,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: Truth-Verified Alpha."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 41,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Meta-Consensus Lattice above 60.",
-          "Improve Narrative Rotation Radar above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40.",
-          "Catalyst Chain Reaction Map remains below 40.",
-          "Narrative Rotation Radar remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 7,
-      "selfEvolvingAlphaOSScore": 30
+      "highTechAlphaVerdict": "High-Tech Blocked"
     },
     {
       "name": "Pendle",
@@ -31034,6 +30188,13 @@
         "Timing: 46",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 26,
@@ -31333,7 +30494,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -31914,7 +31075,7 @@
             "5 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -33536,7 +32697,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -34424,7 +33585,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-16T13:34:10.610Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -35520,7 +34681,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -36348,7 +35509,7 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.423Z",
+            "searchedAt": "2026-07-16T13:54:19.011Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -36358,30 +35519,30 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.423Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-pendle",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           }
         ],
         "evidence": [
@@ -36923,188 +36084,7 @@
         "summary": "Controlled research loop completed with a watch-level research result."
       },
       "highTechAlphaScore": 47,
-      "highTechAlphaVerdict": "High-Tech Blocked",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 38,
-        "contradiction_resolver": 85,
-        "alpha_half_life": 42,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 78,
-        "catalyst_chain_reaction": 35,
-        "narrative_rotation_radar": 29,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 42
-      },
-      "highTechAlphaStack": {
-        "score": 47,
-        "verdict": "High-Tech Blocked",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 38,
-            "grade": "Weak",
-            "summary": "0/8 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 64",
-              "Causal Alpha: 59",
-              "AI Council: 53",
-              "Source Truth: 52",
-              "Simulation: 40"
-            ],
-            "risks": [
-              "3 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 85,
-            "grade": "Elite",
-            "summary": "No major contradictions detected across high-level signals.",
-            "signals": [
-              "Signal stack is internally consistent."
-            ],
-            "risks": []
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 42,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 29.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 78,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 35,
-            "grade": "Weak",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Airdrop / Points Catalyst."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 29,
-            "grade": "Poor",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 37."
-            ],
-            "risks": [
-              "Narrative breadth is weak."
-            ]
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 55,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: Truth-Verified Alpha."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 42,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Narrative Rotation Radar above 60.",
-          "Improve Catalyst Chain Reaction Map above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40.",
-          "Catalyst Chain Reaction Map remains below 40.",
-          "Narrative Rotation Radar remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 6,
-      "selfEvolvingAlphaOSScore": 30
+      "highTechAlphaVerdict": "High-Tech Blocked"
     },
     {
       "name": "Render",
@@ -37159,6 +36139,13 @@
         "Attention Gap: 47",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 25,
@@ -37443,7 +36430,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -38015,7 +37002,7 @@
             "7 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [
@@ -39603,7 +38590,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -40524,7 +39511,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-16T13:34:10.609Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -41635,7 +40622,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -42464,7 +41451,7 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.420Z",
+            "searchedAt": "2026-07-16T13:54:19.007Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -42474,30 +41461,30 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.420Z"
+            "calledAt": "2026-07-16T13:54:19.007Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.420Z"
+            "calledAt": "2026-07-16T13:54:19.007Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-rndr",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.420Z"
+            "calledAt": "2026-07-16T13:54:19.007Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.420Z"
+            "calledAt": "2026-07-16T13:54:19.007Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.420Z"
+            "calledAt": "2026-07-16T13:54:19.007Z"
           }
         ],
         "evidence": [
@@ -43039,182 +42026,7 @@
         "summary": "Controlled research loop found too many unanswered questions to promote."
       },
       "highTechAlphaScore": 47,
-      "highTechAlphaVerdict": "High-Tech Blocked",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 30,
-        "contradiction_resolver": 68,
-        "alpha_half_life": 46,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 83,
-        "catalyst_chain_reaction": 33,
-        "narrative_rotation_radar": 45,
-        "portfolio_fit_optimizer": 53,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 41
-      },
-      "highTechAlphaStack": {
-        "score": 47,
-        "verdict": "High-Tech Blocked",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 30,
-            "grade": "Poor",
-            "summary": "0/9 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 63",
-              "Causal Alpha: 59",
-              "AI Council: 51",
-              "Source Truth: 49",
-              "Simulation: 41"
-            ],
-            "risks": [
-              "4 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 68,
-            "grade": "Developing",
-            "summary": "1 material contradiction(s) need review.",
-            "signals": [],
-            "risks": [
-              "hot narrative but weak proof"
-            ]
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 46,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 34.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 83,
-            "grade": "Elite",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": []
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 33,
-            "grade": "Poor",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [
-              "Top event: Migration / Release."
-            ],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 58."
-            ],
-            "risks": []
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 53,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: GitHub Builder Momentum."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 41,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Meta-Consensus Lattice above 60.",
-          "Improve Catalyst Chain Reaction Map above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40.",
-          "Catalyst Chain Reaction Map remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 5,
-      "selfEvolvingAlphaOSScore": 32
+      "highTechAlphaVerdict": "High-Tech Blocked"
     },
     {
       "name": "Jupiter",
@@ -43267,6 +42079,13 @@
         "Local AI Consensus: 50",
         "Execution: 35",
         "Market Opportunity Rank: 0"
+      ],
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
       ],
       "timeHorizonScores": {
         "24_72_HOURS": 21,
@@ -43543,7 +42362,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:34:01.523Z",
+      "discoveredAt": "2026-07-16T13:54:08.243Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -44122,7 +42941,7 @@
             "5 proof gaps remain."
           ]
         },
-        "[18 additional items omitted]"
+        "[19 additional items omitted]"
       ],
       "alerts": [],
       "narratives": [],
@@ -45724,7 +44543,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:34:08.653Z",
+        "generatedAt": "2026-07-16T13:54:15.296Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -46606,7 +45425,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-16T13:34:10.610Z",
+          "timestamp": "2026-07-16T13:54:17.159Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -47678,7 +46497,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:34:10.854Z",
+        "generatedAt": "2026-07-16T13:54:17.406Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -48506,7 +47325,7 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:34:12.424Z",
+            "searchedAt": "2026-07-16T13:54:19.011Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -48516,30 +47335,30 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-jup",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.011Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:34:12.424Z"
+            "calledAt": "2026-07-16T13:54:19.012Z"
           }
         ],
         "evidence": [
@@ -49081,186 +47900,7 @@
         "summary": "Controlled research loop completed with a watch-level research result."
       },
       "highTechAlphaScore": 46,
-      "highTechAlphaVerdict": "High-Tech Blocked",
-      "highTechAlphaConfidence": "Developing",
-      "highTechModuleScores": {
-        "meta_consensus_lattice": 35,
-        "contradiction_resolver": 85,
-        "alpha_half_life": 40,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 82,
-        "catalyst_chain_reaction": 29,
-        "narrative_rotation_radar": 25,
-        "portfolio_fit_optimizer": 52,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 40
-      },
-      "highTechAlphaStack": {
-        "score": 46,
-        "verdict": "High-Tech Blocked",
-        "moduleCount": 10,
-        "modules": [
-          {
-            "id": "meta_consensus_lattice",
-            "name": "Meta-Consensus Lattice",
-            "score": 35,
-            "grade": "Weak",
-            "summary": "0/8 active agents support the thesis.",
-            "signals": [
-              "Auto Weights: 62",
-              "Causal Alpha: 55",
-              "AI Council: 52",
-              "Source Truth: 52",
-              "Simulation: 40"
-            ],
-            "risks": [
-              "3 active agents are below 40."
-            ]
-          },
-          {
-            "id": "contradiction_resolver",
-            "name": "Contradiction Resolver",
-            "score": 85,
-            "grade": "Elite",
-            "summary": "No major contradictions detected across high-level signals.",
-            "signals": [
-              "Signal stack is internally consistent."
-            ],
-            "risks": []
-          },
-          {
-            "id": "alpha_half_life",
-            "name": "Alpha Half-Life Model",
-            "score": 40,
-            "grade": "Weak",
-            "summary": "Estimated signal half-life: 3 day(s).",
-            "signals": [
-              "Momentum durability 27.",
-              "Estimated half-life 3 day(s)."
-            ],
-            "risks": []
-          },
-          {
-            "id": "liquidity_stress_test",
-            "name": "Liquidity Stress Test",
-            "score": 28,
-            "grade": "Poor",
-            "summary": "Modeled stressed-exit drag: 42%.",
-            "signals": [
-              "Liquidity stack 28.",
-              "Stressed-exit drag 42%."
-            ],
-            "risks": []
-          },
-          {
-            "id": "manipulation_firewall",
-            "name": "Manipulation Firewall",
-            "score": 82,
-            "grade": "Strong",
-            "summary": "Manipulation profile is acceptable.",
-            "signals": [
-              "Trap/bot profile is controlled."
-            ],
-            "risks": [
-              "Social attention is ahead of proof."
-            ]
-          },
-          {
-            "id": "catalyst_chain_reaction",
-            "name": "Catalyst Chain Reaction Map",
-            "score": 29,
-            "grade": "Poor",
-            "summary": "Catalyst stack is not strong enough yet.",
-            "signals": [],
-            "risks": [
-              "No strong near-term catalyst cluster."
-            ]
-          },
-          {
-            "id": "narrative_rotation_radar",
-            "name": "Narrative Rotation Radar",
-            "score": 25,
-            "grade": "Poor",
-            "summary": "Narrative rotation is early or unconfirmed.",
-            "signals": [
-              "Narrative stack 32."
-            ],
-            "risks": [
-              "Narrative breadth is weak."
-            ]
-          },
-          {
-            "id": "portfolio_fit_optimizer",
-            "name": "Portfolio Fit Optimizer",
-            "score": 52,
-            "grade": "Developing",
-            "summary": "Needs stronger proof or lower risk for portfolio fit.",
-            "signals": [
-              "Allocation bucket: Avoid.",
-              "Strategy: Truth-Verified Alpha."
-            ],
-            "risks": []
-          },
-          {
-            "id": "evidence_gap_radar",
-            "name": "Evidence Gap Radar",
-            "score": 45,
-            "grade": "Weak",
-            "summary": "Missing evidence: proof, source truth, developer evidence, liquidity, roadmap.",
-            "signals": [],
-            "risks": [
-              "proof",
-              "source truth",
-              "developer evidence",
-              "liquidity",
-              "roadmap"
-            ]
-          },
-          {
-            "id": "execution_readiness_planner",
-            "name": "Execution Readiness Planner",
-            "score": 40,
-            "grade": "Weak",
-            "summary": "Recommended operating mode: Do Not Promote.",
-            "signals": [
-              "Action: Do Not Promote."
-            ],
-            "risks": [
-              "Needs stronger evidence before escalation."
-            ]
-          }
-        ],
-        "strongestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "weakestModules": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "blockers": [
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]",
-          "[repeated data omitted from report]"
-        ],
-        "commandDecision": "Do not promote until blockers clear",
-        "promotionTriggers": [
-          "Improve Narrative Rotation Radar above 60.",
-          "Improve Liquidity Stress Test above 60.",
-          "Improve Catalyst Chain Reaction Map above 60."
-        ],
-        "killSwitches": [
-          "Meta-Consensus Lattice remains below 40.",
-          "Liquidity Stress Test remains below 40.",
-          "Catalyst Chain Reaction Map remains below 40.",
-          "Narrative Rotation Radar remains below 40."
-        ]
-      },
-      "highTechAlphaRank": 8,
-      "selfEvolvingAlphaOSScore": 26
+      "highTechAlphaVerdict": "High-Tech Blocked"
     }
   ]
 }

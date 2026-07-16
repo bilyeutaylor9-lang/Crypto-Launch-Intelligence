@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:34:24.854Z",
+  "generatedAt": "2026-07-16T13:54:31.480Z",
   "mode": "DETERMINISTIC_CHIEF_MARKET_OPPORTUNITY_JUDGE",
   "verdict": "NO_CLEAR_MARKET_LEADER",
   "winnerProjectKey": "temporary:symbol:ethereum:eigen",
@@ -19,6 +19,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 28,
         "timing": 52,
@@ -174,6 +181,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 24,
         "timing": 52,
@@ -300,6 +314,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 24,
         "timing": 53,
@@ -434,6 +455,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 23,
         "timing": 49,
@@ -560,6 +588,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 23,
         "timing": 51,

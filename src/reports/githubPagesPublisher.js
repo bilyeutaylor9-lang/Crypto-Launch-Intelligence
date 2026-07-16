@@ -66,6 +66,7 @@ const PUBLIC_REPORTS = [
   "finalist-comparison.json",
   "crawler-changes.json",
   "local-ai-chief-judgment.json",
+  "market-opportunity-learning.json",
   "institutional-ranking.json",
   "best-available.json",
   "emerging-radar.json",
@@ -142,6 +143,7 @@ function writeLandingPage(copiedFiles = []) {
   const bestOpportunityNow = readJsonReport("best-opportunity-now.json") || {};
   const topFiveOpportunities = readJsonReport("top-five-opportunities.json") || {};
   const finalistComparison = readJsonReport("finalist-comparison.json") || {};
+  const marketOpportunityLearning = readJsonReport("market-opportunity-learning.json") || {};
   const institutionalRanking = readJsonReport("institutional-ranking.json") || {};
   const executionReady = readJsonReport("execution-ready.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
@@ -174,6 +176,9 @@ function writeLandingPage(copiedFiles = []) {
     ["Best Now", bestNowProject.identity?.symbol || "No Clear"],
     ["Leader Verdict", bestOpportunityNow.verdict || finalistComparison.verdict || "N/A"],
     ["Leader Rank", bestNowProject.marketOpportunityRank ?? "N/A"],
+    ["Learning Records", marketOpportunityLearning.records ?? "N/A"],
+    ["Learning Evaluated", marketOpportunityLearning.evaluated ?? "N/A"],
+    ["Learning Winners", marketOpportunityLearning.winners ?? "N/A"],
     ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? "N/A"],
     ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
     ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? "N/A"],
@@ -513,6 +518,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
           <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
+          <li><strong>Market Opportunity Learning:</strong> records top opportunity receipts, grades later scans when market data is available, and produces cautious weight hints.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
       </div>
@@ -575,6 +581,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./opportunity-lane-leaders.json">Lanes</a>
         <a class="button" href="./crawler-changes.json">Crawler Changes</a>
         <a class="button" href="./local-ai-chief-judgment.json">Chief Judge</a>
+        <a class="button" href="./market-opportunity-learning.json">Opportunity Learning</a>
         <a class="button" href="./institutional-ranking.json">Money Rank</a>
         <a class="button" href="./best-available.json">Best Available</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>

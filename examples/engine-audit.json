@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-07-16T13:34:39.161Z",
-  "totalEngines": 141,
-  "wiredIntoPipeline": 117,
-  "stateOfArtReady": 124,
+  "generatedAt": "2026-07-16T13:54:45.718Z",
+  "totalEngines": 142,
+  "wiredIntoPipeline": 118,
+  "stateOfArtReady": 125,
   "readinessScore": 91,
   "categoryCounts": {
     "intelligence": 62,
     "market-flow": 9,
     "ai": 14,
-    "learning": 22,
+    "learning": 23,
     "narrative-launch": 10,
     "discovery": 14,
     "risk": 3,
@@ -1527,6 +1527,20 @@
       "advancedSignals": 0,
       "readinessScore": 20,
       "status": "needs-upgrade"
+    },
+    {
+      "file": "marketOpportunityLearningEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeMarketOpportunityLearning",
+        "analyzeMarketOpportunityLearningBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "marketOpportunityRankEngine.js",

@@ -115,7 +115,7 @@ export async function processQueuedLocalAIResearch(options = {}) {
         chat: options.chat,
         chatOptions: taskConfig,
       });
-      report.localModel = { model: config.model, baseUrl: config.baseUrl };
+      report.localModel = { model: config.model, baseUrl: config.baseUrl, provider: config.provider };
       const completedTask = completeLocalAIResearchTask(task.id, report, queueOptions);
       const memory = saveLocalAIResearchRun(completedTask, report, {
         ...(options.memory || {}),

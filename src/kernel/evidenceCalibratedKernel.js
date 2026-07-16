@@ -1007,6 +1007,11 @@ function kernelAuditBaseProject() {
     moneyRankEligible: true,
     marketOpportunityRank: 86,
     localAIConsensusScore: 84,
+    marketOpportunityLearningScore: 68,
+    marketOpportunityLearningConfidence: "LOW_SAMPLE",
+    marketOpportunityLearningAdjustment: 1,
+    learnedMarketOpportunityRank: 87,
+    marketOpportunityLearningHints: ["Timing history is collecting outcome receipts."],
     timeHorizonScores: {
       "24_72_HOURS": 80,
       "7_14_DAYS": 86,

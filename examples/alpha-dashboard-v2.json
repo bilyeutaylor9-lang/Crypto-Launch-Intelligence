@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:34:15.543Z",
+  "generatedAt": "2026-07-16T13:54:22.131Z",
   "totalProjects": 8,
   "headline": {
     "topCandidate": {
@@ -148,6 +148,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -303,6 +310,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -429,6 +443,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 53,
@@ -563,6 +584,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 49,
@@ -689,6 +717,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 51,
@@ -831,6 +866,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -986,6 +1028,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -1112,6 +1161,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 53,
@@ -1246,6 +1302,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 49,
@@ -1372,6 +1435,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 51,
@@ -2524,6 +2594,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 28,
         "timing": 52,
@@ -2679,6 +2756,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 24,
         "timing": 52,
@@ -2805,6 +2889,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 24,
         "timing": 53,
@@ -2939,6 +3030,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 23,
         "timing": 49,
@@ -3065,6 +3163,13 @@
         "confidence": 37
       },
       "marketOpportunityRank": 0,
+      "marketOpportunityLearningScore": 50,
+      "marketOpportunityLearningAdjustment": 0,
+      "learnedMarketOpportunityRank": 0,
+      "marketOpportunityLearningConfidence": "COLD_START",
+      "marketOpportunityLearningHints": [
+        "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+      ],
       "scores": {
         "opportunity": 23,
         "timing": 51,
@@ -3182,7 +3287,7 @@
     }
   ],
   "finalistComparison": {
-    "generatedAt": "2026-07-16T13:34:15.540Z",
+    "generatedAt": "2026-07-16T13:54:22.129Z",
     "verdict": "NO_CLEAR_MARKET_LEADER",
     "winnerProjectKey": "temporary:symbol:ethereum:eigen",
     "runnerUpProjectKey": "temporary:symbol:bittensor:tao",
@@ -3235,7 +3340,7 @@
     ]
   },
   "timeHorizonLeaders": {
-    "generatedAt": "2026-07-16T13:34:15.541Z",
+    "generatedAt": "2026-07-16T13:54:22.129Z",
     "24_72_HOURS": [
       {
         "rank": 1,
@@ -3248,6 +3353,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -3403,6 +3515,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 53,
@@ -3537,6 +3656,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -3663,6 +3789,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 46,
@@ -3804,6 +3937,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 49,
@@ -3932,6 +4072,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -4087,6 +4234,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 53,
@@ -4221,6 +4375,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -4347,6 +4508,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 46,
@@ -4488,6 +4656,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 51,
@@ -4616,6 +4791,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -4771,6 +4953,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 51,
@@ -4897,6 +5086,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 46,
@@ -5038,6 +5234,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 21,
           "timing": 51,
@@ -5156,6 +5359,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -5274,7 +5484,7 @@
     ]
   },
   "opportunityLaneLeaders": {
-    "generatedAt": "2026-07-16T13:34:15.541Z",
+    "generatedAt": "2026-07-16T13:54:22.130Z",
     "lanes": {
       "BLOCKED": [
         {
@@ -5288,6 +5498,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 28,
             "timing": 52,
@@ -5443,6 +5660,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 52,
@@ -5569,6 +5793,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 53,
@@ -5703,6 +5934,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 49,
@@ -5829,6 +6067,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 51,
@@ -6817,7 +7062,7 @@
     "note": "Scores are research rankings until enough outcome records exist for measured hit rates."
   },
   "progressiveOpportunities": {
-    "generatedAt": "2026-07-16T13:34:15.538Z",
+    "generatedAt": "2026-07-16T13:54:22.127Z",
     "totalProjects": 8,
     "counts": {
       "sniperReady": 0,
@@ -7714,7 +7959,7 @@
     ]
   },
   "marketOpportunity": {
-    "generatedAt": "2026-07-16T13:34:15.541Z",
+    "generatedAt": "2026-07-16T13:54:22.129Z",
     "totalProjects": 8,
     "verdict": "NO_CLEAR_MARKET_LEADER",
     "bestOpportunityNow": null,
@@ -7732,6 +7977,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 28,
           "timing": 52,
@@ -7887,6 +8139,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 52,
@@ -8013,6 +8272,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 24,
           "timing": 53,
@@ -8147,6 +8413,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 49,
@@ -8273,6 +8546,13 @@
           "confidence": 37
         },
         "marketOpportunityRank": 0,
+        "marketOpportunityLearningScore": 50,
+        "marketOpportunityLearningAdjustment": 0,
+        "learnedMarketOpportunityRank": 0,
+        "marketOpportunityLearningConfidence": "COLD_START",
+        "marketOpportunityLearningHints": [
+          "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+        ],
         "scores": {
           "opportunity": 23,
           "timing": 51,
@@ -8390,7 +8670,7 @@
       }
     ],
     "finalistComparison": {
-      "generatedAt": "2026-07-16T13:34:15.540Z",
+      "generatedAt": "2026-07-16T13:54:22.129Z",
       "verdict": "NO_CLEAR_MARKET_LEADER",
       "winnerProjectKey": "temporary:symbol:ethereum:eigen",
       "runnerUpProjectKey": "temporary:symbol:bittensor:tao",
@@ -8443,7 +8723,7 @@
       ]
     },
     "timeHorizonLeaders": {
-      "generatedAt": "2026-07-16T13:34:15.541Z",
+      "generatedAt": "2026-07-16T13:54:22.129Z",
       "24_72_HOURS": [
         {
           "rank": 1,
@@ -8456,6 +8736,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 28,
             "timing": 52,
@@ -8611,6 +8898,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 53,
@@ -8745,6 +9039,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 52,
@@ -8871,6 +9172,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 46,
@@ -9012,6 +9320,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 49,
@@ -9140,6 +9455,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 28,
             "timing": 52,
@@ -9295,6 +9617,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 53,
@@ -9429,6 +9758,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 52,
@@ -9555,6 +9891,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 46,
@@ -9696,6 +10039,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 51,
@@ -9824,6 +10174,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 28,
             "timing": 52,
@@ -9979,6 +10336,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 51,
@@ -10105,6 +10469,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 46,
@@ -10246,6 +10617,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 21,
             "timing": 51,
@@ -10364,6 +10742,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 52,
@@ -10482,7 +10867,7 @@
       ]
     },
     "opportunityLaneLeaders": {
-      "generatedAt": "2026-07-16T13:34:15.541Z",
+      "generatedAt": "2026-07-16T13:54:22.130Z",
       "lanes": {
         "BLOCKED": [
           {
@@ -10496,6 +10881,13 @@
               "confidence": 37
             },
             "marketOpportunityRank": 0,
+            "marketOpportunityLearningScore": 50,
+            "marketOpportunityLearningAdjustment": 0,
+            "learnedMarketOpportunityRank": 0,
+            "marketOpportunityLearningConfidence": "COLD_START",
+            "marketOpportunityLearningHints": [
+              "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+            ],
             "scores": {
               "opportunity": 28,
               "timing": 52,
@@ -10651,6 +11043,13 @@
               "confidence": 37
             },
             "marketOpportunityRank": 0,
+            "marketOpportunityLearningScore": 50,
+            "marketOpportunityLearningAdjustment": 0,
+            "learnedMarketOpportunityRank": 0,
+            "marketOpportunityLearningConfidence": "COLD_START",
+            "marketOpportunityLearningHints": [
+              "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+            ],
             "scores": {
               "opportunity": 24,
               "timing": 52,
@@ -10777,6 +11176,13 @@
               "confidence": 37
             },
             "marketOpportunityRank": 0,
+            "marketOpportunityLearningScore": 50,
+            "marketOpportunityLearningAdjustment": 0,
+            "learnedMarketOpportunityRank": 0,
+            "marketOpportunityLearningConfidence": "COLD_START",
+            "marketOpportunityLearningHints": [
+              "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+            ],
             "scores": {
               "opportunity": 24,
               "timing": 53,
@@ -10911,6 +11317,13 @@
               "confidence": 37
             },
             "marketOpportunityRank": 0,
+            "marketOpportunityLearningScore": 50,
+            "marketOpportunityLearningAdjustment": 0,
+            "learnedMarketOpportunityRank": 0,
+            "marketOpportunityLearningConfidence": "COLD_START",
+            "marketOpportunityLearningHints": [
+              "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+            ],
             "scores": {
               "opportunity": 23,
               "timing": 49,
@@ -11037,6 +11450,13 @@
               "confidence": 37
             },
             "marketOpportunityRank": 0,
+            "marketOpportunityLearningScore": 50,
+            "marketOpportunityLearningAdjustment": 0,
+            "learnedMarketOpportunityRank": 0,
+            "marketOpportunityLearningConfidence": "COLD_START",
+            "marketOpportunityLearningHints": [
+              "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+            ],
             "scores": {
               "opportunity": 23,
               "timing": 51,
@@ -11156,7 +11576,7 @@
       }
     },
     "crawlerChanges": {
-      "generatedAt": "2026-07-16T13:34:15.541Z",
+      "generatedAt": "2026-07-16T13:54:22.130Z",
       "changes": [
         {
           "projectKey": "temporary:symbol:ethereum:eigen",
@@ -11391,7 +11811,7 @@
       "note": "This report is built from compact project evidence packets. It is ready for the queued crawler/change-detector layer."
     },
     "localAIChiefJudgment": {
-      "generatedAt": "2026-07-16T13:34:15.542Z",
+      "generatedAt": "2026-07-16T13:54:22.130Z",
       "mode": "DETERMINISTIC_CHIEF_MARKET_OPPORTUNITY_JUDGE",
       "verdict": "NO_CLEAR_MARKET_LEADER",
       "winnerProjectKey": "temporary:symbol:ethereum:eigen",
@@ -11411,6 +11831,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 28,
             "timing": 52,
@@ -11566,6 +11993,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 52,
@@ -11692,6 +12126,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 24,
             "timing": 53,
@@ -11826,6 +12267,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 49,
@@ -11952,6 +12400,13 @@
             "confidence": 37
           },
           "marketOpportunityRank": 0,
+          "marketOpportunityLearningScore": 50,
+          "marketOpportunityLearningAdjustment": 0,
+          "learnedMarketOpportunityRank": 0,
+          "marketOpportunityLearningConfidence": "COLD_START",
+          "marketOpportunityLearningHints": [
+            "No evaluated market-opportunity receipts yet. Collect more scan outcomes before trusting learned weights."
+          ],
           "scores": {
             "opportunity": 23,
             "timing": 51,
@@ -12362,7 +12817,7 @@
     ]
   },
   "smallCapHunter": {
-    "generatedAt": "2026-07-16T13:34:15.536Z",
+    "generatedAt": "2026-07-16T13:54:22.124Z",
     "name": "Small-Cap Hunter",
     "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
     "totalProjects": 8,
@@ -13238,7 +13693,7 @@
     ]
   },
   "executionTwin": {
-    "generatedAt": "2026-07-16T13:34:15.536Z",
+    "generatedAt": "2026-07-16T13:54:22.125Z",
     "name": "Proof-of-Alpha Execution Twin",
     "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
     "totalProjects": 8,
@@ -13970,7 +14425,7 @@
     ]
   },
   "organicIntegrity": {
-    "generatedAt": "2026-07-16T13:34:15.537Z",
+    "generatedAt": "2026-07-16T13:54:22.126Z",
     "name": "Organic Demand and Economic Integrity",
     "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
     "totalProjects": 8,
@@ -15599,7 +16054,7 @@
     ]
   },
   "institutionalDataProvenance": {
-    "generatedAt": "2026-07-16T13:34:15.538Z",
+    "generatedAt": "2026-07-16T13:54:22.126Z",
     "name": "Institutional Data Provenance Ledger",
     "doctrine": [
       "Every major score must carry source, timestamp, confidence, and observation type.",
@@ -15799,7 +16254,7 @@
     "ledgers": [
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.106Z",
+        "generatedAt": "2026-07-16T13:54:21.680Z",
         "projectId": "cli_project_43508e66a90fb8fe",
         "name": "EigenLayer",
         "symbol": "EIGEN",
@@ -15986,7 +16441,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16003,7 +16458,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 53,
             "normalizedValue": 53,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16020,7 +16475,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 112500,
             "normalizedValue": 112500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16037,7 +16492,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 31250,
             "normalizedValue": 31250,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16054,7 +16509,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16071,7 +16526,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16088,7 +16543,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16105,7 +16560,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16122,7 +16577,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16139,7 +16594,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16156,7 +16611,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16173,7 +16628,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16190,7 +16645,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 87,
             "normalizedValue": 87,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16207,7 +16662,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 43,
             "normalizedValue": 43,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16219,7 +16674,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.110Z",
+        "generatedAt": "2026-07-16T13:54:21.684Z",
         "projectId": "cli_project_a3a1cffcde1b1617",
         "name": "Bittensor",
         "symbol": "TAO",
@@ -16406,7 +16861,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16423,7 +16878,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 52,
             "normalizedValue": 52,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16440,7 +16895,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 100000,
             "normalizedValue": 100000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16457,7 +16912,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 25000,
             "normalizedValue": 25000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16474,7 +16929,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16491,7 +16946,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16508,7 +16963,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16525,7 +16980,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16542,7 +16997,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16559,7 +17014,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16576,7 +17031,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16593,7 +17048,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16610,7 +17065,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16627,7 +17082,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 43,
             "normalizedValue": 43,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16639,7 +17094,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.111Z",
+        "generatedAt": "2026-07-16T13:54:21.686Z",
         "projectId": "cli_project_70b9cfc5ca96aba9",
         "name": "Ondo",
         "symbol": "ONDO",
@@ -16826,7 +17281,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16843,7 +17298,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 49,
             "normalizedValue": 49,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16860,7 +17315,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 107500,
             "normalizedValue": 107500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16877,7 +17332,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 28750,
             "normalizedValue": 28750,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16894,7 +17349,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16911,7 +17366,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16928,7 +17383,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -16945,7 +17400,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16962,7 +17417,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16979,7 +17434,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -16996,7 +17451,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17013,7 +17468,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17030,7 +17485,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 43,
             "normalizedValue": 43,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17047,7 +17502,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 42,
             "normalizedValue": 42,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17059,7 +17514,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.113Z",
+        "generatedAt": "2026-07-16T13:54:21.687Z",
         "projectId": "cli_project_7488a1f28f2823d1",
         "name": "Akash Network",
         "symbol": "AKT",
@@ -17246,7 +17701,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17263,7 +17718,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 52,
             "normalizedValue": 52,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17280,7 +17735,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 105000,
             "normalizedValue": 105000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17297,7 +17752,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 27500,
             "normalizedValue": 27500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17314,7 +17769,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17331,7 +17786,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17348,7 +17803,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17365,7 +17820,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17382,7 +17837,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17399,7 +17854,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17416,7 +17871,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17433,7 +17888,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17450,7 +17905,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 17,
             "normalizedValue": 17,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17467,7 +17922,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 43,
             "normalizedValue": 43,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17479,7 +17934,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.114Z",
+        "generatedAt": "2026-07-16T13:54:21.688Z",
         "projectId": "cli_project_e6489e58659129a3",
         "name": "Celestia",
         "symbol": "TIA",
@@ -17666,7 +18121,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17683,7 +18138,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 52,
             "normalizedValue": 52,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17700,7 +18155,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 115000,
             "normalizedValue": 115000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17717,7 +18172,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 32500,
             "normalizedValue": 32500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17734,7 +18189,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17751,7 +18206,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17768,7 +18223,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -17785,7 +18240,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17802,7 +18257,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17819,7 +18274,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17836,7 +18291,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17853,7 +18308,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17870,7 +18325,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 34,
             "normalizedValue": 34,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17887,7 +18342,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 42,
             "normalizedValue": 42,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -17899,7 +18354,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.116Z",
+        "generatedAt": "2026-07-16T13:54:21.690Z",
         "projectId": "cli_project_022766c1f7e020d5",
         "name": "Pendle",
         "symbol": "PENDLE",
@@ -18086,7 +18541,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18103,7 +18558,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 52,
             "normalizedValue": 52,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18120,7 +18575,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 110000,
             "normalizedValue": 110000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18137,7 +18592,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30000,
             "normalizedValue": 30000,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18154,7 +18609,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18171,7 +18626,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18188,7 +18643,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18205,7 +18660,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18222,7 +18677,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18239,7 +18694,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18256,7 +18711,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18273,7 +18728,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18290,7 +18745,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 19,
             "normalizedValue": 19,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18307,7 +18762,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 42,
             "normalizedValue": 42,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18319,7 +18774,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.115Z",
+        "generatedAt": "2026-07-16T13:54:21.689Z",
         "projectId": "cli_project_0794e2f0af52ec67",
         "name": "Render",
         "symbol": "RNDR",
@@ -18506,7 +18961,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18523,7 +18978,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 49,
             "normalizedValue": 49,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18540,7 +18995,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 102500,
             "normalizedValue": 102500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18557,7 +19012,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 26250,
             "normalizedValue": 26250,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18574,7 +19029,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18591,7 +19046,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18608,7 +19063,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18625,7 +19080,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18642,7 +19097,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18659,7 +19114,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18676,7 +19131,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18693,7 +19148,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18710,7 +19165,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 13,
             "normalizedValue": 13,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18727,7 +19182,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 42,
             "normalizedValue": 42,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18739,7 +19194,7 @@
       },
       {
         "version": "institutional-data-provenance-v1",
-        "generatedAt": "2026-07-16T13:34:15.117Z",
+        "generatedAt": "2026-07-16T13:54:21.691Z",
         "projectId": "cli_project_b6b572a8e0a822c3",
         "name": "Jupiter",
         "symbol": "JUP",
@@ -18926,7 +19381,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 37,
             "normalizedValue": 37,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18943,7 +19398,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 52,
             "normalizedValue": 52,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -18960,7 +19415,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 117500,
             "normalizedValue": 117500,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18977,7 +19432,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 33750,
             "normalizedValue": 33750,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -18994,7 +19449,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -19011,7 +19466,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -19028,7 +19483,7 @@
             "sourceFamily": "research-seed",
             "rawValue": null,
             "normalizedValue": null,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "direct",
@@ -19045,7 +19500,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 30,
             "normalizedValue": 30,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19062,7 +19517,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 63,
             "normalizedValue": 63,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19079,7 +19534,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 80,
             "normalizedValue": 80,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19096,7 +19551,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 35,
             "normalizedValue": 35,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19113,7 +19568,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 0,
             "normalizedValue": 0,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19130,7 +19585,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 33,
             "normalizedValue": 33,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19147,7 +19602,7 @@
             "sourceFamily": "research-seed",
             "rawValue": 41,
             "normalizedValue": 41,
-            "observedAt": "2026-07-16T13:34:01.523Z",
+            "observedAt": "2026-07-16T13:54:08.243Z",
             "freshnessScore": 100,
             "freshnessStatus": "fresh",
             "observationType": "derived",
@@ -19160,7 +19615,7 @@
     ]
   },
   "paperTradingOutcomeLab": {
-    "generatedAt": "2026-07-16T13:34:15.532Z",
+    "generatedAt": "2026-07-16T13:54:22.121Z",
     "memory": {
       "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
       "totalRecords": 187,
@@ -20435,7 +20890,7 @@
     ]
   },
   "autoLearningWeightOptimizer": {
-    "generatedAt": "2026-07-16T13:34:15.535Z",
+    "generatedAt": "2026-07-16T13:54:22.124Z",
     "memorySamples": 187,
     "evaluatedSamples": 0,
     "globalPaperWinRate": 0,
@@ -20506,7 +20961,7 @@
     }
   },
   "sourceTruth": {
-    "generatedAt": "2026-07-16T13:34:15.535Z",
+    "generatedAt": "2026-07-16T13:54:22.124Z",
     "totalProjects": 8,
     "verifiedStacks": 0,
     "weakStacks": 0,
@@ -20617,7 +21072,7 @@
     ]
   },
   "githubIntelligencePro": {
-    "generatedAt": "2026-07-16T13:34:15.536Z",
+    "generatedAt": "2026-07-16T13:54:22.124Z",
     "totalProjects": 8,
     "repoProjects": 0,
     "missingRepoProjects": 8,

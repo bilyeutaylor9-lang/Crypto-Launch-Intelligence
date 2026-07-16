@@ -299,7 +299,7 @@ export async function runLocalResearchSwarm(project = {}, options = {}) {
     summary: "No valid specialist findings were available for reconciliation.",
     keyRisks: ["Local specialist execution did not complete."],
     missingEvidence: ["Valid local-model findings"],
-    nextChecks: ["Confirm Ollama availability and rerun the research command."],
+    nextChecks: ["Confirm the local Llama/Ollama server is available and rerun the research command."],
     confidence: 0,
   };
 
@@ -353,6 +353,12 @@ export async function runLocalResearchSwarm(project = {}, options = {}) {
 }
 
 export function unavailableLocalBrainReport(availability = {}, selection = "DEMO") {
+  const provider = availability?.config?.provider || "ollama";
+  const installCheck =
+    provider === "openai-compatible"
+      ? "Confirm the configured model is loaded in your Llama 3 server."
+      : `Install the configured model with: ollama pull ${availability?.config?.model || "qwen3:4b"}`;
+
   return {
     generatedAt: new Date().toISOString(),
     status: "UNAVAILABLE",
@@ -361,13 +367,14 @@ export function unavailableLocalBrainReport(availability = {}, selection = "DEMO
     localModel: {
       baseUrl: availability?.config?.baseUrl,
       model: availability?.config?.model,
+      provider,
       reachable: availability?.reachable === true,
       modelInstalled: availability?.modelInstalled === true,
       error: availability?.error || null,
     },
     nextChecks: [
-      "Start Ollama locally.",
-      `Install the configured model with: ollama pull ${availability?.config?.model || "qwen3:4b"}`,
+      provider === "openai-compatible" ? "Start your OpenAI-compatible local Llama server." : "Start Ollama locally.",
+      installCheck,
       "Rerun npm run ai:brain after the local service is available.",
     ],
     disclaimer: "No model analysis was performed. This report is not financial advice.",

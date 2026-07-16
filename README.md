@@ -182,6 +182,7 @@ The project now behaves like a miniature autonomous research organization.
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
 | Progressive Opportunity Ranking | Splits Opportunity, Trust, Execution, and Money Rank, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, execution-ready candidates, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json`, `reports/institutional-ranking.json` |
 | Market Opportunity Rank | Unifies Opportunity, Timing, Trust, Attention Gap, and bounded local-AI consensus into one authoritative best-opportunity decision, top-five comparison, horizons, lanes, and chief judgment | `reports/best-opportunity-now.json`, `reports/top-five-opportunities.json` |
+| Market Opportunity Learning | Records top opportunity receipts, grades later scans when price/liquidity data exists, and produces cautious signal-family weight hints | `reports/market-opportunity-learning.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
@@ -642,6 +643,7 @@ Every scan can generate a full research packet:
 | `reports/opportunity-lane-leaders.json` | Leaders by lane such as immediate breakout, catalyst window, positional build, under-the-radar, and monitor |
 | `reports/crawler-changes.json` | Compact change-detection packet from existing project research fields, ready for queued crawler storage |
 | `reports/local-ai-chief-judgment.json` | Structured chief market-opportunity judgment over the top five without allowing AI to override deterministic safety |
+| `reports/market-opportunity-learning.json` | Persistent opportunity receipts, realized outcome grading when data exists, signal-family stats, and cautious learned weight hints |
 | `reports/institutional-ranking.json` | Institutional Money Rank blending opportunity, trust, execution, evidence freshness, regime fit, and measured EV only when outcome samples are large enough |
 | `reports/best-available.json` | Strongest non-hard-blocked research leads plus missing proof queue |
 | `reports/execution-ready.json` | Candidates with verified route, sufficient liquidity depth, and passing paper trade-size checks |
@@ -812,6 +814,38 @@ export SOLANA_RPC_URL="optional_solana_rpc_url"
 
 For the complete OP Mode template, see `.env.example`. GitHub repository secrets can use the same names.
 
+## Local Llama 3 Brain
+
+The local AI layer can run on Ollama, LM Studio, or any OpenAI-compatible Llama 3 server. It stays advisory: it can critique evidence, flag missing proof, and request promotion blocks, but deterministic safety gates still decide what can be shown as qualified.
+
+Ollama Llama 3:
+
+```bash
+ollama pull llama3.1:8b
+export LOCAL_AI_PROVIDER=ollama
+export LOCAL_AI_BASE_URL=http://127.0.0.1:11434
+export LOCAL_AI_MODEL=llama3.1:8b
+npm run ai:brain:llama
+```
+
+OpenAI-compatible local server, such as LM Studio or llama.cpp:
+
+```bash
+export LOCAL_AI_PROVIDER=openai-compatible
+export LOCAL_AI_BASE_URL=http://127.0.0.1:1234/v1
+export LOCAL_AI_MODEL=llama-3.1-8b-instruct
+npm run ai:brain:llama:server
+```
+
+If your local server rejects JSON response mode, set `LOCAL_AI_JSON_MODE=false` and rerun the same command.
+
+To use Llama during a scan:
+
+```bash
+npm run scan:llama
+npm run scan:llama:server
+```
+
 ## Example Output
 
 Inspect demo artifacts:
@@ -843,6 +877,7 @@ cat examples/time-horizon-leaders.json
 cat examples/opportunity-lane-leaders.json
 cat examples/crawler-changes.json
 cat examples/local-ai-chief-judgment.json
+cat examples/market-opportunity-learning.json
 cat examples/institutional-ranking.json
 cat examples/best-available.json
 cat examples/execution-ready.json

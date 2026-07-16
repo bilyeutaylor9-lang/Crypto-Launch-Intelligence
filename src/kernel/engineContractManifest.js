@@ -387,6 +387,28 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: false,
   },
   {
+    id: "marketOpportunityLearning",
+    phase: "learning",
+    priority: 137,
+    module: "./engines/marketOpportunityLearningEngine.js",
+    exportName: "analyzeMarketOpportunityLearningBatch",
+    dependsOn: ["marketOpportunityRank"],
+    inputContract: {
+      requiredAny: [["marketOpportunityRank", "opportunityEvidenceRecord", "recommendedHorizon"]],
+      optional: ["priceUsd", "liquidityUsd", "localAIConsensusScore"],
+    },
+    outputContract: {
+      requiredAny: [["marketOpportunityLearningScore", "marketOpportunityLearningConfidence", "learnedMarketOpportunityRank"]],
+      scoreFields: ["marketOpportunityLearningScore", "learnedMarketOpportunityRank"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: false,
+    canBlockCandidate: false,
+  },
+  {
     id: "alphaEvolutionGovernor",
     phase: "governor",
     priority: 140,

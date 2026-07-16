@@ -53,6 +53,7 @@ const EXAMPLE_FILES = [
   "finalist-comparison.json",
   "crawler-changes.json",
   "local-ai-chief-judgment.json",
+  "market-opportunity-learning.json",
   "institutional-ranking.json",
   "best-available.json",
   "emerging-radar.json",

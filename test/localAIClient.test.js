@@ -1,7 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { chatWithOllama, getOllamaConfig, inspectOllama, parseModelJson } from "../src/brain/localAIClient.js";
+import {
+  chatWithLocalAI,
+  chatWithOllama,
+  getLocalAIConfig,
+  getOllamaConfig,
+  inspectLocalAI,
+  inspectOllama,
+  parseModelJson,
+} from "../src/brain/localAIClient.js";
 
 test("Ollama configuration keeps local responses bounded and disables extended thinking by default", () => {
   const config = getOllamaConfig({ maxTokens: 9_999, think: "false" });
@@ -13,7 +21,7 @@ test("Ollama configuration keeps local responses bounded and disables extended t
 test("Ollama inspection reports the configured local model", async () => {
   const result = await inspectOllama({
     baseUrl: "http://local.test",
-    model: "qwen3:4b",
+    model: "qwen3",
     fetchImpl: async (url) => {
       assert.equal(url, "http://local.test/api/tags");
       return {
@@ -26,6 +34,40 @@ test("Ollama inspection reports the configured local model", async () => {
   assert.equal(result.reachable, true);
   assert.equal(result.modelInstalled, true);
   assert.deepEqual(result.models, ["qwen3:4b", "qwen3:1.7b"]);
+});
+
+test("local Llama config supports OpenAI-compatible servers", () => {
+  const config = getLocalAIConfig({
+    provider: "openai-compatible",
+    baseUrl: "http://127.0.0.1:1234/v1/",
+    model: "llama-3.1-8b-instruct",
+    maxTokens: 99,
+  });
+
+  assert.equal(config.provider, "openai-compatible");
+  assert.equal(config.baseUrl, "http://127.0.0.1:1234/v1");
+  assert.equal(config.model, "llama-3.1-8b-instruct");
+  assert.equal(config.maxTokens, 99);
+});
+
+test("OpenAI-compatible Llama inspection checks /v1/models", async () => {
+  const result = await inspectLocalAI({
+    provider: "openai-compatible",
+    baseUrl: "http://local.test",
+    model: "llama-3.1-8b-instruct",
+    fetchImpl: async (url, request) => {
+      assert.equal(url, "http://local.test/v1/models");
+      assert.equal(request.method, "GET");
+      return {
+        ok: true,
+        json: async () => ({ data: [{ id: "llama-3.1-8b-instruct" }] }),
+      };
+    },
+  });
+
+  assert.equal(result.reachable, true);
+  assert.equal(result.modelInstalled, true);
+  assert.deepEqual(result.models, ["llama-3.1-8b-instruct"]);
 });
 
 test("Ollama chat sends a bounded JSON request and returns model content", async () => {
@@ -53,6 +95,38 @@ test("Ollama chat sends a bounded JSON request and returns model content", async
 
   assert.equal(result.model, "qwen3:4b");
   assert.deepEqual(parseModelJson(result.content), { assessment: "ok" });
+});
+
+test("OpenAI-compatible Llama chat sends JSON-mode chat completions request", async () => {
+  const result = await chatWithLocalAI(
+    [{ role: "user", content: "Research only." }],
+    {
+      provider: "openai-compatible",
+      baseUrl: "http://local.test/v1",
+      model: "llama-3.1-8b-instruct",
+      apiKey: "local-key",
+      fetchImpl: async (url, request) => {
+        assert.equal(url, "http://local.test/v1/chat/completions");
+        assert.equal(request.method, "POST");
+        assert.equal(request.headers.authorization, "Bearer local-key");
+        const payload = JSON.parse(request.body);
+        assert.equal(payload.model, "llama-3.1-8b-instruct");
+        assert.equal(payload.stream, false);
+        assert.equal(payload.max_tokens, 450);
+        assert.deepEqual(payload.response_format, { type: "json_object" });
+        return {
+          ok: true,
+          json: async () => ({
+            model: "llama-3.1-8b-instruct",
+            choices: [{ message: { content: '{"assessment":"llama-ok"}' } }],
+          }),
+        };
+      },
+    }
+  );
+
+  assert.equal(result.model, "llama-3.1-8b-instruct");
+  assert.deepEqual(parseModelJson(result.content), { assessment: "llama-ok" });
 });
 
 test("model JSON parser accepts fenced JSON and rejects unstructured text", () => {

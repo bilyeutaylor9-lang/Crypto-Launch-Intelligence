@@ -1,5 +1,5 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/16/2026, 6:34:15 AM
+Generated: 7/16/2026, 6:54:21 AM
 
 Projects scanned: 8
 Market regime: Risk-Off
@@ -53,7 +53,7 @@ Red-team blocks: 1
 Alpha Lab strategy matches: 0
 Watchtower alerts: 2494
 Watchtower high/critical alerts: 2390
-Watchtower brief: 0 critical, 1000 high, and 1035 total watchtower alerts detected.
+Watchtower brief: 0 critical, 8 high, and 8 total watchtower alerts detected.
 Watchtower hit rate: 0% (0 evaluated, 2494 pending)
 
 Top project:

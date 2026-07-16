@@ -125,6 +125,7 @@ import {
 import { analyzeInstitutionalDataProvenanceBatch } from "./kernel/institutionalDataProvenanceLedger.js";
 import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressiveOpportunityRankingEngine.js";
 import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
+import { analyzeMarketOpportunityLearningBatch } from "./engines/marketOpportunityLearningEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1651,6 +1652,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
   results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
+  results = await runEngine("Market Opportunity Learning", analyzeMarketOpportunityLearningBatch, results, {
+    recordSnapshot: options.saveMemory !== false,
+    ...(options.marketOpportunityLearning || {}),
+  });
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

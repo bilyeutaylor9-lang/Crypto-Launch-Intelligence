@@ -123,6 +123,11 @@ function strongProject() {
     moneyRankEligible: true,
     marketOpportunityRank: 84,
     localAIConsensusScore: 82,
+    marketOpportunityLearningScore: 66,
+    marketOpportunityLearningConfidence: "LOW_SAMPLE",
+    marketOpportunityLearningAdjustment: 1,
+    learnedMarketOpportunityRank: 85,
+    marketOpportunityLearningHints: ["Timing history is collecting outcome receipts."],
     timeHorizonScores: {
       "24_72_HOURS": 78,
       "7_14_DAYS": 84,

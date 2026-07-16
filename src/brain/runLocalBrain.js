@@ -31,6 +31,7 @@ async function main() {
   report.localModel = {
     baseUrl: config.baseUrl,
     model: config.model,
+    provider: config.provider,
     reachable: true,
     modelInstalled: true,
   };

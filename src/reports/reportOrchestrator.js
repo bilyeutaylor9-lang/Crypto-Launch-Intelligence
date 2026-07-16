@@ -42,6 +42,7 @@ import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
 import { writeInstitutionalDataProvenanceReport } from "./institutionalDataProvenanceReportEngine.js";
 import { writeProgressiveOpportunityReport } from "./progressiveOpportunityReportEngine.js";
 import { writeMarketOpportunityReports } from "./marketOpportunityReportEngine.js";
+import { writeMarketOpportunityLearningReport } from "./marketOpportunityLearningReportEngine.js";
 import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
@@ -180,6 +181,9 @@ export function generateReports(projects = [], meta = {}) {
     localAIChiefJudgmentPath,
   } = writeMarketOpportunityReports(projects);
   const {
+    filePath: marketOpportunityLearningPath,
+  } = writeMarketOpportunityLearningReport(projects, meta);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -277,6 +281,7 @@ export function generateReports(projects = [], meta = {}) {
     finalistComparisonPath,
     crawlerChangesPath,
     localAIChiefJudgmentPath,
+    marketOpportunityLearningPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,
