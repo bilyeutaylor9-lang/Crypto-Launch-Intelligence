@@ -43,6 +43,7 @@ import { writeInstitutionalDataProvenanceReport } from "./institutionalDataProve
 import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
+import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -186,6 +187,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: watchtowerPerformancePath,
     report: watchtowerPerformance,
   } = writeWatchtowerPerformanceReport();
+  const {
+    filePath: localAIResearchPath,
+  } = writeLocalAIResearchReport();
 
   return {
     htmlPath,
@@ -248,6 +252,7 @@ export function generateReports(projects = [], meta = {}) {
     alertsPath,
     briefPath,
     watchtowerPerformancePath,
+    localAIResearchPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,

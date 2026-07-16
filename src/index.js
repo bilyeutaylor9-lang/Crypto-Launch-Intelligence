@@ -373,6 +373,7 @@ function printReportPaths(paths) {
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
   console.log(`State Signals:  ${paths.stateOfArtPath}`);
   console.log(`AI Council:     ${paths.aiCouncilPath}`);
+  console.log(`Local AI Queue: ${paths.localAIResearchPath}`);
   console.log(`Agent Memory:   ${paths.agentPerformancePath}`);
   console.log(`Research OS:    ${paths.researchOSPath}`);
   console.log(`Alpha Lab:      ${paths.alphaLabPath}`);
@@ -460,6 +461,10 @@ async function main() {
     const pipelineResults = await runIntelligencePipeline(researchQueue, {
       saveMemory: true,
       freeOnly: discoveredProjects.freeMode?.enabled === true,
+      localAI: {
+        queue: true,
+        inline: process.env.LOCAL_AI_INLINE === "true",
+      },
     });
 
     const results = normalizeForReports(pipelineResults);

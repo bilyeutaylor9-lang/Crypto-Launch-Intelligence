@@ -137,6 +137,11 @@ import { saveAlphaContracts } from "./learning/alphaContractStore.js";
 import { saveAlphaEvolutionMemory } from "./learning/alphaEvolutionMemoryStore.js";
 import { saveAlphaKnowledgeGraph } from "./learning/alphaKnowledgeGraphStore.js";
 import { saveCausalAlphaEvents } from "./learning/causalAlphaEventLake.js";
+import {
+  mergeLocalAIResearchIntoProjects,
+  processQueuedLocalAIResearch,
+  queueLocalAIResearch,
+} from "./brain/localBrainBatchEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -208,6 +213,38 @@ export async function runEngine(name, engine, projects, options = {}) {
   } catch (error) {
     console.log(`${name} failed: ${error.message}`);
     return safeProjects;
+  }
+}
+
+export async function runLocalAIResearchStage(projects = [], options = {}) {
+  const localAIOptions = options.localAI || {};
+  const localAIQueueEnabled =
+    localAIOptions.queue === true || process.env.LOCAL_AI_QUEUE_ENABLED === "true";
+  if (!localAIQueueEnabled) return projects;
+
+  try {
+    const queueOptions = localAIOptions.queueOptions || {};
+    const queued = queueLocalAIResearch(projects, {
+      ...localAIOptions,
+      queue: queueOptions,
+    });
+    let results = queued.projects;
+    const inlineEnabled =
+      localAIOptions.inline === true || process.env.LOCAL_AI_INLINE === "true";
+
+    if (inlineEnabled) {
+      const execution = await processQueuedLocalAIResearch({
+        ...localAIOptions,
+        queue: queueOptions,
+        limit: localAIOptions.inlineLimit || process.env.LOCAL_AI_INLINE_LIMIT || 5,
+      });
+      results = mergeLocalAIResearchIntoProjects(results, execution.completed);
+    }
+
+    return results;
+  } catch (error) {
+    console.log(`Local AI research queue failed: ${error.message}`);
+    return projects;
   }
 }
 
@@ -1376,6 +1413,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
+
+  // This follows every deterministic identity and safety stage and is advisory-only.
+  results = await runLocalAIResearchStage(results, options);
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {
