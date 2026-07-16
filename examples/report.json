@@ -1,11 +1,1481 @@
 {
-  "generatedAt": "2026-07-16T13:54:21.732Z",
+  "generatedAt": "2026-07-16T22:50:21.725Z",
   "totalProjects": 8,
   "meta": {
     "mode": "demo",
-    "startedAt": "2026-07-16T13:54:08.242Z",
-    "completedAt": "2026-07-16T13:54:21.717Z",
+    "startedAt": "2026-07-16T22:50:04.652Z",
+    "completedAt": "2026-07-16T22:50:21.703Z",
     "scannedProjects": 8,
+    "analysisFunnel": {
+      "policy": "Institutional multi-lane 4,000 selector: 60% composite, 15% acceleration, 10% attention gap, 7.5% catalyst/developer, 5% coverage, 2.5% rotation, then merit fill.",
+      "runSequence": 1,
+      "configuredLimit": 8,
+      "candidateCount": 8,
+      "eligibleCandidateCount": 8,
+      "uniqueCandidateCount": 8,
+      "duplicateIdentityCount": 0,
+      "selectedCount": 8,
+      "deferredCount": 0,
+      "selectedByReason": {
+        "COMPOSITE_MERIT": 5,
+        "DEFERRED_ROTATION": 1,
+        "MERIT_FILL": 2
+      },
+      "selectedByChain": {
+        "bittensor": 1,
+        "celestia": 1,
+        "cosmos": 1,
+        "ethereum": 3,
+        "solana": 2
+      },
+      "selectedBySource": {
+        "research-seed": 8
+      },
+      "selectedByNarrative": {
+        "ai compute subnet": 1,
+        "modular data availability": 1,
+        "depin compute": 1,
+        "restaking avs": 1,
+        "rwa tokenized treasury": 1,
+        "yield restaking": 1,
+        "dex launchpad": 1,
+        "ai depin gpu": 1
+      },
+      "selectedByLifecycle": {
+        "established-emerging": 8
+      },
+      "selectedByMarketCapGroup": {
+        "unknown": 8
+      },
+      "selectedByEvidenceFamily": {
+        "research-seed": 8
+      },
+      "concentration": {
+        "chain": [
+          {
+            "key": "ethereum",
+            "count": 3,
+            "sharePct": 38,
+            "status": "CONCENTRATED"
+          },
+          {
+            "key": "solana",
+            "count": 2,
+            "sharePct": 25,
+            "status": "OK"
+          },
+          {
+            "key": "bittensor",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "celestia",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "cosmos",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          }
+        ],
+        "source": [
+          {
+            "key": "research-seed",
+            "count": 8,
+            "sharePct": 100,
+            "status": "CONCENTRATED"
+          }
+        ],
+        "narrative": [
+          {
+            "key": "ai compute subnet",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "modular data availability",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "depin compute",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "restaking avs",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "rwa tokenized treasury",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "yield restaking",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "dex launchpad",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          },
+          {
+            "key": "ai depin gpu",
+            "count": 1,
+            "sharePct": 13,
+            "status": "OK"
+          }
+        ],
+        "lifecycle": [
+          {
+            "key": "established-emerging",
+            "count": 8,
+            "sharePct": 100,
+            "status": "CONCENTRATED"
+          }
+        ]
+      },
+      "rescuedCount": 0,
+      "hardBlockedCount": 0,
+      "allocation": {
+        "compositeMerit": 5,
+        "accelerationReserve": 0,
+        "attentionGapReserve": 0,
+        "catalystDeveloperReserve": 0,
+        "coverageReserve": 0,
+        "deferredRotation": 1,
+        "meritFill": 2,
+        "rescuedCandidates": 0
+      },
+      "funnel": {
+        "discoveryUniverse": 8,
+        "deduplicatedUniverse": 8,
+        "eligiblePreIntelligenceUniverse": 8,
+        "standardIntelligenceSelected": 8,
+        "standardIntelligenceLimit": 8,
+        "advancedIntelligenceSelected": 8,
+        "advancedIntelligenceLimit": 1500,
+        "deepIntelligenceSelected": 8,
+        "deepIntelligenceLimit": 500,
+        "crawlerResearchSelected": 8,
+        "crawlerResearchLimit": 300,
+        "llama3Selected": 8,
+        "llama3Limit": 100,
+        "debateSelected": 8,
+        "debateLimit": 25,
+        "finalists": 5,
+        "finalistLimit": 5,
+        "bestOpportunity": "TAO"
+      },
+      "stageLeaders": {
+        "standard": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "advanced": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "deep": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "crawler": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "llama3": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "debate": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Pendle",
+            "symbol": "PENDLE",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "DEFERRED_ROTATION",
+            "lane": "Deferred Rotation",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Render",
+            "symbol": "RNDR",
+            "chain": "solana",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "MERIT_FILL",
+            "lane": "Merit Fill",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ],
+        "finalists": [
+          {
+            "name": "Bittensor",
+            "symbol": "TAO",
+            "chain": "bittensor",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Celestia",
+            "symbol": "TIA",
+            "chain": "celestia",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 21,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Akash Network",
+            "symbol": "AKT",
+            "chain": "cosmos",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "EigenLayer",
+            "symbol": "EIGEN",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          },
+          {
+            "name": "Ondo",
+            "symbol": "ONDO",
+            "chain": "ethereum",
+            "source": "research-seed",
+            "score": 24,
+            "confidence": 55,
+            "reason": "COMPOSITE_MERIT",
+            "lane": "Composite Merit",
+            "nearMissLane": "",
+            "missingEvidence": [],
+            "components": {
+              "acceleration": 0,
+              "timing": 54,
+              "attentionGap": 50,
+              "liquidityBuyerQuality": 20,
+              "catalystDeveloperChange": 0,
+              "identityEvidenceStrength": 11,
+              "relativeMarketStrength": 0,
+              "lifecycleNovelty": 58,
+              "historicalRankImprovement": 0
+            },
+            "riskPenalty": 0
+          }
+        ]
+      },
+      "shadowAudit": {
+        "topExcludedCount": 0,
+        "randomSampleCount": 0,
+        "accelerationAnomalyCount": 0
+      }
+    },
     "note": "Generated from built-in research seed projects. No API keys required.",
     "reportSerialization": {
       "rawProjectCount": 8,
@@ -390,7 +1860,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -2728,7 +4198,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -3663,7 +5133,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-eigen",
-          "timestamp": "2026-07-16T13:54:17.158Z",
+          "timestamp": "2026-07-16T22:50:16.101Z",
           "name": "EigenLayer",
           "symbol": "EIGEN",
           "chain": "ethereum",
@@ -4784,7 +6254,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -5612,7 +7082,7 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.005Z",
+            "searchedAt": "2026-07-16T22:50:18.408Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -5622,30 +7092,30 @@
             "query": "\"EigenLayer\" EIGEN official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.005Z"
+            "calledAt": "2026-07-16T22:50:18.408Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.005Z"
+            "calledAt": "2026-07-16T22:50:18.409Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-eigen",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.006Z"
+            "calledAt": "2026-07-16T22:50:18.409Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.006Z"
+            "calledAt": "2026-07-16T22:50:18.409Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.006Z"
+            "calledAt": "2026-07-16T22:50:18.409Z"
           }
         ],
         "evidence": [
@@ -6531,7 +8001,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -8780,7 +10250,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -9698,7 +11168,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "bittensor:research-seed-tao",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.102Z",
           "name": "Bittensor",
           "symbol": "TAO",
           "chain": "bittensor",
@@ -10809,7 +12279,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -11638,7 +13108,7 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.008Z",
+            "searchedAt": "2026-07-16T22:50:18.412Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -11648,30 +13118,30 @@
             "query": "\"Bittensor\" TAO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.008Z"
+            "calledAt": "2026-07-16T22:50:18.412Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.008Z"
+            "calledAt": "2026-07-16T22:50:18.413Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tao",
             "chain": "bittensor",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.008Z"
+            "calledAt": "2026-07-16T22:50:18.413Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.008Z"
+            "calledAt": "2026-07-16T22:50:18.413Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.008Z"
+            "calledAt": "2026-07-16T22:50:18.413Z"
           }
         ],
         "evidence": [
@@ -12572,7 +14042,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -14800,7 +16270,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -15686,7 +17156,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-ondo",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.103Z",
           "name": "Ondo",
           "symbol": "ONDO",
           "chain": "ethereum",
@@ -16787,7 +18257,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -17616,7 +19086,7 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.010Z",
+            "searchedAt": "2026-07-16T22:50:18.416Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -17626,30 +19096,30 @@
             "query": "\"Ondo\" ONDO official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.416Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.416Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-ondo",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.416Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.416Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.416Z"
           }
         ],
         "evidence": [
@@ -18530,7 +20000,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -20737,7 +22207,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -21655,7 +23125,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "cosmos:research-seed-akt",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.102Z",
           "name": "Akash Network",
           "symbol": "AKT",
           "chain": "cosmos",
@@ -22752,7 +24222,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -23580,7 +25050,7 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.009Z",
+            "searchedAt": "2026-07-16T22:50:18.413Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -23590,30 +25060,30 @@
             "query": "\"Akash Network\" AKT official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.413Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.414Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-akt",
             "chain": "cosmos",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.414Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.414Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.414Z"
           }
         ],
         "evidence": [
@@ -24500,7 +25970,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -26718,7 +28188,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -27633,7 +29103,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "celestia:research-seed-tia",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.102Z",
           "name": "Celestia",
           "symbol": "TIA",
           "chain": "celestia",
@@ -28730,7 +30200,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -29558,7 +31028,7 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.009Z",
+            "searchedAt": "2026-07-16T22:50:18.415Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -29568,30 +31038,30 @@
             "query": "\"Celestia\" TIA official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.414Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.415Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-tia",
             "chain": "celestia",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.009Z"
+            "calledAt": "2026-07-16T22:50:18.415Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.415Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.010Z"
+            "calledAt": "2026-07-16T22:50:18.415Z"
           }
         ],
         "evidence": [
@@ -30494,7 +31964,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -32697,7 +34167,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -33585,7 +35055,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "ethereum:research-seed-pendle",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.102Z",
           "name": "Pendle",
           "symbol": "PENDLE",
           "chain": "ethereum",
@@ -34681,7 +36151,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -35509,7 +36979,7 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.011Z",
+            "searchedAt": "2026-07-16T22:50:18.417Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -35519,30 +36989,30 @@
             "query": "\"Pendle\" PENDLE official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.417Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.417Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-pendle",
             "chain": "ethereum",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.417Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.417Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.417Z"
           }
         ],
         "evidence": [
@@ -36430,7 +37900,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -38590,7 +40060,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -39511,7 +40981,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-rndr",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.102Z",
           "name": "Render",
           "symbol": "RNDR",
           "chain": "solana",
@@ -40622,7 +42092,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -41451,7 +42921,7 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.007Z",
+            "searchedAt": "2026-07-16T22:50:18.411Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -41461,30 +42931,30 @@
             "query": "\"Render\" RNDR official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.007Z"
+            "calledAt": "2026-07-16T22:50:18.411Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.007Z"
+            "calledAt": "2026-07-16T22:50:18.411Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-rndr",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.007Z"
+            "calledAt": "2026-07-16T22:50:18.411Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.007Z"
+            "calledAt": "2026-07-16T22:50:18.411Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.007Z"
+            "calledAt": "2026-07-16T22:50:18.412Z"
           }
         ],
         "evidence": [
@@ -42362,7 +43832,7 @@
         "research-seed"
       ],
       "researchSeed": true,
-      "discoveredAt": "2026-07-16T13:54:08.243Z",
+      "discoveredAt": "2026-07-16T22:50:04.654Z",
       "richTokenIntelligence": {
         "tokenAgeHours": null,
         "tokenAgeLabel": "unknown",
@@ -44543,7 +46013,7 @@
       },
       "missedWinnerLabRecallPct": 0,
       "missedWinnerLab": {
-        "generatedAt": "2026-07-16T13:54:15.296Z",
+        "generatedAt": "2026-07-16T22:50:13.657Z",
         "evaluatedBreakouts": 0,
         "detectedBreakouts": 0,
         "missedBreakouts": 0,
@@ -45425,7 +46895,7 @@
         "previousSnapshot": null,
         "currentSnapshot": {
           "key": "solana:research-seed-jup",
-          "timestamp": "2026-07-16T13:54:17.159Z",
+          "timestamp": "2026-07-16T22:50:16.103Z",
           "name": "Jupiter",
           "symbol": "JUP",
           "chain": "solana",
@@ -46497,7 +47967,7 @@
         "github": 1
       },
       "autoLearningWeightOptimizer": {
-        "generatedAt": "2026-07-16T13:54:17.406Z",
+        "generatedAt": "2026-07-16T22:50:16.396Z",
         "memorySamples": 187,
         "evaluatedSamples": 0,
         "globalPaperWinRate": 0,
@@ -47325,7 +48795,7 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "searchedAt": "2026-07-16T13:54:19.011Z",
+            "searchedAt": "2026-07-16T22:50:18.418Z",
             "provider": "existing-free-research-layer"
           }
         ],
@@ -47335,30 +48805,30 @@
             "query": "\"Jupiter\" JUP official website docs",
             "reason": "Can the official website, documentation, or announcement source be identified?",
             "expectedEvidence": "official_identity",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.418Z"
           },
           {
             "action": "check_github",
             "repository": "",
             "reason": "Verify builder activity and repo risk.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.418Z"
           },
           {
             "action": "check_contract",
             "address": "research-seed-jup",
             "chain": "solana",
             "reason": "Confirm contract identity from market/on-chain fields.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.418Z"
           },
           {
             "action": "critic_review",
             "reason": "Challenge strongest claims, single-source claims, stale evidence, and promotional assumptions.",
-            "calledAt": "2026-07-16T13:54:19.011Z"
+            "calledAt": "2026-07-16T22:50:18.418Z"
           },
           {
             "action": "finish",
             "reason": "All required controlled research stages completed.",
-            "calledAt": "2026-07-16T13:54:19.012Z"
+            "calledAt": "2026-07-16T22:50:18.418Z"
           }
         ],
         "evidence": [

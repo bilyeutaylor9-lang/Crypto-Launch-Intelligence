@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-07-16T22:50:04.702Z",
+  "status": "COLD_START",
+  "evaluatedHistoricalScans": 0,
+  "missedWinners": [],
+  "potentialMisses": [],
+  "recommendedBoundedChanges": [
+    "Collect later price/liquidity outcomes for excluded candidates before changing selector weights.",
+    "Review high-acceleration and high-attention-gap exclusions after each scan."
+  ],
+  "leakagePolicy": "Future outcomes are not used in current selection. Historical selections are never rewritten."
+}

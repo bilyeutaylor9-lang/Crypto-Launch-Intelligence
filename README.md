@@ -68,6 +68,12 @@ Run the explicit 39,000-project scan:
 npm run scan:39000
 ```
 
+Run the institutional 39,000 -> 4,000 standard funnel:
+
+```bash
+npm run scan:4000
+```
+
 Run the maximum Alpha OS scan:
 
 ```bash
@@ -181,6 +187,7 @@ The project now behaves like a miniature autonomous research organization.
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
 | Progressive Opportunity Ranking | Splits Opportunity, Trust, Execution, and Money Rank, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, execution-ready candidates, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json`, `reports/institutional-ranking.json` |
+| Institutional 4,000 Selector | Selects the standard intelligence universe through composite, acceleration, attention-gap, catalyst/developer, coverage, rotation, rescue, and merit-fill lanes | `reports/standard-4000-selection.json`, `reports/selection-lane-audit.json` |
 | Market Opportunity Rank | Unifies Opportunity, Timing, Trust, Attention Gap, and bounded local-AI consensus into one authoritative best-opportunity decision, top-five comparison, horizons, lanes, and chief judgment | `reports/best-opportunity-now.json`, `reports/top-five-opportunities.json` |
 | Market Opportunity Learning | Records top opportunity receipts, grades later scans when price/liquidity data exists, and produces cautious signal-family weight hints | `reports/market-opportunity-learning.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
@@ -644,6 +651,11 @@ Every scan can generate a full research packet:
 | `reports/crawler-changes.json` | Compact change-detection packet from existing project research fields, ready for queued crawler storage |
 | `reports/local-ai-chief-judgment.json` | Structured chief market-opportunity judgment over the top five without allowing AI to override deterministic safety |
 | `reports/market-opportunity-learning.json` | Persistent opportunity receipts, realized outcome grading when data exists, signal-family stats, and cautious learned weight hints |
+| `reports/standard-4000-selection.json` | Standard 4,000-project selection funnel, stage counts, allocation, top stage leaders, and current best pre-intelligence leader |
+| `reports/standard-4000-exclusions.json` | Top excluded candidates, deterministic excluded sample, acceleration anomalies, near-miss lane, score, and missing evidence |
+| `reports/selection-lane-audit.json` | Selection by lane, source, chain, narrative, lifecycle, market-cap group, evidence family, and concentration warnings |
+| `reports/candidate-rescue-report.json` | Candidates rescued into selection through acceleration, attention gap, catalyst/developer, coverage, or prior-capacity paths |
+| `reports/missed-opportunity-audit.json` | Cold-start missed-winner audit with future-data-leakage policy and bounded selector-change recommendations |
 | `reports/institutional-ranking.json` | Institutional Money Rank blending opportunity, trust, execution, evidence freshness, regime fit, and measured EV only when outcome samples are large enough |
 | `reports/best-available.json` | Strongest non-hard-blocked research leads plus missing proof queue |
 | `reports/execution-ready.json` | Candidates with verified route, sufficient liquidity depth, and passing paper trade-size checks |
@@ -878,6 +890,11 @@ cat examples/opportunity-lane-leaders.json
 cat examples/crawler-changes.json
 cat examples/local-ai-chief-judgment.json
 cat examples/market-opportunity-learning.json
+cat examples/standard-4000-selection.json
+cat examples/selection-lane-audit.json
+cat examples/standard-4000-exclusions.json
+cat examples/candidate-rescue-report.json
+cat examples/missed-opportunity-audit.json
 cat examples/institutional-ranking.json
 cat examples/best-available.json
 cat examples/execution-ready.json

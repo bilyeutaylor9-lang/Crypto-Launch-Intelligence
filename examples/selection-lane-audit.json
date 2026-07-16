@@ -1,0 +1,149 @@
+{
+  "generatedAt": "2026-07-16T22:50:04.704Z",
+  "policy": "Institutional multi-lane 4,000 selector: 60% composite, 15% acceleration, 10% attention gap, 7.5% catalyst/developer, 5% coverage, 2.5% rotation, then merit fill.",
+  "allocation": {
+    "compositeMerit": 5,
+    "accelerationReserve": 0,
+    "attentionGapReserve": 0,
+    "catalystDeveloperReserve": 0,
+    "coverageReserve": 0,
+    "deferredRotation": 1,
+    "meritFill": 2,
+    "rescuedCandidates": 0
+  },
+  "selectedByReason": {
+    "COMPOSITE_MERIT": 5,
+    "DEFERRED_ROTATION": 1,
+    "MERIT_FILL": 2
+  },
+  "selectedByChain": {
+    "bittensor": 1,
+    "celestia": 1,
+    "cosmos": 1,
+    "ethereum": 3,
+    "solana": 2
+  },
+  "selectedBySource": {
+    "research-seed": 8
+  },
+  "selectedByNarrative": {
+    "ai compute subnet": 1,
+    "modular data availability": 1,
+    "depin compute": 1,
+    "restaking avs": 1,
+    "rwa tokenized treasury": 1,
+    "yield restaking": 1,
+    "dex launchpad": 1,
+    "ai depin gpu": 1
+  },
+  "selectedByLifecycle": {
+    "established-emerging": 8
+  },
+  "selectedByMarketCapGroup": {
+    "unknown": 8
+  },
+  "selectedByEvidenceFamily": {
+    "research-seed": 8
+  },
+  "concentration": {
+    "chain": [
+      {
+        "key": "ethereum",
+        "count": 3,
+        "sharePct": 38,
+        "status": "CONCENTRATED"
+      },
+      {
+        "key": "solana",
+        "count": 2,
+        "sharePct": 25,
+        "status": "OK"
+      },
+      {
+        "key": "bittensor",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "celestia",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "cosmos",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      }
+    ],
+    "source": [
+      {
+        "key": "research-seed",
+        "count": 8,
+        "sharePct": 100,
+        "status": "CONCENTRATED"
+      }
+    ],
+    "narrative": [
+      {
+        "key": "ai compute subnet",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "modular data availability",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "depin compute",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "restaking avs",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "rwa tokenized treasury",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "yield restaking",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "dex launchpad",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      },
+      {
+        "key": "ai depin gpu",
+        "count": 1,
+        "sharePct": 13,
+        "status": "OK"
+      }
+    ],
+    "lifecycle": [
+      {
+        "key": "established-emerging",
+        "count": 8,
+        "sharePct": 100,
+        "status": "CONCENTRATED"
+      }
+    ]
+  },
+  "note": "Concentration above 35% is reported for review. It is not automatically treated as failure because the eligible universe may itself be concentrated."
+}

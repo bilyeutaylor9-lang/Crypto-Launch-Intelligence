@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-07-16T22:50:04.704Z",
+  "selectedCount": 8,
+  "excludedCount": 0,
+  "top250ExcludedBySelectionScore": [],
+  "randomEligibleExclusionSample": [],
+  "accelerationAnomalyExclusions": [],
+  "questionsAnswered": [
+    "why was each excluded project excluded?",
+    "what was its score?",
+    "what lane almost selected it?",
+    "which evidence was missing?",
+    "which selector component caused the miss?"
+  ]
+}

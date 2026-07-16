@@ -67,6 +67,11 @@ const PUBLIC_REPORTS = [
   "crawler-changes.json",
   "local-ai-chief-judgment.json",
   "market-opportunity-learning.json",
+  "standard-4000-selection.json",
+  "standard-4000-exclusions.json",
+  "selection-lane-audit.json",
+  "candidate-rescue-report.json",
+  "missed-opportunity-audit.json",
   "institutional-ranking.json",
   "best-available.json",
   "emerging-radar.json",
@@ -582,6 +587,11 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./crawler-changes.json">Crawler Changes</a>
         <a class="button" href="./local-ai-chief-judgment.json">Chief Judge</a>
         <a class="button" href="./market-opportunity-learning.json">Opportunity Learning</a>
+        <a class="button" href="./standard-4000-selection.json">4000 Selection</a>
+        <a class="button" href="./standard-4000-exclusions.json">4000 Exclusions</a>
+        <a class="button" href="./selection-lane-audit.json">Lane Audit</a>
+        <a class="button" href="./candidate-rescue-report.json">Rescue Audit</a>
+        <a class="button" href="./missed-opportunity-audit.json">Missed Audit</a>
         <a class="button" href="./institutional-ranking.json">Money Rank</a>
         <a class="button" href="./best-available.json">Best Available</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>

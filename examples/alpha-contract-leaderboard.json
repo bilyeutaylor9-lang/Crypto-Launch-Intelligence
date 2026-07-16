@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:54:26.331Z",
+  "generatedAt": "2026-07-16T22:50:28.333Z",
   "topContracts": [
     {
       "rank": 1,
@@ -27,7 +27,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-eigen:urms11",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -688,7 +690,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-tao:oihx2c",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -1349,7 +1353,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-akt:1exxfxk",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -2002,7 +2008,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-tia:2mv2os",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -2655,7 +2663,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-rndr:oihrog",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -3308,7 +3318,9 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-pendle:1rxfrih",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -5544,8 +5556,10 @@
       ],
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-jup:1yzbfub",
-        "dueWindows": [],
-        "grade": "open",
+        "dueWindows": [
+          "1h"
+        ],
+        "grade": "needs_more_time",
         "resolved": false,
         "confirmationRate": 60,
         "scoreDelta": 0,
@@ -7907,7 +7921,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-eigen:urms11",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8094,7 +8110,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-akt:1exxfxk",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8235,7 +8253,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-rndr:oihrog",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8376,7 +8396,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-tao:oihx2c",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8517,7 +8539,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-pendle:1rxfrih",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8658,7 +8682,9 @@
       "verdict": "Invalidation Hit",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-tia:2mv2os",
-        "dueWindows": [],
+        "dueWindows": [
+          "1h"
+        ],
         "grade": "invalidated",
         "resolved": true,
         "confirmationRate": 100,
@@ -8799,8 +8825,10 @@
       "verdict": "Accountable Priority Research",
       "latestGrade": {
         "contractId": "alpha-contract:research-seed-jup:1yzbfub",
-        "dueWindows": [],
-        "grade": "open",
+        "dueWindows": [
+          "1h"
+        ],
+        "grade": "needs_more_time",
         "resolved": false,
         "confirmationRate": 60,
         "scoreDelta": 0,

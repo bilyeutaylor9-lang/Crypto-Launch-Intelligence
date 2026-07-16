@@ -9,7 +9,9 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
-import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
+import { resolveAnalysisFunnelConfig } from "./config/analysisFunnelConfig.js";
+import { planInstitutionalCandidateSelection } from "./discovery/institutionalCandidateSelector.js";
+import { writeCandidateSelectionAuditReports } from "./discovery/candidateSelectionAudit.js";
 import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 import {
   loadResearchCoverageLedger,
@@ -82,16 +84,18 @@ export function scoreOf(project = {}) {
 
 function pipelineLimit(env = process.env) {
   const configured = Number(env.INTELLIGENCE_PIPELINE_LIMIT || 0);
-  return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 0;
+  if (Number.isFinite(configured) && configured > 0) return Math.floor(configured);
+  return resolveAnalysisFunnelConfig(env).standardIntelligenceLimit;
 }
 
 export function planResearchQueue(projects = [], options = {}) {
-  return planCoverageSelection(projects, {
-    limit: options.limit ?? pipelineLimit(options.env),
+  return planInstitutionalCandidateSelection(projects, {
+    ...(options || {}),
+    config: options.config || resolveAnalysisFunnelConfig(options.env || process.env, {
+      standardIntelligenceLimit: options.limit ?? pipelineLimit(options.env),
+    }),
     history: options.history,
     runSequence: options.runSequence,
-    prefix: "research",
-    scoreFor: (project) => project.discoveryPriorityScore,
   });
 }
 
@@ -190,9 +194,30 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
 }
 
 function printResearchCoverage(coverage = {}) {
-  console.log(
-    `Research Coverage: ${coverage.selectedCount || 0}/${coverage.uniqueCandidateCount || 0} unique candidates | Merit: ${coverage.selectedByReason?.MERIT || 0} | Coverage: ${coverage.selectedByReason?.COVERAGE_RESERVE || 0} | Rotation: ${coverage.selectedByReason?.DEFERRED_ROTATION || 0} | Deferred: ${coverage.deferredCount || 0}`
-  );
+  const funnel = coverage.funnel || {};
+  const allocation = coverage.allocation || {};
+  console.log("============= ANALYSIS FUNNEL =============");
+  console.log(`Discovery Universe: ${funnel.discoveryUniverse ?? coverage.candidateCount ?? 0}`);
+  console.log(`Deduplicated Universe: ${funnel.deduplicatedUniverse ?? coverage.uniqueCandidateCount ?? 0}`);
+  console.log(`Eligible Pre-Intelligence Universe: ${funnel.eligiblePreIntelligenceUniverse ?? coverage.eligibleCandidateCount ?? 0}`);
+  console.log(`Standard Intelligence Selected: ${funnel.standardIntelligenceSelected ?? coverage.selectedCount ?? 0} / ${funnel.standardIntelligenceLimit ?? coverage.configuredLimit ?? 4000}`);
+  console.log(`Advanced Intelligence Selected: ${funnel.advancedIntelligenceSelected ?? 0} / ${funnel.advancedIntelligenceLimit ?? 1500}`);
+  console.log(`Deep Intelligence Selected: ${funnel.deepIntelligenceSelected ?? 0} / ${funnel.deepIntelligenceLimit ?? 500}`);
+  console.log(`Crawler Research Selected: ${funnel.crawlerResearchSelected ?? 0} / ${funnel.crawlerResearchLimit ?? 300}`);
+  console.log(`Llama 3 Selected: ${funnel.llama3Selected ?? 0} / ${funnel.llama3Limit ?? 100}`);
+  console.log(`Debate Selected: ${funnel.debateSelected ?? 0} / ${funnel.debateLimit ?? 25}`);
+  console.log(`Finalists: ${funnel.finalists ?? 0} / ${funnel.finalistLimit ?? 5}`);
+  console.log(`Best Opportunity: ${funnel.bestOpportunity || "no eligible leader"}`);
+  console.log("4,000 Allocation:");
+  console.log(`Composite Merit: ${allocation.compositeMerit || 0}`);
+  console.log(`Acceleration Reserve: ${allocation.accelerationReserve || 0}`);
+  console.log(`Attention Gap Reserve: ${allocation.attentionGapReserve || 0}`);
+  console.log(`Catalyst/Developer Reserve: ${allocation.catalystDeveloperReserve || 0}`);
+  console.log(`Coverage Reserve: ${allocation.coverageReserve || 0}`);
+  console.log(`Deferred Rotation: ${allocation.deferredRotation || 0}`);
+  console.log(`Rescued Candidates: ${allocation.rescuedCandidates || 0}`);
+  console.log(`Merit Fill: ${allocation.meritFill || 0}`);
+  console.log("============================================");
 }
 
 function printSummary(summary) {
@@ -447,6 +472,11 @@ function printReportPaths(paths) {
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
+  if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
+  if (paths.standard4000ExclusionsPath) console.log(`4000 Exclusions:${paths.standard4000ExclusionsPath}`);
+  if (paths.selectionLaneAuditPath) console.log(`Lane Audit:     ${paths.selectionLaneAuditPath}`);
+  if (paths.candidateRescueReportPath) console.log(`Rescue Report:  ${paths.candidateRescueReportPath}`);
+  if (paths.missedOpportunityAuditPath) console.log(`Missed Audit:   ${paths.missedOpportunityAuditPath}`);
   console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
@@ -494,6 +524,7 @@ async function main() {
       runSequence: num(researchLedger.runCount) + 1,
     });
     const researchQueue = researchPlan.selected;
+    const selectionAuditPaths = writeCandidateSelectionAuditReports(researchPlan);
 
     console.log("");
     printResearchCoverage(researchPlan.report);
@@ -529,18 +560,22 @@ async function main() {
       console.warn(`Research coverage ledger failed: ${error.message}`);
     }
 
-    const reportPaths = generateReports(results, {
-      startedAt: startedAt.toISOString(),
-      completedAt: new Date().toISOString(),
-      discoveredProjects: discoveredList.length,
-      discovery: discoveredProjects,
-      researchCoverage,
-      scannedProjects: results.length,
-      engineMode: "full",
-      scoringMode: "institutional-weighted-fallback",
-      localAIMode: localAI.mode,
-      platform: "Crypto Launch Intelligence",
-    });
+    const reportPaths = {
+      ...generateReports(results, {
+        startedAt: startedAt.toISOString(),
+        completedAt: new Date().toISOString(),
+        discoveredProjects: discoveredList.length,
+        discovery: discoveredProjects,
+        researchCoverage,
+        analysisFunnel: researchPlan.report,
+        scannedProjects: results.length,
+        engineMode: "full",
+        scoringMode: "institutional-weighted-fallback",
+        localAIMode: localAI.mode,
+        platform: "Crypto Launch Intelligence",
+      }),
+      ...selectionAuditPaths,
+    };
 
     printSummary(summary);
     printTopProjects(results);
