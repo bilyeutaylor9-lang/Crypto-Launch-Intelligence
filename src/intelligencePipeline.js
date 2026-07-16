@@ -754,6 +754,7 @@ function buildExecutionPlan(score = 0, conviction = "Low", risks = []) {
 
 function buildResearchChecklist(project = {}, profile = {}) {
   const checklist = [];
+  const localAIDecision = localAIResearchDecision(project);
 
   if (profile.narrative >= 60) {
     checklist.push("Validate narrative quality against current sector leaders.");
@@ -799,6 +800,17 @@ function buildResearchChecklist(project = {}, profile = {}) {
   }
   if (project.organicDemandIntegrity) {
     checklist.push("Verify organic demand: DEX swaps, holder balance buckets, hard exit liquidity, admin roles, and real yield after inflation.");
+  }
+  if (
+    ["REQUIRE_VERIFICATION", "HIGH_RISK_REVIEW", "BLOCK_PROMOTION"].includes(localAIDecision.localAIResearchDecision) &&
+    Array.isArray(project.localAINextChecks)
+  ) {
+    checklist.push(
+      ...project.localAINextChecks
+        .slice(0, 3)
+        .filter((check) => typeof check === "string" && check.trim())
+        .map((check) => `Local AI verification: ${check.trim()}`)
+    );
   }
   if ((project.economicIntegrityResearchTasks || []).length) {
     checklist.push(
@@ -1029,9 +1041,89 @@ function localAIDeterministicBlockReasons(project = {}) {
   return reasons;
 }
 
+export function localAIResearchDecision(project = {}) {
+  const verdict = String(project.localAIVerdict || "").trim().toUpperCase();
+  const status = String(project.localAIStatus || "").trim().toUpperCase();
+  const depth = String(project.localAIResearchDepth || "").trim().toUpperCase();
+  const confidence = clamp(project.localAIConfidence);
+  const coverage = clamp(project.localAICoverage);
+  const complete = status === "COMPLETE";
+  const hasFinishedResearch = complete || status === "PARTIAL";
+  const promotionReadyDepth = depth !== "TRIAGE";
+
+  if (!verdict || !hasFinishedResearch) {
+    return {
+      localAIResearchDecision: "PENDING_LOCAL_RESEARCH",
+      localAIPromotionBlocked: false,
+      localAIDecisionReason: "No completed local AI research is available yet.",
+    };
+  }
+
+  if (verdict === "HIGH_RISK") {
+    if (complete && confidence >= 80 && coverage >= 70 && promotionReadyDepth) {
+      return {
+        localAIResearchDecision: "BLOCK_PROMOTION",
+        localAIPromotionBlocked: true,
+        localAIDecisionReason: "Completed high-confidence local AI research identified material risk that requires independent resolution.",
+      };
+    }
+    return {
+      localAIResearchDecision: "HIGH_RISK_REVIEW",
+      localAIPromotionBlocked: false,
+      localAIDecisionReason: depth === "TRIAGE"
+        ? "Top-100 triage found risk; a light or deep local review is required before promotion can be blocked."
+        : "Local AI found risk, but its confidence, coverage, or completion status is insufficient for a promotion block.",
+    };
+  }
+
+  if (["EVIDENCE_INCOMPLETE", "RESEARCH_MORE"].includes(verdict)) {
+    return {
+      localAIResearchDecision: "REQUIRE_VERIFICATION",
+      localAIPromotionBlocked: false,
+      localAIDecisionReason: "Local AI identified material evidence gaps that should be verified before stronger promotion.",
+    };
+  }
+
+  if (verdict === "MONITOR_FOR_VERIFIABLE_EVIDENCE") {
+    return {
+      localAIResearchDecision: "MONITOR",
+      localAIPromotionBlocked: false,
+      localAIDecisionReason: "Local AI found an early signal, but it needs fresh independent evidence before corroboration.",
+    };
+  }
+
+  if (verdict === "EVIDENCE_SUPPORTED") {
+    const deterministicBlocks = localAIDeterministicBlockReasons(project);
+    if (complete && confidence >= 65 && coverage >= 60 && promotionReadyDepth && !deterministicBlocks.length) {
+      return {
+        localAIResearchDecision: "CORROBORATED_RESEARCH",
+        localAIPromotionBlocked: false,
+        localAIDecisionReason: "Completed local AI research corroborates the thesis; deterministic gates remain authoritative.",
+      };
+    }
+    return {
+      localAIResearchDecision: "RESEARCH_ONLY",
+      localAIPromotionBlocked: false,
+      localAIDecisionReason: depth === "TRIAGE"
+        ? "Top-100 triage can prioritize deeper research but cannot independently corroborate promotion."
+        : deterministicBlocks.length
+          ? `Local AI support cannot corroborate promotion while deterministic checks flag ${deterministicBlocks.join(", ")}.`
+          : "Local AI support did not meet the completion, confidence, or evidence-coverage minimums for corroboration.",
+    };
+  }
+
+  return {
+    localAIResearchDecision: "RESEARCH_ONLY",
+    localAIPromotionBlocked: false,
+    localAIDecisionReason: "Local AI research is advisory because its verdict is not recognized by the decision contract.",
+  };
+}
+
 export function localAIInfluence(project = {}) {
+  const decision = localAIResearchDecision(project);
   if (String(process.env.LOCAL_AI_SCORE_INFLUENCE || "").toLowerCase() === "false") {
     return {
+      ...decision,
       localAIAdjustment: 0,
       localAIInfluenceStatus: "DISABLED",
       localAIInfluenceReason: "Local AI score influence is disabled.",
@@ -1040,12 +1132,14 @@ export function localAIInfluence(project = {}) {
 
   const verdict = String(project.localAIVerdict || "").trim().toUpperCase();
   const status = String(project.localAIStatus || "").trim().toUpperCase();
+  const researchDepth = String(project.localAIResearchDepth || "").trim().toUpperCase();
   const confidence = clamp(project.localAIConfidence);
   const coverage = clamp(project.localAICoverage);
   const completedResearch = ["COMPLETE", "PARTIAL"].includes(status);
 
   if (!verdict || !completedResearch) {
     return {
+      ...decision,
       localAIAdjustment: 0,
       localAIInfluenceStatus: "NO_COMPLETED_RESEARCH",
       localAIInfluenceReason: "No completed local AI research was available.",
@@ -1062,8 +1156,18 @@ export function localAIInfluence(project = {}) {
   let baseAdjustment = verdictValues[verdict] ?? 0;
   const qualityMultiplier = (confidence * 0.6 + coverage * 0.4) / 100;
 
+  if (baseAdjustment > 0 && researchDepth === "TRIAGE") {
+    return {
+      ...decision,
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "TRIAGE_POSITIVE_BLOCKED",
+      localAIInfluenceReason: "Top-100 triage can prioritize deeper research but cannot increase a score.",
+    };
+  }
+
   if (baseAdjustment > 0 && status !== "COMPLETE") {
     return {
+      ...decision,
       localAIAdjustment: 0,
       localAIInfluenceStatus: "PARTIAL_RESEARCH_POSITIVE_BLOCKED",
       localAIInfluenceReason: "Positive influence requires a complete local AI research run.",
@@ -1072,6 +1176,7 @@ export function localAIInfluence(project = {}) {
 
   if (baseAdjustment > 0 && (confidence < 65 || coverage < 60)) {
     return {
+      ...decision,
       localAIAdjustment: 0,
       localAIInfluenceStatus: "LOW_QUALITY_POSITIVE_BLOCKED",
       localAIInfluenceReason: `${verdict} did not meet the 65% confidence and 60% coverage minimums.`,
@@ -1081,6 +1186,7 @@ export function localAIInfluence(project = {}) {
   const deterministicBlocks = localAIDeterministicBlockReasons(project);
   if (baseAdjustment > 0 && deterministicBlocks.length) {
     return {
+      ...decision,
       localAIAdjustment: 0,
       localAIInfluenceStatus: "DETERMINISTIC_BLOCK",
       localAIInfluenceReason: `Positive local AI influence blocked by deterministic checks: ${deterministicBlocks.join(", ")}.`,
@@ -1088,13 +1194,15 @@ export function localAIInfluence(project = {}) {
   }
 
   const maxBoost = localAIHardCap("LOCAL_AI_MAX_SCORE_BOOST", 6, 6);
-  const maxPenalty = localAIHardCap("LOCAL_AI_MAX_SCORE_PENALTY", 10, 10);
+  const configuredMaxPenalty = localAIHardCap("LOCAL_AI_MAX_SCORE_PENALTY", 10, 10);
+  const maxPenalty = researchDepth === "TRIAGE" ? Math.min(5, configuredMaxPenalty) : configuredMaxPenalty;
   const boundedAdjustment = Math.round(
     Math.max(-maxPenalty, Math.min(maxBoost, baseAdjustment * qualityMultiplier))
   );
   const adjustment = boundedAdjustment === 0 ? 0 : boundedAdjustment;
 
   return {
+    ...decision,
     localAIAdjustment: adjustment,
     localAIInfluenceStatus: adjustment > 0 ? "POSITIVE" : adjustment < 0 ? "NEGATIVE" : "NEUTRAL",
     localAIInfluenceReason: `${verdict} with ${confidence}% confidence and ${coverage}% evidence coverage.`,
@@ -1887,6 +1995,12 @@ export function summarizePipelineResults(results = []) {
   const autonomousResearchPriority = safeResults.filter((p) => p.autonomousResearchVerdict === "Research-Verified Priority");
   const autonomousResearchIncomplete = safeResults.filter((p) => p.autonomousResearchVerdict === "Evidence Incomplete");
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
+  const localAICompleted = safeResults.filter((p) => ["COMPLETE", "PARTIAL"].includes(p.localAIStatus));
+  const localAIQueued = safeResults.filter((p) => p.localAIStatus === "QUEUED");
+  const localAIPositive = safeResults.filter((p) => num(p.localAIAdjustment) > 0);
+  const localAINegative = safeResults.filter((p) => num(p.localAIAdjustment) < 0);
+  const localAITriage = safeResults.filter((p) => p.localAIResearchDepth === "TRIAGE");
+  const localAIPromotionBlocks = safeResults.filter((p) => p.localAIPromotionBlocked === true);
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
@@ -2033,6 +2147,12 @@ export function summarizePipelineResults(results = []) {
     autonomousResearchPriorityCount: autonomousResearchPriority.length,
     autonomousResearchIncompleteCount: autonomousResearchIncomplete.length,
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
+    localAICompletedCount: localAICompleted.length,
+    localAIQueuedCount: localAIQueued.length,
+    localAIPositiveCount: localAIPositive.length,
+    localAINegativeCount: localAINegative.length,
+    localAITriageCount: localAITriage.length,
+    localAIPromotionBlockCount: localAIPromotionBlocks.length,
 
     topNarrativeHeatMap: safeResults[0]?.narrativeHeatIndex?.marketHeatMap || [],
     topConfidenceAdjustedSetups: topConfidenceAdjusted.map((project) => ({

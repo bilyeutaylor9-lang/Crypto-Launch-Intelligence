@@ -1,6 +1,7 @@
 const DEFAULT_BASE_URL = "http://127.0.0.1:11434";
 const DEFAULT_MODEL = "qwen3:4b";
 const DEFAULT_TIMEOUT_MS = 90_000;
+const DEFAULT_MAX_TOKENS = 450;
 
 function normalizedBaseUrl(value = DEFAULT_BASE_URL) {
   return String(value || DEFAULT_BASE_URL).replace(/\/+$/, "");
@@ -23,6 +24,15 @@ function errorMessage(error) {
   return String(error?.message || error || "Local model request failed.");
 }
 
+function booleanOption(value, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true;
+    if (value.toLowerCase() === "false") return false;
+  }
+  return fallback;
+}
+
 export function getOllamaConfig(overrides = {}) {
   return {
     baseUrl: normalizedBaseUrl(overrides.baseUrl || process.env.OLLAMA_BASE_URL),
@@ -36,6 +46,13 @@ export function getOllamaConfig(overrides = {}) {
     temperature: Number.isFinite(Number(overrides.temperature))
       ? Math.min(1, Math.max(0, Number(overrides.temperature)))
       : 0.1,
+    maxTokens: boundedInteger(
+      overrides.maxTokens ?? process.env.OLLAMA_MAX_TOKENS,
+      DEFAULT_MAX_TOKENS,
+      64,
+      2_048
+    ),
+    think: booleanOption(overrides.think ?? process.env.OLLAMA_THINK, false),
   };
 }
 
@@ -116,7 +133,11 @@ export async function chatWithOllama(messages = [], options = {}) {
         model: config.model,
         stream: false,
         format: "json",
-        options: { temperature: config.temperature },
+        think: config.think,
+        options: {
+          temperature: config.temperature,
+          num_predict: config.maxTokens,
+        },
         messages,
       }),
     });

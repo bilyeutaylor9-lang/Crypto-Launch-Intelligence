@@ -1,4 +1,5 @@
 const DEFAULTS = {
+  totalLimit: 100,
   lightLimit: 25,
   deepLimit: 5,
   minimumLiquidityUsd: 5_000,
@@ -191,16 +192,23 @@ export function selectAIResearchCandidates(projects = [], options = {}) {
     decision: decideAIResearch(project, config),
   }));
   const sortByPriority = (left, right) => right.decision.priority - left.decision.priority;
-  const deep = decisions.filter((item) => item.decision.depth === "DEEP").sort(sortByPriority).slice(0, config.deepLimit);
-  const selectedDeepKeys = new Set(deep.map((item) => item.decision.projectKey));
-  const light = decisions
-    .filter((item) => item.decision.eligible && !selectedDeepKeys.has(item.decision.projectKey))
+  const rankedEligible = decisions
+    .filter((item) => item.decision.eligible)
     .sort(sortByPriority)
+    .slice(0, config.totalLimit);
+  const deep = rankedEligible.filter((item) => item.decision.depth === "DEEP").slice(0, config.deepLimit);
+  const selectedDeepKeys = new Set(deep.map((item) => item.decision.projectKey));
+  const light = rankedEligible
+    .filter((item) => !selectedDeepKeys.has(item.decision.projectKey))
     .slice(0, config.lightLimit)
     .map((item) => ({ ...item, decision: { ...item.decision, depth: "LIGHT" } }));
+  const selectedLightKeys = new Set(light.map((item) => item.decision.projectKey));
+  const triage = rankedEligible
+    .filter((item) => !selectedDeepKeys.has(item.decision.projectKey) && !selectedLightKeys.has(item.decision.projectKey))
+    .map((item) => ({ ...item, decision: { ...item.decision, depth: "TRIAGE" } }));
 
   return {
-    candidates: [...deep, ...light],
+    candidates: [...deep, ...light, ...triage],
     decisions,
     summary: {
       totalProjects: decisions.length,
@@ -210,8 +218,9 @@ export function selectAIResearchCandidates(projects = [], options = {}) {
       ).length,
       lightCount: light.length,
       deepCount: deep.length,
-      queuedCount: deep.length + light.length,
-      limits: { light: config.lightLimit, deep: config.deepLimit },
+      triageCount: triage.length,
+      queuedCount: deep.length + light.length + triage.length,
+      limits: { total: config.totalLimit, light: config.lightLimit, deep: config.deepLimit },
     },
   };
 }

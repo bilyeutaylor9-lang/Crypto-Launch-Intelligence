@@ -35,7 +35,11 @@ function taskResultFields(task = {}, report = {}) {
 }
 
 export function queueLocalAIResearch(projects = [], options = {}) {
-  const selection = selectAIResearchCandidates(projects, options);
+  const selectionOptions = { ...options };
+  if (Number.isFinite(Number(options.topProjectLimit)) && Number(options.topProjectLimit) > 0) {
+    selectionOptions.totalLimit = Number(options.topProjectLimit);
+  }
+  const selection = selectAIResearchCandidates(projects, selectionOptions);
   const assignments = selection.candidates.map(({ project, decision }) => {
     const agents = selectAgents(project, { depth: decision.depth });
     return {
@@ -97,11 +101,15 @@ export async function processQueuedLocalAIResearch(options = {}) {
     try {
       const agents = selectAgents(task.project, { depth: task.depth }).filter((agent) => task.agentIds.includes(agent.id));
       if (!agents.length) throw new Error("No registered local AI agents were selected for this task.");
+      const triageTokenLimit = Math.max(64, Math.min(450, Number(process.env.LOCAL_AI_TRIAGE_MAX_TOKENS || 180)));
+      const taskConfig = task.depth === "TRIAGE"
+        ? { ...config, maxTokens: Math.min(config.maxTokens, triageTokenLimit) }
+        : config;
 
       const report = await runLocalResearchSwarm(task.project, {
         agents,
         chat: options.chat,
-        chatOptions: config,
+        chatOptions: taskConfig,
       });
       report.localModel = { model: config.model, baseUrl: config.baseUrl };
       const completedTask = completeLocalAIResearchTask(task.id, report, queueOptions);

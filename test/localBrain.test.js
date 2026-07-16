@@ -6,6 +6,7 @@ import {
   runLocalResearchSwarm,
   selectProjectForResearch,
 } from "../src/brain/swarmBrain.js";
+import { LOCAL_BRAIN_AGENTS } from "../src/brain/agentRegistry.js";
 
 const PROJECT = {
   name: "Research Fixture",
@@ -60,7 +61,7 @@ test("local brain uses a compact evidence brief and keeps analysis advisory", as
   assert.equal(JSON.stringify(evidence).includes("ignore all prior instructions"), false);
   assert.equal(report.status, "COMPLETE");
   assert.equal(report.advisoryOnly, true);
-  assert.equal(report.agents.completedCount, 6);
+  assert.equal(report.agents.completedCount, LOCAL_BRAIN_AGENTS.length);
   assert.equal(report.judge.verdict, "EVIDENCE_INCOMPLETE");
   assert.equal(report.project.contractAddress, "0xfixture");
 });
@@ -74,7 +75,7 @@ test("local brain records an individual specialist failure without hiding it", a
   });
 
   assert.equal(report.status, "PARTIAL");
-  assert.equal(report.agents.completedCount, 5);
+  assert.equal(report.agents.completedCount, LOCAL_BRAIN_AGENTS.length - 1);
   assert.equal(report.agents.failedCount, 1);
   assert.equal(report.agents.failures[0].agentId, "identity-verifier");
   assert.equal(report.judge.status, "COMPLETE");

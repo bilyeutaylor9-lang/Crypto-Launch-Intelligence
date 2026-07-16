@@ -28,9 +28,49 @@ export const LOCAL_BRAIN_AGENTS = Object.freeze([
     objective: "Look for supplied tokenomics, unlock, holder, deployer, liquidity, or contract-risk warnings and identify missing safety proof.",
   },
   {
+    id: "contract-behavior-auditor",
+    name: "Contract Behavior Auditor",
+    objective: "Evaluate only supplied contract verification, ownership, admin-control, honeypot, tax, and contract-risk evidence. Treat missing technical proof as unknown rather than safe.",
+  },
+  {
+    id: "liquidity-control-analyst",
+    name: "Liquidity Control Analyst",
+    objective: "Assess supplied pool depth, liquidity control, lock, migration, concentration, and removable-liquidity risks. Distinguish reported volume from executable exit liquidity.",
+  },
+  {
+    id: "holder-distribution-analyst",
+    name: "Holder Distribution Analyst",
+    objective: "Assess supplied holder concentration, bundled-launch, wallet-cluster, buyer-retention, and wash-trading evidence for insider or sybil risk.",
+  },
+  {
+    id: "deployer-reputation-analyst",
+    name: "Deployer Reputation Analyst",
+    objective: "Assess supplied deployer history, reputation, wallet links, and deployer-risk signals. Do not infer a deployer identity from a token symbol.",
+  },
+  {
+    id: "developer-authenticity-analyst",
+    name: "Developer Authenticity Analyst",
+    objective: "Evaluate supplied repository activity, developer momentum, releases, and community evidence for authentic product progress versus low-quality or artificial activity.",
+  },
+  {
+    id: "source-provenance-auditor",
+    name: "Source Provenance Auditor",
+    objective: "Audit the supplied source lineage, independence, freshness, failures, rate limits, and contradictions. Repeated claims from one source family are not corroboration.",
+  },
+  {
     id: "narrative-catalyst-analyst",
     name: "Narrative and Catalyst Analyst",
     objective: "Separate verified catalysts and independent sources from narrative repetition, rumors, or unsupported promotion.",
+  },
+  {
+    id: "catalyst-verifier",
+    name: "Catalyst Verifier",
+    objective: "Check whether supplied catalyst dates, listings, launches, milestones, and partnerships are independently verified, timely, and not already reflected as stale narrative.",
+  },
+  {
+    id: "execution-friction-analyst",
+    name: "Execution Friction Analyst",
+    objective: "Assess only supplied purchase-route, liquidity, slippage, chain, and execution-route evidence for practical research constraints. Do not provide trading instructions.",
   },
   {
     id: "bull-researcher",

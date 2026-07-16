@@ -6,6 +6,7 @@ import {
   advancedScoreBreakdown,
   addFinalScoring,
   localAIInfluence,
+  localAIResearchDecision,
 } from "../src/intelligencePipeline.js";
 import { analyzeFinalSelectionIntegrityBatch } from "../src/engines/finalSelectionIntegrityEngine.js";
 import { analyzeSniperIntegrityGateBatch } from "../src/engines/sniperIntegrityGateEngine.js";
@@ -56,6 +57,41 @@ test("high-risk local research can subtract no more than ten score points", () =
   assert.equal(influence.localAIAdjustment, -10);
   assert.ok(influence.localAIAdjustment >= -10);
   assert.equal(influence.localAIInfluenceStatus, "NEGATIVE");
+  assert.equal(influence.localAIResearchDecision, "BLOCK_PROMOTION");
+  assert.equal(influence.localAIPromotionBlocked, true);
+});
+
+test("top-100 triage can deprioritize risk but cannot promote or block by itself", () => {
+  const supported = localAIInfluence(scoredProject({ localAIResearchDepth: "TRIAGE" }));
+  const highRisk = localAIInfluence(
+    scoredProject({
+      localAIResearchDepth: "TRIAGE",
+      localAIVerdict: "HIGH_RISK",
+      localAIConfidence: 100,
+      localAICoverage: 100,
+    })
+  );
+
+  assert.equal(supported.localAIAdjustment, 0);
+  assert.equal(supported.localAIInfluenceStatus, "TRIAGE_POSITIVE_BLOCKED");
+  assert.equal(supported.localAIResearchDecision, "RESEARCH_ONLY");
+  assert.equal(highRisk.localAIAdjustment, -5);
+  assert.equal(highRisk.localAIResearchDecision, "HIGH_RISK_REVIEW");
+  assert.equal(highRisk.localAIPromotionBlocked, false);
+});
+
+test("completed light or deep AI risk research can request a promotion block", () => {
+  const decision = localAIResearchDecision(
+    scoredProject({
+      localAIResearchDepth: "LIGHT",
+      localAIVerdict: "HIGH_RISK",
+      localAIConfidence: 85,
+      localAICoverage: 80,
+    })
+  );
+
+  assert.equal(decision.localAIResearchDecision, "BLOCK_PROMOTION");
+  assert.equal(decision.localAIPromotionBlocked, true);
 });
 
 test("environment settings cannot widen the local AI hard caps", () => {
@@ -126,6 +162,8 @@ test("reports preserve the local AI verdict, evidence quality, and adjustment", 
 
   assert.equal(saved.projects[0].localAIVerdict, "EVIDENCE_SUPPORTED");
   assert.equal(saved.projects[0].localAIAdjustment, 6);
+  assert.equal(saved.projects[0].localAIResearchDecision, "CORROBORATED_RESEARCH");
   assert.match(html, /Local AI Verdict/);
+  assert.match(html, /Local AI Decision/);
   assert.match(html, /EVIDENCE_SUPPORTED/);
 });

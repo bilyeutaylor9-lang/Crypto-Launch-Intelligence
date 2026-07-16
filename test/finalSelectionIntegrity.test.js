@@ -131,6 +131,21 @@ test("organic demand proof block deselects an early candidate", () => {
   assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("manual investigation required")));
 });
 
+test("high-confidence local AI risk block deselects an otherwise qualified candidate", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      localAIPromotionBlocked: true,
+      localAIDecisionReason: "Completed high-confidence local AI research identified material risk that requires independent resolution.",
+    }),
+  ]);
+
+  assert.equal(result.smallCapHunterSelected, false);
+  assert.equal(result.proofOfAlphaExecutionTwinSelected, false);
+  assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "BLOCKED");
+  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("local AI research identified material risk")));
+});
+
 test("duplicate ticker projects keep separate permanent identities", () => {
   const results = analyzeFinalSelectionIntegrityBatch([
     qualifiedFixture({

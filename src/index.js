@@ -77,6 +77,34 @@ function pipelineLimit() {
   return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 0;
 }
 
+function positiveInteger(value, fallback = 1, maximum = 25) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(maximum, Math.floor(parsed));
+}
+
+export function resolveLocalAIOptions(env = process.env) {
+  const requestedMode = String(env.LOCAL_AI_MODE || "AUTO").trim().toUpperCase();
+  const inlineLimit = positiveInteger(env.LOCAL_AI_INLINE_LIMIT, 1, 25);
+  const topProjectLimit = positiveInteger(env.LOCAL_AI_TOP_PROJECT_LIMIT, 100, 100);
+
+  if (requestedMode === "OFF") {
+    return { mode: "OFF", queue: false, inline: false, inlineLimit: 0, topProjectLimit: 0 };
+  }
+
+  if (requestedMode === "QUEUE") {
+    return { mode: "QUEUE", queue: true, inline: false, inlineLimit, topProjectLimit };
+  }
+
+  if (requestedMode === "INLINE" || env.LOCAL_AI_INLINE === "true") {
+    return { mode: "INLINE", queue: true, inline: true, inlineLimit, topProjectLimit };
+  }
+
+  // Mac-first default: keep the queue broad, but let the local model review the
+  // highest-priority eligible project before the scan makes its final ranking.
+  return { mode: "AUTO", queue: true, inline: true, inlineLimit, topProjectLimit };
+}
+
 function selectResearchQueue(projects = []) {
   const candidates = Array.isArray(projects) ? projects : [];
   const limit = pipelineLimit();
@@ -179,6 +207,11 @@ function printSummary(summary) {
   console.log(`Institutional Alpha: ${summary.institutionalAlphaCount}`);
   console.log(`A+ Opportunities: ${summary.aPlusOpportunityCount}`);
   console.log(`Strong Watchlist: ${summary.strongWatchlistCount}`);
+  console.log(`Local AI Completed: ${summary.localAICompletedCount}`);
+  console.log(`Local AI Positive / Negative: ${summary.localAIPositiveCount} / ${summary.localAINegativeCount}`);
+  console.log(`Local AI Queued: ${summary.localAIQueuedCount}`);
+  console.log(`Local AI Top-100 Triage: ${summary.localAITriageCount}`);
+  console.log(`Local AI Promotion Blocks: ${summary.localAIPromotionBlockCount}`);
   console.log("");
   console.log(`High Market Rank: ${summary.highMarketRankCount}`);
   console.log(`High Rich Token: ${summary.highRichTokenCount}`);
@@ -297,7 +330,7 @@ function printTopProjects(results) {
     if (project.localAIStatus) {
       const adjustment = num(project.localAIAdjustment);
       console.log(
-        `   Local AI: ${project.localAIVerdict || project.localAIStatus} | Adjustment: ${adjustment >= 0 ? "+" : ""}${adjustment} | Confidence: ${num(project.localAIConfidence)}% | Coverage: ${num(project.localAICoverage)}%`
+        `   Local AI: ${project.localAIVerdict || project.localAIStatus} | Decision: ${project.localAIResearchDecision || "PENDING"} | Adjustment: ${adjustment >= 0 ? "+" : ""}${adjustment} | Confidence: ${num(project.localAIConfidence)}% | Coverage: ${num(project.localAICoverage)}%`
       );
     }
     if (project.autonomousAlphaOSVerdict) {
@@ -464,13 +497,15 @@ async function main() {
       `Running intelligence pipeline on ${researchQueue.length.toLocaleString()} of ${discoveredList.length.toLocaleString()} discovered projects...\n`
     );
 
+    const localAI = resolveLocalAIOptions();
+    console.log(
+      `Local AI Mode: ${localAI.mode} | Inline Research: ${localAI.inline ? localAI.inlineLimit : 0} | Queue: ${localAI.queue ? "enabled" : "disabled"}`
+    );
+
     const pipelineResults = await runIntelligencePipeline(researchQueue, {
       saveMemory: true,
       freeOnly: discoveredProjects.freeMode?.enabled === true,
-      localAI: {
-        queue: true,
-        inline: process.env.LOCAL_AI_INLINE === "true",
-      },
+      localAI,
     });
 
     const results = normalizeForReports(pipelineResults);
@@ -484,6 +519,7 @@ async function main() {
       scannedProjects: results.length,
       engineMode: "full",
       scoringMode: "institutional-weighted-fallback",
+      localAIMode: localAI.mode,
       platform: "Crypto Launch Intelligence",
     });
 

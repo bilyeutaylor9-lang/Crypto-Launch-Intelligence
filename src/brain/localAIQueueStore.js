@@ -115,6 +115,12 @@ export function buildResearchProjectSnapshot(project = {}) {
     "finalIntegrityVerdict",
     "finalIdentityState",
     "identityState",
+    "contractVerificationStatus",
+    "ownershipStatus",
+    "adminControlStatus",
+    "deployerAddress",
+    "purchaseRouteStatus",
+    "executionRouteStatus",
     "primaryNarrative",
     "narrative",
   ];
@@ -124,8 +130,11 @@ export function buildResearchProjectSnapshot(project = {}) {
     "dataConfidenceScore",
     "evidenceQualityScore",
     "sourceTruthScore",
+    "sourceReliabilityScore",
     "finalIntegrityScore",
     "liquidityUsd",
+    "activeLiquidityTruthScore",
+    "liquidityControlRisk",
     "volume24h",
     "marketCap",
     "fdv",
@@ -134,8 +143,22 @@ export function buildResearchProjectSnapshot(project = {}) {
     "priceChange24h",
     "riskScore",
     "instantSafetyRiskScore",
+    "contractRiskScore",
+    "honeypotRiskScore",
+    "washTradingRiskScore",
+    "walletClusterRiskScore",
+    "bundledLaunchRiskScore",
+    "holderConcentrationScore",
+    "topHolderConcentrationPct",
+    "holderCount",
+    "buyerRetentionScore",
     "smartMoneyAccumulationScore",
     "smartWalletPerformanceScore",
+    "deployerReputationScore",
+    "deployerRiskScore",
+    "developerActivityScore",
+    "githubProScore",
+    "githubScore",
     "narrativeHeatScore",
     "catalystScore",
     "catalystCalendarScore",
@@ -149,6 +172,11 @@ export function buildResearchProjectSnapshot(project = {}) {
   snapshot.identityVerified = project.identityVerified === true ? true : project.identityVerified === false ? false : null;
   snapshot.contractVerified = project.contractVerified === true ? true : project.contractVerified === false ? false : null;
   snapshot.liquidityVerified = project.liquidityVerified === true ? true : project.liquidityVerified === false ? false : null;
+  snapshot.honeypotDetected = project.honeypotDetected === true ? true : project.honeypotDetected === false ? false : null;
+  snapshot.sourceCodeVerified = project.sourceCodeVerified === true ? true : project.sourceCodeVerified === false ? false : null;
+  snapshot.ownershipRenounced = project.ownershipRenounced === true ? true : project.ownershipRenounced === false ? false : null;
+  snapshot.purchaseRouteConfirmed = project.purchaseRouteConfirmed === true ? true : project.purchaseRouteConfirmed === false ? false : null;
+  snapshot.executionRouteAvailable = project.executionRouteAvailable === true ? true : project.executionRouteAvailable === false ? false : null;
   snapshot.discoverySources = compactList(project.discoverySources);
   snapshot.sourcesWithUsableEvidence = compactList(project.sourcesWithUsableEvidence);
   snapshot.sourcesConfigured = compactList(project.sourcesConfigured);

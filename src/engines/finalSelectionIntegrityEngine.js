@@ -539,6 +539,7 @@ function buildInvariantViolations(project = {}, gates = {}) {
 
   if (project.aiDecision === "Reject") violations.push("selected && aiDecision === Reject");
   if (project.allocationBucket === "Defensive Avoid") violations.push("selected && allocationBucket === Defensive Avoid");
+  if (project.localAIPromotionBlocked === true) violations.push("selected && localAIPromotionBlocked === true");
   if (verdicts.hasBlockingVerdict) violations.push("selected && hasBlockingVerdict === true");
   if (!gates.purchaseRouteConfirmed) violations.push("selected && purchaseRoute.purchasable !== true");
   if (!gates.executionAvailable) violations.push("selected && executionRouteAvailable !== true");
@@ -584,6 +585,9 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   if (project.allocationBucket === "Defensive Avoid") blockingReasons.push("Allocation bucket is Defensive Avoid.");
   if (project.organicDemandPromotionBlocked) {
     blockingReasons.push(project.organicDemandManualReviewLabel || "Organic-demand promotion is blocked until proof tasks are resolved.");
+  }
+  if (project.localAIPromotionBlocked === true) {
+    blockingReasons.push(project.localAIDecisionReason || "High-confidence local AI risk finding blocks promotion until independently resolved.");
   }
   blockingReasons.push(...verdicts.blockingVerdictReasons);
   blockingReasons.push(...identity.blockers);

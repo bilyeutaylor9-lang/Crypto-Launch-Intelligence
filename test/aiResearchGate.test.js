@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { selectAgents } from "../src/brain/agentRouter.js";
 import { decideAIResearch, selectAIResearchCandidates } from "../src/brain/aiResearchGate.js";
+import { LOCAL_BRAIN_AGENTS } from "../src/brain/agentRegistry.js";
 
 function eligibleProject(overrides = {}) {
   return {
@@ -50,12 +51,33 @@ test("AI research gate keeps light and deep research within explicit limits", ()
   assert.equal(selected.decisions.find((item) => item.project.symbol === "GATE" && item.project.permanentProjectKey === "base:thin").decision.eligible, false);
 });
 
-test("agent router runs only relevant workers for light research and all workers for deep research", () => {
+test("AI research gate queues no more than the top 100 eligible projects", () => {
+  const projects = Array.from({ length: 120 }, (_, index) =>
+    eligibleProject({
+      permanentProjectKey: `base:top-${index}`,
+      contractAddress: `0xtop${index}`,
+      pipelineScore: 90 - index / 10,
+    })
+  );
+  const selected = selectAIResearchCandidates(projects);
+
+  assert.equal(selected.candidates.length, 100);
+  assert.equal(selected.summary.deepCount, 5);
+  assert.equal(selected.summary.lightCount, 25);
+  assert.equal(selected.summary.triageCount, 70);
+  assert.equal(new Set(selected.candidates.map((item) => item.decision.projectKey)).size, 100);
+});
+
+test("agent router uses focused triage, relevant light workers, and the full deep team", () => {
+  const triage = selectAgents(eligibleProject(), { depth: "TRIAGE" });
   const light = selectAgents(eligibleProject({ tokenomicsScore: 0, catalystScore: 0, narratives: [] }), { depth: "LIGHT" });
   const deep = selectAgents(eligibleProject(), { depth: "DEEP" });
 
+  assert.deepEqual(triage.map((agent) => agent.id), ["identity-verifier", "source-provenance-auditor", "bear-researcher"]);
   assert.ok(light.some((agent) => agent.id === "identity-verifier"));
   assert.ok(light.some((agent) => agent.id === "market-structure-analyst"));
+  assert.ok(light.some((agent) => agent.id === "contract-behavior-auditor"));
+  assert.ok(light.some((agent) => agent.id === "liquidity-control-analyst"));
   assert.ok(light.some((agent) => agent.id === "bear-researcher"));
-  assert.equal(deep.length, 6);
+  assert.equal(deep.length, LOCAL_BRAIN_AGENTS.length);
 });

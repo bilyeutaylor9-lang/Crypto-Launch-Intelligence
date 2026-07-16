@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { chatWithOllama, inspectOllama, parseModelJson } from "../src/brain/localAIClient.js";
+import { chatWithOllama, getOllamaConfig, inspectOllama, parseModelJson } from "../src/brain/localAIClient.js";
+
+test("Ollama configuration keeps local responses bounded and disables extended thinking by default", () => {
+  const config = getOllamaConfig({ maxTokens: 9_999, think: "false" });
+
+  assert.equal(config.maxTokens, 2_048);
+  assert.equal(config.think, false);
+});
 
 test("Ollama inspection reports the configured local model", async () => {
   const result = await inspectOllama({
@@ -34,6 +41,8 @@ test("Ollama chat sends a bounded JSON request and returns model content", async
         assert.equal(payload.model, "qwen3:4b");
         assert.equal(payload.stream, false);
         assert.equal(payload.format, "json");
+        assert.equal(payload.think, false);
+        assert.equal(payload.options.num_predict, 450);
         return {
           ok: true,
           json: async () => ({ model: "qwen3:4b", message: { content: '{"assessment":"ok"}' } }),

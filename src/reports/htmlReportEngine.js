@@ -326,6 +326,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.aiEcosystemScore ?? "")}</td>
           <td>${esc(p.aiEcosystemVerdict || "")}</td>
           <td>${esc(p.localAIVerdict || p.localAIStatus || "")}</td>
+          <td>${esc(p.localAIResearchDecision || "")}</td>
           <td>${esc(p.localAIConfidence ?? "")}</td>
           <td>${esc(p.localAICoverage ?? "")}</td>
           <td>${esc(p.localAIAdjustment ?? "")}</td>
@@ -996,6 +997,7 @@ export function writeHtmlReport(projects = []) {
         <th>AI Score</th>
         <th>AI Council</th>
         <th>Local AI Verdict</th>
+        <th>Local AI Decision</th>
         <th>Local AI Confidence</th>
         <th>Local AI Coverage</th>
         <th>Local AI Adjustment</th>
