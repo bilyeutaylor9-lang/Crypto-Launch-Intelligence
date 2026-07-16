@@ -294,6 +294,12 @@ function printTopProjects(results) {
     if (project.aiEcosystemVerdict) {
       console.log(`   AI Council: ${project.aiEcosystemVerdict} (${project.aiEcosystemScore || 0})`);
     }
+    if (project.localAIStatus) {
+      const adjustment = num(project.localAIAdjustment);
+      console.log(
+        `   Local AI: ${project.localAIVerdict || project.localAIStatus} | Adjustment: ${adjustment >= 0 ? "+" : ""}${adjustment} | Confidence: ${num(project.localAIConfidence)}% | Coverage: ${num(project.localAICoverage)}%`
+      );
+    }
     if (project.autonomousAlphaOSVerdict) {
       console.log(`   Alpha OS: ${project.autonomousAlphaOSVerdict} (${project.autonomousAlphaOSScore || 0})`);
     }

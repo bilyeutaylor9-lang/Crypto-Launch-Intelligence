@@ -80,6 +80,30 @@ test("local brain records an individual specialist failure without hiding it", a
   assert.equal(report.judge.status, "COMPLETE");
 });
 
+test("local brain accepts an evidence-supported verdict only through the judge contract", async () => {
+  const report = await runLocalResearchSwarm(PROJECT, {
+    chat: async (messages) => {
+      if (messages[0].content.includes("Evidence Judge")) {
+        return {
+          content: JSON.stringify({
+            verdict: "EVIDENCE_SUPPORTED",
+            summary: "Independent supplied evidence families agree and no material contradiction was returned.",
+            keyRisks: [],
+            missingEvidence: [],
+            nextChecks: ["Continue verifying public sources as evidence changes."],
+            confidence: 79,
+          }),
+        };
+      }
+      return successfulChat(messages);
+    },
+  });
+
+  assert.equal(report.status, "COMPLETE");
+  assert.equal(report.judge.verdict, "EVIDENCE_SUPPORTED");
+  assert.equal(report.advisoryOnly, true);
+});
+
 test("project selection rejects ambiguous ticker symbols and accepts permanent identities", () => {
   const projects = [
     { ...PROJECT, symbol: "DUP", permanentProjectKey: "base:0xone", contractAddress: "0xone" },

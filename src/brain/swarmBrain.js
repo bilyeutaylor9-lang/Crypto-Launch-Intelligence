@@ -86,6 +86,7 @@ function normalizeJudge(parsed) {
   }
 
   const allowedVerdicts = new Set([
+    "EVIDENCE_SUPPORTED",
     "RESEARCH_MORE",
     "EVIDENCE_INCOMPLETE",
     "HIGH_RISK",

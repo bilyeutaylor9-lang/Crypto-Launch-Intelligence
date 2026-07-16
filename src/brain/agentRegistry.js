@@ -57,12 +57,13 @@ export function systemPromptForAgent(agent) {
 export function systemPromptForJudge() {
   return `${COMMON_GUARDRAILS}\n\nYou are the Evidence Judge. Reconcile the supplied specialist findings. A specialist failure, disagreement, or lack of independent source evidence must lower confidence. Return JSON only with this shape:
 {
-  "verdict": "RESEARCH_MORE|EVIDENCE_INCOMPLETE|HIGH_RISK|MONITOR_FOR_VERIFIABLE_EVIDENCE",
+  "verdict": "EVIDENCE_SUPPORTED|MONITOR_FOR_VERIFIABLE_EVIDENCE|RESEARCH_MORE|EVIDENCE_INCOMPLETE|HIGH_RISK",
   "summary": "short evidence-bound synthesis",
   "keyRisks": ["specific risk"],
   "missingEvidence": ["specific missing proof"],
   "nextChecks": ["concrete public-data verification step"],
   "confidence": 0
 }
+Use EVIDENCE_SUPPORTED only when multiple independent supplied evidence families agree, identity is clear, material risks are addressed, and the conclusion does not depend on unsupported claims.
 Do not provide investment advice, price targets, buy or sell instructions, or a profitability prediction.`;
 }

@@ -50,7 +50,24 @@ function baselineScore(project = {}) {
     num(project.confidenceAdjustedScore),
     num(project.pipelineScore),
     num(project.opportunityScore),
-    num(project.score)
+    num(project.score),
+    preliminaryDeterministicScore(project)
+  );
+}
+
+function preliminaryDeterministicScore(project = {}) {
+  return Math.max(
+    num(project.institutionalVNextScore),
+    num(project.sourceTruthScore),
+    num(project.sourceReliabilityScore),
+    num(project.nativeDiscoveryScore),
+    num(project.activeLiquidityTruthScore),
+    num(project.organicBuyerScore),
+    num(project.organicDemandFirewallScore),
+    num(project.instantSafetyScore),
+    num(project.candidateLifecycleReadinessScore),
+    num(project.discoveryDecisionScore),
+    highSignalScore(project)
   );
 }
 

@@ -1,6 +1,6 @@
 # Local AI Brain
 
-The local AI brain is an optional, local-only research assistant. It sends a compact evidence brief to Ollama and writes its result to `reports/local-ai-brain.json`. It does not modify scanner scores, bypass integrity gates, or provide financial advice.
+The local AI brain is an optional, local-only research assistant. It sends a compact evidence brief to Ollama and writes its result to `reports/local-ai-brain.json`. Completed research can apply a small evidence adjustment from -10 to +6 before final scoring. It cannot bypass identity, contract, liquidity, safety, final-selection, or sniper-integrity gates, and it does not provide financial advice.
 
 ## Setup
 
@@ -37,7 +37,7 @@ When a ticker matches multiple projects, use a contract address or permanent pro
 
 ## Automatic Queue and Worker
 
-Normal `npm run scan` runs every deterministic identity, source, liquidity, and safety gate first. It then queues at most 25 light research missions and 5 deep research missions. Queueing does not require Ollama and never changes scanner scores or final selection.
+Normal `npm run scan` runs deterministic identity, source, liquidity, demand, wallet, and safety checks first. It then queues at most 25 light research missions and 5 deep research missions. Queueing does not require Ollama. A later matching scan can reuse completed research as a bounded -10 to +6 score adjustment before final scoring; final selection remains deterministic.
 
 Run the local worker in a separate terminal after starting Ollama:
 
@@ -58,6 +58,18 @@ For a small, synchronous review after a scan, explicitly opt in:
 ```bash
 LOCAL_AI_INLINE=true LOCAL_AI_INLINE_LIMIT=5 npm run scan
 ```
+
+Inline results can contribute their bounded adjustment during that same scan. Worker results are attached when a later scan sees the same evidence fingerprint.
+
+Score influence is enabled by default. It can be disabled, or its already conservative limits can be lowered, in `.env.local`:
+
+```text
+LOCAL_AI_SCORE_INFLUENCE=false
+LOCAL_AI_MAX_SCORE_BOOST=6
+LOCAL_AI_MAX_SCORE_PENALTY=10
+```
+
+The implementation never allows values above `+6` or below `-10`, even when an environment value is larger.
 
 Keep Ollama bound to `127.0.0.1`; do not expose its port directly to the internet.
 

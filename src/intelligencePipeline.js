@@ -995,7 +995,113 @@ function buildOpportunityThesis(project = {}, profile = {}, tags = [], risks = [
   return `${name} is led by ${strengths}.${tagText}${riskText}`;
 }
 
-function advancedScoreBreakdown(project = {}) {
+function localAIHardCap(envName, fallback, absoluteMaximum) {
+  const configured = Number(process.env[envName]);
+  const value = Number.isFinite(configured) ? configured : fallback;
+  return Math.min(absoluteMaximum, Math.max(0, value));
+}
+
+function localAIDeterministicBlockReasons(project = {}) {
+  const instantSafetyStatus = String(project.instantSafetyStatus || "").toUpperCase();
+  const organicStatus = String(project.organicDemandFirewallStatus || "").toUpperCase();
+  const discoveryTier = String(project.discoveryDecisionTier || "").toUpperCase();
+  const finalState = String(project.finalSelectionState || "").toUpperCase();
+  const identityState = String(project.finalIdentityState || project.identityState || "").toUpperCase();
+  const momentumStage = String(project.preBreakoutMomentumStage || project.prePump?.status || "").toUpperCase();
+  const reasons = [];
+
+  if (project.identityConflict === true || finalState === "IDENTITY_CONFLICT" || identityState.includes("CONFLICT")) {
+    reasons.push("identity conflict");
+  }
+  if (["CRITICAL", "RESTRICTED"].includes(instantSafetyStatus)) reasons.push("instant safety restriction");
+  if (organicStatus === "CRITICAL" || project.organicDemandVerdict === "Institutional Integrity Block") {
+    reasons.push("organic-demand integrity block");
+  }
+  if (discoveryTier === "CRITICAL") reasons.push("critical discovery decision");
+  if (project.honeypotDetected === true || num(project.honeypotRiskScore) >= 70) reasons.push("honeypot risk");
+  if (num(project.contractRiskScore) >= 70) reasons.push("contract risk");
+  if (num(project.instantSafetyRiskScore) >= 70) reasons.push("instant safety risk");
+  if (num(project.washTradingRiskScore) >= 70) reasons.push("wash-trading risk");
+  if (num(project.walletClusterRiskScore) >= 70) reasons.push("wallet-cluster risk");
+  if (num(project.trapRiskScore) >= 70) reasons.push("trap risk");
+  if (["ALREADY_PUMPED", "LATE_CHASE"].includes(momentumStage)) reasons.push("late price stage");
+
+  return reasons;
+}
+
+export function localAIInfluence(project = {}) {
+  if (String(process.env.LOCAL_AI_SCORE_INFLUENCE || "").toLowerCase() === "false") {
+    return {
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "DISABLED",
+      localAIInfluenceReason: "Local AI score influence is disabled.",
+    };
+  }
+
+  const verdict = String(project.localAIVerdict || "").trim().toUpperCase();
+  const status = String(project.localAIStatus || "").trim().toUpperCase();
+  const confidence = clamp(project.localAIConfidence);
+  const coverage = clamp(project.localAICoverage);
+  const completedResearch = ["COMPLETE", "PARTIAL"].includes(status);
+
+  if (!verdict || !completedResearch) {
+    return {
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "NO_COMPLETED_RESEARCH",
+      localAIInfluenceReason: "No completed local AI research was available.",
+    };
+  }
+
+  const verdictValues = {
+    EVIDENCE_SUPPORTED: 6,
+    MONITOR_FOR_VERIFIABLE_EVIDENCE: 1,
+    RESEARCH_MORE: -2,
+    EVIDENCE_INCOMPLETE: -5,
+    HIGH_RISK: -10,
+  };
+  let baseAdjustment = verdictValues[verdict] ?? 0;
+  const qualityMultiplier = (confidence * 0.6 + coverage * 0.4) / 100;
+
+  if (baseAdjustment > 0 && status !== "COMPLETE") {
+    return {
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "PARTIAL_RESEARCH_POSITIVE_BLOCKED",
+      localAIInfluenceReason: "Positive influence requires a complete local AI research run.",
+    };
+  }
+
+  if (baseAdjustment > 0 && (confidence < 65 || coverage < 60)) {
+    return {
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "LOW_QUALITY_POSITIVE_BLOCKED",
+      localAIInfluenceReason: `${verdict} did not meet the 65% confidence and 60% coverage minimums.`,
+    };
+  }
+
+  const deterministicBlocks = localAIDeterministicBlockReasons(project);
+  if (baseAdjustment > 0 && deterministicBlocks.length) {
+    return {
+      localAIAdjustment: 0,
+      localAIInfluenceStatus: "DETERMINISTIC_BLOCK",
+      localAIInfluenceReason: `Positive local AI influence blocked by deterministic checks: ${deterministicBlocks.join(", ")}.`,
+    };
+  }
+
+  const maxBoost = localAIHardCap("LOCAL_AI_MAX_SCORE_BOOST", 6, 6);
+  const maxPenalty = localAIHardCap("LOCAL_AI_MAX_SCORE_PENALTY", 10, 10);
+  const boundedAdjustment = Math.round(
+    Math.max(-maxPenalty, Math.min(maxBoost, baseAdjustment * qualityMultiplier))
+  );
+  const adjustment = boundedAdjustment === 0 ? 0 : boundedAdjustment;
+
+  return {
+    localAIAdjustment: adjustment,
+    localAIInfluenceStatus: adjustment > 0 ? "POSITIVE" : adjustment < 0 ? "NEGATIVE" : "NEUTRAL",
+    localAIInfluenceReason: `${verdict} with ${confidence}% confidence and ${coverage}% evidence coverage.`,
+  };
+}
+
+export function advancedScoreBreakdown(project = {}) {
   const baseScore = weightedInstitutionalScore(project);
   const profile = buildSignalProfile(project);
   const tags = buildAlphaTags(project, profile);
@@ -1098,7 +1204,10 @@ function advancedScoreBreakdown(project = {}) {
         )
       )
     : 0;
-  const riskAdjustedScore = Math.round(clamp(baseScore + bonus + dynamicWeightAdjustment - penalty));
+  const localAI = localAIInfluence(project);
+  const riskAdjustedScore = Math.round(
+    clamp(baseScore + bonus + dynamicWeightAdjustment + localAI.localAIAdjustment - penalty)
+  );
   const signalGrades = buildSignalGrades(profile);
   const conviction = convictionLevel(riskAdjustedScore, signalDensityScore, risks);
   const executionPlan = buildExecutionPlan(riskAdjustedScore, conviction, risks);
@@ -1109,6 +1218,7 @@ function advancedScoreBreakdown(project = {}) {
     bonus,
     penalty,
     dynamicWeightAdjustment,
+    ...localAI,
     riskAdjustedScore,
     signalDensityScore: Math.round(signalDensityScore),
     signalProfile: profile,
@@ -1224,7 +1334,7 @@ function buildDataConfidence(project = {}, breakdown = {}) {
   };
 }
 
-function addFinalScoring(projects = []) {
+export function addFinalScoring(projects = []) {
   const safeProjects = Array.isArray(projects)
     ? projects
     : normalizeEngineOutput(projects, []);
@@ -1365,6 +1475,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);
   results = await runEngine("Missed Winner Lab", analyzeMissedWinnerLabBatch, results, options.missedWinnerLab || {});
 
+  // Deterministic identity, liquidity, demand, wallet, and safety checks must
+  // complete before local research can contribute its bounded evidence adjustment.
+  results = await runLocalAIResearchStage(results, options);
   results = await runEngine("Final Scoring", addFinalScoring, results);
   results = await runEngine("Project Change Detection", analyzeProjectChangeBatch, results);
   results = await runEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
@@ -1413,9 +1526,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
-
-  // This follows every deterministic identity and safety stage and is advisory-only.
-  results = await runLocalAIResearchStage(results, options);
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

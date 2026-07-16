@@ -325,6 +325,10 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.trapRiskLevel || "")}</td>
           <td>${esc(p.aiEcosystemScore ?? "")}</td>
           <td>${esc(p.aiEcosystemVerdict || "")}</td>
+          <td>${esc(p.localAIVerdict || p.localAIStatus || "")}</td>
+          <td>${esc(p.localAIConfidence ?? "")}</td>
+          <td>${esc(p.localAICoverage ?? "")}</td>
+          <td>${esc(p.localAIAdjustment ?? "")}</td>
           <td>${esc(p.strongBuyLifecycleStage || "")}</td>
           <td>${esc(p.multiTimeframeIntelligence?.bestHorizon || "")}</td>
           <td>${esc(p.redTeamReview?.status || "")}</td>
@@ -991,6 +995,10 @@ export function writeHtmlReport(projects = []) {
         <th>Trap Level</th>
         <th>AI Score</th>
         <th>AI Council</th>
+        <th>Local AI Verdict</th>
+        <th>Local AI Confidence</th>
+        <th>Local AI Coverage</th>
+        <th>Local AI Adjustment</th>
         <th>Lifecycle</th>
         <th>Horizon</th>
         <th>Red Team</th>
