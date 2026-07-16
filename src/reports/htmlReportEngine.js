@@ -86,7 +86,7 @@ function progressiveRows(projects = [], emptyMessage = "No projects") {
   if (!projects.length) {
     return `
       <tr>
-        <td colspan="11" class="empty">${esc(emptyMessage)}</td>
+        <td colspan="13" class="empty">${esc(emptyMessage)}</td>
       </tr>
     `;
   }
@@ -101,6 +101,8 @@ function progressiveRows(projects = [], emptyMessage = "No projects") {
           <td>${esc(p.chain || p.finalChain || "")}</td>
           <td><strong>${esc(p.progressiveOpportunityScore ?? p.opportunityScoreV2 ?? "")}</strong></td>
           <td><strong>${esc(p.trustScore ?? p.progressiveTrustScore ?? "")}</strong></td>
+          <td><strong>${esc(p.executionScore ?? p.progressiveExecutionScore ?? "")}</strong></td>
+          <td><strong>${esc(p.moneyRankScore ?? "")}</strong></td>
           <td>${esc(p.opportunityRankingTier || "")}</td>
           <td>${esc(p.finalSelectionState || "")}</td>
           <td>${listText(p.opportunityWhyNowSignals || [])}</td>
@@ -636,7 +638,7 @@ export function writeHtmlReport(projects = []) {
   <table>
     <thead>
       <tr>
-        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
       </tr>
     </thead>
     <tbody>${progressiveRows(sniperReadyOpportunities.slice(0, 5), "No SNIPER_READY candidates currently exist")}</tbody>
@@ -646,7 +648,7 @@ export function writeHtmlReport(projects = []) {
   <table>
     <thead>
       <tr>
-        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
       </tr>
     </thead>
     <tbody>${progressiveRows(bestAvailableOpportunities.slice(0, 20), "No best-available candidates")}</tbody>
@@ -656,7 +658,7 @@ export function writeHtmlReport(projects = []) {
   <table>
     <thead>
       <tr>
-        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
       </tr>
     </thead>
     <tbody>${progressiveRows([...emergingRadarOpportunities, ...speculativeSignalOpportunities].slice(0, 40), "No emerging or speculative signals")}</tbody>
@@ -666,7 +668,7 @@ export function writeHtmlReport(projects = []) {
   <table>
     <thead>
       <tr>
-        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
       </tr>
     </thead>
     <tbody>${progressiveRows(progressiveBlockedOpportunities.slice(0, 40), "No progressive hard blocks")}</tbody>

@@ -114,6 +114,29 @@ function routeVerified(project = {}) {
   );
 }
 
+function routeFailureDetected(project = {}) {
+  const routeText = [
+    project.purchaseRoute?.status,
+    project.purchaseRouteStatus,
+    project.smallCapHunter?.purchaseRoute?.status,
+    project.proofOfAlphaExecutionTwin?.route?.status,
+    project.proofOfAlphaExecutionTwinVerdict,
+    project.executionTwinVerdict,
+  ]
+    .map(lower)
+    .join(" ");
+
+  return textIncludesAny(routeText, [
+    "unavailable",
+    "failed",
+    "blocked",
+    "no route",
+    "no-route",
+    "rejected",
+    "cannot execute",
+  ]);
+}
+
 function identityVerified(project = {}) {
   return Boolean(
     project.identityVerified === true ||
@@ -145,6 +168,153 @@ function weightedAvailable(items = [], missingDefault = null) {
   }
 
   return weight > 0 ? Math.round(clamp(weighted / weight)) : 0;
+}
+
+function quoteAgeSeconds(project = {}) {
+  const explicit = firstValue([
+    project.quoteAgeSeconds,
+    project.executionQuoteAgeSeconds,
+    project.proofOfAlphaExecutionTwin?.quote?.ageSeconds,
+    project.proofOfAlphaExecutionTwin?.quoteAgeSeconds,
+    project.smallCapHunter?.execution?.quoteAgeSeconds,
+  ]);
+
+  if (explicit !== undefined) return num(explicit);
+
+  const timestamp = firstValue([
+    project.quoteTimestamp,
+    project.executionQuoteTimestamp,
+    project.proofOfAlphaExecutionTwin?.quote?.timestamp,
+    project.marketData?.updatedAt,
+    project.updatedAt,
+    project.lastUpdatedAt,
+  ]);
+  const parsed = timestamp ? Date.parse(timestamp) : NaN;
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.round((Date.now() - parsed) / 1000));
+}
+
+function quoteFreshnessScore(project = {}) {
+  const age = quoteAgeSeconds(project);
+  if (age === null) return routeVerified(project) ? 55 : 0;
+  if (age <= 120) return 95;
+  if (age <= 300) return 85;
+  if (age <= 900) return 70;
+  if (age <= 3600) return 50;
+  if (age <= 21600) return 30;
+  return 10;
+}
+
+function slippagePct(project = {}) {
+  const value = firstValue([
+    project.executionSlippagePct,
+    project.proofOfAlphaExecutionTwinSlippagePct,
+    project.proofOfAlphaExecutionTwin?.quote?.slippagePct,
+    project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
+    project.smallCapHunter?.execution?.slippagePct,
+    project.purchaseRoute?.slippagePct,
+  ]);
+  return value === undefined ? null : num(value);
+}
+
+function priceImpactPct(project = {}) {
+  const value = firstValue([
+    project.priceImpactPct,
+    project.executionPriceImpactPct,
+    project.proofOfAlphaExecutionTwin?.quote?.priceImpactPct,
+    project.proofOfAlphaExecutionTwin?.quote?.estimatedPriceImpactPct,
+    project.smallCapHunter?.execution?.priceImpactPct,
+  ]);
+  return value === undefined ? null : num(value);
+}
+
+function liquidityDepthScore(project = {}) {
+  const liquidity = liquidityUsd(project);
+  if (liquidity >= 500_000) return 98;
+  if (liquidity >= 250_000) return 94;
+  if (liquidity >= 100_000) return 86;
+  if (liquidity >= 25_000) return 72;
+  if (liquidity >= 5_000) return 50;
+  if (liquidity >= 1_000) return 34;
+  if (liquidity > 0) return 16;
+  return 0;
+}
+
+function slippageControlScore(project = {}) {
+  const slippage = slippagePct(project);
+  const impact = priceImpactPct(project);
+  const observed = [slippage, impact].filter((value) => value !== null);
+  if (!observed.length) return routeVerified(project) ? 55 : 0;
+  const worst = Math.max(...observed);
+  if (worst <= 0.5) return 96;
+  if (worst <= 1.5) return 88;
+  if (worst <= 3) return 76;
+  if (worst <= 5) return 62;
+  if (worst <= 8) return 45;
+  if (worst <= 12) return 28;
+  return 10;
+}
+
+function buildTradeSizeChecks(project = {}, hardBlockers = []) {
+  const liquidity = liquidityUsd(project);
+  const hasRoute = routeVerified(project) && !routeFailureDetected(project);
+  const observedImpact = priceImpactPct(project);
+  const observedSlippage = slippagePct(project);
+  const sizes = [25, 100, 500, 1000];
+
+  return sizes.map((sizeUsd) => {
+    const liquidityImpactPct = liquidity > 0 ? (sizeUsd / liquidity) * 100 * 2.5 : 999;
+    const estimatedImpactPct = Math.round(
+      Math.max(
+        liquidityImpactPct,
+        observedImpact === null ? 0 : observedImpact,
+        observedSlippage === null ? 0 : observedSlippage
+      ) * 100
+    ) / 100;
+    const blockers = [];
+
+    if (!hasRoute) blockers.push("No verified execution route.");
+    if (hardBlockers.length) blockers.push("Hard safety blocker is active.");
+    if (liquidity <= 0) blockers.push("No usable liquidity depth.");
+    if (liquidity > 0 && liquidity < sizeUsd * 25) blockers.push("Liquidity is too thin for this paper size.");
+    if (estimatedImpactPct > (sizeUsd <= 100 ? 8 : 12)) blockers.push("Estimated price impact/slippage is too high.");
+
+    return {
+      sizeUsd,
+      liquidityUsd: liquidity,
+      estimatedImpactPct,
+      status: blockers.length ? "BLOCKED" : "PASS",
+      blockers,
+    };
+  });
+}
+
+function executableTradeSizeUsd(checks = []) {
+  return [...checks].reverse().find((check) => check.status === "PASS")?.sizeUsd || 0;
+}
+
+function executionComponents(project = {}, hardBlockers = [], tradeSizeChecks = []) {
+  const hasRoute = routeVerified(project);
+  const routeHealth = routeFailureDetected(project) ? 0 : hasRoute ? 92 : 8;
+  const maxTradeSize = executableTradeSizeUsd(tradeSizeChecks);
+  const safetyFriction = hardBlockers.length
+    ? 0
+    : weightedAvailable([
+        { score: inverseRiskScore(project.contractRiskScore), weight: 1.0 },
+        { score: inverseRiskScore(project.honeypotRiskScore), weight: 1.0 },
+        { score: inverseRiskScore(project.instantSafetyRiskScore), weight: 1.0 },
+        { score: inverseRiskScore(project.liquidityManipulationRisk), weight: 0.8 },
+        { score: inverseRiskScore(project.washTradingRiskScore), weight: 0.6 },
+      ], 62);
+
+  return {
+    routeAvailability: routeHealth,
+    liquidityDepth: liquidityDepthScore(project),
+    quoteFreshness: quoteFreshnessScore(project),
+    slippageControl: slippageControlScore(project),
+    tradeSizeFit: maxTradeSize >= 1000 ? 96 : maxTradeSize >= 500 ? 84 : maxTradeSize >= 100 ? 70 : maxTradeSize >= 25 ? 52 : 8,
+    safetyFriction,
+  };
 }
 
 function opportunityComponents(project = {}) {
@@ -375,6 +545,18 @@ function buildMissingEvidence(project = {}, trust = {}, hardBlockers = []) {
   return [...new Set(missing)].slice(0, 10);
 }
 
+function buildExecutionMissingEvidence(project = {}, execution = {}, tradeSizeChecks = []) {
+  const missing = [];
+  if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
+  if (routeFailureDetected(project)) missing.push("Execution route is currently failing or unavailable.");
+  if (execution.quoteFreshness < 55) missing.push("Refresh stale execution quote before ranking as execution-ready.");
+  if (execution.slippageControl < 55) missing.push("Confirm slippage and price impact with a live quote.");
+  if (!tradeSizeChecks.some((check) => check.status === "PASS")) {
+    missing.push("No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.");
+  }
+  return missing;
+}
+
 function buildNextActions(project = {}, tier = TIERS.MONITOR_ONLY, missing = []) {
   if (tier === TIERS.BLOCKED) return ["Do not promote. Recheck only if the hard-blocking evidence is resolved."];
   const actions = [];
@@ -425,18 +607,141 @@ function catalystWindow(project = {}) {
   return days === undefined || days === null ? String(label) : `${label} in ${days} days`;
 }
 
-function tierFor({ opportunityScore, trustScore, hardBlockers, routeVerified: hasRoute }) {
+function calibrationSampleSize(project = {}) {
+  return Math.max(
+    num(project.comparableSampleSize),
+    num(project.calibrationSampleSize),
+    num(project.outcomeWinSampleSize),
+    num(project.outcomeCalibration?.sampleSize),
+    num(project.predictionPerformance?.sampleSize)
+  );
+}
+
+function calibrationState(project = {}) {
+  const sampleSize = calibrationSampleSize(project);
+  if (sampleSize >= 100) return { sampleSize, status: "CALIBRATED", note: "Large enough sample for stronger measured outcome language." };
+  if (sampleSize >= 30) return { sampleSize, status: "MEASURED", note: "Enough comparable outcomes for measured hit-rate caveats." };
+  if (sampleSize >= 10) return { sampleSize, status: "EARLY_SAMPLE", note: "Useful directional sample, still not a probability claim." };
+  return { sampleSize, status: "MODEL_ESTIMATE_ONLY", note: "Treat as a research ranking until more outcomes are logged." };
+}
+
+function calibratedExpectedValueScore(project = {}) {
+  const explicit = firstValue([
+    project.calibratedExpectedValueScore,
+    project.expectedValueScore,
+    project.outcomeExpectedValueScore,
+    project.paperExpectedValueScore,
+  ]);
+  if (explicit !== undefined) return clamp(explicit);
+
+  const upsidePct = firstValue([
+    project.causalMarketTwinExpectedReturnPct,
+    project.expectedReturnPct,
+    project.expectedUpsidePct,
+    project.monteCarloExpectedReturnPct,
+  ]);
+  const upsideProbability = firstValue([
+    project.causalMarketTwinUpsideProbability,
+    project.breakoutProbability30d,
+    project.upsideProbability,
+    project.quantumOutcomeField?.upsideProbability,
+  ]);
+  const downsideProbability = firstValue([
+    project.causalMarketTwinDownsideProbability,
+    project.downsideProbability,
+    project.rugOrUntradeableRate,
+    project.outcomeCalibration?.rugOrUntradeableRate,
+  ]);
+
+  if (upsidePct === undefined && upsideProbability === undefined) return null;
+  const upsideComponent = clamp(num(upsidePct) * 1.6);
+  const probabilityComponent = clamp(num(upsideProbability) <= 1 ? num(upsideProbability) * 100 : num(upsideProbability));
+  const downsidePenalty = clamp(num(downsideProbability) <= 1 ? num(downsideProbability) * 100 : num(downsideProbability));
+  return Math.round(clamp(upsideComponent * 0.45 + probabilityComponent * 0.55 - downsidePenalty * 0.35));
+}
+
+function evidenceFreshnessScore(project = {}) {
+  return weightedAvailable([
+    { score: project.sniperDataFreshness, weight: 1.0 },
+    { score: project.dataFreshnessScore, weight: 1.0 },
+    { score: project.institutionalDataProvenance?.components?.freshness, weight: 1.0 },
+    { score: project.sourceTruth?.freshnessScore, weight: 0.8 },
+    { score: sourceCount(project) >= 3 ? 82 : sourceCount(project) === 2 ? 66 : sourceCount(project) === 1 ? 45 : 0, weight: 0.7 },
+  ], 35);
+}
+
+function regimeCompatibilityScore(project = {}) {
+  return weightedAvailable([
+    { score: project.regimeAdjustedOpportunityScore, weight: 1.0 },
+    { score: project.marketRegimeFitScore, weight: 1.0 },
+    { score: project.macroNarrativeScore, weight: 0.8 },
+    { score: project.narrativeForecastScore, weight: 0.8 },
+    { score: project.relativeStrengthScore, weight: 0.8 },
+    { score: project.trendChangeScore, weight: 0.6 },
+  ], 45);
+}
+
+function buildMoneyRankDrivers({
+  opportunityScore,
+  trustScore,
+  executionScore,
+  freshnessScore,
+  regimeScore,
+  expectedValueScore,
+  hardBlockers = [],
+}) {
+  if (hardBlockers.length) return [`Blocked: ${hardBlockers[0]}`];
+  const drivers = [
+    { label: "Opportunity", score: opportunityScore },
+    { label: "Trust", score: trustScore },
+    { label: "Execution", score: executionScore },
+    { label: "Fresh evidence", score: freshnessScore },
+    { label: "Regime fit", score: regimeScore },
+  ];
+  if (expectedValueScore !== null) drivers.push({ label: "Calibrated EV", score: expectedValueScore });
+  return drivers
+    .sort((a, b) => num(b.score) - num(a.score))
+    .slice(0, 5)
+    .map((driver) => `${driver.label}: ${Math.round(clamp(driver.score))}`);
+}
+
+function moneyRankScoreFor({
+  project,
+  opportunityScore,
+  trustScore,
+  executionScore,
+  freshnessScore,
+  regimeScore,
+  expectedValueScore,
+  hardBlockers = [],
+  localAIAdjustment = 0,
+}) {
+  if (hardBlockers.length) return 0;
+  const calibration = calibrationState(project);
+  const expectedValueUsable = expectedValueScore !== null && calibration.sampleSize >= 20;
+  const score = weightedAvailable([
+    { score: opportunityScore, weight: expectedValueUsable ? 30 : 35 },
+    { score: trustScore, weight: expectedValueUsable ? 25 : 27 },
+    { score: executionScore, weight: expectedValueUsable ? 20 : 23 },
+    { score: freshnessScore, weight: 10 },
+    { score: regimeScore, weight: expectedValueUsable ? 5 : 5 },
+    { score: expectedValueUsable ? expectedValueScore : undefined, weight: expectedValueUsable ? 10 : 0 },
+  ]);
+  return Math.round(clamp(score + Math.min(0, num(localAIAdjustment))));
+}
+
+function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute }) {
   if (hardBlockers.length) return TIERS.BLOCKED;
-  if (opportunityScore >= 82 && trustScore >= 75 && hasRoute) return TIERS.SNIPER_READY;
-  if (opportunityScore >= 78 && trustScore >= 60) return TIERS.EARLY_HIGH_CONVICTION;
+  if (opportunityScore >= 82 && trustScore >= 75 && executionScore >= 70 && hasRoute) return TIERS.SNIPER_READY;
+  if (opportunityScore >= 77 && trustScore >= 60 && executionScore >= 45) return TIERS.EARLY_HIGH_CONVICTION;
   if (opportunityScore >= 70 && trustScore >= 40) return TIERS.EMERGING_RADAR;
   if (opportunityScore >= 62) return TIERS.SPECULATIVE_SIGNAL;
   return TIERS.MONITOR_ONLY;
 }
 
-function confidenceFor(opportunityScore = 0, trustScore = 0, coverage = 0, hardBlockers = []) {
+function confidenceFor(opportunityScore = 0, trustScore = 0, executionScore = 0, coverage = 0, hardBlockers = []) {
   if (hardBlockers.length) return "Blocked";
-  const blended = opportunityScore * 0.35 + trustScore * 0.45 + coverage * 0.2;
+  const blended = opportunityScore * 0.3 + trustScore * 0.4 + executionScore * 0.15 + coverage * 0.15;
   if (blended >= 78) return "High";
   if (blended >= 60) return "Medium";
   if (blended >= 42) return "Developing";
@@ -475,18 +780,55 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     0
   );
   const hardBlockers = buildHardBlockers(project);
+  const tradeSizeChecks = buildTradeSizeChecks(project, hardBlockers);
+  const execution = executionComponents(project, hardBlockers, tradeSizeChecks);
+  const executionScore = weightedScoreFromComponents(
+    execution,
+    {
+      routeAvailability: 25,
+      liquidityDepth: 20,
+      quoteFreshness: 15,
+      slippageControl: 15,
+      tradeSizeFit: 15,
+      safetyFriction: 10,
+    },
+    0
+  );
+  const executableSize = executableTradeSizeUsd(tradeSizeChecks);
   const hasRoute = routeVerified(project);
   const tier = tierFor({
     opportunityScore,
     trustScore,
+    executionScore,
     hardBlockers,
     routeVerified: hasRoute,
   });
   const opportunityCoverage = scoreCoverage(opp);
   const trustCoverage = scoreCoverage(trust);
-  const evidenceCoverage = Math.round(clamp((opportunityCoverage + trustCoverage) / 2));
-  const missingEvidence = buildMissingEvidence(project, trust, hardBlockers);
+  const executionCoverage = scoreCoverage(execution);
+  const evidenceCoverage = Math.round(clamp((opportunityCoverage + trustCoverage + executionCoverage) / 3));
+  const missingEvidence = [
+    ...buildMissingEvidence(project, trust, hardBlockers),
+    ...buildExecutionMissingEvidence(project, execution, tradeSizeChecks),
+  ]
+    .filter(Boolean)
+    .filter((value, index, list) => list.indexOf(value) === index)
+    .slice(0, 10);
   const localAIAdjustment = tier === TIERS.BLOCKED ? 0 : Math.min(0, num(project.localAIAdjustment));
+  const freshnessScore = evidenceFreshnessScore(project);
+  const regimeScore = regimeCompatibilityScore(project);
+  const expectedValueScore = calibratedExpectedValueScore(project);
+  const moneyScore = moneyRankScoreFor({
+    project,
+    opportunityScore,
+    trustScore,
+    executionScore,
+    freshnessScore,
+    regimeScore,
+    expectedValueScore,
+    hardBlockers,
+    localAIAdjustment,
+  });
   const emergingDiscoveryAIEligible =
     hardBlockers.length === 0 &&
     liquidityUsd(project) >= num(options.emergingMinimumLiquidityUsd ?? 1_000) &&
@@ -501,10 +843,30 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     opportunityScoreV2: opportunityScore,
     trustScore,
     progressiveTrustScore: trustScore,
+    executionScore,
+    progressiveExecutionScore: executionScore,
+    executionScoreComponents: execution,
+    executionTradeSizeChecks: tradeSizeChecks,
+    executableTradeSizeUsd: executableSize,
+    moneyRankScore: moneyScore,
+    moneyRankEligible: hardBlockers.length === 0,
+    moneyRankDrivers: buildMoneyRankDrivers({
+      opportunityScore,
+      trustScore,
+      executionScore,
+      freshnessScore,
+      regimeScore,
+      expectedValueScore,
+      hardBlockers,
+    }),
+    calibratedExpectedValueScore: expectedValueScore,
+    evidenceFreshnessScore: freshnessScore,
+    regimeCompatibilityScore: regimeScore,
+    calibrationState: calibrationState(project),
     opportunityTrustSpread: Math.round(opportunityScore - trustScore),
     opportunityRankingTier: tier,
     opportunityTier: tier,
-    opportunityConfidence: confidenceFor(opportunityScore, trustScore, evidenceCoverage, hardBlockers),
+    opportunityConfidence: confidenceFor(opportunityScore, trustScore, executionScore, evidenceCoverage, hardBlockers),
     opportunityEvidenceCoverage: evidenceCoverage,
     opportunityScoreComponents: opp,
     trustScoreComponents: trust,
@@ -530,7 +892,9 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
 function rankProjects(projects = []) {
   return [...projects].sort(
     (a, b) =>
+      num(b.moneyRankScore) - num(a.moneyRankScore) ||
       num(b.progressiveOpportunityScore) - num(a.progressiveOpportunityScore) ||
+      num(b.executionScore) - num(a.executionScore) ||
       num(b.trustScore) - num(a.trustScore) ||
       num(b.pipelineScore) - num(a.pipelineScore)
   );
@@ -548,6 +912,11 @@ export function analyzeProgressiveOpportunityRankingBatch(projects = [], options
   const tierRanks = new Map();
   const bestRanks = new Map(bestAvailable.map((project, index) => [project, index + 1]));
   const emergingRanks = new Map(emergingLane.map((project, index) => [project, index + 1]));
+  const moneyRanks = new Map(
+    ranked
+      .filter((project) => project.moneyRankEligible)
+      .map((project, index) => [project, index + 1])
+  );
 
   for (const tier of Object.values(TIERS)) {
     tierRanks.set(
@@ -564,6 +933,7 @@ export function analyzeProgressiveOpportunityRankingBatch(projects = [], options
     ...project,
     opportunityRank: index + 1,
     bestAvailableRank: bestRanks.get(project) || null,
+    moneyRank: moneyRanks.get(project) || null,
     opportunityTierRank: flatTierRanks.get(project) || null,
     emergingDiscoveryAIRank: emergingRanks.get(project) || null,
   }));
@@ -579,6 +949,14 @@ function compactProject(project = {}) {
     tier: project.opportunityRankingTier || "UNKNOWN",
     opportunityScore: project.progressiveOpportunityScore || 0,
     trustScore: project.trustScore || 0,
+    executionScore: project.executionScore || 0,
+    moneyRankScore: project.moneyRankScore || 0,
+    moneyRank: project.moneyRank || null,
+    moneyRankEligible: Boolean(project.moneyRankEligible),
+    moneyRankDrivers: project.moneyRankDrivers || [],
+    executableTradeSizeUsd: project.executableTradeSizeUsd || 0,
+    executionTradeSizeChecks: (project.executionTradeSizeChecks || []).slice(0, 4),
+    calibrationState: project.calibrationState || {},
     confidence: project.opportunityConfidence || "Unknown",
     finalSelectionState: project.finalSelectionState || "UNKNOWN",
     finalSelectionQualified: Boolean(project.finalSelectionQualified),
@@ -609,6 +987,10 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
   const ranked = rankProjects(analyzed);
   const byTier = (tier) => ranked.filter((project) => project.opportunityRankingTier === tier);
   const bestAvailable = ranked.filter((project) => project.bestAvailableEligible);
+  const moneyRanked = ranked.filter((project) => project.moneyRankEligible);
+  const executionReady = moneyRanked.filter(
+    (project) => routeVerified(project) && num(project.executionScore) >= 70 && num(project.executableTradeSizeUsd) >= 100
+  );
   const blocked = byTier(TIERS.BLOCKED);
   const emergingLane = ranked.filter((project) => project.emergingDiscoveryAIEligible);
   const missingEvidenceQueue = bestAvailable
@@ -630,6 +1012,8 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
       monitorOnly: byTier(TIERS.MONITOR_ONLY).length,
       blocked: blocked.length,
       bestAvailable: bestAvailable.length,
+      moneyRanked: moneyRanked.length,
+      executionReady: executionReady.length,
       emergingDiscoveryAI: emergingLane.length,
       missingEvidence: missingEvidenceQueue.length,
     },
@@ -638,7 +1022,9 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
     earlyHighConviction: byTier(TIERS.EARLY_HIGH_CONVICTION).slice(0, TIER_LIMITS.EARLY_HIGH_CONVICTION).map(compactProject),
     emergingRadar: byTier(TIERS.EMERGING_RADAR).slice(0, TIER_LIMITS.EMERGING_RADAR).map(compactProject),
     speculativeSignals: byTier(TIERS.SPECULATIVE_SIGNAL).slice(0, TIER_LIMITS.SPECULATIVE_SIGNAL).map(compactProject),
+    institutionalMoneyRank: moneyRanked.slice(0, 50).map(compactProject),
     bestAvailableOpportunities: bestAvailable.slice(0, 20).map(compactProject),
+    executionReady: executionReady.slice(0, 25).map(compactProject),
     blockedProjects: blocked.slice(0, 30).map(compactProject),
     emergingDiscoveryAILane: emergingLane.slice(0, 100).map(compactProject),
     missingEvidenceQueue: missingEvidenceQueue.slice(0, 50).map(compactProject),
@@ -656,6 +1042,8 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
     },
     operatorNotes: [
       "Best available means strongest non-hard-blocked research lead, not a buy recommendation.",
+      "Money Rank blends Opportunity, Trust, Execution, freshness, regime fit, and measured EV only when enough outcomes exist.",
+      "Execution-ready means a route, liquidity depth, and paper trade-size check currently pass; it is still research, not financial advice.",
       "SNIPER_READY still requires trust, no hard blockers, and a verified execution route.",
       "Missing proof lowers trust and creates verification work; verified scam/rug/manipulation evidence blocks promotion.",
       "Emerging Discovery AI is penalty-only and cannot promote a project to SNIPER_READY.",
@@ -669,9 +1057,89 @@ export function writeProgressiveOpportunityReport(projects = []) {
 
   const report = summarizeProgressiveOpportunityRanking(projects);
   const filePath = path.join(reportsDir, "progressive-opportunities.json");
+  const institutionalRankingPath = path.join(reportsDir, "institutional-ranking.json");
+  const bestAvailablePath = path.join(reportsDir, "best-available.json");
+  const emergingRadarPath = path.join(reportsDir, "emerging-radar.json");
+  const executionReadyPath = path.join(reportsDir, "execution-ready.json");
+  const blockedProjectsPath = path.join(reportsDir, "blocked-projects.json");
   fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
+  fs.writeFileSync(
+    institutionalRankingPath,
+    JSON.stringify(
+      {
+        generatedAt: report.generatedAt,
+        totalProjects: report.totalProjects,
+        counts: report.counts,
+        institutionalMoneyRank: report.institutionalMoneyRank,
+        executionReady: report.executionReady,
+        operatorNotes: report.operatorNotes,
+      },
+      null,
+      2
+    )
+  );
+  fs.writeFileSync(
+    bestAvailablePath,
+    JSON.stringify(
+      {
+        generatedAt: report.generatedAt,
+        totalProjects: report.totalProjects,
+        bestAvailableOpportunities: report.bestAvailableOpportunities,
+        missingEvidenceQueue: report.missingEvidenceQueue,
+        operatorNotes: report.operatorNotes,
+      },
+      null,
+      2
+    )
+  );
+  fs.writeFileSync(
+    emergingRadarPath,
+    JSON.stringify(
+      {
+        generatedAt: report.generatedAt,
+        emergingRadar: report.emergingRadar,
+        speculativeSignals: report.speculativeSignals,
+        emergingDiscoveryAILane: report.emergingDiscoveryAILane,
+        operatorNotes: report.operatorNotes,
+      },
+      null,
+      2
+    )
+  );
+  fs.writeFileSync(
+    executionReadyPath,
+    JSON.stringify(
+      {
+        generatedAt: report.generatedAt,
+        executionReady: report.executionReady,
+        operatorNotes: report.operatorNotes,
+      },
+      null,
+      2
+    )
+  );
+  fs.writeFileSync(
+    blockedProjectsPath,
+    JSON.stringify(
+      {
+        generatedAt: report.generatedAt,
+        blockedProjects: report.blockedProjects,
+        operatorNotes: report.operatorNotes,
+      },
+      null,
+      2
+    )
+  );
 
-  return { filePath, report };
+  return {
+    filePath,
+    institutionalRankingPath,
+    bestAvailablePath,
+    emergingRadarPath,
+    executionReadyPath,
+    blockedProjectsPath,
+    report,
+  };
 }
 
 export { TIERS as PROGRESSIVE_OPPORTUNITY_TIERS };

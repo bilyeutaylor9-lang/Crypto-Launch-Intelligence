@@ -304,8 +304,14 @@ export const ENGINE_CONTRACTS = [
       optional: ["finalSelectionState", "purchaseRouteConfirmed", "institutionalDataProvenanceScore"],
     },
     outputContract: {
-      requiredAny: [["opportunityRankingTier", "bestAvailableEligible", "missingEvidence"]],
-      scoreFields: ["progressiveOpportunityScore", "trustScore", "opportunityEvidenceCoverage"],
+      requiredAny: [["opportunityRankingTier", "bestAvailableEligible", "moneyRankEligible", "missingEvidence"]],
+      scoreFields: [
+        "progressiveOpportunityScore",
+        "trustScore",
+        "executionScore",
+        "moneyRankScore",
+        "opportunityEvidenceCoverage",
+      ],
       evidenceRequiredWhenScored: true,
     },
     timeoutMs: 7000,

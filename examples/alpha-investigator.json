@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T09:08:29.495Z",
+  "generatedAt": "2026-07-16T13:06:29.715Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -12,39 +12,14 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 6,
-      "confidenceAdjustedScore": 31,
+      "confidenceAdjustedScore": 33,
       "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 43,
-      "commanderVerdict": "Low Priority Research",
+      "commanderScore": 46,
+      "commanderVerdict": "Needs More Proof",
       "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -137,25 +112,25 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 42,
+      "warRoomScore": 45,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 74,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 64,
+      "causalAlphaScore": 65,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 32,
+      "alphaOSScore": 35,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 51,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
-      "sourceTruthScore": 53,
+      "autoLearningWeightScore": 67,
+      "sourceTruthScore": 57,
       "githubProScore": 0
     },
     {
@@ -164,39 +139,14 @@
       "symbol": "ONDO",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 25,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 37,
+      "commanderScore": 41,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "roadmap",
-          "label": "Missing verified roadmap",
-          "severity": "Medium",
-          "agent": "Roadmap Agent",
-          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
-        },
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -236,12 +186,12 @@
           "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 25,
+      "alphaInvestigatorScore": 26,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Ondo",
         "symbol": "ONDO",
-        "score": 25,
+        "score": 26,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -281,25 +231,25 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 33,
-      "warRoomAllocation": "Ignore",
+      "warRoomScore": 37,
+      "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "rwa",
         "stablecoins"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 72,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 58,
+      "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 39,
-      "alphaOSVerdict": "OS Reject",
+      "alphaOSScore": 42,
+      "alphaOSVerdict": "OS Watch",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 51,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
-      "sourceTruthScore": 49,
+      "autoLearningWeightScore": 66,
+      "sourceTruthScore": 54,
       "githubProScore": 0
     },
     {
@@ -308,32 +258,14 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 27,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 40,
+      "commanderScore": 43,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -359,12 +291,6 @@
           "priority": "Medium",
           "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
           "reason": "Missing liquidity depth confirmation"
-        },
-        {
-          "agent": "Catalyst Agent",
-          "priority": "High",
-          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
-          "reason": "High: Airdrop / Points Catalyst is the leading catalyst. Run deep research verification."
         }
       ],
       "alphaInvestigatorScore": 25,
@@ -416,28 +342,29 @@
         ],
         "whatWouldPromote": [
           "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing liquidity depth confirmation.",
-          "Liquidity expansion rises above 60."
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 36,
+      "warRoomScore": 39,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "restaking",
         "launchpads"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 72,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
       "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 38,
-      "alphaOSVerdict": "OS Reject",
+      "alphaOSScore": 40,
+      "alphaOSVerdict": "OS Watch",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
-      "sourceTruthScore": 52,
+      "autoLearningWeightScore": 66,
+      "sourceTruthScore": 57,
       "githubProScore": 0
     },
     {
@@ -445,47 +372,15 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 29,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 33,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 38,
+      "commanderScore": 41,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "unlocks",
-          "label": "Missing unlock schedule confirmation",
-          "severity": "Medium",
-          "agent": "Risk Agent",
-          "action": "Confirm unlock calendar and vesting pressure from official docs or token terminal sources."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -525,12 +420,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorScore": 24,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Bittensor",
         "symbol": "TAO",
-        "score": 23,
+        "score": 24,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -578,7 +473,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 36,
+      "warRoomScore": 39,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -586,166 +481,18 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 74,
-      "strategyLabVerdict": "Priority Paper Trade",
+      "strategyLabScore": 78,
+      "strategyLabVerdict": "Paper Strong Buy Candidate",
       "bestStrategy": "GitHub Builder Momentum",
       "causalAlphaScore": 68,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 41,
+      "alphaOSScore": 48,
       "alphaOSVerdict": "OS Best Available Candidate",
       "alphaOSMode": "Best Available Paper Candidate",
-      "paperOutcomeLabScore": 53,
+      "paperOutcomeLabScore": 55,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 68,
-      "sourceTruthScore": 52,
-      "githubProScore": 0
-    },
-    {
-      "rank": 4,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 29,
-      "aiVerdict": "AI Watchlist",
-      "commanderScore": 38,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Research Agent",
-          "priority": "Medium",
-          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
-          "reason": "Missing external source confirmation"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        }
-      ],
-      "alphaInvestigatorScore": 23,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Akash Network",
-        "symbol": "AKT",
-        "score": 23,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
-          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
-          "date": null,
-          "dateLabel": "unknown",
-          "precision": "unknown",
-          "type": "staking",
-          "matchedTerms": [
-            "staking",
-            "validator"
-          ],
-          "source": "inferred-web-roadmap",
-          "daysUntil": null,
-          "roadmapScore": 80,
-          "impact": "Major Positive"
-        },
-        "bullCase": [
-          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
-        ],
-        "bearCase": [
-          "Roadmap Agent: Roadmap does not prove enough yet.",
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Catalyst Agent: Catalyst timing is not decisive.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Profitability Agent: Profitability needs confirmation."
-        ],
-        "missingProof": [
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing external source confirmation",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
-          "Liquidity expansion rises above 60.",
-          "Catalyst radar confirms a why-now event."
-        ]
-      },
-      "warRoomScore": 34,
-      "warRoomAllocation": "Wait For Confirmation",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "ai",
-        "depin",
-        "restaking"
-      ],
-      "strategyLabScore": 71,
-      "strategyLabVerdict": "Priority Paper Trade",
-      "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 62,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 37,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 50,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
-      "sourceTruthScore": 52,
+      "autoLearningWeightScore": 71,
+      "sourceTruthScore": 57,
       "githubProScore": 0
     },
     {
@@ -754,39 +501,14 @@
       "symbol": "TIA",
       "chain": "celestia",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 27,
+      "confidenceAdjustedScore": 30,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 38,
+      "commanderScore": 41,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -875,7 +597,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 34,
+      "warRoomScore": 37,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -883,18 +605,141 @@
         "restaking",
         "modular"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 72,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 60,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 36,
+      "alphaOSScore": 39,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 51,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
-      "sourceTruthScore": 52,
+      "autoLearningWeightScore": 66,
+      "sourceTruthScore": 57,
+      "githubProScore": 0
+    },
+    {
+      "rank": 4,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 1,
+      "confidenceAdjustedScore": 33,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 42,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        }
+      ],
+      "alphaInvestigatorScore": 23,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Akash Network",
+        "symbol": "AKT",
+        "score": 23,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "summary": "Akash Network AKT DePIN decentralized cloud compute GPU marketplace AI infrastructure staking validators",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "staking",
+          "matchedTerms": [
+            "staking",
+            "validator"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 80,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "Roadmap Agent: Roadmap does not prove enough yet.",
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Catalyst Agent: Catalyst timing is not decisive.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Profitability Agent: Profitability needs confirmation."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60.",
+          "Catalyst radar confirms a why-now event."
+        ]
+      },
+      "warRoomScore": 38,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "depin",
+        "restaking"
+      ],
+      "strategyLabScore": 75,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 64,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 40,
+      "alphaOSVerdict": "OS Watch",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 52,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 67,
+      "sourceTruthScore": 57,
       "githubProScore": 0
     },
     {
@@ -903,32 +748,14 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "confidenceAdjustedScore": 26,
+      "confidenceAdjustedScore": 29,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 37,
+      "commanderScore": 40,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -956,12 +783,12 @@
           "reason": "Missing liquidity depth confirmation"
         }
       ],
-      "alphaInvestigatorScore": 21,
+      "alphaInvestigatorScore": 22,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Jupiter",
         "symbol": "JUP",
-        "score": 21,
+        "score": 22,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -1008,25 +835,25 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 29,
+      "warRoomScore": 33,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Roadmap Path",
       "narratives": [
         "solana",
         "launchpads"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 72,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 54,
+      "causalAlphaScore": 56,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 31,
+      "alphaOSScore": 34,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabScore": 48,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 62,
-      "sourceTruthScore": 52,
+      "autoLearningWeightScore": 64,
+      "sourceTruthScore": 57,
       "githubProScore": 0
     },
     {
@@ -1034,47 +861,15 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 1,
-      "confidenceAdjustedScore": 29,
-      "aiVerdict": "AI Pass For Now",
-      "commanderScore": 34,
+      "pipelineScore": 2,
+      "confidenceAdjustedScore": 33,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 37,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
-        {
-          "id": "roadmap",
-          "label": "Missing verified roadmap",
-          "severity": "Medium",
-          "agent": "Roadmap Agent",
-          "action": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements."
-        },
-        {
-          "id": "github",
-          "label": "Missing GitHub activity proof",
-          "severity": "Medium",
-          "agent": "GitHub Agent",
-          "action": "Find official repository and verify recent commits, contributors, releases, and issue resolution."
-        },
-        {
-          "id": "tokenomics",
-          "label": "Missing tokenomics and allocation proof",
-          "severity": "High",
-          "agent": "Tokenomics Agent",
-          "action": "Verify supply, unlocks, emissions, team allocation, and liquidity controls."
-        },
-        {
-          "id": "web_research",
-          "label": "Missing external source confirmation",
-          "severity": "Medium",
-          "agent": "Research Agent",
-          "action": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries."
-        },
-        {
-          "id": "liquidity",
-          "label": "Missing liquidity depth confirmation",
-          "severity": "Medium",
-          "agent": "Liquidity Agent",
-          "action": "Verify liquidity depth, pool concentration, volume quality, and migration risk."
-        }
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
       "assignments": [
         {
@@ -1161,7 +956,7 @@
           "Catalyst radar confirms a why-now event."
         ]
       },
-      "warRoomScore": 29,
+      "warRoomScore": 33,
       "warRoomAllocation": "Ignore",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
@@ -1169,18 +964,18 @@
         "depin",
         "solana"
       ],
-      "strategyLabScore": 70,
+      "strategyLabScore": 74,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 60,
+      "causalAlphaScore": 62,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 35,
+      "alphaOSScore": 39,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 51,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 63,
-      "sourceTruthScore": 49,
+      "autoLearningWeightScore": 66,
+      "sourceTruthScore": 54,
       "githubProScore": 0
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.116Z",
+  "generatedAt": "2026-07-16T13:06:35.097Z",
   "name": "Discovery Truth Network",
   "mode": "demo",
   "scannedAt": null,
@@ -10,6 +10,7 @@
   "rejectedCount": 0,
   "sourceCapabilityAudit": {},
   "discoveryCoverage": {},
+  "discoveryFrontier": {},
   "sourceManifest": [
     {
       "lastSuccessAt": null,
@@ -372,7 +373,8 @@
     "Discovery priority rewards novelty, formation velocity, independent evidence families, deployer quality, and launch proximity.",
     "Discovery priority does not reward absolute market cap.",
     "Rejected candidates remain visible in the shadow watchlist for recall analysis.",
-    "FDV, estimated market cap, and circulating market cap are kept separate."
+    "FDV, estimated market cap, and circulating market cap are kept separate.",
+    "Configured sources and declared native protocols do not count as observed coverage until they return a candidate with a concrete chain identity."
   ],
   "nextNativeConnectors": [
     "EVM factory PairCreated/PoolCreated listeners",

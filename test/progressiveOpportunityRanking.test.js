@@ -83,6 +83,9 @@ test("progressive ranking always publishes best-available results when non-block
 
   assert.equal(report.counts.bestAvailable, 1);
   assert.equal(report.bestAvailableOpportunities[0].symbol, "BEST");
+  assert.equal(report.institutionalMoneyRank[0].symbol, "BEST");
+  assert.ok(report.institutionalMoneyRank[0].moneyRankScore > 0);
+  assert.ok(report.executionReady.some((project) => project.symbol === "BEST"));
   assert.equal(report.blockedProjects[0].symbol, "RUG");
 });
 
@@ -105,6 +108,8 @@ test("missing route evidence lowers Trust Score without zeroing Opportunity Scor
 
   assert.ok(missingRoute.progressiveOpportunityScore >= 78);
   assert.ok(missingRoute.trustScore < withRoute.trustScore);
+  assert.ok(missingRoute.executionScore < withRoute.executionScore);
+  assert.ok(missingRoute.moneyRankScore < withRoute.moneyRankScore);
   assert.notEqual(missingRoute.opportunityRankingTier, "SNIPER_READY");
   assert.ok(missingRoute.missingEvidence.some((item) => item.includes("Verify Coinbase")));
 });
@@ -121,7 +126,47 @@ test("hard-blocked projects cannot enter positive opportunity tiers", () => {
 
   assert.equal(blocked.opportunityRankingTier, "BLOCKED");
   assert.equal(blocked.bestAvailableEligible, false);
+  assert.equal(blocked.moneyRankEligible, false);
+  assert.equal(blocked.moneyRankScore, 0);
   assert.ok(blocked.opportunityHardBlockers.some((reason) => reason.includes("Honeypot")));
+});
+
+test("money rank favors executable evidence over unsupported hype", () => {
+  const ranked = analyzeProgressiveOpportunityRankingBatch([
+    earlyMover({
+      symbol: "HYPE",
+      accelerationScore: 99,
+      velocityScore: 98,
+      momentumShiftScore: 97,
+      liquidityExpansionScore: 94,
+      smartWalletArrivalScore: 95,
+      buyPressureScore: 94,
+      narrativeHeatScore: 96,
+      purchaseRouteConfirmed: false,
+      executionRouteAvailable: false,
+      purchaseRoute: { purchasable: false, status: "Unknown" },
+      proofOfAlphaExecutionTwin: { route: { detected: false }, quote: { liquidityUsd: 42_000 }, safety: { blockers: [] } },
+      proofOfAlphaExecutionTwinScore: 0,
+      finalSelectionState: "RESEARCH_ONLY",
+      finalSelectionQualified: false,
+    }),
+    earlyMover({
+      symbol: "EXEC",
+      accelerationScore: 84,
+      velocityScore: 82,
+      momentumShiftScore: 81,
+      smartWalletArrivalScore: 79,
+      narrativeHeatScore: 74,
+    }),
+  ]);
+
+  const hype = ranked.find((project) => project.symbol === "HYPE");
+  const executable = ranked.find((project) => project.symbol === "EXEC");
+
+  assert.equal(ranked[0].symbol, "EXEC");
+  assert.ok(hype.progressiveOpportunityScore >= executable.progressiveOpportunityScore);
+  assert.ok(hype.executionScore < executable.executionScore);
+  assert.ok(hype.moneyRankScore < executable.moneyRankScore);
 });
 
 test("acceleration can outrank static high-quality but stagnant projects", () => {
@@ -212,4 +257,6 @@ test("dashboard top candidates come from the authoritative progressive ranking",
 
   assert.equal(dashboard.topCandidates[0].symbol, "AUTH");
   assert.equal(dashboard.bestAvailableOpportunities[0].symbol, "AUTH");
+  assert.equal(dashboard.institutionalMoneyRank[0].symbol, "AUTH");
+  assert.ok(dashboard.executionReady.length >= 1);
 });

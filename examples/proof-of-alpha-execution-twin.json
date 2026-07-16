@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.113Z",
+  "generatedAt": "2026-07-16T13:06:35.095Z",
   "name": "Proof-of-Alpha Execution Twin",
   "disclaimer": "Research and paper-execution simulation only. Not financial advice, not a buy recommendation, and not a live trade quote.",
   "totalProjects": 8,
@@ -18,6 +18,32 @@
       "chain": "bittensor",
       "score": 44,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 2 is below required minimum 60.",
+        "Risk score 72 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.33,
@@ -34,11 +60,11 @@
         "blocker": null
       },
       "safety": {
-        "score": 37,
+        "score": 38,
         "risk": 72,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -80,6 +106,37 @@
       "chain": "ethereum",
       "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "alphaEvolutionGovernorVerdict: Governor Risk Block",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "redTeamReview.status: Block",
+        "proofOfAlphaExecutionTwin.safety.blockers: Red-team block is active.",
+        "alphaEvolutionGovernor.blockers: Red-team review is blocking the setup.",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 6 is below required minimum 60.",
+        "Risk score 76 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.31,
@@ -100,7 +157,7 @@
         "risk": 76,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route.",
           "Red-team block is active."
@@ -138,32 +195,59 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
       "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 0 is below required minimum 60.",
+        "Risk score 73 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
-      "slippagePct": 0.321,
+      "slippagePct": 0.317,
       "quote": {
         "budgetUsd": 100,
         "priceUsd": null,
         "estimatedTokens": null,
-        "liquidityUsd": 105000,
-        "volume24h": 27500,
-        "liquidityImpactPct": 0.0952,
-        "volumeImpactPct": 0.3636,
-        "estimatedSlippagePct": 0.321,
+        "liquidityUsd": 107500,
+        "volume24h": 28750,
+        "liquidityImpactPct": 0.093,
+        "volumeImpactPct": 0.3478,
+        "estimatedSlippagePct": 0.317,
         "score": 87,
         "blocker": null
       },
       "safety": {
-        "score": 37,
+        "score": 38,
         "risk": 73,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 75,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -173,7 +257,7 @@
         "budgetUsd": 100,
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
-        "estimatedSlippagePct": 0.321,
+        "estimatedSlippagePct": 0.317,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",
@@ -205,6 +289,33 @@
       "chain": "celestia",
       "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 0 is below required minimum 60.",
+        "Risk score 71 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.307,
@@ -225,7 +336,7 @@
         "risk": 71,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -262,32 +373,59 @@
     {
       "rank": null,
       "selected": false,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
       "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 1 is below required minimum 60.",
+        "Risk score 74 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
-      "slippagePct": 0.317,
+      "slippagePct": 0.321,
       "quote": {
         "budgetUsd": 100,
         "priceUsd": null,
         "estimatedTokens": null,
-        "liquidityUsd": 107500,
-        "volume24h": 28750,
-        "liquidityImpactPct": 0.093,
-        "volumeImpactPct": 0.3478,
-        "estimatedSlippagePct": 0.317,
+        "liquidityUsd": 105000,
+        "volume24h": 27500,
+        "liquidityImpactPct": 0.0952,
+        "volumeImpactPct": 0.3636,
+        "estimatedSlippagePct": 0.321,
         "score": 87,
         "blocker": null
       },
       "safety": {
-        "score": 37,
+        "score": 38,
         "risk": 74,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 73,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -297,7 +435,7 @@
         "budgetUsd": 100,
         "preferredRoute": "Unavailable",
         "estimatedTokens": null,
-        "estimatedSlippagePct": 0.317,
+        "estimatedSlippagePct": 0.321,
         "simulatedEntryPriceUsd": null,
         "reviewWindows": [
           "1h",
@@ -329,6 +467,34 @@
       "chain": "ethereum",
       "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "alphaEvolutionGovernorVerdict: Governor Risk Block",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 0 is below required minimum 60.",
+        "Risk score 71 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.314,
@@ -345,11 +511,11 @@
         "blocker": null
       },
       "safety": {
-        "score": 37,
-        "risk": 72,
+        "score": 38,
+        "risk": 71,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -389,8 +555,35 @@
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "score": 42,
+      "score": 43,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 2 is below required minimum 60.",
+        "Risk score 73 exceeds threshold 70.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.326,
@@ -407,11 +600,11 @@
         "blocker": null
       },
       "safety": {
-        "score": 37,
+        "score": 38,
         "risk": 73,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 73,
+        "sourceProof": 75,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]
@@ -453,6 +646,32 @@
       "chain": "solana",
       "score": 42,
       "verdict": "Execution Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Reject For Now",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 0 is below required minimum 60.",
+        "Trap-risk score 100 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is SYMBOL_ONLY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy.",
+        "Project only has a symbol/name match without verified contract or listing identity."
+      ],
       "confidence": "Low",
       "route": "Unavailable",
       "slippagePct": 0.303,
@@ -469,11 +688,11 @@
         "blocker": null
       },
       "safety": {
-        "score": 38,
-        "risk": 69,
+        "score": 39,
+        "risk": 68,
         "contractKnown": false,
         "pairKnown": true,
-        "sourceProof": 74,
+        "sourceProof": 76,
         "blockers": [
           "No verified Coinbase/MetaMask execution route."
         ]

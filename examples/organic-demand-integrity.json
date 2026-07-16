@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.114Z",
+  "generatedAt": "2026-07-16T13:06:35.096Z",
   "name": "Organic Demand and Economic Integrity",
   "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
   "totalProjects": 8,
@@ -8,18 +8,49 @@
   "institutionalBlocks": 0,
   "tradableAnomalies": 0,
   "verificationRequired": 0,
-  "topConfirmed": [],
-  "topRisks": [
+  "promotionBlocked": 0,
+  "openResearchTasks": 8,
+  "manualReviewRequired": 8,
+  "manualReviewQueue": [
     {
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 25110,
       "organicActivityShare": null,
@@ -52,12 +83,41 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 22320,
       "organicActivityShare": null,
@@ -87,55 +147,46 @@
       ]
     },
     {
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "score": 60,
-      "verdict": "Thin Integrity Data",
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 41,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22878,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
         {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 437.1,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4371.01,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 43710.11,
-          "pass": false
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
         }
-      ]
-    },
-    {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "organicDemandScore": 42,
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
       "economicSustainabilityScore": 66,
-      "hardExitLiquidityUsd": 23436,
+      "hardExitLiquidityUsd": 23994,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
@@ -147,17 +198,17 @@
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 426.69,
+          "estimatedStablecoinImpactPct": 416.77,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4266.94,
+          "estimatedStablecoinImpactPct": 4167.71,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 42669.4,
+          "estimatedStablecoinImpactPct": 41677.09,
           "pass": false
         }
       ]
@@ -166,12 +217,41 @@
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 25668,
       "organicActivityShare": null,
@@ -201,17 +281,46 @@
       ]
     },
     {
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "score": 60,
-      "verdict": "Thin Integrity Data",
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 41,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 23994,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23436,
       "organicActivityShare": null,
       "blockers": [],
       "warnings": [
@@ -223,17 +332,17 @@
       "sellTests": [
         {
           "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 416.77,
+          "estimatedStablecoinImpactPct": 426.69,
           "pass": false
         },
         {
           "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4167.71,
+          "estimatedStablecoinImpactPct": 4266.94,
           "pass": false
         },
         {
           "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 41677.09,
+          "estimatedStablecoinImpactPct": 42669.4,
           "pass": false
         }
       ]
@@ -242,12 +351,41 @@
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 24552,
       "organicActivityShare": null,
@@ -277,15 +415,650 @@
       ]
     },
     {
-      "name": "Jupiter",
-      "symbol": "JUP",
+      "name": "Render",
+      "symbol": "RNDR",
       "chain": "solana",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22878,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 437.1,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4371.01,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 43710.11,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 26226,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 381.3,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 3813.01,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 38130.1,
+          "pass": false
+        }
+      ]
+    }
+  ],
+  "topConfirmed": [],
+  "topRisks": [
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25110,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 398.25,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 3982.48,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 39824.77,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22320,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 448.03,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4480.29,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 44802.87,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23994,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 416.77,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4167.71,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 41677.09,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 25668,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 389.59,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 3895.9,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 38959.02,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23436,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 426.69,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4266.94,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 42669.4,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 24552,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 407.3,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4072.99,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 40729.88,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22878,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 437.1,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4371.01,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 43710.11,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "chain": "solana",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 26226,
       "organicActivityShare": null,
@@ -320,12 +1093,41 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 25110,
       "organicActivityShare": null,
@@ -358,12 +1160,41 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 22320,
       "organicActivityShare": null,
@@ -393,53 +1224,44 @@
       ]
     },
     {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "organicDemandScore": 42,
-      "economicSustainabilityScore": 66,
-      "hardExitLiquidityUsd": 23436,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 426.69,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4266.94,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 42669.4,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Celestia",
       "symbol": "TIA",
       "chain": "celestia",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 25668,
       "organicActivityShare": null,
@@ -469,15 +1291,111 @@
       ]
     },
     {
-      "name": "Pendle",
-      "symbol": "PENDLE",
-      "chain": "ethereum",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 23436,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 426.69,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4266.94,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 42669.4,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Pendle",
+      "symbol": "PENDLE",
+      "chain": "ethereum",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 24552,
       "organicActivityShare": null,
@@ -510,12 +1428,41 @@
       "name": "Jupiter",
       "symbol": "JUP",
       "chain": "solana",
-      "score": 61,
-      "verdict": "Thin Integrity Data",
+      "score": 64,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 42,
+      "rawScore": 64,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 50,
       "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 26226,
       "organicActivityShare": null,
@@ -545,54 +1492,45 @@
       ]
     },
     {
-      "name": "Render",
-      "symbol": "RNDR",
-      "chain": "solana",
-      "score": 60,
-      "verdict": "Thin Integrity Data",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "organicDemandScore": 41,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22878,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 437.1,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4371.01,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 43710.11,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
-      "score": 60,
-      "verdict": "Thin Integrity Data",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
       "strongBuyEligible": false,
       "riskScore": 19,
       "penalty": 0,
-      "organicDemandScore": 41,
-      "economicSustainabilityScore": 65,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 66,
       "hardExitLiquidityUsd": 23994,
       "organicActivityShare": null,
       "blockers": [],
@@ -619,13 +1557,84 @@
           "pass": false
         }
       ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "chain": "solana",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 66,
+      "hardExitLiquidityUsd": 22878,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 437.1,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4371.01,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 43710.11,
+          "pass": false
+        }
+      ]
     }
   ],
   "operatingRules": [
     "Do not promote raw holder count unless buyer, active-holder, and balance-depth proof exists.",
     "Treat approvals, transfers, reward claims, and repetitive calls separately from economic swaps.",
+    "Require unique-trader ratio, repeat-wallet concentration, circular-flow, and trade-size-distribution proof before rewarding extreme transaction counts.",
+    "Reconcile circulating supply, total supply, max supply, FDV, and market cap across sources before allowing a high valuation confidence score.",
     "Discount displayed liquidity when LP control, stablecoin reserves, and hard exit liquidity are unknown.",
-    "Block high-confidence status when mint/admin/yield/supply-disagreement risk is unresolved."
+    "Block high-confidence status when mint/admin/yield/supply-disagreement risk is unresolved.",
+    "Create open research tasks for every unresolved activity, supply, liquidity, admin, yield, and score-cap gap.",
+    "Do not promote high-market-activity candidates until the manual-review label is cleared."
   ],
   "lgnsLesson": "High liquidity, holders, and activity can describe a tradable anomaly rather than organic investment demand."
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T09:08:30.657Z",
+  "generatedAt": "2026-07-16T13:06:29.961Z",
   "totalProjects": 8,
   "verifiedStacks": 0,
   "weakStacks": 0,
@@ -14,7 +14,7 @@
     {
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 53,
+      "score": 57,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -26,19 +26,7 @@
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 52,
-      "verdict": "Thin Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 90
-        }
-      ]
-    },
-    {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 52,
+      "score": 57,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -50,7 +38,19 @@
     {
       "name": "Celestia",
       "symbol": "TIA",
-      "score": 52,
+      "score": 57,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 57,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -62,7 +62,7 @@
     {
       "name": "Pendle",
       "symbol": "PENDLE",
-      "score": 52,
+      "score": 57,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -74,19 +74,7 @@
     {
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 52,
-      "verdict": "Thin Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 90
-        }
-      ]
-    },
-    {
-      "name": "Render",
-      "symbol": "RNDR",
-      "score": 49,
+      "score": 57,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -98,7 +86,19 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 49,
+      "score": 54,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Render",
+      "symbol": "RNDR",
+      "score": 54,
       "verdict": "Thin Source Stack",
       "sources": [
         {

@@ -180,7 +180,7 @@ The project now behaves like a miniature autonomous research organization.
 | Self-Evolving Alpha OS | Builds identity graphs, world models, hypotheses, experiments, agent society debate, autopsy, regime adaptation, and thesis output | `reports/self-evolving-alpha-os.json` |
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
-| Progressive Opportunity Ranking | Splits Opportunity Score from Trust Score, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json` |
+| Progressive Opportunity Ranking | Splits Opportunity, Trust, Execution, and Money Rank, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, execution-ready candidates, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json`, `reports/institutional-ranking.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
@@ -633,7 +633,12 @@ Every scan can generate a full research packet:
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
-| `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, best-available opportunities, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
+| `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, Execution Score, Money Rank, best-available opportunities, execution-ready candidates, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
+| `reports/institutional-ranking.json` | Institutional Money Rank blending opportunity, trust, execution, evidence freshness, regime fit, and measured EV only when outcome samples are large enough |
+| `reports/best-available.json` | Strongest non-hard-blocked research leads plus missing proof queue |
+| `reports/execution-ready.json` | Candidates with verified route, sufficient liquidity depth, and passing paper trade-size checks |
+| `reports/emerging-radar.json` | Emerging and speculative research lanes, including penalty-only AI discovery candidates |
+| `reports/blocked-projects.json` | Projects excluded by hard safety, identity, scam/rug, manipulation, or execution-risk evidence |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |
@@ -822,6 +827,12 @@ cat examples/small-cap-hunter.json
 cat examples/proof-of-alpha-execution-twin.json
 cat examples/native-discovery-mesh.json
 cat examples/discovery-decision-engine.json
+cat examples/progressive-opportunities.json
+cat examples/institutional-ranking.json
+cat examples/best-available.json
+cat examples/execution-ready.json
+cat examples/emerging-radar.json
+cat examples/blocked-projects.json
 cat examples/source-truth.json
 cat examples/github-intelligence-pro.json
 cat examples/portfolio-war-room.json

@@ -163,6 +163,11 @@ export function generateReports(projects = [], meta = {}) {
   } = writeInstitutionalDataProvenanceReport(projects);
   const {
     filePath: progressiveOpportunitiesPath,
+    institutionalRankingPath,
+    bestAvailablePath,
+    emergingRadarPath,
+    executionReadyPath,
+    blockedProjectsPath,
   } = writeProgressiveOpportunityReport(projects);
   const {
     filePath: opModeReadinessPath,
@@ -250,6 +255,11 @@ export function generateReports(projects = [], meta = {}) {
     integrityStackPath,
     institutionalDataProvenancePath,
     progressiveOpportunitiesPath,
+    institutionalRankingPath,
+    bestAvailablePath,
+    emergingRadarPath,
+    executionReadyPath,
+    blockedProjectsPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

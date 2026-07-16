@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T09:08:36.127Z",
+  "generatedAt": "2026-07-16T13:06:29.980Z",
   "description": "High-Tech Alpha Stack adds ten modules: meta-consensus, contradiction resolution, alpha half-life, liquidity stress, manipulation firewall, catalyst chain reaction, narrative rotation, portfolio fit, evidence gaps, and execution readiness.",
   "totalProjects": 8,
   "scoredProjects": 8,
@@ -24,23 +24,440 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineRank": 2,
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "highTechAlphaRank": 1,
+      "highTechAlphaScore": 52,
+      "verdict": "High-Tech Watch",
+      "confidence": "Developing",
+      "commandDecision": "Watch until proof and source gaps close",
+      "moduleCount": 10,
+      "moduleScores": {
+        "meta_consensus_lattice": 42,
+        "contradiction_resolver": 69,
+        "alpha_half_life": 47,
+        "liquidity_stress_test": 28,
+        "manipulation_firewall": 81,
+        "catalyst_chain_reaction": 48,
+        "narrative_rotation_radar": 48,
+        "portfolio_fit_optimizer": 60,
+        "evidence_gap_radar": 56,
+        "execution_readiness_planner": 46
+      },
+      "strongestModules": [
+        {
+          "id": "manipulation_firewall",
+          "name": "Manipulation Firewall",
+          "score": 81,
+          "grade": "Strong",
+          "summary": "Manipulation profile is acceptable.",
+          "signals": [
+            "Trap/bot profile is controlled."
+          ],
+          "risks": [
+            "Social attention is ahead of proof."
+          ]
+        },
+        {
+          "id": "contradiction_resolver",
+          "name": "Contradiction Resolver",
+          "score": 69,
+          "grade": "Strong",
+          "summary": "1 material contradiction(s) need review.",
+          "signals": [],
+          "risks": [
+            "hot narrative but weak proof"
+          ]
+        },
+        {
+          "id": "portfolio_fit_optimizer",
+          "name": "Portfolio Fit Optimizer",
+          "score": 60,
+          "grade": "Developing",
+          "summary": "Needs stronger proof or lower risk for portfolio fit.",
+          "signals": [
+            "Allocation bucket: Avoid.",
+            "Strategy: GitHub Builder Momentum."
+          ],
+          "risks": []
+        }
+      ],
+      "weakestModules": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        },
+        {
+          "id": "meta_consensus_lattice",
+          "name": "Meta-Consensus Lattice",
+          "score": 42,
+          "grade": "Weak",
+          "summary": "2/9 active agents support the thesis.",
+          "signals": [
+            "Auto Weights: 71",
+            "Causal Alpha: 68",
+            "Source Truth: 57",
+            "AI Council: 56",
+            "Simulation: 49"
+          ],
+          "risks": [
+            "3 active agents are below 40."
+          ]
+        },
+        {
+          "id": "execution_readiness_planner",
+          "name": "Execution Readiness Planner",
+          "score": 46,
+          "grade": "Weak",
+          "summary": "Recommended operating mode: Do Not Promote.",
+          "signals": [
+            "Action: Do Not Promote."
+          ],
+          "risks": [
+            "Needs stronger evidence before escalation."
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        }
+      ],
+      "promotionTriggers": [
+        "Improve Liquidity Stress Test above 60.",
+        "Improve Meta-Consensus Lattice above 60.",
+        "Improve Execution Readiness Planner above 60."
+      ],
+      "killSwitches": [
+        "Liquidity Stress Test remains below 40."
+      ],
+      "breakoutBrainScore": 28,
+      "breakoutProbabilitySoon": 19,
+      "autonomousAlphaOSScore": 48,
+      "sourceTruthScore": 57,
+      "proofScore": 0,
+      "trapRiskScore": 12
+    },
+    {
+      "rank": 2,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineRank": 1,
+      "pipelineScore": 6,
+      "highTechAlphaRank": 2,
+      "highTechAlphaScore": 51,
+      "verdict": "High-Tech Reject",
+      "confidence": "Developing",
+      "commandDecision": "Do not promote until blockers clear",
+      "moduleCount": 10,
+      "moduleScores": {
+        "meta_consensus_lattice": 41,
+        "contradiction_resolver": 69,
+        "alpha_half_life": 46,
+        "liquidity_stress_test": 28,
+        "manipulation_firewall": 77,
+        "catalyst_chain_reaction": 52,
+        "narrative_rotation_radar": 44,
+        "portfolio_fit_optimizer": 58,
+        "evidence_gap_radar": 56,
+        "execution_readiness_planner": 46
+      },
+      "strongestModules": [
+        {
+          "id": "manipulation_firewall",
+          "name": "Manipulation Firewall",
+          "score": 77,
+          "grade": "Strong",
+          "summary": "Manipulation profile is acceptable.",
+          "signals": [
+            "Trap/bot profile is controlled."
+          ],
+          "risks": [
+            "Social attention is ahead of proof."
+          ]
+        },
+        {
+          "id": "contradiction_resolver",
+          "name": "Contradiction Resolver",
+          "score": 69,
+          "grade": "Strong",
+          "summary": "1 material contradiction(s) need review.",
+          "signals": [],
+          "risks": [
+            "hot narrative but weak proof"
+          ]
+        },
+        {
+          "id": "portfolio_fit_optimizer",
+          "name": "Portfolio Fit Optimizer",
+          "score": 58,
+          "grade": "Developing",
+          "summary": "Needs stronger proof or lower risk for portfolio fit.",
+          "signals": [
+            "Allocation bucket: Avoid.",
+            "Strategy: GitHub Builder Momentum."
+          ],
+          "risks": []
+        }
+      ],
+      "weakestModules": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        },
+        {
+          "id": "meta_consensus_lattice",
+          "name": "Meta-Consensus Lattice",
+          "score": 41,
+          "grade": "Weak",
+          "summary": "2/9 active agents support the thesis.",
+          "signals": [
+            "Auto Weights: 67",
+            "Causal Alpha: 65",
+            "AI Council: 60",
+            "Source Truth: 57",
+            "Simulation: 43"
+          ],
+          "risks": [
+            "3 active agents are below 40."
+          ]
+        },
+        {
+          "id": "narrative_rotation_radar",
+          "name": "Narrative Rotation Radar",
+          "score": 44,
+          "grade": "Weak",
+          "summary": "Narrative rotation is early or unconfirmed.",
+          "signals": [
+            "Narrative stack 56."
+          ],
+          "risks": [
+            "Narrative breadth is weak."
+          ]
+        }
+      ],
+      "blockers": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        }
+      ],
+      "promotionTriggers": [
+        "Improve Liquidity Stress Test above 60.",
+        "Improve Meta-Consensus Lattice above 60.",
+        "Improve Narrative Rotation Radar above 60."
+      ],
+      "killSwitches": [
+        "Liquidity Stress Test remains below 40."
+      ],
+      "breakoutBrainScore": 33,
+      "breakoutProbabilitySoon": 27,
+      "autonomousAlphaOSScore": 35,
+      "sourceTruthScore": 57,
+      "proofScore": 0,
+      "trapRiskScore": 12
+    },
+    {
+      "rank": 3,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineRank": 6,
+      "pipelineScore": 0,
+      "highTechAlphaRank": 4,
       "highTechAlphaScore": 50,
       "verdict": "High-Tech Reject",
       "confidence": "Developing",
       "commandDecision": "Do not promote until blockers clear",
       "moduleCount": 10,
       "moduleScores": {
-        "meta_consensus_lattice": 39,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 47,
+        "meta_consensus_lattice": 45,
+        "contradiction_resolver": 85,
+        "alpha_half_life": 41,
         "liquidity_stress_test": 28,
         "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 48,
-        "narrative_rotation_radar": 47,
-        "portfolio_fit_optimizer": 56,
+        "catalyst_chain_reaction": 41,
+        "narrative_rotation_radar": 36,
+        "portfolio_fit_optimizer": 57,
         "evidence_gap_radar": 45,
+        "execution_readiness_planner": 44
+      },
+      "strongestModules": [
+        {
+          "id": "contradiction_resolver",
+          "name": "Contradiction Resolver",
+          "score": 85,
+          "grade": "Elite",
+          "summary": "No major contradictions detected across high-level signals.",
+          "signals": [
+            "Signal stack is internally consistent."
+          ],
+          "risks": []
+        },
+        {
+          "id": "manipulation_firewall",
+          "name": "Manipulation Firewall",
+          "score": 81,
+          "grade": "Strong",
+          "summary": "Manipulation profile is acceptable.",
+          "signals": [
+            "Trap/bot profile is controlled."
+          ],
+          "risks": [
+            "Social attention is ahead of proof."
+          ]
+        },
+        {
+          "id": "portfolio_fit_optimizer",
+          "name": "Portfolio Fit Optimizer",
+          "score": 57,
+          "grade": "Developing",
+          "summary": "Needs stronger proof or lower risk for portfolio fit.",
+          "signals": [
+            "Allocation bucket: Avoid.",
+            "Strategy: Truth-Verified Alpha."
+          ],
+          "risks": []
+        }
+      ],
+      "weakestModules": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        },
+        {
+          "id": "narrative_rotation_radar",
+          "name": "Narrative Rotation Radar",
+          "score": 36,
+          "grade": "Weak",
+          "summary": "Narrative rotation is early or unconfirmed.",
+          "signals": [
+            "Narrative stack 46."
+          ],
+          "risks": [
+            "Narrative breadth is weak."
+          ]
+        },
+        {
+          "id": "alpha_half_life",
+          "name": "Alpha Half-Life Model",
+          "score": 41,
+          "grade": "Weak",
+          "summary": "Estimated signal half-life: 3 day(s).",
+          "signals": [
+            "Momentum durability 28.",
+            "Estimated half-life 3 day(s)."
+          ],
+          "risks": []
+        }
+      ],
+      "blockers": [
+        {
+          "id": "liquidity_stress_test",
+          "name": "Liquidity Stress Test",
+          "score": 28,
+          "grade": "Poor",
+          "summary": "Modeled stressed-exit drag: 42%.",
+          "signals": [
+            "Liquidity stack 28.",
+            "Stressed-exit drag 42%."
+          ],
+          "risks": []
+        },
+        {
+          "id": "narrative_rotation_radar",
+          "name": "Narrative Rotation Radar",
+          "score": 36,
+          "grade": "Weak",
+          "summary": "Narrative rotation is early or unconfirmed.",
+          "signals": [
+            "Narrative stack 46."
+          ],
+          "risks": [
+            "Narrative breadth is weak."
+          ]
+        }
+      ],
+      "promotionTriggers": [
+        "Improve Liquidity Stress Test above 60.",
+        "Improve Narrative Rotation Radar above 60.",
+        "Improve Alpha Half-Life Model above 60."
+      ],
+      "killSwitches": [
+        "Liquidity Stress Test remains below 40.",
+        "Narrative Rotation Radar remains below 40."
+      ],
+      "breakoutBrainScore": 28,
+      "breakoutProbabilitySoon": 20,
+      "autonomousAlphaOSScore": 42,
+      "sourceTruthScore": 54,
+      "proofScore": 0,
+      "trapRiskScore": 12
+    },
+    {
+      "rank": 4,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineRank": 4,
+      "pipelineScore": 1,
+      "highTechAlphaRank": 3,
+      "highTechAlphaScore": 50,
+      "verdict": "High-Tech Reject",
+      "confidence": "Developing",
+      "commandDecision": "Do not promote until blockers clear",
+      "moduleCount": 10,
+      "moduleScores": {
+        "meta_consensus_lattice": 37,
+        "contradiction_resolver": 69,
+        "alpha_half_life": 46,
+        "liquidity_stress_test": 28,
+        "manipulation_firewall": 81,
+        "catalyst_chain_reaction": 40,
+        "narrative_rotation_radar": 48,
+        "portfolio_fit_optimizer": 58,
+        "evidence_gap_radar": 56,
         "execution_readiness_planner": 44
       },
       "strongestModules": [
@@ -71,7 +488,7 @@
         {
           "id": "portfolio_fit_optimizer",
           "name": "Portfolio Fit Optimizer",
-          "score": 56,
+          "score": 58,
           "grade": "Developing",
           "summary": "Needs stronger proof or lower risk for portfolio fit.",
           "signals": [
@@ -97,31 +514,31 @@
         {
           "id": "meta_consensus_lattice",
           "name": "Meta-Consensus Lattice",
-          "score": 39,
+          "score": 37,
           "grade": "Weak",
-          "summary": "2/9 active agents support the thesis.",
+          "summary": "1/9 active agents support the thesis.",
           "signals": [
-            "Causal Alpha: 68",
-            "Auto Weights: 68",
-            "AI Council: 55",
-            "Source Truth: 52",
-            "Simulation: 48"
+            "Auto Weights: 67",
+            "Causal Alpha: 64",
+            "Source Truth: 57",
+            "AI Council: 54",
+            "Simulation: 42"
           ],
           "risks": [
             "3 active agents are below 40."
           ]
         },
         {
-          "id": "execution_readiness_planner",
-          "name": "Execution Readiness Planner",
-          "score": 44,
+          "id": "catalyst_chain_reaction",
+          "name": "Catalyst Chain Reaction Map",
+          "score": 40,
           "grade": "Weak",
-          "summary": "Recommended operating mode: Do Not Promote.",
+          "summary": "Catalyst stack is not strong enough yet.",
           "signals": [
-            "Action: Do Not Promote."
+            "Top event: Staking Change."
           ],
           "risks": [
-            "Needs stronger evidence before escalation."
+            "No strong near-term catalyst cluster."
           ]
         }
       ],
@@ -129,15 +546,15 @@
         {
           "id": "meta_consensus_lattice",
           "name": "Meta-Consensus Lattice",
-          "score": 39,
+          "score": 37,
           "grade": "Weak",
-          "summary": "2/9 active agents support the thesis.",
+          "summary": "1/9 active agents support the thesis.",
           "signals": [
-            "Causal Alpha: 68",
-            "Auto Weights: 68",
-            "AI Council: 55",
-            "Source Truth: 52",
-            "Simulation: 48"
+            "Auto Weights: 67",
+            "Causal Alpha: 64",
+            "Source Truth: 57",
+            "AI Council: 54",
+            "Simulation: 42"
           ],
           "risks": [
             "3 active agents are below 40."
@@ -159,196 +576,42 @@
       "promotionTriggers": [
         "Improve Liquidity Stress Test above 60.",
         "Improve Meta-Consensus Lattice above 60.",
-        "Improve Execution Readiness Planner above 60."
+        "Improve Catalyst Chain Reaction Map above 60."
       ],
       "killSwitches": [
         "Meta-Consensus Lattice remains below 40.",
         "Liquidity Stress Test remains below 40."
       ],
-      "breakoutBrainScore": 27,
-      "breakoutProbabilitySoon": 19,
-      "autonomousAlphaOSScore": 41,
-      "sourceTruthScore": 52,
+      "breakoutBrainScore": 23,
+      "breakoutProbabilitySoon": 12,
+      "autonomousAlphaOSScore": 40,
+      "sourceTruthScore": 57,
       "proofScore": 0,
       "trapRiskScore": 12
     },
     {
-      "rank": 2,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "pipelineRank": 1,
-      "pipelineScore": 6,
-      "highTechAlphaRank": 2,
-      "highTechAlphaScore": 49,
-      "verdict": "High-Tech Reject",
-      "confidence": "Developing",
-      "commandDecision": "Do not promote until blockers clear",
-      "moduleCount": 10,
-      "moduleScores": {
-        "meta_consensus_lattice": 34,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 47,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 77,
-        "catalyst_chain_reaction": 53,
-        "narrative_rotation_radar": 44,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 45
-      },
-      "strongestModules": [
-        {
-          "id": "manipulation_firewall",
-          "name": "Manipulation Firewall",
-          "score": 77,
-          "grade": "Strong",
-          "summary": "Manipulation profile is acceptable.",
-          "signals": [
-            "Trap/bot profile is controlled."
-          ],
-          "risks": [
-            "Social attention is ahead of proof."
-          ]
-        },
-        {
-          "id": "contradiction_resolver",
-          "name": "Contradiction Resolver",
-          "score": 69,
-          "grade": "Strong",
-          "summary": "1 material contradiction(s) need review.",
-          "signals": [],
-          "risks": [
-            "hot narrative but weak proof"
-          ]
-        },
-        {
-          "id": "portfolio_fit_optimizer",
-          "name": "Portfolio Fit Optimizer",
-          "score": 55,
-          "grade": "Developing",
-          "summary": "Needs stronger proof or lower risk for portfolio fit.",
-          "signals": [
-            "Allocation bucket: Avoid.",
-            "Strategy: GitHub Builder Momentum."
-          ],
-          "risks": []
-        }
-      ],
-      "weakestModules": [
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        },
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 34,
-          "grade": "Poor",
-          "summary": "0/9 active agents support the thesis.",
-          "signals": [
-            "Causal Alpha: 64",
-            "Auto Weights: 64",
-            "AI Council: 59",
-            "Source Truth: 53",
-            "Simulation: 43"
-          ],
-          "risks": [
-            "4 active agents are below 40."
-          ]
-        },
-        {
-          "id": "narrative_rotation_radar",
-          "name": "Narrative Rotation Radar",
-          "score": 44,
-          "grade": "Weak",
-          "summary": "Narrative rotation is early or unconfirmed.",
-          "signals": [
-            "Narrative stack 57."
-          ],
-          "risks": [
-            "Narrative breadth is weak."
-          ]
-        }
-      ],
-      "blockers": [
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 34,
-          "grade": "Poor",
-          "summary": "0/9 active agents support the thesis.",
-          "signals": [
-            "Causal Alpha: 64",
-            "Auto Weights: 64",
-            "AI Council: 59",
-            "Source Truth: 53",
-            "Simulation: 43"
-          ],
-          "risks": [
-            "4 active agents are below 40."
-          ]
-        },
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        }
-      ],
-      "promotionTriggers": [
-        "Improve Liquidity Stress Test above 60.",
-        "Improve Meta-Consensus Lattice above 60.",
-        "Improve Narrative Rotation Radar above 60."
-      ],
-      "killSwitches": [
-        "Meta-Consensus Lattice remains below 40.",
-        "Liquidity Stress Test remains below 40."
-      ],
-      "breakoutBrainScore": 33,
-      "breakoutProbabilitySoon": 27,
-      "autonomousAlphaOSScore": 32,
-      "sourceTruthScore": 53,
-      "proofScore": 0,
-      "trapRiskScore": 12
-    },
-    {
-      "rank": 3,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "pipelineRank": 4,
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "pipelineRank": 5,
       "pipelineScore": 0,
-      "highTechAlphaRank": 3,
+      "highTechAlphaRank": 5,
       "highTechAlphaScore": 49,
-      "verdict": "High-Tech Reject",
+      "verdict": "High-Tech Blocked",
       "confidence": "Developing",
       "commandDecision": "Do not promote until blockers clear",
       "moduleCount": 10,
       "moduleScores": {
-        "meta_consensus_lattice": 38,
+        "meta_consensus_lattice": 42,
         "contradiction_resolver": 69,
-        "alpha_half_life": 46,
+        "alpha_half_life": 42,
         "liquidity_stress_test": 28,
         "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 40,
-        "narrative_rotation_radar": 47,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
+        "catalyst_chain_reaction": 38,
+        "narrative_rotation_radar": 36,
+        "portfolio_fit_optimizer": 57,
+        "evidence_gap_radar": 56,
         "execution_readiness_planner": 43
       },
       "strongestModules": [
@@ -379,161 +642,7 @@
         {
           "id": "portfolio_fit_optimizer",
           "name": "Portfolio Fit Optimizer",
-          "score": 55,
-          "grade": "Developing",
-          "summary": "Needs stronger proof or lower risk for portfolio fit.",
-          "signals": [
-            "Allocation bucket: Avoid.",
-            "Strategy: GitHub Builder Momentum."
-          ],
-          "risks": []
-        }
-      ],
-      "weakestModules": [
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        },
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 62",
-            "AI Council: 53",
-            "Source Truth: 52",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        },
-        {
-          "id": "catalyst_chain_reaction",
-          "name": "Catalyst Chain Reaction Map",
-          "score": 40,
-          "grade": "Weak",
-          "summary": "Catalyst stack is not strong enough yet.",
-          "signals": [
-            "Top event: Staking Change."
-          ],
-          "risks": [
-            "No strong near-term catalyst cluster."
-          ]
-        }
-      ],
-      "blockers": [
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 62",
-            "AI Council: 53",
-            "Source Truth: 52",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        },
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        }
-      ],
-      "promotionTriggers": [
-        "Improve Liquidity Stress Test above 60.",
-        "Improve Meta-Consensus Lattice above 60.",
-        "Improve Catalyst Chain Reaction Map above 60."
-      ],
-      "killSwitches": [
-        "Meta-Consensus Lattice remains below 40.",
-        "Liquidity Stress Test remains below 40."
-      ],
-      "breakoutBrainScore": 22,
-      "breakoutProbabilitySoon": 12,
-      "autonomousAlphaOSScore": 37,
-      "sourceTruthScore": 52,
-      "proofScore": 0,
-      "trapRiskScore": 12
-    },
-    {
-      "rank": 4,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineRank": 6,
-      "pipelineScore": 0,
-      "highTechAlphaRank": 4,
-      "highTechAlphaScore": 48,
-      "verdict": "High-Tech Blocked",
-      "confidence": "Developing",
-      "commandDecision": "Do not promote until blockers clear",
-      "moduleCount": 10,
-      "moduleScores": {
-        "meta_consensus_lattice": 39,
-        "contradiction_resolver": 84,
-        "alpha_half_life": 40,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 80,
-        "catalyst_chain_reaction": 40,
-        "narrative_rotation_radar": 34,
-        "portfolio_fit_optimizer": 54,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 43
-      },
-      "strongestModules": [
-        {
-          "id": "contradiction_resolver",
-          "name": "Contradiction Resolver",
-          "score": 84,
-          "grade": "Elite",
-          "summary": "No major contradictions detected across high-level signals.",
-          "signals": [
-            "Signal stack is internally consistent."
-          ],
-          "risks": []
-        },
-        {
-          "id": "manipulation_firewall",
-          "name": "Manipulation Firewall",
-          "score": 80,
-          "grade": "Strong",
-          "summary": "Manipulation profile is acceptable.",
-          "signals": [
-            "Trap/bot profile is controlled."
-          ],
-          "risks": [
-            "Social attention is ahead of proof."
-          ]
-        },
-        {
-          "id": "portfolio_fit_optimizer",
-          "name": "Portfolio Fit Optimizer",
-          "score": 54,
+          "score": 57,
           "grade": "Developing",
           "summary": "Needs stronger proof or lower risk for portfolio fit.",
           "signals": [
@@ -559,52 +668,31 @@
         {
           "id": "narrative_rotation_radar",
           "name": "Narrative Rotation Radar",
-          "score": 34,
-          "grade": "Poor",
+          "score": 36,
+          "grade": "Weak",
           "summary": "Narrative rotation is early or unconfirmed.",
           "signals": [
-            "Narrative stack 44."
+            "Narrative stack 46."
           ],
           "risks": [
             "Narrative breadth is weak."
           ]
         },
         {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 39,
+          "id": "catalyst_chain_reaction",
+          "name": "Catalyst Chain Reaction Map",
+          "score": 38,
           "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
+          "summary": "Catalyst stack is not strong enough yet.",
           "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 58",
-            "AI Council: 54",
-            "Source Truth: 49",
-            "Simulation: 46"
+            "Top event: Staking Change."
           ],
           "risks": [
-            "3 active agents are below 40."
+            "No strong near-term catalyst cluster."
           ]
         }
       ],
       "blockers": [
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 39,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 58",
-            "AI Council: 54",
-            "Source Truth: 49",
-            "Simulation: 46"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        },
         {
           "id": "liquidity_stress_test",
           "name": "Liquidity Stress Test",
@@ -618,13 +706,26 @@
           "risks": []
         },
         {
+          "id": "catalyst_chain_reaction",
+          "name": "Catalyst Chain Reaction Map",
+          "score": 38,
+          "grade": "Weak",
+          "summary": "Catalyst stack is not strong enough yet.",
+          "signals": [
+            "Top event: Staking Change."
+          ],
+          "risks": [
+            "No strong near-term catalyst cluster."
+          ]
+        },
+        {
           "id": "narrative_rotation_radar",
           "name": "Narrative Rotation Radar",
-          "score": 34,
-          "grade": "Poor",
+          "score": 36,
+          "grade": "Weak",
           "summary": "Narrative rotation is early or unconfirmed.",
           "signals": [
-            "Narrative stack 44."
+            "Narrative stack 46."
           ],
           "risks": [
             "Narrative breadth is weak."
@@ -634,44 +735,44 @@
       "promotionTriggers": [
         "Improve Liquidity Stress Test above 60.",
         "Improve Narrative Rotation Radar above 60.",
-        "Improve Meta-Consensus Lattice above 60."
+        "Improve Catalyst Chain Reaction Map above 60."
       ],
       "killSwitches": [
-        "Meta-Consensus Lattice remains below 40.",
         "Liquidity Stress Test remains below 40.",
+        "Catalyst Chain Reaction Map remains below 40.",
         "Narrative Rotation Radar remains below 40."
       ],
-      "breakoutBrainScore": 26,
-      "breakoutProbabilitySoon": 19,
+      "breakoutBrainScore": 22,
+      "breakoutProbabilitySoon": 12,
       "autonomousAlphaOSScore": 39,
-      "sourceTruthScore": 49,
+      "sourceTruthScore": 57,
       "proofScore": 0,
       "trapRiskScore": 12
     },
     {
-      "rank": 5,
+      "rank": 6,
       "name": "Pendle",
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineRank": 7,
       "pipelineScore": 0,
-      "highTechAlphaRank": 5,
-      "highTechAlphaScore": 48,
+      "highTechAlphaRank": 6,
+      "highTechAlphaScore": 49,
       "verdict": "High-Tech Blocked",
       "confidence": "Developing",
       "commandDecision": "Do not promote until blockers clear",
       "moduleCount": 10,
       "moduleScores": {
-        "meta_consensus_lattice": 38,
+        "meta_consensus_lattice": 44,
         "contradiction_resolver": 85,
-        "alpha_half_life": 43,
+        "alpha_half_life": 41,
         "liquidity_stress_test": 28,
         "manipulation_firewall": 78,
-        "catalyst_chain_reaction": 37,
-        "narrative_rotation_radar": 30,
-        "portfolio_fit_optimizer": 55,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 42
+        "catalyst_chain_reaction": 34,
+        "narrative_rotation_radar": 27,
+        "portfolio_fit_optimizer": 58,
+        "evidence_gap_radar": 56,
+        "execution_readiness_planner": 43
       },
       "strongestModules": [
         {
@@ -701,7 +802,7 @@
         {
           "id": "portfolio_fit_optimizer",
           "name": "Portfolio Fit Optimizer",
-          "score": 55,
+          "score": 58,
           "grade": "Developing",
           "summary": "Needs stronger proof or lower risk for portfolio fit.",
           "signals": [
@@ -713,6 +814,19 @@
       ],
       "weakestModules": [
         {
+          "id": "narrative_rotation_radar",
+          "name": "Narrative Rotation Radar",
+          "score": 27,
+          "grade": "Poor",
+          "summary": "Narrative rotation is early or unconfirmed.",
+          "signals": [
+            "Narrative stack 35."
+          ],
+          "risks": [
+            "Narrative breadth is weak."
+          ]
+        },
+        {
           "id": "liquidity_stress_test",
           "name": "Liquidity Stress Test",
           "score": 28,
@@ -725,23 +839,10 @@
           "risks": []
         },
         {
-          "id": "narrative_rotation_radar",
-          "name": "Narrative Rotation Radar",
-          "score": 30,
-          "grade": "Poor",
-          "summary": "Narrative rotation is early or unconfirmed.",
-          "signals": [
-            "Narrative stack 39."
-          ],
-          "risks": [
-            "Narrative breadth is weak."
-          ]
-        },
-        {
           "id": "catalyst_chain_reaction",
           "name": "Catalyst Chain Reaction Map",
-          "score": 37,
-          "grade": "Weak",
+          "score": 34,
+          "grade": "Poor",
           "summary": "Catalyst stack is not strong enough yet.",
           "signals": [
             "Top event: Airdrop / Points Catalyst."
@@ -753,23 +854,6 @@
       ],
       "blockers": [
         {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 59",
-            "AI Council: 53",
-            "Source Truth: 52",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        },
-        {
           "id": "liquidity_stress_test",
           "name": "Liquidity Stress Test",
           "score": 28,
@@ -784,8 +868,8 @@
         {
           "id": "catalyst_chain_reaction",
           "name": "Catalyst Chain Reaction Map",
-          "score": 37,
-          "grade": "Weak",
+          "score": 34,
+          "grade": "Poor",
           "summary": "Catalyst stack is not strong enough yet.",
           "signals": [
             "Top event: Airdrop / Points Catalyst."
@@ -797,11 +881,11 @@
         {
           "id": "narrative_rotation_radar",
           "name": "Narrative Rotation Radar",
-          "score": 30,
+          "score": 27,
           "grade": "Poor",
           "summary": "Narrative rotation is early or unconfirmed.",
           "signals": [
-            "Narrative stack 39."
+            "Narrative stack 35."
           ],
           "risks": [
             "Narrative breadth is weak."
@@ -809,202 +893,19 @@
         }
       ],
       "promotionTriggers": [
-        "Improve Liquidity Stress Test above 60.",
         "Improve Narrative Rotation Radar above 60.",
+        "Improve Liquidity Stress Test above 60.",
         "Improve Catalyst Chain Reaction Map above 60."
       ],
       "killSwitches": [
-        "Meta-Consensus Lattice remains below 40.",
         "Liquidity Stress Test remains below 40.",
         "Catalyst Chain Reaction Map remains below 40.",
         "Narrative Rotation Radar remains below 40."
       ],
-      "breakoutBrainScore": 23,
-      "breakoutProbabilitySoon": 14,
-      "autonomousAlphaOSScore": 38,
-      "sourceTruthScore": 52,
-      "proofScore": 0,
-      "trapRiskScore": 12
-    },
-    {
-      "rank": 6,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineRank": 5,
-      "pipelineScore": 0,
-      "highTechAlphaRank": 6,
-      "highTechAlphaScore": 47,
-      "verdict": "High-Tech Blocked",
-      "confidence": "Developing",
-      "commandDecision": "Do not promote until blockers clear",
-      "moduleCount": 10,
-      "moduleScores": {
-        "meta_consensus_lattice": 38,
-        "contradiction_resolver": 69,
-        "alpha_half_life": 42,
-        "liquidity_stress_test": 28,
-        "manipulation_firewall": 81,
-        "catalyst_chain_reaction": 38,
-        "narrative_rotation_radar": 35,
-        "portfolio_fit_optimizer": 54,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 42
-      },
-      "strongestModules": [
-        {
-          "id": "manipulation_firewall",
-          "name": "Manipulation Firewall",
-          "score": 81,
-          "grade": "Strong",
-          "summary": "Manipulation profile is acceptable.",
-          "signals": [
-            "Trap/bot profile is controlled."
-          ],
-          "risks": [
-            "Social attention is ahead of proof."
-          ]
-        },
-        {
-          "id": "contradiction_resolver",
-          "name": "Contradiction Resolver",
-          "score": 69,
-          "grade": "Strong",
-          "summary": "1 material contradiction(s) need review.",
-          "signals": [],
-          "risks": [
-            "hot narrative but weak proof"
-          ]
-        },
-        {
-          "id": "portfolio_fit_optimizer",
-          "name": "Portfolio Fit Optimizer",
-          "score": 54,
-          "grade": "Developing",
-          "summary": "Needs stronger proof or lower risk for portfolio fit.",
-          "signals": [
-            "Allocation bucket: Avoid.",
-            "Strategy: Truth-Verified Alpha."
-          ],
-          "risks": []
-        }
-      ],
-      "weakestModules": [
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        },
-        {
-          "id": "narrative_rotation_radar",
-          "name": "Narrative Rotation Radar",
-          "score": 35,
-          "grade": "Weak",
-          "summary": "Narrative rotation is early or unconfirmed.",
-          "signals": [
-            "Narrative stack 45."
-          ],
-          "risks": [
-            "Narrative breadth is weak."
-          ]
-        },
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 60",
-            "AI Council: 53",
-            "Source Truth: 52",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        }
-      ],
-      "blockers": [
-        {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "0/8 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 64",
-            "Causal Alpha: 60",
-            "AI Council: 53",
-            "Source Truth: 52",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "3 active agents are below 40."
-          ]
-        },
-        {
-          "id": "liquidity_stress_test",
-          "name": "Liquidity Stress Test",
-          "score": 28,
-          "grade": "Poor",
-          "summary": "Modeled stressed-exit drag: 42%.",
-          "signals": [
-            "Liquidity stack 28.",
-            "Stressed-exit drag 42%."
-          ],
-          "risks": []
-        },
-        {
-          "id": "catalyst_chain_reaction",
-          "name": "Catalyst Chain Reaction Map",
-          "score": 38,
-          "grade": "Weak",
-          "summary": "Catalyst stack is not strong enough yet.",
-          "signals": [
-            "Top event: Staking Change."
-          ],
-          "risks": [
-            "No strong near-term catalyst cluster."
-          ]
-        },
-        {
-          "id": "narrative_rotation_radar",
-          "name": "Narrative Rotation Radar",
-          "score": 35,
-          "grade": "Weak",
-          "summary": "Narrative rotation is early or unconfirmed.",
-          "signals": [
-            "Narrative stack 45."
-          ],
-          "risks": [
-            "Narrative breadth is weak."
-          ]
-        }
-      ],
-      "promotionTriggers": [
-        "Improve Liquidity Stress Test above 60.",
-        "Improve Narrative Rotation Radar above 60.",
-        "Improve Meta-Consensus Lattice above 60."
-      ],
-      "killSwitches": [
-        "Meta-Consensus Lattice remains below 40.",
-        "Liquidity Stress Test remains below 40.",
-        "Catalyst Chain Reaction Map remains below 40.",
-        "Narrative Rotation Radar remains below 40."
-      ],
-      "breakoutBrainScore": 21,
-      "breakoutProbabilitySoon": 12,
-      "autonomousAlphaOSScore": 36,
-      "sourceTruthScore": 52,
+      "breakoutBrainScore": 22,
+      "breakoutProbabilitySoon": 13,
+      "autonomousAlphaOSScore": 40,
+      "sourceTruthScore": 57,
       "proofScore": 0,
       "trapRiskScore": 12
     },
@@ -1014,24 +915,24 @@
       "symbol": "RNDR",
       "chain": "solana",
       "pipelineRank": 3,
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "highTechAlphaRank": 7,
-      "highTechAlphaScore": 46,
+      "highTechAlphaScore": 47,
       "verdict": "High-Tech Blocked",
       "confidence": "Developing",
       "commandDecision": "Do not promote until blockers clear",
       "moduleCount": 10,
       "moduleScores": {
-        "meta_consensus_lattice": 29,
+        "meta_consensus_lattice": 34,
         "contradiction_resolver": 68,
         "alpha_half_life": 45,
         "liquidity_stress_test": 28,
         "manipulation_firewall": 83,
         "catalyst_chain_reaction": 33,
         "narrative_rotation_radar": 45,
-        "portfolio_fit_optimizer": 52,
+        "portfolio_fit_optimizer": 55,
         "evidence_gap_radar": 45,
-        "execution_readiness_planner": 41
+        "execution_readiness_planner": 42
       },
       "strongestModules": [
         {
@@ -1049,7 +950,7 @@
           "id": "contradiction_resolver",
           "name": "Contradiction Resolver",
           "score": 68,
-          "grade": "Developing",
+          "grade": "Strong",
           "summary": "1 material contradiction(s) need review.",
           "signals": [],
           "risks": [
@@ -1059,7 +960,7 @@
         {
           "id": "portfolio_fit_optimizer",
           "name": "Portfolio Fit Optimizer",
-          "score": 52,
+          "score": 55,
           "grade": "Developing",
           "summary": "Needs stronger proof or lower risk for portfolio fit.",
           "signals": [
@@ -1083,23 +984,6 @@
           "risks": []
         },
         {
-          "id": "meta_consensus_lattice",
-          "name": "Meta-Consensus Lattice",
-          "score": 29,
-          "grade": "Poor",
-          "summary": "0/9 active agents support the thesis.",
-          "signals": [
-            "Auto Weights: 63",
-            "Causal Alpha: 60",
-            "AI Council: 51",
-            "Source Truth: 49",
-            "Simulation: 41"
-          ],
-          "risks": [
-            "4 active agents are below 40."
-          ]
-        },
-        {
           "id": "catalyst_chain_reaction",
           "name": "Catalyst Chain Reaction Map",
           "score": 33,
@@ -1111,21 +995,38 @@
           "risks": [
             "No strong near-term catalyst cluster."
           ]
+        },
+        {
+          "id": "meta_consensus_lattice",
+          "name": "Meta-Consensus Lattice",
+          "score": 34,
+          "grade": "Poor",
+          "summary": "1/9 active agents support the thesis.",
+          "signals": [
+            "Auto Weights: 66",
+            "Causal Alpha: 62",
+            "Source Truth: 54",
+            "AI Council: 52",
+            "Simulation: 42"
+          ],
+          "risks": [
+            "4 active agents are below 40."
+          ]
         }
       ],
       "blockers": [
         {
           "id": "meta_consensus_lattice",
           "name": "Meta-Consensus Lattice",
-          "score": 29,
+          "score": 34,
           "grade": "Poor",
-          "summary": "0/9 active agents support the thesis.",
+          "summary": "1/9 active agents support the thesis.",
           "signals": [
-            "Auto Weights: 63",
-            "Causal Alpha: 60",
-            "AI Council: 51",
-            "Source Truth: 49",
-            "Simulation: 41"
+            "Auto Weights: 66",
+            "Causal Alpha: 62",
+            "Source Truth: 54",
+            "AI Council: 52",
+            "Simulation: 42"
           ],
           "risks": [
             "4 active agents are below 40."
@@ -1159,18 +1060,18 @@
       ],
       "promotionTriggers": [
         "Improve Liquidity Stress Test above 60.",
-        "Improve Meta-Consensus Lattice above 60.",
-        "Improve Catalyst Chain Reaction Map above 60."
+        "Improve Catalyst Chain Reaction Map above 60.",
+        "Improve Meta-Consensus Lattice above 60."
       ],
       "killSwitches": [
         "Meta-Consensus Lattice remains below 40.",
         "Liquidity Stress Test remains below 40.",
         "Catalyst Chain Reaction Map remains below 40."
       ],
-      "breakoutBrainScore": 19,
-      "breakoutProbabilitySoon": 8,
-      "autonomousAlphaOSScore": 35,
-      "sourceTruthScore": 49,
+      "breakoutBrainScore": 20,
+      "breakoutProbabilitySoon": 9,
+      "autonomousAlphaOSScore": 39,
+      "sourceTruthScore": 54,
       "proofScore": 0,
       "trapRiskScore": 12
     },
@@ -1182,22 +1083,22 @@
       "pipelineRank": 8,
       "pipelineScore": 0,
       "highTechAlphaRank": 8,
-      "highTechAlphaScore": 45,
+      "highTechAlphaScore": 47,
       "verdict": "High-Tech Blocked",
       "confidence": "Developing",
       "commandDecision": "Do not promote until blockers clear",
       "moduleCount": 10,
       "moduleScores": {
-        "meta_consensus_lattice": 35,
+        "meta_consensus_lattice": 37,
         "contradiction_resolver": 85,
         "alpha_half_life": 40,
         "liquidity_stress_test": 28,
         "manipulation_firewall": 82,
         "catalyst_chain_reaction": 28,
-        "narrative_rotation_radar": 23,
-        "portfolio_fit_optimizer": 52,
-        "evidence_gap_radar": 45,
-        "execution_readiness_planner": 40
+        "narrative_rotation_radar": 25,
+        "portfolio_fit_optimizer": 55,
+        "evidence_gap_radar": 56,
+        "execution_readiness_planner": 41
       },
       "strongestModules": [
         {
@@ -1225,27 +1126,29 @@
           ]
         },
         {
-          "id": "portfolio_fit_optimizer",
-          "name": "Portfolio Fit Optimizer",
-          "score": 52,
+          "id": "evidence_gap_radar",
+          "name": "Evidence Gap Radar",
+          "score": 56,
           "grade": "Developing",
-          "summary": "Needs stronger proof or lower risk for portfolio fit.",
-          "signals": [
-            "Allocation bucket: Avoid.",
-            "Strategy: Truth-Verified Alpha."
-          ],
-          "risks": []
+          "summary": "Missing evidence: proof, developer evidence, liquidity, roadmap.",
+          "signals": [],
+          "risks": [
+            "proof",
+            "developer evidence",
+            "liquidity",
+            "roadmap"
+          ]
         }
       ],
       "weakestModules": [
         {
           "id": "narrative_rotation_radar",
           "name": "Narrative Rotation Radar",
-          "score": 23,
+          "score": 25,
           "grade": "Poor",
           "summary": "Narrative rotation is early or unconfirmed.",
           "signals": [
-            "Narrative stack 30."
+            "Narrative stack 32."
           ],
           "risks": [
             "Narrative breadth is weak."
@@ -1279,15 +1182,15 @@
         {
           "id": "meta_consensus_lattice",
           "name": "Meta-Consensus Lattice",
-          "score": 35,
+          "score": 37,
           "grade": "Weak",
           "summary": "0/8 active agents support the thesis.",
           "signals": [
-            "Auto Weights: 62",
-            "Causal Alpha: 54",
-            "AI Council: 52",
-            "Source Truth: 52",
-            "Simulation: 40"
+            "Auto Weights: 64",
+            "Source Truth: 57",
+            "Causal Alpha: 56",
+            "AI Council: 53",
+            "Simulation: 42"
           ],
           "risks": [
             "3 active agents are below 40."
@@ -1319,11 +1222,11 @@
         {
           "id": "narrative_rotation_radar",
           "name": "Narrative Rotation Radar",
-          "score": 23,
+          "score": 25,
           "grade": "Poor",
           "summary": "Narrative rotation is early or unconfirmed.",
           "signals": [
-            "Narrative stack 30."
+            "Narrative stack 32."
           ],
           "risks": [
             "Narrative breadth is weak."
@@ -1341,10 +1244,10 @@
         "Catalyst Chain Reaction Map remains below 40.",
         "Narrative Rotation Radar remains below 40."
       ],
-      "breakoutBrainScore": 15,
+      "breakoutBrainScore": 16,
       "breakoutProbabilitySoon": 5,
-      "autonomousAlphaOSScore": 31,
-      "sourceTruthScore": 52,
+      "autonomousAlphaOSScore": 34,
+      "sourceTruthScore": 57,
       "proofScore": 0,
       "trapRiskScore": 12
     }

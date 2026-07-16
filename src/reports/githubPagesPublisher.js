@@ -59,6 +59,11 @@ const PUBLIC_REPORTS = [
   "integrity-stack.json",
   "institutional-data-provenance.json",
   "progressive-opportunities.json",
+  "institutional-ranking.json",
+  "best-available.json",
+  "emerging-radar.json",
+  "execution-ready.json",
+  "blocked-projects.json",
   "op-mode-readiness.json",
   "evidence-kernel.json",
   "source-truth.json",
@@ -127,6 +132,8 @@ function writeLandingPage(copiedFiles = []) {
   const integrityStack = readJsonReport("integrity-stack.json") || {};
   const institutionalProvenance = readJsonReport("institutional-data-provenance.json") || {};
   const progressiveOpportunities = readJsonReport("progressive-opportunities.json") || {};
+  const institutionalRanking = readJsonReport("institutional-ranking.json") || {};
+  const executionReady = readJsonReport("execution-ready.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
   const evidenceKernel = readJsonReport("evidence-kernel.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
@@ -147,10 +154,19 @@ function writeLandingPage(copiedFiles = []) {
     ["Projects", report.totalProjects ?? 0],
     ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? "N/A"],
     ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
+    ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? "N/A"],
+    ["Execution Ready", progressiveOpportunities.counts?.executionReady ?? institutionalRanking.counts?.executionReady ?? "N/A"],
     ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? "N/A"],
     ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? "N/A"],
     ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? "N/A"],
     ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "N/A"],
+    [
+      "Money Lead",
+      institutionalRanking.institutionalMoneyRank?.[0]?.symbol ||
+        progressiveOpportunities.institutionalMoneyRank?.[0]?.symbol ||
+        "N/A",
+    ],
+    ["Exec Lead", executionReady.executionReady?.[0]?.symbol || progressiveOpportunities.executionReady?.[0]?.symbol || "N/A"],
     ["AI Candidate", topCouncil.symbol || topProject.symbol || "N/A"],
     ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? "N/A"],
     ["Simulation", topSimulation.symbol || topProject.symbol || "N/A"],
@@ -519,6 +535,11 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>
+        <a class="button" href="./institutional-ranking.json">Money Rank</a>
+        <a class="button" href="./best-available.json">Best Available</a>
+        <a class="button" href="./execution-ready.json">Execution Ready</a>
+        <a class="button" href="./emerging-radar.json">Emerging Radar</a>
+        <a class="button" href="./blocked-projects.json">Blocked</a>
         <a class="button" href="./alerts.json">Alerts</a>
       </div>
     </div>

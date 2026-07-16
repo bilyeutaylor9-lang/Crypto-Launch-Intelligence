@@ -47,6 +47,22 @@
       margin: 6px 0 0;
     }
 
+    .warning {
+      background: #241707;
+      border: 1px solid #8a5a13;
+      color: #ffd991;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .empty {
+      color: #8aa0b5;
+      text-align: center;
+      padding: 20px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -91,6 +107,9 @@
 <body>
   <h1>Crypto Launch Intelligence</h1>
   <div class="subtitle">AI-powered early opportunity discovery report</div>
+  <div class="warning">
+    Research leads have not passed final identity, liquidity, execution, risk, and purchase-route validation.
+  </div>
 
   <div class="cards">
     <div class="card">
@@ -99,7 +118,7 @@
     </div>
 
     <div class="card">
-      <h2>1.0</h2>
+      <h2>1.4</h2>
       <p>Average Score</p>
     </div>
 
@@ -110,19 +129,1377 @@
 
     <div class="card">
       <h2>0</h2>
-      <p>Strong Buy Candidates</p>
+      <p>Qualified Candidates</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Best-Available Research Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Early High-Conviction Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Emerging Radar Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Missing-Evidence Tasks</p>
     </div>
 
     <div class="card">
       <h2>N/A</h2>
-      <p>Small-Cap Research Picks</p>
+      <p>Qualified Small-Cap Candidates</p>
     </div>
 
     <div class="card">
       <h2>N/A</h2>
-      <p>Execution-Verified Picks</p>
+      <p>Execution-Verified Candidates</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Research Leads - Not Validated</p>
+    </div>
+
+    <div class="card">
+      <h2>8</h2>
+      <p>Blocked Candidates</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Identity Conflicts</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Insufficient-Data Candidates</p>
+    </div>
+
+    <div class="card">
+      <h2>8</h2>
+      <p>Pre-Consensus Analyzed</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>ARMED Sniper Candidates</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Causal Network ARMED</p>
+    </div>
+
+    <div class="card">
+      <h2>0</h2>
+      <p>Low-Fragility Causal Cases</p>
     </div>
   </div>
+
+  <h2 class="section-title">Final Qualified - Progressive Ladder</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="13" class="empty">No SNIPER_READY candidates currently exist</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Best Available Opportunities</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="13" class="empty">No best-available candidates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Emerging Signals</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="13" class="empty">No emerging or speculative signals</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Blocked By Progressive Safety Checks</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Exec</th><th>Money</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>28</strong></td>
+          <td><strong>52</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td>Catalyst proximity</td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>24</strong></td>
+          <td><strong>51</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>24</strong></td>
+          <td><strong>51</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>23</strong></td>
+          <td><strong>52</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>23</strong></td>
+          <td><strong>51</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>23</strong></td>
+          <td><strong>51</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>22</strong></td>
+          <td><strong>51</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>21</strong></td>
+          <td><strong>52</strong></td>
+          <td><strong>35</strong></td>
+          <td><strong>0</strong></td>
+          <td>BLOCKED</td>
+          <td>BLOCKED</td>
+          <td></td>
+          <td>Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.<br />Refresh stale execution quote before ranking as execution-ready.<br />No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.</td>
+          <td>Final integrity hard block: AI decision rejected the project.</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Autonomous Causal Alpha Network</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>State</th><th>Verdict</th><th>Sequence</th><th>Fragility</th><th>Pattern</th><th>Next Proof</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>30</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>26</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>30</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>26</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>29</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>26</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>29</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>26</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>26</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>16</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>26</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>16</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>26</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>16</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>25</strong></td>
+          <td>BLOCKED</td>
+          <td>Causal Network Block</td>
+          <td>16</td>
+          <td>High</td>
+          <td>0% / 0</td>
+          <td>Developer Investigator must raise proof above developing quality.</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Causal Network Priority Research</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>State</th><th>Verdict</th><th>Sequence</th><th>Fragility</th><th>Pattern</th><th>Next Proof</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="11" class="empty">No causal-network priority candidates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Armed Sniper Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No ARMED sniper candidates currently exist</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Quiet Accumulation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No sniper quiet-accumulation setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Fundamentals Accelerating</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No fundamentals-accelerating sniper setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Early Developer Signals</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No early developer signals</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Smart-Wallet Accumulation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No smart-wallet sniper setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Liquidity Forming</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No liquidity-forming sniper setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Verified Upcoming Catalysts</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>23</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.56</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>43.08</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Prelaunch Research</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>23</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.56</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>19</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.839999999999996</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.24</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.2</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>16</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>37.72</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Neglected Reacceleration</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No sniper neglected reacceleration setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Developing Signals</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No developing sniper signals</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Late-Chase Projects</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No late-chase sniper blocks</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Distressed Projects</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No distressed sniper blocks</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Blocked Projects</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>23</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.56</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>19</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.839999999999996</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.24</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>43.08</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.2</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>16</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>43.32</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>16</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>37.72</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>15</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.24</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Identity Conflicts</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No sniper identity conflicts</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Sniper Insufficient Data</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Sniper</th><th>State</th><th>Confidence</th><th>Gap</th><th>Data</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>23</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.56</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>19</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.839999999999996</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.24</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>43.08</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>17</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>42.2</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>16</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>43.32</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>16</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>37.72</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>15</strong></td>
+          <td>INSUFFICIENT_DATA</td>
+          <td>Insufficient</td>
+          <td>41.24</td>
+          <td>INSUFFICIENT</td>
+          <td>aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Exceptional Pre-Consensus Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No exceptional pre-consensus candidates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">High-Conviction Research Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No high-conviction pre-consensus candidates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Quiet Accumulation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No quiet accumulation setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Upcoming Catalysts</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>TECHNICAL_EARLY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>TECHNICAL_EARLY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>EARLY_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>EARLY_LAUNCH</td>
+          <td>TECHNICAL_EARLY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>EARLY_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">New Native Pools</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No native pool setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Developer Acceleration</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No developer acceleration setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Smart-Wallet Accumulation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No smart-wallet accumulation setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Narratives Forming</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>TECHNICAL_EARLY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>TECHNICAL_EARLY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>EARLY_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>0</strong></td>
+          <td>Reject</td>
+          <td>PRE_LAUNCH</td>
+          <td>CRYPTO_NATIVE_DISCOVERY</td>
+          <td>BLOCKED</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+      </tbody>
+  </table>
+
+  <h2 class="section-title">Neglected Reacceleration</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No neglected reacceleration setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Already Pumped</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Tier</th><th>Type</th><th>Consensus</th><th>Final</th><th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="10" class="empty">No already-pumped setups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Qualified Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Project</th>
+        <th>Symbol</th>
+        <th>Chain</th>
+        <th>Score</th>
+        <th>Final State</th>
+        <th>Final Verdict</th>
+        <th>Permanent Key</th>
+        <th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td colspan="9" class="empty">No qualified candidates</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Execution-Verified Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Project</th>
+        <th>Symbol</th>
+        <th>Chain</th>
+        <th>Score</th>
+        <th>Final State</th>
+        <th>Final Verdict</th>
+        <th>Permanent Key</th>
+        <th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td colspan="9" class="empty">No execution-verified candidates</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Research Leads - Not Validated</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Project</th>
+        <th>Symbol</th>
+        <th>Chain</th>
+        <th>Score</th>
+        <th>Final State</th>
+        <th>Final Verdict</th>
+        <th>Permanent Key</th>
+        <th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td colspan="9" class="empty">No research leads</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Blocked Candidates</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Project</th>
+        <th>Symbol</th>
+        <th>Chain</th>
+        <th>Score</th>
+        <th>Final State</th>
+        <th>Final Verdict</th>
+        <th>Permanent Key</th>
+        <th>Reasons</th>
+      </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+          <td>1</td>
+          <td>EigenLayer</td>
+          <td>EIGEN</td>
+          <td>ethereum</td>
+          <td><strong>6.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:ethereum:EIGEN</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>2</td>
+          <td>Bittensor</td>
+          <td>TAO</td>
+          <td>bittensor</td>
+          <td><strong>2.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:bittensor:TAO</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>3</td>
+          <td>Render</td>
+          <td>RNDR</td>
+          <td>solana</td>
+          <td><strong>2.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:solana:RNDR</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td>cosmos</td>
+          <td><strong>1.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:cosmos:AKT</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>5</td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td>ethereum</td>
+          <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:ethereum:ONDO</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>6</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
+          <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:celestia:TIA</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:ethereum:PENDLE</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+        <tr>
+          <td>8</td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td>solana</td>
+          <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>temporary:symbol:solana:JUP</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+        </tr>
+
+    </tbody>
+  </table>
 
   <h2 class="section-title">Institutional Confidence Ranking</h2>
   <table>
@@ -150,12 +1527,12 @@
           <td>1</td>
           <td>EigenLayer</td>
           <td>EIGEN</td>
-          <td><strong>31</strong></td>
+          <td><strong>33</strong></td>
           <td>6</td>
           <td>High</td>
-          <td>84</td>
+          <td>78</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>Best Available Strong Buy Candidate</td>
@@ -167,12 +1544,29 @@
           <td>2</td>
           <td>Bittensor</td>
           <td>TAO</td>
-          <td><strong>29</strong></td>
+          <td><strong>33</strong></td>
+          <td>2</td>
+          <td>High</td>
+          <td>100</td>
+          <td>stable</td>
+          <td>35</td>
+          <td>12</td>
+          <td>Minimal</td>
+          <td>AI Watchlist</td>
+          <td>Watch</td>
+          <td>90d</td>
+        </tr>
+
+        <tr>
+          <td>4</td>
+          <td>Akash Network</td>
+          <td>AKT</td>
+          <td><strong>33</strong></td>
           <td>1</td>
           <td>High</td>
           <td>100</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -184,29 +1578,12 @@
           <td>3</td>
           <td>Render</td>
           <td>RNDR</td>
-          <td><strong>29</strong></td>
-          <td>1</td>
+          <td><strong>33</strong></td>
+          <td>2</td>
           <td>High</td>
-          <td>94</td>
+          <td>93</td>
           <td>stable</td>
-          <td>15</td>
-          <td>12</td>
-          <td>Minimal</td>
-          <td>AI Pass For Now</td>
-          <td>Candidate</td>
-          <td>90d</td>
-        </tr>
-
-        <tr>
-          <td>4</td>
-          <td>Akash Network</td>
-          <td>AKT</td>
-          <td><strong>29</strong></td>
-          <td>0</td>
-          <td>High</td>
-          <td>100</td>
-          <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -218,12 +1595,12 @@
           <td>5</td>
           <td>Celestia</td>
           <td>TIA</td>
-          <td><strong>27</strong></td>
+          <td><strong>30</strong></td>
           <td>0</td>
           <td>High</td>
-          <td>72</td>
+          <td>71</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -233,14 +1610,14 @@
 
         <tr>
           <td>6</td>
-          <td>Pendle</td>
-          <td>PENDLE</td>
-          <td><strong>27</strong></td>
+          <td>Ondo</td>
+          <td>ONDO</td>
+          <td><strong>29</strong></td>
           <td>0</td>
           <td>High</td>
-          <td>68</td>
+          <td>55</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -250,14 +1627,14 @@
 
         <tr>
           <td>7</td>
-          <td>Jupiter</td>
-          <td>JUP</td>
-          <td><strong>26</strong></td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td><strong>29</strong></td>
           <td>0</td>
           <td>High</td>
-          <td>58</td>
+          <td>55</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -267,14 +1644,14 @@
 
         <tr>
           <td>8</td>
-          <td>Ondo</td>
-          <td>ONDO</td>
-          <td><strong>25</strong></td>
+          <td>Jupiter</td>
+          <td>JUP</td>
+          <td><strong>29</strong></td>
           <td>0</td>
           <td>High</td>
-          <td>52</td>
+          <td>59</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>AI Watchlist</td>
@@ -294,6 +1671,12 @@
         <th>Symbol</th>
         <th>Chain</th>
         <th>Score</th>
+        <th>Final State</th>
+        <th>Final Verdict</th>
+        <th>Identity State</th>
+        <th>Route</th>
+        <th>Execution</th>
+        <th>Final Reasons</th>
         <th>Confidence</th>
         <th>Data</th>
         <th>Conviction</th>
@@ -333,6 +1716,11 @@
         <th>Trap Level</th>
         <th>AI Score</th>
         <th>AI Council</th>
+        <th>Local AI Verdict</th>
+        <th>Local AI Decision</th>
+        <th>Local AI Confidence</th>
+        <th>Local AI Coverage</th>
+        <th>Local AI Adjustment</th>
         <th>Lifecycle</th>
         <th>Horizon</th>
         <th>Red Team</th>
@@ -365,6 +1753,12 @@
           <td>EIGEN</td>
           <td>ethereum</td>
           <td><strong>6.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -374,16 +1768,16 @@
           <td>Reject</td>
           <td>0</td>
           <td>Risk-heavy setup</td>
-          <td>7</td>
+          <td>3</td>
           <td>45</td>
           <td>Accountable Priority Research</td>
           <td>Medium</td>
           <td>2</td>
-          <td>55</td>
+          <td>56</td>
           <td>Governor Risk Block</td>
           <td>Block</td>
           <td></td>
-          <td>46</td>
+          <td>43</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -395,15 +1789,20 @@
           <td>Unavailable</td>
           <td>0.31</td>
           <td>1</td>
-          <td>31</td>
-          <td>84</td>
+          <td>33</td>
+          <td>78</td>
           <td>Hot Rotation</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>59</td>
+          <td>60</td>
           <td>Best Available Strong Buy Candidate</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Pre-Strong Buy</td>
           <td>90d</td>
           <td>Block</td>
@@ -423,7 +1822,7 @@
           <td></td>
           <td>Evidence quality: 70<br />Alpha tag: Narrative Heat</td>
           <td>Outcome trap risk: 100<br />Risk flag: Resembles prior outcome traps<br />Risk flag: AI analyst rejection<br />Risk flag: Weak liquidity support</td>
-          <td>narrative 55<br />quantumField 53<br />prePumpPattern 50<br />signalCombos 50<br />flows 46</td>
+          <td>narrative 53<br />quantumField 53<br />prePumpPattern 50<br />signalCombos 50<br />flows 46</td>
           <td>EigenLayer is a early research setup because Evidence quality: 70; Alpha tag: Narrative Heat. Main risk to verify: Outcome trap risk: 100.</td>
           <td>Primary support: none decisive. Primary risks: none elevated.</td>
         </tr>
@@ -433,7 +1832,13 @@
           <td>Bittensor</td>
           <td>TAO</td>
           <td>bittensor</td>
-          <td><strong>1.0</strong></td>
+          <td><strong>2.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -443,16 +1848,16 @@
           <td>Reject</td>
           <td>0</td>
           <td>Risk-heavy setup</td>
-          <td>1</td>
-          <td>54</td>
-          <td>Invalidation Hit</td>
+          <td>2</td>
+          <td>47</td>
+          <td>Accountable Priority Research</td>
           <td>Medium</td>
           <td>1</td>
-          <td>56</td>
+          <td>57</td>
           <td>Governor Priority Research</td>
-          <td>Risk-Contained Priority Research</td>
+          <td>Priority Research</td>
           <td></td>
-          <td>45</td>
+          <td>42</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -464,15 +1869,20 @@
           <td>Unavailable</td>
           <td>0.33</td>
           <td>2</td>
-          <td>29</td>
+          <td>33</td>
           <td>100</td>
           <td>Hot Rotation</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>55</td>
+          <td>56</td>
           <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
@@ -502,7 +1912,13 @@
           <td>Render</td>
           <td>RNDR</td>
           <td>solana</td>
-          <td><strong>1.0</strong></td>
+          <td><strong>2.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -512,37 +1928,42 @@
           <td>Reject</td>
           <td>0</td>
           <td>Risk-heavy setup</td>
-          <td>3</td>
-          <td>51</td>
-          <td>Invalidation Hit</td>
-          <td>Developing</td>
-          <td>7</td>
-          <td>54</td>
-          <td>Governor Risk Block</td>
-          <td>Block</td>
-          <td></td>
+          <td>5</td>
           <td>43</td>
+          <td>Open Research Contract</td>
+          <td>Medium</td>
+          <td>6</td>
+          <td>55</td>
+          <td>Governor Recheck Soon</td>
+          <td>Risk-Contained Recheck</td>
+          <td></td>
+          <td>39</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
           <td>No Coinbase/MetaMask Route Detected</td>
           <td>100</td>
           <td></td>
-          <td>42</td>
+          <td>43</td>
           <td>Execution Route Block</td>
           <td>Unavailable</td>
           <td>0.326</td>
           <td>3</td>
-          <td>29</td>
-          <td>94</td>
+          <td>33</td>
+          <td>93</td>
           <td>Hot Rotation</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>51</td>
-          <td>AI Pass For Now</td>
-          <td>Candidate</td>
+          <td>52</td>
+          <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
           <td>High</td>
@@ -571,7 +1992,13 @@
           <td>Akash Network</td>
           <td>AKT</td>
           <td>cosmos</td>
-          <td><strong>0.0</strong></td>
+          <td><strong>1.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -581,16 +2008,16 @@
           <td>Reject</td>
           <td>0</td>
           <td>Risk-heavy setup</td>
-          <td>2</td>
-          <td>52</td>
-          <td>Invalidation Hit</td>
+          <td>4</td>
+          <td>44</td>
+          <td>Accountable Priority Research</td>
           <td>Medium</td>
           <td>3</td>
-          <td>55</td>
+          <td>56</td>
           <td>Governor Priority Research</td>
-          <td>Risk-Contained Priority Research</td>
+          <td>Priority Research</td>
           <td></td>
-          <td>44</td>
+          <td>40</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -602,15 +2029,20 @@
           <td>Unavailable</td>
           <td>0.321</td>
           <td>4</td>
-          <td>29</td>
+          <td>33</td>
           <td>100</td>
           <td>Hot Rotation</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>53</td>
+          <td>54</td>
           <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
@@ -637,79 +2069,16 @@
 
         <tr>
           <td>5</td>
-          <td>Celestia</td>
-          <td>TIA</td>
-          <td>celestia</td>
-          <td><strong>0.0</strong></td>
-          <td>Developing</td>
-          <td>High</td>
-          <td>Defensive</td>
-          <td>Avoid</td>
-          <td>Watch Only</td>
-          <td>Low Priority</td>
-          <td>Reject</td>
-          <td>0</td>
-          <td>Risk-heavy setup</td>
-          <td>4</td>
-          <td>51</td>
-          <td>Invalidation Hit</td>
-          <td>Medium</td>
-          <td>4</td>
-          <td>55</td>
-          <td>Governor Priority Research</td>
-          <td>Risk-Contained Priority Research</td>
-          <td></td>
-          <td>44</td>
-          <td>Small-Cap Purchase Route Block</td>
-          <td>Unknown Cap</td>
-          <td>Unavailable</td>
-          <td>No Coinbase/MetaMask Route Detected</td>
-          <td>100</td>
-          <td></td>
-          <td>43</td>
-          <td>Execution Route Block</td>
-          <td>Unavailable</td>
-          <td>0.307</td>
-          <td>5</td>
-          <td>27</td>
-          <td>72</td>
-          <td>Hot Rotation</td>
-          <td>stable</td>
-          <td>15</td>
-          <td>12</td>
-          <td>Minimal</td>
-          <td>53</td>
-          <td>AI Watchlist</td>
-          <td>Watch</td>
-          <td>90d</td>
-          <td>Challenge</td>
-          <td>High</td>
-          <td>No Match</td>
-          <td>17</td>
-          <td>21</td>
-          <td>1</td>
-          <td>49</td>
-          <td>5</td>
-          <td>0</td>
-          <td>50</td>
-          <td>0</td>
-          <td>20</td>
-          <td>Negative Skew</td>
-          <td></td>
-          <td></td>
-          <td>Evidence quality: 70<br />Alpha tag: Narrative Heat</td>
-          <td>Outcome trap risk: 100<br />Risk flag: Resembles prior outcome traps<br />Risk flag: AI analyst rejection<br />Risk flag: Weak liquidity support</td>
-          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />narrative 42<br />learning 37</td>
-          <td>Celestia is a early research setup because Evidence quality: 70; Alpha tag: Narrative Heat. Main risk to verify: Outcome trap risk: 100.</td>
-          <td>Primary support: none decisive. Primary risks: none elevated.</td>
-        </tr>
-
-        <tr>
-          <td>6</td>
           <td>Ondo</td>
           <td>ONDO</td>
           <td>ethereum</td>
           <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -719,16 +2088,16 @@
           <td>Reject</td>
           <td>0</td>
           <td>Risk-heavy setup</td>
-          <td>5</td>
-          <td>51</td>
-          <td>Invalidation Hit</td>
-          <td>Developing</td>
-          <td>5</td>
-          <td>55</td>
-          <td>Governor Risk Block</td>
-          <td>Block</td>
-          <td></td>
+          <td>7</td>
           <td>43</td>
+          <td>Open Research Contract</td>
+          <td>Medium</td>
+          <td>7</td>
+          <td>55</td>
+          <td>Governor Recheck Soon</td>
+          <td>Risk-Contained Recheck</td>
+          <td></td>
+          <td>40</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -739,16 +2108,21 @@
           <td>Execution Route Block</td>
           <td>Unavailable</td>
           <td>0.317</td>
-          <td>8</td>
-          <td>25</td>
-          <td>52</td>
+          <td>6</td>
+          <td>29</td>
+          <td>55</td>
           <td>Active</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
           <td>54</td>
           <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
@@ -774,11 +2148,17 @@
         </tr>
 
         <tr>
-          <td>7</td>
-          <td>Pendle</td>
-          <td>PENDLE</td>
-          <td>ethereum</td>
+          <td>6</td>
+          <td>Celestia</td>
+          <td>TIA</td>
+          <td>celestia</td>
           <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -789,15 +2169,95 @@
           <td>0</td>
           <td>Risk-heavy setup</td>
           <td>6</td>
+          <td>43</td>
+          <td>Open Research Contract</td>
+          <td>Medium</td>
+          <td>4</td>
+          <td>56</td>
+          <td>Governor Priority Research</td>
+          <td>Priority Research</td>
+          <td></td>
+          <td>40</td>
+          <td>Small-Cap Purchase Route Block</td>
+          <td>Unknown Cap</td>
+          <td>Unavailable</td>
+          <td>No Coinbase/MetaMask Route Detected</td>
+          <td>100</td>
+          <td></td>
+          <td>43</td>
+          <td>Execution Route Block</td>
+          <td>Unavailable</td>
+          <td>0.307</td>
+          <td>5</td>
+          <td>30</td>
+          <td>71</td>
+          <td>Hot Rotation</td>
+          <td>stable</td>
+          <td>35</td>
+          <td>12</td>
+          <td>Minimal</td>
+          <td>54</td>
+          <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>Watch</td>
+          <td>90d</td>
+          <td>Challenge</td>
+          <td>High</td>
+          <td>No Match</td>
+          <td>17</td>
+          <td>21</td>
+          <td>1</td>
+          <td>49</td>
+          <td>5</td>
+          <td>0</td>
+          <td>50</td>
+          <td>0</td>
+          <td>20</td>
+          <td>Negative Skew</td>
+          <td></td>
+          <td></td>
+          <td>Evidence quality: 70<br />Alpha tag: Narrative Heat</td>
+          <td>Outcome trap risk: 100<br />Risk flag: Resembles prior outcome traps<br />Risk flag: AI analyst rejection<br />Risk flag: Weak liquidity support</td>
+          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />narrative 42<br />learning 37</td>
+          <td>Celestia is a early research setup because Evidence quality: 70; Alpha tag: Narrative Heat. Main risk to verify: Outcome trap risk: 100.</td>
+          <td>Primary support: none decisive. Primary risks: none elevated.</td>
+        </tr>
+
+        <tr>
+          <td>7</td>
+          <td>Pendle</td>
+          <td>PENDLE</td>
+          <td>ethereum</td>
+          <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
+          <td>Developing</td>
+          <td>High</td>
+          <td>Defensive</td>
+          <td>Avoid</td>
+          <td>Watch Only</td>
+          <td>Low Priority</td>
+          <td>Reject</td>
+          <td>0</td>
+          <td>Risk-heavy setup</td>
+          <td>1</td>
           <td>51</td>
           <td>Invalidation Hit</td>
           <td>Medium</td>
-          <td>6</td>
-          <td>55</td>
+          <td>5</td>
+          <td>56</td>
           <td>Governor Risk Block</td>
           <td>Block</td>
           <td></td>
-          <td>44</td>
+          <td>39</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -808,16 +2268,21 @@
           <td>Execution Route Block</td>
           <td>Unavailable</td>
           <td>0.314</td>
-          <td>6</td>
-          <td>27</td>
-          <td>68</td>
+          <td>7</td>
+          <td>29</td>
+          <td>55</td>
           <td>Active</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>53</td>
+          <td>54</td>
           <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
@@ -835,10 +2300,10 @@
           <td>Neutral Field</td>
           <td></td>
           <td></td>
-          <td>Evidence quality: 70<br />Alpha tag: Narrative Heat</td>
+          <td>Evidence quality: 70</td>
           <td>Outcome trap risk: 100<br />Risk flag: Resembles prior outcome traps<br />Risk flag: AI analyst rejection<br />Risk flag: Weak liquidity support</td>
-          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />narrative 39<br />learning 39</td>
-          <td>Pendle is a early research setup because Evidence quality: 70; Alpha tag: Narrative Heat. Main risk to verify: Outcome trap risk: 100.</td>
+          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />learning 39<br />narrative 37</td>
+          <td>Pendle is a early research setup because Evidence quality: 70. Main risk to verify: Outcome trap risk: 100.</td>
           <td>Primary support: none decisive. Primary risks: none elevated.</td>
         </tr>
 
@@ -848,6 +2313,12 @@
           <td>JUP</td>
           <td>solana</td>
           <td><strong>0.0</strong></td>
+          <td>BLOCKED</td>
+          <td>Blocked By Final Integrity</td>
+          <td>SYMBOL_ONLY</td>
+          <td>no</td>
+          <td>no</td>
+          <td>AI decision rejected the project.<br />aiDecision: Reject<br />allocationBucket: Avoid<br />smallCapHunterVerdict: Small-Cap Purchase Route Block<br />proofVerdict: Risk-heavy setup</td>
           <td>Developing</td>
           <td>High</td>
           <td>Defensive</td>
@@ -858,15 +2329,15 @@
           <td>0</td>
           <td>Risk-heavy setup</td>
           <td>8</td>
-          <td>40</td>
-          <td>Accountable Priority Research</td>
+          <td>41</td>
+          <td>Weak Contract</td>
           <td>Medium</td>
           <td>8</td>
-          <td>54</td>
+          <td>55</td>
           <td>Governor Recheck Soon</td>
           <td>Risk-Contained Recheck</td>
           <td></td>
-          <td>42</td>
+          <td>38</td>
           <td>Small-Cap Purchase Route Block</td>
           <td>Unknown Cap</td>
           <td>Unavailable</td>
@@ -877,16 +2348,21 @@
           <td>Execution Route Block</td>
           <td>Unavailable</td>
           <td>0.303</td>
-          <td>7</td>
-          <td>26</td>
-          <td>58</td>
+          <td>8</td>
+          <td>29</td>
+          <td>59</td>
           <td>Active</td>
           <td>stable</td>
-          <td>15</td>
+          <td>35</td>
           <td>12</td>
           <td>Minimal</td>
-          <td>52</td>
+          <td>53</td>
           <td>AI Watchlist</td>
+          <td>Reject</td>
+          <td>PENDING_LOCAL_RESEARCH</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
           <td>Watch</td>
           <td>90d</td>
           <td>Challenge</td>
@@ -906,7 +2382,7 @@
           <td></td>
           <td>Evidence quality: 70</td>
           <td>Outcome trap risk: 100<br />Risk flag: Resembles prior outcome traps<br />Risk flag: AI analyst rejection<br />Risk flag: Weak liquidity support</td>
-          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />learning 37<br />fundamentals 35</td>
+          <td>prePumpPattern 50<br />signalCombos 50<br />flows 46<br />learning 37<br />fundamentals 36</td>
           <td>Jupiter is a early research setup because Evidence quality: 70. Main risk to verify: Outcome trap risk: 100.</td>
           <td>Primary support: none decisive. Primary risks: none elevated.</td>
         </tr>
@@ -915,7 +2391,7 @@
   </table>
 
   <div class="footer">
-    Generated 7/14/2026, 2:08:19 AM
+    Generated 7/16/2026, 6:06:29 AM
   </div>
 </body>
 </html>

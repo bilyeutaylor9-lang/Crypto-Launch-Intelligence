@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.121Z",
+  "generatedAt": "2026-07-16T13:06:35.100Z",
   "name": "Discovery Decision Engine v1",
   "summary": {
     "projectCount": 8,
@@ -12,49 +12,49 @@
       {
         "rank": 1,
         "symbol": "EIGEN",
-        "score": 38,
+        "score": 39,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 2,
         "symbol": "TAO",
-        "score": 36,
+        "score": 37,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 3,
         "symbol": "ONDO",
-        "score": 35,
+        "score": 37,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 4,
-        "symbol": "AKT",
-        "score": 34,
+        "symbol": "TIA",
+        "score": 35,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 5,
-        "symbol": "TIA",
-        "score": 34,
+        "symbol": "AKT",
+        "score": 35,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 6,
         "symbol": "JUP",
-        "score": 34,
+        "score": 35,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 7,
         "symbol": "RNDR",
-        "score": 33,
+        "score": 34,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
@@ -86,18 +86,18 @@
         "symbol": "EIGEN",
         "name": "EigenLayer",
         "chain": "ethereum",
-        "score": 38,
+        "score": 39,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 44",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 58"
+          "Catalyst potential 56"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -108,16 +108,16 @@
         "symbol": "TAO",
         "name": "Bittensor",
         "chain": "bittensor",
-        "score": 36,
+        "score": 37,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 43",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
           "Catalyst potential 51"
         ],
@@ -130,18 +130,18 @@
         "symbol": "ONDO",
         "name": "Ondo",
         "chain": "ethereum",
-        "score": 35,
+        "score": 37,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 42",
+          "Discovery strength 46",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 45"
+          "Catalyst potential 46"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -149,21 +149,21 @@
       },
       {
         "rank": 4,
-        "symbol": "AKT",
-        "name": "Akash Network",
-        "chain": "cosmos",
-        "score": 34,
+        "symbol": "TIA",
+        "name": "Celestia",
+        "chain": "celestia",
+        "score": 35,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 43",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 37"
+          "Catalyst potential 39"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -171,21 +171,21 @@
       },
       {
         "rank": 5,
-        "symbol": "TIA",
-        "name": "Celestia",
-        "chain": "celestia",
-        "score": 34,
+        "symbol": "AKT",
+        "name": "Akash Network",
+        "chain": "cosmos",
+        "score": 35,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 43",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 39"
+          "Catalyst potential 37"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -196,18 +196,18 @@
         "symbol": "JUP",
         "name": "Jupiter",
         "chain": "solana",
-        "score": 34,
+        "score": 35,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 43",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 35"
+          "Catalyst potential 36"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -218,16 +218,16 @@
         "symbol": "RNDR",
         "name": "Render",
         "chain": "solana",
-        "score": 33,
+        "score": 34,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 42",
+          "Discovery strength 46",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
           "Catalyst potential 35"
         ],
@@ -247,11 +247,11 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 43",
+          "Discovery strength 47",
           "Organic demand 35",
-          "Project quality 31",
+          "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 30"
+          "Catalyst potential 28"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -263,7 +263,7 @@
     "criticalRisks": []
   },
   "missedWinnerLab": {
-    "generatedAt": "2026-07-14T10:08:54.121Z",
+    "generatedAt": "2026-07-16T13:06:35.100Z",
     "evaluatedBreakouts": 0,
     "detectedBreakouts": 0,
     "missedBreakouts": 0,

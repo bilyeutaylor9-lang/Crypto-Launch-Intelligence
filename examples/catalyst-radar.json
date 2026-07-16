@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T09:08:29.420Z",
+  "generatedAt": "2026-07-16T13:06:29.709Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -15,7 +15,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 6,
-      "liveCatalystRadarScore": 84,
+      "liveCatalystRadarScore": 83,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -99,7 +99,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 61,
+      "liveCatalystRadarScore": 59,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -143,7 +143,7 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 6,
-      "liveCatalystRadarScore": 84,
+      "liveCatalystRadarScore": 83,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -227,7 +227,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 61,
+      "liveCatalystRadarScore": 59,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -268,41 +268,8 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "liveCatalystRadarScore": 56,
-      "liveCatalystUrgency": "Medium",
-      "liveCatalystAction": "Watch for confirmation",
-      "topEvent": {
-        "type": "Staking Change",
-        "score": 55,
-        "window": "7d-30d",
-        "urgency": "Medium",
-        "reasons": [
-          "staking or restaking language detected"
-        ]
-      },
-      "events": [
-        {
-          "type": "Staking Change",
-          "score": 55,
-          "window": "7d-30d",
-          "urgency": "Medium",
-          "reasons": [
-            "staking or restaking language detected"
-          ]
-        }
-      ],
-      "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Simulation Watch",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data"
-    },
-    {
-      "rank": 4,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
-      "pipelineScore": 0,
-      "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
       "topEvent": {
@@ -363,11 +330,44 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
+      "rank": 4,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 1,
+      "liveCatalystRadarScore": 50,
+      "liveCatalystUrgency": "Medium",
+      "liveCatalystAction": "Watch for confirmation",
+      "topEvent": {
+        "type": "Staking Change",
+        "score": 55,
+        "window": "7d-30d",
+        "urgency": "Medium",
+        "reasons": [
+          "staking or restaking language detected"
+        ]
+      },
+      "events": [
+        {
+          "type": "Staking Change",
+          "score": 55,
+          "window": "7d-30d",
+          "urgency": "Medium",
+          "reasons": [
+            "staking or restaking language detected"
+          ]
+        }
+      ],
+      "dossierSwarmDecision": "Do Not Promote",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data"
+    },
+    {
       "rank": 3,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 1,
+      "pipelineScore": 2,
       "liveCatalystRadarScore": 49,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -425,11 +425,11 @@
       "count": 1
     },
     {
-      "type": "Migration / Release",
+      "type": "Airdrop / Points Catalyst",
       "count": 1
     },
     {
-      "type": "Airdrop / Points Catalyst",
+      "type": "Migration / Release",
       "count": 1
     }
   ]

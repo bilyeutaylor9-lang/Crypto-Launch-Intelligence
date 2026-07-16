@@ -35,6 +35,11 @@ function compact(project = {}) {
     pipelineScore: project.pipelineScore || 0,
     progressiveOpportunityScore: project.progressiveOpportunityScore || project.opportunityScoreV2 || 0,
     trustScore: project.trustScore || project.progressiveTrustScore || 0,
+    executionScore: project.executionScore || project.progressiveExecutionScore || 0,
+    moneyRankScore: project.moneyRankScore || 0,
+    moneyRank: project.moneyRank || null,
+    moneyRankEligible: Boolean(project.moneyRankEligible),
+    executableTradeSizeUsd: project.executableTradeSizeUsd || 0,
     opportunityRankingTier: project.opportunityRankingTier || "UNKNOWN",
     bestAvailableRank: project.bestAvailableRank || null,
     opportunityConfidence: project.opportunityConfidence || "Unknown",
@@ -116,8 +121,11 @@ export function buildAlphaDashboardV2(projects = []) {
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
+        num(b.moneyRankScore) -
+          num(a.moneyRankScore) ||
         num(b.progressiveOpportunityScore || b.opportunityScoreV2) -
           num(a.progressiveOpportunityScore || a.opportunityScoreV2) ||
+        num(b.executionScore) - num(a.executionScore) ||
         num(b.trustScore) - num(a.trustScore) ||
         num(b.autoLearningWeightScore || b.autonomousAlphaOSScore) -
         num(a.autoLearningWeightScore || a.autonomousAlphaOSScore) ||
@@ -142,6 +150,8 @@ export function buildAlphaDashboardV2(projects = []) {
       executionTwinPicks: executionTwin.topExecutions || [],
       qualifiedCandidates: qualifiedCandidates.map(compact).slice(0, 10),
       bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
+      institutionalMoneyRank: progressiveOpportunities.institutionalMoneyRank || [],
+      executionReady: progressiveOpportunities.executionReady || [],
       emergingSignals: progressiveOpportunities.emergingRadar || [],
       speculativeSignals: progressiveOpportunities.speculativeSignals || [],
       organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
@@ -152,6 +162,8 @@ export function buildAlphaDashboardV2(projects = []) {
       emergingRadar: progressiveOpportunities.counts?.emergingRadar || 0,
       speculativeSignal: progressiveOpportunities.counts?.speculativeSignal || 0,
       bestAvailableOpportunities: progressiveOpportunities.counts?.bestAvailable || 0,
+      institutionalMoneyRank: progressiveOpportunities.counts?.moneyRanked || 0,
+      executionReady: progressiveOpportunities.counts?.executionReady || 0,
       emergingDiscoveryAI: progressiveOpportunities.counts?.emergingDiscoveryAI || 0,
       missingEvidenceQueue: progressiveOpportunities.counts?.missingEvidence || 0,
       alphaOSStrongBuy: alphaOS.counts?.strongBuyResearch || 0,
@@ -188,7 +200,9 @@ export function buildAlphaDashboardV2(projects = []) {
     },
     topCandidates,
     finalQualifiedCandidates: progressiveOpportunities.sniperReady || [],
+    institutionalMoneyRank: progressiveOpportunities.institutionalMoneyRank || [],
     bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
+    executionReady: progressiveOpportunities.executionReady || [],
     emergingSignals: progressiveOpportunities.emergingRadar || [],
     speculativeSignals: progressiveOpportunities.speculativeSignals || [],
     blockedProjects: progressiveOpportunities.blockedProjects || [],

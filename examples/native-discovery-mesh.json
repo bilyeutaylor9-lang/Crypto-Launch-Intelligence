@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.118Z",
+  "generatedAt": "2026-07-16T13:06:35.098Z",
   "status": "WAITING_FOR_NATIVE_EVENTS",
   "summary": {
-    "generatedAt": "2026-07-14T10:08:54.118Z",
+    "generatedAt": "2026-07-16T13:06:35.098Z",
     "status": "WAITING_FOR_NATIVE_EVENTS",
     "candidateCount": 0,
     "lifecycleCount": 0,
@@ -80,20 +80,36 @@
     },
     "requiredEnvironmentVariables": [
       "BASE_AERODROME_FACTORY",
+      "BASE_RPC_URL",
+      "BASE_AERODROME_POOL_CREATED_TOPIC0",
       "BASE_AERODROME_SLIPSTREAM_FACTORY",
+      "BASE_RPC_URL",
+      "BASE_AERODROME_SLIPSTREAM_POOL_CREATED_TOPIC0",
       "SOLANA_PUMP_FUN_PROGRAM",
       "SOLANA_RAYDIUM_LAUNCHLAB_PROGRAM",
       "BASE_UNISWAP_V3_FACTORY",
+      "BASE_RPC_URL",
+      "BASE_UNISWAP_V3_POOL_CREATED_TOPIC0",
       "SOLANA_RAYDIUM_CPMM_PROGRAM",
       "SOLANA_RAYDIUM_CLMM_PROGRAM",
       "SOLANA_METEORA_DBC_PROGRAM",
       "EVM_DEPLOYMENT_RADAR_RPC_URL",
       "BASE_UNISWAP_V4_POOL_MANAGER",
+      "BASE_RPC_URL",
+      "BASE_UNISWAP_V4_POOL_INITIALIZED_TOPIC0",
       "SOLANA_METEORA_DLMM_PROGRAM",
       "BSC_PANCAKESWAP_V2_FACTORY",
+      "BSC_RPC_URL",
+      "BSC_PANCAKESWAP_V2_POOL_CREATED_TOPIC0",
       "BSC_PANCAKESWAP_V3_FACTORY",
+      "BSC_RPC_URL",
+      "BSC_PANCAKESWAP_V3_POOL_CREATED_TOPIC0",
       "POLYGON_QUICKSWAP_ALGEBRA_FACTORY",
-      "ARBITRUM_CAMELOT_FACTORY"
+      "POLYGON_RPC_URL",
+      "POLYGON_QUICKSWAP_ALGEBRA_POOL_CREATED_TOPIC0",
+      "ARBITRUM_CAMELOT_FACTORY",
+      "ARBITRUM_RPC_URL",
+      "ARBITRUM_CAMELOT_POOL_CREATED_TOPIC0"
     ],
     "protocols": [
       {
@@ -104,6 +120,9 @@
         "protocol": "aerodrome",
         "protocolVersion": "volatile-stable-v2",
         "factoryEnv": "BASE_AERODROME_FACTORY",
+        "rpcEnv": "BASE_RPC_URL",
+        "eventTopic0Env": "BASE_AERODROME_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_CREATED",
           "FIRST_LIQUIDITY_ADDED",
@@ -113,6 +132,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -123,6 +143,9 @@
         "protocol": "aerodrome-slipstream",
         "protocolVersion": "cl",
         "factoryEnv": "BASE_AERODROME_SLIPSTREAM_FACTORY",
+        "rpcEnv": "BASE_RPC_URL",
+        "eventTopic0Env": "BASE_AERODROME_SLIPSTREAM_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_CREATED",
           "POOL_INITIALIZED",
@@ -133,6 +156,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -152,6 +176,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -170,6 +195,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -180,6 +206,9 @@
         "protocol": "uniswap-v3",
         "protocolVersion": "v3",
         "factoryEnv": "BASE_UNISWAP_V3_FACTORY",
+        "rpcEnv": "BASE_RPC_URL",
+        "eventTopic0Env": "BASE_UNISWAP_V3_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_CREATED",
           "POOL_INITIALIZED",
@@ -189,6 +218,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -207,6 +237,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -225,6 +256,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -243,6 +275,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -259,6 +292,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -269,6 +303,9 @@
         "protocol": "uniswap-v4",
         "protocolVersion": "v4",
         "factoryEnv": "BASE_UNISWAP_V4_POOL_MANAGER",
+        "rpcEnv": "BASE_RPC_URL",
+        "eventTopic0Env": "BASE_UNISWAP_V4_POOL_INITIALIZED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_INITIALIZED",
           "FIRST_SWAP"
@@ -277,6 +314,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -295,6 +333,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -305,6 +344,9 @@
         "protocol": "pancakeswap-v2",
         "protocolVersion": "v2",
         "factoryEnv": "BSC_PANCAKESWAP_V2_FACTORY",
+        "rpcEnv": "BSC_RPC_URL",
+        "eventTopic0Env": "BSC_PANCAKESWAP_V2_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 0,
         "eventKinds": [
           "POOL_CREATED",
           "FIRST_LIQUIDITY_ADDED",
@@ -314,6 +356,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -324,6 +367,9 @@
         "protocol": "pancakeswap-v3",
         "protocolVersion": "v3",
         "factoryEnv": "BSC_PANCAKESWAP_V3_FACTORY",
+        "rpcEnv": "BSC_RPC_URL",
+        "eventTopic0Env": "BSC_PANCAKESWAP_V3_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_CREATED",
           "POOL_INITIALIZED",
@@ -333,6 +379,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -343,6 +390,9 @@
         "protocol": "quickswap-algebra",
         "protocolVersion": "algebra",
         "factoryEnv": "POLYGON_QUICKSWAP_ALGEBRA_FACTORY",
+        "rpcEnv": "POLYGON_RPC_URL",
+        "eventTopic0Env": "POLYGON_QUICKSWAP_ALGEBRA_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 1,
         "eventKinds": [
           "POOL_CREATED",
           "POOL_INITIALIZED",
@@ -352,6 +402,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       },
       {
@@ -362,6 +413,9 @@
         "protocol": "camelot",
         "protocolVersion": "factory",
         "factoryEnv": "ARBITRUM_CAMELOT_FACTORY",
+        "rpcEnv": "ARBITRUM_RPC_URL",
+        "eventTopic0Env": "ARBITRUM_CAMELOT_POOL_CREATED_TOPIC0",
+        "poolAddressDataWord": 0,
         "eventKinds": [
           "POOL_CREATED",
           "FIRST_LIQUIDITY_ADDED",
@@ -371,6 +425,7 @@
         "factoryAddress": null,
         "programId": null,
         "rpcUrl": null,
+        "eventTopic0": null,
         "configured": false
       }
     ]

@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-07-14T10:08:54.056Z",
-  "totalEngines": 126,
-  "wiredIntoPipeline": 102,
-  "stateOfArtReady": 109,
+  "generatedAt": "2026-07-16T13:06:51.415Z",
+  "totalEngines": 139,
+  "wiredIntoPipeline": 115,
+  "stateOfArtReady": 122,
   "readinessScore": 90,
   "categoryCounts": {
-    "intelligence": 50,
+    "intelligence": 60,
     "market-flow": 9,
     "ai": 14,
-    "learning": 20,
+    "learning": 22,
     "narrative-launch": 10,
     "discovery": 14,
-    "risk": 2,
+    "risk": 3,
     "wallet-flow": 7
   },
   "topEngines": [
@@ -212,6 +212,21 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "autonomousCausalAlphaNetworkEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousCausalAlphaNetwork",
+        "analyzeAutonomousCausalAlphaNetworkBatch",
+        "summarizeAutonomousCausalAlphaNetwork"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "autonomousMarketScientistEngine.js",
       "category": "ai",
       "exports": [
@@ -299,21 +314,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 5,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "buyPressureEngine.js",
-      "category": "market-flow",
-      "exports": [
-        "calculateBuyPressureScore",
-        "analyzeBuyPressure",
-        "analyzeBuyPressureBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -537,8 +537,8 @@
       "hasBatch": false,
       "hasAnalyzer": true,
       "wiredInPipeline": false,
-      "advancedSignals": 3,
-      "readinessScore": 40,
+      "advancedSignals": 4,
+      "readinessScore": 45,
       "status": "needs-upgrade"
     }
   ],
@@ -773,6 +773,21 @@
         "analyzeAutonomousAlphaOS",
         "analyzeAutonomousAlphaOSBatch",
         "summarizeAutonomousAlphaOS"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "autonomousCausalAlphaNetworkEngine.js",
+      "category": "learning",
+      "exports": [
+        "analyzeAutonomousCausalAlphaNetwork",
+        "analyzeAutonomousCausalAlphaNetworkBatch",
+        "summarizeAutonomousCausalAlphaNetwork"
       ],
       "hasBatch": true,
       "hasAnalyzer": true,
@@ -1146,6 +1161,20 @@
       "status": "needs-upgrade"
     },
     {
+      "file": "distressedMicrocapTrapEngine.js",
+      "category": "risk",
+      "exports": [
+        "analyzeDistressedMicrocapTrap",
+        "analyzeDistressedMicrocapTrapBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 4,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "earlyBreakoutEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1218,6 +1247,25 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "finalSelectionIntegrityEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "resolveFinalIdentity",
+        "analyzeFinalSelectionIntegrity",
+        "analyzeFinalSelectionIntegrityBatch",
+        "validateFinalSelectionInvariants",
+        "summarizeFinalSelectionIntegrity",
+        "FINAL_SELECTION_STATES",
+        "FINAL_IDENTITY_STATES"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -1311,6 +1359,20 @@
       "wiredInPipeline": true,
       "advancedSignals": 1,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "informationAdvantageEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeInformationAdvantage",
+        "analyzeInformationAdvantageBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 85,
       "status": "state-of-art-ready"
     },
     {
@@ -1770,6 +1832,35 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "preBreakoutMomentumEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzePreBreakoutMomentum",
+        "analyzePreBreakoutMomentumBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 95,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "preConsensusBreakoutHunterEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzePreConsensusBreakoutHunter",
+        "analyzePreConsensusBreakoutHunterBatch",
+        "summarizePreConsensusBreakoutHunter"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "prePumpDetectionEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1810,6 +1901,22 @@
       "advancedSignals": 1,
       "readinessScore": 35,
       "status": "needs-upgrade"
+    },
+    {
+      "file": "progressiveOpportunityRankingEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeProgressiveOpportunity",
+        "analyzeProgressiveOpportunityRankingBatch",
+        "summarizeProgressiveOpportunityRanking",
+        "writeProgressiveOpportunityReport"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
     },
     {
       "file": "projectChangeDetectionEngine.js",
@@ -1925,6 +2032,20 @@
       "wiredInPipeline": true,
       "advancedSignals": 6,
       "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "quietAccumulationEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeQuietAccumulation",
+        "analyzeQuietAccumulationBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 95,
       "status": "state-of-art-ready"
     },
     {
@@ -2148,6 +2269,83 @@
       "status": "state-of-art-ready"
     },
     {
+      "file": "sniperEvidenceFamilyEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "buildSniperEvidenceFamilies",
+        "analyzeSniperEvidenceFamilies",
+        "analyzeSniperEvidenceFamiliesBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "sniperIntegrityGateEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "analyzeSniperIntegrityGate",
+        "analyzeSniperIntegrityGateBatch",
+        "validateSniperIntegrityInvariants",
+        "summarizeSniperIntegrity"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "sniperLifecycleStateEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "buildSignalSequenceFeatures",
+        "analyzeSniperLifecycleState",
+        "analyzeSniperLifecycleStateBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 3,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "sniperOutcomeLabelEngine.js",
+      "category": "learning",
+      "exports": [
+        "createSniperOutcomeLabels",
+        "analyzeSniperOutcomeLabels",
+        "analyzeSniperOutcomeLabelsBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 1,
+      "readinessScore": 95,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "sniperPointInTimeEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "buildPointInTimeObservation",
+        "validatePointInTimeObservation",
+        "analyzeSniperPointInTime",
+        "analyzeSniperPointInTimeBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 2,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "socialAccelerationEngine.js",
       "category": "intelligence",
       "exports": [
@@ -2352,8 +2550,8 @@
       "hasBatch": false,
       "hasAnalyzer": true,
       "wiredInPipeline": false,
-      "advancedSignals": 3,
-      "readinessScore": 40,
+      "advancedSignals": 4,
+      "readinessScore": 45,
       "status": "needs-upgrade"
     },
     {
