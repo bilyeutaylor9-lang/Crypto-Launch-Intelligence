@@ -150,7 +150,8 @@
     "publish:dashboard": "node src/reports/githubPagesPublisher.js",
     "watchlist": "cat reports/watchlist.json",
     "summary": "cat reports/summary.txt",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "ai:brain": "node src/brain/runLocalBrain.js"
   },
   "engines": {
     "node": ">=20"
