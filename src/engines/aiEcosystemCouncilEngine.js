@@ -294,8 +294,8 @@ function applyBestCandidateFallback(projects = []) {
   });
 }
 
-export function analyzeAIEcosystemCouncil(project = {}) {
-  const performance = summarizeAgentPerformanceMemory();
+export function analyzeAIEcosystemCouncil(project = {}, options = {}) {
+  const performance = options.performance || summarizeAgentPerformanceMemory();
   const weights = project.agentPerformanceWeights || performance.weights || {};
   const agents = buildAgents(project);
   const riskOfficer = agents.find((item) => item.name === "Risk Officer");
@@ -369,7 +369,10 @@ export function analyzeAIEcosystemCouncil(project = {}) {
   };
 }
 
-export function analyzeAIEcosystemCouncilBatch(projects = []) {
-  const analyzed = (Array.isArray(projects) ? projects : []).map(analyzeAIEcosystemCouncil);
+export function analyzeAIEcosystemCouncilBatch(projects = [], options = {}) {
+  const performance = options.performance || summarizeAgentPerformanceMemory();
+  const analyzed = (Array.isArray(projects) ? projects : []).map((project) =>
+    analyzeAIEcosystemCouncil(project, { performance })
+  );
   return applyBestCandidateFallback(analyzed);
 }

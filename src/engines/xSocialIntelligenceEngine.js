@@ -1,4 +1,8 @@
-import { getWatchedProject, projectWatchId } from "../learning/projectWatchlistStore.js";
+import {
+  getWatchedProject,
+  loadProjectWatchStore,
+  projectWatchId,
+} from "../learning/projectWatchlistStore.js";
 
 const ANNOUNCEMENT_KEYWORDS = [
   "mainnet",
@@ -171,13 +175,13 @@ function buildChangeSignal(project = {}, watched = null) {
   };
 }
 
-export function analyzeXSocialIntelligence(project = {}) {
+export function analyzeXSocialIntelligence(project = {}, options = {}) {
   const text = normalizeText(project);
   const announcementHits = hits(text, ANNOUNCEMENT_KEYWORDS);
   const institutionalHits = hits(text, INSTITUTIONAL_KEYWORDS);
   const founderHits = hits(text, FOUNDER_KEYWORDS);
   const riskHits = hits(text, RISK_KEYWORDS);
-  const watched = getWatchedProject(project);
+  const watched = getWatchedProject(project, options.watchStore);
   const change = buildChangeSignal(project, watched);
 
   const announcementScore = clamp(announcementHits.length * 9, 0, 32);
@@ -257,6 +261,7 @@ export function analyzeXSocialIntelligence(project = {}) {
   };
 }
 
-export function analyzeXSocialIntelligenceBatch(projects = []) {
-  return projects.map(analyzeXSocialIntelligence);
+export function analyzeXSocialIntelligenceBatch(projects = [], options = {}) {
+  const watchStore = options.watchStore || loadProjectWatchStore();
+  return projects.map((project) => analyzeXSocialIntelligence(project, { watchStore }));
 }

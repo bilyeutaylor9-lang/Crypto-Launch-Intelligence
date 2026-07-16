@@ -4,6 +4,9 @@ import path from "path";
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "autonomous-research-memory.json");
 const MAX_RECORDS = Number(process.env.MAX_AUTONOMOUS_RESEARCH_RECORDS || 25000);
+let cachedMemory = null;
+let cachedMemoryMtimeMs = null;
+let cachedHistoryIndex = null;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -11,6 +14,22 @@ function num(value = 0) {
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function memoryMtimeMs() {
+  try {
+    return fs.statSync(MEMORY_FILE).mtimeMs;
+  } catch {
+    return null;
+  }
+}
+
+function emptyMemory() {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    records: [],
+  };
 }
 
 function projectId(project = {}) {
@@ -24,45 +43,64 @@ function projectId(project = {}) {
 
 function readMemory() {
   ensureDataDir();
+  const mtimeMs = memoryMtimeMs();
+  if (cachedMemory && cachedMemoryMtimeMs === mtimeMs) return cachedMemory;
 
-  if (!fs.existsSync(MEMORY_FILE)) {
-    return {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      records: [],
-    };
+  if (mtimeMs === null) {
+    cachedMemory = emptyMemory();
+    cachedMemoryMtimeMs = null;
+    cachedHistoryIndex = null;
+    return cachedMemory;
   }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
-    return {
+    cachedMemory = {
       version: parsed.version || 1,
       updatedAt: parsed.updatedAt || new Date().toISOString(),
       records: Array.isArray(parsed.records) ? parsed.records : [],
     };
+    cachedMemoryMtimeMs = mtimeMs;
+    cachedHistoryIndex = null;
+    return cachedMemory;
   } catch {
-    return {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      records: [],
-    };
+    cachedMemory = emptyMemory();
+    cachedMemoryMtimeMs = mtimeMs;
+    cachedHistoryIndex = null;
+    return cachedMemory;
   }
 }
 
 function writeMemory(memory = {}) {
   ensureDataDir();
+  const normalized = {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    records: (memory.records || []).slice(-MAX_RECORDS),
+  };
   fs.writeFileSync(
     MEMORY_FILE,
-    JSON.stringify(
-      {
-        version: 1,
-        updatedAt: new Date().toISOString(),
-        records: (memory.records || []).slice(-MAX_RECORDS),
-      },
-      null,
-      2
-    )
+    JSON.stringify(normalized, null, 2)
   );
+  cachedMemory = normalized;
+  cachedMemoryMtimeMs = memoryMtimeMs();
+  cachedHistoryIndex = null;
+}
+
+function historyIndex() {
+  const memory = readMemory();
+  if (cachedHistoryIndex) return cachedHistoryIndex;
+
+  cachedHistoryIndex = new Map();
+  for (const record of memory.records) {
+    const id = String(record.id || "").toLowerCase();
+    if (!id) continue;
+    const history = cachedHistoryIndex.get(id) || [];
+    history.push(record);
+    cachedHistoryIndex.set(id, history);
+  }
+
+  return cachedHistoryIndex;
 }
 
 function compactRun(project = {}) {
@@ -123,9 +161,7 @@ export function saveAutonomousResearchMemory(projects = []) {
 export function getProjectAutonomousResearchHistory(project = {}, limit = 25) {
   const id = typeof project === "string" ? String(project).toLowerCase() : projectId(project);
 
-  return readMemory()
-    .records.filter((record) => record.id === id)
-    .slice(-Number(limit || 25));
+  return (historyIndex().get(id) || []).slice(-Number(limit || 25));
 }
 
 export function summarizeAutonomousResearchMemory() {

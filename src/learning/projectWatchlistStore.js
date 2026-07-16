@@ -4,6 +4,8 @@ import path from "path";
 const DATA_DIR = path.resolve("data");
 const WATCHLIST_FILE = path.join(DATA_DIR, "project-watchlist.json");
 const MAX_HISTORY = Number(process.env.MAX_PROJECT_WATCH_HISTORY || 120);
+let cachedStore = null;
+let cachedMtimeMs = null;
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -12,7 +14,12 @@ function ensureDataDir() {
 function readStore() {
   ensureDataDir();
 
-  if (!fs.existsSync(WATCHLIST_FILE)) {
+  let mtimeMs = null;
+  try {
+    mtimeMs = fs.statSync(WATCHLIST_FILE).mtimeMs;
+  } catch {
+    cachedStore = null;
+    cachedMtimeMs = null;
     return {
       version: 1,
       updatedAt: null,
@@ -20,28 +27,30 @@ function readStore() {
     };
   }
 
+  if (cachedStore && cachedMtimeMs === mtimeMs) return cachedStore;
+
   try {
     const parsed = JSON.parse(fs.readFileSync(WATCHLIST_FILE, "utf8"));
-    return parsed?.projects ? parsed : { version: 1, updatedAt: null, projects: {} };
+    cachedStore = parsed?.projects ? parsed : { version: 1, updatedAt: null, projects: {} };
+    cachedMtimeMs = mtimeMs;
+    return cachedStore;
   } catch {
-    return { version: 1, updatedAt: null, projects: {} };
+    cachedStore = { version: 1, updatedAt: null, projects: {} };
+    cachedMtimeMs = mtimeMs;
+    return cachedStore;
   }
 }
 
 function writeStore(store = {}) {
   ensureDataDir();
-  fs.writeFileSync(
-    WATCHLIST_FILE,
-    JSON.stringify(
-      {
-        version: 1,
-        updatedAt: new Date().toISOString(),
-        projects: store.projects || {},
-      },
-      null,
-      2
-    )
-  );
+  const normalized = {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    projects: store.projects || {},
+  };
+  fs.writeFileSync(WATCHLIST_FILE, JSON.stringify(normalized, null, 2));
+  cachedStore = normalized;
+  cachedMtimeMs = fs.statSync(WATCHLIST_FILE).mtimeMs;
 }
 
 export function projectWatchId(project = {}) {
@@ -57,9 +66,9 @@ export function loadProjectWatchStore() {
   return readStore();
 }
 
-export function getWatchedProject(project = {}) {
-  const store = readStore();
-  return store.projects[projectWatchId(project)] || null;
+export function getWatchedProject(project = {}, store = null) {
+  const resolvedStore = store?.projects ? store : readStore();
+  return resolvedStore.projects[projectWatchId(project)] || null;
 }
 
 function compactWatchRecord(project = {}) {

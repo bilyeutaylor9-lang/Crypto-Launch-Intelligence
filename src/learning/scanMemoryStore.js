@@ -69,15 +69,43 @@ function tokenId(project = {}) {
 
 function compactEvidence(evidence = []) {
   return Array.isArray(evidence)
-    ? evidence.slice(-20).map((item) => ({
+    ? evidence.slice(-12).map((item) => ({
         engine: item.engine,
-        signal: item.signal,
+        signal: compactText(item.signal, 240),
         score: item.score,
         confidence: item.confidence,
         impact: item.impact,
-        reasons: item.reasons || item.details?.reasons || [],
+        reasons: compactTextList(item.reasons || item.details?.reasons || [], 4, 180),
       }))
     : [];
+}
+
+function compactText(value, maxLength = 480) {
+  const text = String(value ?? "");
+  return text.length > maxLength ? `${text.slice(0, Math.max(0, maxLength - 23))}[truncated for memory]` : text;
+}
+
+function compactTextList(values = [], limit = 12, maxLength = 240) {
+  const items = Array.isArray(values) ? values : [values];
+  return items
+    .slice(0, limit)
+    .map((item) => {
+      if (typeof item === "string" || typeof item === "number") return compactText(item, maxLength);
+      if (!item || typeof item !== "object") return "";
+      return compactText(item.label || item.reason || item.signal || item.title || item.name || "", maxLength);
+    })
+    .filter(Boolean);
+}
+
+function compactCatalyst(value = null) {
+  if (!value || typeof value !== "object") return value ? compactText(value, 240) : null;
+
+  return {
+    title: compactText(value.title || value.name || value.summary || "", 240),
+    date: value.date || value.timestamp || value.expectedAt || null,
+    status: value.status || null,
+    source: value.source || null,
+  };
 }
 
 export function createScanRecord(project = {}) {
@@ -226,122 +254,58 @@ export function createScanRecord(project = {}) {
     },
 
     signals: {
-      intelligenceSignals: project.intelligenceSignals || {},
-      strongestCatalyst: project.strongestCatalyst || project.nextCatalyst || null,
-      prePumpReasons: project.prePump?.reasons || [],
-      alerts: project.alerts || [],
-      alphaTags: project.alphaTags || [],
-      riskFlags: project.riskFlags || [],
-      opportunityThesis: project.opportunityThesis || null,
-      researchChecklist: project.researchChecklist || [],
-      invalidationSignals: project.invalidationSignals || [],
-      xSocialSignals: project.xSocialSignals || {},
-      externalIntelligence: project.externalIntelligence || {},
-      institutionalLearning: project.institutionalLearning || {},
-      outcomeLearning: project.outcomeLearning || {},
-      prePumpPattern: project.prePumpPattern || {},
-      prePumpPatternConfidence: project.prePumpPatternConfidence || null,
+      snapshotVersion: 2,
+      strongestCatalyst: compactCatalyst(project.strongestCatalyst || project.nextCatalyst),
+      prePumpReasons: compactTextList(project.prePump?.reasons, 8),
+      alerts: compactTextList(project.alerts, 12),
+      alphaTags: compactTextList(project.alphaTags, 16),
+      riskFlags: compactTextList(project.riskFlags, 16),
+      opportunityThesis: compactText(project.opportunityThesis, 600) || null,
+      researchChecklist: compactTextList(project.researchChecklist, 10),
+      invalidationSignals: compactTextList(project.invalidationSignals, 10),
+      externalIntelligence: {
+        narrativeHits: compactTextList(project.externalIntelligence?.narrativeHits, 12),
+        sourceCount: num(project.externalIntelligence?.sourceCount),
+        riskSignals: compactTextList(project.externalIntelligence?.riskSignals, 8),
+      },
       dataConfidence: project.dataConfidence || null,
-      dataConfidenceScore: project.dataConfidenceScore || 0,
-      dataConfidenceBreakdown: project.dataConfidenceBreakdown || {},
-      signalCombinations: project.signalCombinations || {},
-      outcomeCalibration: project.outcomeCalibration || {},
-      calibrationSignals: project.calibrationSignals || [],
-      calibrationRiskSignals: project.calibrationRiskSignals || [],
-      aiThesis: project.aiThesis || {},
+      dataConfidenceScore: num(project.dataConfidenceScore),
       aiDecision: project.aiDecision || null,
       aiConfidence: project.aiConfidence || null,
-      institutionalVNext: project.institutionalVNext || {},
-      institutionalConfidenceLevel: project.institutionalConfidenceLevel || null,
-      dynamicEngineWeights: project.dynamicEngineWeights || {},
-      explainabilitySummary: project.explainabilitySummary || null,
-      winningSignalCombinations: project.winningSignalCombinations || [],
-      trapSignalCombinations: project.trapSignalCombinations || [],
-      quantumOutcomeField: project.quantumOutcomeField || {},
+      explainabilitySummary: compactText(project.explainabilitySummary, 600) || null,
+      quantumOutcomeField: {
+        collapseProbability: num(project.quantumOutcomeField?.collapseProbability),
+      },
       evidence: compactEvidence(project.evidence),
-      aiEcosystemCouncil: project.aiEcosystemCouncil || {},
       strongBuyLifecycleStage: project.strongBuyLifecycleStage || null,
-      strongBuyEvidenceGate: project.strongBuyEvidenceGate || {},
-      whyNow: project.whyNow || {},
-      redTeamReview: project.redTeamReview || {},
-      aiDisagreement: project.aiDisagreement || {},
-      alphaLabStrategies: project.alphaLabStrategies || [],
-      multiTimeframeIntelligence: project.multiTimeframeIntelligence || {},
-      quantumReasoningBrain: project.quantumReasoningBrain || {},
-      knowledgeGraph: project.knowledgeGraph || {},
-      marketRegimeGovernor: project.marketRegimeGovernor || {},
-      autonomousMarketScientist: project.autonomousMarketScientist || {},
-      causalHypotheses: project.causalHypotheses || [],
-      counterfactualAnalysis: project.counterfactualAnalysis || [],
-      falsePositiveAutopsy: project.falsePositiveAutopsy || {},
-      selfTrainingMarketSimulationBrain: project.selfTrainingMarketSimulationBrain || {},
-      outcomeJudgement: project.outcomeJudgement || {},
-      liveCatalystRadar: project.liveCatalystRadar || {},
-      liveCatalystEvents: project.liveCatalystEvents || [],
-      projectDossierSwarm: project.projectDossierSwarm || null,
-      autonomousStrategyLab: project.autonomousStrategyLab || {},
-      bestAutonomousStrategy: project.bestAutonomousStrategy || null,
-      paperTradingPlan: project.paperTradingPlan || {},
-      causalAlphaBrain: project.causalAlphaBrain || {},
-      causalSignalGraph: project.causalSignalGraph || {},
-      causalCounterfactuals: project.causalCounterfactuals || [],
-      autonomousAlphaOS: project.autonomousAlphaOS || {},
-      autonomousAlphaOSCouncil: project.autonomousAlphaOSCouncil || {},
-      paperTradingOutcomeLab: project.paperTradingOutcomeLab || {},
-      autoLearningWeightOptimizer: project.autoLearningWeightOptimizer || {},
-      sourceTruth: project.sourceTruth || {},
-      githubIntelligencePro: project.githubIntelligencePro || {},
-      organicDemandIntegrity: project.organicDemandIntegrity || {},
-      organicDemandVerdict: project.organicDemandVerdict || null,
-      economicIntegrityBlockers: project.economicIntegrityBlockers || [],
-      hardExitLiquidityUsd: project.hardExitLiquidityUsd || 0,
-      autonomousResearchOrchestrator: project.autonomousResearchOrchestrator || {},
-      evidenceGraph: project.evidenceGraph || {},
-      alphaKnowledgeGraph: project.alphaKnowledgeGraph || {},
-      causalMarketTwin: project.causalMarketTwin || {},
-      smallCapHunter: project.smallCapHunter || {},
-      smallCapHunterSelected: Boolean(project.smallCapHunterSelected),
-      smallCapHunterSelectionRank: project.smallCapHunterSelectionRank || null,
-      proofOfAlphaExecutionTwin: project.proofOfAlphaExecutionTwin || {},
-      proofOfAlphaExecutionTwinSelected: Boolean(project.proofOfAlphaExecutionTwinSelected),
-      proofOfAlphaExecutionTwinRank: project.proofOfAlphaExecutionTwinRank || null,
       finalSelectionState: project.finalSelectionState || null,
       finalSelectionQualified: Boolean(project.finalSelectionQualified),
-      finalIntegrityScore: project.finalIntegrityScore || 0,
+      finalIntegrityScore: num(project.finalIntegrityScore),
       finalIntegrityVerdict: project.finalIntegrityVerdict || null,
-      finalBlockingReasons: project.finalBlockingReasons || [],
-      finalWarningReasons: project.finalWarningReasons || [],
+      finalBlockingReasons: compactTextList(project.finalBlockingReasons, 8),
+      finalWarningReasons: compactTextList(project.finalWarningReasons, 8),
       finalIdentityState: project.finalIdentityState || null,
       permanentProjectKey: project.permanentProjectKey || null,
-      selectionAuditTrail: project.selectionAuditTrail || [],
-      preConsensusBreakoutHunter: project.preConsensusBreakoutHunter || {},
       preConsensusRank: project.preConsensusRank || null,
       preConsensusCandidateType: project.preConsensusCandidateType || null,
       preConsensusTier: project.preConsensusTier || null,
-      preConsensusOpportunityScore: project.preConsensusOpportunityScore || 0,
-      regimeAdjustedOpportunityScore: project.regimeAdjustedOpportunityScore || 0,
-      informationAdvantageScore: project.informationAdvantageScore || 0,
+      preConsensusOpportunityScore: num(project.preConsensusOpportunityScore),
+      regimeAdjustedOpportunityScore: num(project.regimeAdjustedOpportunityScore),
+      informationAdvantageScore: num(project.informationAdvantageScore),
       quietAccumulationDetected: Boolean(project.quietAccumulationDetected),
-      quietAccumulationScore: project.quietAccumulationScore || 0,
+      quietAccumulationScore: num(project.quietAccumulationScore),
       preBreakoutMomentumStage: project.preBreakoutMomentumStage || null,
-      antiManipulationConfidenceScore: project.antiManipulationConfidenceScore || 0,
-      signalPersistenceScore: project.signalPersistenceScore || 0,
-      sniperIntegrityGate: project.sniperIntegrityGate || {},
+      antiManipulationConfidenceScore: num(project.antiManipulationConfidenceScore),
+      signalPersistenceScore: num(project.signalPersistenceScore),
       sniperState: project.sniperState || null,
       sniperQualified: Boolean(project.sniperQualified),
-      sniperScore: project.sniperScore || 0,
-      confidenceAdjustedSniperScore: project.confidenceAdjustedSniperScore || 0,
+      sniperScore: num(project.sniperScore),
+      confidenceAdjustedSniperScore: num(project.confidenceAdjustedSniperScore),
       sniperConfidence: project.sniperConfidence || null,
-      sniperReasons: project.sniperReasons || [],
-      sniperBlockingReasons: project.sniperBlockingReasons || [],
-      sniperWarningReasons: project.sniperWarningReasons || [],
-      sniperEvidenceFamilies: project.sniperEvidenceFamilies || {},
-      sniperEvidenceFamilySummary: project.sniperEvidenceFamilySummary || {},
-      sniperSignalSequence: project.sniperSignalSequence || {},
-      pointInTimeObservation: project.pointInTimeObservation || {},
-      pointInTimeStatus: project.pointInTimeStatus || null,
+      sniperReasons: compactTextList(project.sniperReasons, 8),
+      sniperBlockingReasons: compactTextList(project.sniperBlockingReasons, 8),
       primarySniperOutcomeLabel: project.primarySniperOutcomeLabel || null,
-      sniperOutcomeLabels: project.sniperOutcomeLabels || {},
+      pointInTimeStatus: project.pointInTimeStatus || null,
     },
 
     futureOutcomes: {

@@ -4,6 +4,8 @@ import path from "path";
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "agent-performance-memory.json");
 const MAX_RECORDS = Number(process.env.MAX_AGENT_PERFORMANCE_RECORDS || 25000);
+let cachedSummary = null;
+let cachedSummaryMtimeMs = null;
 
 const DEFAULT_AGENTS = [
   "Narrative Scout",
@@ -36,6 +38,14 @@ const DEFAULT_AGENTS = [
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function memoryMtimeMs() {
+  try {
+    return fs.statSync(MEMORY_FILE).mtimeMs;
+  } catch {
+    return null;
+  }
 }
 
 function readMemory() {
@@ -83,6 +93,8 @@ function writeMemory(memory = {}) {
       2
     )
   );
+  cachedSummary = null;
+  cachedSummaryMtimeMs = null;
 }
 
 function projectId(project = {}) {
@@ -119,6 +131,9 @@ export function loadAgentPerformanceMemory() {
 }
 
 export function summarizeAgentPerformanceMemory() {
+  const mtimeMs = memoryMtimeMs();
+  if (cachedSummary && cachedSummaryMtimeMs === mtimeMs) return cachedSummary;
+
   const memory = readMemory();
   const stats = emptyAgentStats();
 
@@ -190,13 +205,16 @@ export function summarizeAgentPerformanceMemory() {
     };
   });
 
-  return {
+  cachedSummary = {
     file: MEMORY_FILE,
     records: memory.records.length,
     outcomes: memory.outcomes.length,
     agents,
     weights: Object.fromEntries(agents.map((agent) => [agent.name, agent.weight])),
   };
+  cachedSummaryMtimeMs = mtimeMs;
+
+  return cachedSummary;
 }
 
 export function saveAgentCouncilMemory(projects = []) {
