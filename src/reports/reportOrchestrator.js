@@ -40,6 +40,7 @@ import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
 import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
 import { writeInstitutionalDataProvenanceReport } from "./institutionalDataProvenanceReportEngine.js";
+import { writeProgressiveOpportunityReport } from "./progressiveOpportunityReportEngine.js";
 import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
@@ -161,6 +162,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: institutionalDataProvenancePath,
   } = writeInstitutionalDataProvenanceReport(projects);
   const {
+    filePath: progressiveOpportunitiesPath,
+  } = writeProgressiveOpportunityReport(projects);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -245,6 +249,7 @@ export function generateReports(projects = [], meta = {}) {
     universeLedgerPath,
     integrityStackPath,
     institutionalDataProvenancePath,
+    progressiveOpportunitiesPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

@@ -82,6 +82,36 @@ function candidateRows(projects = [], emptyMessage = "No qualified candidates") 
     .join("");
 }
 
+function progressiveRows(projects = [], emptyMessage = "No projects") {
+  if (!projects.length) {
+    return `
+      <tr>
+        <td colspan="11" class="empty">${esc(emptyMessage)}</td>
+      </tr>
+    `;
+  }
+
+  return projects
+    .map(
+      (p, index) => `
+        <tr>
+          <td>${esc(p.bestAvailableRank || p.opportunityRank || index + 1)}</td>
+          <td>${esc(p.name || "Unknown")}</td>
+          <td>${esc(p.symbol || "")}</td>
+          <td>${esc(p.chain || p.finalChain || "")}</td>
+          <td><strong>${esc(p.progressiveOpportunityScore ?? p.opportunityScoreV2 ?? "")}</strong></td>
+          <td><strong>${esc(p.trustScore ?? p.progressiveTrustScore ?? "")}</strong></td>
+          <td>${esc(p.opportunityRankingTier || "")}</td>
+          <td>${esc(p.finalSelectionState || "")}</td>
+          <td>${listText(p.opportunityWhyNowSignals || [])}</td>
+          <td>${listText(p.missingEvidence || [])}</td>
+          <td>${listText(p.opportunityHardBlockers || [])}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
 function preConsensusRows(projects = [], emptyMessage = "No projects") {
   if (!projects.length) {
     return `
@@ -175,6 +205,21 @@ export function writeHtmlReport(projects = []) {
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const ranked = [...projects].sort((a, b) => scoreOf(b) - scoreOf(a));
+  const progressiveRanked = [...projects]
+    .filter((project) => project.opportunityRankingTier)
+    .sort(
+      (a, b) =>
+        Number(b.progressiveOpportunityScore || b.opportunityScoreV2 || 0) -
+          Number(a.progressiveOpportunityScore || a.opportunityScoreV2 || 0) ||
+        Number(b.trustScore || 0) - Number(a.trustScore || 0)
+    );
+  const bestAvailableOpportunities = progressiveRanked.filter((project) => project.bestAvailableEligible);
+  const sniperReadyOpportunities = progressiveRanked.filter((project) => project.opportunityRankingTier === "SNIPER_READY");
+  const earlyHighConvictionOpportunities = progressiveRanked.filter((project) => project.opportunityRankingTier === "EARLY_HIGH_CONVICTION");
+  const emergingRadarOpportunities = progressiveRanked.filter((project) => project.opportunityRankingTier === "EMERGING_RADAR");
+  const speculativeSignalOpportunities = progressiveRanked.filter((project) => project.opportunityRankingTier === "SPECULATIVE_SIGNAL");
+  const progressiveBlockedOpportunities = progressiveRanked.filter((project) => project.opportunityRankingTier === "BLOCKED");
+  const progressiveMissingEvidence = bestAvailableOpportunities.filter((project) => (project.missingEvidence || []).length);
   const qualifiedCandidates = ranked.filter(qualifiedForDashboard);
   const executionVerifiedCandidates = qualifiedCandidates.filter(
     (project) => project.executionVerifiedSelected || project.proofOfAlphaExecutionTwinSelected
@@ -517,6 +562,26 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
+      <h2>${bestAvailableOpportunities.length}</h2>
+      <p>Best-Available Research Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>${earlyHighConvictionOpportunities.length}</h2>
+      <p>Early High-Conviction Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>${emergingRadarOpportunities.length}</h2>
+      <p>Emerging Radar Leads</p>
+    </div>
+
+    <div class="card">
+      <h2>${progressiveMissingEvidence.length}</h2>
+      <p>Missing-Evidence Tasks</p>
+    </div>
+
+    <div class="card">
       <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
       <p>Qualified Small-Cap Candidates</p>
     </div>
@@ -566,6 +631,46 @@ export function writeHtmlReport(projects = []) {
       <p>Low-Fragility Causal Cases</p>
     </div>
   </div>
+
+  <h2 class="section-title">Final Qualified - Progressive Ladder</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>${progressiveRows(sniperReadyOpportunities.slice(0, 5), "No SNIPER_READY candidates currently exist")}</tbody>
+  </table>
+
+  <h2 class="section-title">Best Available Opportunities</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>${progressiveRows(bestAvailableOpportunities.slice(0, 20), "No best-available candidates")}</tbody>
+  </table>
+
+  <h2 class="section-title">Emerging Signals</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>${progressiveRows([...emergingRadarOpportunities, ...speculativeSignalOpportunities].slice(0, 40), "No emerging or speculative signals")}</tbody>
+  </table>
+
+  <h2 class="section-title">Blocked By Progressive Safety Checks</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Opp</th><th>Trust</th><th>Tier</th><th>Final</th><th>Why Now</th><th>Missing Proof</th><th>Hard Blockers</th>
+      </tr>
+    </thead>
+    <tbody>${progressiveRows(progressiveBlockedOpportunities.slice(0, 40), "No progressive hard blocks")}</tbody>
+  </table>
 
   <h2 class="section-title">Autonomous Causal Alpha Network</h2>
   <table>

@@ -9,6 +9,7 @@ import { summarizeSmallCapHunter } from "../engines/smallCapHunterEngine.js";
 import { summarizeProofOfAlphaExecutionTwin } from "../engines/proofOfAlphaExecutionTwinEngine.js";
 import { summarizeOrganicDemandIntegrity } from "../engines/organicDemandIntegrityEngine.js";
 import { summarizeInstitutionalDataProvenance } from "../kernel/institutionalDataProvenanceLedger.js";
+import { summarizeProgressiveOpportunityRanking } from "../engines/progressiveOpportunityRankingEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -32,6 +33,14 @@ function compact(project = {}) {
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
     pipelineScore: project.pipelineScore || 0,
+    progressiveOpportunityScore: project.progressiveOpportunityScore || project.opportunityScoreV2 || 0,
+    trustScore: project.trustScore || project.progressiveTrustScore || 0,
+    opportunityRankingTier: project.opportunityRankingTier || "UNKNOWN",
+    bestAvailableRank: project.bestAvailableRank || null,
+    opportunityConfidence: project.opportunityConfidence || "Unknown",
+    opportunityWhyNowSignals: (project.opportunityWhyNowSignals || []).slice(0, 5),
+    missingEvidence: (project.missingEvidence || []).slice(0, 5),
+    opportunityHardBlockers: (project.opportunityHardBlockers || []).slice(0, 5),
     finalSelectionState: project.finalSelectionState || "UNKNOWN",
     finalSelectionQualified: Boolean(project.finalSelectionQualified),
     finalIntegrityScore: project.finalIntegrityScore || 0,
@@ -99,6 +108,7 @@ export function buildAlphaDashboardV2(projects = []) {
   const executionTwin = summarizeProofOfAlphaExecutionTwin(safeProjects);
   const organicIntegrity = summarizeOrganicDemandIntegrity(safeProjects);
   const institutionalDataProvenance = summarizeInstitutionalDataProvenance(safeProjects);
+  const progressiveOpportunities = summarizeProgressiveOpportunityRanking(safeProjects);
   const qualifiedCandidates = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED");
   const blockedCandidates = safeProjects.filter((project) => project.finalSelectionState === "BLOCKED");
   const identityConflicts = safeProjects.filter((project) => project.finalSelectionState === "IDENTITY_CONFLICT");
@@ -106,6 +116,9 @@ export function buildAlphaDashboardV2(projects = []) {
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
+        num(b.progressiveOpportunityScore || b.opportunityScoreV2) -
+          num(a.progressiveOpportunityScore || a.opportunityScoreV2) ||
+        num(b.trustScore) - num(a.trustScore) ||
         num(b.autoLearningWeightScore || b.autonomousAlphaOSScore) -
         num(a.autoLearningWeightScore || a.autonomousAlphaOSScore) ||
         num(b.causalMarketTwinScore || b.alphaKnowledgeGraphScore) -
@@ -128,9 +141,19 @@ export function buildAlphaDashboardV2(projects = []) {
       smallCapResearchPicks: smallCapHunter.topTwo || [],
       executionTwinPicks: executionTwin.topExecutions || [],
       qualifiedCandidates: qualifiedCandidates.map(compact).slice(0, 10),
+      bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
+      emergingSignals: progressiveOpportunities.emergingRadar || [],
+      speculativeSignals: progressiveOpportunities.speculativeSignals || [],
       organicIntegrityBlocks: organicIntegrity.institutionalBlocks || 0,
     },
     counts: {
+      sniperReady: progressiveOpportunities.counts?.sniperReady || 0,
+      earlyHighConviction: progressiveOpportunities.counts?.earlyHighConviction || 0,
+      emergingRadar: progressiveOpportunities.counts?.emergingRadar || 0,
+      speculativeSignal: progressiveOpportunities.counts?.speculativeSignal || 0,
+      bestAvailableOpportunities: progressiveOpportunities.counts?.bestAvailable || 0,
+      emergingDiscoveryAI: progressiveOpportunities.counts?.emergingDiscoveryAI || 0,
+      missingEvidenceQueue: progressiveOpportunities.counts?.missingEvidence || 0,
       alphaOSStrongBuy: alphaOS.counts?.strongBuyResearch || 0,
       alphaOSBestAvailable: alphaOS.counts?.bestAvailable || 0,
       alphaOSPriority: alphaOS.counts?.priorityResearch || 0,
@@ -164,6 +187,15 @@ export function buildAlphaDashboardV2(projects = []) {
       tradableAnomalies: organicIntegrity.tradableAnomalies || 0,
     },
     topCandidates,
+    finalQualifiedCandidates: progressiveOpportunities.sniperReady || [],
+    bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
+    emergingSignals: progressiveOpportunities.emergingRadar || [],
+    speculativeSignals: progressiveOpportunities.speculativeSignals || [],
+    blockedProjects: progressiveOpportunities.blockedProjects || [],
+    localAIActivity: progressiveOpportunities.localAIActivity || {},
+    missingEvidenceQueue: progressiveOpportunities.missingEvidenceQueue || [],
+    predictionPerformance: progressiveOpportunities.predictionPerformance || {},
+    progressiveOpportunities,
     smallCapHunter,
     executionTwin,
     organicIntegrity,

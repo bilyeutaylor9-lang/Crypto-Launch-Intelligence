@@ -21,6 +21,7 @@ This is not a simple token screener. It is a layered research system with:
 - Discovery Decision Engine with project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted ranking, and missed-winner lab
 - Evidence-Calibrated Parallel Intelligence Kernel with engine contracts, evidence ledgers, calibrated scores, and final decision overrides
 - Institutional Data Provenance Ledger for source, timestamp, confidence, observation type, source agreement, and promotion readiness
+- Progressive Opportunity Ranking that separates early-movement opportunity from trust, safety, execution, and missing-proof checks
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -99,6 +100,7 @@ npm run small-caps
 npm run execution-twin
 npm run organic-integrity
 npm run provenance
+npm run alpha:opportunities
 npm run discovery-truth
 npm run native-mesh
 npm run native-report
@@ -133,6 +135,7 @@ The system does not trust one score. It builds a full research case:
 - Dashboard publishing: turns every scan into a public GitHub Pages intelligence dashboard.
 - Self-auditing kernel: checks engine contracts, evidence coverage, source independence, identity confidence, safety gates, and final-decision provenance.
 - Institutional provenance: requires source lineage, freshness, direct observation, and cross-source agreement before a project can receive institutional-ready data status.
+- Progressive opportunity ranking: always shows the strongest non-hard-blocked best-available leads while preserving strict final safety gates.
 
 ## System Architecture
 
@@ -177,6 +180,7 @@ The project now behaves like a miniature autonomous research organization.
 | Self-Evolving Alpha OS | Builds identity graphs, world models, hypotheses, experiments, agent society debate, autopsy, regime adaptation, and thesis output | `reports/self-evolving-alpha-os.json` |
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
+| Progressive Opportunity Ranking | Splits Opportunity Score from Trust Score, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
@@ -629,6 +633,7 @@ Every scan can generate a full research packet:
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
+| `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, best-available opportunities, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
 | `reports/source-truth.json` | Provider trust and source agreement |
 | `reports/github-intelligence-pro.json` | Repository quality and builder signal report |
 | `reports/simulation-brain.json` | Market-memory analogs and scenario simulation |

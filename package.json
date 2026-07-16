@@ -134,6 +134,8 @@
     "alpha:kernel": "cat reports/evidence-kernel.json",
     "provenance": "cat reports/institutional-data-provenance.json",
     "alpha:provenance": "cat reports/institutional-data-provenance.json",
+    "opportunities:progressive": "cat reports/progressive-opportunities.json",
+    "alpha:opportunities": "cat reports/progressive-opportunities.json",
     "integrity-stack": "cat reports/integrity-stack.json",
     "alpha:integrity": "cat reports/integrity-stack.json",
     "discovery-truth": "cat reports/discovery-truth.json",

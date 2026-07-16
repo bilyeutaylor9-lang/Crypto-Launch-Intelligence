@@ -58,6 +58,7 @@ const PUBLIC_REPORTS = [
   "universe-ledger.json",
   "integrity-stack.json",
   "institutional-data-provenance.json",
+  "progressive-opportunities.json",
   "op-mode-readiness.json",
   "evidence-kernel.json",
   "source-truth.json",
@@ -125,6 +126,7 @@ function writeLandingPage(copiedFiles = []) {
   const universeLedger = readJsonReport("universe-ledger.json") || {};
   const integrityStack = readJsonReport("integrity-stack.json") || {};
   const institutionalProvenance = readJsonReport("institutional-data-provenance.json") || {};
+  const progressiveOpportunities = readJsonReport("progressive-opportunities.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
   const evidenceKernel = readJsonReport("evidence-kernel.json") || {};
   const githubPro = readJsonReport("github-intelligence-pro.json") || {};
@@ -143,6 +145,12 @@ function writeLandingPage(copiedFiles = []) {
     .join("");
   const cards = [
     ["Projects", report.totalProjects ?? 0],
+    ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? "N/A"],
+    ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
+    ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? "N/A"],
+    ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? "N/A"],
+    ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? "N/A"],
+    ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "N/A"],
     ["AI Candidate", topCouncil.symbol || topProject.symbol || "N/A"],
     ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? "N/A"],
     ["Simulation", topSimulation.symbol || topProject.symbol || "N/A"],
@@ -465,6 +473,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Source Router:</strong> learns which free providers are healthy and useful.</li>
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
+          <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
       </div>
@@ -509,6 +518,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
+        <a class="button" href="./progressive-opportunities.json">Opportunities</a>
         <a class="button" href="./alerts.json">Alerts</a>
       </div>
     </div>

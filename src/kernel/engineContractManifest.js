@@ -293,6 +293,28 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: true,
   },
   {
+    id: "progressiveOpportunityRanking",
+    phase: "ranking",
+    priority: 135,
+    module: "./engines/progressiveOpportunityRankingEngine.js",
+    exportName: "analyzeProgressiveOpportunityRankingBatch",
+    dependsOn: ["sourceTruth", "sniperIntegrityGate", "proofOfAlphaExecutionTwin"],
+    inputContract: {
+      requiredAny: [["pipelineScore", "accelerationScore", "liquidityExpansionScore", "sourceTruthScore"]],
+      optional: ["finalSelectionState", "purchaseRouteConfirmed", "institutionalDataProvenanceScore"],
+    },
+    outputContract: {
+      requiredAny: [["opportunityRankingTier", "bestAvailableEligible", "missingEvidence"]],
+      scoreFields: ["progressiveOpportunityScore", "trustScore", "opportunityEvidenceCoverage"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: false,
+    canBlockCandidate: true,
+  },
+  {
     id: "alphaEvolutionGovernor",
     phase: "governor",
     priority: 140,
