@@ -151,6 +151,7 @@
     "evolution-memory": "node src/learning/alphaEvolutionMemoryStore.js",
     "roadmap": "node src/roadmap.js",
     "engine:audit": "node src/engineHealthCheck.js",
+    "engine:audit:full": "node src/engineHealthCheck.js --full",
     "engine:audit:json": "cat reports/engine-audit.json",
     "publish:dashboard": "node src/reports/githubPagesPublisher.js",
     "watchlist": "cat reports/watchlist.json",
