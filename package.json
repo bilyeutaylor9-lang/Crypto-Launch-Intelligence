@@ -66,6 +66,7 @@
     "alert-performance": "cat reports/watchtower-performance.json",
     "state-signals": "cat reports/state-of-art-signals.json",
     "ai-council": "cat reports/ai-council.json",
+    "ai:brain": "node src/brain/runLocalBrain.js",
     "agent-performance": "cat reports/agent-performance.json",
     "agent-memory": "node src/learning/agentPerformanceMemoryStore.js",
     "research-os": "cat reports/research-os.json",
