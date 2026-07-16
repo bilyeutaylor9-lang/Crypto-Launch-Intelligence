@@ -8,6 +8,7 @@ export function writeDiscoveryTruthReport(meta = {}) {
 
   const discovery = meta.discovery || {};
   const coverage = discovery.discoveryCoverage || {};
+  const frontier = discovery.discoveryFrontier || {};
   const audit = discovery.sourceCapabilityAudit || {};
   const sourceManifest = discovery.sourceManifest || audit.sources || getSourceManifest();
   const report = {
@@ -22,6 +23,7 @@ export function writeDiscoveryTruthReport(meta = {}) {
     rejectedCount: discovery.rejectedCount || 0,
     sourceCapabilityAudit: audit,
     discoveryCoverage: coverage,
+    discoveryFrontier: frontier,
     sourceManifest,
     sourceRouter: discovery.sourceRouter || {},
     shadowRejectedCandidates: discovery.shadowRejectedCandidates || coverage.shadowRejected || [],
@@ -31,6 +33,7 @@ export function writeDiscoveryTruthReport(meta = {}) {
       "Discovery priority does not reward absolute market cap.",
       "Rejected candidates remain visible in the shadow watchlist for recall analysis.",
       "FDV, estimated market cap, and circulating market cap are kept separate.",
+      "Configured sources and declared native protocols do not count as observed coverage until they return a candidate with a concrete chain identity.",
     ],
     nextNativeConnectors: [
       "EVM factory PairCreated/PoolCreated listeners",

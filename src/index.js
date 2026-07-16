@@ -160,6 +160,13 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `Discovery Coverage: ${discovery.candidateSelection.selectedCount || 0}/${discovery.candidateSelection.uniqueCandidateCount || 0} selected | Coverage Reserve: ${discovery.candidateSelection.selectedByReason?.COVERAGE_RESERVE || 0} | Deferred: ${discovery.candidateSelection.deferredCount || 0}`
     );
   }
+  if (discovery.discoveryFrontier) {
+    const frontier = discovery.discoveryFrontier;
+    const native = frontier.nativeProtocolCoverage || {};
+    console.log(
+      `Discovery Frontier: ${frontier.observedChainCount || 0}/${frontier.targetChainCount || 0} declared chains observed | Native routes: ${native.configured || 0}/${native.total || 0} configured | Critical gaps: ${frontier.criticalGapCount || 0}`
+    );
+  }
   if (discovery.candidateRescue) {
     console.log(
       `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`

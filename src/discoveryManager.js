@@ -22,6 +22,7 @@ import {
 import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
 import { identityKeyForProject, attachProjectIdentity } from "./discovery/projectIdentityGraph.js";
 import { buildSourceCapabilityAudit } from "./discovery/sourceCapabilityAudit.js";
+import { buildDiscoveryFrontier } from "./discovery/discoveryFrontierEngine.js";
 import {
   getSourceRoutingPlan,
   saveSourceRoutingOutcome,
@@ -1084,6 +1085,12 @@ export async function runDiscoveryManager(options = {}) {
     rejected: qualityGate.rejected,
     limited: candidatePool,
     sourceReports: discovery.sourceReports,
+  });
+  discovery.discoveryFrontier = buildDiscoveryFrontier({
+    projects: ledgerPool,
+    sourceReports: discovery.sourceReports,
+    sourceManifest: discovery.sourceCapabilityAudit.sources,
+    nativeCoverage: nativeDiscovery.output?.report?.protocolCoverage,
   });
   discovery.shadowRejectedCandidates = discovery.discoveryCoverage.shadowRejected;
   discovery.sourceManifest = discovery.sourceCapabilityAudit.sources;

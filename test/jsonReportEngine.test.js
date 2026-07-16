@@ -21,6 +21,15 @@ test("JSON report summarizes wide discovery without serializing raw candidate po
         providerHealth: { healthy: 2, total: 3 },
         sourceReports: { dexscreener: { status: "SUCCESS", scannedTokens: 80 } },
         discoveryCoverage: { rawCount: 80, shadowRejected: rawCandidates },
+        discoveryFrontier: {
+          targetChainCount: 2,
+          observedChainCount: 1,
+          scopeCoveragePct: 50,
+          nativeProtocolCoverage: { total: 4, configured: 2, unconfigured: 2 },
+          criticalGapCount: 1,
+          criticalGaps: [{ chain: "solana", code: "NO_LIVE_CANDIDATES" }],
+          chains: [{ chain: "base", state: "NATIVE_OBSERVED", candidateCount: 2 }],
+        },
         universeLedger: { status: "OK", savedProjects: 80, totals: { promoted: 2 } },
       },
     }
@@ -32,6 +41,8 @@ test("JSON report summarizes wide discovery without serializing raw candidate po
   assert.equal(report.meta.discovery.candidateCount, 80);
   assert.equal(report.meta.discovery.shadowRejectedCandidateCount, 80);
   assert.equal(report.meta.discovery.discoveryCoverage.shadowRejectedCount, 80);
+  assert.equal(report.meta.discovery.discoveryFrontier.scopeCoveragePct, 50);
+  assert.equal(report.meta.discovery.discoveryFrontier.chains[0].state, "NATIVE_OBSERVED");
   assert.equal(report.meta.discovery.sourceReports.dexscreener.status, "SUCCESS");
   assert.equal("candidates" in report.meta.discovery, false);
   assert.equal("shadowRejectedCandidates" in report.meta.discovery, false);

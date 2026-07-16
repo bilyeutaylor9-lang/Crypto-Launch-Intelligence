@@ -180,6 +180,7 @@ function summarizeDiscovery(discovery = {}) {
   // belong in the universe ledger, not inside every final report artifact.
   const coverage = discovery.discoveryCoverage || {};
   const ledger = discovery.universeLedger || {};
+  const frontier = discovery.discoveryFrontier || {};
 
   return {
     scannedAt: discovery.scannedAt,
@@ -209,6 +210,27 @@ function summarizeDiscovery(discovery = {}) {
       rejectedCount: coverage.rejectedCount,
       limitedCount: coverage.limitedCount,
       shadowRejectedCount: countItems(coverage.shadowRejected),
+    },
+    discoveryFrontier: {
+      targetChainCount: frontier.targetChainCount || 0,
+      observedChainCount: frontier.observedChainCount || 0,
+      scopeCoveragePct: frontier.scopeCoveragePct || 0,
+      nativeProtocolCoverage: frontier.nativeProtocolCoverage || {},
+      criticalGapCount: frontier.criticalGapCount || 0,
+      criticalGaps: Array.isArray(frontier.criticalGaps) ? frontier.criticalGaps.slice(0, 25) : [],
+      chains: Array.isArray(frontier.chains)
+        ? frontier.chains.map((chain) => ({
+            chain: chain.chain,
+            state: chain.state,
+            coverageScore: chain.coverageScore,
+            candidateCount: chain.candidateCount,
+            uniqueIdentityCount: chain.uniqueIdentityCount,
+            nativeCandidateCount: chain.nativeCandidateCount,
+            observedSources: chain.observedSources || [],
+            failedSources: chain.failedSources || [],
+            nativeProtocolCoverage: chain.nativeProtocolCoverage || {},
+          }))
+        : [],
     },
     universeLedger: {
       status: ledger.status,
