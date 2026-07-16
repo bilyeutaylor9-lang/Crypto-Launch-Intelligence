@@ -5,6 +5,7 @@ import {
   runIntelligencePipeline,
   summarizePipelineResults
 } from "./intelligencePipeline.js";
+import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 import { filterDiscoveryCandidates } from "./engines/discoveryFilterEngine.js";
 import { runConcurrent } from "./discovery/discoveryExecutionGrid.js";
@@ -119,7 +120,9 @@ export async function scanLiveMarket(options = {}) {
   });
 
   const results = runIntelligence
-    ? await runIntelligencePipeline(discovery.accepted)
+    ? await runIntelligencePipeline(discovery.accepted, {
+        localAI: options.localAI ?? resolveLocalAIOptions(),
+      })
     : discovery.accepted;
   const summary = runIntelligence
     ? summarizePipelineResults(results)

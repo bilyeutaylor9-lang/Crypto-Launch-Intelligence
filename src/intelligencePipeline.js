@@ -239,6 +239,16 @@ export async function runLocalAIResearchStage(projects = [], options = {}) {
         limit: localAIOptions.inlineLimit || process.env.LOCAL_AI_INLINE_LIMIT || 5,
       });
       results = mergeLocalAIResearchIntoProjects(results, execution.completed);
+      results = results.map((project) => {
+        if (!project.localAIStatus) return project;
+        return {
+          ...project,
+          localAIExecutionStatus: execution.status,
+          localAIModel: execution.availability?.config?.model || null,
+          localAIAvailabilityError:
+            execution.status === "UNAVAILABLE" ? execution.availability?.error || "Local model unavailable." : null,
+        };
+      });
     }
 
     return results;
@@ -1997,6 +2007,7 @@ export function summarizePipelineResults(results = []) {
   const autonomousResearchBlocked = safeResults.filter((p) => p.autonomousResearchVerdict === "Blocked By Research Risk");
   const localAICompleted = safeResults.filter((p) => ["COMPLETE", "PARTIAL"].includes(p.localAIStatus));
   const localAIQueued = safeResults.filter((p) => p.localAIStatus === "QUEUED");
+  const localAIUnavailable = safeResults.filter((p) => p.localAIExecutionStatus === "UNAVAILABLE");
   const localAIPositive = safeResults.filter((p) => num(p.localAIAdjustment) > 0);
   const localAINegative = safeResults.filter((p) => num(p.localAIAdjustment) < 0);
   const localAITriage = safeResults.filter((p) => p.localAIResearchDepth === "TRIAGE");
@@ -2149,6 +2160,7 @@ export function summarizePipelineResults(results = []) {
     autonomousResearchBlockedCount: autonomousResearchBlocked.length,
     localAICompletedCount: localAICompleted.length,
     localAIQueuedCount: localAIQueued.length,
+    localAIUnavailableCount: localAIUnavailable.length,
     localAIPositiveCount: localAIPositive.length,
     localAINegativeCount: localAINegative.length,
     localAITriageCount: localAITriage.length,

@@ -3,6 +3,7 @@ import { runDiscoveryManager } from "./discoveryManager.js";
 import { runIntelligencePipeline } from "./intelligencePipeline.js";
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { summarizeWatchtower } from "./learning/watchtowerStore.js";
+import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 function normalizeProjects(output = {}) {
   if (Array.isArray(output)) return output;
@@ -18,6 +19,7 @@ export async function runWatchtowerOnce(options = {}) {
   const candidates = normalizeProjects(discovered);
   const results = await runIntelligencePipeline(candidates, {
     saveMemory: true,
+    localAI: options.localAI ?? resolveLocalAIOptions(),
     ...(options.pipeline || {}),
   });
   const reports = generateReports(results, {

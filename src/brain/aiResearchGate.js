@@ -1,3 +1,5 @@
+import { planCoverageSelection } from "../discovery/coverageSelectionPlanner.js";
+
 const DEFAULTS = {
   totalLimit: 100,
   lightLimit: 25,
@@ -192,10 +194,39 @@ export function selectAIResearchCandidates(projects = [], options = {}) {
     decision: decideAIResearch(project, config),
   }));
   const sortByPriority = (left, right) => right.decision.priority - left.decision.priority;
-  const rankedEligible = decisions
+  const eligible = decisions
     .filter((item) => item.decision.eligible)
-    .sort(sortByPriority)
-    .slice(0, config.totalLimit);
+    .sort(sortByPriority);
+  const eligibleByProjectKey = new Map(
+    eligible.map((item) => [item.decision.projectKey, item])
+  );
+  const coveragePlan = planCoverageSelection(
+    eligible.map((item) => ({
+      ...item.project,
+      localAIQueuePriority: item.decision.priority,
+    })),
+    {
+      limit: config.totalLimit,
+      prefix: "localAI",
+      scoreFor: (project) => project.localAIQueuePriority,
+    }
+  );
+  const rankedEligible = coveragePlan.selected
+    .map((project) => {
+      const item = eligibleByProjectKey.get(localAIProjectKey(project));
+      if (!item) return null;
+      return {
+        ...item,
+        project,
+        decision: {
+          ...item.decision,
+          selectionReason: project.localAISelectionReason || "MERIT",
+          coverageBucket: project.localAICoverageBucket || null,
+        },
+      };
+    })
+    .filter(Boolean)
+    .sort(sortByPriority);
   const deep = rankedEligible.filter((item) => item.decision.depth === "DEEP").slice(0, config.deepLimit);
   const selectedDeepKeys = new Set(deep.map((item) => item.decision.projectKey));
   const light = rankedEligible
@@ -221,6 +252,7 @@ export function selectAIResearchCandidates(projects = [], options = {}) {
       triageCount: triage.length,
       queuedCount: deep.length + light.length + triage.length,
       limits: { total: config.totalLimit, light: config.lightLimit, deep: config.deepLimit },
+      coverageSelection: coveragePlan.report,
     },
   };
 }

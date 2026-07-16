@@ -40,6 +40,8 @@ const REPORT_PRIORITY_FIELDS = [
   "dataConfidenceScore",
   "evidenceQualityScore",
   "localAIStatus",
+  "localAIExecutionStatus",
+  "localAISelectionReason",
   "localAIVerdict",
   "localAIResearchDecision",
   "localAIPromotionBlocked",

@@ -68,6 +68,35 @@ test("AI research gate queues no more than the top 100 eligible projects", () =>
   assert.equal(new Set(selected.candidates.map((item) => item.decision.projectKey)).size, 100);
 });
 
+test("AI research queue reserves capacity for eligible underrepresented chains", () => {
+  const baseProjects = Array.from({ length: 120 }, (_, index) =>
+    eligibleProject({
+      permanentProjectKey: `base:base-${index}`,
+      contractAddress: `0xbase${index}`,
+      pipelineScore: 95 - index / 10,
+    })
+  );
+  const solana = eligibleProject({
+    chain: "solana",
+    permanentProjectKey: "solana:coverage",
+    contractAddress: "solcoverage",
+    pipelineScore: 66,
+  });
+  const arbitrum = eligibleProject({
+    chain: "arbitrum",
+    permanentProjectKey: "arbitrum:coverage",
+    contractAddress: "arbcoverage",
+    pipelineScore: 65,
+  });
+
+  const selected = selectAIResearchCandidates([...baseProjects, solana, arbitrum]);
+  const selectedKeys = new Set(selected.candidates.map((item) => item.decision.projectKey));
+
+  assert.ok(selectedKeys.has("solana:coverage"));
+  assert.ok(selectedKeys.has("arbitrum:coverage"));
+  assert.ok(selected.summary.coverageSelection.selectedByReason.COVERAGE_RESERVE >= 2);
+});
+
 test("agent router uses focused triage, relevant light workers, and the full deep team", () => {
   const triage = selectAgents(eligibleProject(), { depth: "TRIAGE" });
   const light = selectAgents(eligibleProject({ tokenomicsScore: 0, catalystScore: 0, narratives: [] }), { depth: "LIGHT" });

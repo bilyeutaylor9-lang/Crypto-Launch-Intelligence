@@ -22,6 +22,8 @@ function taskResultFields(task = {}, report = {}) {
     localAIAdvisoryOnly: true,
     localAIResearchDepth: task.depth || "LIGHT",
     localAIQueueTaskId: task.id || null,
+    localAISelectionReason: task.gate?.selectionReason || null,
+    localAICoverageBucket: task.gate?.coverageBucket || null,
     localAIResearchTimestamp: report.generatedAt || task.completedAt || task.updatedAt || null,
     localAIVerdict: report.judge?.verdict || null,
     localAIConfidence: num(report.judge?.confidence),
@@ -68,6 +70,8 @@ export function queueLocalAIResearch(projects = [], options = {}) {
           priority: task.priority,
           reasons: task.gate?.reasons || [],
           metrics: task.gate?.metrics || {},
+          selectionReason: task.gate?.selectionReason || null,
+          coverageBucket: task.gate?.coverageBucket || null,
         },
       };
     }),

@@ -325,7 +325,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.trapRiskLevel || "")}</td>
           <td>${esc(p.aiEcosystemScore ?? "")}</td>
           <td>${esc(p.aiEcosystemVerdict || "")}</td>
-          <td>${esc(p.localAIVerdict || p.localAIStatus || "")}</td>
+          <td>${esc(p.localAIVerdict || p.localAIExecutionStatus || p.localAIStatus || "")}</td>
           <td>${esc(p.localAIResearchDecision || "")}</td>
           <td>${esc(p.localAIConfidence ?? "")}</td>
           <td>${esc(p.localAICoverage ?? "")}</td>

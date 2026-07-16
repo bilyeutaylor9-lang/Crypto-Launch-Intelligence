@@ -9,6 +9,7 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
+import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 function formatMoney(value = 0) {
   const n = Number(value || 0);
@@ -206,6 +207,7 @@ async function main() {
 
   const pipelineResults = await runIntelligencePipeline(memeGate.accepted, {
     saveMemory: true,
+    localAI: resolveLocalAIOptions(),
   });
 
   const ranked = normalizeForReports(pipelineResults);

@@ -10,10 +10,13 @@ import {
 
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
+import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 import {
   loadResearchCoverageLedger,
   saveResearchCoveragePlan,
 } from "./learning/researchCoverageStore.js";
+
+export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -80,34 +83,6 @@ export function scoreOf(project = {}) {
 function pipelineLimit(env = process.env) {
   const configured = Number(env.INTELLIGENCE_PIPELINE_LIMIT || 0);
   return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 0;
-}
-
-function positiveInteger(value, fallback = 1, maximum = 25) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
-  return Math.min(maximum, Math.floor(parsed));
-}
-
-export function resolveLocalAIOptions(env = process.env) {
-  const requestedMode = String(env.LOCAL_AI_MODE || "AUTO").trim().toUpperCase();
-  const inlineLimit = positiveInteger(env.LOCAL_AI_INLINE_LIMIT, 1, 25);
-  const topProjectLimit = positiveInteger(env.LOCAL_AI_TOP_PROJECT_LIMIT, 100, 100);
-
-  if (requestedMode === "OFF") {
-    return { mode: "OFF", queue: false, inline: false, inlineLimit: 0, topProjectLimit: 0 };
-  }
-
-  if (requestedMode === "QUEUE") {
-    return { mode: "QUEUE", queue: true, inline: false, inlineLimit, topProjectLimit };
-  }
-
-  if (requestedMode === "INLINE" || env.LOCAL_AI_INLINE === "true") {
-    return { mode: "INLINE", queue: true, inline: true, inlineLimit, topProjectLimit };
-  }
-
-  // Mac-first default: keep the queue broad, but let the local model review the
-  // highest-priority eligible project before the scan makes its final ranking.
-  return { mode: "AUTO", queue: true, inline: true, inlineLimit, topProjectLimit };
 }
 
 export function planResearchQueue(projects = [], options = {}) {
@@ -227,6 +202,7 @@ function printSummary(summary) {
   console.log(`Local AI Queued: ${summary.localAIQueuedCount}`);
   console.log(`Local AI Top-100 Triage: ${summary.localAITriageCount}`);
   console.log(`Local AI Promotion Blocks: ${summary.localAIPromotionBlockCount}`);
+  console.log(`Local AI Unavailable: ${summary.localAIUnavailableCount}`);
   console.log("");
   console.log(`High Market Rank: ${summary.highMarketRankCount}`);
   console.log(`High Rich Token: ${summary.highRichTokenCount}`);

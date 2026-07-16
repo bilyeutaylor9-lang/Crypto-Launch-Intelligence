@@ -1,3 +1,5 @@
+import "../config/loadEnv.js";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:11434";
 const DEFAULT_MODEL = "qwen3:4b";
 const DEFAULT_TIMEOUT_MS = 90_000;

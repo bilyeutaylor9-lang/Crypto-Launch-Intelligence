@@ -22,6 +22,8 @@ export function writeLocalAIResearchReport() {
       status: task.status,
       depth: task.depth,
       priority: task.priority,
+      selectionReason: task.gate?.selectionReason || null,
+      coverageBucket: task.gate?.coverageBucket || null,
       agentIds: task.agentIds,
       queuedAt: task.queuedAt,
       startedAt: task.startedAt || null,
