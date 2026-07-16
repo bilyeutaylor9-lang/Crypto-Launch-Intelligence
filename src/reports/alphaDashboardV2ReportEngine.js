@@ -10,6 +10,7 @@ import { summarizeProofOfAlphaExecutionTwin } from "../engines/proofOfAlphaExecu
 import { summarizeOrganicDemandIntegrity } from "../engines/organicDemandIntegrityEngine.js";
 import { summarizeInstitutionalDataProvenance } from "../kernel/institutionalDataProvenanceLedger.js";
 import { summarizeProgressiveOpportunityRanking } from "../engines/progressiveOpportunityRankingEngine.js";
+import { summarizeMarketOpportunity } from "./marketOpportunityReportEngine.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -33,6 +34,10 @@ function compact(project = {}) {
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
     pipelineScore: project.pipelineScore || 0,
+    marketOpportunityRank: project.marketOpportunityRank || project.marketOpportunityRankScore || 0,
+    marketOpportunityRankLevel: project.marketOpportunityRankLevel || "Unknown",
+    opportunityLane: project.opportunityLane || "UNKNOWN",
+    recommendedHorizon: project.recommendedHorizon || "RESEARCH_ONLY",
     progressiveOpportunityScore: project.progressiveOpportunityScore || project.opportunityScoreV2 || 0,
     trustScore: project.trustScore || project.progressiveTrustScore || 0,
     executionScore: project.executionScore || project.progressiveExecutionScore || 0,
@@ -114,6 +119,7 @@ export function buildAlphaDashboardV2(projects = []) {
   const organicIntegrity = summarizeOrganicDemandIntegrity(safeProjects);
   const institutionalDataProvenance = summarizeInstitutionalDataProvenance(safeProjects);
   const progressiveOpportunities = summarizeProgressiveOpportunityRanking(safeProjects);
+  const marketOpportunity = summarizeMarketOpportunity(safeProjects);
   const qualifiedCandidates = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED");
   const blockedCandidates = safeProjects.filter((project) => project.finalSelectionState === "BLOCKED");
   const identityConflicts = safeProjects.filter((project) => project.finalSelectionState === "IDENTITY_CONFLICT");
@@ -121,6 +127,8 @@ export function buildAlphaDashboardV2(projects = []) {
   const topCandidates = [...safeProjects]
     .sort(
       (a, b) =>
+        num(b.marketOpportunityRank || b.marketOpportunityRankScore) -
+          num(a.marketOpportunityRank || a.marketOpportunityRankScore) ||
         num(b.moneyRankScore) -
           num(a.moneyRankScore) ||
         num(b.progressiveOpportunityScore || b.opportunityScoreV2) -
@@ -140,6 +148,11 @@ export function buildAlphaDashboardV2(projects = []) {
     totalProjects: safeProjects.length,
     headline: {
       topCandidate: topCandidates[0] || null,
+      bestOpportunityNow: marketOpportunity.bestOpportunityNow,
+      marketLeaderVerdict: marketOpportunity.verdict,
+      marketLeaderHeadline: marketOpportunity.headline,
+      noClearLeaderReason: marketOpportunity.noClearLeaderReason,
+      topFiveOpportunities: marketOpportunity.topFiveOpportunities,
       alphaOSBrief: alphaOS.commanderBrief,
       paperWinRate: paperLab.memory?.winRate || 0,
       evaluatedPaperTrades: paperLab.memory?.evaluatedRecords || 0,
@@ -150,6 +163,7 @@ export function buildAlphaDashboardV2(projects = []) {
       executionTwinPicks: executionTwin.topExecutions || [],
       qualifiedCandidates: qualifiedCandidates.map(compact).slice(0, 10),
       bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
+      marketOpportunityLeaders: marketOpportunity.topFiveOpportunities || [],
       institutionalMoneyRank: progressiveOpportunities.institutionalMoneyRank || [],
       executionReady: progressiveOpportunities.executionReady || [],
       emergingSignals: progressiveOpportunities.emergingRadar || [],
@@ -158,6 +172,8 @@ export function buildAlphaDashboardV2(projects = []) {
     },
     counts: {
       sniperReady: progressiveOpportunities.counts?.sniperReady || 0,
+      marketOpportunityTopFive: marketOpportunity.topFiveOpportunities?.length || 0,
+      clearMarketLeader: marketOpportunity.verdict === "CLEAR_MARKET_LEADER" ? 1 : 0,
       earlyHighConviction: progressiveOpportunities.counts?.earlyHighConviction || 0,
       emergingRadar: progressiveOpportunities.counts?.emergingRadar || 0,
       speculativeSignal: progressiveOpportunities.counts?.speculativeSignal || 0,
@@ -199,6 +215,11 @@ export function buildAlphaDashboardV2(projects = []) {
       tradableAnomalies: organicIntegrity.tradableAnomalies || 0,
     },
     topCandidates,
+    bestOpportunityNow: marketOpportunity.bestOpportunityNow,
+    topFiveOpportunities: marketOpportunity.topFiveOpportunities,
+    finalistComparison: marketOpportunity.finalistComparison,
+    timeHorizonLeaders: marketOpportunity.timeHorizonLeaders,
+    opportunityLaneLeaders: marketOpportunity.opportunityLaneLeaders,
     finalQualifiedCandidates: progressiveOpportunities.sniperReady || [],
     institutionalMoneyRank: progressiveOpportunities.institutionalMoneyRank || [],
     bestAvailableOpportunities: progressiveOpportunities.bestAvailableOpportunities || [],
@@ -210,6 +231,7 @@ export function buildAlphaDashboardV2(projects = []) {
     missingEvidenceQueue: progressiveOpportunities.missingEvidenceQueue || [],
     predictionPerformance: progressiveOpportunities.predictionPerformance || {},
     progressiveOpportunities,
+    marketOpportunity,
     smallCapHunter,
     executionTwin,
     organicIntegrity,

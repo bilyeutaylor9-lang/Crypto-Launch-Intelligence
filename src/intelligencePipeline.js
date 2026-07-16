@@ -40,6 +40,7 @@ import { analyzeSellPressureBatch } from "./engines/sellPressureEngine.js";
 import { analyzeRelativeStrengthBatch } from "./engines/relativeStrengthEngine.js";
 import { analyzeSmartMoneyRotationBatch } from "./engines/smartMoneyRotationEngine.js";
 import { analyzeOpportunityTimingBatch } from "./engines/opportunityTimingEngine.js";
+import { analyzeAttentionGapBatch } from "./engines/attentionGapEngine.js";
 import { analyzeEarlyBreakoutBatch } from "./engines/earlyBreakoutEngine.js";
 import { analyzeVolatilityExpansionBatch } from "./engines/volatilityExpansionEngine.js";
 import { analyzeLiquidityExpansionBatch } from "./engines/liquidityExpansionEngine.js";
@@ -123,6 +124,7 @@ import {
 } from "./engines/sniperIntegrityGateEngine.js";
 import { analyzeInstitutionalDataProvenanceBatch } from "./kernel/institutionalDataProvenanceLedger.js";
 import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressiveOpportunityRankingEngine.js";
+import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -1563,6 +1565,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Volatility Expansion", analyzeVolatilityExpansionBatch, results);
   results = await runEngine("Liquidity Expansion", analyzeLiquidityExpansionBatch, results);
   results = await runEngine("Momentum Shift", analyzeMomentumShiftBatch, results);
+  results = await runEngine("Opportunity Timing Refresh", analyzeOpportunityTimingBatch, results);
 
   results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
   results = await runEngine("Market Rank", analyzeMarketRankBatch, results);
@@ -1636,6 +1639,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);
+  results = await runEngine("Attention Gap", analyzeAttentionGapBatch, results);
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
@@ -1646,6 +1650,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
+  results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

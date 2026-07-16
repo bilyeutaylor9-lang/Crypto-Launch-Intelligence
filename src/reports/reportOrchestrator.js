@@ -41,6 +41,7 @@ import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
 import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
 import { writeInstitutionalDataProvenanceReport } from "./institutionalDataProvenanceReportEngine.js";
 import { writeProgressiveOpportunityReport } from "./progressiveOpportunityReportEngine.js";
+import { writeMarketOpportunityReports } from "./marketOpportunityReportEngine.js";
 import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
@@ -170,6 +171,15 @@ export function generateReports(projects = [], meta = {}) {
     blockedProjectsPath,
   } = writeProgressiveOpportunityReport(projects);
   const {
+    bestOpportunityNowPath,
+    topFiveOpportunitiesPath,
+    timeHorizonLeadersPath,
+    opportunityLaneLeadersPath,
+    finalistComparisonPath,
+    crawlerChangesPath,
+    localAIChiefJudgmentPath,
+  } = writeMarketOpportunityReports(projects);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -260,6 +270,13 @@ export function generateReports(projects = [], meta = {}) {
     emergingRadarPath,
     executionReadyPath,
     blockedProjectsPath,
+    bestOpportunityNowPath,
+    topFiveOpportunitiesPath,
+    timeHorizonLeadersPath,
+    opportunityLaneLeadersPath,
+    finalistComparisonPath,
+    crawlerChangesPath,
+    localAIChiefJudgmentPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

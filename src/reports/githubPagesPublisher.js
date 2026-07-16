@@ -59,6 +59,13 @@ const PUBLIC_REPORTS = [
   "integrity-stack.json",
   "institutional-data-provenance.json",
   "progressive-opportunities.json",
+  "best-opportunity-now.json",
+  "top-five-opportunities.json",
+  "time-horizon-leaders.json",
+  "opportunity-lane-leaders.json",
+  "finalist-comparison.json",
+  "crawler-changes.json",
+  "local-ai-chief-judgment.json",
   "institutional-ranking.json",
   "best-available.json",
   "emerging-radar.json",
@@ -132,6 +139,9 @@ function writeLandingPage(copiedFiles = []) {
   const integrityStack = readJsonReport("integrity-stack.json") || {};
   const institutionalProvenance = readJsonReport("institutional-data-provenance.json") || {};
   const progressiveOpportunities = readJsonReport("progressive-opportunities.json") || {};
+  const bestOpportunityNow = readJsonReport("best-opportunity-now.json") || {};
+  const topFiveOpportunities = readJsonReport("top-five-opportunities.json") || {};
+  const finalistComparison = readJsonReport("finalist-comparison.json") || {};
   const institutionalRanking = readJsonReport("institutional-ranking.json") || {};
   const executionReady = readJsonReport("execution-ready.json") || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
@@ -146,12 +156,24 @@ function writeLandingPage(copiedFiles = []) {
   )[0];
   const topCouncil = council.strongBuyCandidates?.[0] || council.topCouncilSetups?.[0] || {};
   const topSimulation = simulationBrain.topSimulationCandidates?.[0] || {};
+  const bestNowProject = bestOpportunityNow.bestOpportunityNow || topFiveOpportunities.topFiveOpportunities?.[0] || {};
+  const bestNowHeadline = bestOpportunityNow.headline || "NO CLEAR MARKET LEADER";
+  const bestNowText =
+    bestOpportunityNow.verdict === "CLEAR_MARKET_LEADER"
+      ? `${bestNowProject.identity?.symbol || bestNowProject.symbol || "Leader"} leads with Market Opportunity Rank ${
+          bestNowProject.marketOpportunityRank ?? "N/A"
+        }.`
+      : bestOpportunityNow.noClearLeaderReason ||
+        "The top candidates are too closely ranked or lack enough independent evidence.";
   const links = copiedFiles
     .filter((fileName) => fileName !== "report.html")
     .map((fileName) => `<a href="./${fileName}">${fileName}</a>`)
     .join("");
   const cards = [
     ["Projects", report.totalProjects ?? 0],
+    ["Best Now", bestNowProject.identity?.symbol || "No Clear"],
+    ["Leader Verdict", bestOpportunityNow.verdict || finalistComparison.verdict || "N/A"],
+    ["Leader Rank", bestNowProject.marketOpportunityRank ?? "N/A"],
     ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? "N/A"],
     ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
     ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? "N/A"],
@@ -490,8 +512,19 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
+          <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>${bestNowHeadline}</h2>
+      <p>${bestNowText}</p>
+      <div class="metrics">
+        <div class="metric"><span>Leader</span><strong>${bestNowProject.identity?.symbol || "N/A"}</strong></div>
+        <div class="metric"><span>Market Rank</span><strong>${bestNowProject.marketOpportunityRank ?? "N/A"}</strong></div>
+        <div class="metric"><span>Evidence</span><strong>${bestNowProject.evidenceCoverage ?? "N/A"}</strong></div>
+        <div class="metric"><span>Horizon</span><strong>${bestNowProject.recommendedHorizon || "N/A"}</strong></div>
       </div>
     </section>
     <div class="toolbar">
@@ -535,6 +568,13 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>
+        <a class="button primary" href="./best-opportunity-now.json">Best Now</a>
+        <a class="button" href="./top-five-opportunities.json">Top Five</a>
+        <a class="button" href="./finalist-comparison.json">Finalist Compare</a>
+        <a class="button" href="./time-horizon-leaders.json">Horizons</a>
+        <a class="button" href="./opportunity-lane-leaders.json">Lanes</a>
+        <a class="button" href="./crawler-changes.json">Crawler Changes</a>
+        <a class="button" href="./local-ai-chief-judgment.json">Chief Judge</a>
         <a class="button" href="./institutional-ranking.json">Money Rank</a>
         <a class="button" href="./best-available.json">Best Available</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>

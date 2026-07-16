@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-16T13:06:51.415Z",
-  "totalEngines": 139,
-  "wiredIntoPipeline": 115,
-  "stateOfArtReady": 122,
-  "readinessScore": 90,
+  "generatedAt": "2026-07-16T13:34:39.161Z",
+  "totalEngines": 141,
+  "wiredIntoPipeline": 117,
+  "stateOfArtReady": 124,
+  "readinessScore": 91,
   "categoryCounts": {
-    "intelligence": 60,
+    "intelligence": 62,
     "market-flow": 9,
     "ai": 14,
     "learning": 22,
@@ -134,6 +134,23 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "attentionGapEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "attentionGapComponents",
+        "scoreAttentionGap",
+        "classifyAttentionGap",
+        "analyzeAttentionGap",
+        "analyzeAttentionGapBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -300,20 +317,6 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 4,
-      "readinessScore": 100,
-      "status": "state-of-art-ready"
-    },
-    {
-      "file": "breakoutBrainEngine.js",
-      "category": "ai",
-      "exports": [
-        "analyzeBreakoutBrain",
-        "analyzeBreakoutBrainBatch"
-      ],
-      "hasBatch": true,
-      "hasAnalyzer": true,
-      "wiredInPipeline": true,
-      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     }
@@ -704,6 +707,23 @@
       "hasAnalyzer": true,
       "wiredInPipeline": true,
       "advancedSignals": 6,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
+      "file": "attentionGapEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "attentionGapComponents",
+        "scoreAttentionGap",
+        "classifyAttentionGap",
+        "analyzeAttentionGap",
+        "analyzeAttentionGapBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 4,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },
@@ -1509,6 +1529,22 @@
       "status": "needs-upgrade"
     },
     {
+      "file": "marketOpportunityRankEngine.js",
+      "category": "intelligence",
+      "exports": [
+        "calculateMarketOpportunityRank",
+        "classifyMarketOpportunityRank",
+        "analyzeMarketOpportunityRank",
+        "analyzeMarketOpportunityRankBatch"
+      ],
+      "hasBatch": true,
+      "hasAnalyzer": true,
+      "wiredInPipeline": true,
+      "advancedSignals": 5,
+      "readinessScore": 100,
+      "status": "state-of-art-ready"
+    },
+    {
       "file": "marketRankingEngine.js",
       "category": "intelligence",
       "exports": [
@@ -1725,7 +1761,7 @@
       "hasBatch": true,
       "hasAnalyzer": true,
       "wiredInPipeline": true,
-      "advancedSignals": 4,
+      "advancedSignals": 5,
       "readinessScore": 100,
       "status": "state-of-art-ready"
     },

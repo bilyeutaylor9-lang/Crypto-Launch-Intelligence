@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-07-16T13:34:24.854Z",
+  "verdict": "NO_CLEAR_MARKET_LEADER",
+  "winnerProjectKey": "temporary:symbol:ethereum:eigen",
+  "runnerUpProjectKey": "temporary:symbol:bittensor:tao",
+  "confidence": 31,
+  "evidenceCoverage": 89,
+  "clearLeaderGap": 0,
+  "clearLeaderFailures": [
+    "Market Opportunity Rank must be at least 80.",
+    "Trust Score must be at least 60.",
+    "No hard block can be active.",
+    "Leader must be at least 5 rank points above candidate #2."
+  ],
+  "winningReasons": [
+    "Evidence Coverage: 89",
+    "Attention Gap: 56",
+    "Timing: 52",
+    "Trust: 51",
+    "Local AI Consensus: 50",
+    "Execution: 35",
+    "Market Opportunity Rank: 0",
+    "Attention gap: 56"
+  ],
+  "runnerUpAdvantages": [],
+  "strongestBearCase": [
+    "Hard block: Final integrity hard block: AI decision rejected the project.",
+    "Hard block: AI decision rejected the project.",
+    "Hard block: aiDecision: Reject",
+    "Hard block: allocationBucket: Avoid",
+    "Hard block: smallCapHunterVerdict: Small-Cap Purchase Route Block",
+    "Hard block: proofVerdict: Risk-heavy setup",
+    "Hard block: proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+    "Hard block: projectIdentityVerdict: Identity Unverified"
+  ],
+  "invalidationConditions": [
+    "Opportunity score drops below its current tier threshold on the next scan.",
+    "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+    "Identity, contract, or execution route evidence becomes contradictory.",
+    "Catalyst is delayed, cancelled, or occurs without confirming liquidity and buyer growth.",
+    "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+  ],
+  "recommendedHorizon": "7_14_DAYS",
+  "questions": [
+    "Why does candidate #1 rank above #2?",
+    "What advantage does #2 have over #1?",
+    "Which candidate is earliest?",
+    "Which has the strongest independent evidence?",
+    "Which has the highest false-positive risk?",
+    "Which catalyst is least priced in?",
+    "Is there actually a clear winner?"
+  ]
+}

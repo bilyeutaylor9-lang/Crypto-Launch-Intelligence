@@ -1,0 +1,674 @@
+{
+  "generatedAt": "2026-07-16T13:34:24.854Z",
+  "lanes": {
+    "BLOCKED": [
+      {
+        "rank": 1,
+        "projectKey": "temporary:symbol:ethereum:eigen",
+        "identity": {
+          "name": "EigenLayer",
+          "symbol": "EIGEN",
+          "chain": "ethereum",
+          "contractAddress": null,
+          "confidence": 37
+        },
+        "marketOpportunityRank": 0,
+        "scores": {
+          "opportunity": 28,
+          "timing": 52,
+          "trust": 51,
+          "attentionGap": 56,
+          "marketOpportunityRank": 0,
+          "execution": 35,
+          "moneyRank": 0,
+          "localAIConsensus": 50,
+          "evidenceCoverage": 89
+        },
+        "opportunityLane": "BLOCKED",
+        "recommendedHorizon": "7_14_DAYS",
+        "timeHorizons": {
+          "24_72_HOURS": 28,
+          "7_14_DAYS": 49,
+          "30_90_DAYS": 19,
+          "recommended": "7_14_DAYS"
+        },
+        "evidenceCoverage": 89,
+        "independentEvidenceFamilies": 115,
+        "signals": [
+          {
+            "type": "ATTENTION_GAP",
+            "label": "Attention gap",
+            "score": 56,
+            "sourceEngine": "Attention Gap Engine",
+            "detail": ""
+          },
+          {
+            "type": "WHY_NOW",
+            "label": "Catalyst proximity",
+            "score": 74,
+            "sourceEngine": "Progressive Opportunity Ranking",
+            "detail": "A catalyst or roadmap event is close enough to monitor."
+          }
+        ],
+        "risks": [
+          {
+            "label": "Only symbol/name identity is available; ticker symbols are not unique.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Contract address is missing or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Chain identity is missing, mismatched, or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Identity state is SYMBOL_ONLY.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Market-cap/FDV data is missing for a small-cap validation strategy.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Project only has a symbol/name match without verified contract or listing identity.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Needs more persistent scans before ARMED.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Some data is stale.",
+            "score": 60,
+            "family": "WARNING"
+          }
+        ],
+        "hardBlocks": [
+          "Final integrity hard block: AI decision rejected the project.",
+          "AI decision rejected the project.",
+          "aiDecision: Reject",
+          "allocationBucket: Avoid",
+          "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+          "proofVerdict: Risk-heavy setup",
+          "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+          "projectIdentityVerdict: Identity Unverified",
+          "alphaEvolutionGovernorVerdict: Governor Risk Block",
+          "causalMarketTwinVerdict: Twin Reject",
+          "selfEvolvingAlphaOSDecision: Research Block",
+          "redTeamReview.status: Block"
+        ],
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+          "[object Object]"
+        ],
+        "materialChanges": [
+          {
+            "type": "Catalyst Calendar Alert",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 84,
+            "url": null
+          },
+          {
+            "type": "Mainnet Launch",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 84,
+            "url": null
+          },
+          {
+            "type": "Staking Change",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 84,
+            "url": null
+          }
+        ],
+        "localAI": {
+          "status": "UNKNOWN",
+          "verdict": "Reject",
+          "researchDecision": "PENDING_LOCAL_RESEARCH",
+          "confidence": 0,
+          "coverage": 0,
+          "adjustment": 0,
+          "consensusScore": 50,
+          "promotionBlocked": false
+        },
+        "rankDrivers": [
+          "Evidence Coverage: 89",
+          "Attention Gap: 56",
+          "Timing: 52",
+          "Trust: 51",
+          "Local AI Consensus: 50",
+          "Execution: 35",
+          "Market Opportunity Rank: 0"
+        ],
+        "disclaimer": "Research signal only. This is not financial advice or a profit promise."
+      },
+      {
+        "rank": 2,
+        "projectKey": "temporary:symbol:bittensor:tao",
+        "identity": {
+          "name": "Bittensor",
+          "symbol": "TAO",
+          "chain": "bittensor",
+          "contractAddress": null,
+          "confidence": 37
+        },
+        "marketOpportunityRank": 0,
+        "scores": {
+          "opportunity": 24,
+          "timing": 52,
+          "trust": 51,
+          "attentionGap": 48,
+          "marketOpportunityRank": 0,
+          "execution": 35,
+          "moneyRank": 0,
+          "localAIConsensus": 50,
+          "evidenceCoverage": 89
+        },
+        "opportunityLane": "BLOCKED",
+        "recommendedHorizon": "7_14_DAYS",
+        "timeHorizons": {
+          "24_72_HOURS": 26,
+          "7_14_DAYS": 39,
+          "30_90_DAYS": 17,
+          "recommended": "7_14_DAYS"
+        },
+        "evidenceCoverage": 89,
+        "independentEvidenceFamilies": 115,
+        "signals": [],
+        "risks": [
+          {
+            "label": "Only symbol/name identity is available; ticker symbols are not unique.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Contract address is missing or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Chain identity is missing, mismatched, or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Identity state is SYMBOL_ONLY.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Market-cap/FDV data is missing for a small-cap validation strategy.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Project only has a symbol/name match without verified contract or listing identity.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Needs more persistent scans before ARMED.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Some data is stale.",
+            "score": 60,
+            "family": "WARNING"
+          }
+        ],
+        "hardBlocks": [
+          "Final integrity hard block: AI decision rejected the project.",
+          "AI decision rejected the project.",
+          "aiDecision: Reject",
+          "allocationBucket: Avoid",
+          "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+          "proofVerdict: Risk-heavy setup",
+          "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+          "projectIdentityVerdict: Identity Unverified",
+          "causalMarketTwinVerdict: Twin Reject",
+          "selfEvolvingAlphaOSDecision: Research Block",
+          "Purchase route is not confirmed as purchasable.",
+          "Execution route is not verified as available."
+        ],
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+          "[object Object]"
+        ],
+        "materialChanges": [
+          {
+            "type": "Staking Change",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 56,
+            "url": null
+          }
+        ],
+        "localAI": {
+          "status": "UNKNOWN",
+          "verdict": "Reject",
+          "researchDecision": "PENDING_LOCAL_RESEARCH",
+          "confidence": 0,
+          "coverage": 0,
+          "adjustment": 0,
+          "consensusScore": 50,
+          "promotionBlocked": false
+        },
+        "rankDrivers": [
+          "Evidence Coverage: 89",
+          "Timing: 52",
+          "Trust: 51",
+          "Local AI Consensus: 50",
+          "Attention Gap: 48",
+          "Execution: 35",
+          "Market Opportunity Rank: 0"
+        ],
+        "disclaimer": "Research signal only. This is not financial advice or a profit promise."
+      },
+      {
+        "rank": 3,
+        "projectKey": "temporary:symbol:ethereum:ondo",
+        "identity": {
+          "name": "Ondo",
+          "symbol": "ONDO",
+          "chain": "ethereum",
+          "contractAddress": null,
+          "confidence": 37
+        },
+        "marketOpportunityRank": 0,
+        "scores": {
+          "opportunity": 24,
+          "timing": 53,
+          "trust": 51,
+          "attentionGap": 56,
+          "marketOpportunityRank": 0,
+          "execution": 35,
+          "moneyRank": 0,
+          "localAIConsensus": 50,
+          "evidenceCoverage": 89
+        },
+        "opportunityLane": "BLOCKED",
+        "recommendedHorizon": "7_14_DAYS",
+        "timeHorizons": {
+          "24_72_HOURS": 27,
+          "7_14_DAYS": 43,
+          "30_90_DAYS": 15,
+          "recommended": "7_14_DAYS"
+        },
+        "evidenceCoverage": 89,
+        "independentEvidenceFamilies": 115,
+        "signals": [
+          {
+            "type": "ATTENTION_GAP",
+            "label": "Attention gap",
+            "score": 56,
+            "sourceEngine": "Attention Gap Engine",
+            "detail": ""
+          }
+        ],
+        "risks": [
+          {
+            "label": "Only symbol/name identity is available; ticker symbols are not unique.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Contract address is missing or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Chain identity is missing, mismatched, or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Identity state is SYMBOL_ONLY.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Market-cap/FDV data is missing for a small-cap validation strategy.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Project only has a symbol/name match without verified contract or listing identity.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Needs more persistent scans before ARMED.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Some data is stale.",
+            "score": 60,
+            "family": "WARNING"
+          }
+        ],
+        "hardBlocks": [
+          "Final integrity hard block: AI decision rejected the project.",
+          "AI decision rejected the project.",
+          "aiDecision: Reject",
+          "allocationBucket: Avoid",
+          "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+          "proofVerdict: Risk-heavy setup",
+          "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+          "projectIdentityVerdict: Identity Unverified",
+          "causalMarketTwinVerdict: Twin Reject",
+          "selfEvolvingAlphaOSDecision: Research Block",
+          "Purchase route is not confirmed as purchasable.",
+          "Execution route is not verified as available."
+        ],
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+          "[object Object]"
+        ],
+        "materialChanges": [
+          {
+            "type": "Catalyst Calendar Alert",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 68,
+            "url": null
+          }
+        ],
+        "localAI": {
+          "status": "UNKNOWN",
+          "verdict": "Reject",
+          "researchDecision": "PENDING_LOCAL_RESEARCH",
+          "confidence": 0,
+          "coverage": 0,
+          "adjustment": 0,
+          "consensusScore": 50,
+          "promotionBlocked": false
+        },
+        "rankDrivers": [
+          "Evidence Coverage: 89",
+          "Attention Gap: 56",
+          "Timing: 53",
+          "Trust: 51",
+          "Local AI Consensus: 50",
+          "Execution: 35",
+          "Market Opportunity Rank: 0"
+        ],
+        "disclaimer": "Research signal only. This is not financial advice or a profit promise."
+      },
+      {
+        "rank": 4,
+        "projectKey": "temporary:symbol:cosmos:akt",
+        "identity": {
+          "name": "Akash Network",
+          "symbol": "AKT",
+          "chain": "cosmos",
+          "contractAddress": null,
+          "confidence": 37
+        },
+        "marketOpportunityRank": 0,
+        "scores": {
+          "opportunity": 23,
+          "timing": 49,
+          "trust": 51,
+          "attentionGap": 47,
+          "marketOpportunityRank": 0,
+          "execution": 35,
+          "moneyRank": 0,
+          "localAIConsensus": 50,
+          "evidenceCoverage": 89
+        },
+        "opportunityLane": "BLOCKED",
+        "recommendedHorizon": "7_14_DAYS",
+        "timeHorizons": {
+          "24_72_HOURS": 25,
+          "7_14_DAYS": 32,
+          "30_90_DAYS": 17,
+          "recommended": "7_14_DAYS"
+        },
+        "evidenceCoverage": 89,
+        "independentEvidenceFamilies": 115,
+        "signals": [],
+        "risks": [
+          {
+            "label": "Only symbol/name identity is available; ticker symbols are not unique.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Contract address is missing or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Chain identity is missing, mismatched, or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Identity state is SYMBOL_ONLY.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Market-cap/FDV data is missing for a small-cap validation strategy.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Project only has a symbol/name match without verified contract or listing identity.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Needs more persistent scans before ARMED.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Some data is stale.",
+            "score": 60,
+            "family": "WARNING"
+          }
+        ],
+        "hardBlocks": [
+          "Final integrity hard block: AI decision rejected the project.",
+          "AI decision rejected the project.",
+          "aiDecision: Reject",
+          "allocationBucket: Avoid",
+          "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+          "proofVerdict: Risk-heavy setup",
+          "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+          "projectIdentityVerdict: Identity Unverified",
+          "causalMarketTwinVerdict: Twin Reject",
+          "selfEvolvingAlphaOSDecision: Research Block",
+          "Purchase route is not confirmed as purchasable.",
+          "Execution route is not verified as available."
+        ],
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+          "[object Object]"
+        ],
+        "materialChanges": [
+          {
+            "type": "Staking Change",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 50,
+            "url": null
+          }
+        ],
+        "localAI": {
+          "status": "UNKNOWN",
+          "verdict": "Reject",
+          "researchDecision": "PENDING_LOCAL_RESEARCH",
+          "confidence": 0,
+          "coverage": 0,
+          "adjustment": 0,
+          "consensusScore": 50,
+          "promotionBlocked": false
+        },
+        "rankDrivers": [
+          "Evidence Coverage: 89",
+          "Trust: 51",
+          "Local AI Consensus: 50",
+          "Timing: 49",
+          "Attention Gap: 47",
+          "Execution: 35",
+          "Market Opportunity Rank: 0"
+        ],
+        "disclaimer": "Research signal only. This is not financial advice or a profit promise."
+      },
+      {
+        "rank": 5,
+        "projectKey": "temporary:symbol:celestia:tia",
+        "identity": {
+          "name": "Celestia",
+          "symbol": "TIA",
+          "chain": "celestia",
+          "contractAddress": null,
+          "confidence": 37
+        },
+        "marketOpportunityRank": 0,
+        "scores": {
+          "opportunity": 23,
+          "timing": 51,
+          "trust": 51,
+          "attentionGap": 53,
+          "marketOpportunityRank": 0,
+          "execution": 35,
+          "moneyRank": 0,
+          "localAIConsensus": 50,
+          "evidenceCoverage": 89
+        },
+        "opportunityLane": "BLOCKED",
+        "recommendedHorizon": "7_14_DAYS",
+        "timeHorizons": {
+          "24_72_HOURS": 25,
+          "7_14_DAYS": 34,
+          "30_90_DAYS": 18,
+          "recommended": "7_14_DAYS"
+        },
+        "evidenceCoverage": 89,
+        "independentEvidenceFamilies": 115,
+        "signals": [],
+        "risks": [
+          {
+            "label": "Only symbol/name identity is available; ticker symbols are not unique.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Contract address is missing or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Chain identity is missing, mismatched, or not verified.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Identity state is SYMBOL_ONLY.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Market-cap/FDV data is missing for a small-cap validation strategy.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Project only has a symbol/name match without verified contract or listing identity.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Needs more persistent scans before ARMED.",
+            "score": 60,
+            "family": "WARNING"
+          },
+          {
+            "label": "Some data is stale.",
+            "score": 60,
+            "family": "WARNING"
+          }
+        ],
+        "hardBlocks": [
+          "Final integrity hard block: AI decision rejected the project.",
+          "AI decision rejected the project.",
+          "aiDecision: Reject",
+          "allocationBucket: Avoid",
+          "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+          "proofVerdict: Risk-heavy setup",
+          "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+          "projectIdentityVerdict: Identity Unverified",
+          "causalMarketTwinVerdict: Twin Reject",
+          "selfEvolvingAlphaOSDecision: Research Block",
+          "Purchase route is not confirmed as purchasable.",
+          "Execution route is not verified as available."
+        ],
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+          "[object Object]"
+        ],
+        "materialChanges": [
+          {
+            "type": "Staking Change",
+            "claim": "Catalyst detected",
+            "sourceFamily": "catalyst-radar",
+            "reliability": 50,
+            "url": null
+          }
+        ],
+        "localAI": {
+          "status": "UNKNOWN",
+          "verdict": "Reject",
+          "researchDecision": "PENDING_LOCAL_RESEARCH",
+          "confidence": 0,
+          "coverage": 0,
+          "adjustment": 0,
+          "consensusScore": 50,
+          "promotionBlocked": false
+        },
+        "rankDrivers": [
+          "Evidence Coverage: 89",
+          "Attention Gap: 53",
+          "Timing: 51",
+          "Trust: 51",
+          "Local AI Consensus: 50",
+          "Execution: 35",
+          "Market Opportunity Rank: 0"
+        ],
+        "disclaimer": "Research signal only. This is not financial advice or a profit promise."
+      }
+    ]
+  }
+}

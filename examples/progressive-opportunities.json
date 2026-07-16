@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:06:38.181Z",
+  "generatedAt": "2026-07-16T13:34:24.851Z",
   "totalProjects": 8,
   "counts": {
     "sniperReady": 0,
@@ -31,7 +31,7 @@
       "chain": "ethereum",
       "tier": "BLOCKED",
       "opportunityScore": 28,
-      "trustScore": 52,
+      "trustScore": 51,
       "executionScore": 35,
       "moneyRankScore": 0,
       "moneyRank": null,
@@ -94,7 +94,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 112500,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [
@@ -206,7 +206,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 100000,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -311,7 +311,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 107500,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -347,111 +347,6 @@
     },
     {
       "rank": 4,
-      "bestAvailableRank": null,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "tier": "BLOCKED",
-      "opportunityScore": 23,
-      "trustScore": 52,
-      "executionScore": 35,
-      "moneyRankScore": 0,
-      "moneyRank": null,
-      "moneyRankEligible": false,
-      "moneyRankDrivers": [
-        "Blocked: Final integrity hard block: AI decision rejected the project."
-      ],
-      "executableTradeSizeUsd": 0,
-      "executionTradeSizeChecks": [
-        {
-          "sizeUsd": 25,
-          "liquidityUsd": 115000,
-          "estimatedImpactPct": 0.31,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 100,
-          "liquidityUsd": 115000,
-          "estimatedImpactPct": 0.31,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 500,
-          "liquidityUsd": 115000,
-          "estimatedImpactPct": 1.09,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 1000,
-          "liquidityUsd": 115000,
-          "estimatedImpactPct": 2.17,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        }
-      ],
-      "calibrationState": {
-        "sampleSize": 0,
-        "status": "MODEL_ESTIMATE_ONLY",
-        "note": "Treat as a research ranking until more outcomes are logged."
-      },
-      "confidence": "Blocked",
-      "finalSelectionState": "BLOCKED",
-      "finalSelectionQualified": false,
-      "sniperState": "INSUFFICIENT_DATA",
-      "sniperQualified": false,
-      "routeVerified": false,
-      "liquidityUsd": 115000,
-      "sourceCount": 57,
-      "localAIVerdict": "Reject",
-      "localAIAdjustment": 0,
-      "whyNow": [],
-      "evidenceCoverage": 89,
-      "missingEvidence": [
-        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
-        "Refresh stale execution quote before ranking as execution-ready.",
-        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
-      ],
-      "hardBlockers": [
-        "Final integrity hard block: AI decision rejected the project."
-      ],
-      "catalystWindow": "Staking Change",
-      "predictionHorizon": "7d-30d research watch window",
-      "invalidationConditions": [
-        "Opportunity score drops below its current tier threshold on the next scan.",
-        "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
-        "Identity, contract, or execution route evidence becomes contradictory.",
-        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
-      ],
-      "nextVerificationActions": [
-        "Do not promote. Recheck only if the hard-blocking evidence is resolved."
-      ],
-      "predictionPerformance": {
-        "sampleSize": 0,
-        "status": "MODEL_ESTIMATE_ONLY",
-        "probabilityLabelAllowed": false,
-        "note": "Do not treat score as a proven probability until enough outcomes are collected.",
-        "hitRate7d25Pct": null,
-        "hitRate30d100Pct": null,
-        "rugOrUntradeableRate": null
-      }
-    },
-    {
-      "rank": 5,
       "bestAvailableRank": null,
       "name": "Akash Network",
       "symbol": "AKT",
@@ -521,7 +416,112 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 105000,
-      "sourceCount": 57,
+      "sourceCount": 58,
+      "localAIVerdict": "Reject",
+      "localAIAdjustment": 0,
+      "whyNow": [],
+      "evidenceCoverage": 89,
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+      ],
+      "hardBlockers": [
+        "Final integrity hard block: AI decision rejected the project."
+      ],
+      "catalystWindow": "Staking Change",
+      "predictionHorizon": "7d-30d research watch window",
+      "invalidationConditions": [
+        "Opportunity score drops below its current tier threshold on the next scan.",
+        "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+        "Identity, contract, or execution route evidence becomes contradictory.",
+        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+      ],
+      "nextVerificationActions": [
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+      ],
+      "predictionPerformance": {
+        "sampleSize": 0,
+        "status": "MODEL_ESTIMATE_ONLY",
+        "probabilityLabelAllowed": false,
+        "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+        "hitRate7d25Pct": null,
+        "hitRate30d100Pct": null,
+        "rugOrUntradeableRate": null
+      }
+    },
+    {
+      "rank": 5,
+      "bestAvailableRank": null,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
+      "tier": "BLOCKED",
+      "opportunityScore": 23,
+      "trustScore": 51,
+      "executionScore": 35,
+      "moneyRankScore": 0,
+      "moneyRank": null,
+      "moneyRankEligible": false,
+      "moneyRankDrivers": [
+        "Blocked: Final integrity hard block: AI decision rejected the project."
+      ],
+      "executableTradeSizeUsd": 0,
+      "executionTradeSizeChecks": [
+        {
+          "sizeUsd": 25,
+          "liquidityUsd": 115000,
+          "estimatedImpactPct": 0.31,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 100,
+          "liquidityUsd": 115000,
+          "estimatedImpactPct": 0.31,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 500,
+          "liquidityUsd": 115000,
+          "estimatedImpactPct": 1.09,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 1000,
+          "liquidityUsd": 115000,
+          "estimatedImpactPct": 2.17,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        }
+      ],
+      "calibrationState": {
+        "sampleSize": 0,
+        "status": "MODEL_ESTIMATE_ONLY",
+        "note": "Treat as a research ranking until more outcomes are logged."
+      },
+      "confidence": "Blocked",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "sniperState": "INSUFFICIENT_DATA",
+      "sniperQualified": false,
+      "routeVerified": false,
+      "liquidityUsd": 115000,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -626,7 +626,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 110000,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -644,7 +644,9 @@
       "invalidationConditions": [
         "Opportunity score drops below its current tier threshold on the next scan.",
         "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
-        "Identity, contract, or execution route evidence becomes contradictory."
+        "Identity, contract, or execution route evidence becomes contradictory.",
+        "Catalyst is delayed, cancelled, or occurs without confirming liquidity and buyer growth.",
+        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
       ],
       "nextVerificationActions": [
         "Do not promote. Recheck only if the hard-blocking evidence is resolved."
@@ -730,7 +732,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 102500,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -772,7 +774,7 @@
       "chain": "solana",
       "tier": "BLOCKED",
       "opportunityScore": 21,
-      "trustScore": 52,
+      "trustScore": 51,
       "executionScore": 35,
       "moneyRankScore": 0,
       "moneyRank": null,
@@ -835,7 +837,7 @@
       "sniperQualified": false,
       "routeVerified": false,
       "liquidityUsd": 117500,
-      "sourceCount": 57,
+      "sourceCount": 58,
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
@@ -853,7 +855,8 @@
       "invalidationConditions": [
         "Opportunity score drops below its current tier threshold on the next scan.",
         "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
-        "Identity, contract, or execution route evidence becomes contradictory."
+        "Identity, contract, or execution route evidence becomes contradictory.",
+        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
       ],
       "nextVerificationActions": [
         "Do not promote. Recheck only if the hard-blocking evidence is resolved."

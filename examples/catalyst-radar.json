@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:06:29.709Z",
+  "generatedAt": "2026-07-16T13:34:15.305Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -14,8 +14,8 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 6,
-      "liveCatalystRadarScore": 83,
+      "pipelineScore": 7,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -99,7 +99,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 59,
+      "liveCatalystRadarScore": 60,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -142,8 +142,8 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "pipelineScore": 6,
-      "liveCatalystRadarScore": 83,
+      "pipelineScore": 7,
+      "liveCatalystRadarScore": 84,
       "liveCatalystUrgency": "Critical",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -227,7 +227,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 59,
+      "liveCatalystRadarScore": 60,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -264,7 +264,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
@@ -297,11 +297,11 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 5,
-      "name": "Celestia",
-      "symbol": "TIA",
-      "chain": "celestia",
-      "pipelineScore": 0,
+      "rank": 4,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "chain": "cosmos",
+      "pipelineScore": 2,
       "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -330,10 +330,10 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 4,
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "chain": "cosmos",
+      "rank": 5,
+      "name": "Celestia",
+      "symbol": "TIA",
+      "chain": "celestia",
       "pipelineScore": 1,
       "liveCatalystRadarScore": 50,
       "liveCatalystUrgency": "Medium",
@@ -363,11 +363,11 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
-      "rank": 3,
+      "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
       "chain": "solana",
-      "pipelineScore": 2,
+      "pipelineScore": 3,
       "liveCatalystRadarScore": 49,
       "liveCatalystUrgency": "Medium",
       "liveCatalystAction": "Watch for confirmation",
@@ -401,7 +401,7 @@
       "symbol": "JUP",
       "chain": "solana",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 16,
+      "liveCatalystRadarScore": 17,
       "liveCatalystUrgency": "Low",
       "liveCatalystAction": "No immediate action",
       "topEvent": null,

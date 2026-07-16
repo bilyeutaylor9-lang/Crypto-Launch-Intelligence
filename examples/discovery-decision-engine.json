@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:06:35.100Z",
+  "generatedAt": "2026-07-16T13:34:21.369Z",
   "name": "Discovery Decision Engine v1",
   "summary": {
     "projectCount": 8,
@@ -26,34 +26,34 @@
       {
         "rank": 3,
         "symbol": "ONDO",
-        "score": 37,
+        "score": 36,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
         "rank": 4,
-        "symbol": "TIA",
-        "score": 35,
-        "tier": "UNVERIFIED",
-        "stage": "PRICE_DISCOVERY"
-      },
-      {
-        "rank": 5,
         "symbol": "AKT",
         "score": 35,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
-        "rank": 6,
-        "symbol": "JUP",
+        "rank": 5,
+        "symbol": "TIA",
         "score": 35,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
       },
       {
-        "rank": 7,
+        "rank": 6,
         "symbol": "RNDR",
+        "score": 34,
+        "tier": "UNVERIFIED",
+        "stage": "PRICE_DISCOVERY"
+      },
+      {
+        "rank": 7,
+        "symbol": "JUP",
         "score": 34,
         "tier": "UNVERIFIED",
         "stage": "PRICE_DISCOVERY"
@@ -93,11 +93,11 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 47",
+          "Discovery strength 45",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 56"
+          "Catalyst potential 57"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -115,7 +115,7 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 47",
+          "Discovery strength 45",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
@@ -130,14 +130,14 @@
         "symbol": "ONDO",
         "name": "Ondo",
         "chain": "ethereum",
-        "score": 37,
+        "score": 36,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
         "safety": "UNVERIFIED",
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 46",
+          "Discovery strength 43",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
@@ -149,28 +149,6 @@
       },
       {
         "rank": 4,
-        "symbol": "TIA",
-        "name": "Celestia",
-        "chain": "celestia",
-        "score": 35,
-        "tier": "UNVERIFIED",
-        "lifecycleStage": "PRICE_DISCOVERY",
-        "safety": "UNVERIFIED",
-        "organicFirewall": "UNVERIFIED",
-        "identity": "Identity Unverified",
-        "whyRanked": [
-          "Discovery strength 47",
-          "Organic demand 35",
-          "Project quality 32",
-          "Liquidity/execution 59",
-          "Catalyst potential 39"
-        ],
-        "risks": [
-          "liquidityControlRisk 59"
-        ]
-      },
-      {
-        "rank": 5,
         "symbol": "AKT",
         "name": "Akash Network",
         "chain": "cosmos",
@@ -181,7 +159,7 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 47",
+          "Discovery strength 45",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
@@ -192,10 +170,10 @@
         ]
       },
       {
-        "rank": 6,
-        "symbol": "JUP",
-        "name": "Jupiter",
-        "chain": "solana",
+        "rank": 5,
+        "symbol": "TIA",
+        "name": "Celestia",
+        "chain": "celestia",
         "score": 35,
         "tier": "UNVERIFIED",
         "lifecycleStage": "PRICE_DISCOVERY",
@@ -203,18 +181,18 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 47",
+          "Discovery strength 45",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 36"
+          "Catalyst potential 39"
         ],
         "risks": [
           "liquidityControlRisk 59"
         ]
       },
       {
-        "rank": 7,
+        "rank": 6,
         "symbol": "RNDR",
         "name": "Render",
         "chain": "solana",
@@ -225,11 +203,33 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 46",
+          "Discovery strength 43",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
           "Catalyst potential 35"
+        ],
+        "risks": [
+          "liquidityControlRisk 59"
+        ]
+      },
+      {
+        "rank": 7,
+        "symbol": "JUP",
+        "name": "Jupiter",
+        "chain": "solana",
+        "score": 34,
+        "tier": "UNVERIFIED",
+        "lifecycleStage": "PRICE_DISCOVERY",
+        "safety": "UNVERIFIED",
+        "organicFirewall": "UNVERIFIED",
+        "identity": "Identity Unverified",
+        "whyRanked": [
+          "Discovery strength 45",
+          "Organic demand 35",
+          "Project quality 32",
+          "Liquidity/execution 59",
+          "Catalyst potential 36"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -247,11 +247,11 @@
         "organicFirewall": "UNVERIFIED",
         "identity": "Identity Unverified",
         "whyRanked": [
-          "Discovery strength 47",
+          "Discovery strength 45",
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 28"
+          "Catalyst potential 29"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -263,7 +263,7 @@
     "criticalRisks": []
   },
   "missedWinnerLab": {
-    "generatedAt": "2026-07-16T13:06:35.100Z",
+    "generatedAt": "2026-07-16T13:34:21.369Z",
     "evaluatedBreakouts": 0,
     "detectedBreakouts": 0,
     "missedBreakouts": 0,

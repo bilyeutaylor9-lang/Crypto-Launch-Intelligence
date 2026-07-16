@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T13:06:29.961Z",
+  "generatedAt": "2026-07-16T13:34:15.535Z",
   "totalProjects": 8,
   "verifiedStacks": 0,
   "weakStacks": 0,
@@ -14,7 +14,7 @@
     {
       "name": "EigenLayer",
       "symbol": "EIGEN",
-      "score": 57,
+      "score": 53,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -26,19 +26,7 @@
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 57,
-      "verdict": "Thin Source Stack",
-      "sources": [
-        {
-          "source": "researchSeeds",
-          "trustScore": 90
-        }
-      ]
-    },
-    {
-      "name": "Celestia",
-      "symbol": "TIA",
-      "score": 57,
+      "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -50,7 +38,19 @@
     {
       "name": "Akash Network",
       "symbol": "AKT",
-      "score": 57,
+      "score": 52,
+      "verdict": "Thin Source Stack",
+      "sources": [
+        {
+          "source": "researchSeeds",
+          "trustScore": 90
+        }
+      ]
+    },
+    {
+      "name": "Celestia",
+      "symbol": "TIA",
+      "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -62,7 +62,7 @@
     {
       "name": "Pendle",
       "symbol": "PENDLE",
-      "score": 57,
+      "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -74,7 +74,7 @@
     {
       "name": "Jupiter",
       "symbol": "JUP",
-      "score": 57,
+      "score": 52,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -86,7 +86,7 @@
     {
       "name": "Ondo",
       "symbol": "ONDO",
-      "score": 54,
+      "score": 49,
       "verdict": "Thin Source Stack",
       "sources": [
         {
@@ -98,7 +98,7 @@
     {
       "name": "Render",
       "symbol": "RNDR",
-      "score": 54,
+      "score": 49,
       "verdict": "Thin Source Stack",
       "sources": [
         {

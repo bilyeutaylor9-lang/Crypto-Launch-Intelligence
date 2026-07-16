@@ -181,6 +181,7 @@ The project now behaves like a miniature autonomous research organization.
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
 | Progressive Opportunity Ranking | Splits Opportunity, Trust, Execution, and Money Rank, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, execution-ready candidates, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json`, `reports/institutional-ranking.json` |
+| Market Opportunity Rank | Unifies Opportunity, Timing, Trust, Attention Gap, and bounded local-AI consensus into one authoritative best-opportunity decision, top-five comparison, horizons, lanes, and chief judgment | `reports/best-opportunity-now.json`, `reports/top-five-opportunities.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
 | Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
@@ -634,6 +635,13 @@ Every scan can generate a full research packet:
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
 | `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, Execution Score, Money Rank, best-available opportunities, execution-ready candidates, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
+| `reports/best-opportunity-now.json` | Authoritative market-leader verdict. Shows BEST OPPORTUNITY RIGHT NOW only when clear-leader requirements pass, otherwise NO CLEAR MARKET LEADER |
+| `reports/top-five-opportunities.json` | Direct top-five opportunity ranking from the unified Market Opportunity Rank |
+| `reports/finalist-comparison.json` | Head-to-head top-five/two comparison, leader gap, runner-up advantages, bear case, and invalidation rules |
+| `reports/time-horizon-leaders.json` | Best 24-72 hour, 7-14 day, and 30-90 day research candidates |
+| `reports/opportunity-lane-leaders.json` | Leaders by lane such as immediate breakout, catalyst window, positional build, under-the-radar, and monitor |
+| `reports/crawler-changes.json` | Compact change-detection packet from existing project research fields, ready for queued crawler storage |
+| `reports/local-ai-chief-judgment.json` | Structured chief market-opportunity judgment over the top five without allowing AI to override deterministic safety |
 | `reports/institutional-ranking.json` | Institutional Money Rank blending opportunity, trust, execution, evidence freshness, regime fit, and measured EV only when outcome samples are large enough |
 | `reports/best-available.json` | Strongest non-hard-blocked research leads plus missing proof queue |
 | `reports/execution-ready.json` | Candidates with verified route, sufficient liquidity depth, and passing paper trade-size checks |
@@ -828,6 +836,13 @@ cat examples/proof-of-alpha-execution-twin.json
 cat examples/native-discovery-mesh.json
 cat examples/discovery-decision-engine.json
 cat examples/progressive-opportunities.json
+cat examples/best-opportunity-now.json
+cat examples/top-five-opportunities.json
+cat examples/finalist-comparison.json
+cat examples/time-horizon-leaders.json
+cat examples/opportunity-lane-leaders.json
+cat examples/crawler-changes.json
+cat examples/local-ai-chief-judgment.json
 cat examples/institutional-ranking.json
 cat examples/best-available.json
 cat examples/execution-ready.json

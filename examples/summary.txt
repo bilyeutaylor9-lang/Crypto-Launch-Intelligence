@@ -1,11 +1,11 @@
 CRYPTO LAUNCH INTELLIGENCE REPORT
-Generated: 7/16/2026, 6:06:29 AM
+Generated: 7/16/2026, 6:34:15 AM
 
 Projects scanned: 8
 Market regime: Risk-Off
 Healthy breadth: 0%
 High-conviction breadth: 0%
-Average opportunity score: 1.38
+Average opportunity score: 1.88
 Strong buy candidates: 0
 High-conviction candidates: 0
 Priority research queue: 0
@@ -31,13 +31,13 @@ Institutional confidence setups: 0
 High vesting pressure setups: 0
 Proof-backed setups: 0
 Proof-carrying alpha candidates: 0
-Accountable contract research: 3
-Alpha contract invalidations: 1
+Accountable contract research: 2
+Alpha contract invalidations: 6
 Alpha contract receipts: 8
 Alpha Governor promotes: 0
 Alpha Governor priority research: 3
-Alpha Governor rechecks: 3
-Alpha Governor risk blocks: 2
+Alpha Governor rechecks: 2
+Alpha Governor risk blocks: 3
 Autonomous causal network ARMED: 0
 Autonomous causal network priority research: 0
 Autonomous causal network blocks: 8
@@ -51,16 +51,16 @@ Pre-strong-buy lifecycle setups: 1
 High AI-disagreement setups: 8
 Red-team blocks: 1
 Alpha Lab strategy matches: 0
-Watchtower alerts: 2183
-Watchtower high/critical alerts: 2084
-Watchtower brief: 0 critical, 8 high, and 8 total watchtower alerts detected.
-Watchtower hit rate: 0% (0 evaluated, 2183 pending)
+Watchtower alerts: 2494
+Watchtower high/critical alerts: 2390
+Watchtower brief: 0 critical, 1000 high, and 1035 total watchtower alerts detected.
+Watchtower hit rate: 0% (0 evaluated, 2494 pending)
 
 Top project:
 EigenLayer (EIGEN)
 
 Top score:
-6.00
+7.00
 
 Top research queue:
 None
@@ -90,39 +90,39 @@ Top proof-backed setups:
 None
 
 Top proof-carrying alpha contracts:
-1. Pendle (PENDLE) - contract 51, Invalidation Hit
-2. Bittensor (TAO) - contract 47, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-3. EigenLayer (EIGEN) - contract 45, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-4. Akash Network (AKT) - contract 44, Accountable Priority Research - Best-available research floor: promoted for accountable research only, not as a buy signal.
-5. Render (RNDR) - contract 43, Open Research Contract
+1. EigenLayer (EIGEN) - contract 54, Invalidation Hit
+2. Bittensor (TAO) - contract 54, Invalidation Hit
+3. Akash Network (AKT) - contract 52, Invalidation Hit
+4. Render (RNDR) - contract 51, Invalidation Hit
+5. Celestia (TIA) - contract 51, Invalidation Hit
 
 Top Alpha Evolution Governor queue:
-1. Bittensor (TAO) - governor 57, Governor Priority Research - Priority Research
-2. EigenLayer (EIGEN) - governor 56, Governor Risk Block - Block
-3. Akash Network (AKT) - governor 56, Governor Priority Research - Priority Research
-4. Celestia (TIA) - governor 56, Governor Priority Research - Priority Research
-5. Pendle (PENDLE) - governor 56, Governor Risk Block - Block
+1. EigenLayer (EIGEN) - governor 56, Governor Risk Block - Block
+2. Bittensor (TAO) - governor 56, Governor Priority Research - Risk-Contained Priority Research
+3. Akash Network (AKT) - governor 56, Governor Priority Research - Risk-Contained Priority Research
+4. Celestia (TIA) - governor 55, Governor Priority Research - Risk-Contained Priority Research
+5. Ondo (ONDO) - governor 55, Governor Recheck Soon - Risk-Contained Recheck
 
 Top autonomous causal network:
-1. EigenLayer (EIGEN) - network 30, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
-2. Ondo (ONDO) - network 30, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
-3. Bittensor (TAO) - network 29, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
+1. EigenLayer (EIGEN) - network 29, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
+2. Bittensor (TAO) - network 29, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
+3. Ondo (ONDO) - network 29, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
 4. Pendle (PENDLE) - network 29, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
-5. Render (RNDR) - network 26, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
+5. Render (RNDR) - network 25, BLOCKED, fragility High - Developer Investigator must raise proof above developing quality.
 
 Top confidence-adjusted setups:
-1. EigenLayer (EIGEN) - adjusted 33, source 35, trap 12
-2. Bittensor (TAO) - adjusted 33, source 35, trap 12
-3. Render (RNDR) - adjusted 33, source 35, trap 12
-4. Akash Network (AKT) - adjusted 33, source 35, trap 12
-5. Celestia (TIA) - adjusted 30, source 35, trap 12
+1. EigenLayer (EIGEN) - adjusted 31, source 15, trap 12
+2. Render (RNDR) - adjusted 31, source 15, trap 12
+3. Bittensor (TAO) - adjusted 30, source 15, trap 12
+4. Akash Network (AKT) - adjusted 30, source 15, trap 12
+5. Celestia (TIA) - adjusted 28, source 15, trap 12
 
 Top narrative heat setups:
-1. EigenLayer (EIGEN) - heat 78, Hot Rotation
-2. Bittensor (TAO) - heat 100, Hot Rotation
-3. Render (RNDR) - heat 93, Hot Rotation
+1. EigenLayer (EIGEN) - heat 81, Hot Rotation
+2. Render (RNDR) - heat 94, Hot Rotation
+3. Bittensor (TAO) - heat 100, Hot Rotation
 4. Akash Network (AKT) - heat 100, Hot Rotation
-5. Celestia (TIA) - heat 71, Hot Rotation
+5. Celestia (TIA) - heat 72, Hot Rotation
 
 Top improving projects:
 None
@@ -131,7 +131,7 @@ Top trap-risk warnings:
 None
 
 Top AI strong-buy candidates:
-1. EigenLayer (EIGEN) - council 60, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
+1. EigenLayer (EIGEN) - council 59, Best Available Strong Buy Candidate - This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.
 
 Files generated:
 - reports/report.html

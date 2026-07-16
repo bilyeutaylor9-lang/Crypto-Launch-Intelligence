@@ -1,0 +1,235 @@
+{
+  "generatedAt": "2026-07-16T13:34:24.854Z",
+  "changes": [
+    {
+      "projectKey": "temporary:symbol:ethereum:eigen",
+      "identity": {
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 84,
+          "url": null
+        },
+        {
+          "type": "Mainnet Launch",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 84,
+          "url": null
+        },
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 84,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:bittensor:tao",
+      "identity": {
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 56,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:ethereum:ondo",
+      "identity": {
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "chain": "ethereum",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Catalyst Calendar Alert",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 68,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:cosmos:akt",
+      "identity": {
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 50,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:celestia:tia",
+      "identity": {
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 50,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:ethereum:pendle",
+      "identity": {
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Airdrop / Points Catalyst",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 60,
+          "url": null
+        },
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 60,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:solana:rndr",
+      "identity": {
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Migration / Release",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 49,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:solana:jup",
+      "identity": {
+        "name": "Jupiter",
+        "symbol": "JUP",
+        "chain": "solana",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    }
+  ],
+  "note": "This report is built from compact project evidence packets. It is ready for the queued crawler/change-detector layer."
+}
