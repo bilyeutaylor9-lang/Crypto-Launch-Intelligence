@@ -195,6 +195,7 @@ function summarizeDiscovery(discovery = {}) {
     freeMode: discovery.freeMode,
     wideConfig: discovery.wideConfig,
     targetCoverage: discovery.targetCoverage,
+    candidateSelection: discovery.candidateSelection,
     qualityGate: discovery.qualityGate,
     sourceReports: discovery.sourceReports,
     sourceRouter: discovery.sourceRouter,

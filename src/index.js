@@ -9,6 +9,11 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
+import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
+import {
+  loadResearchCoverageLedger,
+  saveResearchCoveragePlan,
+} from "./learning/researchCoverageStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -72,8 +77,8 @@ export function scoreOf(project = {}) {
   return authoritativeScore;
 }
 
-function pipelineLimit() {
-  const configured = Number(process.env.INTELLIGENCE_PIPELINE_LIMIT || 0);
+function pipelineLimit(env = process.env) {
+  const configured = Number(env.INTELLIGENCE_PIPELINE_LIMIT || 0);
   return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 0;
 }
 
@@ -105,19 +110,18 @@ export function resolveLocalAIOptions(env = process.env) {
   return { mode: "AUTO", queue: true, inline: true, inlineLimit, topProjectLimit };
 }
 
-function selectResearchQueue(projects = []) {
-  const candidates = Array.isArray(projects) ? projects : [];
-  const limit = pipelineLimit();
+export function planResearchQueue(projects = [], options = {}) {
+  return planCoverageSelection(projects, {
+    limit: options.limit ?? pipelineLimit(options.env),
+    history: options.history,
+    runSequence: options.runSequence,
+    prefix: "research",
+    scoreFor: (project) => project.discoveryPriorityScore,
+  });
+}
 
-  if (!limit || candidates.length <= limit) return candidates;
-
-  return [...candidates]
-    .sort(
-      (left, right) =>
-        num(right.discoveryPriorityScore) - num(left.discoveryPriorityScore) ||
-        num(right.independentEvidenceScore) - num(left.independentEvidenceScore)
-    )
-    .slice(0, limit);
+export function selectResearchQueue(projects = [], options = {}) {
+  return planResearchQueue(projects, options).selected;
 }
 
 function normalizeForReports(projects = []) {
@@ -176,6 +180,11 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `Discovery Target: ${discovery.targetCoverage.targetCandidates || discovery.targetCandidates || "none"} | Accepted: ${discovery.targetCoverage.acceptedAfterLimitCount || discoveredList.length} | Target Met: ${discovery.targetCoverage.targetMet ? "yes" : "no"} | Shortfall: ${discovery.targetCoverage.shortfall || 0}`
     );
   }
+  if (discovery.candidateSelection) {
+    console.log(
+      `Discovery Coverage: ${discovery.candidateSelection.selectedCount || 0}/${discovery.candidateSelection.uniqueCandidateCount || 0} selected | Coverage Reserve: ${discovery.candidateSelection.selectedByReason?.COVERAGE_RESERVE || 0} | Deferred: ${discovery.candidateSelection.deferredCount || 0}`
+    );
+  }
   if (discovery.candidateRescue) {
     console.log(
       `Candidate Rescue: ${discovery.candidateRescue.status || "UNKNOWN"} | Added: ${discovery.candidateRescue.addedCount || 0} | Clusters: ${discovery.candidateRescue.expandedClusters?.length || discovery.candidateRescue.clusters?.length || 0}`
@@ -196,6 +205,12 @@ function printDiscoveryStats(discovery = {}, discoveredList = []) {
       `Universe Ledger: ${discovery.universeLedger.savedProjects || 0} saved | Promoted: ${discovery.universeLedger.totals.promoted || 0} | Research: ${discovery.universeLedger.totals.researchOnly || 0} | Blocked: ${discovery.universeLedger.totals.blocked || 0}`
     );
   }
+}
+
+function printResearchCoverage(coverage = {}) {
+  console.log(
+    `Research Coverage: ${coverage.selectedCount || 0}/${coverage.uniqueCandidateCount || 0} unique candidates | Merit: ${coverage.selectedByReason?.MERIT || 0} | Coverage: ${coverage.selectedByReason?.COVERAGE_RESERVE || 0} | Rotation: ${coverage.selectedByReason?.DEFERRED_ROTATION || 0} | Deferred: ${coverage.deferredCount || 0}`
+  );
 }
 
 function printSummary(summary) {
@@ -490,9 +505,15 @@ async function main() {
 
     printDiscoveryStats(discoveredProjects, discoveredList);
 
-    const researchQueue = selectResearchQueue(discoveredList);
+    const researchLedger = loadResearchCoverageLedger();
+    const researchPlan = planResearchQueue(discoveredList, {
+      history: researchLedger,
+      runSequence: num(researchLedger.runCount) + 1,
+    });
+    const researchQueue = researchPlan.selected;
 
     console.log("");
+    printResearchCoverage(researchPlan.report);
     console.log(
       `Running intelligence pipeline on ${researchQueue.length.toLocaleString()} of ${discoveredList.length.toLocaleString()} discovered projects...\n`
     );
@@ -510,12 +531,27 @@ async function main() {
 
     const results = normalizeForReports(pipelineResults);
     const summary = summarizePipelineResults(results);
+    let researchCoverage = researchPlan.report;
+
+    try {
+      researchCoverage = {
+        ...researchPlan.report,
+        ledger: saveResearchCoveragePlan(discoveredList, researchPlan),
+      };
+    } catch (error) {
+      researchCoverage = {
+        ...researchPlan.report,
+        ledger: { status: "FAILED", error: error.message },
+      };
+      console.warn(`Research coverage ledger failed: ${error.message}`);
+    }
 
     const reportPaths = generateReports(results, {
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
       discoveredProjects: discoveredList.length,
       discovery: discoveredProjects,
+      researchCoverage,
       scannedProjects: results.length,
       engineMode: "full",
       scoringMode: "institutional-weighted-fallback",

@@ -19,6 +19,7 @@ import {
   independentEvidenceScore,
   buildDiscoveryCoverage,
 } from "./discovery/discoveryCoverageEngine.js";
+import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
 import { identityKeyForProject, attachProjectIdentity } from "./discovery/projectIdentityGraph.js";
 import { buildSourceCapabilityAudit } from "./discovery/sourceCapabilityAudit.js";
 import {
@@ -559,7 +560,7 @@ function discoveryPriority(project = {}) {
   );
 }
 
-function rankAndLimitCandidates(projects = [], options = {}) {
+export function rankAndLimitCandidates(projects = [], options = {}) {
   const limits = resolveDiscoveryLimits(options);
   const limit = limits.scanLimit;
   const ranked = [...projects]
@@ -568,11 +569,17 @@ function rankAndLimitCandidates(projects = [], options = {}) {
       discoveryPriorityScore: discoveryPriority(project),
     }))
     .sort((a, b) => b.discoveryPriorityScore - a.discoveryPriorityScore);
+  const selection = planCoverageSelection(ranked, {
+    limit,
+    prefix: "discovery",
+    scoreFor: (project) => project.discoveryPriorityScore,
+  });
 
   return {
     ranked,
-    limited: limit > 0 ? ranked.slice(0, limit) : ranked,
+    limited: selection.selected,
     limit,
+    selection: selection.report,
   };
 }
 
@@ -864,6 +871,7 @@ export async function runDiscoveryManager(options = {}) {
     acceptedCount: candidatePool.length,
     acceptedBeforeLimitCount: qualityGate.accepted.length,
     scanLimit: candidateRanking.limit,
+    candidateSelection: candidateRanking.selection,
     targetCandidates,
     wideLimit,
     sourceLimits: {
@@ -880,6 +888,7 @@ export async function runDiscoveryManager(options = {}) {
       acceptedAfterLimitCount: candidatePool.length,
       targetMet: candidatePool.length >= targetCandidates,
       shortfall: Math.max(0, targetCandidates - candidatePool.length),
+      selection: candidateRanking.selection,
     },
     rejectedCount: dexRejectedTokens + qualityGate.rejected.length,
     providerHealth,
