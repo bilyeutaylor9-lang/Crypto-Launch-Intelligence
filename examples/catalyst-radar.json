@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:21.961Z",
+  "generatedAt": "2026-07-17T21:16:53.289Z",
   "totalProjects": 8,
   "activeCatalystProjects": 8,
   "counts": {
@@ -57,7 +57,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Simulation Watch",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -99,7 +99,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 60,
+      "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {
@@ -185,7 +185,7 @@
         }
       ],
       "dossierSwarmDecision": "Do Not Promote",
-      "simulationDecision": "Simulation Watch",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data"
     },
     {
@@ -227,7 +227,7 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "pipelineScore": 0,
-      "liveCatalystRadarScore": 60,
+      "liveCatalystRadarScore": 61,
       "liveCatalystUrgency": "High",
       "liveCatalystAction": "Run deep research verification",
       "topEvent": {

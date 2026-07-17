@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-17T21:17:03.187Z",
+  "projectsDiscovered": 8,
+  "canonicalIdentitiesCreated": 8,
+  "trueContractConflicts": 0,
+  "symbolCollisions": 0,
+  "executionChecksAttempted": 8,
+  "executionChecksVerified": 0,
+  "executionChecksPartiallyVerified": 0,
+  "providerFailures": 0,
+  "researchQuarantinedCandidates": 0,
+  "hardBlockedCandidates": 8,
+  "candidatesReachingEachLadderStage": {
+    "sniperReady": 0,
+    "bestAvailable": 0,
+    "emergingResearch": 0,
+    "hardBlocked": 8
+  },
+  "stageStatus": "COMPLETE"
+}

@@ -55,7 +55,7 @@ function rawSniperScore(project = {}) {
 
 function confidenceAdjustedScore(project = {}, score = 0) {
   const confidencePenalty = Math.max(0, 75 - clamp(project.sniperEvidenceConfidence)) * 0.6;
-  const freshnessPenalty = Math.max(0, 70 - clamp(project.sniperDataFreshness)) * 0.25;
+  const freshnessPenalty = Math.max(0, 60 - clamp(project.sniperDataFreshness)) * 0.25;
   const agreementPenalty = Math.max(0, 75 - clamp(project.sniperSourceAgreement)) * 0.25;
   return Math.round(clamp(score - confidencePenalty - freshnessPenalty - agreementPenalty));
 }

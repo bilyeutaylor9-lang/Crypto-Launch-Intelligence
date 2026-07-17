@@ -105,6 +105,7 @@ import { analyzeAutonomousCausalAlphaNetworkBatch } from "./engines/autonomousCa
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
+import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
 import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
 import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
@@ -1637,6 +1638,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
+  results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);

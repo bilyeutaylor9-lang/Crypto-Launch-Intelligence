@@ -10,6 +10,13 @@ const TIERS = {
   BLOCKED: "BLOCKED",
 };
 
+const LANES = {
+  SNIPER_READY: "SNIPER_READY",
+  BEST_AVAILABLE: "BEST_AVAILABLE",
+  EMERGING_RESEARCH: "EMERGING_RESEARCH",
+  HARD_BLOCKED: "HARD_BLOCKED",
+};
+
 const TIER_LIMITS = {
   SNIPER_READY: 5,
   EARLY_HIGH_CONVICTION: 10,
@@ -104,6 +111,7 @@ function sourceCount(project = {}) {
 }
 
 function routeVerified(project = {}) {
+  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(project.executionProof?.executionStatus || project.executionStatus)) return true;
   return Boolean(
     project.purchaseRouteConfirmed === true ||
       project.executionRouteAvailable === true ||
@@ -114,7 +122,21 @@ function routeVerified(project = {}) {
   );
 }
 
+function executionStatus(project = {}) {
+  return project.executionProof?.executionStatus || project.executionStatus || "UNKNOWN";
+}
+
+function executionProviderUnavailable(project = {}) {
+  return ["PROVIDER_UNAVAILABLE", "UNKNOWN"].includes(executionStatus(project));
+}
+
+function executionHardBlock(project = {}) {
+  return ["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(executionStatus(project));
+}
+
 function routeFailureDetected(project = {}) {
+  if (executionProviderUnavailable(project)) return false;
+  if (executionHardBlock(project) || executionStatus(project) === "NO_ROUTE") return true;
   const routeText = [
     project.purchaseRoute?.status,
     project.purchaseRouteStatus,
@@ -138,6 +160,7 @@ function routeFailureDetected(project = {}) {
 }
 
 function identityVerified(project = {}) {
+  if (project.canonicalIdentity?.identityStatus === "VERIFIED" || project.identityStatus === "VERIFIED") return true;
   return Boolean(
     project.identityVerified === true ||
       project.contractVerified === true ||
@@ -462,9 +485,17 @@ function buildHardBlockers(project = {}) {
   ].map(String);
 
   const hardText = finalReasons.join(" ");
-  if (project.identityConflict === true || project.finalSelectionState === "IDENTITY_CONFLICT") reasons.push("Identity conflict detected.");
+  const canonicalStatus = project.canonicalIdentity?.identityStatus || project.identityStatus;
+  if (canonicalStatus === "CONTRACT_CONFLICT" || project.canonicalIdentityHardBlock === true) reasons.push("Confirmed contract identity conflict.");
+  if (
+    (project.identityConflict === true || project.finalSelectionState === "IDENTITY_CONFLICT") &&
+    !["SYMBOL_COLLISION", "UNRESOLVED", "WEAK_MATCH"].includes(canonicalStatus)
+  ) {
+    reasons.push("Identity conflict detected.");
+  }
   if (["CONFLICTED_IDENTITY", "IMPERSONATION_RISK"].includes(project.finalIdentityState || project.identityState)) reasons.push("Conflicted or impersonation-risk identity.");
   if (project.chainMismatch === true || project.contractChainMismatch === true) reasons.push("Chain or contract mismatch detected.");
+  if (executionHardBlock(project)) reasons.push(`Execution proof hard block: ${executionStatus(project)}.`);
   if (project.honeypotDetected === true || num(project.honeypotRiskScore) >= 70) reasons.push("Honeypot risk detected.");
   if (num(project.contractRiskScore) >= 75) reasons.push("Severe contract risk detected.");
   if (["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus)) reasons.push(`Instant safety gate ${project.instantSafetyStatus}.`);
@@ -538,7 +569,11 @@ function buildMissingEvidence(project = {}, trust = {}, hardBlockers = []) {
   if (trust.sourceAgreement < 60 || sourceCount(project) < 2) missing.push("Add an independent second source and check source agreement.");
   if (trust.holderDistribution < 55) missing.push("Verify holder distribution, wallet clusters, insider concentration, and bundled launch risk.");
   if (trust.washTradingResistance < 55) missing.push("Verify organic volume and buyer quality before treating activity as real demand.");
-  if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or execution route before any final candidate status.");
+  if (executionProviderUnavailable(project)) {
+    missing.push("Execution provider unavailable; retry route verification before any final candidate status.");
+    missing.push("Verify Coinbase, MetaMask, DEX, or execution route before any final candidate status.");
+  }
+  else if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or execution route before any final candidate status.");
   if (!["COMPLETE", "PARTIAL"].includes(project.localAIStatus || "")) missing.push("Queue local AI research for thesis review and risk-only criticism.");
   if (num(project.comparableSampleSize || project.calibrationSampleSize || project.outcomeWinSampleSize) < 30) missing.push("Outcome calibration sample is too small for measured probabilities.");
 
@@ -547,8 +582,12 @@ function buildMissingEvidence(project = {}, trust = {}, hardBlockers = []) {
 
 function buildExecutionMissingEvidence(project = {}, execution = {}, tradeSizeChecks = []) {
   const missing = [];
-  if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
-  if (routeFailureDetected(project)) missing.push("Execution route is currently failing or unavailable.");
+  if (executionProviderUnavailable(project)) {
+    missing.push("Execution provider unavailable; route remains unknown, not proven absent.");
+    missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
+  }
+  else if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
+  if (routeFailureDetected(project)) missing.push("Execution route has confirmed negative evidence or no route after provider checks.");
   if (execution.quoteFreshness < 55) missing.push("Refresh stale execution quote before ranking as execution-ready.");
   if (execution.slippageControl < 55) missing.push("Confirm slippage and price impact with a live quote.");
   if (!tradeSizeChecks.some((check) => check.status === "PASS")) {
@@ -730,9 +769,151 @@ function moneyRankScoreFor({
   return Math.round(clamp(score + Math.min(0, num(localAIAdjustment))));
 }
 
-function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute }) {
+function resultForScore(score = 0, pass = 70, conditional = 45) {
+  if (score >= pass) return "PASS";
+  if (score >= conditional) return "CONDITIONAL";
+  return "REVIEW";
+}
+
+function identityGate(project = {}) {
+  const status = project.canonicalIdentity?.identityStatus || project.identityStatus || project.finalIdentityState || "UNRESOLVED";
+  const evidence = [
+    project.canonicalProjectId ? `canonicalProjectId:${project.canonicalProjectId}` : "",
+    project.canonicalAddress ? `contract:${project.canonicalAddress}` : "",
+    project.finalContractAddress ? `finalContract:${project.finalContractAddress}` : "",
+  ].filter(Boolean);
+  if (["CONTRACT_CONFLICT", "CONFLICTED_IDENTITY", "IMPERSONATION_RISK"].includes(status) || project.canonicalIdentityHardBlock) {
+    return { gate: "IDENTITY", result: "FAIL", evidence, reasons: project.canonicalIdentity?.conflictReasons || ["Confirmed incompatible contract identity."] };
+  }
+  if (["VERIFIED", "VERIFIED_CONTRACT", "VERIFIED_LISTING"].includes(status) || identityVerified(project)) {
+    return { gate: "IDENTITY", result: "PASS", evidence, reasons: [] };
+  }
+  if (["PROBABLE_MATCH", "MULTICHAIN_VARIANT", "BRIDGED_VARIANT"].includes(status)) {
+    return { gate: "IDENTITY", result: "CONDITIONAL", evidence, reasons: [`Identity status ${status}; verify canonical contract before final action.`] };
+  }
+  return { gate: "IDENTITY", result: "REVIEW", evidence, reasons: [`Identity status ${status}; keep in identity-review queue.`] };
+}
+
+function trustGate(project = {}, trustScore = 0, hardBlockers = []) {
+  if (hardBlockers.length) return { gate: "TRUST", result: "FAIL", evidence: [], reasons: hardBlockers.slice(0, 5) };
+  return {
+    gate: "TRUST",
+    result: resultForScore(trustScore, 70, 45),
+    evidence: [`trustScore:${trustScore}`, `sourceCount:${sourceCount(project)}`],
+    reasons: trustScore >= 70 ? [] : ["Trust evidence is incomplete or weak."],
+  };
+}
+
+function executionGate(project = {}, executionScore = 0) {
+  const status = executionStatus(project);
+  const proof = project.executionProof || {};
+  if (executionHardBlock(project)) {
+    return {
+      gate: "EXECUTION",
+      result: "FAIL",
+      evidence: [`executionStatus:${status}`],
+      reasons: proof.failureReasons || [`Execution hard block ${status}.`],
+    };
+  }
+  if (status === "VERIFIED") {
+    return {
+      gate: "EXECUTION",
+      result: "PASS",
+      evidence: [`executionStatus:${status}`, `liquidityUsd:${proof.liquidityUsd || liquidityUsd(project)}`],
+      reasons: [],
+    };
+  }
+  if (["PARTIALLY_VERIFIED", "STALE_QUOTE"].includes(status)) {
+    return {
+      gate: "EXECUTION",
+      result: "CONDITIONAL",
+      evidence: [`executionStatus:${status}`, `executionScore:${executionScore}`],
+      reasons: proof.failureReasons || ["Execution route exists but needs fresher or fuller quote proof."],
+    };
+  }
+  return {
+    gate: "EXECUTION",
+    result: "REVIEW",
+    evidence: [`executionStatus:${status}`, `executionScore:${executionScore}`],
+    reasons: proof.failureReasons || ["Execution route is unknown; provider outage or missing quote is not a hard block."],
+  };
+}
+
+function moneyEvidenceStatus(project = {}, moneyScore = 0, moneyConfidence = 0, hardBlockers = []) {
+  if (hardBlockers.length || ["VERIFIED_NEGATIVE"].includes(project.moneyStatus)) return "VERIFIED_NEGATIVE";
+  if (project.moneyStatus === "VERIFIED" || (moneyScore >= 70 && moneyConfidence >= 70)) return "VERIFIED";
+  if (project.moneyStatus === "PARTIALLY_VERIFIED" || (moneyScore >= 45 && moneyConfidence >= 35)) return "PARTIAL";
+  return "UNKNOWN";
+}
+
+function moneyGate(project = {}, moneyScore = 0, moneyConfidence = 0, hardBlockers = []) {
+  const status = moneyEvidenceStatus(project, moneyScore, moneyConfidence, hardBlockers);
+  if (status === "VERIFIED_NEGATIVE") {
+    return {
+      gate: "MONEY",
+      result: "FAIL",
+      evidence: [`moneyScore:${moneyScore}`, `moneyStatus:${project.moneyStatus || "VERIFIED_NEGATIVE"}`],
+      reasons: hardBlockers.slice(0, 5),
+    };
+  }
+  return {
+    gate: "MONEY",
+    result: status === "VERIFIED" ? "PASS" : status === "PARTIAL" ? "CONDITIONAL" : "REVIEW",
+    evidence: [`moneyScore:${moneyScore}`, `moneyConfidence:${moneyConfidence}`, `moneyStatus:${status}`],
+    reasons: status === "VERIFIED" ? [] : project.moneyMissingEvidence || ["Money evidence is incomplete."],
+  };
+}
+
+function finalIntegrityGate(project = {}, hardBlockers = [], missingEvidence = []) {
+  if (hardBlockers.length) {
+    return { gate: "FINAL_INTEGRITY", result: "FAIL", evidence: [project.finalSelectionState || "UNKNOWN"], reasons: hardBlockers.slice(0, 5) };
+  }
+  if (project.finalSelectionQualified === true || project.finalSelectionState === "QUALIFIED") {
+    return { gate: "FINAL_INTEGRITY", result: "PASS", evidence: ["QUALIFIED"], reasons: [] };
+  }
+  if (missingEvidence.length) {
+    return { gate: "FINAL_INTEGRITY", result: "CONDITIONAL", evidence: [project.finalSelectionState || "RESEARCH_ONLY"], reasons: missingEvidence.slice(0, 5) };
+  }
+  return { gate: "FINAL_INTEGRITY", result: "REVIEW", evidence: [project.finalSelectionState || "UNKNOWN"], reasons: ["Final integrity has not fully qualified this project."] };
+}
+
+function buildGateTrace({ project, trustScore, executionScore, moneyScore, moneyConfidence, hardBlockers, missingEvidence }) {
+  return [
+    identityGate(project),
+    trustGate(project, trustScore, hardBlockers),
+    executionGate(project, executionScore),
+    moneyGate(project, moneyScore, moneyConfidence, hardBlockers),
+    finalIntegrityGate(project, hardBlockers, missingEvidence),
+  ];
+}
+
+function firstNonPassGate(gateTrace = []) {
+  return gateTrace.find((gate) => gate.result !== "PASS") || null;
+}
+
+function laneFor({ tier, gateTrace, opportunityScore, trustScore, executionScore, moneyScore, missingEvidence }) {
+  const failed = gateTrace.some((gate) => gate.result === "FAIL");
+  if (failed || tier === TIERS.BLOCKED) return LANES.HARD_BLOCKED;
+  if (tier === TIERS.SNIPER_READY && gateTrace.every((gate) => gate.result === "PASS")) return LANES.SNIPER_READY;
+  const reviewCount = gateTrace.filter((gate) => gate.result === "REVIEW").length;
+  const conditionalCount = gateTrace.filter((gate) => gate.result === "CONDITIONAL").length;
+  if (
+    opportunityScore >= 68 &&
+    trustScore >= 45 &&
+    executionScore >= 35 &&
+    moneyScore >= 35 &&
+    reviewCount <= 1 &&
+    missingEvidence.length <= 4
+  ) {
+    return LANES.BEST_AVAILABLE;
+  }
+  if (opportunityScore >= 45 || conditionalCount || reviewCount) return LANES.EMERGING_RESEARCH;
+  return LANES.EMERGING_RESEARCH;
+}
+
+function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute, finalQualified = false }) {
   if (hardBlockers.length) return TIERS.BLOCKED;
-  if (opportunityScore >= 82 && trustScore >= 75 && executionScore >= 70 && hasRoute) return TIERS.SNIPER_READY;
+  if (finalQualified && opportunityScore >= 80 && trustScore >= 75 && executionScore >= 70 && hasRoute) return TIERS.SNIPER_READY;
   if (opportunityScore >= 77 && trustScore >= 60 && executionScore >= 45) return TIERS.EARLY_HIGH_CONVICTION;
   if (opportunityScore >= 70 && trustScore >= 40) return TIERS.EMERGING_RADAR;
   if (opportunityScore >= 62) return TIERS.SPECULATIVE_SIGNAL;
@@ -802,6 +983,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     executionScore,
     hardBlockers,
     routeVerified: hasRoute,
+    finalQualified: project.finalSelectionQualified === true || project.finalSelectionState === "QUALIFIED",
   });
   const opportunityCoverage = scoreCoverage(opp);
   const trustCoverage = scoreCoverage(trust);
@@ -818,7 +1000,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
   const freshnessScore = evidenceFreshnessScore(project);
   const regimeScore = regimeCompatibilityScore(project);
   const expectedValueScore = calibratedExpectedValueScore(project);
-  const moneyScore = moneyRankScoreFor({
+  const moneyRankScore = moneyRankScoreFor({
     project,
     opportunityScore,
     trustScore,
@@ -828,6 +1010,37 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     expectedValueScore,
     hardBlockers,
     localAIAdjustment,
+  });
+  const executionMoneyScore = project.moneyScore !== undefined && project.moneyScore !== null
+    ? clamp(project.moneyScore)
+    : moneyRankScore;
+  const moneyScore = hardBlockers.length
+    ? executionHardBlock(project)
+      ? 0
+      : Math.round(clamp(executionMoneyScore * 0.35))
+    : Math.round(clamp(executionMoneyScore * 0.58 + moneyRankScore * 0.42));
+  const moneyConfidence = project.moneyConfidence !== undefined && project.moneyConfidence !== null
+    ? Math.round(clamp(project.moneyConfidence))
+    : Math.round(clamp(evidenceCoverage * 0.5 + executionCoverage * 0.5));
+  const moneyStatus = moneyEvidenceStatus(project, moneyScore, moneyConfidence, hardBlockers);
+  const gateTrace = buildGateTrace({
+    project,
+    trustScore,
+    executionScore,
+    moneyScore,
+    moneyConfidence,
+    hardBlockers,
+    missingEvidence,
+  });
+  const firstGate = firstNonPassGate(gateTrace);
+  const progressiveLane = laneFor({
+    tier,
+    gateTrace,
+    opportunityScore,
+    trustScore,
+    executionScore,
+    moneyScore,
+    missingEvidence,
   });
   const emergingDiscoveryAIEligible =
     hardBlockers.length === 0 &&
@@ -848,7 +1061,12 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     executionScoreComponents: execution,
     executionTradeSizeChecks: tradeSizeChecks,
     executableTradeSizeUsd: executableSize,
-    moneyRankScore: moneyScore,
+    moneyScore,
+    moneyConfidence,
+    moneyStatus,
+    moneyEvidence: project.moneyEvidence || {},
+    moneyMissingEvidence: project.moneyMissingEvidence || [],
+    moneyRankScore,
     moneyRankEligible: hardBlockers.length === 0,
     moneyRankDrivers: buildMoneyRankDrivers({
       opportunityScore,
@@ -866,6 +1084,13 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     opportunityTrustSpread: Math.round(opportunityScore - trustScore),
     opportunityRankingTier: tier,
     opportunityTier: tier,
+    progressiveLane,
+    fourLaneStatus: progressiveLane,
+    progressiveGateTrace: gateTrace,
+    firstFailingGate: firstGate?.gate || null,
+    firstFailingGateResult: firstGate?.result || null,
+    firstFailingGateReasons: firstGate?.reasons || [],
+    firstFailingGateEvidence: firstGate?.evidence || [],
     opportunityConfidence: confidenceFor(opportunityScore, trustScore, executionScore, evidenceCoverage, hardBlockers),
     opportunityEvidenceCoverage: evidenceCoverage,
     opportunityScoreComponents: opp,
@@ -947,9 +1172,19 @@ function compactProject(project = {}) {
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || project.finalChain || "unknown",
     tier: project.opportunityRankingTier || "UNKNOWN",
+    lane: project.progressiveLane || project.fourLaneStatus || "UNKNOWN",
     opportunityScore: project.progressiveOpportunityScore || 0,
     trustScore: project.trustScore || 0,
     executionScore: project.executionScore || 0,
+    executionStatus: project.executionStatus || project.executionProof?.executionStatus || "UNKNOWN",
+    firstFailingGate: project.firstFailingGate || null,
+    firstFailingGateResult: project.firstFailingGateResult || null,
+    gateTrace: project.progressiveGateTrace || [],
+    moneyScore: project.moneyScore || 0,
+    moneyConfidence: project.moneyConfidence || 0,
+    moneyStatus: project.moneyStatus || "UNKNOWN",
+    moneyEvidence: project.moneyEvidence || {},
+    moneyMissingEvidence: project.moneyMissingEvidence || [],
     moneyRankScore: project.moneyRankScore || 0,
     moneyRank: project.moneyRank || null,
     moneyRankEligible: Boolean(project.moneyRankEligible),
@@ -992,6 +1227,7 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
     (project) => routeVerified(project) && num(project.executionScore) >= 70 && num(project.executableTradeSizeUsd) >= 100
   );
   const blocked = byTier(TIERS.BLOCKED);
+  const byLane = (lane) => ranked.filter((project) => (project.progressiveLane || project.fourLaneStatus) === lane);
   const emergingLane = ranked.filter((project) => project.emergingDiscoveryAIEligible);
   const missingEvidenceQueue = bestAvailable
     .filter((project) => (project.missingEvidence || []).length > 0)
@@ -1016,6 +1252,10 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
       executionReady: executionReady.length,
       emergingDiscoveryAI: emergingLane.length,
       missingEvidence: missingEvidenceQueue.length,
+      laneSniperReady: byLane(LANES.SNIPER_READY).length,
+      laneBestAvailable: byLane(LANES.BEST_AVAILABLE).length,
+      laneEmergingResearch: byLane(LANES.EMERGING_RESEARCH).length,
+      laneHardBlocked: byLane(LANES.HARD_BLOCKED).length,
     },
     finalQualified: byTier(TIERS.SNIPER_READY).slice(0, TIER_LIMITS.SNIPER_READY).map(compactProject),
     sniperReady: byTier(TIERS.SNIPER_READY).slice(0, TIER_LIMITS.SNIPER_READY).map(compactProject),
@@ -1026,6 +1266,12 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
     bestAvailableOpportunities: bestAvailable.slice(0, 20).map(compactProject),
     executionReady: executionReady.slice(0, 25).map(compactProject),
     blockedProjects: blocked.slice(0, 30).map(compactProject),
+    fourLaneReport: {
+      sniperReady: byLane(LANES.SNIPER_READY).slice(0, 25).map(compactProject),
+      bestAvailable: byLane(LANES.BEST_AVAILABLE).slice(0, 50).map(compactProject),
+      emergingResearch: byLane(LANES.EMERGING_RESEARCH).slice(0, 100).map(compactProject),
+      hardBlocked: byLane(LANES.HARD_BLOCKED).slice(0, 100).map(compactProject),
+    },
     emergingDiscoveryAILane: emergingLane.slice(0, 100).map(compactProject),
     missingEvidenceQueue: missingEvidenceQueue.slice(0, 50).map(compactProject),
     localAIActivity: {
@@ -1051,6 +1297,131 @@ export function summarizeProgressiveOpportunityRanking(projects = []) {
   };
 }
 
+function debugCandidate(project = {}) {
+  return {
+    name: project.name || "Unknown",
+    symbol: project.symbol || "UNKNOWN",
+    chain: project.chain || project.finalChain || project.canonicalChain || "unknown",
+    canonicalProjectId: project.canonicalProjectId || project.permanentProjectKey || "",
+    identityStatus: project.identityStatus || project.canonicalIdentity?.identityStatus || project.finalIdentityState || "UNKNOWN",
+    executionStatus: project.executionStatus || project.executionProof?.executionStatus || "UNKNOWN",
+    lane: project.progressiveLane || project.fourLaneStatus || "UNKNOWN",
+    tier: project.opportunityRankingTier || "UNKNOWN",
+    opportunityScore: project.progressiveOpportunityScore || 0,
+    trustScore: project.trustScore || 0,
+    executionScore: project.executionScore || 0,
+    moneyScore: project.moneyScore || 0,
+    moneyConfidence: project.moneyConfidence || 0,
+    moneyStatus: project.moneyStatus || "UNKNOWN",
+    firstFailingGate: project.firstFailingGate || null,
+    firstFailingGateResult: project.firstFailingGateResult || null,
+    firstFailingGateReasons: project.firstFailingGateReasons || [],
+    gateTrace: project.progressiveGateTrace || [],
+    hardBlockers: project.opportunityHardBlockers || [],
+    missingEvidence: project.missingEvidence || [],
+  };
+}
+
+function debugStageHealth(projects = []) {
+  const safe = Array.isArray(projects) ? projects : [];
+  const count = (predicate) => safe.filter(predicate).length;
+  return {
+    generatedAt: new Date().toISOString(),
+    projectsDiscovered: safe.length,
+    canonicalIdentitiesCreated: count((project) => Boolean(project.canonicalProjectId || project.canonicalIdentity)),
+    trueContractConflicts: count((project) => (project.identityStatus || project.canonicalIdentity?.identityStatus) === "CONTRACT_CONFLICT"),
+    symbolCollisions: count((project) => (project.identityStatus || project.canonicalIdentity?.identityStatus) === "SYMBOL_COLLISION"),
+    executionChecksAttempted: count((project) => Boolean(project.executionProof)),
+    executionChecksVerified: count((project) => project.executionStatus === "VERIFIED"),
+    executionChecksPartiallyVerified: count((project) => project.executionStatus === "PARTIALLY_VERIFIED"),
+    providerFailures: count((project) => project.executionStatus === "PROVIDER_UNAVAILABLE"),
+    researchQuarantinedCandidates: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.EMERGING_RESEARCH),
+    hardBlockedCandidates: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.HARD_BLOCKED),
+    candidatesReachingEachLadderStage: {
+      sniperReady: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.SNIPER_READY),
+      bestAvailable: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.BEST_AVAILABLE),
+      emergingResearch: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.EMERGING_RESEARCH),
+      hardBlocked: count((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.HARD_BLOCKED),
+    },
+    stageStatus: safe.length === 0 ? "SKIPPED" : safe.every((project) => project.progressiveGateTrace?.length) ? "COMPLETE" : safe.some((project) => project.progressiveGateTrace?.length) ? "PARTIAL" : "FAILED",
+  };
+}
+
+export function writeProgressiveDebugReports(projects = []) {
+  const reportsDir = path.resolve("reports");
+  fs.mkdirSync(reportsDir, { recursive: true });
+  const safe = Array.isArray(projects) ? projects : [];
+  const analyzed = safe.every((project) => project.progressiveGateTrace)
+    ? safe
+    : analyzeProgressiveOpportunityRankingBatch(safe);
+  const ranked = rankProjects(analyzed);
+  const debugSample = ranked.slice(0, 100);
+  const stageHealth = debugStageHealth(analyzed);
+  const write = (fileName, value) => {
+    const filePath = path.join(reportsDir, fileName);
+    fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+    return filePath;
+  };
+
+  const debugProgressiveLadderPath = write("debug-progressive-ladder.json", {
+    generatedAt: stageHealth.generatedAt,
+    stageHealth,
+    candidates: debugSample.map(debugCandidate),
+  });
+  const debugIdentityConflictsPath = write("debug-identity-conflicts.json", {
+    generatedAt: stageHealth.generatedAt,
+    trueContractConflicts: ranked
+      .filter((project) => (project.identityStatus || project.canonicalIdentity?.identityStatus) === "CONTRACT_CONFLICT")
+      .slice(0, 250)
+      .map(debugCandidate),
+    symbolCollisions: ranked
+      .filter((project) => (project.identityStatus || project.canonicalIdentity?.identityStatus) === "SYMBOL_COLLISION")
+      .slice(0, 250)
+      .map(debugCandidate),
+    identityReviewQueue: ranked
+      .filter((project) => project.canonicalIdentity?.requiresManualReview && (project.identityStatus || project.canonicalIdentity?.identityStatus) !== "CONTRACT_CONFLICT")
+      .slice(0, 250)
+      .map(debugCandidate),
+  });
+  const debugExecutionProofPath = write("debug-execution-proof.json", {
+    generatedAt: stageHealth.generatedAt,
+    stageMetadata: ranked[0]?.executionProofStage || {
+      stageStatus: stageHealth.executionChecksAttempted ? "COMPLETE" : "SKIPPED",
+      attemptedCandidates: ranked.length,
+      verifiedCandidates: stageHealth.executionChecksVerified,
+      partiallyVerifiedCandidates: stageHealth.executionChecksPartiallyVerified,
+      providerUnavailableCandidates: stageHealth.providerFailures,
+      failedCandidates: ranked.filter((project) => ["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(project.executionStatus)).length,
+      errors: [],
+    },
+    candidates: debugSample.map((project) => ({
+      ...debugCandidate(project),
+      executionProof: project.executionProof || {},
+    })),
+  });
+  const debugBlockReasonsPath = write("debug-block-reasons.json", {
+    generatedAt: stageHealth.generatedAt,
+    hardBlocked: ranked
+      .filter((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.HARD_BLOCKED)
+      .slice(0, 250)
+      .map(debugCandidate),
+    researchQuarantine: ranked
+      .filter((project) => (project.progressiveLane || project.fourLaneStatus) === LANES.EMERGING_RESEARCH)
+      .slice(0, 250)
+      .map(debugCandidate),
+  });
+  const debugStageHealthPath = write("debug-stage-health.json", stageHealth);
+
+  return {
+    debugProgressiveLadderPath,
+    debugIdentityConflictsPath,
+    debugExecutionProofPath,
+    debugBlockReasonsPath,
+    debugStageHealthPath,
+    stageHealth,
+  };
+}
+
 export function writeProgressiveOpportunityReport(projects = []) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -1062,6 +1433,7 @@ export function writeProgressiveOpportunityReport(projects = []) {
   const emergingRadarPath = path.join(reportsDir, "emerging-radar.json");
   const executionReadyPath = path.join(reportsDir, "execution-ready.json");
   const blockedProjectsPath = path.join(reportsDir, "blocked-projects.json");
+  const debugReports = writeProgressiveDebugReports(projects);
   fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
   fs.writeFileSync(
     institutionalRankingPath,
@@ -1138,6 +1510,7 @@ export function writeProgressiveOpportunityReport(projects = []) {
     emergingRadarPath,
     executionReadyPath,
     blockedProjectsPath,
+    ...debugReports,
     report,
   };
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:30.430Z",
+  "generatedAt": "2026-07-17T21:16:59.692Z",
   "name": "Discovery Decision Engine v1",
   "summary": {
     "projectCount": 8,
@@ -71,7 +71,11 @@
       "resolvedIdentities": 0,
       "developingIdentities": 0,
       "unverifiedIdentities": 8,
-      "identityRiskBlocks": 0
+      "identityRiskBlocks": 0,
+      "canonicalVerified": 0,
+      "canonicalReviewQueue": 8,
+      "trueContractConflicts": 0,
+      "symbolCollisions": 0
     },
     "missedWinnerLab": {
       "evaluatedBreakouts": 0,
@@ -97,7 +101,7 @@
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 57"
+          "Catalyst potential 58"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -251,7 +255,7 @@
           "Organic demand 35",
           "Project quality 32",
           "Liquidity/execution 59",
-          "Catalyst potential 29"
+          "Catalyst potential 30"
         ],
         "risks": [
           "liquidityControlRisk 59"
@@ -259,11 +263,34 @@
       }
     ],
     "verifiedEarlyOpportunities": [],
-    "acceleratingProjects": [],
+    "acceleratingProjects": [
+      {
+        "rank": 1,
+        "symbol": "EIGEN",
+        "name": "EigenLayer",
+        "chain": "ethereum",
+        "score": 39,
+        "tier": "UNVERIFIED",
+        "lifecycleStage": "PRICE_DISCOVERY",
+        "safety": "UNVERIFIED",
+        "organicFirewall": "UNVERIFIED",
+        "identity": "Identity Unverified",
+        "whyRanked": [
+          "Discovery strength 45",
+          "Organic demand 35",
+          "Project quality 32",
+          "Liquidity/execution 59",
+          "Catalyst potential 58"
+        ],
+        "risks": [
+          "liquidityControlRisk 59"
+        ]
+      }
+    ],
     "criticalRisks": []
   },
   "missedWinnerLab": {
-    "generatedAt": "2026-07-16T22:50:30.430Z",
+    "generatedAt": "2026-07-17T21:16:59.692Z",
     "evaluatedBreakouts": 0,
     "detectedBreakouts": 0,
     "missedBreakouts": 0,

@@ -483,6 +483,11 @@ function printReportPaths(paths) {
   console.log(`Integrity Stack: ${paths.integrityStackPath}`);
   console.log(`OP Readiness:   ${paths.opModeReadinessPath}`);
   console.log(`Evidence Kernel: ${paths.evidenceKernelPath}`);
+  if (paths.debugProgressiveLadderPath) console.log(`Debug Ladder:   ${paths.debugProgressiveLadderPath}`);
+  if (paths.debugIdentityConflictsPath) console.log(`Debug Identity: ${paths.debugIdentityConflictsPath}`);
+  if (paths.debugExecutionProofPath) console.log(`Debug Execution:${paths.debugExecutionProofPath}`);
+  if (paths.debugBlockReasonsPath) console.log(`Debug Blocks:   ${paths.debugBlockReasonsPath}`);
+  if (paths.debugStageHealthPath) console.log(`Debug Health:   ${paths.debugStageHealthPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

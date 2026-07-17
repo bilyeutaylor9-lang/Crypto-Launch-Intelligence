@@ -22,6 +22,9 @@ This is not a simple token screener. It is a layered research system with:
 - Evidence-Calibrated Parallel Intelligence Kernel with engine contracts, evidence ledgers, calibrated scores, and final decision overrides
 - Institutional Data Provenance Ledger for source, timestamp, confidence, observation type, source agreement, and promotion readiness
 - Progressive Opportunity Ranking that separates early-movement opportunity from trust, safety, execution, and missing-proof checks
+- Execution Proof Engine with route evidence, provider-outage handling, money confidence, and fresh quote/slippage/liquidity checks
+- Canonical Identity Resolver that protects against ticker collisions and only hard-blocks true contract conflicts
+- Four-lane candidate reporting: `SNIPER_READY`, `BEST_AVAILABLE`, `EMERGING_RESEARCH`, and `HARD_BLOCKED`
 - AI research agents
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
@@ -80,6 +83,12 @@ Run the maximum Alpha OS scan:
 npm run scan:op
 ```
 
+Run a smaller 100-candidate health scan before a big run:
+
+```bash
+npm run scan:debug100
+```
+
 Publish the local dashboard:
 
 ```bash
@@ -111,6 +120,8 @@ npm run discovery-truth
 npm run native-mesh
 npm run native-report
 npm run decision-engine
+npm run debug:stage-health
+npm run debug:ladder
 ```
 
 ## What Makes It Different
@@ -142,6 +153,8 @@ The system does not trust one score. It builds a full research case:
 - Self-auditing kernel: checks engine contracts, evidence coverage, source independence, identity confidence, safety gates, and final-decision provenance.
 - Institutional provenance: requires source lineage, freshness, direct observation, and cross-source agreement before a project can receive institutional-ready data status.
 - Progressive opportunity ranking: always shows the strongest non-hard-blocked best-available leads while preserving strict final safety gates.
+- Execution proof: never treats a provider outage as proof that no route exists, and never claims route proof unless execution evidence exists.
+- Identity protection: never merges projects by symbol alone; ambiguous tickers are sent to review instead of silently contaminating results.
 
 ## System Architecture
 
@@ -187,6 +200,7 @@ The project now behaves like a miniature autonomous research organization.
 | Source Truth | Scores source reliability, provider health, and evidence agreement | `reports/source-truth.json` |
 | Institutional Data Provenance | Tracks source lineage, freshness, direct/derived/inferred observation type, source agreement, blockers, and institutional data readiness | `reports/institutional-data-provenance.json` |
 | Progressive Opportunity Ranking | Splits Opportunity, Trust, Execution, and Money Rank, ranks SNIPER_READY, EARLY_HIGH_CONVICTION, EMERGING_RADAR, SPECULATIVE_SIGNAL, best-available leads, execution-ready candidates, hard blocks, missing proof, and penalty-only emerging AI lane | `reports/progressive-opportunities.json`, `reports/institutional-ranking.json` |
+| Progressive Debug Ladder | Records identity, trust, execution, money, and final-integrity gates, first failing gate, identity conflicts, execution proof, block reasons, and stage health | `reports/debug-progressive-ladder.json`, `reports/debug-stage-health.json` |
 | Institutional 4,000 Selector | Selects the standard intelligence universe through composite, acceleration, attention-gap, catalyst/developer, coverage, rotation, rescue, and merit-fill lanes | `reports/standard-4000-selection.json`, `reports/selection-lane-audit.json` |
 | Market Opportunity Rank | Unifies Opportunity, Timing, Trust, Attention Gap, and bounded local-AI consensus into one authoritative best-opportunity decision, top-five comparison, horizons, lanes, and chief judgment | `reports/best-opportunity-now.json`, `reports/top-five-opportunities.json` |
 | Market Opportunity Learning | Records top opportunity receipts, grades later scans when price/liquidity data exists, and produces cautious signal-family weight hints | `reports/market-opportunity-learning.json` |
@@ -221,6 +235,27 @@ Possible verdicts:
 - `OS Reject`
 
 The system can still name a best available paper candidate when no project clears the true strong-buy gate. That helps avoid the scanner returning nothing while still keeping risk warnings visible.
+
+## Progressive Execution-Proof Pipeline
+
+The scanner now separates "looks promising" from "can be safely researched as executable." Every candidate is assigned exactly one lane:
+
+- `SNIPER_READY`: all gates pass, route proof is verified, and final integrity is qualified.
+- `BEST_AVAILABLE`: strongest non-hard-blocked candidates that still need some proof.
+- `EMERGING_RESEARCH`: incomplete, ambiguous, or provider-unavailable candidates that are worth watching but not promoted.
+- `HARD_BLOCKED`: confirmed contract conflict, scam/rug/honeypot, unsafe execution proof, or final safety block.
+
+Every scan also writes debug reports:
+
+```bash
+npm run debug:ladder
+npm run debug:identity
+npm run debug:execution
+npm run debug:blocks
+npm run debug:stage-health
+```
+
+The important repair is that unknown data is no longer treated like a confirmed negative. Unknown route data lowers confidence and moves a project into research, while verified bad evidence still blocks it.
 
 ## Evidence-Calibrated Kernel
 

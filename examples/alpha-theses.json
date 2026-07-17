@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-07-16T22:50:22.336Z",
+  "generatedAt": "2026-07-17T21:16:53.661Z",
   "totalTheses": 8,
   "theses": [
     {
       "project": "EigenLayer",
       "symbol": "EIGEN",
       "decision": "Research Block",
-      "confidence": "Developing",
+      "confidence": "Low",
       "primaryDriver": "Builder activity plus narrative heat can compound attention over a longer window.",
       "whyNow": [
         "Catalyst window is active.",
@@ -32,7 +32,7 @@
         "Source truth weakens or contradiction count rises.",
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
-      "summary": "EigenLayer is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
+      "summary": "EigenLayer is Research Block with Low confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
       "project": "Bittensor",
@@ -126,6 +126,37 @@
       "summary": "Render is Research Block with Developing confidence. Primary driver: Builder activity plus narrative heat can compound attention over a longer window.."
     },
     {
+      "project": "Pendle",
+      "symbol": "PENDLE",
+      "decision": "Research Block",
+      "confidence": "Developing",
+      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
+      "whyNow": [
+        "Catalyst window is active.",
+        "Narrative heat is entering rotation."
+      ],
+      "risks": [
+        "Risk cluster is elevated.",
+        "Proof stack is thin.",
+        "Builder evidence is weak or missing.",
+        "Agent committee has a block vote."
+      ],
+      "confirms": [
+        "Official roadmap or catalyst source is verified.",
+        "Liquidity and volume remain stable after the scan.",
+        "Source truth and proof scores improve together.",
+        "Risk agent clears trap, unlock, and bot concerns.",
+        "Outcome memory shows similar setups performing well."
+      ],
+      "invalidates": [
+        "Liquidity drops or sell pressure spikes.",
+        "Catalyst cannot be verified by official or independent sources.",
+        "Source truth weakens or contradiction count rises.",
+        "Trap risk, bot risk, or false-positive similarity increases."
+      ],
+      "summary": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
+    },
+    {
       "project": "Ondo",
       "symbol": "ONDO",
       "decision": "Research Block",
@@ -185,36 +216,6 @@
         "Trap risk, bot risk, or false-positive similarity increases."
       ],
       "summary": "Celestia is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
-    },
-    {
-      "project": "Pendle",
-      "symbol": "PENDLE",
-      "decision": "Research Block",
-      "confidence": "Developing",
-      "primaryDriver": "Source truth and proof quality are high enough for promotion.",
-      "whyNow": [
-        "Catalyst window is active."
-      ],
-      "risks": [
-        "Risk cluster is elevated.",
-        "Proof stack is thin.",
-        "Builder evidence is weak or missing.",
-        "Agent committee has a block vote."
-      ],
-      "confirms": [
-        "Official roadmap or catalyst source is verified.",
-        "Liquidity and volume remain stable after the scan.",
-        "Source truth and proof scores improve together.",
-        "Risk agent clears trap, unlock, and bot concerns.",
-        "Outcome memory shows similar setups performing well."
-      ],
-      "invalidates": [
-        "Liquidity drops or sell pressure spikes.",
-        "Catalyst cannot be verified by official or independent sources.",
-        "Source truth weakens or contradiction count rises.",
-        "Trap risk, bot risk, or false-positive similarity increases."
-      ],
-      "summary": "Pendle is Research Block with Developing confidence. Primary driver: Source truth and proof quality are high enough for promotion.."
     },
     {
       "project": "Jupiter",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:30.420Z",
+  "generatedAt": "2026-07-17T21:16:59.685Z",
   "name": "Small-Cap Hunter",
   "disclaimer": "Research output only. Not financial advice, not a buy recommendation, and not a guarantee of future performance.",
   "totalProjects": 8,
@@ -18,7 +18,7 @@
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "score": 42,
+      "score": 40,
       "verdict": "Small-Cap Purchase Route Block",
       "finalSelectionState": "BLOCKED",
       "finalSelectionQualified": false,
@@ -34,9 +34,7 @@
         "alphaEvolutionGovernorVerdict: Governor Risk Block",
         "causalMarketTwinVerdict: Twin Reject",
         "selfEvolvingAlphaOSDecision: Research Block",
-        "redTeamReview.status: Block",
-        "proofOfAlphaExecutionTwin.safety.blockers: Red-team block is active.",
-        "alphaEvolutionGovernor.blockers: Red-team review is blocking the setup.",
+        "adversarialSimulationReview.status: Block",
         "Purchase route is not confirmed as purchasable.",
         "Execution route is not verified as available.",
         "Pipeline score 7 is below required minimum 60.",
@@ -44,26 +42,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 65,
-      "upsideScore": 45,
+      "structureScore": 57,
+      "upsideScore": 44,
       "executionScore": 71,
-      "preHitPressureScore": 28,
+      "preHitPressureScore": 25,
       "preHitPressure": {
-        "score": 28,
+        "score": 25,
         "smartMoney": 17,
-        "earlyTiming": 32,
+        "earlyTiming": 30,
         "catalystPressure": 61,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
@@ -112,8 +109,7 @@
         "No Coinbase or MetaMask route was detected; do not select without route proof.",
         "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
         "Pre-hit pressure is contaminated by trap, wash, bundled-launch, or sell-pressure signals.",
-        "AI council disagreement is high; require manual confirmation.",
-        "Red-team block is active; do not promote without resolving it."
+        "AI council disagreement is high; require manual confirmation."
       ],
       "mustVerify": [
         "Official token contract, pair, chain, and website.",
@@ -130,7 +126,7 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "score": 41,
+      "score": 40,
       "verdict": "Small-Cap Purchase Route Block",
       "finalSelectionState": "BLOCKED",
       "finalSelectionQualified": false,
@@ -143,39 +139,42 @@
         "proofVerdict: Risk-heavy setup",
         "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
         "projectIdentityVerdict: Identity Unverified",
+        "alphaEvolutionGovernorVerdict: Governor Risk Block",
         "causalMarketTwinVerdict: Twin Reject",
         "selfEvolvingAlphaOSDecision: Research Block",
+        "redTeamReview.status: Block",
+        "proofOfAlphaExecutionTwin.safety.blockers: Red-team block is active.",
+        "alphaEvolutionGovernor.blockers: Red-team review is blocking the setup.",
         "Purchase route is not confirmed as purchasable.",
         "Execution route is not verified as available.",
         "Pipeline score 2 is below required minimum 60.",
-        "Risk score 72 exceeds threshold 70.",
+        "Risk score 73 exceeds threshold 70.",
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 64,
       "upsideScore": 40,
       "executionScore": 71,
-      "preHitPressureScore": 25,
+      "preHitPressureScore": 22,
       "preHitPressure": {
-        "score": 25,
+        "score": 22,
         "smartMoney": 17,
         "earlyTiming": 30,
         "catalystPressure": 46,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
-      "riskScore": 72,
+      "riskScore": 73,
       "purchaseRoute": {
         "status": "No Coinbase/MetaMask Route Detected",
         "purchasable": false,
@@ -199,6 +198,113 @@
         "confirmationTrancheUsd": 17.5,
         "finalValidationTrancheUsd": 12.5,
         "estimatedLiquidityImpactPct": 0.1,
+        "confirmationTriggers": [
+          "Verify official contract/pair and source identity.",
+          "Confirm visible liquidity and expected slippage manually.",
+          "Confirm roadmap/catalyst and GitHub/source proof are real.",
+          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
+        ],
+        "note": "This is a research simulation for a small account size, not a recommendation to buy."
+      },
+      "reasons": [
+        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
+        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
+        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
+        "Breakout Brain selected it as a best-available breakout setup."
+      ],
+      "warnings": [
+        "Research only; not financial advice or a buy recommendation.",
+        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
+        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
+        "No Coinbase or MetaMask route was detected; do not select without route proof.",
+        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
+        "Pre-hit pressure is contaminated by trap, wash, bundled-launch, or sell-pressure signals.",
+        "AI council disagreement is high; require manual confirmation.",
+        "Red-team block is active; do not promote without resolving it."
+      ],
+      "mustVerify": [
+        "Official token contract, pair, chain, and website.",
+        "Coinbase availability or MetaMask token contract/pair route.",
+        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
+        "Recent roadmap/catalyst evidence from official or trusted sources.",
+        "Token unlocks, emissions, team allocation, and insider sell pressure.",
+        "Whether the token is available in your jurisdiction and exchange/wallet setup."
+      ]
+    },
+    {
+      "selectionRank": null,
+      "selected": false,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "score": 39,
+      "verdict": "Small-Cap Purchase Route Block",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "finalIntegrityVerdict": "Blocked By Final Integrity",
+      "finalBlockingReasons": [
+        "AI decision rejected the project.",
+        "aiDecision: Reject",
+        "allocationBucket: Avoid",
+        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
+        "proofVerdict: Risk-heavy setup",
+        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
+        "projectIdentityVerdict: Identity Unverified",
+        "causalMarketTwinVerdict: Twin Reject",
+        "selfEvolvingAlphaOSDecision: Research Block",
+        "Purchase route is not confirmed as purchasable.",
+        "Execution route is not verified as available.",
+        "Pipeline score 0 is below required minimum 60.",
+        "Risk score 75 exceeds threshold 70.",
+        "Trap-risk score 98 exceeds threshold 60."
+      ],
+      "finalWarningReasons": [
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
+        "Contract address is missing or not verified.",
+        "Chain identity is missing, mismatched, or not verified.",
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
+      ],
+      "marketCap": 0,
+      "capBand": "Unknown Cap",
+      "structureScore": 59,
+      "upsideScore": 39,
+      "executionScore": 71,
+      "preHitPressureScore": 21,
+      "preHitPressure": {
+        "score": 21,
+        "smartMoney": 17,
+        "earlyTiming": 30,
+        "catalystPressure": 41,
+        "demandQuality": 40,
+        "identityConfidence": 63,
+        "trapPenalty": 82,
+        "verdict": "Trap Pressure"
+      },
+      "riskScore": 75,
+      "purchaseRoute": {
+        "status": "No Coinbase/MetaMask Route Detected",
+        "purchasable": false,
+        "preferredRoute": "Unavailable",
+        "score": 0,
+        "routes": [],
+        "mustVerify": [
+          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
+          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
+        ]
+      },
+      "liquidityUsd": 107500,
+      "volume24h": 28750,
+      "estimatedLiquidityImpactPct": 0.093,
+      "paperPlan": {
+        "label": "$100 Paper Plan",
+        "mode": "Paper research plan only",
+        "totalPaperBudgetUsd": 100,
+        "maxPaperBudgetForThisCandidateUsd": 50,
+        "starterTrancheUsd": 20,
+        "confirmationTrancheUsd": 17.5,
+        "finalValidationTrancheUsd": 12.5,
+        "estimatedLiquidityImpactPct": 0.093,
         "confirmationTriggers": [
           "Verify official contract/pair and source identity.",
           "Confirm visible liquidity and expected slippage manually.",
@@ -235,117 +341,10 @@
     {
       "selectionRank": null,
       "selected": false,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "score": 40,
-      "verdict": "Small-Cap Purchase Route Block",
-      "finalSelectionState": "BLOCKED",
-      "finalSelectionQualified": false,
-      "finalIntegrityVerdict": "Blocked By Final Integrity",
-      "finalBlockingReasons": [
-        "AI decision rejected the project.",
-        "aiDecision: Reject",
-        "allocationBucket: Avoid",
-        "smallCapHunterVerdict: Small-Cap Purchase Route Block",
-        "proofVerdict: Risk-heavy setup",
-        "proofOfAlphaExecutionTwinVerdict: Execution Route Block",
-        "projectIdentityVerdict: Identity Unverified",
-        "causalMarketTwinVerdict: Twin Reject",
-        "selfEvolvingAlphaOSDecision: Research Block",
-        "Purchase route is not confirmed as purchasable.",
-        "Execution route is not verified as available.",
-        "Pipeline score 0 is below required minimum 60.",
-        "Risk score 74 exceeds threshold 70.",
-        "Trap-risk score 100 exceeds threshold 60."
-      ],
-      "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
-        "Contract address is missing or not verified.",
-        "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
-      ],
-      "marketCap": 0,
-      "capBand": "Unknown Cap",
-      "structureScore": 59,
-      "upsideScore": 39,
-      "executionScore": 71,
-      "preHitPressureScore": 24,
-      "preHitPressure": {
-        "score": 24,
-        "smartMoney": 17,
-        "earlyTiming": 30,
-        "catalystPressure": 41,
-        "demandQuality": 40,
-        "identityConfidence": 85,
-        "trapPenalty": 82,
-        "verdict": "Trap Pressure"
-      },
-      "riskScore": 74,
-      "purchaseRoute": {
-        "status": "No Coinbase/MetaMask Route Detected",
-        "purchasable": false,
-        "preferredRoute": "Unavailable",
-        "score": 0,
-        "routes": [],
-        "mustVerify": [
-          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route."
-        ]
-      },
-      "liquidityUsd": 107500,
-      "volume24h": 28750,
-      "estimatedLiquidityImpactPct": 0.093,
-      "paperPlan": {
-        "label": "$100 Paper Plan",
-        "mode": "Paper research plan only",
-        "totalPaperBudgetUsd": 100,
-        "maxPaperBudgetForThisCandidateUsd": 50,
-        "starterTrancheUsd": 20,
-        "confirmationTrancheUsd": 17.5,
-        "finalValidationTrancheUsd": 12.5,
-        "estimatedLiquidityImpactPct": 0.093,
-        "confirmationTriggers": [
-          "Verify official contract/pair and source identity.",
-          "Confirm visible liquidity and expected slippage manually.",
-          "Confirm roadmap/catalyst and GitHub/source proof are real.",
-          "Reject if trap risk, sell pressure, unlock risk, or red-team block rises."
-        ],
-        "note": "This is a research simulation for a small account size, not a recommendation to buy."
-      },
-      "reasons": [
-        "Market cap/FDV is unknown, so this needs cap proof before real-world action.",
-        "Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.",
-        "$100 paper-size execution looks structurally reasonable from visible liquidity/volume.",
-        "Breakout Brain selected it as a best-available breakout setup."
-      ],
-      "warnings": [
-        "Research only; not financial advice or a buy recommendation.",
-        "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
-        "Market cap/FDV is unknown; verify cap before treating it as a true small cap.",
-        "No Coinbase or MetaMask route was detected; do not select without route proof.",
-        "Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.",
-        "Pre-hit pressure is contaminated by trap, wash, bundled-launch, or sell-pressure signals.",
-        "AI council disagreement is high; require manual confirmation."
-      ],
-      "mustVerify": [
-        "Official token contract, pair, chain, and website.",
-        "Coinbase availability or MetaMask token contract/pair route.",
-        "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
-        "Recent roadmap/catalyst evidence from official or trusted sources.",
-        "Token unlocks, emissions, team allocation, and insider sell pressure.",
-        "Whether the token is available in your jurisdiction and exchange/wallet setup."
-      ]
-    },
-    {
-      "selectionRank": null,
-      "selected": false,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
-      "score": 40,
+      "score": 39,
       "verdict": "Small-Cap Purchase Route Block",
       "finalSelectionState": "BLOCKED",
       "finalSelectionQualified": false,
@@ -367,26 +366,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 64,
       "upsideScore": 36,
       "executionScore": 71,
-      "preHitPressureScore": 23,
+      "preHitPressureScore": 20,
       "preHitPressure": {
-        "score": 23,
+        "score": 20,
         "smartMoney": 17,
         "earlyTiming": 28,
         "catalystPressure": 38,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
@@ -474,26 +472,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 64,
       "upsideScore": 34,
       "executionScore": 71,
-      "preHitPressureScore": 23,
+      "preHitPressureScore": 20,
       "preHitPressure": {
-        "score": 23,
+        "score": 20,
         "smartMoney": 17,
         "earlyTiming": 28,
         "catalystPressure": 38,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
@@ -582,26 +579,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 64,
-      "upsideScore": 34,
+      "structureScore": 65,
+      "upsideScore": 35,
       "executionScore": 71,
-      "preHitPressureScore": 22,
+      "preHitPressureScore": 19,
       "preHitPressure": {
-        "score": 22,
+        "score": 19,
         "smartMoney": 17,
         "earlyTiming": 28,
-        "catalystPressure": 35,
+        "catalystPressure": 36,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
@@ -689,26 +685,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
       "structureScore": 59,
       "upsideScore": 35,
       "executionScore": 71,
-      "preHitPressureScore": 21,
+      "preHitPressureScore": 18,
       "preHitPressure": {
-        "score": 21,
+        "score": 18,
         "smartMoney": 17,
         "earlyTiming": 27,
         "catalystPressure": 32,
         "demandQuality": 40,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },
@@ -794,26 +789,25 @@
         "Trap-risk score 100 exceeds threshold 60."
       ],
       "finalWarningReasons": [
-        "Only symbol/name identity is available; ticker symbols are not unique.",
+        "Canonical identity status is UNRESOLVED; route to identity review instead of hard block.",
         "Contract address is missing or not verified.",
         "Chain identity is missing, mismatched, or not verified.",
-        "Identity state is SYMBOL_ONLY.",
-        "Market-cap/FDV data is missing for a small-cap validation strategy.",
-        "Project only has a symbol/name match without verified contract or listing identity."
+        "Identity state is UNRESOLVED_IDENTITY.",
+        "Market-cap/FDV data is missing for a small-cap validation strategy."
       ],
       "marketCap": 0,
       "capBand": "Unknown Cap",
-      "structureScore": 64,
+      "structureScore": 65,
       "upsideScore": 28,
       "executionScore": 71,
-      "preHitPressureScore": 21,
+      "preHitPressureScore": 18,
       "preHitPressure": {
-        "score": 21,
+        "score": 18,
         "smartMoney": 17,
         "earlyTiming": 27,
         "catalystPressure": 30,
         "demandQuality": 41,
-        "identityConfidence": 85,
+        "identityConfidence": 63,
         "trapPenalty": 82,
         "verdict": "Trap Pressure"
       },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:35.241Z",
+  "generatedAt": "2026-07-17T21:17:03.185Z",
   "totalProjects": 8,
   "counts": {
     "sniperReady": 0,
@@ -12,7 +12,11 @@
     "moneyRanked": 0,
     "executionReady": 0,
     "emergingDiscoveryAI": 0,
-    "missingEvidence": 0
+    "missingEvidence": 0,
+    "laneSniperReady": 0,
+    "laneBestAvailable": 0,
+    "laneEmergingResearch": 0,
+    "laneHardBlocked": 8
   },
   "institutionalMoneyRank": [],
   "executionReady": [],

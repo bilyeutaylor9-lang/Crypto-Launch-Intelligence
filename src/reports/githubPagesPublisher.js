@@ -59,6 +59,11 @@ const PUBLIC_REPORTS = [
   "integrity-stack.json",
   "institutional-data-provenance.json",
   "progressive-opportunities.json",
+  "debug-progressive-ladder.json",
+  "debug-identity-conflicts.json",
+  "debug-execution-proof.json",
+  "debug-block-reasons.json",
+  "debug-stage-health.json",
   "best-opportunity-now.json",
   "top-five-opportunities.json",
   "time-horizon-leaders.json",
@@ -145,6 +150,7 @@ function writeLandingPage(copiedFiles = []) {
   const integrityStack = readJsonReport("integrity-stack.json") || {};
   const institutionalProvenance = readJsonReport("institutional-data-provenance.json") || {};
   const progressiveOpportunities = readJsonReport("progressive-opportunities.json") || {};
+  const debugStageHealth = readJsonReport("debug-stage-health.json") || {};
   const bestOpportunityNow = readJsonReport("best-opportunity-now.json") || {};
   const topFiveOpportunities = readJsonReport("top-five-opportunities.json") || {};
   const finalistComparison = readJsonReport("finalist-comparison.json") || {};
@@ -188,6 +194,9 @@ function writeLandingPage(copiedFiles = []) {
     ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
     ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? "N/A"],
     ["Execution Ready", progressiveOpportunities.counts?.executionReady ?? institutionalRanking.counts?.executionReady ?? "N/A"],
+    ["Stage Health", debugStageHealth.stageStatus || "N/A"],
+    ["Route Verified", debugStageHealth.executionChecksVerified ?? "N/A"],
+    ["Provider Failures", debugStageHealth.providerFailures ?? "N/A"],
     ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? "N/A"],
     ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? "N/A"],
     ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? "N/A"],
@@ -522,6 +531,7 @@ function writeLandingPage(copiedFiles = []) {
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
+          <li><strong>Progressive Debug Ladder:</strong> shows identity, trust, execution, money, and final-integrity gates for every candidate.</li>
           <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
           <li><strong>Market Opportunity Learning:</strong> records top opportunity receipts, grades later scans when market data is available, and produces cautious weight hints.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
@@ -579,6 +589,11 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>
+        <a class="button" href="./debug-progressive-ladder.json">Debug Ladder</a>
+        <a class="button" href="./debug-identity-conflicts.json">Identity Debug</a>
+        <a class="button" href="./debug-execution-proof.json">Execution Debug</a>
+        <a class="button" href="./debug-block-reasons.json">Block Debug</a>
+        <a class="button" href="./debug-stage-health.json">Stage Health</a>
         <a class="button primary" href="./best-opportunity-now.json">Best Now</a>
         <a class="button" href="./top-five-opportunities.json">Top Five</a>
         <a class="button" href="./finalist-comparison.json">Finalist Compare</a>

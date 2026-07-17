@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:35.241Z",
+  "generatedAt": "2026-07-17T21:17:03.185Z",
   "totalProjects": 8,
   "counts": {
     "sniperReady": 0,
@@ -12,7 +12,11 @@
     "moneyRanked": 0,
     "executionReady": 0,
     "emergingDiscoveryAI": 0,
-    "missingEvidence": 0
+    "missingEvidence": 0,
+    "laneSniperReady": 0,
+    "laneBestAvailable": 0,
+    "laneEmergingResearch": 0,
+    "laneHardBlocked": 8
   },
   "finalQualified": [],
   "sniperReady": [],
@@ -30,9 +34,98 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 28,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:ethereum:pair:research-seed-eigen"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 112500,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.31,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -104,9 +197,10 @@
           "detail": "A catalyst or roadmap event is close enough to monitor."
         }
       ],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -138,118 +232,102 @@
     {
       "rank": 2,
       "bestAvailableRank": null,
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "tier": "BLOCKED",
-      "opportunityScore": 24,
-      "trustScore": 51,
-      "executionScore": 35,
-      "moneyRankScore": 0,
-      "moneyRank": null,
-      "moneyRankEligible": false,
-      "moneyRankDrivers": [
-        "Blocked: Final integrity hard block: AI decision rejected the project."
-      ],
-      "executableTradeSizeUsd": 0,
-      "executionTradeSizeChecks": [
-        {
-          "sizeUsd": 25,
-          "liquidityUsd": 100000,
-          "estimatedImpactPct": 0.33,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 100,
-          "liquidityUsd": 100000,
-          "estimatedImpactPct": 0.33,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 500,
-          "liquidityUsd": 100000,
-          "estimatedImpactPct": 1.25,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        },
-        {
-          "sizeUsd": 1000,
-          "liquidityUsd": 100000,
-          "estimatedImpactPct": 2.5,
-          "status": "BLOCKED",
-          "blockers": [
-            "No verified execution route.",
-            "Hard safety blocker is active."
-          ]
-        }
-      ],
-      "calibrationState": {
-        "sampleSize": 0,
-        "status": "MODEL_ESTIMATE_ONLY",
-        "note": "Treat as a research ranking until more outcomes are logged."
-      },
-      "confidence": "Blocked",
-      "finalSelectionState": "BLOCKED",
-      "finalSelectionQualified": false,
-      "sniperState": "INSUFFICIENT_DATA",
-      "sniperQualified": false,
-      "routeVerified": false,
-      "liquidityUsd": 100000,
-      "sourceCount": 58,
-      "localAIVerdict": "Reject",
-      "localAIAdjustment": 0,
-      "whyNow": [],
-      "evidenceCoverage": 89,
-      "missingEvidence": [
-        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
-        "Refresh stale execution quote before ranking as execution-ready.",
-        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
-      ],
-      "hardBlockers": [
-        "Final integrity hard block: AI decision rejected the project."
-      ],
-      "catalystWindow": "Staking Change",
-      "predictionHorizon": "7d-30d research watch window",
-      "invalidationConditions": [
-        "Opportunity score drops below its current tier threshold on the next scan.",
-        "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
-        "Identity, contract, or execution route evidence becomes contradictory.",
-        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
-      ],
-      "nextVerificationActions": [
-        "Do not promote. Recheck only if the hard-blocking evidence is resolved."
-      ],
-      "predictionPerformance": {
-        "sampleSize": 0,
-        "status": "MODEL_ESTIMATE_ONLY",
-        "probabilityLabelAllowed": false,
-        "note": "Do not treat score as a proven probability until enough outcomes are collected.",
-        "hitRate7d25Pct": null,
-        "hitRate30d100Pct": null,
-        "rugOrUntradeableRate": null
-      }
-    },
-    {
-      "rank": 3,
-      "bestAvailableRank": null,
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
       "tier": "BLOCKED",
-      "opportunityScore": 24,
+      "lane": "HARD_BLOCKED",
+      "opportunityScore": 25,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:ethereum:pair:research-seed-ondo"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 107500,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.317,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -315,9 +393,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -346,15 +425,299 @@
       }
     },
     {
+      "rank": 3,
+      "bestAvailableRank": null,
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
+      "opportunityScore": 24,
+      "trustScore": 51,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:bittensor:pair:research-seed-tao"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 100000,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.33,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
+      "moneyRankScore": 0,
+      "moneyRank": null,
+      "moneyRankEligible": false,
+      "moneyRankDrivers": [
+        "Blocked: Final integrity hard block: AI decision rejected the project."
+      ],
+      "executableTradeSizeUsd": 0,
+      "executionTradeSizeChecks": [
+        {
+          "sizeUsd": 25,
+          "liquidityUsd": 100000,
+          "estimatedImpactPct": 0.33,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 100,
+          "liquidityUsd": 100000,
+          "estimatedImpactPct": 0.33,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 500,
+          "liquidityUsd": 100000,
+          "estimatedImpactPct": 1.25,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        },
+        {
+          "sizeUsd": 1000,
+          "liquidityUsd": 100000,
+          "estimatedImpactPct": 2.5,
+          "status": "BLOCKED",
+          "blockers": [
+            "No verified execution route.",
+            "Hard safety blocker is active."
+          ]
+        }
+      ],
+      "calibrationState": {
+        "sampleSize": 0,
+        "status": "MODEL_ESTIMATE_ONLY",
+        "note": "Treat as a research ranking until more outcomes are logged."
+      },
+      "confidence": "Blocked",
+      "finalSelectionState": "BLOCKED",
+      "finalSelectionQualified": false,
+      "sniperState": "INSUFFICIENT_DATA",
+      "sniperQualified": false,
+      "routeVerified": false,
+      "liquidityUsd": 100000,
+      "sourceCount": 58,
+      "localAIVerdict": "Reject",
+      "localAIAdjustment": 0,
+      "whyNow": [],
+      "evidenceCoverage": 83,
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+      ],
+      "hardBlockers": [
+        "Final integrity hard block: AI decision rejected the project."
+      ],
+      "catalystWindow": "Staking Change",
+      "predictionHorizon": "7d-30d research watch window",
+      "invalidationConditions": [
+        "Opportunity score drops below its current tier threshold on the next scan.",
+        "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+        "Identity, contract, or execution route evidence becomes contradictory.",
+        "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+      ],
+      "nextVerificationActions": [
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+      ],
+      "predictionPerformance": {
+        "sampleSize": 0,
+        "status": "MODEL_ESTIMATE_ONLY",
+        "probabilityLabelAllowed": false,
+        "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+        "hitRate7d25Pct": null,
+        "hitRate30d100Pct": null,
+        "rugOrUntradeableRate": null
+      }
+    },
+    {
       "rank": 4,
       "bestAvailableRank": null,
       "name": "Akash Network",
       "symbol": "AKT",
       "chain": "cosmos",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 23,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:cosmos:pair:research-seed-akt"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 105000,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.321,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -420,9 +783,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -457,9 +821,98 @@
       "symbol": "TIA",
       "chain": "celestia",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 23,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:celestia:pair:research-seed-tia"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 115000,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.307,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -525,9 +978,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -562,9 +1016,98 @@
       "symbol": "PENDLE",
       "chain": "ethereum",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 23,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:ethereum:pair:research-seed-pendle"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 110000,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.314,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -630,9 +1173,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -668,9 +1212,98 @@
       "symbol": "RNDR",
       "chain": "solana",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 22,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:solana:pair:research-seed-rndr"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 102500,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.326,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -736,9 +1369,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -773,9 +1407,98 @@
       "symbol": "JUP",
       "chain": "solana",
       "tier": "BLOCKED",
+      "lane": "HARD_BLOCKED",
       "opportunityScore": 21,
       "trustScore": 51,
-      "executionScore": 35,
+      "executionScore": 33,
+      "executionStatus": "NO_ROUTE",
+      "firstFailingGate": "IDENTITY",
+      "firstFailingGateResult": "REVIEW",
+      "gateTrace": [
+        {
+          "gate": "IDENTITY",
+          "result": "REVIEW",
+          "evidence": [
+            "canonicalProjectId:chain:solana:pair:research-seed-jup"
+          ],
+          "reasons": [
+            "Identity status UNRESOLVED; keep in identity-review queue."
+          ]
+        },
+        {
+          "gate": "TRUST",
+          "result": "FAIL",
+          "evidence": [],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "EXECUTION",
+          "result": "REVIEW",
+          "evidence": [
+            "executionStatus:NO_ROUTE",
+            "executionScore:33"
+          ],
+          "reasons": [
+            "Provider evidence did not return a route."
+          ]
+        },
+        {
+          "gate": "MONEY",
+          "result": "FAIL",
+          "evidence": [
+            "moneyScore:20",
+            "moneyStatus:UNKNOWN"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        },
+        {
+          "gate": "FINAL_INTEGRITY",
+          "result": "FAIL",
+          "evidence": [
+            "BLOCKED"
+          ],
+          "reasons": [
+            "Final integrity hard block: AI decision rejected the project."
+          ]
+        }
+      ],
+      "moneyScore": 20,
+      "moneyConfidence": 35,
+      "moneyStatus": "VERIFIED_NEGATIVE",
+      "moneyEvidence": {
+        "buyRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "sellRoute": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Provider evidence did not return a route."
+        },
+        "quoteFreshness": {
+          "value": null,
+          "status": "UNKNOWN",
+          "reason": "Quote timestamp unavailable"
+        },
+        "liquidity": {
+          "value": 117500,
+          "status": "VERIFIED"
+        },
+        "slippage100": {
+          "value": 0.303,
+          "status": "VERIFIED"
+        }
+      },
+      "moneyMissingEvidence": [
+        "buy route",
+        "sell route",
+        "fresh quote timestamp"
+      ],
       "moneyRankScore": 0,
       "moneyRank": null,
       "moneyRankEligible": false,
@@ -841,9 +1564,10 @@
       "localAIVerdict": "Reject",
       "localAIAdjustment": 0,
       "whyNow": [],
-      "evidenceCoverage": 89,
+      "evidenceCoverage": 83,
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -872,6 +1596,1581 @@
       }
     }
   ],
+  "fourLaneReport": {
+    "sniperReady": [],
+    "bestAvailable": [],
+    "emergingResearch": [],
+    "hardBlocked": [
+      {
+        "rank": 1,
+        "bestAvailableRank": null,
+        "name": "EigenLayer",
+        "symbol": "EIGEN",
+        "chain": "ethereum",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 28,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:ethereum:pair:research-seed-eigen"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 112500,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.31,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 112500,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 112500,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 112500,
+            "estimatedImpactPct": 1.11,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 112500,
+            "estimatedImpactPct": 2.22,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 112500,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [
+          {
+            "label": "Catalyst proximity",
+            "score": 74,
+            "detail": "A catalyst or roadmap event is close enough to monitor."
+          }
+        ],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Catalyst Calendar Alert",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Catalyst is delayed, cancelled, or occurs without confirming liquidity and buyer growth.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 2,
+        "bestAvailableRank": null,
+        "name": "Ondo",
+        "symbol": "ONDO",
+        "chain": "ethereum",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 25,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:ethereum:pair:research-seed-ondo"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 107500,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.317,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 107500,
+            "estimatedImpactPct": 0.32,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 107500,
+            "estimatedImpactPct": 0.32,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 107500,
+            "estimatedImpactPct": 1.16,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 107500,
+            "estimatedImpactPct": 2.33,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 107500,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Catalyst Calendar Alert",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Catalyst is delayed, cancelled, or occurs without confirming liquidity and buyer growth."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 3,
+        "bestAvailableRank": null,
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 24,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:bittensor:pair:research-seed-tao"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 100000,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.33,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 100000,
+            "estimatedImpactPct": 0.33,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 100000,
+            "estimatedImpactPct": 0.33,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 100000,
+            "estimatedImpactPct": 1.25,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 100000,
+            "estimatedImpactPct": 2.5,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 100000,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Staking Change",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 4,
+        "bestAvailableRank": null,
+        "name": "Akash Network",
+        "symbol": "AKT",
+        "chain": "cosmos",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 23,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:cosmos:pair:research-seed-akt"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 105000,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.321,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 105000,
+            "estimatedImpactPct": 0.32,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 105000,
+            "estimatedImpactPct": 0.32,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 105000,
+            "estimatedImpactPct": 1.19,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 105000,
+            "estimatedImpactPct": 2.38,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 105000,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Staking Change",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 5,
+        "bestAvailableRank": null,
+        "name": "Celestia",
+        "symbol": "TIA",
+        "chain": "celestia",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 23,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:celestia:pair:research-seed-tia"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 115000,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.307,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 115000,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 115000,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 115000,
+            "estimatedImpactPct": 1.09,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 115000,
+            "estimatedImpactPct": 2.17,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 115000,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Staking Change",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 6,
+        "bestAvailableRank": null,
+        "name": "Pendle",
+        "symbol": "PENDLE",
+        "chain": "ethereum",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 23,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:ethereum:pair:research-seed-pendle"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 110000,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.314,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 110000,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 110000,
+            "estimatedImpactPct": 0.31,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 110000,
+            "estimatedImpactPct": 1.14,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 110000,
+            "estimatedImpactPct": 2.27,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 110000,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Airdrop / Points Catalyst",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Catalyst is delayed, cancelled, or occurs without confirming liquidity and buyer growth.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 7,
+        "bestAvailableRank": null,
+        "name": "Render",
+        "symbol": "RNDR",
+        "chain": "solana",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 22,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:solana:pair:research-seed-rndr"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 102500,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.326,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 102500,
+            "estimatedImpactPct": 0.33,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 102500,
+            "estimatedImpactPct": 0.33,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 102500,
+            "estimatedImpactPct": 1.22,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 102500,
+            "estimatedImpactPct": 2.44,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 102500,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "Migration / Release",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      },
+      {
+        "rank": 8,
+        "bestAvailableRank": null,
+        "name": "Jupiter",
+        "symbol": "JUP",
+        "chain": "solana",
+        "tier": "BLOCKED",
+        "lane": "HARD_BLOCKED",
+        "opportunityScore": 21,
+        "trustScore": 51,
+        "executionScore": 33,
+        "executionStatus": "NO_ROUTE",
+        "firstFailingGate": "IDENTITY",
+        "firstFailingGateResult": "REVIEW",
+        "gateTrace": [
+          {
+            "gate": "IDENTITY",
+            "result": "REVIEW",
+            "evidence": [
+              "canonicalProjectId:chain:solana:pair:research-seed-jup"
+            ],
+            "reasons": [
+              "Identity status UNRESOLVED; keep in identity-review queue."
+            ]
+          },
+          {
+            "gate": "TRUST",
+            "result": "FAIL",
+            "evidence": [],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "EXECUTION",
+            "result": "REVIEW",
+            "evidence": [
+              "executionStatus:NO_ROUTE",
+              "executionScore:33"
+            ],
+            "reasons": [
+              "Provider evidence did not return a route."
+            ]
+          },
+          {
+            "gate": "MONEY",
+            "result": "FAIL",
+            "evidence": [
+              "moneyScore:20",
+              "moneyStatus:UNKNOWN"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          },
+          {
+            "gate": "FINAL_INTEGRITY",
+            "result": "FAIL",
+            "evidence": [
+              "BLOCKED"
+            ],
+            "reasons": [
+              "Final integrity hard block: AI decision rejected the project."
+            ]
+          }
+        ],
+        "moneyScore": 20,
+        "moneyConfidence": 35,
+        "moneyStatus": "VERIFIED_NEGATIVE",
+        "moneyEvidence": {
+          "buyRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "sellRoute": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Provider evidence did not return a route."
+          },
+          "quoteFreshness": {
+            "value": null,
+            "status": "UNKNOWN",
+            "reason": "Quote timestamp unavailable"
+          },
+          "liquidity": {
+            "value": 117500,
+            "status": "VERIFIED"
+          },
+          "slippage100": {
+            "value": 0.303,
+            "status": "VERIFIED"
+          }
+        },
+        "moneyMissingEvidence": [
+          "buy route",
+          "sell route",
+          "fresh quote timestamp"
+        ],
+        "moneyRankScore": 0,
+        "moneyRank": null,
+        "moneyRankEligible": false,
+        "moneyRankDrivers": [
+          "Blocked: Final integrity hard block: AI decision rejected the project."
+        ],
+        "executableTradeSizeUsd": 0,
+        "executionTradeSizeChecks": [
+          {
+            "sizeUsd": 25,
+            "liquidityUsd": 117500,
+            "estimatedImpactPct": 0.3,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 100,
+            "liquidityUsd": 117500,
+            "estimatedImpactPct": 0.3,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 500,
+            "liquidityUsd": 117500,
+            "estimatedImpactPct": 1.06,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          },
+          {
+            "sizeUsd": 1000,
+            "liquidityUsd": 117500,
+            "estimatedImpactPct": 2.13,
+            "status": "BLOCKED",
+            "blockers": [
+              "No verified execution route.",
+              "Hard safety blocker is active."
+            ]
+          }
+        ],
+        "calibrationState": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "note": "Treat as a research ranking until more outcomes are logged."
+        },
+        "confidence": "Blocked",
+        "finalSelectionState": "BLOCKED",
+        "finalSelectionQualified": false,
+        "sniperState": "INSUFFICIENT_DATA",
+        "sniperQualified": false,
+        "routeVerified": false,
+        "liquidityUsd": 117500,
+        "sourceCount": 58,
+        "localAIVerdict": "Reject",
+        "localAIAdjustment": 0,
+        "whyNow": [],
+        "evidenceCoverage": 83,
+        "missingEvidence": [
+          "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+          "Execution route has confirmed negative evidence or no route after provider checks.",
+          "Refresh stale execution quote before ranking as execution-ready.",
+          "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+        ],
+        "hardBlockers": [
+          "Final integrity hard block: AI decision rejected the project."
+        ],
+        "catalystWindow": "token_launch",
+        "predictionHorizon": "7d-30d research watch window",
+        "invalidationConditions": [
+          "Opportunity score drops below its current tier threshold on the next scan.",
+          "Liquidity falls while sell pressure, wash-trading risk, or wallet-cluster risk rises.",
+          "Identity, contract, or execution route evidence becomes contradictory.",
+          "Narrative/social attention rises without matching organic liquidity, buyer, or developer evidence."
+        ],
+        "nextVerificationActions": [
+          "Do not promote. Recheck only if the hard-blocking evidence is resolved."
+        ],
+        "predictionPerformance": {
+          "sampleSize": 0,
+          "status": "MODEL_ESTIMATE_ONLY",
+          "probabilityLabelAllowed": false,
+          "note": "Do not treat score as a proven probability until enough outcomes are collected.",
+          "hitRate7d25Pct": null,
+          "hitRate30d100Pct": null,
+          "rugOrUntradeableRate": null
+        }
+      }
+    ]
+  },
   "emergingDiscoveryAILane": [],
   "missingEvidenceQueue": [],
   "localAIActivity": {

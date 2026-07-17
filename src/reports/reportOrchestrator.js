@@ -170,6 +170,11 @@ export function generateReports(projects = [], meta = {}) {
     emergingRadarPath,
     executionReadyPath,
     blockedProjectsPath,
+    debugProgressiveLadderPath,
+    debugIdentityConflictsPath,
+    debugExecutionProofPath,
+    debugBlockReasonsPath,
+    debugStageHealthPath,
   } = writeProgressiveOpportunityReport(projects);
   const {
     bestOpportunityNowPath,
@@ -274,6 +279,11 @@ export function generateReports(projects = [], meta = {}) {
     emergingRadarPath,
     executionReadyPath,
     blockedProjectsPath,
+    debugProgressiveLadderPath,
+    debugIdentityConflictsPath,
+    debugExecutionProofPath,
+    debugBlockReasonsPath,
+    debugStageHealthPath,
     bestOpportunityNowPath,
     topFiveOpportunitiesPath,
     timeHorizonLeadersPath,

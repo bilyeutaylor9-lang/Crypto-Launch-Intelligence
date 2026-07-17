@@ -1,138 +1,11 @@
 {
-  "generatedAt": "2026-07-16T22:50:21.971Z",
+  "generatedAt": "2026-07-17T21:16:53.298Z",
   "totalProjects": 8,
   "counts": {
     "promoteToAlpha": 0,
     "investigateNow": 0
   },
   "projects": [
-    {
-      "rank": 1,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "pipelineScore": 7,
-      "confidenceAdjustedScore": 31,
-      "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 43,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
-        "Refresh stale execution quote before ranking as execution-ready.",
-        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Research Agent",
-          "priority": "Medium",
-          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
-          "reason": "Missing external source confirmation"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        },
-        {
-          "agent": "Catalyst Agent",
-          "priority": "High",
-          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
-          "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
-        }
-      ],
-      "alphaInvestigatorScore": 32,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "EigenLayer",
-        "symbol": "EIGEN",
-        "score": 32,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "title": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
-          "summary": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
-          "date": null,
-          "dateLabel": "unknown",
-          "precision": "unknown",
-          "type": "mainnet",
-          "matchedTerms": [
-            "mainnet"
-          ],
-          "source": "inferred-web-roadmap",
-          "daysUntil": null,
-          "roadmapScore": 100,
-          "impact": "Major Positive"
-        },
-        "bullCase": [
-          "Roadmap Agent: Roadmap milestones support a catalyst path.",
-          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
-        ],
-        "bearCase": [
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone.",
-          "Profitability Agent: Profitability needs confirmation.",
-          "Risk Agent: Risk remains the main gating factor."
-        ],
-        "missingProof": [
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing external source confirmation",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
-          "Liquidity expansion rises above 60."
-        ]
-      },
-      "warRoomScore": 42,
-      "warRoomAllocation": "Wait For Confirmation",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "ai",
-        "restaking"
-      ],
-      "strategyLabScore": 72,
-      "strategyLabVerdict": "Priority Paper Trade",
-      "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 64,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 32,
-      "alphaOSVerdict": "OS Risk Block",
-      "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 49,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 65,
-      "sourceTruthScore": 53,
-      "githubProScore": 0
-    },
     {
       "rank": 7,
       "name": "Pendle",
@@ -145,6 +18,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -245,8 +119,8 @@
       "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 38,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 64,
@@ -259,12 +133,13 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 2,
-      "confidenceAdjustedScore": 30,
+      "confidenceAdjustedScore": 31,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 39,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -362,18 +237,138 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 74,
+      "strategyLabScore": 75,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 63,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 38,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 51,
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 65,
       "sourceTruthScore": 52,
+      "githubProScore": 0
+    },
+    {
+      "rank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "confidenceAdjustedScore": 26,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 38,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "Roadmap Agent",
+          "priority": "Medium",
+          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
+          "reason": "Missing verified roadmap"
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 25,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "Ondo",
+        "symbol": "ONDO",
+        "score": 25,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "group": "governance",
+          "keyword": "treasury",
+          "weight": 10,
+          "type": "",
+          "daysUntil": null,
+          "score": 17.5
+        },
+        "bullCase": [
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing verified roadmap",
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 33,
+      "warRoomAllocation": "Ignore",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "rwa",
+        "stablecoins"
+      ],
+      "strategyLabScore": 70,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "Truth-Verified Alpha",
+      "causalAlphaScore": 57,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 38,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 63,
+      "sourceTruthScore": 49,
       "githubProScore": 0
     },
     {
@@ -382,12 +377,13 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 2,
-      "confidenceAdjustedScore": 30,
-      "aiVerdict": "AI Watchlist",
+      "confidenceAdjustedScore": 31,
+      "aiVerdict": "Best Available Strong Buy Candidate",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -490,17 +486,17 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 75,
+      "strategyLabScore": 77,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 68,
+      "causalAlphaScore": 66,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 41,
-      "alphaOSVerdict": "OS Best Available Candidate",
-      "alphaOSMode": "Best Available Paper Candidate",
-      "paperOutcomeLabScore": 53,
+      "alphaOSScore": 31,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 68,
+      "autoLearningWeightScore": 66,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -516,6 +512,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -617,134 +614,15 @@
       "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 59,
+      "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 63,
-      "sourceTruthScore": 52,
-      "githubProScore": 0
-    },
-    {
-      "rank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 0,
-      "confidenceAdjustedScore": 26,
-      "aiVerdict": "AI Watchlist",
-      "commanderScore": 37,
-      "commanderVerdict": "Low Priority Research",
-      "missingEvidence": [
-        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
-        "Refresh stale execution quote before ranking as execution-ready.",
-        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
-      ],
-      "assignments": [
-        {
-          "agent": "Commander",
-          "priority": "Medium",
-          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
-          "reason": "Commander owns final research routing."
-        },
-        {
-          "agent": "Roadmap Agent",
-          "priority": "Medium",
-          "task": "Crawl official roadmap, docs, blog, whitepaper/litepaper, changelog, and announcements.",
-          "reason": "Missing verified roadmap"
-        },
-        {
-          "agent": "GitHub Agent",
-          "priority": "Medium",
-          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
-          "reason": "Missing GitHub activity proof"
-        },
-        {
-          "agent": "Tokenomics Agent",
-          "priority": "High",
-          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
-          "reason": "Missing tokenomics and allocation proof"
-        },
-        {
-          "agent": "Liquidity Agent",
-          "priority": "Medium",
-          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
-          "reason": "Missing liquidity depth confirmation"
-        },
-        {
-          "agent": "Catalyst Agent",
-          "priority": "High",
-          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
-          "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
-        }
-      ],
-      "alphaInvestigatorScore": 26,
-      "alphaInvestigatorVerdict": "Avoid",
-      "alphaCaseFile": {
-        "project": "Ondo",
-        "symbol": "ONDO",
-        "score": 26,
-        "profitPotential": "Low",
-        "confidence": "Low",
-        "bestCatalyst": {
-          "group": "governance",
-          "keyword": "treasury",
-          "weight": 10,
-          "type": "",
-          "daysUntil": null,
-          "score": 17.5
-        },
-        "bullCase": [
-          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
-        ],
-        "bearCase": [
-          "GitHub Agent: Developer proof is weak or missing.",
-          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
-          "Narrative Agent: Narrative support is not strong enough alone.",
-          "Profitability Agent: Profitability needs confirmation.",
-          "Risk Agent: Risk remains the main gating factor."
-        ],
-        "missingProof": [
-          "Missing verified roadmap",
-          "Missing GitHub activity proof",
-          "Missing tokenomics and allocation proof",
-          "Missing liquidity depth confirmation",
-          "Proof score below alpha threshold",
-          "Source reliability needs confirmation"
-        ],
-        "invalidation": [
-          "Proof score must improve.",
-          "Confidence-adjusted score must improve.",
-          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
-          "Roadmap catalyst path fails confirmation."
-        ],
-        "whatWouldPromote": [
-          "Resolve proof gaps: Missing verified roadmap, Missing GitHub activity proof, Missing tokenomics and allocation proof.",
-          "Liquidity expansion rises above 60."
-        ]
-      },
-      "warRoomScore": 33,
-      "warRoomAllocation": "Ignore",
-      "warRoomRole": "Best Catalyst Setup",
-      "narratives": [
-        "rwa",
-        "stablecoins"
-      ],
-      "strategyLabScore": 70,
-      "strategyLabVerdict": "Priority Paper Trade",
-      "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 58,
-      "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 39,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 49,
-      "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 64,
-      "sourceTruthScore": 49,
+      "sourceTruthScore": 52,
       "githubProScore": 0
     },
     {
@@ -759,6 +637,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -862,6 +741,134 @@
       "githubProScore": 0
     },
     {
+      "rank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "pipelineScore": 7,
+      "confidenceAdjustedScore": 26,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 35,
+      "commanderVerdict": "Low Priority Research",
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
+      ],
+      "assignments": [
+        {
+          "agent": "Commander",
+          "priority": "Medium",
+          "task": "Decide whether the project deserves promotion, more proof, or rejection.",
+          "reason": "Commander owns final research routing."
+        },
+        {
+          "agent": "GitHub Agent",
+          "priority": "Medium",
+          "task": "Find official repository and verify recent commits, contributors, releases, and issue resolution.",
+          "reason": "Missing GitHub activity proof"
+        },
+        {
+          "agent": "Tokenomics Agent",
+          "priority": "High",
+          "task": "Verify supply, unlocks, emissions, team allocation, and liquidity controls.",
+          "reason": "Missing tokenomics and allocation proof"
+        },
+        {
+          "agent": "Research Agent",
+          "priority": "Medium",
+          "task": "Search project pages, Google News RSS, crypto RSS feeds, and negative-risk queries.",
+          "reason": "Missing external source confirmation"
+        },
+        {
+          "agent": "Liquidity Agent",
+          "priority": "Medium",
+          "task": "Verify liquidity depth, pool concentration, volume quality, and migration risk.",
+          "reason": "Missing liquidity depth confirmation"
+        },
+        {
+          "agent": "Catalyst Agent",
+          "priority": "High",
+          "task": "Confirm top catalyst timing and prepare promotion/invalidation triggers.",
+          "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
+        }
+      ],
+      "alphaInvestigatorScore": 31,
+      "alphaInvestigatorVerdict": "Avoid",
+      "alphaCaseFile": {
+        "project": "EigenLayer",
+        "symbol": "EIGEN",
+        "score": 31,
+        "profitPotential": "Low",
+        "confidence": "Low",
+        "bestCatalyst": {
+          "title": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "summary": "EigenLayer EIGEN restaking AVS shared security staking rewards validator delegation mainnet ecosystem",
+          "date": null,
+          "dateLabel": "unknown",
+          "precision": "unknown",
+          "type": "mainnet",
+          "matchedTerms": [
+            "mainnet"
+          ],
+          "source": "inferred-web-roadmap",
+          "daysUntil": null,
+          "roadmapScore": 100,
+          "impact": "Major Positive"
+        },
+        "bullCase": [
+          "Roadmap Agent: Roadmap milestones support a catalyst path.",
+          "Tokenomics Agent: Tokenomics risk does not dominate the thesis."
+        ],
+        "bearCase": [
+          "GitHub Agent: Developer proof is weak or missing.",
+          "Liquidity Agent: Liquidity depth or flow confirmation is thin.",
+          "Narrative Agent: Narrative support is not strong enough alone.",
+          "Profitability Agent: Profitability needs confirmation.",
+          "Risk Agent: Risk remains the main gating factor."
+        ],
+        "missingProof": [
+          "Missing GitHub activity proof",
+          "Missing tokenomics and allocation proof",
+          "Missing external source confirmation",
+          "Missing liquidity depth confirmation",
+          "Proof score below alpha threshold",
+          "Source reliability needs confirmation"
+        ],
+        "invalidation": [
+          "Proof score must improve.",
+          "Confidence-adjusted score must improve.",
+          "Evidence gate blockers: Council score, Agent agreement, Proof score, Confidence-adjusted score.",
+          "Roadmap catalyst path fails confirmation."
+        ],
+        "whatWouldPromote": [
+          "Resolve proof gaps: Missing GitHub activity proof, Missing tokenomics and allocation proof, Missing external source confirmation.",
+          "Liquidity expansion rises above 60."
+        ]
+      },
+      "warRoomScore": 36,
+      "warRoomAllocation": "Wait For Confirmation",
+      "warRoomRole": "Best Catalyst Setup",
+      "narratives": [
+        "ai",
+        "restaking"
+      ],
+      "strategyLabScore": 68,
+      "strategyLabVerdict": "Priority Paper Trade",
+      "bestStrategy": "GitHub Builder Momentum",
+      "causalAlphaScore": 57,
+      "causalAlphaVerdict": "Causal Watch",
+      "alphaOSScore": 34,
+      "alphaOSVerdict": "OS Risk Block",
+      "alphaOSMode": "Blocked",
+      "paperOutcomeLabScore": 46,
+      "paperOutcomeLabVerdict": "Collect More Outcomes",
+      "autoLearningWeightScore": 60,
+      "sourceTruthScore": 53,
+      "githubProScore": 0
+    },
+    {
       "rank": 2,
       "name": "Render",
       "symbol": "RNDR",
@@ -873,6 +880,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],

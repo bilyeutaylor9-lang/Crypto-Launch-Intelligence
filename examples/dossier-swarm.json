@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:21.963Z",
+  "generatedAt": "2026-07-17T21:16:53.291Z",
   "totalProjects": 8,
   "dossieredProjects": 8,
   "counts": {
@@ -277,13 +277,13 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 7,
-      "simulationBrainScore": 43,
-      "outcomeJudgeScore": 45,
+      "simulationBrainScore": 33,
+      "outcomeJudgeScore": 41,
       "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
-      "simulationDecision": "Simulation Watch",
+      "aiEcosystemVerdict": "AI Watchlist",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
@@ -352,13 +352,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 51,
+            "score": 52,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 81,
+                "value": 84,
                 "interpretation": "supportive"
               },
               {
@@ -376,7 +376,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 24,
+            "score": 23,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -392,7 +392,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 27,
+                "value": 25,
                 "interpretation": "needs work"
               }
             ],
@@ -429,13 +429,13 @@
           },
           {
             "name": "Risk Agent",
-            "score": 35,
+            "score": 40,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
               {
                 "label": "trapRiskScore",
-                "value": 12,
+                "value": 20,
                 "interpretation": "acceptable"
               },
               {
@@ -451,18 +451,18 @@
             ],
             "objections": [
               "resembles prior false-positive/trap setups",
-              "Research OS red team blocked the thesis"
+              "simulation adversary blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 41,
+            "score": 40,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 45,
+                "value": 41,
                 "interpretation": "needs work"
               },
               {
@@ -482,7 +482,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 26,
+            "score": 24,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -493,7 +493,269 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 43,
+                "value": 33,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "proofScore",
+                "value": 2,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          }
+        ],
+        "strongestAgent": "Tokenomics Agent",
+        "weakestAgent": "Wallet Agent",
+        "keyBullCase": "Token structure needs more proof before promotion.",
+        "keyBearCase": "tokenomics score is weak",
+        "mustVerify": [
+          "verify current liquidity depth and source quality",
+          "review unlocks, vesting, emissions, and FDV pressure",
+          "inspect top wallet concentration and smart-wallet persistence",
+          "verify GitHub/docs/roadmap activity manually",
+          "confirm upcoming catalyst date and whether it is already priced in"
+        ],
+        "promotionTriggers": [
+          "liquidity score rises above 65",
+          "proof score rises above 60",
+          "smart-money accumulation confirms above 60",
+          "outcome judge gets a tracked follow-up scan"
+        ],
+        "invalidationSignals": [
+          "liquidity falls while price or social attention rises",
+          "sell pressure expands above 70",
+          "trap risk rises above 60",
+          "Outcome Judge downgrades the thesis after a follow-up scan",
+          "Pipeline score drops below 55 on the next scan.",
+          "Liquidity contracts while sell pressure rises.",
+          "Primary catalyst is delayed, cancelled, or already priced in."
+        ],
+        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+      }
+    },
+    {
+      "rank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "simulationBrainScore": 46,
+      "outcomeJudgeScore": 46,
+      "dossierSwarmScore": 21,
+      "dossierSwarmDecision": "Do Not Promote",
+      "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
+      "aiEcosystemVerdict": "AI Watchlist",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "dossier": {
+        "decision": "Do Not Promote",
+        "score": 21,
+        "consensus": {
+          "approve": 0,
+          "watch": 2,
+          "reject": 5,
+          "challenge": 0,
+          "block": 0,
+          "clear": 1,
+          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+        },
+        "agents": [
+          {
+            "name": "Tokenomics Agent",
+            "score": 63,
+            "vote": "Watch",
+            "thesis": "Token structure needs more proof before promotion.",
+            "evidence": [
+              {
+                "label": "tokenomicsScore",
+                "value": 10,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "vestingPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "tokenUnlockRiskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "tokenomics score is weak"
+            ]
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 44,
+            "vote": "Reject",
+            "thesis": "Flow confirmation is not strong enough yet.",
+            "evidence": [
+              {
+                "label": "liquidityScore",
+                "value": 25,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "liquidityExpansionScore",
+                "value": 30,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "sellPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "liquidity support is still thin"
+            ]
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 49,
+            "vote": "Watch",
+            "thesis": "Narrative needs more confirmation or cleaner attention.",
+            "evidence": [
+              {
+                "label": "narrativeHeatScore",
+                "value": 56,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "narrativeForecastScore",
+                "value": 27.5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "xSocialScore",
+                "value": 36,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          },
+          {
+            "name": "Developer Agent",
+            "score": 21,
+            "vote": "Reject",
+            "thesis": "Builder evidence needs manual verification.",
+            "evidence": [
+              {
+                "label": "developerActivityScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "githubScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "worldModelScore",
+                "value": 21,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "developer/community proof is thin",
+              "source reliability is weak"
+            ]
+          },
+          {
+            "name": "Wallet Agent",
+            "score": 3,
+            "vote": "Reject",
+            "thesis": "Smart-money evidence is not decisive yet.",
+            "evidence": [
+              {
+                "label": "smartMoneyAccumulationScore",
+                "value": 3,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "smartWalletPerformanceScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "holderGrowthScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "wallet confirmation is weak"
+            ]
+          },
+          {
+            "name": "Risk Agent",
+            "score": 34,
+            "vote": "Clear",
+            "thesis": "No dominant risk cluster blocks research yet.",
+            "evidence": [
+              {
+                "label": "trapRiskScore",
+                "value": 12,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "falsePositiveSimilarity",
+                "value": 75,
+                "interpretation": "risk"
+              },
+              {
+                "label": "riskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "resembles prior false-positive/trap setups"
+            ]
+          },
+          {
+            "name": "Outcome Agent",
+            "score": 40,
+            "vote": "Reject",
+            "thesis": "Outcome memory is thin or inconclusive.",
+            "evidence": [
+              {
+                "label": "outcomeJudgeScore",
+                "value": 46,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "outcomeLearningScore",
+                "value": 6,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "prePumpPatternScore",
+                "value": 50,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "no direct outcome history yet"
+            ]
+          },
+          {
+            "name": "Final PM Agent",
+            "score": 25,
+            "vote": "Reject",
+            "thesis": "Do not promote until blockers clear.",
+            "evidence": [
+              {
+                "label": "agentAverage",
+                "value": 36,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "simulationBrainScore",
+                "value": 46,
                 "interpretation": "needs work"
               },
               {
@@ -531,7 +793,7 @@
           "Liquidity contracts while sell pressure rises.",
           "Primary catalyst is delayed, cancelled, or already priced in."
         ],
-        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+        "finalMemo": "Ondo is a Do Not Promote. Do not promote until blockers clear."
       }
     },
     {
@@ -540,12 +802,12 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 2,
-      "simulationBrainScore": 48,
-      "outcomeJudgeScore": 48,
+      "simulationBrainScore": 47,
+      "outcomeJudgeScore": 47,
       "dossierSwarmScore": 21,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
+      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
       "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
@@ -692,7 +954,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -703,7 +965,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 72,
+                "value": 73,
                 "interpretation": "risk"
               },
               {
@@ -713,18 +975,19 @@
               }
             ],
             "objections": [
-              "resembles prior false-positive/trap setups"
+              "resembles prior false-positive/trap setups",
+              "Research OS red team blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 42,
+            "score": 41,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 48,
+                "value": 47,
                 "interpretation": "needs work"
               },
               {
@@ -755,7 +1018,7 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 48,
+                "value": 47,
                 "interpretation": "needs work"
               },
               {
@@ -1057,268 +1320,6 @@
       }
     },
     {
-      "rank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 0,
-      "simulationBrainScore": 46,
-      "outcomeJudgeScore": 46,
-      "dossierSwarmScore": 17,
-      "dossierSwarmDecision": "Do Not Promote",
-      "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
-      "simulationDecision": "Simulation Watch",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data",
-      "dossier": {
-        "decision": "Do Not Promote",
-        "score": 17,
-        "consensus": {
-          "approve": 0,
-          "watch": 1,
-          "reject": 6,
-          "challenge": 0,
-          "block": 0,
-          "clear": 1,
-          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
-        },
-        "agents": [
-          {
-            "name": "Tokenomics Agent",
-            "score": 63,
-            "vote": "Watch",
-            "thesis": "Token structure needs more proof before promotion.",
-            "evidence": [
-              {
-                "label": "tokenomicsScore",
-                "value": 10,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "vestingPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "tokenUnlockRiskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "tokenomics score is weak"
-            ]
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 44,
-            "vote": "Reject",
-            "thesis": "Flow confirmation is not strong enough yet.",
-            "evidence": [
-              {
-                "label": "liquidityScore",
-                "value": 25,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "liquidityExpansionScore",
-                "value": 30,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "sellPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "liquidity support is still thin"
-            ]
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 47,
-            "vote": "Reject",
-            "thesis": "Narrative needs more confirmation or cleaner attention.",
-            "evidence": [
-              {
-                "label": "narrativeHeatScore",
-                "value": 56,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "narrativeForecastScore",
-                "value": 27.5,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "xSocialScore",
-                "value": 24,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          },
-          {
-            "name": "Developer Agent",
-            "score": 22,
-            "vote": "Reject",
-            "thesis": "Builder evidence needs manual verification.",
-            "evidence": [
-              {
-                "label": "developerActivityScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "githubScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "worldModelScore",
-                "value": 22,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "developer/community proof is thin",
-              "source reliability is weak"
-            ]
-          },
-          {
-            "name": "Wallet Agent",
-            "score": 3,
-            "vote": "Reject",
-            "thesis": "Smart-money evidence is not decisive yet.",
-            "evidence": [
-              {
-                "label": "smartMoneyAccumulationScore",
-                "value": 3,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "smartWalletPerformanceScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "holderGrowthScore",
-                "value": 0,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "wallet confirmation is weak"
-            ]
-          },
-          {
-            "name": "Risk Agent",
-            "score": 34,
-            "vote": "Clear",
-            "thesis": "No dominant risk cluster blocks research yet.",
-            "evidence": [
-              {
-                "label": "trapRiskScore",
-                "value": 12,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "falsePositiveSimilarity",
-                "value": 74,
-                "interpretation": "risk"
-              },
-              {
-                "label": "riskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "resembles prior false-positive/trap setups"
-            ]
-          },
-          {
-            "name": "Outcome Agent",
-            "score": 41,
-            "vote": "Reject",
-            "thesis": "Outcome memory is thin or inconclusive.",
-            "evidence": [
-              {
-                "label": "outcomeJudgeScore",
-                "value": 46,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "outcomeLearningScore",
-                "value": 5,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "prePumpPatternScore",
-                "value": 50,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "no direct outcome history yet"
-            ]
-          },
-          {
-            "name": "Final PM Agent",
-            "score": 23,
-            "vote": "Reject",
-            "thesis": "Do not promote until blockers clear.",
-            "evidence": [
-              {
-                "label": "agentAverage",
-                "value": 36,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "simulationBrainScore",
-                "value": 46,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "proofScore",
-                "value": 0,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          }
-        ],
-        "strongestAgent": "Tokenomics Agent",
-        "weakestAgent": "Wallet Agent",
-        "keyBullCase": "Token structure needs more proof before promotion.",
-        "keyBearCase": "tokenomics score is weak",
-        "mustVerify": [
-          "verify current liquidity depth and source quality",
-          "review unlocks, vesting, emissions, and FDV pressure",
-          "inspect top wallet concentration and smart-wallet persistence",
-          "verify GitHub/docs/roadmap activity manually",
-          "confirm upcoming catalyst date and whether it is already priced in"
-        ],
-        "promotionTriggers": [
-          "liquidity score rises above 65",
-          "proof score rises above 60",
-          "smart-money accumulation confirms above 60",
-          "outcome judge gets a tracked follow-up scan"
-        ],
-        "invalidationSignals": [
-          "liquidity falls while price or social attention rises",
-          "sell pressure expands above 70",
-          "trap risk rises above 60",
-          "Outcome Judge downgrades the thesis after a follow-up scan",
-          "Pipeline score drops below 55 on the next scan.",
-          "Liquidity contracts while sell pressure rises.",
-          "Primary catalyst is delayed, cancelled, or already priced in."
-        ],
-        "finalMemo": "Ondo is a Do Not Promote. Do not promote until blockers clear."
-      }
-    },
-    {
       "rank": 5,
       "name": "Celestia",
       "symbol": "TIA",
@@ -1326,7 +1327,7 @@
       "pipelineScore": 1,
       "simulationBrainScore": 41,
       "outcomeJudgeScore": 45,
-      "dossierSwarmScore": 14,
+      "dossierSwarmScore": 15,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -1334,7 +1335,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 14,
+        "score": 15,
         "consensus": {
           "approve": 0,
           "watch": 1,
@@ -1502,7 +1503,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 41,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -1660,14 +1661,14 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 34,
+            "score": 36,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 61,
-                "interpretation": "needs work"
+                "value": 67,
+                "interpretation": "supportive"
               },
               {
                 "label": "narrativeForecastScore",
@@ -2370,13 +2371,13 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 7,
-      "simulationBrainScore": 43,
-      "outcomeJudgeScore": 45,
+      "simulationBrainScore": 33,
+      "outcomeJudgeScore": 41,
       "dossierSwarmScore": 22,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
-      "simulationDecision": "Simulation Watch",
+      "aiEcosystemVerdict": "AI Watchlist",
+      "simulationDecision": "Do Not Promote",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
@@ -2445,13 +2446,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 51,
+            "score": 52,
             "vote": "Watch",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 81,
+                "value": 84,
                 "interpretation": "supportive"
               },
               {
@@ -2469,7 +2470,7 @@
           },
           {
             "name": "Developer Agent",
-            "score": 24,
+            "score": 23,
             "vote": "Reject",
             "thesis": "Builder evidence needs manual verification.",
             "evidence": [
@@ -2485,7 +2486,7 @@
               },
               {
                 "label": "worldModelScore",
-                "value": 27,
+                "value": 25,
                 "interpretation": "needs work"
               }
             ],
@@ -2522,13 +2523,13 @@
           },
           {
             "name": "Risk Agent",
-            "score": 35,
+            "score": 40,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
               {
                 "label": "trapRiskScore",
-                "value": 12,
+                "value": 20,
                 "interpretation": "acceptable"
               },
               {
@@ -2544,18 +2545,18 @@
             ],
             "objections": [
               "resembles prior false-positive/trap setups",
-              "Research OS red team blocked the thesis"
+              "simulation adversary blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 41,
+            "score": 40,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 45,
+                "value": 41,
                 "interpretation": "needs work"
               },
               {
@@ -2575,7 +2576,7 @@
           },
           {
             "name": "Final PM Agent",
-            "score": 26,
+            "score": 24,
             "vote": "Reject",
             "thesis": "Do not promote until blockers clear.",
             "evidence": [
@@ -2586,7 +2587,269 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 43,
+                "value": 33,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "proofScore",
+                "value": 2,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          }
+        ],
+        "strongestAgent": "Tokenomics Agent",
+        "weakestAgent": "Wallet Agent",
+        "keyBullCase": "Token structure needs more proof before promotion.",
+        "keyBearCase": "tokenomics score is weak",
+        "mustVerify": [
+          "verify current liquidity depth and source quality",
+          "review unlocks, vesting, emissions, and FDV pressure",
+          "inspect top wallet concentration and smart-wallet persistence",
+          "verify GitHub/docs/roadmap activity manually",
+          "confirm upcoming catalyst date and whether it is already priced in"
+        ],
+        "promotionTriggers": [
+          "liquidity score rises above 65",
+          "proof score rises above 60",
+          "smart-money accumulation confirms above 60",
+          "outcome judge gets a tracked follow-up scan"
+        ],
+        "invalidationSignals": [
+          "liquidity falls while price or social attention rises",
+          "sell pressure expands above 70",
+          "trap risk rises above 60",
+          "Outcome Judge downgrades the thesis after a follow-up scan",
+          "Pipeline score drops below 55 on the next scan.",
+          "Liquidity contracts while sell pressure rises.",
+          "Primary catalyst is delayed, cancelled, or already priced in."
+        ],
+        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+      }
+    },
+    {
+      "rank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "pipelineScore": 0,
+      "simulationBrainScore": 46,
+      "outcomeJudgeScore": 46,
+      "dossierSwarmScore": 21,
+      "dossierSwarmDecision": "Do Not Promote",
+      "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
+      "aiEcosystemVerdict": "AI Watchlist",
+      "simulationDecision": "Simulation Watch",
+      "outcomeJudgeVerdict": "Awaiting Outcome Data",
+      "dossier": {
+        "decision": "Do Not Promote",
+        "score": 21,
+        "consensus": {
+          "approve": 0,
+          "watch": 2,
+          "reject": 5,
+          "challenge": 0,
+          "block": 0,
+          "clear": 1,
+          "summary": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block"
+        },
+        "agents": [
+          {
+            "name": "Tokenomics Agent",
+            "score": 63,
+            "vote": "Watch",
+            "thesis": "Token structure needs more proof before promotion.",
+            "evidence": [
+              {
+                "label": "tokenomicsScore",
+                "value": 10,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "vestingPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "tokenUnlockRiskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "tokenomics score is weak"
+            ]
+          },
+          {
+            "name": "Liquidity Agent",
+            "score": 44,
+            "vote": "Reject",
+            "thesis": "Flow confirmation is not strong enough yet.",
+            "evidence": [
+              {
+                "label": "liquidityScore",
+                "value": 25,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "liquidityExpansionScore",
+                "value": 30,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "sellPressureScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "liquidity support is still thin"
+            ]
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 49,
+            "vote": "Watch",
+            "thesis": "Narrative needs more confirmation or cleaner attention.",
+            "evidence": [
+              {
+                "label": "narrativeHeatScore",
+                "value": 56,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "narrativeForecastScore",
+                "value": 27.5,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "xSocialScore",
+                "value": 36,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": []
+          },
+          {
+            "name": "Developer Agent",
+            "score": 21,
+            "vote": "Reject",
+            "thesis": "Builder evidence needs manual verification.",
+            "evidence": [
+              {
+                "label": "developerActivityScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "githubScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "worldModelScore",
+                "value": 21,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "developer/community proof is thin",
+              "source reliability is weak"
+            ]
+          },
+          {
+            "name": "Wallet Agent",
+            "score": 3,
+            "vote": "Reject",
+            "thesis": "Smart-money evidence is not decisive yet.",
+            "evidence": [
+              {
+                "label": "smartMoneyAccumulationScore",
+                "value": 3,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "smartWalletPerformanceScore",
+                "value": 0,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "holderGrowthScore",
+                "value": 0,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "wallet confirmation is weak"
+            ]
+          },
+          {
+            "name": "Risk Agent",
+            "score": 34,
+            "vote": "Clear",
+            "thesis": "No dominant risk cluster blocks research yet.",
+            "evidence": [
+              {
+                "label": "trapRiskScore",
+                "value": 12,
+                "interpretation": "acceptable"
+              },
+              {
+                "label": "falsePositiveSimilarity",
+                "value": 75,
+                "interpretation": "risk"
+              },
+              {
+                "label": "riskScore",
+                "value": 0,
+                "interpretation": "acceptable"
+              }
+            ],
+            "objections": [
+              "resembles prior false-positive/trap setups"
+            ]
+          },
+          {
+            "name": "Outcome Agent",
+            "score": 40,
+            "vote": "Reject",
+            "thesis": "Outcome memory is thin or inconclusive.",
+            "evidence": [
+              {
+                "label": "outcomeJudgeScore",
+                "value": 46,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "outcomeLearningScore",
+                "value": 6,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "prePumpPatternScore",
+                "value": 50,
+                "interpretation": "needs work"
+              }
+            ],
+            "objections": [
+              "no direct outcome history yet"
+            ]
+          },
+          {
+            "name": "Final PM Agent",
+            "score": 25,
+            "vote": "Reject",
+            "thesis": "Do not promote until blockers clear.",
+            "evidence": [
+              {
+                "label": "agentAverage",
+                "value": 36,
+                "interpretation": "needs work"
+              },
+              {
+                "label": "simulationBrainScore",
+                "value": 46,
                 "interpretation": "needs work"
               },
               {
@@ -2624,7 +2887,7 @@
           "Liquidity contracts while sell pressure rises.",
           "Primary catalyst is delayed, cancelled, or already priced in."
         ],
-        "finalMemo": "EigenLayer is a Do Not Promote. Do not promote until blockers clear."
+        "finalMemo": "Ondo is a Do Not Promote. Do not promote until blockers clear."
       }
     },
     {
@@ -2633,12 +2896,12 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 2,
-      "simulationBrainScore": 48,
-      "outcomeJudgeScore": 48,
+      "simulationBrainScore": 47,
+      "outcomeJudgeScore": 47,
       "dossierSwarmScore": 21,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 2 watch / 5 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
+      "aiEcosystemVerdict": "Best Available Strong Buy Candidate",
       "simulationDecision": "Simulation Watch",
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
@@ -2785,7 +3048,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Clear",
             "thesis": "No dominant risk cluster blocks research yet.",
             "evidence": [
@@ -2796,7 +3059,7 @@
               },
               {
                 "label": "falsePositiveSimilarity",
-                "value": 72,
+                "value": 73,
                 "interpretation": "risk"
               },
               {
@@ -2806,18 +3069,19 @@
               }
             ],
             "objections": [
-              "resembles prior false-positive/trap setups"
+              "resembles prior false-positive/trap setups",
+              "Research OS red team blocked the thesis"
             ]
           },
           {
             "name": "Outcome Agent",
-            "score": 42,
+            "score": 41,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
               {
                 "label": "outcomeJudgeScore",
-                "value": 48,
+                "value": 47,
                 "interpretation": "needs work"
               },
               {
@@ -2848,7 +3112,7 @@
               },
               {
                 "label": "simulationBrainScore",
-                "value": 48,
+                "value": 47,
                 "interpretation": "needs work"
               },
               {
@@ -3150,268 +3414,6 @@
       }
     },
     {
-      "rank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "pipelineScore": 0,
-      "simulationBrainScore": 46,
-      "outcomeJudgeScore": 46,
-      "dossierSwarmScore": 17,
-      "dossierSwarmDecision": "Do Not Promote",
-      "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
-      "aiEcosystemVerdict": "AI Watchlist",
-      "simulationDecision": "Simulation Watch",
-      "outcomeJudgeVerdict": "Awaiting Outcome Data",
-      "dossier": {
-        "decision": "Do Not Promote",
-        "score": 17,
-        "consensus": {
-          "approve": 0,
-          "watch": 1,
-          "reject": 6,
-          "challenge": 0,
-          "block": 0,
-          "clear": 1,
-          "summary": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block"
-        },
-        "agents": [
-          {
-            "name": "Tokenomics Agent",
-            "score": 63,
-            "vote": "Watch",
-            "thesis": "Token structure needs more proof before promotion.",
-            "evidence": [
-              {
-                "label": "tokenomicsScore",
-                "value": 10,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "vestingPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "tokenUnlockRiskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "tokenomics score is weak"
-            ]
-          },
-          {
-            "name": "Liquidity Agent",
-            "score": 44,
-            "vote": "Reject",
-            "thesis": "Flow confirmation is not strong enough yet.",
-            "evidence": [
-              {
-                "label": "liquidityScore",
-                "value": 25,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "liquidityExpansionScore",
-                "value": 30,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "sellPressureScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "liquidity support is still thin"
-            ]
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 47,
-            "vote": "Reject",
-            "thesis": "Narrative needs more confirmation or cleaner attention.",
-            "evidence": [
-              {
-                "label": "narrativeHeatScore",
-                "value": 56,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "narrativeForecastScore",
-                "value": 27.5,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "xSocialScore",
-                "value": 24,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          },
-          {
-            "name": "Developer Agent",
-            "score": 22,
-            "vote": "Reject",
-            "thesis": "Builder evidence needs manual verification.",
-            "evidence": [
-              {
-                "label": "developerActivityScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "githubScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "worldModelScore",
-                "value": 22,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "developer/community proof is thin",
-              "source reliability is weak"
-            ]
-          },
-          {
-            "name": "Wallet Agent",
-            "score": 3,
-            "vote": "Reject",
-            "thesis": "Smart-money evidence is not decisive yet.",
-            "evidence": [
-              {
-                "label": "smartMoneyAccumulationScore",
-                "value": 3,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "smartWalletPerformanceScore",
-                "value": 0,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "holderGrowthScore",
-                "value": 0,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "wallet confirmation is weak"
-            ]
-          },
-          {
-            "name": "Risk Agent",
-            "score": 34,
-            "vote": "Clear",
-            "thesis": "No dominant risk cluster blocks research yet.",
-            "evidence": [
-              {
-                "label": "trapRiskScore",
-                "value": 12,
-                "interpretation": "acceptable"
-              },
-              {
-                "label": "falsePositiveSimilarity",
-                "value": 74,
-                "interpretation": "risk"
-              },
-              {
-                "label": "riskScore",
-                "value": 0,
-                "interpretation": "acceptable"
-              }
-            ],
-            "objections": [
-              "resembles prior false-positive/trap setups"
-            ]
-          },
-          {
-            "name": "Outcome Agent",
-            "score": 41,
-            "vote": "Reject",
-            "thesis": "Outcome memory is thin or inconclusive.",
-            "evidence": [
-              {
-                "label": "outcomeJudgeScore",
-                "value": 46,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "outcomeLearningScore",
-                "value": 5,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "prePumpPatternScore",
-                "value": 50,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": [
-              "no direct outcome history yet"
-            ]
-          },
-          {
-            "name": "Final PM Agent",
-            "score": 23,
-            "vote": "Reject",
-            "thesis": "Do not promote until blockers clear.",
-            "evidence": [
-              {
-                "label": "agentAverage",
-                "value": 36,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "simulationBrainScore",
-                "value": 46,
-                "interpretation": "needs work"
-              },
-              {
-                "label": "proofScore",
-                "value": 0,
-                "interpretation": "needs work"
-              }
-            ],
-            "objections": []
-          }
-        ],
-        "strongestAgent": "Tokenomics Agent",
-        "weakestAgent": "Wallet Agent",
-        "keyBullCase": "Token structure needs more proof before promotion.",
-        "keyBearCase": "tokenomics score is weak",
-        "mustVerify": [
-          "verify current liquidity depth and source quality",
-          "review unlocks, vesting, emissions, and FDV pressure",
-          "inspect top wallet concentration and smart-wallet persistence",
-          "verify GitHub/docs/roadmap activity manually",
-          "confirm upcoming catalyst date and whether it is already priced in"
-        ],
-        "promotionTriggers": [
-          "liquidity score rises above 65",
-          "proof score rises above 60",
-          "smart-money accumulation confirms above 60",
-          "outcome judge gets a tracked follow-up scan"
-        ],
-        "invalidationSignals": [
-          "liquidity falls while price or social attention rises",
-          "sell pressure expands above 70",
-          "trap risk rises above 60",
-          "Outcome Judge downgrades the thesis after a follow-up scan",
-          "Pipeline score drops below 55 on the next scan.",
-          "Liquidity contracts while sell pressure rises.",
-          "Primary catalyst is delayed, cancelled, or already priced in."
-        ],
-        "finalMemo": "Ondo is a Do Not Promote. Do not promote until blockers clear."
-      }
-    },
-    {
       "rank": 5,
       "name": "Celestia",
       "symbol": "TIA",
@@ -3419,7 +3421,7 @@
       "pipelineScore": 1,
       "simulationBrainScore": 41,
       "outcomeJudgeScore": 45,
-      "dossierSwarmScore": 14,
+      "dossierSwarmScore": 15,
       "dossierSwarmDecision": "Do Not Promote",
       "dossierSwarmConsensus": "0 approve / 1 watch / 6 reject / 1 clear / 0 challenge / 0 block",
       "aiEcosystemVerdict": "AI Watchlist",
@@ -3427,7 +3429,7 @@
       "outcomeJudgeVerdict": "Awaiting Outcome Data",
       "dossier": {
         "decision": "Do Not Promote",
-        "score": 14,
+        "score": 15,
         "consensus": {
           "approve": 0,
           "watch": 1,
@@ -3595,7 +3597,7 @@
           },
           {
             "name": "Outcome Agent",
-            "score": 39,
+            "score": 41,
             "vote": "Reject",
             "thesis": "Outcome memory is thin or inconclusive.",
             "evidence": [
@@ -3753,14 +3755,14 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 34,
+            "score": 36,
             "vote": "Reject",
             "thesis": "Narrative needs more confirmation or cleaner attention.",
             "evidence": [
               {
                 "label": "narrativeHeatScore",
-                "value": 61,
-                "interpretation": "needs work"
+                "value": 67,
+                "interpretation": "supportive"
               },
               {
                 "label": "narrativeForecastScore",
@@ -4207,22 +4209,22 @@
       "block": 0
     },
     {
+      "agent": "Narrative Agent",
+      "samples": 8,
+      "averageScore": 45,
+      "approve": 0,
+      "watch": 5,
+      "reject": 3,
+      "challenge": 0,
+      "block": 0
+    },
+    {
       "agent": "Liquidity Agent",
       "samples": 8,
       "averageScore": 44,
       "approve": 0,
       "watch": 0,
       "reject": 8,
-      "challenge": 0,
-      "block": 0
-    },
-    {
-      "agent": "Narrative Agent",
-      "samples": 8,
-      "averageScore": 44,
-      "approve": 0,
-      "watch": 4,
-      "reject": 4,
       "challenge": 0,
       "block": 0
     },

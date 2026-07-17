@@ -248,9 +248,11 @@ function listingVerified(project = {}) {
 function routeFrom(project = {}) {
   const purchaseRoute = project.purchaseRoute || project.smallCapHunter?.purchaseRoute || {};
   const twinRoute = project.proofOfAlphaExecutionTwin?.route || {};
+  const executionProof = project.executionProof || {};
   const purchasable = purchaseRoute.purchasable === true || project.purchaseRouteAvailable === true;
   const executionDetected = twinRoute.detected === true;
   const routeStatus = firstString([
+    executionProof.executionStatus,
     purchaseRoute.status,
     project.routeStatus,
     project.routeVerdict,
@@ -265,15 +267,31 @@ function routeFrom(project = {}) {
   ]);
 
   return {
-    purchasable,
-    executionDetected,
+    purchasable: purchasable || executionProof.buyRouteAvailable === true,
+    executionDetected: executionDetected || ["VERIFIED", "PARTIALLY_VERIFIED", "STALE_QUOTE"].includes(executionProof.executionStatus),
     status: routeStatus,
     preferredRoute,
-    confirmed: purchasable || executionDetected,
+    confirmed: purchasable || executionDetected || executionProof.buyRouteAvailable === true,
   };
 }
 
+function executionProofStatus(project = {}) {
+  return project.executionProof?.executionStatus || project.executionStatus || "";
+}
+
+function executionProviderUnavailable(project = {}) {
+  return ["PROVIDER_UNAVAILABLE", "UNKNOWN"].includes(executionProofStatus(project));
+}
+
+function executionProofHardBlock(project = {}) {
+  return ["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(executionProofStatus(project));
+}
+
 function executionRouteAvailable(project = {}) {
+  const status = executionProofStatus(project);
+  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(status)) return true;
+  if (["PROVIDER_UNAVAILABLE", "UNKNOWN", "STALE_QUOTE"].includes(status)) return false;
+  if (executionProofHardBlock(project)) return false;
   if (project.executionRouteAvailable === true) return true;
   if (project.executionRouteAvailable === false) return false;
   if (normalizeDecisionText(project.executionVerdict).includes("block")) return false;
@@ -345,6 +363,15 @@ function trapRiskScore(project = {}) {
 }
 
 function hasExplicitIdentityConflict(project = {}) {
+  const canonicalStatus = project.canonicalIdentity?.identityStatus || project.identityStatus;
+  if (canonicalStatus === "CONTRACT_CONFLICT" || project.canonicalIdentityHardBlock === true) return true;
+  const hardMismatch =
+    project.chainMismatch === true ||
+    project.contractChainMismatch === true ||
+    project.externalIdMismatch === true;
+  if (!hardMismatch && ["SYMBOL_COLLISION", "UNRESOLVED", "WEAK_MATCH"].includes(canonicalStatus)) {
+    return false;
+  }
   const text = normalizeDecisionText(
     [
       project.identityVerdict,
@@ -359,15 +386,13 @@ function hasExplicitIdentityConflict(project = {}) {
   );
 
   return Boolean(
-    project.identityConflict ||
+    (project.identityConflict && (hardMismatch || text.includes("mismatch") || text.includes("counterfeit") || text.includes("impersonation"))) ||
       project.conflictedIdentity ||
-      project.chainMismatch ||
-      project.contractChainMismatch ||
-      project.externalIdMismatch ||
-      project.symbolCollisionRisk ||
+      hardMismatch ||
       text.includes("identity risk") ||
-      text.includes("conflict") ||
-      text.includes("mismatch")
+      text.includes("contract conflict") ||
+      text.includes("contract mismatch") ||
+      text.includes("chain mismatch")
   );
 }
 
@@ -414,9 +439,11 @@ function buildCollisionContext(projects = []) {
 }
 
 export function resolveFinalIdentity(project = {}, collisionContext = new Map()) {
+  const canonical = project.canonicalIdentity || {};
+  const canonicalStatus = canonical.identityStatus || project.identityStatus || "";
   const symbol = symbolOf(project);
-  const chain = chainOf(project);
-  const contractAddress = contractAddressOf(project);
+  const chain = canonical.canonicalChain || chainOf(project);
+  const contractAddress = canonical.canonicalAddress || contractAddressOf(project);
   const pairAddress = pairAddressOf(project);
   const exchangeId = exchangeAssetId(project);
   const externalId = externalAssetId(project);
@@ -437,6 +464,14 @@ export function resolveFinalIdentity(project = {}, collisionContext = new Map())
   if (explicitConflict) {
     state = FINAL_IDENTITY_STATES.CONFLICTED_IDENTITY;
     blockers.push("Identity conflict or chain/contract mismatch detected.");
+  } else if (canonicalStatus === "VERIFIED") {
+    state = FINAL_IDENTITY_STATES.VERIFIED_CONTRACT;
+  } else if (["MULTICHAIN_VARIANT", "BRIDGED_VARIANT", "PROBABLE_MATCH"].includes(canonicalStatus)) {
+    state = FINAL_IDENTITY_STATES.PROBABLE_MATCH;
+    warnings.push(`Canonical identity status is ${canonicalStatus}; keep in review until fully verified.`);
+  } else if (["SYMBOL_COLLISION", "WEAK_MATCH", "UNRESOLVED"].includes(canonicalStatus)) {
+    state = canonicalStatus === "UNRESOLVED" ? FINAL_IDENTITY_STATES.UNRESOLVED_IDENTITY : FINAL_IDENTITY_STATES.SYMBOL_ONLY;
+    warnings.push(`Canonical identity status is ${canonicalStatus}; route to identity review instead of hard block.`);
   } else if (hasChain && hasContract && isContractVerified && isChainVerified) {
     state = FINAL_IDENTITY_STATES.VERIFIED_CONTRACT;
   } else if (isListingVerified) {
@@ -450,8 +485,7 @@ export function resolveFinalIdentity(project = {}, collisionContext = new Map())
   }
 
   if (collisionProne && [FINAL_IDENTITY_STATES.SYMBOL_ONLY, FINAL_IDENTITY_STATES.UNRESOLVED_IDENTITY].includes(state)) {
-    state = FINAL_IDENTITY_STATES.CONFLICTED_IDENTITY;
-    blockers.push(`${symbol} is collision-prone and lacks verified contract or listing identity.`);
+    warnings.push(`${symbol} is collision-prone and lacks verified contract or listing identity.`);
   }
 
   const permanentProjectKey = buildPermanentProjectKey(project, {
@@ -475,6 +509,8 @@ export function resolveFinalIdentity(project = {}, collisionContext = new Map())
     exchangeAssetId: exchangeId,
     externalAssetId: externalId,
     officialDomain: domain,
+    canonicalIdentity: canonical,
+    canonicalIdentityStatus: canonicalStatus,
     collisionProne,
     collisionSize: collision?.keys?.size || 0,
     warnings,
@@ -595,7 +631,9 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
 
   if (!route.confirmed) {
     const reason = "Purchase route is not confirmed as purchasable.";
-    if (wasSelectedEarlier || normalizeDecisionText(route.status).includes("unavailable") || normalizeDecisionText(route.status).includes("no ")) {
+    if (executionProviderUnavailable(project)) {
+      missingDataReasons.push("Execution provider unavailable; purchase route remains unknown.");
+    } else if (executionProofHardBlock(project) || wasSelectedEarlier || normalizeDecisionText(route.status).includes("unavailable") || normalizeDecisionText(route.status).includes("no ")) {
       blockingReasons.push(reason);
     } else {
       missingDataReasons.push(reason);
@@ -604,7 +642,9 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
 
   if (!executionAvailable) {
     const reason = "Execution route is not verified as available.";
-    if (wasSelectedEarlier || normalizeDecisionText(project.proofOfAlphaExecutionTwinVerdict).includes("block")) {
+    if (executionProviderUnavailable(project)) {
+      missingDataReasons.push("Execution provider unavailable; route cannot be verified yet.");
+    } else if (executionProofHardBlock(project) || wasSelectedEarlier || normalizeDecisionText(project.proofOfAlphaExecutionTwinVerdict).includes("block")) {
       blockingReasons.push(reason);
     } else {
       missingDataReasons.push(reason);

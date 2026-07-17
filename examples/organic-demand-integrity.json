@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:30.425Z",
+  "generatedAt": "2026-07-17T21:16:59.687Z",
   "name": "Organic Demand and Economic Integrity",
   "disclaimer": "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
   "totalProjects": 8,
@@ -80,73 +80,6 @@
       ]
     },
     {
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "rawScore": 63,
-      "scoreCap": 100,
-      "scoreCapReasons": [],
-      "promotionBlocked": false,
-      "manualReviewLabel": "Research queue open - proof required before promotion",
-      "researchTaskCount": 1,
-      "researchTasks": [
-        {
-          "id": "build-baseline-proof-pack",
-          "priority": "medium",
-          "agent": "Research OS Agent",
-          "title": "Build a baseline organic-demand proof pack.",
-          "status": "open",
-          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
-          "evidenceNeeded": [
-            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
-            "At least one source link per major positive claim."
-          ],
-          "sourceHints": [
-            "official docs",
-            "CoinGecko",
-            "DexScreener",
-            "GeckoTerminal",
-            "chain explorer"
-          ]
-        }
-      ],
-      "activityAuthenticityRiskScore": 0,
-      "supplyIntegrityRiskScore": 0,
-      "organicDemandScore": 49,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22320,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 448.03,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4480.29,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 44802.87,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -209,6 +142,73 @@
         {
           "sellUsd": 10000000,
           "estimatedStablecoinImpactPct": 41677.09,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22320,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 448.03,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4480.29,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 44802.87,
           "pass": false
         }
       ]
@@ -619,73 +619,6 @@
       ]
     },
     {
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "rawScore": 63,
-      "scoreCap": 100,
-      "scoreCapReasons": [],
-      "promotionBlocked": false,
-      "manualReviewLabel": "Research queue open - proof required before promotion",
-      "researchTaskCount": 1,
-      "researchTasks": [
-        {
-          "id": "build-baseline-proof-pack",
-          "priority": "medium",
-          "agent": "Research OS Agent",
-          "title": "Build a baseline organic-demand proof pack.",
-          "status": "open",
-          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
-          "evidenceNeeded": [
-            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
-            "At least one source link per major positive claim."
-          ],
-          "sourceHints": [
-            "official docs",
-            "CoinGecko",
-            "DexScreener",
-            "GeckoTerminal",
-            "chain explorer"
-          ]
-        }
-      ],
-      "activityAuthenticityRiskScore": 0,
-      "supplyIntegrityRiskScore": 0,
-      "organicDemandScore": 49,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22320,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 448.03,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4480.29,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 44802.87,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -748,6 +681,73 @@
         {
           "sellUsd": 10000000,
           "estimatedStablecoinImpactPct": 41677.09,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22320,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 448.03,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4480.29,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 44802.87,
           "pass": false
         }
       ]
@@ -1157,73 +1157,6 @@
       ]
     },
     {
-      "name": "Bittensor",
-      "symbol": "TAO",
-      "chain": "bittensor",
-      "score": 63,
-      "verdict": "Economic Integrity Watch",
-      "strongBuyEligible": false,
-      "riskScore": 19,
-      "penalty": 0,
-      "rawScore": 63,
-      "scoreCap": 100,
-      "scoreCapReasons": [],
-      "promotionBlocked": false,
-      "manualReviewLabel": "Research queue open - proof required before promotion",
-      "researchTaskCount": 1,
-      "researchTasks": [
-        {
-          "id": "build-baseline-proof-pack",
-          "priority": "medium",
-          "agent": "Research OS Agent",
-          "title": "Build a baseline organic-demand proof pack.",
-          "status": "open",
-          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
-          "evidenceNeeded": [
-            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
-            "At least one source link per major positive claim."
-          ],
-          "sourceHints": [
-            "official docs",
-            "CoinGecko",
-            "DexScreener",
-            "GeckoTerminal",
-            "chain explorer"
-          ]
-        }
-      ],
-      "activityAuthenticityRiskScore": 0,
-      "supplyIntegrityRiskScore": 0,
-      "organicDemandScore": 49,
-      "economicSustainabilityScore": 65,
-      "hardExitLiquidityUsd": 22320,
-      "organicActivityShare": null,
-      "blockers": [],
-      "warnings": [
-        "Holder count is missing.",
-        "Displayed liquidity is much larger than conservative exit liquidity.",
-        "$1M simulated sell overwhelms hard exit liquidity.",
-        "No reliable market-cap input was found."
-      ],
-      "sellTests": [
-        {
-          "sellUsd": 100000,
-          "estimatedStablecoinImpactPct": 448.03,
-          "pass": false
-        },
-        {
-          "sellUsd": 1000000,
-          "estimatedStablecoinImpactPct": 4480.29,
-          "pass": false
-        },
-        {
-          "sellUsd": 10000000,
-          "estimatedStablecoinImpactPct": 44802.87,
-          "pass": false
-        }
-      ]
-    },
-    {
       "name": "Ondo",
       "symbol": "ONDO",
       "chain": "ethereum",
@@ -1286,6 +1219,73 @@
         {
           "sellUsd": 10000000,
           "estimatedStablecoinImpactPct": 41677.09,
+          "pass": false
+        }
+      ]
+    },
+    {
+      "name": "Bittensor",
+      "symbol": "TAO",
+      "chain": "bittensor",
+      "score": 63,
+      "verdict": "Economic Integrity Watch",
+      "strongBuyEligible": false,
+      "riskScore": 19,
+      "penalty": 0,
+      "rawScore": 63,
+      "scoreCap": 100,
+      "scoreCapReasons": [],
+      "promotionBlocked": false,
+      "manualReviewLabel": "Research queue open - proof required before promotion",
+      "researchTaskCount": 1,
+      "researchTasks": [
+        {
+          "id": "build-baseline-proof-pack",
+          "priority": "medium",
+          "agent": "Research OS Agent",
+          "title": "Build a baseline organic-demand proof pack.",
+          "status": "open",
+          "reason": "The candidate is not blocked, but it still lacks enough proof for a high-conviction label.",
+          "evidenceNeeded": [
+            "Identity, contract, route, liquidity, holders, swaps, and supply proof.",
+            "At least one source link per major positive claim."
+          ],
+          "sourceHints": [
+            "official docs",
+            "CoinGecko",
+            "DexScreener",
+            "GeckoTerminal",
+            "chain explorer"
+          ]
+        }
+      ],
+      "activityAuthenticityRiskScore": 0,
+      "supplyIntegrityRiskScore": 0,
+      "organicDemandScore": 49,
+      "economicSustainabilityScore": 65,
+      "hardExitLiquidityUsd": 22320,
+      "organicActivityShare": null,
+      "blockers": [],
+      "warnings": [
+        "Holder count is missing.",
+        "Displayed liquidity is much larger than conservative exit liquidity.",
+        "$1M simulated sell overwhelms hard exit liquidity.",
+        "No reliable market-cap input was found."
+      ],
+      "sellTests": [
+        {
+          "sellUsd": 100000,
+          "estimatedStablecoinImpactPct": 448.03,
+          "pass": false
+        },
+        {
+          "sellUsd": 1000000,
+          "estimatedStablecoinImpactPct": 4480.29,
+          "pass": false
+        },
+        {
+          "sellUsd": 10000000,
+          "estimatedStablecoinImpactPct": 44802.87,
           "pass": false
         }
       ]

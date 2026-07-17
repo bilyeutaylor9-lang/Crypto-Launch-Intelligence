@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:35.247Z",
+  "generatedAt": "2026-07-17T21:17:03.207Z",
   "changes": [
     {
       "projectKey": "temporary:symbol:ethereum:eigen",
@@ -36,33 +36,7 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
-        "Refresh stale execution quote before ranking as execution-ready.",
-        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
-        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
-        "[object Object]"
-      ]
-    },
-    {
-      "projectKey": "temporary:symbol:bittensor:tao",
-      "identity": {
-        "name": "Bittensor",
-        "symbol": "TAO",
-        "chain": "bittensor",
-        "contractAddress": null,
-        "confidence": 37
-      },
-      "changes": [
-        {
-          "type": "Staking Change",
-          "claim": "Catalyst detected",
-          "sourceFamily": "catalyst-radar",
-          "reliability": 56,
-          "url": null
-        }
-      ],
-      "contradictions": [],
-      "missingEvidence": [
-        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -90,6 +64,35 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
+        "Refresh stale execution quote before ranking as execution-ready.",
+        "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
+        "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
+        "[object Object]"
+      ]
+    },
+    {
+      "projectKey": "temporary:symbol:bittensor:tao",
+      "identity": {
+        "name": "Bittensor",
+        "symbol": "TAO",
+        "chain": "bittensor",
+        "contractAddress": null,
+        "confidence": 37
+      },
+      "changes": [
+        {
+          "type": "Staking Change",
+          "claim": "Catalyst detected",
+          "sourceFamily": "catalyst-radar",
+          "reliability": 56,
+          "url": null
+        }
+      ],
+      "contradictions": [],
+      "missingEvidence": [
+        "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -117,6 +120,7 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -144,6 +148,7 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -164,20 +169,21 @@
           "type": "Airdrop / Points Catalyst",
           "claim": "Catalyst detected",
           "sourceFamily": "catalyst-radar",
-          "reliability": 60,
+          "reliability": 61,
           "url": null
         },
         {
           "type": "Staking Change",
           "claim": "Catalyst detected",
           "sourceFamily": "catalyst-radar",
-          "reliability": 60,
+          "reliability": 61,
           "url": null
         }
       ],
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -205,6 +211,7 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",
@@ -224,6 +231,7 @@
       "contradictions": [],
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks.",
         "Do not promote. Recheck only if the hard-blocking evidence is resolved.",

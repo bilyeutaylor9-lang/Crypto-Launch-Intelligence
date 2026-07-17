@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-16T22:50:22.298Z",
-  "memorySamples": 187,
+  "generatedAt": "2026-07-17T21:16:53.625Z",
+  "memorySamples": 189,
   "evaluatedSamples": 0,
   "globalPaperWinRate": 0,
   "globalAverageReturnPct": 0,
@@ -18,7 +18,7 @@
       "id": "causal",
       "label": "Causal Brain",
       "weight": 1.24,
-      "avgProjectScore": 61,
+      "avgProjectScore": 59,
       "memorySignal": 50,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -27,7 +27,7 @@
       "id": "simulation",
       "label": "Simulation Brain",
       "weight": 0.92,
-      "avgProjectScore": 43,
+      "avgProjectScore": 41,
       "memorySignal": 0,
       "confidence": 30,
       "action": "Collect More Outcomes"
@@ -45,7 +45,7 @@
       "id": "risk",
       "label": "Risk Governor",
       "weight": 1.35,
-      "avgProjectScore": 88,
+      "avgProjectScore": 87,
       "memorySignal": 50,
       "confidence": 30,
       "action": "Collect More Outcomes"

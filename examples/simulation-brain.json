@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T22:50:21.873Z",
+  "generatedAt": "2026-07-17T21:16:53.222Z",
   "totalProjects": 8,
   "counts": {
     "strongBuyCandidates": 0,
     "priorityWatch": 0,
-    "blockedByAdversary": 0,
+    "blockedByAdversary": 1,
     "highConfidence": 0
   },
   "topSimulationCandidates": [
@@ -14,195 +14,20 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "simulationBrainScore": 48,
+      "simulationBrainScore": 47,
       "marketMemoryTwinScore": 56,
       "simulationDecision": "Simulation Watch",
       "simulationConfidence": "Medium",
-      "breakoutProbability30d": 34,
-      "expectedReturn7dPct": 7,
-      "expectedReturn30dPct": 20,
-      "expectedReturn90dPct": 41,
-      "bearCaseDrawdownPct": -32,
-      "falsePositiveSimilarity": 72,
-      "closestMarketAnalogs": [
-        {
-          "name": "late chase exhaustion",
-          "similarity": 72,
-          "examples": [
-            "post-pump listing chases",
-            "overheated unlock cycles"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "social hype liquidity trap",
-          "similarity": 71,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
-          "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
-          ],
-          "riskType": "Breakout/Rotation"
-        }
-      ],
-      "simulatedScenarios": {
-        "probabilities": {
-          "bull": 32,
-          "base": 48,
-          "bear": 20
-        },
-        "expectedReturn7dPct": 7,
-        "expectedReturn30dPct": 20,
-        "expectedReturn90dPct": 41,
-        "bearCaseDrawdownPct": -32,
-        "breakoutProbability": 34,
-        "falsePositiveSimilarity": 72,
-        "paths": [
-          {
-            "horizon": "7d",
-            "expectedReturnPct": 7,
-            "dominantDriver": "liquidity confirmation"
-          },
-          {
-            "horizon": "30d",
-            "expectedReturnPct": 20,
-            "dominantDriver": "breakout continuation"
-          },
-          {
-            "horizon": "90d",
-            "expectedReturnPct": 41,
-            "dominantDriver": "narrative durability test"
-          }
-        ]
-      },
-      "signalMutationTests": [
-        {
-          "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 18,
-          "interpretation": "forces downgrade unless proof and liquidity rise together"
-        },
-        {
-          "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
-          "interpretation": "fragile without flow confirmation"
-        },
-        {
-          "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
-          "interpretation": "limited impact because smart-money evidence is not dominant"
-        },
-        {
-          "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
-          "interpretation": "best upside lever if new volume is organic"
-        }
-      ],
-      "engineTournament": {
-        "agents": [
-          {
-            "name": "Memory Agent",
-            "score": 37,
-            "vote": "Reject"
-          },
-          {
-            "name": "Scenario Agent",
-            "score": 52,
-            "vote": "Watch"
-          },
-          {
-            "name": "Flow Agent",
-            "score": 19,
-            "vote": "Reject"
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 43,
-            "vote": "Watch"
-          },
-          {
-            "name": "Risk Agent",
-            "score": 76,
-            "vote": "Approve"
-          },
-          {
-            "name": "Proof Agent",
-            "score": 62,
-            "vote": "Approve"
-          }
-        ],
-        "approve": 2,
-        "watch": 2,
-        "reject": 2,
-        "consensus": "Mixed"
-      },
-      "adversarialSimulationReview": {
-        "status": "Challenge",
-        "objection": "Main objection: liquidity is still thin.",
-        "objections": [
-          "liquidity is still thin"
-        ]
-      },
-      "portfolioBrain": {
-        "rank": 1,
-        "percentile": 100,
-        "relativeEdgeVsTop10Cutoff": 8,
-        "allocationView": "Research basket candidate"
-      },
-      "aiCouncil": {
-        "verdict": "AI Watchlist",
-        "score": 55,
-        "confidence": "Medium"
-      },
-      "researchOS": {
-        "lifecycleStage": "Watch",
-        "redTeamStatus": "Challenge",
-        "disagreement": "High"
-      },
-      "quantum": {
-        "decisionState": "Uncollapsed Alpha",
-        "bull": 30,
-        "bear": 23,
-        "entropy": "High"
-      }
-    },
-    {
-      "rank": 2,
-      "pipelineRank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "simulationBrainScore": 46,
-      "marketMemoryTwinScore": 54,
-      "simulationDecision": "Simulation Watch",
-      "simulationConfidence": "Medium",
-      "breakoutProbability30d": 32,
+      "breakoutProbability30d": 33,
       "expectedReturn7dPct": 6,
       "expectedReturn30dPct": 18,
-      "expectedReturn90dPct": 37,
-      "bearCaseDrawdownPct": -36,
-      "falsePositiveSimilarity": 74,
+      "expectedReturn90dPct": 38,
+      "bearCaseDrawdownPct": -34,
+      "falsePositiveSimilarity": 73,
       "closestMarketAnalogs": [
         {
-          "name": "social hype liquidity trap",
-          "similarity": 74,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
           "name": "late chase exhaustion",
-          "similarity": 71,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -210,8 +35,17 @@
           "riskType": "Trap/Exhaustion"
         },
         {
+          "name": "social hype liquidity trap",
+          "similarity": 72,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
           "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "similarity": 68,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -222,16 +56,16 @@
       ],
       "simulatedScenarios": {
         "probabilities": {
-          "bull": 30,
-          "base": 49,
+          "bull": 31,
+          "base": 48,
           "bear": 21
         },
         "expectedReturn7dPct": 6,
         "expectedReturn30dPct": 18,
-        "expectedReturn90dPct": 37,
-        "bearCaseDrawdownPct": -36,
-        "breakoutProbability": 32,
-        "falsePositiveSimilarity": 74,
+        "expectedReturn90dPct": 38,
+        "bearCaseDrawdownPct": -34,
+        "breakoutProbability": 33,
+        "falsePositiveSimilarity": 73,
         "paths": [
           {
             "horizon": "7d",
@@ -245,173 +79,7 @@
           },
           {
             "horizon": "90d",
-            "expectedReturnPct": 37,
-            "dominantDriver": "narrative durability test"
-          }
-        ]
-      },
-      "signalMutationTests": [
-        {
-          "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
-          "interpretation": "forces downgrade unless proof and liquidity rise together"
-        },
-        {
-          "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 24,
-          "interpretation": "fragile without flow confirmation"
-        },
-        {
-          "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
-          "interpretation": "limited impact because smart-money evidence is not dominant"
-        },
-        {
-          "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 31,
-          "interpretation": "best upside lever if new volume is organic"
-        }
-      ],
-      "engineTournament": {
-        "agents": [
-          {
-            "name": "Memory Agent",
-            "score": 37,
-            "vote": "Reject"
-          },
-          {
-            "name": "Scenario Agent",
-            "score": 50,
-            "vote": "Watch"
-          },
-          {
-            "name": "Flow Agent",
-            "score": 19,
-            "vote": "Reject"
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 47,
-            "vote": "Watch"
-          },
-          {
-            "name": "Risk Agent",
-            "score": 68,
-            "vote": "Approve"
-          },
-          {
-            "name": "Proof Agent",
-            "score": 62,
-            "vote": "Approve"
-          }
-        ],
-        "approve": 2,
-        "watch": 2,
-        "reject": 2,
-        "consensus": "Mixed"
-      },
-      "adversarialSimulationReview": {
-        "status": "Challenge",
-        "objection": "Main objection: liquidity is still thin.",
-        "objections": [
-          "liquidity is still thin"
-        ]
-      },
-      "portfolioBrain": {
-        "rank": 2,
-        "percentile": 88,
-        "relativeEdgeVsTop10Cutoff": 6,
-        "allocationView": "Research basket candidate"
-      },
-      "aiCouncil": {
-        "verdict": "AI Watchlist",
-        "score": 54,
-        "confidence": "Developing"
-      },
-      "researchOS": {
-        "lifecycleStage": "Watch",
-        "redTeamStatus": "Challenge",
-        "disagreement": "High"
-      },
-      "quantum": {
-        "decisionState": "Uncollapsed Alpha",
-        "bull": 29,
-        "bear": 24,
-        "entropy": "High"
-      }
-    },
-    {
-      "rank": 3,
-      "pipelineRank": 1,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "simulationBrainScore": 43,
-      "marketMemoryTwinScore": 54,
-      "simulationDecision": "Simulation Watch",
-      "simulationConfidence": "Medium",
-      "breakoutProbability30d": 31,
-      "expectedReturn7dPct": 6,
-      "expectedReturn30dPct": 16,
-      "expectedReturn90dPct": 34,
-      "bearCaseDrawdownPct": -39,
-      "falsePositiveSimilarity": 76,
-      "closestMarketAnalogs": [
-        {
-          "name": "social hype liquidity trap",
-          "similarity": 76,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "late chase exhaustion",
-          "similarity": 75,
-          "examples": [
-            "post-pump listing chases",
-            "overheated unlock cycles"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "DePIN liquidity rotation",
-          "similarity": 69,
-          "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
-          ],
-          "riskType": "Breakout/Rotation"
-        }
-      ],
-      "simulatedScenarios": {
-        "probabilities": {
-          "bull": 29,
-          "base": 48,
-          "bear": 23
-        },
-        "expectedReturn7dPct": 6,
-        "expectedReturn30dPct": 16,
-        "expectedReturn90dPct": 34,
-        "bearCaseDrawdownPct": -39,
-        "breakoutProbability": 31,
-        "falsePositiveSimilarity": 76,
-        "paths": [
-          {
-            "horizon": "7d",
-            "expectedReturnPct": 6,
-            "dominantDriver": "liquidity confirmation"
-          },
-          {
-            "horizon": "30d",
-            "expectedReturnPct": 16,
-            "dominantDriver": "breakout continuation"
-          },
-          {
-            "horizon": "90d",
-            "expectedReturnPct": 34,
+            "expectedReturnPct": 38,
             "dominantDriver": "narrative durability test"
           }
         ]
@@ -424,7 +92,7 @@
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
@@ -457,13 +125,13 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 56,
+            "score": 43,
             "vote": "Watch"
           },
           {
             "name": "Risk Agent",
-            "score": 60,
-            "vote": "Watch"
+            "score": 71,
+            "vote": "Approve"
           },
           {
             "name": "Proof Agent",
@@ -471,8 +139,8 @@
             "vote": "Approve"
           }
         ],
-        "approve": 1,
-        "watch": 3,
+        "approve": 2,
+        "watch": 2,
         "reject": 2,
         "consensus": "Mixed"
       },
@@ -485,14 +153,14 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 3,
-        "percentile": 75,
-        "relativeEdgeVsTop10Cutoff": 3,
-        "allocationView": "Below current opportunity cut"
+        "rank": 1,
+        "percentile": 100,
+        "relativeEdgeVsTop10Cutoff": 14,
+        "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
         "verdict": "Best Available Strong Buy Candidate",
-        "score": 59,
+        "score": 56,
         "confidence": "Medium"
       },
       "researchOS": {
@@ -502,13 +170,179 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 31,
-        "bear": 23,
+        "bull": 30,
+        "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 5,
+      "rank": 2,
+      "pipelineRank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "simulationBrainScore": 46,
+      "marketMemoryTwinScore": 54,
+      "simulationDecision": "Simulation Watch",
+      "simulationConfidence": "Medium",
+      "breakoutProbability30d": 32,
+      "expectedReturn7dPct": 6,
+      "expectedReturn30dPct": 17,
+      "expectedReturn90dPct": 36,
+      "bearCaseDrawdownPct": -36,
+      "falsePositiveSimilarity": 75,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 72,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 68,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "simulatedScenarios": {
+        "probabilities": {
+          "bull": 30,
+          "base": 49,
+          "bear": 22
+        },
+        "expectedReturn7dPct": 6,
+        "expectedReturn30dPct": 17,
+        "expectedReturn90dPct": 36,
+        "bearCaseDrawdownPct": -36,
+        "breakoutProbability": 32,
+        "falsePositiveSimilarity": 75,
+        "paths": [
+          {
+            "horizon": "7d",
+            "expectedReturnPct": 6,
+            "dominantDriver": "liquidity confirmation"
+          },
+          {
+            "horizon": "30d",
+            "expectedReturnPct": 17,
+            "dominantDriver": "breakout continuation"
+          },
+          {
+            "horizon": "90d",
+            "expectedReturnPct": 36,
+            "dominantDriver": "narrative durability test"
+          }
+        ]
+      },
+      "signalMutationTests": [
+        {
+          "mutation": "trap risk rises 20 points",
+          "scoreAfterMutation": 13,
+          "interpretation": "forces downgrade unless proof and liquidity rise together"
+        },
+        {
+          "mutation": "X/social momentum fades 30%",
+          "scoreAfterMutation": 23,
+          "interpretation": "fragile without flow confirmation"
+        },
+        {
+          "mutation": "smart money exits",
+          "scoreAfterMutation": 26,
+          "interpretation": "limited impact because smart-money evidence is not dominant"
+        },
+        {
+          "mutation": "liquidity expands 50%",
+          "scoreAfterMutation": 31,
+          "interpretation": "best upside lever if new volume is organic"
+        }
+      ],
+      "engineTournament": {
+        "agents": [
+          {
+            "name": "Memory Agent",
+            "score": 34,
+            "vote": "Reject"
+          },
+          {
+            "name": "Scenario Agent",
+            "score": 50,
+            "vote": "Watch"
+          },
+          {
+            "name": "Flow Agent",
+            "score": 19,
+            "vote": "Reject"
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 49,
+            "vote": "Watch"
+          },
+          {
+            "name": "Risk Agent",
+            "score": 68,
+            "vote": "Approve"
+          },
+          {
+            "name": "Proof Agent",
+            "score": 62,
+            "vote": "Approve"
+          }
+        ],
+        "approve": 2,
+        "watch": 2,
+        "reject": 2,
+        "consensus": "Mixed"
+      },
+      "adversarialSimulationReview": {
+        "status": "Challenge",
+        "objection": "Main objection: liquidity is still thin.",
+        "objections": [
+          "liquidity is still thin"
+        ]
+      },
+      "portfolioBrain": {
+        "rank": 2,
+        "percentile": 88,
+        "relativeEdgeVsTop10Cutoff": 13,
+        "allocationView": "Research basket candidate"
+      },
+      "aiCouncil": {
+        "verdict": "AI Watchlist",
+        "score": 53,
+        "confidence": "Developing"
+      },
+      "researchOS": {
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
+        "disagreement": "High"
+      },
+      "quantum": {
+        "decisionState": "Uncollapsed Alpha",
+        "bull": 28,
+        "bear": 24,
+        "entropy": "High"
+      }
+    },
+    {
+      "rank": 4,
       "pipelineRank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
@@ -586,22 +420,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 17,
+          "scoreAfterMutation": 18,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
+          "scoreAfterMutation": 31,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -614,7 +448,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 51,
+            "score": 52,
             "vote": "Watch"
           },
           {
@@ -651,9 +485,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 5,
-        "percentile": 50,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 4,
+        "percentile": 63,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -669,12 +503,12 @@
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
         "bull": 29,
-        "bear": 24,
+        "bear": 23,
         "entropy": "High"
       }
     },
     {
-      "rank": 6,
+      "rank": 5,
       "pipelineRank": 5,
       "name": "Celestia",
       "symbol": "TIA",
@@ -775,7 +609,7 @@
         "agents": [
           {
             "name": "Memory Agent",
-            "score": 34,
+            "score": 37,
             "vote": "Reject"
           },
           {
@@ -817,14 +651,14 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 6,
-        "percentile": 38,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 5,
+        "percentile": 50,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
         "verdict": "AI Watchlist",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -840,7 +674,7 @@
       }
     },
     {
-      "rank": 4,
+      "rank": 3,
       "pipelineRank": 2,
       "name": "Render",
       "symbol": "RNDR",
@@ -983,9 +817,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 4,
-        "percentile": 63,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 3,
+        "percentile": 75,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -1006,7 +840,7 @@
       }
     },
     {
-      "rank": 7,
+      "rank": 6,
       "pipelineRank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
@@ -1042,7 +876,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 65,
+          "similarity": 66,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -1112,7 +946,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -1122,7 +956,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -1149,9 +983,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 7,
-        "percentile": 25,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -1166,13 +1000,13 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 27,
-        "bear": 25,
+        "bull": 28,
+        "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 8,
+      "rank": 7,
       "pipelineRank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
@@ -1315,9 +1149,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 8,
-        "percentile": 13,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 7,
+        "percentile": 25,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -1336,10 +1170,347 @@
         "bear": 25,
         "entropy": "High"
       }
+    },
+    {
+      "rank": 8,
+      "pipelineRank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "simulationBrainScore": 33,
+      "marketMemoryTwinScore": 51,
+      "simulationDecision": "Do Not Promote",
+      "simulationConfidence": "Developing",
+      "breakoutProbability30d": 30,
+      "expectedReturn7dPct": 5,
+      "expectedReturn30dPct": 15,
+      "expectedReturn90dPct": 32,
+      "bearCaseDrawdownPct": -38,
+      "falsePositiveSimilarity": 76,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 76,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 75,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 69,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "simulatedScenarios": {
+        "probabilities": {
+          "bull": 28,
+          "base": 48,
+          "bear": 24
+        },
+        "expectedReturn7dPct": 5,
+        "expectedReturn30dPct": 15,
+        "expectedReturn90dPct": 32,
+        "bearCaseDrawdownPct": -38,
+        "breakoutProbability": 30,
+        "falsePositiveSimilarity": 76,
+        "paths": [
+          {
+            "horizon": "7d",
+            "expectedReturnPct": 5,
+            "dominantDriver": "liquidity confirmation"
+          },
+          {
+            "horizon": "30d",
+            "expectedReturnPct": 15,
+            "dominantDriver": "breakout continuation"
+          },
+          {
+            "horizon": "90d",
+            "expectedReturnPct": 32,
+            "dominantDriver": "narrative durability test"
+          }
+        ]
+      },
+      "signalMutationTests": [
+        {
+          "mutation": "trap risk rises 20 points",
+          "scoreAfterMutation": 13,
+          "interpretation": "forces downgrade unless proof and liquidity rise together"
+        },
+        {
+          "mutation": "X/social momentum fades 30%",
+          "scoreAfterMutation": 24,
+          "interpretation": "fragile without flow confirmation"
+        },
+        {
+          "mutation": "smart money exits",
+          "scoreAfterMutation": 26,
+          "interpretation": "limited impact because smart-money evidence is not dominant"
+        },
+        {
+          "mutation": "liquidity expands 50%",
+          "scoreAfterMutation": 31,
+          "interpretation": "best upside lever if new volume is organic"
+        }
+      ],
+      "engineTournament": {
+        "agents": [
+          {
+            "name": "Memory Agent",
+            "score": 37,
+            "vote": "Reject"
+          },
+          {
+            "name": "Scenario Agent",
+            "score": 50,
+            "vote": "Watch"
+          },
+          {
+            "name": "Flow Agent",
+            "score": 19,
+            "vote": "Reject"
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 56,
+            "vote": "Watch"
+          },
+          {
+            "name": "Risk Agent",
+            "score": 63,
+            "vote": "Approve"
+          },
+          {
+            "name": "Proof Agent",
+            "score": 44,
+            "vote": "Watch"
+          }
+        ],
+        "approve": 1,
+        "watch": 3,
+        "reject": 2,
+        "consensus": "Mixed"
+      },
+      "adversarialSimulationReview": {
+        "status": "Block",
+        "objection": "Main objection: proof quality is not strong enough yet.",
+        "objections": [
+          "proof quality is not strong enough yet",
+          "liquidity is still thin",
+          "red-team review already raised concerns"
+        ]
+      },
+      "portfolioBrain": {
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
+      },
+      "aiCouncil": {
+        "verdict": "AI Watchlist",
+        "score": 56,
+        "confidence": "Medium"
+      },
+      "researchOS": {
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
+        "disagreement": "High"
+      },
+      "quantum": {
+        "decisionState": "Uncollapsed Alpha",
+        "bull": 30,
+        "bear": 23,
+        "entropy": "High"
+      }
     }
   ],
   "strongBuyCandidates": [],
-  "adversarialBlocks": [],
+  "adversarialBlocks": [
+    {
+      "rank": 8,
+      "pipelineRank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "simulationBrainScore": 33,
+      "marketMemoryTwinScore": 51,
+      "simulationDecision": "Do Not Promote",
+      "simulationConfidence": "Developing",
+      "breakoutProbability30d": 30,
+      "expectedReturn7dPct": 5,
+      "expectedReturn30dPct": 15,
+      "expectedReturn90dPct": 32,
+      "bearCaseDrawdownPct": -38,
+      "falsePositiveSimilarity": 76,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 76,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 75,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 69,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "simulatedScenarios": {
+        "probabilities": {
+          "bull": 28,
+          "base": 48,
+          "bear": 24
+        },
+        "expectedReturn7dPct": 5,
+        "expectedReturn30dPct": 15,
+        "expectedReturn90dPct": 32,
+        "bearCaseDrawdownPct": -38,
+        "breakoutProbability": 30,
+        "falsePositiveSimilarity": 76,
+        "paths": [
+          {
+            "horizon": "7d",
+            "expectedReturnPct": 5,
+            "dominantDriver": "liquidity confirmation"
+          },
+          {
+            "horizon": "30d",
+            "expectedReturnPct": 15,
+            "dominantDriver": "breakout continuation"
+          },
+          {
+            "horizon": "90d",
+            "expectedReturnPct": 32,
+            "dominantDriver": "narrative durability test"
+          }
+        ]
+      },
+      "signalMutationTests": [
+        {
+          "mutation": "trap risk rises 20 points",
+          "scoreAfterMutation": 13,
+          "interpretation": "forces downgrade unless proof and liquidity rise together"
+        },
+        {
+          "mutation": "X/social momentum fades 30%",
+          "scoreAfterMutation": 24,
+          "interpretation": "fragile without flow confirmation"
+        },
+        {
+          "mutation": "smart money exits",
+          "scoreAfterMutation": 26,
+          "interpretation": "limited impact because smart-money evidence is not dominant"
+        },
+        {
+          "mutation": "liquidity expands 50%",
+          "scoreAfterMutation": 31,
+          "interpretation": "best upside lever if new volume is organic"
+        }
+      ],
+      "engineTournament": {
+        "agents": [
+          {
+            "name": "Memory Agent",
+            "score": 37,
+            "vote": "Reject"
+          },
+          {
+            "name": "Scenario Agent",
+            "score": 50,
+            "vote": "Watch"
+          },
+          {
+            "name": "Flow Agent",
+            "score": 19,
+            "vote": "Reject"
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 56,
+            "vote": "Watch"
+          },
+          {
+            "name": "Risk Agent",
+            "score": 63,
+            "vote": "Approve"
+          },
+          {
+            "name": "Proof Agent",
+            "score": 44,
+            "vote": "Watch"
+          }
+        ],
+        "approve": 1,
+        "watch": 3,
+        "reject": 2,
+        "consensus": "Mixed"
+      },
+      "adversarialSimulationReview": {
+        "status": "Block",
+        "objection": "Main objection: proof quality is not strong enough yet.",
+        "objections": [
+          "proof quality is not strong enough yet",
+          "liquidity is still thin",
+          "red-team review already raised concerns"
+        ]
+      },
+      "portfolioBrain": {
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
+      },
+      "aiCouncil": {
+        "verdict": "AI Watchlist",
+        "score": 56,
+        "confidence": "Medium"
+      },
+      "researchOS": {
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
+        "disagreement": "High"
+      },
+      "quantum": {
+        "decisionState": "Uncollapsed Alpha",
+        "bull": 30,
+        "bear": 23,
+        "entropy": "High"
+      }
+    }
+  ],
   "highestBreakoutProbability": [
     {
       "rank": 1,
@@ -1347,20 +1518,20 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "simulationBrainScore": 48,
+      "simulationBrainScore": 47,
       "marketMemoryTwinScore": 56,
       "simulationDecision": "Simulation Watch",
       "simulationConfidence": "Medium",
-      "breakoutProbability30d": 34,
-      "expectedReturn7dPct": 7,
-      "expectedReturn30dPct": 20,
-      "expectedReturn90dPct": 41,
-      "bearCaseDrawdownPct": -32,
-      "falsePositiveSimilarity": 72,
+      "breakoutProbability30d": 33,
+      "expectedReturn7dPct": 6,
+      "expectedReturn30dPct": 18,
+      "expectedReturn90dPct": 38,
+      "bearCaseDrawdownPct": -34,
+      "falsePositiveSimilarity": 73,
       "closestMarketAnalogs": [
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -1369,7 +1540,7 @@
         },
         {
           "name": "social hype liquidity trap",
-          "similarity": 71,
+          "similarity": 72,
           "examples": [
             "thin-liquidity meme rotations",
             "bot-amplified microcaps"
@@ -1378,7 +1549,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "similarity": 68,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -1389,30 +1560,30 @@
       ],
       "simulatedScenarios": {
         "probabilities": {
-          "bull": 32,
+          "bull": 31,
           "base": 48,
-          "bear": 20
+          "bear": 21
         },
-        "expectedReturn7dPct": 7,
-        "expectedReturn30dPct": 20,
-        "expectedReturn90dPct": 41,
-        "bearCaseDrawdownPct": -32,
-        "breakoutProbability": 34,
-        "falsePositiveSimilarity": 72,
+        "expectedReturn7dPct": 6,
+        "expectedReturn30dPct": 18,
+        "expectedReturn90dPct": 38,
+        "bearCaseDrawdownPct": -34,
+        "breakoutProbability": 33,
+        "falsePositiveSimilarity": 73,
         "paths": [
           {
             "horizon": "7d",
-            "expectedReturnPct": 7,
+            "expectedReturnPct": 6,
             "dominantDriver": "liquidity confirmation"
           },
           {
             "horizon": "30d",
-            "expectedReturnPct": 20,
+            "expectedReturnPct": 18,
             "dominantDriver": "breakout continuation"
           },
           {
             "horizon": "90d",
-            "expectedReturnPct": 41,
+            "expectedReturnPct": 38,
             "dominantDriver": "narrative durability test"
           }
         ]
@@ -1425,17 +1596,17 @@
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
+          "scoreAfterMutation": 31,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1448,7 +1619,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 52,
+            "score": 51,
             "vote": "Watch"
           },
           {
@@ -1463,7 +1634,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 76,
+            "score": 71,
             "vote": "Approve"
           },
           {
@@ -1481,34 +1652,35 @@
         "status": "Challenge",
         "objection": "Main objection: liquidity is still thin.",
         "objections": [
-          "liquidity is still thin"
+          "liquidity is still thin",
+          "red-team review already raised concerns"
         ]
       },
       "portfolioBrain": {
         "rank": 1,
         "percentile": 100,
-        "relativeEdgeVsTop10Cutoff": 8,
+        "relativeEdgeVsTop10Cutoff": 14,
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Watchlist",
-        "score": 55,
+        "verdict": "Best Available Strong Buy Candidate",
+        "score": 56,
         "confidence": "Medium"
       },
       "researchOS": {
-        "lifecycleStage": "Watch",
-        "redTeamStatus": "Challenge",
+        "lifecycleStage": "Pre-Strong Buy",
+        "redTeamStatus": "Block",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
         "bull": 30,
-        "bear": 23,
+        "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 5,
+      "rank": 4,
       "pipelineRank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
@@ -1586,22 +1758,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 17,
+          "scoreAfterMutation": 18,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
+          "scoreAfterMutation": 31,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -1614,7 +1786,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 51,
+            "score": 52,
             "vote": "Watch"
           },
           {
@@ -1651,9 +1823,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 5,
-        "percentile": 50,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 4,
+        "percentile": 63,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -1669,7 +1841,7 @@
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
         "bull": 29,
-        "bear": 24,
+        "bear": 23,
         "entropy": "High"
       }
     },
@@ -1685,14 +1857,14 @@
       "simulationConfidence": "Medium",
       "breakoutProbability30d": 32,
       "expectedReturn7dPct": 6,
-      "expectedReturn30dPct": 18,
-      "expectedReturn90dPct": 37,
+      "expectedReturn30dPct": 17,
+      "expectedReturn90dPct": 36,
       "bearCaseDrawdownPct": -36,
-      "falsePositiveSimilarity": 74,
+      "falsePositiveSimilarity": 75,
       "closestMarketAnalogs": [
         {
           "name": "social hype liquidity trap",
-          "similarity": 74,
+          "similarity": 75,
           "examples": [
             "thin-liquidity meme rotations",
             "bot-amplified microcaps"
@@ -1701,7 +1873,7 @@
         },
         {
           "name": "late chase exhaustion",
-          "similarity": 71,
+          "similarity": 72,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -1710,7 +1882,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "similarity": 68,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -1723,14 +1895,14 @@
         "probabilities": {
           "bull": 30,
           "base": 49,
-          "bear": 21
+          "bear": 22
         },
         "expectedReturn7dPct": 6,
-        "expectedReturn30dPct": 18,
-        "expectedReturn90dPct": 37,
+        "expectedReturn30dPct": 17,
+        "expectedReturn90dPct": 36,
         "bearCaseDrawdownPct": -36,
         "breakoutProbability": 32,
-        "falsePositiveSimilarity": 74,
+        "falsePositiveSimilarity": 75,
         "paths": [
           {
             "horizon": "7d",
@@ -1739,12 +1911,12 @@
           },
           {
             "horizon": "30d",
-            "expectedReturnPct": 18,
+            "expectedReturnPct": 17,
             "dominantDriver": "breakout continuation"
           },
           {
             "horizon": "90d",
-            "expectedReturnPct": 37,
+            "expectedReturnPct": 36,
             "dominantDriver": "narrative durability test"
           }
         ]
@@ -1757,7 +1929,7 @@
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 24,
+          "scoreAfterMutation": 23,
           "interpretation": "fragile without flow confirmation"
         },
         {
@@ -1775,7 +1947,7 @@
         "agents": [
           {
             "name": "Memory Agent",
-            "score": 37,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -1790,7 +1962,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 47,
+            "score": 49,
             "vote": "Watch"
           },
           {
@@ -1819,12 +1991,12 @@
       "portfolioBrain": {
         "rank": 2,
         "percentile": 88,
-        "relativeEdgeVsTop10Cutoff": 6,
+        "relativeEdgeVsTop10Cutoff": 13,
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
         "verdict": "AI Watchlist",
-        "score": 54,
+        "score": 53,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -1834,13 +2006,13 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 29,
+        "bull": 28,
         "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 6,
+      "rank": 5,
       "pipelineRank": 5,
       "name": "Celestia",
       "symbol": "TIA",
@@ -1941,7 +2113,7 @@
         "agents": [
           {
             "name": "Memory Agent",
-            "score": 34,
+            "score": 37,
             "vote": "Reject"
           },
           {
@@ -1983,14 +2155,14 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 6,
-        "percentile": 38,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 5,
+        "percentile": 50,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
         "verdict": "AI Watchlist",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -2006,7 +2178,7 @@
       }
     },
     {
-      "rank": 4,
+      "rank": 3,
       "pipelineRank": 2,
       "name": "Render",
       "symbol": "RNDR",
@@ -2149,9 +2321,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 4,
-        "percentile": 63,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 3,
+        "percentile": 75,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -2172,7 +2344,7 @@
       }
     },
     {
-      "rank": 7,
+      "rank": 6,
       "pipelineRank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
@@ -2208,7 +2380,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 65,
+          "similarity": 66,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -2278,7 +2450,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -2288,7 +2460,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -2315,9 +2487,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 7,
-        "percentile": 25,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -2332,180 +2504,13 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 27,
-        "bear": 25,
+        "bull": 28,
+        "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 3,
-      "pipelineRank": 1,
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "chain": "ethereum",
-      "simulationBrainScore": 43,
-      "marketMemoryTwinScore": 54,
-      "simulationDecision": "Simulation Watch",
-      "simulationConfidence": "Medium",
-      "breakoutProbability30d": 31,
-      "expectedReturn7dPct": 6,
-      "expectedReturn30dPct": 16,
-      "expectedReturn90dPct": 34,
-      "bearCaseDrawdownPct": -39,
-      "falsePositiveSimilarity": 76,
-      "closestMarketAnalogs": [
-        {
-          "name": "social hype liquidity trap",
-          "similarity": 76,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "late chase exhaustion",
-          "similarity": 75,
-          "examples": [
-            "post-pump listing chases",
-            "overheated unlock cycles"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "DePIN liquidity rotation",
-          "similarity": 69,
-          "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
-          ],
-          "riskType": "Breakout/Rotation"
-        }
-      ],
-      "simulatedScenarios": {
-        "probabilities": {
-          "bull": 29,
-          "base": 48,
-          "bear": 23
-        },
-        "expectedReturn7dPct": 6,
-        "expectedReturn30dPct": 16,
-        "expectedReturn90dPct": 34,
-        "bearCaseDrawdownPct": -39,
-        "breakoutProbability": 31,
-        "falsePositiveSimilarity": 76,
-        "paths": [
-          {
-            "horizon": "7d",
-            "expectedReturnPct": 6,
-            "dominantDriver": "liquidity confirmation"
-          },
-          {
-            "horizon": "30d",
-            "expectedReturnPct": 16,
-            "dominantDriver": "breakout continuation"
-          },
-          {
-            "horizon": "90d",
-            "expectedReturnPct": 34,
-            "dominantDriver": "narrative durability test"
-          }
-        ]
-      },
-      "signalMutationTests": [
-        {
-          "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 18,
-          "interpretation": "forces downgrade unless proof and liquidity rise together"
-        },
-        {
-          "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
-          "interpretation": "fragile without flow confirmation"
-        },
-        {
-          "mutation": "smart money exits",
-          "scoreAfterMutation": 31,
-          "interpretation": "limited impact because smart-money evidence is not dominant"
-        },
-        {
-          "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 36,
-          "interpretation": "best upside lever if new volume is organic"
-        }
-      ],
-      "engineTournament": {
-        "agents": [
-          {
-            "name": "Memory Agent",
-            "score": 37,
-            "vote": "Reject"
-          },
-          {
-            "name": "Scenario Agent",
-            "score": 51,
-            "vote": "Watch"
-          },
-          {
-            "name": "Flow Agent",
-            "score": 19,
-            "vote": "Reject"
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 56,
-            "vote": "Watch"
-          },
-          {
-            "name": "Risk Agent",
-            "score": 60,
-            "vote": "Watch"
-          },
-          {
-            "name": "Proof Agent",
-            "score": 62,
-            "vote": "Approve"
-          }
-        ],
-        "approve": 1,
-        "watch": 3,
-        "reject": 2,
-        "consensus": "Mixed"
-      },
-      "adversarialSimulationReview": {
-        "status": "Challenge",
-        "objection": "Main objection: liquidity is still thin.",
-        "objections": [
-          "liquidity is still thin",
-          "red-team review already raised concerns"
-        ]
-      },
-      "portfolioBrain": {
-        "rank": 3,
-        "percentile": 75,
-        "relativeEdgeVsTop10Cutoff": 3,
-        "allocationView": "Below current opportunity cut"
-      },
-      "aiCouncil": {
-        "verdict": "Best Available Strong Buy Candidate",
-        "score": 59,
-        "confidence": "Medium"
-      },
-      "researchOS": {
-        "lifecycleStage": "Pre-Strong Buy",
-        "redTeamStatus": "Block",
-        "disagreement": "High"
-      },
-      "quantum": {
-        "decisionState": "Uncollapsed Alpha",
-        "bull": 31,
-        "bear": 23,
-        "entropy": "High"
-      }
-    },
-    {
-      "rank": 8,
+      "rank": 7,
       "pipelineRank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
@@ -2648,9 +2653,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 8,
-        "percentile": 13,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 7,
+        "percentile": 25,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -2667,6 +2672,174 @@
         "decisionState": "Uncollapsed Alpha",
         "bull": 27,
         "bear": 25,
+        "entropy": "High"
+      }
+    },
+    {
+      "rank": 8,
+      "pipelineRank": 1,
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "chain": "ethereum",
+      "simulationBrainScore": 33,
+      "marketMemoryTwinScore": 51,
+      "simulationDecision": "Do Not Promote",
+      "simulationConfidence": "Developing",
+      "breakoutProbability30d": 30,
+      "expectedReturn7dPct": 5,
+      "expectedReturn30dPct": 15,
+      "expectedReturn90dPct": 32,
+      "bearCaseDrawdownPct": -38,
+      "falsePositiveSimilarity": 76,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 76,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 75,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 69,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "simulatedScenarios": {
+        "probabilities": {
+          "bull": 28,
+          "base": 48,
+          "bear": 24
+        },
+        "expectedReturn7dPct": 5,
+        "expectedReturn30dPct": 15,
+        "expectedReturn90dPct": 32,
+        "bearCaseDrawdownPct": -38,
+        "breakoutProbability": 30,
+        "falsePositiveSimilarity": 76,
+        "paths": [
+          {
+            "horizon": "7d",
+            "expectedReturnPct": 5,
+            "dominantDriver": "liquidity confirmation"
+          },
+          {
+            "horizon": "30d",
+            "expectedReturnPct": 15,
+            "dominantDriver": "breakout continuation"
+          },
+          {
+            "horizon": "90d",
+            "expectedReturnPct": 32,
+            "dominantDriver": "narrative durability test"
+          }
+        ]
+      },
+      "signalMutationTests": [
+        {
+          "mutation": "trap risk rises 20 points",
+          "scoreAfterMutation": 13,
+          "interpretation": "forces downgrade unless proof and liquidity rise together"
+        },
+        {
+          "mutation": "X/social momentum fades 30%",
+          "scoreAfterMutation": 24,
+          "interpretation": "fragile without flow confirmation"
+        },
+        {
+          "mutation": "smart money exits",
+          "scoreAfterMutation": 26,
+          "interpretation": "limited impact because smart-money evidence is not dominant"
+        },
+        {
+          "mutation": "liquidity expands 50%",
+          "scoreAfterMutation": 31,
+          "interpretation": "best upside lever if new volume is organic"
+        }
+      ],
+      "engineTournament": {
+        "agents": [
+          {
+            "name": "Memory Agent",
+            "score": 37,
+            "vote": "Reject"
+          },
+          {
+            "name": "Scenario Agent",
+            "score": 50,
+            "vote": "Watch"
+          },
+          {
+            "name": "Flow Agent",
+            "score": 19,
+            "vote": "Reject"
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 56,
+            "vote": "Watch"
+          },
+          {
+            "name": "Risk Agent",
+            "score": 63,
+            "vote": "Approve"
+          },
+          {
+            "name": "Proof Agent",
+            "score": 44,
+            "vote": "Watch"
+          }
+        ],
+        "approve": 1,
+        "watch": 3,
+        "reject": 2,
+        "consensus": "Mixed"
+      },
+      "adversarialSimulationReview": {
+        "status": "Block",
+        "objection": "Main objection: proof quality is not strong enough yet.",
+        "objections": [
+          "proof quality is not strong enough yet",
+          "liquidity is still thin",
+          "red-team review already raised concerns"
+        ]
+      },
+      "portfolioBrain": {
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
+        "allocationView": "Below current opportunity cut"
+      },
+      "aiCouncil": {
+        "verdict": "AI Watchlist",
+        "score": 56,
+        "confidence": "Medium"
+      },
+      "researchOS": {
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
+        "disagreement": "High"
+      },
+      "quantum": {
+        "decisionState": "Uncollapsed Alpha",
+        "bull": 30,
+        "bear": 23,
         "entropy": "High"
       }
     }
@@ -2678,20 +2851,20 @@
       "name": "Bittensor",
       "symbol": "TAO",
       "chain": "bittensor",
-      "simulationBrainScore": 48,
+      "simulationBrainScore": 47,
       "marketMemoryTwinScore": 56,
       "simulationDecision": "Simulation Watch",
       "simulationConfidence": "Medium",
-      "breakoutProbability30d": 34,
-      "expectedReturn7dPct": 7,
-      "expectedReturn30dPct": 20,
-      "expectedReturn90dPct": 41,
-      "bearCaseDrawdownPct": -32,
-      "falsePositiveSimilarity": 72,
+      "breakoutProbability30d": 33,
+      "expectedReturn7dPct": 6,
+      "expectedReturn30dPct": 18,
+      "expectedReturn90dPct": 38,
+      "bearCaseDrawdownPct": -34,
+      "falsePositiveSimilarity": 73,
       "closestMarketAnalogs": [
         {
           "name": "late chase exhaustion",
-          "similarity": 72,
+          "similarity": 73,
           "examples": [
             "post-pump listing chases",
             "overheated unlock cycles"
@@ -2700,7 +2873,7 @@
         },
         {
           "name": "social hype liquidity trap",
-          "similarity": 71,
+          "similarity": 72,
           "examples": [
             "thin-liquidity meme rotations",
             "bot-amplified microcaps"
@@ -2709,7 +2882,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 67,
+          "similarity": 68,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -2720,30 +2893,30 @@
       ],
       "simulatedScenarios": {
         "probabilities": {
-          "bull": 32,
+          "bull": 31,
           "base": 48,
-          "bear": 20
+          "bear": 21
         },
-        "expectedReturn7dPct": 7,
-        "expectedReturn30dPct": 20,
-        "expectedReturn90dPct": 41,
-        "bearCaseDrawdownPct": -32,
-        "breakoutProbability": 34,
-        "falsePositiveSimilarity": 72,
+        "expectedReturn7dPct": 6,
+        "expectedReturn30dPct": 18,
+        "expectedReturn90dPct": 38,
+        "bearCaseDrawdownPct": -34,
+        "breakoutProbability": 33,
+        "falsePositiveSimilarity": 73,
         "paths": [
           {
             "horizon": "7d",
-            "expectedReturnPct": 7,
+            "expectedReturnPct": 6,
             "dominantDriver": "liquidity confirmation"
           },
           {
             "horizon": "30d",
-            "expectedReturnPct": 20,
+            "expectedReturnPct": 18,
             "dominantDriver": "breakout continuation"
           },
           {
             "horizon": "90d",
-            "expectedReturnPct": 41,
+            "expectedReturnPct": 38,
             "dominantDriver": "narrative durability test"
           }
         ]
@@ -2756,17 +2929,17 @@
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
+          "scoreAfterMutation": 31,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -2779,7 +2952,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 52,
+            "score": 51,
             "vote": "Watch"
           },
           {
@@ -2794,7 +2967,7 @@
           },
           {
             "name": "Risk Agent",
-            "score": 76,
+            "score": 71,
             "vote": "Approve"
           },
           {
@@ -2812,200 +2985,35 @@
         "status": "Challenge",
         "objection": "Main objection: liquidity is still thin.",
         "objections": [
-          "liquidity is still thin"
+          "liquidity is still thin",
+          "red-team review already raised concerns"
         ]
       },
       "portfolioBrain": {
         "rank": 1,
         "percentile": 100,
-        "relativeEdgeVsTop10Cutoff": 8,
+        "relativeEdgeVsTop10Cutoff": 14,
         "allocationView": "Research basket candidate"
       },
       "aiCouncil": {
-        "verdict": "AI Watchlist",
-        "score": 55,
+        "verdict": "Best Available Strong Buy Candidate",
+        "score": 56,
         "confidence": "Medium"
       },
       "researchOS": {
-        "lifecycleStage": "Watch",
-        "redTeamStatus": "Challenge",
+        "lifecycleStage": "Pre-Strong Buy",
+        "redTeamStatus": "Block",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
         "bull": 30,
-        "bear": 23,
-        "entropy": "High"
-      }
-    },
-    {
-      "rank": 2,
-      "pipelineRank": 6,
-      "name": "Ondo",
-      "symbol": "ONDO",
-      "chain": "ethereum",
-      "simulationBrainScore": 46,
-      "marketMemoryTwinScore": 54,
-      "simulationDecision": "Simulation Watch",
-      "simulationConfidence": "Medium",
-      "breakoutProbability30d": 32,
-      "expectedReturn7dPct": 6,
-      "expectedReturn30dPct": 18,
-      "expectedReturn90dPct": 37,
-      "bearCaseDrawdownPct": -36,
-      "falsePositiveSimilarity": 74,
-      "closestMarketAnalogs": [
-        {
-          "name": "social hype liquidity trap",
-          "similarity": 74,
-          "examples": [
-            "thin-liquidity meme rotations",
-            "bot-amplified microcaps"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "late chase exhaustion",
-          "similarity": 71,
-          "examples": [
-            "post-pump listing chases",
-            "overheated unlock cycles"
-          ],
-          "riskType": "Trap/Exhaustion"
-        },
-        {
-          "name": "DePIN liquidity rotation",
-          "similarity": 67,
-          "examples": [
-            "AKT 2023",
-            "HNT 2023",
-            "IO-style launch basket"
-          ],
-          "riskType": "Breakout/Rotation"
-        }
-      ],
-      "simulatedScenarios": {
-        "probabilities": {
-          "bull": 30,
-          "base": 49,
-          "bear": 21
-        },
-        "expectedReturn7dPct": 6,
-        "expectedReturn30dPct": 18,
-        "expectedReturn90dPct": 37,
-        "bearCaseDrawdownPct": -36,
-        "breakoutProbability": 32,
-        "falsePositiveSimilarity": 74,
-        "paths": [
-          {
-            "horizon": "7d",
-            "expectedReturnPct": 6,
-            "dominantDriver": "liquidity confirmation"
-          },
-          {
-            "horizon": "30d",
-            "expectedReturnPct": 18,
-            "dominantDriver": "breakout continuation"
-          },
-          {
-            "horizon": "90d",
-            "expectedReturnPct": 37,
-            "dominantDriver": "narrative durability test"
-          }
-        ]
-      },
-      "signalMutationTests": [
-        {
-          "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 13,
-          "interpretation": "forces downgrade unless proof and liquidity rise together"
-        },
-        {
-          "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 24,
-          "interpretation": "fragile without flow confirmation"
-        },
-        {
-          "mutation": "smart money exits",
-          "scoreAfterMutation": 26,
-          "interpretation": "limited impact because smart-money evidence is not dominant"
-        },
-        {
-          "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 31,
-          "interpretation": "best upside lever if new volume is organic"
-        }
-      ],
-      "engineTournament": {
-        "agents": [
-          {
-            "name": "Memory Agent",
-            "score": 37,
-            "vote": "Reject"
-          },
-          {
-            "name": "Scenario Agent",
-            "score": 50,
-            "vote": "Watch"
-          },
-          {
-            "name": "Flow Agent",
-            "score": 19,
-            "vote": "Reject"
-          },
-          {
-            "name": "Narrative Agent",
-            "score": 47,
-            "vote": "Watch"
-          },
-          {
-            "name": "Risk Agent",
-            "score": 68,
-            "vote": "Approve"
-          },
-          {
-            "name": "Proof Agent",
-            "score": 62,
-            "vote": "Approve"
-          }
-        ],
-        "approve": 2,
-        "watch": 2,
-        "reject": 2,
-        "consensus": "Mixed"
-      },
-      "adversarialSimulationReview": {
-        "status": "Challenge",
-        "objection": "Main objection: liquidity is still thin.",
-        "objections": [
-          "liquidity is still thin"
-        ]
-      },
-      "portfolioBrain": {
-        "rank": 2,
-        "percentile": 88,
-        "relativeEdgeVsTop10Cutoff": 6,
-        "allocationView": "Research basket candidate"
-      },
-      "aiCouncil": {
-        "verdict": "AI Watchlist",
-        "score": 54,
-        "confidence": "Developing"
-      },
-      "researchOS": {
-        "lifecycleStage": "Watch",
-        "redTeamStatus": "Challenge",
-        "disagreement": "High"
-      },
-      "quantum": {
-        "decisionState": "Uncollapsed Alpha",
-        "bull": 29,
         "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 5,
+      "rank": 4,
       "pipelineRank": 4,
       "name": "Akash Network",
       "symbol": "AKT",
@@ -3083,22 +3091,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 17,
+          "scoreAfterMutation": 18,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 30,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 30,
+          "scoreAfterMutation": 31,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 35,
+          "scoreAfterMutation": 36,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3111,7 +3119,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 51,
+            "score": 52,
             "vote": "Watch"
           },
           {
@@ -3148,9 +3156,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 5,
-        "percentile": 50,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 4,
+        "percentile": 63,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -3166,12 +3174,12 @@
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
         "bull": 29,
-        "bear": 24,
+        "bear": 23,
         "entropy": "High"
       }
     },
     {
-      "rank": 6,
+      "rank": 5,
       "pipelineRank": 5,
       "name": "Celestia",
       "symbol": "TIA",
@@ -3272,7 +3280,7 @@
         "agents": [
           {
             "name": "Memory Agent",
-            "score": 34,
+            "score": 37,
             "vote": "Reject"
           },
           {
@@ -3314,14 +3322,14 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 6,
-        "percentile": 38,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 5,
+        "percentile": 50,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
         "verdict": "AI Watchlist",
-        "score": 53,
+        "score": 54,
         "confidence": "Developing"
       },
       "researchOS": {
@@ -3337,7 +3345,7 @@
       }
     },
     {
-      "rank": 4,
+      "rank": 3,
       "pipelineRank": 2,
       "name": "Render",
       "symbol": "RNDR",
@@ -3480,9 +3488,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 4,
-        "percentile": 63,
-        "relativeEdgeVsTop10Cutoff": 1,
+        "rank": 3,
+        "percentile": 75,
+        "relativeEdgeVsTop10Cutoff": 8,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -3503,7 +3511,7 @@
       }
     },
     {
-      "rank": 7,
+      "rank": 6,
       "pipelineRank": 7,
       "name": "Pendle",
       "symbol": "PENDLE",
@@ -3539,7 +3547,7 @@
         },
         {
           "name": "DePIN liquidity rotation",
-          "similarity": 65,
+          "similarity": 66,
           "examples": [
             "AKT 2023",
             "HNT 2023",
@@ -3609,7 +3617,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 49,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -3619,7 +3627,7 @@
           },
           {
             "name": "Narrative Agent",
-            "score": 33,
+            "score": 34,
             "vote": "Reject"
           },
           {
@@ -3646,9 +3654,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 7,
-        "percentile": 25,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 6,
+        "percentile": 38,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -3663,13 +3671,179 @@
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 27,
-        "bear": 25,
+        "bull": 28,
+        "bear": 24,
         "entropy": "High"
       }
     },
     {
-      "rank": 8,
+      "rank": 2,
+      "pipelineRank": 6,
+      "name": "Ondo",
+      "symbol": "ONDO",
+      "chain": "ethereum",
+      "simulationBrainScore": 46,
+      "marketMemoryTwinScore": 54,
+      "simulationDecision": "Simulation Watch",
+      "simulationConfidence": "Medium",
+      "breakoutProbability30d": 32,
+      "expectedReturn7dPct": 6,
+      "expectedReturn30dPct": 17,
+      "expectedReturn90dPct": 36,
+      "bearCaseDrawdownPct": -36,
+      "falsePositiveSimilarity": 75,
+      "closestMarketAnalogs": [
+        {
+          "name": "social hype liquidity trap",
+          "similarity": 75,
+          "examples": [
+            "thin-liquidity meme rotations",
+            "bot-amplified microcaps"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "late chase exhaustion",
+          "similarity": 72,
+          "examples": [
+            "post-pump listing chases",
+            "overheated unlock cycles"
+          ],
+          "riskType": "Trap/Exhaustion"
+        },
+        {
+          "name": "DePIN liquidity rotation",
+          "similarity": 68,
+          "examples": [
+            "AKT 2023",
+            "HNT 2023",
+            "IO-style launch basket"
+          ],
+          "riskType": "Breakout/Rotation"
+        }
+      ],
+      "simulatedScenarios": {
+        "probabilities": {
+          "bull": 30,
+          "base": 49,
+          "bear": 22
+        },
+        "expectedReturn7dPct": 6,
+        "expectedReturn30dPct": 17,
+        "expectedReturn90dPct": 36,
+        "bearCaseDrawdownPct": -36,
+        "breakoutProbability": 32,
+        "falsePositiveSimilarity": 75,
+        "paths": [
+          {
+            "horizon": "7d",
+            "expectedReturnPct": 6,
+            "dominantDriver": "liquidity confirmation"
+          },
+          {
+            "horizon": "30d",
+            "expectedReturnPct": 17,
+            "dominantDriver": "breakout continuation"
+          },
+          {
+            "horizon": "90d",
+            "expectedReturnPct": 36,
+            "dominantDriver": "narrative durability test"
+          }
+        ]
+      },
+      "signalMutationTests": [
+        {
+          "mutation": "trap risk rises 20 points",
+          "scoreAfterMutation": 13,
+          "interpretation": "forces downgrade unless proof and liquidity rise together"
+        },
+        {
+          "mutation": "X/social momentum fades 30%",
+          "scoreAfterMutation": 23,
+          "interpretation": "fragile without flow confirmation"
+        },
+        {
+          "mutation": "smart money exits",
+          "scoreAfterMutation": 26,
+          "interpretation": "limited impact because smart-money evidence is not dominant"
+        },
+        {
+          "mutation": "liquidity expands 50%",
+          "scoreAfterMutation": 31,
+          "interpretation": "best upside lever if new volume is organic"
+        }
+      ],
+      "engineTournament": {
+        "agents": [
+          {
+            "name": "Memory Agent",
+            "score": 34,
+            "vote": "Reject"
+          },
+          {
+            "name": "Scenario Agent",
+            "score": 50,
+            "vote": "Watch"
+          },
+          {
+            "name": "Flow Agent",
+            "score": 19,
+            "vote": "Reject"
+          },
+          {
+            "name": "Narrative Agent",
+            "score": 49,
+            "vote": "Watch"
+          },
+          {
+            "name": "Risk Agent",
+            "score": 68,
+            "vote": "Approve"
+          },
+          {
+            "name": "Proof Agent",
+            "score": 62,
+            "vote": "Approve"
+          }
+        ],
+        "approve": 2,
+        "watch": 2,
+        "reject": 2,
+        "consensus": "Mixed"
+      },
+      "adversarialSimulationReview": {
+        "status": "Challenge",
+        "objection": "Main objection: liquidity is still thin.",
+        "objections": [
+          "liquidity is still thin"
+        ]
+      },
+      "portfolioBrain": {
+        "rank": 2,
+        "percentile": 88,
+        "relativeEdgeVsTop10Cutoff": 13,
+        "allocationView": "Research basket candidate"
+      },
+      "aiCouncil": {
+        "verdict": "AI Watchlist",
+        "score": 53,
+        "confidence": "Developing"
+      },
+      "researchOS": {
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
+        "disagreement": "High"
+      },
+      "quantum": {
+        "decisionState": "Uncollapsed Alpha",
+        "bull": 28,
+        "bear": 24,
+        "entropy": "High"
+      }
+    },
+    {
+      "rank": 7,
       "pipelineRank": 8,
       "name": "Jupiter",
       "symbol": "JUP",
@@ -3812,9 +3986,9 @@
         ]
       },
       "portfolioBrain": {
-        "rank": 8,
-        "percentile": 13,
-        "relativeEdgeVsTop10Cutoff": 0,
+        "rank": 7,
+        "percentile": 25,
+        "relativeEdgeVsTop10Cutoff": 7,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
@@ -3835,20 +4009,20 @@
       }
     },
     {
-      "rank": 3,
+      "rank": 8,
       "pipelineRank": 1,
       "name": "EigenLayer",
       "symbol": "EIGEN",
       "chain": "ethereum",
-      "simulationBrainScore": 43,
-      "marketMemoryTwinScore": 54,
-      "simulationDecision": "Simulation Watch",
-      "simulationConfidence": "Medium",
-      "breakoutProbability30d": 31,
-      "expectedReturn7dPct": 6,
-      "expectedReturn30dPct": 16,
-      "expectedReturn90dPct": 34,
-      "bearCaseDrawdownPct": -39,
+      "simulationBrainScore": 33,
+      "marketMemoryTwinScore": 51,
+      "simulationDecision": "Do Not Promote",
+      "simulationConfidence": "Developing",
+      "breakoutProbability30d": 30,
+      "expectedReturn7dPct": 5,
+      "expectedReturn30dPct": 15,
+      "expectedReturn90dPct": 32,
+      "bearCaseDrawdownPct": -38,
       "falsePositiveSimilarity": 76,
       "closestMarketAnalogs": [
         {
@@ -3882,30 +4056,30 @@
       ],
       "simulatedScenarios": {
         "probabilities": {
-          "bull": 29,
+          "bull": 28,
           "base": 48,
-          "bear": 23
+          "bear": 24
         },
-        "expectedReturn7dPct": 6,
-        "expectedReturn30dPct": 16,
-        "expectedReturn90dPct": 34,
-        "bearCaseDrawdownPct": -39,
-        "breakoutProbability": 31,
+        "expectedReturn7dPct": 5,
+        "expectedReturn30dPct": 15,
+        "expectedReturn90dPct": 32,
+        "bearCaseDrawdownPct": -38,
+        "breakoutProbability": 30,
         "falsePositiveSimilarity": 76,
         "paths": [
           {
             "horizon": "7d",
-            "expectedReturnPct": 6,
+            "expectedReturnPct": 5,
             "dominantDriver": "liquidity confirmation"
           },
           {
             "horizon": "30d",
-            "expectedReturnPct": 16,
+            "expectedReturnPct": 15,
             "dominantDriver": "breakout continuation"
           },
           {
             "horizon": "90d",
-            "expectedReturnPct": 34,
+            "expectedReturnPct": 32,
             "dominantDriver": "narrative durability test"
           }
         ]
@@ -3913,22 +4087,22 @@
       "signalMutationTests": [
         {
           "mutation": "trap risk rises 20 points",
-          "scoreAfterMutation": 18,
+          "scoreAfterMutation": 13,
           "interpretation": "forces downgrade unless proof and liquidity rise together"
         },
         {
           "mutation": "X/social momentum fades 30%",
-          "scoreAfterMutation": 29,
+          "scoreAfterMutation": 24,
           "interpretation": "fragile without flow confirmation"
         },
         {
           "mutation": "smart money exits",
-          "scoreAfterMutation": 31,
+          "scoreAfterMutation": 26,
           "interpretation": "limited impact because smart-money evidence is not dominant"
         },
         {
           "mutation": "liquidity expands 50%",
-          "scoreAfterMutation": 36,
+          "scoreAfterMutation": 31,
           "interpretation": "best upside lever if new volume is organic"
         }
       ],
@@ -3941,7 +4115,7 @@
           },
           {
             "name": "Scenario Agent",
-            "score": 51,
+            "score": 50,
             "vote": "Watch"
           },
           {
@@ -3956,13 +4130,13 @@
           },
           {
             "name": "Risk Agent",
-            "score": 60,
-            "vote": "Watch"
+            "score": 63,
+            "vote": "Approve"
           },
           {
             "name": "Proof Agent",
-            "score": 62,
-            "vote": "Approve"
+            "score": 44,
+            "vote": "Watch"
           }
         ],
         "approve": 1,
@@ -3971,32 +4145,33 @@
         "consensus": "Mixed"
       },
       "adversarialSimulationReview": {
-        "status": "Challenge",
-        "objection": "Main objection: liquidity is still thin.",
+        "status": "Block",
+        "objection": "Main objection: proof quality is not strong enough yet.",
         "objections": [
+          "proof quality is not strong enough yet",
           "liquidity is still thin",
           "red-team review already raised concerns"
         ]
       },
       "portfolioBrain": {
-        "rank": 3,
-        "percentile": 75,
-        "relativeEdgeVsTop10Cutoff": 3,
+        "rank": 8,
+        "percentile": 13,
+        "relativeEdgeVsTop10Cutoff": 0,
         "allocationView": "Below current opportunity cut"
       },
       "aiCouncil": {
-        "verdict": "Best Available Strong Buy Candidate",
-        "score": 59,
+        "verdict": "AI Watchlist",
+        "score": 56,
         "confidence": "Medium"
       },
       "researchOS": {
-        "lifecycleStage": "Pre-Strong Buy",
-        "redTeamStatus": "Block",
+        "lifecycleStage": "Watch",
+        "redTeamStatus": "Challenge",
         "disagreement": "High"
       },
       "quantum": {
         "decisionState": "Uncollapsed Alpha",
-        "bull": 31,
+        "bull": 30,
         "bear": 23,
         "entropy": "High"
       }

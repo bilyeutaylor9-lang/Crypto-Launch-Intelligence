@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T22:50:22.294Z",
+  "generatedAt": "2026-07-17T21:16:53.622Z",
   "memory": {
     "file": "/Users/user/Documents/Codex/2026-07-08/can/work/Crypto-Launch-Intelligence/data/paper-trading-outcomes.json",
-    "totalRecords": 187,
+    "totalRecords": 189,
     "evaluatedRecords": 0,
-    "openRecords": 187,
+    "openRecords": 189,
     "winners": 0,
     "losers": 0,
     "winRate": 0,
@@ -13,7 +13,7 @@
       {
         "id": "truth_verified_alpha",
         "name": "Truth-Verified Alpha",
-        "observations": 116,
+        "observations": 117,
         "evaluated": 0,
         "winners": 0,
         "losers": 0,
@@ -41,12 +41,12 @@
       {
         "id": "github_builder_momentum",
         "name": "GitHub Builder Momentum",
-        "observations": 5,
+        "observations": 6,
         "evaluated": 0,
         "winners": 0,
         "losers": 0,
         "avgReturnPct": 0,
-        "avgAlphaOSScore": 58,
+        "avgAlphaOSScore": 56,
         "avgRiskScore": 15,
         "winRate": 0,
         "lossRate": 0,
@@ -1194,17 +1194,7 @@
     {
       "name": "Bittensor",
       "symbol": "TAO",
-      "score": 53,
-      "verdict": "Collect More Outcomes",
-      "strategy": "GitHub Builder Momentum",
-      "strategyWinRate": 0,
-      "strategySamples": 0,
-      "alphaOSVerdict": "OS Best Available Candidate"
-    },
-    {
-      "name": "Akash Network",
-      "symbol": "AKT",
-      "score": 51,
+      "score": 50,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
@@ -1212,14 +1202,14 @@
       "alphaOSVerdict": "OS Reject"
     },
     {
-      "name": "EigenLayer",
-      "symbol": "EIGEN",
-      "score": 49,
+      "name": "Akash Network",
+      "symbol": "AKT",
+      "score": 50,
       "verdict": "Collect More Outcomes",
       "strategy": "GitHub Builder Momentum",
       "strategyWinRate": 0,
       "strategySamples": 0,
-      "alphaOSVerdict": "OS Risk Block"
+      "alphaOSVerdict": "OS Reject"
     },
     {
       "name": "Ondo",
@@ -1249,7 +1239,7 @@
       "strategy": "Truth-Verified Alpha",
       "strategyWinRate": 0,
       "strategySamples": 0,
-      "alphaOSVerdict": "OS Reject"
+      "alphaOSVerdict": "OS Best Available Candidate"
     },
     {
       "name": "Render",
@@ -1270,6 +1260,16 @@
       "strategyWinRate": 0,
       "strategySamples": 0,
       "alphaOSVerdict": "OS Reject"
+    },
+    {
+      "name": "EigenLayer",
+      "symbol": "EIGEN",
+      "score": 46,
+      "verdict": "Collect More Outcomes",
+      "strategy": "GitHub Builder Momentum",
+      "strategyWinRate": 0,
+      "strategySamples": 0,
+      "alphaOSVerdict": "OS Risk Block"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T22:50:21.971Z",
+  "generatedAt": "2026-07-17T21:16:53.298Z",
   "totalProjects": 8,
   "counts": {
     "alphaCases": 0,
@@ -12,12 +12,13 @@
       "symbol": "EIGEN",
       "chain": "ethereum",
       "pipelineScore": 7,
-      "confidenceAdjustedScore": 31,
-      "aiVerdict": "Best Available Strong Buy Candidate",
-      "commanderScore": 43,
+      "confidenceAdjustedScore": 26,
+      "aiVerdict": "AI Watchlist",
+      "commanderScore": 35,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -59,12 +60,12 @@
           "reason": "Critical: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 32,
+      "alphaInvestigatorScore": 31,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "EigenLayer",
         "symbol": "EIGEN",
-        "score": 32,
+        "score": 31,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -112,24 +113,24 @@
           "Liquidity expansion rises above 60."
         ]
       },
-      "warRoomScore": 42,
+      "warRoomScore": 36,
       "warRoomAllocation": "Wait For Confirmation",
       "warRoomRole": "Best Catalyst Setup",
       "narratives": [
         "ai",
         "restaking"
       ],
-      "strategyLabScore": 72,
+      "strategyLabScore": 68,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 64,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 32,
+      "alphaOSScore": 34,
       "alphaOSVerdict": "OS Risk Block",
       "alphaOSMode": "Blocked",
-      "paperOutcomeLabScore": 49,
+      "paperOutcomeLabScore": 46,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 65,
+      "autoLearningWeightScore": 60,
       "sourceTruthScore": 53,
       "githubProScore": 0
     },
@@ -141,10 +142,11 @@
       "pipelineScore": 0,
       "confidenceAdjustedScore": 26,
       "aiVerdict": "AI Watchlist",
-      "commanderScore": 37,
+      "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -186,12 +188,12 @@
           "reason": "High: Catalyst Calendar Alert is the leading catalyst. Run deep research verification."
         }
       ],
-      "alphaInvestigatorScore": 26,
+      "alphaInvestigatorScore": 25,
       "alphaInvestigatorVerdict": "Avoid",
       "alphaCaseFile": {
         "project": "Ondo",
         "symbol": "ONDO",
-        "score": 26,
+        "score": 25,
         "profitPotential": "Low",
         "confidence": "Low",
         "bestCatalyst": {
@@ -241,14 +243,14 @@
       "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 58,
+      "causalAlphaScore": 57,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 39,
+      "alphaOSScore": 38,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 64,
+      "autoLearningWeightScore": 63,
       "sourceTruthScore": 49,
       "githubProScore": 0
     },
@@ -264,6 +266,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -364,8 +367,8 @@
       "causalAlphaScore": 59,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 38,
-      "alphaOSVerdict": "OS Reject",
-      "alphaOSMode": "Monitor",
+      "alphaOSVerdict": "OS Best Available Candidate",
+      "alphaOSMode": "Best Available Paper Candidate",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 64,
@@ -378,12 +381,13 @@
       "symbol": "TAO",
       "chain": "bittensor",
       "pipelineScore": 2,
-      "confidenceAdjustedScore": 30,
-      "aiVerdict": "AI Watchlist",
+      "confidenceAdjustedScore": 31,
+      "aiVerdict": "Best Available Strong Buy Candidate",
       "commanderScore": 38,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -486,17 +490,17 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 75,
+      "strategyLabScore": 77,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 68,
+      "causalAlphaScore": 66,
       "causalAlphaVerdict": "Causal Watch",
-      "alphaOSScore": 41,
-      "alphaOSVerdict": "OS Best Available Candidate",
-      "alphaOSMode": "Best Available Paper Candidate",
-      "paperOutcomeLabScore": 53,
+      "alphaOSScore": 31,
+      "alphaOSVerdict": "OS Reject",
+      "alphaOSMode": "Monitor",
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 68,
+      "autoLearningWeightScore": 66,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -506,12 +510,13 @@
       "symbol": "AKT",
       "chain": "cosmos",
       "pipelineScore": 2,
-      "confidenceAdjustedScore": 30,
+      "confidenceAdjustedScore": 31,
       "aiVerdict": "AI Watchlist",
       "commanderScore": 39,
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -609,15 +614,15 @@
         "depin",
         "restaking"
       ],
-      "strategyLabScore": 74,
+      "strategyLabScore": 75,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "GitHub Builder Momentum",
-      "causalAlphaScore": 63,
+      "causalAlphaScore": 61,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 38,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
-      "paperOutcomeLabScore": 51,
+      "paperOutcomeLabScore": 50,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
       "autoLearningWeightScore": 65,
       "sourceTruthScore": 52,
@@ -635,6 +640,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -736,14 +742,14 @@
       "strategyLabScore": 70,
       "strategyLabVerdict": "Priority Paper Trade",
       "bestStrategy": "Truth-Verified Alpha",
-      "causalAlphaScore": 59,
+      "causalAlphaScore": 60,
       "causalAlphaVerdict": "Causal Watch",
       "alphaOSScore": 36,
       "alphaOSVerdict": "OS Reject",
       "alphaOSMode": "Monitor",
       "paperOutcomeLabScore": 49,
       "paperOutcomeLabVerdict": "Collect More Outcomes",
-      "autoLearningWeightScore": 63,
+      "autoLearningWeightScore": 64,
       "sourceTruthScore": 52,
       "githubProScore": 0
     },
@@ -759,6 +765,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],
@@ -873,6 +880,7 @@
       "commanderVerdict": "Low Priority Research",
       "missingEvidence": [
         "Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.",
+        "Execution route has confirmed negative evidence or no route after provider checks.",
         "Refresh stale execution quote before ranking as execution-ready.",
         "No clean $25/$100/$500/$1000 paper trade size currently passes execution checks."
       ],

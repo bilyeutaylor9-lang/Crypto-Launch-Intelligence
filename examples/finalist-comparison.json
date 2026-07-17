@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T22:50:35.247Z",
+  "generatedAt": "2026-07-17T21:17:03.206Z",
   "verdict": "NO_CLEAR_MARKET_LEADER",
   "winnerProjectKey": "temporary:symbol:ethereum:eigen",
-  "runnerUpProjectKey": "temporary:symbol:bittensor:tao",
-  "confidence": 31,
-  "evidenceCoverage": 89,
+  "runnerUpProjectKey": "temporary:symbol:ethereum:ondo",
+  "confidence": 29,
+  "evidenceCoverage": 83,
   "clearLeaderGap": 0,
   "clearLeaderFailures": [
     "Market Opportunity Rank must be at least 80.",
@@ -13,14 +13,14 @@
     "Leader must be at least 5 rank points above candidate #2."
   ],
   "winningReasons": [
-    "Evidence Coverage: 89",
-    "Attention Gap: 56",
+    "Evidence Coverage: 83",
+    "Attention Gap: 57",
     "Timing: 52",
     "Trust: 51",
     "Local AI Consensus: 50",
-    "Execution: 35",
+    "Execution: 33",
     "Market Opportunity Rank: 0",
-    "Attention gap: 56"
+    "Attention gap: 57"
   ],
   "runnerUpAdvantages": [],
   "strongestBearCase": [

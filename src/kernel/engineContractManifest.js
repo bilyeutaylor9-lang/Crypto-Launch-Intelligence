@@ -293,6 +293,28 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: true,
   },
   {
+    id: "executionProof",
+    phase: "execution",
+    priority: 131,
+    module: "./engines/executionProofEngine.js",
+    exportName: "analyzeExecutionProofBatch",
+    dependsOn: ["proofOfAlphaExecutionTwin"],
+    inputContract: {
+      requiredAny: [["purchaseRoute", "proofOfAlphaExecutionTwin", "liquidityUsd", "address", "contractAddress"]],
+      optional: ["pairAddress", "quoteTimestamp", "executionSlippagePct", "providerFailures"],
+    },
+    outputContract: {
+      requiredAny: [["executionProof", "executionStatus", "moneyStatus", "moneyEvidence", "executionTwinScore", "executionTwinVerdict", "purchaseRouteConfirmed"]],
+      scoreFields: ["moneyScore", "moneyConfidence", "executionTwinScore"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: true,
+    canBlockCandidate: true,
+  },
+  {
     id: "opportunityTiming",
     phase: "ranking",
     priority: 132,
@@ -342,7 +364,7 @@ export const ENGINE_CONTRACTS = [
     priority: 135,
     module: "./engines/progressiveOpportunityRankingEngine.js",
     exportName: "analyzeProgressiveOpportunityRankingBatch",
-    dependsOn: ["sourceTruth", "sniperIntegrityGate", "proofOfAlphaExecutionTwin"],
+    dependsOn: ["sourceTruth", "sniperIntegrityGate", "proofOfAlphaExecutionTwin", "executionProof"],
     inputContract: {
       requiredAny: [["pipelineScore", "accelerationScore", "liquidityExpansionScore", "sourceTruthScore"]],
       optional: ["finalSelectionState", "purchaseRouteConfirmed", "institutionalDataProvenanceScore"],
