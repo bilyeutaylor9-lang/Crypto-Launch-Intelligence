@@ -50,6 +50,36 @@ const DEFAULT_OPTIONS = {
   minimumLiquidityUsd: Number(process.env.FINAL_SELECTION_MIN_LIQUIDITY_USD || 5_000),
 };
 
+const HARD_FINAL_VERDICT_FIELDS = [
+  "smallCapHunterVerdict",
+  "proofVerdict",
+  "contractVerdict",
+  "executionVerdict",
+  "proofOfAlphaExecutionTwinVerdict",
+  "organicDemandVerdict",
+  "identityVerdict",
+  "projectIdentityVerdict",
+  "routeVerdict",
+  "riskVerdict",
+  "redTeamVerdict",
+  "trapVerdict",
+  "instantSafetyVerdict",
+  "adversarialSimulationStatus",
+];
+
+const ADVISORY_FINAL_VERDICT_FIELDS = [
+  "aiDecision",
+  "allocationBucket",
+  "sourceTruthVerdict",
+  "discoveryDecisionVerdict",
+  "alphaEvolutionGovernorVerdict",
+  "causalMarketTwinVerdict",
+  "autonomousResearchVerdict",
+  "selfEvolvingAlphaOSDecision",
+  "dossierSwarmDecision",
+  "simulationDecision",
+];
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -603,7 +633,11 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   const config = { ...DEFAULT_OPTIONS, ...options };
   const previousFlags = previousSelectionFlags(project);
   const wasSelectedEarlier = selectedEarlier(project, previousFlags);
-  const verdicts = inspectBlockingVerdicts(project);
+  const verdicts = inspectBlockingVerdicts(project, { verdictFields: HARD_FINAL_VERDICT_FIELDS });
+  const advisoryVerdicts = inspectBlockingVerdicts(project, {
+    verdictFields: ADVISORY_FINAL_VERDICT_FIELDS,
+    nestedPaths: [],
+  });
   const identity = resolveFinalIdentity(project, collisionContext);
   const route = routeFrom(project);
   const executionAvailable = executionRouteAvailable(project);
@@ -617,7 +651,10 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   const warningReasons = [];
   const missingDataReasons = [];
 
-  if (project.aiDecision === "Reject") blockingReasons.push("AI decision rejected the project.");
+  if (project.aiDecision === "Reject") {
+    warningReasons.push("Advisory AI decision rejected the project; keep it in research review unless deterministic gates confirm the block.");
+    missingDataReasons.push("Advisory AI/model rejection requires review before final qualification.");
+  }
   if (project.allocationBucket === "Defensive Avoid") blockingReasons.push("Allocation bucket is Defensive Avoid.");
   if (project.organicDemandPromotionBlocked) {
     blockingReasons.push(project.organicDemandManualReviewLabel || "Organic-demand promotion is blocked until proof tasks are resolved.");
@@ -626,6 +663,9 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
     blockingReasons.push(project.localAIDecisionReason || "High-confidence local AI risk finding blocks promotion until independently resolved.");
   }
   blockingReasons.push(...verdicts.blockingVerdictReasons);
+  warningReasons.push(
+    ...advisoryVerdicts.blockingVerdictReasons.map((reason) => `Advisory signal: ${reason}`)
+  );
   blockingReasons.push(...identity.blockers);
   warningReasons.push(...identity.warnings);
 

@@ -198,6 +198,38 @@ test("confirmed execution and identity proof can reach sniper-ready lane", () =>
   assert.ok(project.moneyScore >= 60);
 });
 
+test("AKE-style movers stay best-available when advisory AI rejects without deterministic danger", () => {
+  const [project] = analyzeProgressiveOpportunityRankingBatch(
+    analyzeFinalSelectionIntegrityBatch(
+      analyzeExecutionProofBatch([
+        strongProject({
+          name: "AKE Style Runner",
+          symbol: "AKE",
+          aiDecision: "Reject",
+          allocationBucket: "Avoid",
+          localAIPromotionBlocked: false,
+          riskScore: 12,
+          trapRiskScore: 8,
+          scamRiskScore: 0,
+          honeypotRiskScore: 2,
+          accelerationScore: 96,
+          velocityScore: 94,
+          buyPressureScore: 90,
+          liquidityExpansionScore: 88,
+        }),
+      ])
+    )
+  );
+
+  assert.equal(project.finalSelectionState, "INSUFFICIENT_DATA");
+  assert.equal(project.finalSelectionQualified, false);
+  assert.equal(project.finalBlockingReasons.length, 0);
+  assert.equal(project.progressiveLane, "BEST_AVAILABLE");
+  assert.equal(project.firstFailingGate, "FINAL_INTEGRITY");
+  assert.equal(project.firstFailingGateResult, "CONDITIONAL");
+  assert.ok(project.finalWarningReasons.some((reason) => reason.includes("Advisory")));
+});
+
 test("debug progressive reports expose stage health and gate traces", () => {
   const projects = analyzeProgressiveOpportunityRankingBatch(
     analyzeFinalSelectionIntegrityBatch(analyzeExecutionProofBatch([strongProject(), strongProject({ symbol: "HNY", honeypotDetected: true })]))

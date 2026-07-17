@@ -88,7 +88,7 @@ test("final selection integrity blocks PERP contradiction", () => {
   assert.equal(result.smallCapHunterSelected, false);
   assert.equal(result.finalSelectionQualified, false);
   assert.equal(result.finalSelectionState, "BLOCKED");
-  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("AI decision")));
+  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("Allocation bucket")));
   assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("Risk-heavy")));
   assert.ok(result.deselectedBy, "Final Selection Integrity");
 });
@@ -269,8 +269,10 @@ test("contradictory reject cannot remain qualified", () => {
   ]);
 
   assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "INSUFFICIENT_DATA");
   assert.equal(result.strongBuySelected, false);
-  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("AI decision")));
+  assert.equal(result.finalBlockingReasons.length, 0);
+  assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Advisory AI decision")));
 });
 
 test("identity conflict blocks final selection", () => {
