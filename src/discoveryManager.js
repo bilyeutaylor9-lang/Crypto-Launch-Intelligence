@@ -36,6 +36,7 @@ import {
   runWithTimeBudget,
   timeoutMsForDiscoverySource,
 } from "./discovery/discoveryExecutionGrid.js";
+import { normalizeMetricTruth } from "./data/metricTruthNormalizer.js";
 
 const DEFAULT_WIDE_SCAN_TARGET = 39000;
 const FREE_MAX_COIN_GECKO_PAGES = 10;
@@ -142,7 +143,7 @@ function normalizeProject(project = {}) {
     ...(fullyDilutedValue > 0 ? [{ source: project.source || "unknown", type: "fdv", value: fullyDilutedValue }] : []),
     ...(estimatedMarketCap > 0 ? [{ source: project.source || "unknown", type: "estimatedMarketCap", value: estimatedMarketCap }] : []),
   ];
-  const normalized = {
+  const normalized = normalizeMetricTruth({
     ...project,
     name: project.name || project.baseToken?.name || "Unknown",
     symbol: project.symbol || project.baseToken?.symbol || "UNKNOWN",
@@ -166,7 +167,7 @@ function normalizeProject(project = {}) {
     valuationDisagreement: valuationDisagreement(valuationSources.map((source) => source.value)),
     priceChange24h: num(project.priceChange24h ?? project.priceChange?.h24),
     discoveredAt: project.discoveredAt || new Date().toISOString(),
-  };
+  });
 
   return attachProjectIdentity({
     ...normalized,

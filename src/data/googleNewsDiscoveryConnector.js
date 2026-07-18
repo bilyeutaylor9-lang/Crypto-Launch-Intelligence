@@ -71,46 +71,46 @@ function parseItems(xml = "") {
   });
 }
 
-function symbolFromTitle(title = "") {
+export function symbolFromTitle(title = "") {
   const cashtag = title.match(/\$([A-Z][A-Z0-9]{1,12})\b/)?.[1];
   if (cashtag) return cashtag;
 
   const ticker = title.match(/\(([A-Z][A-Z0-9]{1,12})\)/)?.[1];
   if (ticker) return ticker;
 
-  const words = title
-    .replace(/[^A-Za-z0-9 ]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean);
-
-  return String(words[0] || "NEWS").toUpperCase().slice(0, 12);
+  return null;
 }
 
 function projectNameFromTitle(title = "") {
   return cleanText(title.split(" - ")[0] || title).slice(0, 96) || "Google News Candidate";
 }
 
-function candidateFromArticle(article = {}, query = "") {
+export function candidateFromArticle(article = {}, query = "") {
   const title = cleanText(article.title);
 
   return {
     name: projectNameFromTitle(title),
-    symbol: symbolFromTitle(title),
-    chain: "google-news",
+    symbol: symbolFromTitle(title) || "UNRESOLVED",
+    chain: null,
     address: null,
     pairAddress: `google-news-${Buffer.from(`${query}:${title}`).toString("base64url").slice(0, 48)}`,
     dex: "internet-research",
     url: article.url || null,
-    priceUsd: 0,
-    liquidityUsd: 0,
-    volume24h: 0,
-    marketCap: 0,
-    fdv: 0,
-    priceChange24h: 0,
+    priceUsd: null,
+    liquidityUsd: null,
+    volume24h: null,
+    marketCap: null,
+    fdv: null,
+    priceChange24h: null,
     category: query,
     source: "google-news",
     discoverySources: ["google-news"],
     internetDiscovered: true,
+    unresolvedClaim: true,
+    researchOnly: true,
+    tradableCandidate: false,
+    identityResolutionRequired: true,
+    unresolvedClaimQueueReason: "Google News article must be resolved to contract, official domain, official social account, external asset ID, or strong verified name match before becoming tradable.",
     discoveredAt: new Date().toISOString(),
     description: `${title} ${query} ${article.source || ""} Google News crypto research`,
     newsArticle: article,

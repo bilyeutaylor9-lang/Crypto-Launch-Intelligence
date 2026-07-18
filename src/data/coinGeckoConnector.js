@@ -160,14 +160,18 @@ export function normalizeCoinGeckoMarket(coin = {}, meta = {}) {
   return {
     name: coin.name || "Unknown",
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
-    chain: meta.category || "coingecko",
+    chain: null,
+    coinGeckoId: coin.id || null,
     address: null,
     pairAddress: coin.id || null,
-    dex: meta.category ? `category:${meta.category}` : "market",
+    dex: "market-aggregate",
     url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
+    category: meta.category || null,
+    narrativeCategory: meta.category || null,
+    narrativeCategories: meta.category ? [meta.category] : [],
 
     priceUsd: safeNumber(coin.current_price),
-    liquidityUsd: safeNumber(coin.market_cap),
+    liquidityUsd: null,
     volume24h: safeNumber(coin.total_volume),
 
     priceChange1h: safeNumber(coin.price_change_percentage_1h_in_currency),
@@ -175,7 +179,9 @@ export function normalizeCoinGeckoMarket(coin = {}, meta = {}) {
     priceChange7d: safeNumber(coin.price_change_percentage_7d_in_currency),
 
     marketCap: safeNumber(coin.market_cap),
+    circulatingMarketCapUsd: safeNumber(coin.market_cap),
     fdv: safeNumber(coin.fully_diluted_valuation),
+    fullyDilutedValueUsd: safeNumber(coin.fully_diluted_valuation),
     circulatingSupply: safeNumber(coin.circulating_supply),
     totalSupply: safeNumber(coin.total_supply),
     marketCapRank: safeNumber(coin.market_cap_rank),
@@ -200,17 +206,20 @@ export function normalizeCoinGeckoTrending(item = {}) {
   return {
     name: coin.name || "Unknown",
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
-    chain: "coingecko-trending",
+    chain: null,
+    coinGeckoId: coin.id || null,
     address: null,
     pairAddress: coin.id || null,
     dex: "trending",
     url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
 
     priceUsd: safeNumber(coin.data?.price),
-    liquidityUsd: safeNumber(coin.data?.market_cap),
+    liquidityUsd: null,
     volume24h: safeNumber(coin.data?.total_volume),
 
     marketCapRank: safeNumber(coin.market_cap_rank),
+    marketCap: safeNumber(coin.data?.market_cap),
+    circulatingMarketCapUsd: safeNumber(coin.data?.market_cap),
 
     source: "coingecko-trending",
     sources: ["coingecko-trending"],

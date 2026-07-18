@@ -29,6 +29,15 @@ function parsePoolId(poolId = "") {
   };
 }
 
+function parseRelationshipTokenId(tokenId = "") {
+  const [network, ...rest] = String(tokenId || "").split("_");
+  const address = rest.join("_");
+  return {
+    network: network || null,
+    address: address || tokenId || null,
+  };
+}
+
 async function fetchJson(url, retries = 3) {
   let lastError;
 
@@ -96,6 +105,8 @@ export function normalizeGeckoPool(pool = {}) {
     parsed.poolAddress ||
     pool.id ||
     null;
+  const baseToken = parseRelationshipTokenId(relationships.base_token?.data?.id);
+  const quoteToken = parseRelationshipTokenId(relationships.quote_token?.data?.id);
 
   const name = attr.name || "Unknown";
   const symbol = name.includes(" / ")
@@ -114,9 +125,14 @@ export function normalizeGeckoPool(pool = {}) {
     symbol: symbol || "UNKNOWN",
     chain: network,
 
-    address: poolAddress,
+    address: baseToken.address || null,
+    tokenAddress: baseToken.address || null,
+    quoteTokenAddress: quoteToken.address || null,
+    poolAddress,
     pairAddress: poolAddress,
     rawPoolId: pool.id || null,
+    geckoTerminalNetwork: network,
+    geckoTerminalPoolId: pool.id || null,
 
     dex: attr.dex_id || "geckoterminal",
     url: network && poolAddress
@@ -146,6 +162,8 @@ export function normalizeGeckoPool(pool = {}) {
     buyPressure24h,
 
     pairCreatedAt: attr.pool_created_at || null,
+    poolCreatedAt: attr.pool_created_at || null,
+    endpoint: `${GECKO_TERMINAL_BASE}/networks/trending_pools`,
 
     source: "geckoterminal",
 

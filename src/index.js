@@ -488,6 +488,11 @@ function printReportPaths(paths) {
   if (paths.debugExecutionProofPath) console.log(`Debug Execution:${paths.debugExecutionProofPath}`);
   if (paths.debugBlockReasonsPath) console.log(`Debug Blocks:   ${paths.debugBlockReasonsPath}`);
   if (paths.debugStageHealthPath) console.log(`Debug Health:   ${paths.debugStageHealthPath}`);
+  if (paths.top10BreakoutPath) console.log(`Top 10 JSON:    ${paths.top10BreakoutPath}`);
+  if (paths.top10BreakoutHtmlPath) console.log(`Top 10 HTML:    ${paths.top10BreakoutHtmlPath}`);
+  if (paths.top10BreakoutCsvPath) console.log(`Top 10 CSV:     ${paths.top10BreakoutCsvPath}`);
+  if (paths.top10BreakoutExplanationsPath) console.log(`Top 10 Explain: ${paths.top10BreakoutExplanationsPath}`);
+  if (paths.top10ExcludedFinalistsPath) console.log(`Top 10 Excluded:${paths.top10ExcludedFinalistsPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
   console.log(`Engine Audit:   ${paths.engineAuditPath}`);

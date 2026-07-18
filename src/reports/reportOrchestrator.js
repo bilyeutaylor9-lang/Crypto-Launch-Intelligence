@@ -47,6 +47,7 @@ import { writeOpModeReadinessReport } from "../ops/opModeReadiness.js";
 import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibratedKernel.js";
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
+import { writeTop10BreakoutReports } from "./top10BreakoutReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -186,6 +187,14 @@ export function generateReports(projects = [], meta = {}) {
     localAIChiefJudgmentPath,
   } = writeMarketOpportunityReports(projects);
   const {
+    top10Path: top10BreakoutPath,
+    htmlPath: top10BreakoutHtmlPath,
+    csvPath: top10BreakoutCsvPath,
+    explanationsPath: top10BreakoutExplanationsPath,
+    excludedPath: top10ExcludedFinalistsPath,
+    bestNowPath: top10BestOpportunityNowPath,
+  } = writeTop10BreakoutReports(projects, meta);
+  const {
     filePath: marketOpportunityLearningPath,
   } = writeMarketOpportunityLearningReport(projects, meta);
   const {
@@ -285,7 +294,13 @@ export function generateReports(projects = [], meta = {}) {
     debugBlockReasonsPath,
     debugStageHealthPath,
     bestOpportunityNowPath,
+    top10BestOpportunityNowPath,
     topFiveOpportunitiesPath,
+    top10BreakoutPath,
+    top10BreakoutHtmlPath,
+    top10BreakoutCsvPath,
+    top10BreakoutExplanationsPath,
+    top10ExcludedFinalistsPath,
     timeHorizonLeadersPath,
     opportunityLaneLeadersPath,
     finalistComparisonPath,

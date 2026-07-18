@@ -1,13 +1,13 @@
-const DEFAULT_GITHUB_QUERIES = [
-  "crypto blockchain token launch pushed:>2026-01-01",
-  "web3 mainnet protocol pushed:>2026-01-01",
-  "defi protocol token pushed:>2026-01-01",
-  "ai agent crypto pushed:>2026-01-01",
-  "rwa tokenized assets crypto pushed:>2026-01-01",
-  "depin crypto protocol pushed:>2026-01-01",
-  "solana token protocol pushed:>2026-01-01",
-  "base blockchain token pushed:>2026-01-01",
-  "airdrop points protocol crypto pushed:>2026-01-01",
+const DEFAULT_GITHUB_QUERY_TOPICS = [
+  "crypto blockchain token launch",
+  "web3 mainnet protocol",
+  "defi protocol token",
+  "ai agent crypto",
+  "rwa tokenized assets crypto",
+  "depin crypto protocol",
+  "solana token protocol",
+  "base blockchain token",
+  "airdrop points protocol crypto",
 ];
 
 function num(value = 0) {
@@ -16,6 +16,16 @@ function num(value = 0) {
 
 function sleep(ms = 0) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function rollingPushedAfterDate(days = 180) {
+  const date = new Date(Date.now() - Number(days || 180) * 24 * 60 * 60 * 1000);
+  return date.toISOString().slice(0, 10);
+}
+
+function defaultGithubQueries(options = {}) {
+  const pushedAfter = options.pushedAfter || process.env.GITHUB_DISCOVERY_PUSHED_AFTER || rollingPushedAfterDate(options.lookbackDays || process.env.GITHUB_DISCOVERY_LOOKBACK_DAYS || 180);
+  return DEFAULT_GITHUB_QUERY_TOPICS.map((topic) => `${topic} pushed:>${pushedAfter}`);
 }
 
 function inferChain(text = "") {
@@ -62,12 +72,10 @@ async function githubFetch(url = "", options = {}) {
   }
 }
 
-function normalizeRepo(repo = {}) {
+export function normalizeRepo(repo = {}) {
   const text = `${repo.full_name || ""} ${repo.description || ""} ${repo.language || ""}`;
   const pushedAt = repo.pushed_at ? new Date(repo.pushed_at).getTime() : 0;
   const daysSincePush = pushedAt ? Math.max(0, Math.round((Date.now() - pushedAt) / (24 * 60 * 60 * 1000))) : null;
-  const commits30d = daysSincePush !== null && daysSincePush <= 30 ? Math.max(8, Math.round(num(repo.stargazers_count) / 12)) : 0;
-  const contributors = Math.max(1, Math.round(Math.log10(Math.max(1, num(repo.forks_count))) * 4));
   const githubActivityScore = Math.round(
     Math.min(
       100,
@@ -85,14 +93,19 @@ function normalizeRepo(repo = {}) {
     description: repo.description || "Public GitHub repository discovered by free GitHub search.",
     source: "github-project-discovery",
     discoverySources: ["github-project-discovery"],
+    researchOnly: true,
+    tradableCandidate: false,
+    identityResolutionRequired: true,
+    unresolvedRepositoryQueueReason: "GitHub repository must be resolved to an official project identity before developer evidence can affect a tradable token.",
     github: repo.html_url,
     githubUrl: repo.html_url,
     repository: repo.full_name,
     githubStars: num(repo.stargazers_count),
     githubForks: num(repo.forks_count),
     openIssues: num(repo.open_issues_count),
-    commits30d,
-    contributors,
+    commits30d: null,
+    contributors: null,
+    syntheticGithubEstimatesRemoved: true,
     releases: 0,
     githubPushedAt: repo.pushed_at,
     githubCreatedAt: repo.created_at,
@@ -113,7 +126,7 @@ export async function getGithubProjectDiscoveryCandidates(options = {}) {
     .split("|")
     .map((query) => query.trim())
     .filter(Boolean);
-  const searchQueries = queries.length ? queries : DEFAULT_GITHUB_QUERIES;
+  const searchQueries = queries.length ? queries : defaultGithubQueries(options);
 
   if (!enabled) {
     return {
