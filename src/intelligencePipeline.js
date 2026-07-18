@@ -72,6 +72,8 @@ import { analyzeSmartWalletArrivalBatch } from "./engines/smartWalletArrivalEngi
 import { analyzeBuyerRetentionBatch } from "./engines/buyerRetentionEngine.js";
 import { analyzeOrganicBuyerBatch } from "./engines/organicBuyerEngine.js";
 import { analyzeInstantSafetyGateBatch } from "./engines/instantSafetyGateEngine.js";
+import { analyzeContractAuthorityRiskBatch } from "./engines/contractAuthorityRiskEngine.js";
+import { analyzeLiquidityControlRiskBatch } from "./engines/liquidityControlRiskEngine.js";
 import { analyzeCandidateLifecycleBatch } from "./engines/candidateLifecycleEngine.js";
 import { analyzeDiscoveryDecisionBatch } from "./engines/discoveryDecisionEngine.js";
 import { analyzeMissedWinnerLabBatch } from "./engines/missedWinnerLabEngine.js";
@@ -356,6 +358,9 @@ function weightedInstitutionalScore(project = {}) {
   if (num(project.riskScore) >= 70) score -= 12;
   if (num(project.riskScore) >= 85) score -= 20;
   if (num(project.liquidityControlRisk) >= 70) score -= 8;
+  if (num(project.liquidityControlRiskScore) >= 70) score -= 8;
+  if (num(project.contractAuthorityRiskScore) >= 70) score -= 14;
+  if (project.contractAuthorityVerdict === "SECURITY_UNKNOWN_REVIEW") score -= 3;
   if (num(project.deployerRiskScore) >= 70) score -= 12;
   if (num(project.instantSafetyRiskScore) >= 70) score -= 16;
   if (num(project.organicDemandFirewallRisk) >= 70) score -= 12;
@@ -456,6 +461,7 @@ function buildSignalProfile(project = {}) {
       { score: project.liquidityScore, weight: 0.9 },
       { score: project.liquidityExpansionScore, weight: 0.8 },
       { score: project.activeLiquidityTruthScore, weight: 1.0 },
+      { score: project.liquidityControlSafetyScore, weight: 0.8 },
       { score: project.organicBuyerScore, weight: 0.9 },
       { score: project.organicDemandFirewallScore, weight: 1.1 },
       { score: project.instantSafetyScore, weight: 0.8 },
@@ -474,6 +480,7 @@ function buildSignalProfile(project = {}) {
       { score: project.ecosystemIntegrationScore, weight: 0.9 },
       { score: project.baselineScore, weight: 0.8 },
       { score: project.organicEconomicIntegrityScore, weight: 1.0 },
+      { score: project.contractAuthoritySafetyScore, weight: 1.0 },
       { score: project.deployerReputationScore, weight: 0.8 },
       { score: project.identityResolutionScore, weight: 0.7 },
       { score: project.discoveryDecisionScore, weight: 0.9 },
@@ -1585,6 +1592,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("GitHub Intelligence Pro", analyzeGithubIntelligenceProBatch, results);
   results = await runEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
   results = await runEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
+  results = await runEngine("Liquidity Control Risk", analyzeLiquidityControlRiskBatch, results);
   results = await runEngine("Organic Buyer Classifier", analyzeOrganicBuyerClassifierBatch, results);
   results = await runEngine("Deployer Reputation", analyzeDeployerReputationBatch, results);
   results = await runEngine("Wallet Cluster", analyzeWalletClusterBatch, results);
@@ -1594,6 +1602,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Buyer Retention", analyzeBuyerRetentionBatch, results);
   results = await runEngine("Organic Buyer Firewall", analyzeOrganicBuyerBatch, results);
   results = await runEngine("Instant Safety Gate", analyzeInstantSafetyGateBatch, results);
+  results = await runEngine("Contract Authority Risk", analyzeContractAuthorityRiskBatch, results, options.contractAuthorityRisk || {});
   results = await runEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
   results = await runEngine("Candidate Lifecycle", analyzeCandidateLifecycleBatch, results);
   results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);

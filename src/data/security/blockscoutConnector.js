@@ -1,0 +1,117 @@
+import {
+  BLOCKSCOUT_DEFAULTS,
+  boolFlag,
+  chainKey,
+  fetchJson,
+  getCachedSecurityEvidence,
+  isEvmAddress,
+  lower,
+  setCachedSecurityEvidence,
+  tokenAddress,
+  unknownSecurityEvidence,
+} from "./securityEvidenceUtils.js";
+
+const BLOCKSCOUT_PROVIDER = "blockscout";
+
+function envBaseUrl(chain = "") {
+  const key = `${String(chain || "").toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_BLOCKSCOUT_URL`;
+  return process.env[key] || process.env.BLOCKSCOUT_BASE_URL || BLOCKSCOUT_DEFAULTS[chain] || null;
+}
+
+function hasValue(value) {
+  return value !== undefined && value !== null && String(value).trim() !== "";
+}
+
+export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo = {}, meta = {}) {
+  const sourceVerified =
+    boolFlag(contract.is_verified) === true ||
+    boolFlag(contract.is_fully_verified) === true ||
+    boolFlag(addressInfo.is_verified) === true ||
+    hasValue(contract.source_code);
+  const proxy =
+    boolFlag(contract.is_proxy) === true ||
+    boolFlag(addressInfo.is_proxy) === true ||
+    hasValue(contract.implementation_address) ||
+    hasValue(addressInfo.implementation_address);
+  const implementationAddress =
+    contract.implementation_address ||
+    addressInfo.implementation_address ||
+    contract.implementations?.[0]?.address ||
+    null;
+  const creatorAddress =
+    contract.creator_address_hash ||
+    contract.creator_address ||
+    addressInfo.creator_address_hash ||
+    addressInfo.creator_address ||
+    null;
+
+  if (!sourceVerified && !hasValue(contract.name) && !hasValue(addressInfo.hash)) {
+    return {
+      ...unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, "Blockscout returned no contract metadata."),
+      chain: meta.chain || null,
+      address: meta.address || null,
+      raw: { contract, addressInfo },
+    };
+  }
+
+  return {
+    provider: BLOCKSCOUT_PROVIDER,
+    status: "EVIDENCE_AVAILABLE",
+    observedAt: new Date().toISOString(),
+    chain: meta.chain || null,
+    address: meta.address || null,
+    verifiedSource: sourceVerified,
+    proxy,
+    implementationAddress,
+    creatorAddress,
+    contractName: contract.name || contract.contract_name || null,
+    ownerRisk: false,
+    mintRisk: false,
+    freezeRisk: false,
+    blacklistRisk: false,
+    highTaxRisk: false,
+    malicious: false,
+    honeypot: false,
+    riskFindings: proxy ? ["Blockscout shows proxy or implementation indirection."] : [],
+    warnings: sourceVerified ? [] : ["Blockscout did not confirm verified source code."],
+    confidence: sourceVerified ? (proxy ? 78 : 84) : 48,
+    raw: { contract, addressInfo },
+  };
+}
+
+export async function getBlockscoutSecurityEvidence(project = {}, options = {}) {
+  const address = tokenAddress(project);
+  const chain = chainKey(project.chain || project.network || project.chainId || "");
+  const baseUrl = envBaseUrl(chain);
+
+  if (!baseUrl || !isEvmAddress(address)) {
+    return unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, "Blockscout requires a configured EVM explorer and contract address.");
+  }
+
+  const cached = options.useCache === false ? null : getCachedSecurityEvidence(BLOCKSCOUT_PROVIDER, chain, address, options.cacheTtlMs);
+  if (cached) return cached;
+
+  try {
+    const root = String(baseUrl).replace(/\/+$/, "");
+    const contractUrl = `${root}/api/v2/smart-contracts/${address}`;
+    const addressUrl = `${root}/api/v2/addresses/${address}`;
+    const [contractResult, addressResult] = await Promise.allSettled([
+      fetchJson(contractUrl, { timeoutMs: options.timeoutMs }),
+      fetchJson(addressUrl, { timeoutMs: options.timeoutMs }),
+    ]);
+    const contract = contractResult.status === "fulfilled" ? contractResult.value : {};
+    const addressInfo = addressResult.status === "fulfilled" ? addressResult.value : {};
+    const evidence = normalizeBlockscoutSecurityEvidence(contract, addressInfo, { chain, address });
+
+    if (contractResult.status === "rejected" && addressResult.status === "rejected") {
+      return unknownSecurityEvidence(
+        BLOCKSCOUT_PROVIDER,
+        `Blockscout requests failed: ${contractResult.reason?.message || addressResult.reason?.message || "unknown"}`
+      );
+    }
+
+    return options.useCache === false ? evidence : setCachedSecurityEvidence(BLOCKSCOUT_PROVIDER, chain, address, evidence);
+  } catch (error) {
+    return unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, `Blockscout request failed: ${error.message}`);
+  }
+}
