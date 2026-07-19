@@ -84,6 +84,7 @@ import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngi
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
 import { analyzeAutonomousAlphaLabBatch } from "./engines/autonomousAlphaLabEngine.js";
 import { analyzeQuantumReasoningBrainBatch } from "./engines/quantumReasoningBrainEngine.js";
+import { analyzeQuantumSuiteHealthBatch } from "./engines/quantumSuiteHealthEngine.js";
 import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTrainingMarketSimulationBrainEngine.js";
@@ -108,6 +109,7 @@ import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.j
 import { analyzeAutonomousCausalAlphaNetworkBatch } from "./engines/autonomousCausalAlphaNetworkEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
+import { analyzeCanonicalExecutionRouteBatch } from "./engines/canonicalExecutionRouteEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
 import { analyzeSevenDayTenXResearchBatch } from "./engines/sevenDayTenXResearchEngine.js";
@@ -1878,6 +1880,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
   results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
   results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
+  results = await runEngine("Quantum Suite Health", analyzeQuantumSuiteHealthBatch, results);
   results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results, {
     timeoutMs: num(process.env.WORLD_MODEL_BRAIN_TIMEOUT_MS || 15000),
   });
@@ -1903,9 +1906,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
+  results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
+  results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
-  results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);

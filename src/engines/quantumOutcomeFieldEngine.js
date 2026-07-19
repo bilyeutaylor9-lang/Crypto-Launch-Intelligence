@@ -8,7 +8,12 @@
  * signals. This is a research simulator, not a price prediction guarantee.
  */
 
-const DEFAULT_SCENARIOS = Number(process.env.QUANTUM_FIELD_SCENARIOS || 2048);
+export function normalizeScenarioCount(value = process.env.QUANTUM_FIELD_SCENARIOS, fallback = 2048) {
+  const numeric = Number(value);
+  return Number.isInteger(numeric) && numeric > 0 ? numeric : fallback;
+}
+
+const DEFAULT_SCENARIOS = normalizeScenarioCount();
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -157,6 +162,7 @@ function volatilityFor(profile = {}, project = {}) {
 }
 
 function simulateOutcomes(project = {}, scenarioCount = DEFAULT_SCENARIOS) {
+  const safeScenarioCount = normalizeScenarioCount(scenarioCount, DEFAULT_SCENARIOS);
   const profile = scoreSignalProfile(project);
   const id = [
     project.chain,
@@ -186,7 +192,7 @@ function simulateOutcomes(project = {}, scenarioCount = DEFAULT_SCENARIOS) {
 
   const outcomes = [];
 
-  for (let index = 0; index < scenarioCount; index += 1) {
+  for (let index = 0; index < safeScenarioCount; index += 1) {
     const sentimentShock = (random() - 0.5) * volatility * 2;
     const liquidityShock = (random() - 0.5) * Math.max(8, volatility * 0.6);
     const catalystHit = random() < profile.launch / 140 ? catalystBoost : 0;
@@ -227,7 +233,7 @@ function classifyField(expectedReturnPct = 0, collapseProbability = 0) {
 }
 
 export function analyzeQuantumOutcomeField(project = {}, options = {}) {
-  const scenarioCount = Number(options.scenarios || DEFAULT_SCENARIOS);
+  const scenarioCount = normalizeScenarioCount(options.scenarios || DEFAULT_SCENARIOS, 2048);
   const { profile, outcomes } = simulateOutcomes(project, scenarioCount);
   const expectedReturnPct = Math.round(average(outcomes));
   const bestCaseReturnPct = quantile(outcomes, 0.9);

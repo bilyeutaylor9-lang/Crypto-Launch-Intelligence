@@ -233,7 +233,7 @@ function printSummary(summary) {
   console.log("============= PIPELINE SUMMARY =============");
   console.log(`Projects Scanned: ${summary.scannedProjects}`);
   console.log(`Market Regime: ${summary.marketRegime || "Unknown"}`);
-  console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "N/A"}%`);
+  console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "Not reported"}%`);
   console.log(`Scoring Model: ${summary.scoringPrimaryModel || "legacy"}`);
   console.log(
     `Engine Health: ${summary.engineHealth?.enginesSuccessful || 0}/${summary.engineHealth?.enginesAttempted || 0} successful | Failed: ${summary.engineHealth?.enginesFailed || 0} | Partial: ${summary.engineHealth?.enginesPartial || 0} | No Data: ${summary.engineHealth?.enginesNoData || 0} | Avg Coverage: ${summary.engineHealth?.averageEvidenceCoverage || 0}%`
@@ -467,6 +467,8 @@ function printReportPaths(paths) {
   console.log(`JSON Report:    ${paths.jsonPath}`);
   console.log(`CSV Export:     ${paths.csvPath}`);
   console.log(`Quantum Field:  ${paths.quantumFieldPath}`);
+  console.log(`Quantum Health: ${paths.quantumSuiteHealthPath}`);
+  console.log(`Quantum Brain:  ${paths.quantumReasoningBrainPath}`);
   console.log(`Patterns:       ${paths.prePumpPatternPath}`);
   console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`vNext:          ${paths.institutionalVNextPath}`);

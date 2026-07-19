@@ -21,6 +21,7 @@ function first(values = []) {
 }
 
 function addressOf(project = {}) {
+  if (project.canonicalExecutionRoute?.contractAddress) return project.canonicalExecutionRoute.contractAddress;
   return first([
     project.canonicalAddress,
     project.finalContractAddress,
@@ -34,10 +35,12 @@ function addressOf(project = {}) {
 }
 
 function chainOf(project = {}) {
+  if (project.canonicalExecutionRoute?.chain) return project.canonicalExecutionRoute.chain;
   return first([project.canonicalChain, project.finalChainId, project.chainId, project.finalChain, project.chain, project.network]) || null;
 }
 
 function pairOf(project = {}) {
+  if (project.canonicalExecutionRoute?.pairAddress) return project.canonicalExecutionRoute.pairAddress;
   return first([
     project.finalPairAddress,
     project.pairAddress,
@@ -50,6 +53,7 @@ function pairOf(project = {}) {
 
 function liquidityUsd(project = {}) {
   return Math.max(
+    num(project.canonicalExecutionRoute?.liquidityUsd),
     num(project.liquidityUsd),
     num(project.liquidity),
     num(project.finalLiquidityUsd),
@@ -63,6 +67,7 @@ function liquidityUsd(project = {}) {
 
 function volume24hUsd(project = {}) {
   return Math.max(
+    num(project.canonicalExecutionRoute?.volume24hUsd),
     num(project.volume24h),
     num(project.volume),
     num(project.marketData?.volume24h),
@@ -74,6 +79,7 @@ function volume24hUsd(project = {}) {
 
 function priceUsd(project = {}) {
   return Math.max(
+    num(project.canonicalExecutionRoute?.priceUsd),
     num(project.priceUsd),
     num(project.price),
     num(project.marketData?.priceUsd),
@@ -94,6 +100,7 @@ function quoteAgeSeconds(project = {}) {
   const timestamp = first([
     project.quoteTimestamp,
     project.executionQuoteTimestamp,
+    project.canonicalExecutionRoute?.quoteTimestamp,
     project.proofOfAlphaExecutionTwin?.quote?.timestamp,
     project.marketData?.updatedAt,
     project.updatedAt,
@@ -125,6 +132,19 @@ function routeSources(project = {}) {
       verified: route.verified === true || route.detected === true || route.purchasable === true,
     });
   };
+  if (project.canonicalExecutionRoute) {
+    sources.push({
+      source: "canonical-execution-route",
+      venue: project.canonicalExecutionRoute.venue || "Canonical Route",
+      status: project.canonicalExecutionRoute.status,
+      buy: project.canonicalExecutionRoute.buyRouteAvailable === true,
+      sell: project.canonicalExecutionRoute.sellRouteAvailable === true,
+      pairAddress: project.canonicalExecutionRoute.pairAddress,
+      contract: project.canonicalExecutionRoute.contractAddress,
+      quoteAsset: project.canonicalExecutionRoute.quoteAsset,
+      verified: ["VERIFIED", "PARTIALLY_VERIFIED"].includes(project.canonicalExecutionRoute.status),
+    });
+  }
 
   add("purchase-route", project.purchaseRoute, project.purchaseRoute?.preferredRoute);
   add("small-cap-hunter", project.smallCapHunter?.purchaseRoute, project.smallCapHunter?.purchaseRoute?.preferredRoute);
@@ -165,6 +185,8 @@ function routeSources(project = {}) {
 
 function providerUnavailable(project = {}, routes = []) {
   const text = lower([
+    project.canonicalExecutionRoute?.status === "PROVIDER_UNAVAILABLE" ? "provider unavailable" : "",
+    ...(project.canonicalExecutionRoute?.failureReasons || []),
     project.providerStatus,
     project.discoveryProviderStatus,
     project.executionProviderStatus,
@@ -223,9 +245,19 @@ function statusFor({
   quoteVerified,
   safetyVerified,
 }) {
+  const canonicalStatus = project.canonicalExecutionRoute?.status;
   if (project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || sellRouteConfirmedUnavailable(project, routes)) return "HONEYPOT_RISK";
   if (project.chainMismatch === true || project.contractChainMismatch === true) return "CHAIN_MISMATCH";
   if (project.canonicalIdentityHardBlock === true || project.identityStatus === "CONTRACT_CONFLICT") return "CONTRACT_MISMATCH";
+  if (
+    canonicalStatus === "VERIFIED" &&
+    buyRouteAvailable &&
+    sellRouteAvailable &&
+    (project.canonicalExecutionRoute?.routeType === "CEX" || (chainVerified && contractVerified && poolVerified)) &&
+    quoteVerified &&
+    safetyVerified
+  ) return "VERIFIED";
+  if (canonicalStatus === "PARTIALLY_VERIFIED" && (buyRouteAvailable || sellRouteAvailable) && liquidity > 0 && safetyVerified) return "PARTIALLY_VERIFIED";
   if (!chainVerified || !contractVerified || !poolVerified || !quoteVerified || !safetyVerified) return outage ? "PROVIDER_UNAVAILABLE" : "UNKNOWN";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000 && quoteAge !== null && quoteAge > 21_600) return "STALE_QUOTE";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000) return "VERIFIED";

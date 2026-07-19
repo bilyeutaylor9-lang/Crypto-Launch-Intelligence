@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { assertReportContracts } from "./reportContractValidator.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -14,6 +15,8 @@ const PUBLIC_REPORTS = [
   "watchlist.json",
   "summary.txt",
   "quantum-field.json",
+  "quantum-reasoning-brain.json",
+  "quantum-suite-health.json",
   "outcome-calibration.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
@@ -93,9 +96,9 @@ const PUBLIC_REPORTS = [
   "engine-audit.json",
 ];
 
-function copyIfExists(fileName = "") {
-  const source = path.join(REPORTS_DIR, fileName);
-  const target = path.join(DOCS_DIR, fileName);
+function copyIfExists(fileName = "", reportsDir = REPORTS_DIR, docsDir = DOCS_DIR) {
+  const source = path.join(reportsDir, fileName);
+  const target = path.join(docsDir, fileName);
 
   if (!fs.existsSync(source)) return false;
 
@@ -103,8 +106,8 @@ function copyIfExists(fileName = "") {
   return true;
 }
 
-function readJsonReport(fileName = "") {
-  const filePath = path.join(REPORTS_DIR, fileName);
+function readJsonReport(fileName = "", reportsDir = REPORTS_DIR) {
+  const filePath = path.join(reportsDir, fileName);
 
   if (!fs.existsSync(filePath)) return null;
 
@@ -115,56 +118,59 @@ function readJsonReport(fileName = "") {
   }
 }
 
-function writeLandingPage(copiedFiles = []) {
+function writeLandingPage(copiedFiles = [], options = {}) {
+  const reportsDir = path.resolve(options.reportsDir || REPORTS_DIR);
+  const docsDir = path.resolve(options.docsDir || DOCS_DIR);
   const generatedAt = new Date().toISOString();
-  const report = readJsonReport("report.json") || {};
-  const council = readJsonReport("ai-council.json") || {};
-  const researchOS = readJsonReport("research-os.json") || {};
-  const simulationBrain = readJsonReport("simulation-brain.json") || {};
-  const outcomeJudge = readJsonReport("outcome-judge.json") || {};
-  const catalystRadar = readJsonReport("catalyst-radar.json") || {};
-  const dossierSwarm = readJsonReport("dossier-swarm.json") || {};
-  const commandCenter = readJsonReport("ai-command-center.json") || {};
-  const warRoom = readJsonReport("portfolio-war-room.json") || {};
-  const strategyLab = readJsonReport("strategy-lab.json") || {};
-  const causalBrain = readJsonReport("causal-alpha-brain.json") || {};
-  const alphaOS = readJsonReport("autonomous-alpha-os.json") || {};
-  const alphaDashboardV2 = readJsonReport("alpha-dashboard-v2.json") || {};
-  const paperLab = readJsonReport("paper-trading-lab.json") || {};
-  const weightOptimizer = readJsonReport("weight-optimizer.json") || {};
-  const breakoutBrain = readJsonReport("breakout-brain.json") || {};
-  const highTechAlphaStack = readJsonReport("high-tech-alpha-stack.json") || {};
-  const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json") || {};
-  const alphaTheses = readJsonReport("alpha-theses.json") || {};
-  const alphaContracts = readJsonReport("alpha-contracts.json") || {};
-  const alphaKnowledgeGraph = readJsonReport("alpha-knowledge-graph.json") || {};
-  const causalMarketTwin = readJsonReport("causal-market-twin.json") || {};
-  const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json") || {};
-  const smallCapHunter = readJsonReport("small-cap-hunter.json") || {};
-  const executionTwin = readJsonReport("proof-of-alpha-execution-twin.json") || {};
-  const organicIntegrity = readJsonReport("organic-demand-integrity.json") || {};
-  const discoveryTruth = readJsonReport("discovery-truth.json") || {};
-  const nativeDiscoveryMesh = readJsonReport("native-discovery-mesh.json") || {};
-  const discoveryDecision = readJsonReport("discovery-decision-engine.json") || {};
-  const preBreakoutRadar = readJsonReport("pre-breakout-radar.json") || {};
-  const sourceTruth = readJsonReport("source-truth.json") || {};
-  const universeLedger = readJsonReport("universe-ledger.json") || {};
-  const integrityStack = readJsonReport("integrity-stack.json") || {};
-  const institutionalProvenance = readJsonReport("institutional-data-provenance.json") || {};
-  const progressiveOpportunities = readJsonReport("progressive-opportunities.json") || {};
-  const debugStageHealth = readJsonReport("debug-stage-health.json") || {};
-  const bestOpportunityNow = readJsonReport("best-opportunity-now.json") || {};
-  const topFiveOpportunities = readJsonReport("top-five-opportunities.json") || {};
-  const finalistComparison = readJsonReport("finalist-comparison.json") || {};
-  const marketOpportunityLearning = readJsonReport("market-opportunity-learning.json") || {};
-  const institutionalRanking = readJsonReport("institutional-ranking.json") || {};
-  const executionReady = readJsonReport("execution-ready.json") || {};
-  const opModeReadiness = readJsonReport("op-mode-readiness.json") || {};
-  const evidenceKernel = readJsonReport("evidence-kernel.json") || {};
-  const githubPro = readJsonReport("github-intelligence-pro.json") || {};
-  const autonomousResearch = readJsonReport("autonomous-research.json") || {};
-  const sourceRouter = readJsonReport("source-router.json") || {};
-  const audit = readJsonReport("engine-audit.json") || {};
+  const report = readJsonReport("report.json", reportsDir) || {};
+  const council = readJsonReport("ai-council.json", reportsDir) || {};
+  const researchOS = readJsonReport("research-os.json", reportsDir) || {};
+  const simulationBrain = readJsonReport("simulation-brain.json", reportsDir) || {};
+  const outcomeJudge = readJsonReport("outcome-judge.json", reportsDir) || {};
+  const catalystRadar = readJsonReport("catalyst-radar.json", reportsDir) || {};
+  const dossierSwarm = readJsonReport("dossier-swarm.json", reportsDir) || {};
+  const commandCenter = readJsonReport("ai-command-center.json", reportsDir) || {};
+  const warRoom = readJsonReport("portfolio-war-room.json", reportsDir) || {};
+  const strategyLab = readJsonReport("strategy-lab.json", reportsDir) || {};
+  const causalBrain = readJsonReport("causal-alpha-brain.json", reportsDir) || {};
+  const alphaOS = readJsonReport("autonomous-alpha-os.json", reportsDir) || {};
+  const alphaDashboardV2 = readJsonReport("alpha-dashboard-v2.json", reportsDir) || {};
+  const paperLab = readJsonReport("paper-trading-lab.json", reportsDir) || {};
+  const weightOptimizer = readJsonReport("weight-optimizer.json", reportsDir) || {};
+  const breakoutBrain = readJsonReport("breakout-brain.json", reportsDir) || {};
+  const quantumSuiteHealth = readJsonReport("quantum-suite-health.json", reportsDir) || {};
+  const highTechAlphaStack = readJsonReport("high-tech-alpha-stack.json", reportsDir) || {};
+  const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json", reportsDir) || {};
+  const alphaTheses = readJsonReport("alpha-theses.json", reportsDir) || {};
+  const alphaContracts = readJsonReport("alpha-contracts.json", reportsDir) || {};
+  const alphaKnowledgeGraph = readJsonReport("alpha-knowledge-graph.json", reportsDir) || {};
+  const causalMarketTwin = readJsonReport("causal-market-twin.json", reportsDir) || {};
+  const alphaEvolutionGovernor = readJsonReport("alpha-evolution-governor.json", reportsDir) || {};
+  const smallCapHunter = readJsonReport("small-cap-hunter.json", reportsDir) || {};
+  const executionTwin = readJsonReport("proof-of-alpha-execution-twin.json", reportsDir) || {};
+  const organicIntegrity = readJsonReport("organic-demand-integrity.json", reportsDir) || {};
+  const discoveryTruth = readJsonReport("discovery-truth.json", reportsDir) || {};
+  const nativeDiscoveryMesh = readJsonReport("native-discovery-mesh.json", reportsDir) || {};
+  const discoveryDecision = readJsonReport("discovery-decision-engine.json", reportsDir) || {};
+  const preBreakoutRadar = readJsonReport("pre-breakout-radar.json", reportsDir) || {};
+  const sourceTruth = readJsonReport("source-truth.json", reportsDir) || {};
+  const universeLedger = readJsonReport("universe-ledger.json", reportsDir) || {};
+  const integrityStack = readJsonReport("integrity-stack.json", reportsDir) || {};
+  const institutionalProvenance = readJsonReport("institutional-data-provenance.json", reportsDir) || {};
+  const progressiveOpportunities = readJsonReport("progressive-opportunities.json", reportsDir) || {};
+  const debugStageHealth = readJsonReport("debug-stage-health.json", reportsDir) || {};
+  const bestOpportunityNow = readJsonReport("best-opportunity-now.json", reportsDir) || {};
+  const topFiveOpportunities = readJsonReport("top-five-opportunities.json", reportsDir) || {};
+  const finalistComparison = readJsonReport("finalist-comparison.json", reportsDir) || {};
+  const marketOpportunityLearning = readJsonReport("market-opportunity-learning.json", reportsDir) || {};
+  const institutionalRanking = readJsonReport("institutional-ranking.json", reportsDir) || {};
+  const executionReady = readJsonReport("execution-ready.json", reportsDir) || {};
+  const opModeReadiness = readJsonReport("op-mode-readiness.json", reportsDir) || {};
+  const evidenceKernel = readJsonReport("evidence-kernel.json", reportsDir) || {};
+  const githubPro = readJsonReport("github-intelligence-pro.json", reportsDir) || {};
+  const autonomousResearch = readJsonReport("autonomous-research.json", reportsDir) || {};
+  const sourceRouter = readJsonReport("source-router.json", reportsDir) || {};
+  const audit = readJsonReport("engine-audit.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -176,7 +182,7 @@ function writeLandingPage(copiedFiles = []) {
   const bestNowText =
     bestOpportunityNow.verdict === "CLEAR_MARKET_LEADER"
       ? `${bestNowProject.identity?.symbol || bestNowProject.symbol || "Leader"} leads with Market Opportunity Rank ${
-          bestNowProject.marketOpportunityRank ?? "N/A"
+          bestNowProject.marketOpportunityRank ?? "NO QUALIFIED CANDIDATE"
         }.`
       : bestOpportunityNow.noClearLeaderReason ||
         "The top candidates are too closely ranked or lack enough independent evidence.";
@@ -187,99 +193,123 @@ function writeLandingPage(copiedFiles = []) {
   const cards = [
     ["Projects", report.totalProjects ?? 0],
     ["Best Now", bestNowProject.identity?.symbol || "No Clear"],
-    ["Leader Verdict", bestOpportunityNow.verdict || finalistComparison.verdict || "N/A"],
-    ["Leader Rank", bestNowProject.marketOpportunityRank ?? "N/A"],
-    ["Learning Records", marketOpportunityLearning.records ?? "N/A"],
-    ["Learning Evaluated", marketOpportunityLearning.evaluated ?? "N/A"],
-    ["Learning Winners", marketOpportunityLearning.winners ?? "N/A"],
-    ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? "N/A"],
-    ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? "N/A"],
-    ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? "N/A"],
-    ["Execution Ready", progressiveOpportunities.counts?.executionReady ?? institutionalRanking.counts?.executionReady ?? "N/A"],
-    ["Stage Health", debugStageHealth.stageStatus || "N/A"],
-    ["Route Verified", debugStageHealth.executionChecksVerified ?? "N/A"],
-    ["Provider Failures", debugStageHealth.providerFailures ?? "N/A"],
-    ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? "N/A"],
-    ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? "N/A"],
-    ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? "N/A"],
-    ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "N/A"],
+    ["Leader Verdict", bestOpportunityNow.verdict || finalistComparison.verdict || "NO QUALIFIED CANDIDATE"],
+    ["Leader Rank", bestNowProject.marketOpportunityRank ?? "NO QUALIFIED CANDIDATE"],
+    ["Learning Records", marketOpportunityLearning.records ?? 0],
+    ["Learning Evaluated", marketOpportunityLearning.evaluated ?? 0],
+    ["Learning Winners", marketOpportunityLearning.winners ?? 0],
+    ["Sniper Ready", progressiveOpportunities.counts?.sniperReady ?? 0],
+    ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? 0],
+    ["Money Ranked", progressiveOpportunities.counts?.moneyRanked ?? institutionalRanking.counts?.moneyRanked ?? 0],
+    ["Execution Ready", progressiveOpportunities.counts?.executionReady ?? institutionalRanking.counts?.executionReady ?? 0],
+    ["Stage Health", debugStageHealth.stageStatus || "REPORT NOT GENERATED"],
+    ["Route Verified", debugStageHealth.executionChecksVerified ?? 0],
+    ["Provider Failures", debugStageHealth.providerFailures ?? 0],
+    ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? 0],
+    ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? 0],
+    ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? 0],
+    ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
     [
       "Money Lead",
       institutionalRanking.institutionalMoneyRank?.[0]?.symbol ||
         progressiveOpportunities.institutionalMoneyRank?.[0]?.symbol ||
-        "N/A",
+        "NO QUALIFIED CANDIDATE",
     ],
-    ["Exec Lead", executionReady.executionReady?.[0]?.symbol || progressiveOpportunities.executionReady?.[0]?.symbol || "N/A"],
-    ["AI Candidate", topCouncil.symbol || topProject.symbol || "N/A"],
-    ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? "N/A"],
-    ["Simulation", topSimulation.symbol || topProject.symbol || "N/A"],
-    ["Breakout %", topSimulation.breakoutProbability30d ?? topProject.breakoutProbability30d ?? "N/A"],
-    ["Outcome Judged", outcomeJudge.trackedProjects ?? topProject.outcomeJudgeStatus ?? "N/A"],
-    ["Catalysts", catalystRadar.activeCatalystProjects ?? "N/A"],
-    ["Dossiers", dossierSwarm.dossieredProjects ?? "N/A"],
-    ["Alpha Cases", commandCenter.counts?.alphaCases ?? "N/A"],
-    ["Top Narrative", warRoom.topNarratives?.[0]?.narrative || "N/A"],
-    ["Strategy", strategyLab.topCandidates?.[0]?.bestStrategy || "N/A"],
-    ["Causal Driver", causalBrain.topProjects?.[0]?.primaryDriver || "N/A"],
-    ["Alpha OS", alphaOS.topCandidates?.[0]?.symbol || "N/A"],
-    ["Paper Win %", paperLab.memory?.winRate ?? alphaDashboardV2.headline?.paperWinRate ?? "N/A"],
+    ["Exec Lead", executionReady.executionReady?.[0]?.symbol || progressiveOpportunities.executionReady?.[0]?.symbol || "NO VERIFIED ROUTE"],
+    ["AI Candidate", topCouncil.symbol || topProject.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? 0],
+    ["Simulation", topSimulation.symbol || topProject.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Breakout %", topSimulation.breakoutProbability30d ?? topProject.breakoutProbability30d ?? 0],
+    ["Outcome Judged", outcomeJudge.trackedProjects ?? topProject.outcomeJudgeStatus ?? 0],
+    ["Catalysts", catalystRadar.activeCatalystProjects ?? 0],
+    ["Dossiers", dossierSwarm.dossieredProjects ?? 0],
+    ["Alpha Cases", commandCenter.counts?.alphaCases ?? 0],
+    ["Top Narrative", warRoom.topNarratives?.[0]?.narrative || "INSUFFICIENT INPUT DATA"],
+    ["Strategy", strategyLab.topCandidates?.[0]?.bestStrategy || "INSUFFICIENT INPUT DATA"],
+    ["Causal Driver", causalBrain.topProjects?.[0]?.primaryDriver || "INSUFFICIENT INPUT DATA"],
+    ["Alpha OS", alphaOS.topCandidates?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Paper Win %", paperLab.memory?.winRate ?? alphaDashboardV2.headline?.paperWinRate ?? 0],
     [
       "Top Weight",
-      topWeightFamily ? `${topWeightFamily.label} ${topWeightFamily.weight}x` : "N/A",
+      topWeightFamily ? `${topWeightFamily.label} ${topWeightFamily.weight}x` : "INSUFFICIENT INPUT DATA",
     ],
-    ["Breakout Pick", breakoutBrain.topThree?.[0]?.symbol || "N/A"],
-    ["Breakout Picks", breakoutBrain.selectedCount ?? "N/A"],
-    ["High-Tech", highTechAlphaStack.topProjects?.[0]?.symbol || "N/A"],
-    ["HT Candidates", highTechAlphaStack.alphaCandidates ?? "N/A"],
-    ["Alpha OS Max", selfEvolvingAlphaOS.topProject?.symbol || "N/A"],
-    ["Alpha Theses", alphaTheses.totalTheses ?? "N/A"],
-    ["Alpha Contracts", alphaContracts.alphaCandidates ?? "N/A"],
-    ["Contract Research", alphaContracts.priorityResearch ?? "N/A"],
-    ["Contract Receipts", alphaContracts.publicReceipts?.length ?? "N/A"],
-    ["Graph Pick", alphaKnowledgeGraph.topProjects?.[0]?.symbol || "N/A"],
-    ["Graph Priority", alphaKnowledgeGraph.priorityResearch ?? "N/A"],
-    ["Twin Pick", causalMarketTwin.topProjects?.[0]?.symbol || "N/A"],
-    ["Twin EV", causalMarketTwin.topProjects?.[0]?.expectedReturnPct ?? "N/A"],
-    ["Governor Priority", alphaEvolutionGovernor.counts?.priorityResearch ?? "N/A"],
-    ["Governor Blocks", alphaEvolutionGovernor.counts?.riskBlocks ?? "N/A"],
-    ["Small-Cap #1", smallCapHunter.topTwo?.[0]?.symbol || "N/A"],
-    ["Small-Cap Route #1", smallCapHunter.topTwo?.[0]?.purchaseRoute?.preferredRoute || "N/A"],
-    ["Small-Cap #2", smallCapHunter.topTwo?.[1]?.symbol || "N/A"],
-    ["Small-Cap Route #2", smallCapHunter.topTwo?.[1]?.purchaseRoute?.preferredRoute || "N/A"],
-    ["Execution Twin", executionTwin.topExecutions?.[0]?.symbol || "N/A"],
-    ["Exec Route", executionTwin.topExecutions?.[0]?.route || "N/A"],
-    ["Organic Blocks", organicIntegrity.institutionalBlocks ?? "N/A"],
-    ["Discovery Sources", discoveryTruth.sourceCapabilityAudit?.enabledSources ?? "N/A"],
-    ["Native Mesh", nativeDiscoveryMesh.summary?.candidateCount ?? nativeDiscoveryMesh.topCandidates?.length ?? "N/A"],
-    ["Native Stage", nativeDiscoveryMesh.topCandidates?.[0]?.stage || "N/A"],
-    ["Decision Pass", discoveryDecision.summary?.pass ?? "N/A"],
-    ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? "N/A"],
-    ["Radar ARMED", preBreakoutRadar.armedCount ?? "N/A"],
-    ["Radar Watch", preBreakoutRadar.watchCount ?? "N/A"],
-    ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? "N/A"],
-    ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? "N/A"],
-    ["Integrity Stack", integrityStack.status || "N/A"],
-    ["Integrity Score", integrityStack.readinessScore ?? "N/A"],
-    ["Provenance", institutionalProvenance.averageProvenanceScore ?? "N/A"],
-    ["Prov Ready", institutionalProvenance.counts?.institutionalReady ?? "N/A"],
-    ["OP Mode", opModeReadiness.status || "N/A"],
-    ["OP Score", opModeReadiness.score ?? "N/A"],
-    ["Native Ready", opModeReadiness.native?.liveReadyProtocols ?? "N/A"],
-    ["Missing Key Groups", opModeReadiness.keys?.missingGroups ?? "N/A"],
-    ["Kernel ARMED", evidenceKernel.summary?.armed ?? "N/A"],
-    ["Kernel Watch", evidenceKernel.summary?.watch ?? "N/A"],
-    ["Kernel Score", evidenceKernel.summary?.averageFinalScore ?? "N/A"],
-    ["Contract Pass", evidenceKernel.summary?.averageContractPassRate ?? "N/A"],
-    ["Kernel Sources", evidenceKernel.summary?.sourcesWithUsableEvidence ?? "N/A"],
-    ["Manifest Score", evidenceKernel.summary?.manifestScore ?? "N/A"],
-    ["Fixture Pass", evidenceKernel.summary?.fixtureAuditPassRate ?? "N/A"],
-    ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "N/A"],
-    ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "N/A"],
-    ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "N/A"],
-    ["Best Source", sourceRouter.strongestSources?.[0]?.source || "N/A"],
-    ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "N/A"],
+    ["Breakout Pick", breakoutBrain.topThree?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Breakout Picks", breakoutBrain.selectedCount ?? 0],
+    ["High-Tech", highTechAlphaStack.topProjects?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["HT Candidates", highTechAlphaStack.alphaCandidates ?? 0],
+    ["Alpha OS Max", selfEvolvingAlphaOS.topProject?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Alpha Theses", alphaTheses.totalTheses ?? 0],
+    ["Alpha Contracts", alphaContracts.alphaCandidates ?? 0],
+    ["Contract Research", alphaContracts.priorityResearch ?? 0],
+    ["Contract Receipts", alphaContracts.publicReceipts?.length ?? 0],
+    ["Graph Pick", alphaKnowledgeGraph.topProjects?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Graph Priority", alphaKnowledgeGraph.priorityResearch ?? 0],
+    ["Twin Pick", causalMarketTwin.topProjects?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Twin EV", causalMarketTwin.topProjects?.[0]?.expectedReturnPct ?? 0],
+    ["Governor Priority", alphaEvolutionGovernor.counts?.priorityResearch ?? 0],
+    ["Governor Blocks", alphaEvolutionGovernor.counts?.riskBlocks ?? 0],
+    ["Small-Cap #1", smallCapHunter.topTwoResearch?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Small-Cap Route #1", smallCapHunter.topTwoResearch?.[0]?.routeStatus || "NO VERIFIED ROUTE"],
+    ["Small-Cap #2", smallCapHunter.topTwoResearch?.[1]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Small-Cap Route #2", smallCapHunter.topTwoResearch?.[1]?.routeStatus || "NO VERIFIED ROUTE"],
+    ["Small-Cap Processed", smallCapHunter.huntedProjects ?? 0],
+    ["Small-Cap Research", smallCapHunter.topTwoResearch?.length ?? smallCapHunter.selectedCount ?? 0],
+    ["Small-Cap Qualified", smallCapHunter.executionReadyCount ?? 0],
+    ["Small-Cap Execution #1", smallCapHunter.topTwoExecutionReady?.[0]?.symbol || "NO VERIFIED ROUTE"],
+    ["Small-Cap Execution #2", smallCapHunter.topTwoExecutionReady?.[1]?.symbol || "NO VERIFIED ROUTE"],
+    ["Execution Twin", executionTwin.topVerifiedExecutions?.[0]?.symbol || "NO VERIFIED ROUTE"],
+    ["Exec Route", executionTwin.topVerifiedExecutions?.[0]?.route || "NO VERIFIED ROUTE"],
+    ["Execution Processed", executionTwin.twinProjects ?? 0],
+    ["Execution Research", executionTwin.topExecutionResearchCandidates?.length ?? 0],
+    ["Execution Qualified", executionTwin.verifiedCount ?? 0],
+    ["Execution Verified", executionTwin.verifiedCount ?? 0],
+    ["Execution Partial", executionTwin.partiallyVerifiedCount ?? 0],
+    ["No Route", executionTwin.noRouteCount ?? 0],
+    ["Organic Processed", organicIntegrity.analyzedProjects ?? 0],
+    ["Organic Research Tasks", organicIntegrity.openResearchTasks ?? 0],
+    ["Organic Confirmed", organicIntegrity.confirmedOrganicDemand ?? 0],
+    ["Organic Blocks", organicIntegrity.institutionalBlocks ?? 0],
+    ["Organic Manual Reviews", organicIntegrity.manualReviewRequired ?? 0],
+    ["Organic Input Coverage", organicIntegrity.organicInputCoveragePct ?? 0],
+    ["Discovery Sources", discoveryTruth.sourceCapabilityAudit?.enabledSources ?? 0],
+    ["Native Mesh", nativeDiscoveryMesh.summary?.candidateCount ?? nativeDiscoveryMesh.topCandidates?.length ?? 0],
+    ["Native Stage", nativeDiscoveryMesh.topCandidates?.[0]?.stage || "INSUFFICIENT INPUT DATA"],
+    ["Decision Pass", discoveryDecision.summary?.pass ?? 0],
+    ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? 0],
+    ["Radar ARMED", preBreakoutRadar.armedCount ?? 0],
+    ["Radar Watch", preBreakoutRadar.watchCount ?? 0],
+    ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? 0],
+    ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? 0],
+    ["Integrity Stack", integrityStack.status || "REPORT NOT GENERATED"],
+    ["Integrity Score", integrityStack.readinessScore ?? 0],
+    ["Provenance", institutionalProvenance.averageProvenanceScore ?? 0],
+    ["Prov Ready", institutionalProvenance.counts?.institutionalReady ?? 0],
+    ["OP Mode", opModeReadiness.status || "REPORT NOT GENERATED"],
+    ["OP Score", opModeReadiness.score ?? 0],
+    ["Native Ready", opModeReadiness.native?.liveReadyProtocols ?? 0],
+    ["Missing Key Groups", opModeReadiness.keys?.missingGroups ?? 0],
+    ["Kernel ARMED", evidenceKernel.summary?.armed ?? 0],
+    ["Kernel Watch", evidenceKernel.summary?.watch ?? 0],
+    ["Kernel Score", evidenceKernel.summary?.averageFinalScore ?? 0],
+    ["Contract Pass", evidenceKernel.summary?.averageContractPassRate ?? 0],
+    ["Kernel Sources", evidenceKernel.summary?.sourcesWithUsableEvidence ?? 0],
+    ["Manifest Score", evidenceKernel.summary?.manifestScore ?? 0],
+    ["Fixture Pass", evidenceKernel.summary?.fixtureAuditPassRate ?? 0],
+    ["Source Truth", sourceTruth.topProjects?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["GitHub Pro", githubPro.topRepositories?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Research Brain", autonomousResearch.topProjects?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Best Source", sourceRouter.strongestSources?.[0]?.source || "PROVIDER UNAVAILABLE"],
+    ["Quantum Suite Status", quantumSuiteHealth.status || "REPORT NOT GENERATED"],
+    ["Quantum Processed", quantumSuiteHealth.projectsExpected ?? 0],
+    ["Quantum Research", quantumSuiteHealth.topQuantumReasoningStates?.length ?? 0],
+    ["Quantum Qualified", quantumSuiteHealth.status === "PASS" ? quantumSuiteHealth.projectsExpected ?? 0 : 0],
+    ["Quantum Fields Completed", quantumSuiteHealth.outcomeFieldsCompleted ?? 0],
+    ["Quantum Brains Completed", quantumSuiteHealth.reasoningBrainsCompleted ?? 0],
+    ["Quantum Input Coverage", quantumSuiteHealth.averageInputCoverage ?? 0],
+    ["Quantum State", topProject.quantumDecisionState || topProject.quantumReasoningBrain?.decisionState || "INSUFFICIENT INPUT DATA"],
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
-    ["Engines", audit.totalEngines ?? "N/A"],
+    ["Engine Audit", audit.auditName || "REPORT NOT GENERATED"],
+    ["Engines", audit.totalEngines ?? 0],
   ]
     .map(
       ([label, value]) => `
@@ -546,10 +576,10 @@ function writeLandingPage(copiedFiles = []) {
       <h2>${bestNowHeadline}</h2>
       <p>${bestNowText}</p>
       <div class="metrics">
-        <div class="metric"><span>Leader</span><strong>${bestNowProject.identity?.symbol || "N/A"}</strong></div>
-        <div class="metric"><span>Market Rank</span><strong>${bestNowProject.marketOpportunityRank ?? "N/A"}</strong></div>
-        <div class="metric"><span>Evidence</span><strong>${bestNowProject.evidenceCoverage ?? "N/A"}</strong></div>
-        <div class="metric"><span>Horizon</span><strong>${bestNowProject.recommendedHorizon || "N/A"}</strong></div>
+        <div class="metric"><span>Leader</span><strong>${bestNowProject.identity?.symbol || "NO QUALIFIED CANDIDATE"}</strong></div>
+        <div class="metric"><span>Market Rank</span><strong>${bestNowProject.marketOpportunityRank ?? "NO QUALIFIED CANDIDATE"}</strong></div>
+        <div class="metric"><span>Evidence</span><strong>${bestNowProject.evidenceCoverage ?? "INSUFFICIENT INPUT DATA"}</strong></div>
+        <div class="metric"><span>Horizon</span><strong>${bestNowProject.recommendedHorizon || "INSUFFICIENT INPUT DATA"}</strong></div>
       </div>
     </section>
     <div class="toolbar">
@@ -631,18 +661,22 @@ function writeLandingPage(copiedFiles = []) {
 </html>
 `.trim();
 
-  fs.writeFileSync(path.join(DOCS_DIR, "index.html"), html);
+  fs.writeFileSync(path.join(docsDir, "index.html"), html.replace(/\bN\/A\b/g, "REPORT NOT GENERATED"));
 }
 
-export function publishGithubPagesDashboard() {
-  fs.mkdirSync(DOCS_DIR, { recursive: true });
+export function publishGithubPagesDashboard(options = {}) {
+  const reportsDir = path.resolve(options.reportsDir || REPORTS_DIR);
+  const docsDir = path.resolve(options.docsDir || DOCS_DIR);
+  fs.mkdirSync(docsDir, { recursive: true });
+  const validation = assertReportContracts({ reportsDir });
 
-  const copiedFiles = PUBLIC_REPORTS.filter(copyIfExists);
-  writeLandingPage(copiedFiles);
+  const copiedFiles = PUBLIC_REPORTS.filter((fileName) => copyIfExists(fileName, reportsDir, docsDir));
+  writeLandingPage(copiedFiles, { reportsDir, docsDir });
 
   return {
-    outputDir: DOCS_DIR,
+    outputDir: docsDir,
     copiedFiles,
+    validation,
     urlPath: "docs/index.html",
   };
 }

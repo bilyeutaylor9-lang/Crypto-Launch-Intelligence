@@ -135,13 +135,13 @@ export function writeSummaryReport(projects = []) {
   const topQuantum = quantumUpside
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - field ${p.quantumOpportunityScore || 0}, expected ${p.quantumOutcomeField?.expectedReturnPct || 0}%, best ${p.quantumOutcomeField?.bestCaseReturnPct || 0}%`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - field ${p.quantumOpportunityScore || 0}, expected ${p.quantumOutcomeField?.expectedReturnPct || 0}%, best ${p.quantumOutcomeField?.bestCaseReturnPct || 0}%`;
     })
     .join("\n");
   const topOutcomeLearning = outcomeMemoryWinners
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - outcome ${p.outcomeLearningScore || 0}, win fit ${p.outcomeLearning?.estimatedWinRate || p.outcomeWinRate || 0}%, trap ${p.outcomeTrapRisk || 0}%`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - outcome ${p.outcomeLearningScore || 0}, win fit ${p.outcomeLearning?.estimatedWinRate || p.outcomeWinRate || 0}%, trap ${p.outcomeTrapRisk || 0}%`;
     })
     .join("\n");
   const topSignalCombos = winningCombos
@@ -151,7 +151,7 @@ export function writeSummaryReport(projects = []) {
         .map((combo) => combo.name)
         .slice(0, 2)
         .join(" + ");
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - combo ${p.signalCombinationScore || 0}${combos ? ` - ${combos}` : ""}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - combo ${p.signalCombinationScore || 0}${combos ? ` - ${combos}` : ""}`;
     })
     .join("\n");
   const topCalibratedEdges = calibratedEdges
@@ -161,31 +161,31 @@ export function writeSummaryReport(projects = []) {
         .map((signal) => signal.label)
         .slice(0, 2)
         .join(" + ");
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - adjustment +${p.calibrationAdjustment || 0}${support ? ` - ${support}` : ""}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - adjustment +${p.calibrationAdjustment || 0}${support ? ` - ${support}` : ""}`;
     })
     .join("\n");
   const topAIAnalyst = aiPriority
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - AI ${p.aiAnalystScore || 0} - ${p.aiThesis?.memo || "No memo"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - AI ${p.aiAnalystScore || 0} - ${p.aiThesis?.memo || "No memo"}`;
     })
     .join("\n");
   const topPrePumpPatterns = preBreakoutPatternMatches
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - breakout match ${p.prePumpPatternMatchPct || 0}%, trap match ${p.trapPatternMatchPct || 0}%, confidence ${p.prePumpPatternConfidence || "Unknown"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - breakout match ${p.prePumpPatternMatchPct || 0}%, trap match ${p.trapPatternMatchPct || 0}%, confidence ${p.prePumpPatternConfidence || "Unknown"}`;
     })
     .join("\n");
   const topInstitutionalVNext = institutionalVNext
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - vNext ${p.institutionalVNextScore || 0}, confidence ${p.institutionalConfidenceLevel || "Unknown"} - ${p.explainabilitySummary || "No explainability summary"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - vNext ${p.institutionalVNextScore || 0}, confidence ${p.institutionalConfidenceLevel || "Unknown"} - ${p.explainabilitySummary || "No explainability summary"}`;
     })
     .join("\n");
   const topProofBacked = proofBacked
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - proof ${p.proofScore || 0}, ${p.proofVerdict || "Unknown"} - ${p.whyThisMatters || "No proof summary"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - proof ${p.proofScore || 0}, ${p.proofVerdict || "Unknown"} - ${p.whyThisMatters || "No proof summary"}`;
     })
     .join("\n");
   const topAlphaContracts = [...ranked]
@@ -198,7 +198,7 @@ export function writeSummaryReport(projects = []) {
     .slice(0, 5)
     .map((p, index) => {
       const caveat = p.proofCarryingAlphaContract?.fallbackCaveat || p.alphaContractReceipt?.caveat;
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - contract ${p.proofCarryingAlphaContractScore || 0}, ${p.proofCarryingAlphaContractVerdict || "Unknown"}${caveat ? ` - ${caveat}` : ""}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - contract ${p.proofCarryingAlphaContractScore || 0}, ${p.proofCarryingAlphaContractVerdict || "Unknown"}${caveat ? ` - ${caveat}` : ""}`;
     })
     .join("\n");
   const topAlphaGovernor = [...ranked]
@@ -210,7 +210,7 @@ export function writeSummaryReport(projects = []) {
     )
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - governor ${p.alphaEvolutionGovernorScore || 0}, ${p.alphaEvolutionGovernorVerdict || "Unknown"} - ${p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - governor ${p.alphaEvolutionGovernorScore || 0}, ${p.alphaEvolutionGovernorVerdict || "Unknown"} - ${p.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review"}`;
     })
     .join("\n");
   const topCausalNetwork = [...ranked]
@@ -222,44 +222,44 @@ export function writeSummaryReport(projects = []) {
     )
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - network ${p.autonomousCausalNetworkScore || 0}, ${p.autonomousCausalProjectState || "WATCH"}, fragility ${p.causalEvidenceFragility || "Unknown"} - ${p.autonomousCausalAlphaNetwork?.hypothesis?.nextRequiredConfirmation || "Retest next scan"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - network ${p.autonomousCausalNetworkScore || 0}, ${p.autonomousCausalProjectState || "WATCH"}, fragility ${p.causalEvidenceFragility || "Unknown"} - ${p.autonomousCausalAlphaNetwork?.hypothesis?.nextRequiredConfirmation || "Retest next scan"}`;
     })
     .join("\n");
   const topConfidenceAdjusted = confidenceAdjusted
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - adjusted ${p.confidenceAdjustedScore || 0}, source ${p.sourceReliabilityScore || 0}, trap ${p.trapRiskScore || 0}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - adjusted ${p.confidenceAdjustedScore || 0}, source ${p.sourceReliabilityScore || 0}, trap ${p.trapRiskScore || 0}`;
     })
     .join("\n");
   const topNarrativeHeat = hotNarratives
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - heat ${p.narrativeHeatScore || 0}, ${p.narrativeHeatState || "unknown"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - heat ${p.narrativeHeatScore || 0}, ${p.narrativeHeatState || "unknown"}`;
     })
     .join("\n");
   const topImprovingProjects = improvingProjects
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - change ${p.projectChangeScore || 0}, ${p.projectChangeState || "unknown"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - change ${p.projectChangeScore || 0}, ${p.projectChangeState || "unknown"}`;
     })
     .join("\n");
   const topTrapRisks = highTrapRisk
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - trap ${p.trapRiskScore || 0}, ${p.trapRiskLevel || "unknown"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - trap ${p.trapRiskScore || 0}, ${p.trapRiskLevel || "unknown"}`;
     })
     .join("\n");
   const topAIStrongBuyCandidates = aiStrongBuyCandidates
     .slice(0, 5)
     .map((p, index) => {
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - council ${p.aiEcosystemScore || 0}, ${p.aiEcosystemVerdict || "unknown"}${p.aiEcosystemCaveat ? ` - ${p.aiEcosystemCaveat}` : ""}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - council ${p.aiEcosystemScore || 0}, ${p.aiEcosystemVerdict || "unknown"}${p.aiEcosystemCaveat ? ` - ${p.aiEcosystemCaveat}` : ""}`;
     })
     .join("\n");
   const researchQueue = priorityResearch
     .slice(0, 8)
     .map((p, index) => {
       const score = Number(p.opportunityScore ?? p.score ?? 0).toFixed(1);
-      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "N/A"}) - ${score} - ${p.allocationBucket || "Unbucketed"} - ${p.executionPlan?.action || "Review"}`;
+      return `${index + 1}. ${p.name || "Unknown"} (${p.symbol || "Unknown"}) - ${score} - ${p.allocationBucket || "Unbucketed"} - ${p.executionPlan?.action || "Review"}`;
     })
     .join("\n");
 
@@ -269,8 +269,8 @@ Generated: ${new Date().toLocaleString()}
 
 Projects scanned: ${total}
 Market regime: ${marketContext.regime || "Unknown"}
-Healthy breadth: ${marketContext.healthyBreadth ?? "N/A"}%
-High-conviction breadth: ${marketContext.highConvictionBreadth ?? "N/A"}%
+Healthy breadth: ${marketContext.healthyBreadth ?? "Not reported"}%
+High-conviction breadth: ${marketContext.highConvictionBreadth ?? "Not reported"}%
 Average opportunity score: ${avgScore.toFixed(2)}
 Strong buy candidates: ${strongBuy.length}
 High-conviction candidates: ${highConviction.length}
@@ -324,10 +324,10 @@ Watchtower brief: ${watchtowerBrief?.brief || "No brief generated yet"}
 Watchtower hit rate: ${watchtowerPerformance.hitRate || 0}% (${watchtowerPerformance.evaluatedAlerts || 0} evaluated, ${watchtowerPerformance.pendingAlerts || 0} pending)
 
 Top project:
-${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "N/A"})` : "None"}
+${topProject ? `${topProject.name || "Unknown"} (${topProject.symbol || "Unknown"})` : "None"}
 
 Top score:
-${topProject ? Number(topProject.opportunityScore ?? topProject.score ?? 0).toFixed(2) : "N/A"}
+${topProject ? Number(topProject.opportunityScore ?? topProject.score ?? 0).toFixed(2) : "No scored project"}
 
 Top research queue:
 ${researchQueue || "None"}

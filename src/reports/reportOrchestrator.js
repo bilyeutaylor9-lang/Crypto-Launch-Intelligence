@@ -4,6 +4,7 @@ import { writeWatchlist } from "./watchlistEngine.js";
 import { writeSummaryReport } from "./summaryReportEngine.js";
 import { writeHtmlReport } from "./htmlReportEngine.js";
 import { writeQuantumFieldReport } from "./quantumFieldReportEngine.js";
+import { writeQuantumSuiteHealthReport } from "./quantumSuiteHealthReportEngine.js";
 import { writeCalibrationReport } from "./calibrationReportEngine.js";
 import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
@@ -60,6 +61,10 @@ export function generateReports(projects = [], meta = {}) {
   const summaryPath = writeSummaryReport(projects);
   const htmlPath = writeHtmlReport(projects);
   const quantumFieldPath = writeQuantumFieldReport(projects);
+  const {
+    healthPath: quantumSuiteHealthPath,
+    reasoningPath: quantumReasoningBrainPath,
+  } = writeQuantumSuiteHealthReport(projects);
   const calibrationPath = writeCalibrationReport();
   const prePumpPatternPath = writePrePumpPatternReport();
   const institutionalVNextPath = writeInstitutionalVNextReport(projects);
@@ -249,6 +254,8 @@ export function generateReports(projects = [], meta = {}) {
     jsonPath,
     csvPath,
     quantumFieldPath,
+    quantumSuiteHealthPath,
+    quantumReasoningBrainPath,
     calibrationPath,
     prePumpPatternPath,
     institutionalVNextPath,

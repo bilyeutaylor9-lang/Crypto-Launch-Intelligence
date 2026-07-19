@@ -39,6 +39,15 @@ function firstDefined(project = {}, paths = []) {
   return undefined;
 }
 
+function hasInput(project = {}, paths = []) {
+  return paths.some((path) => {
+    const value = getPath(project, path);
+    if (value === undefined || value === null || value === "") return false;
+    if (typeof value === "number") return Number.isFinite(value);
+    return true;
+  });
+}
+
 function boolish(value) {
   if (typeof value === "boolean") return value;
   const normalized = String(value || "").toLowerCase();
@@ -986,6 +995,100 @@ function buildResearchTasks(modules = {}, context = {}, cap = {}, verdict = "") 
   return tasks.sort((a, b) => (rank[b.priority] || 0) - (rank[a.priority] || 0) || a.id.localeCompare(b.id));
 }
 
+function organicInputProfile(project = {}) {
+  const families = [
+    {
+      family: "liquidity",
+      mode: "basic",
+      present: hasInput(project, ["liquidityUsd", "liquidity", "marketData.liquidityUsd", "rawCandidate.liquidityUsd"]),
+    },
+    {
+      family: "volume",
+      mode: "basic",
+      present: hasInput(project, ["volume24h", "volume", "marketData.volume24h", "rawCandidate.volume24h"]),
+    },
+    {
+      family: "buys-sells",
+      mode: "basic",
+      present: hasInput(project, ["buyTransactions24h", "buys24h", "txns.h24.buys"]) && hasInput(project, ["sellTransactions24h", "sells24h", "txns.h24.sells"]),
+    },
+    {
+      family: "transactions",
+      mode: "basic",
+      present: hasInput(project, ["transactions24h", "txCount24h", "contractCalls24h", "swapTransactions24h", "dexSwaps24h"]),
+    },
+    {
+      family: "pair-age",
+      mode: "basic",
+      present: hasInput(project, ["pairAgeHours", "pairAgeDays", "pool.ageHours", "createdAt", "pairCreatedAt"]),
+    },
+    {
+      family: "holders",
+      mode: "enhanced",
+      present: hasInput(project, ["holders", "holderCount", "holdersNow", "marketData.holders", "rawCandidate.holders"]),
+    },
+    {
+      family: "unique-traders",
+      mode: "enhanced",
+      present: hasInput(project, ["uniqueTraders24h", "uniqueTraderCount24h", "uniqueWallets24h", "activeTradingWallets24h"]),
+    },
+    {
+      family: "holder-balance-buckets",
+      mode: "enhanced",
+      present: hasInput(project, ["holdersOver10Usd", "holdersOver100Usd", "holdersOver1000Usd", "holderBuckets.over10", "holderBuckets.over100", "holderBuckets.over1000"]),
+    },
+    {
+      family: "stablecoin-reserves",
+      mode: "enhanced",
+      present: hasInput(project, ["hardExitLiquidityUsd", "stablecoinExitLiquidityUsd", "stablecoinReservesUsd", "pool.stablecoinReservesUsd", "pool.quoteReserveUsd"]),
+    },
+    {
+      family: "lp-control",
+      mode: "enhanced",
+      present: hasInput(project, ["protocolOwnedLiquidityPct", "lpProtocolOwnedPct", "pool.protocolOwnedPct", "topLpSharePct", "lpConcentrationPct", "liquidityProviders", "lpCount"]),
+    },
+    {
+      family: "wallet-concentration",
+      mode: "enhanced",
+      present: hasInput(project, ["top10WalletTransactionPct", "top50WalletTransactionPct", "repeatWalletTransactionPct", "walletConcentration.top10TransactionPct", "walletVolumeConcentrationPct"]),
+    },
+    {
+      family: "supply-reconciliation",
+      mode: "enhanced",
+      present: hasInput(project, ["circulatingSupply", "totalSupply", "maxSupply", "coinGeckoCirculatingSupply", "coinMarketCapCirculatingSupply", "marketData.circulatingSupply"]),
+    },
+  ];
+  const present = families.filter((item) => item.present);
+  const missing = families.filter((item) => !item.present);
+  const basicPresent = present.filter((item) => item.mode === "basic").length;
+  const enhancedPresent = present.filter((item) => item.mode === "enhanced").length;
+  const coveragePct = Math.round((present.length / families.length) * 100);
+  const mode = enhancedPresent >= 4 ? "enhanced" : basicPresent >= 3 ? "basic" : "partial";
+  const status = coveragePct >= 70 ? "PASS" : coveragePct >= 35 ? "PARTIAL" : "FAILED";
+
+  return {
+    organicEngineStatus: status,
+    organicInputCoveragePct: coveragePct,
+    organicAnalysisMode: mode,
+    missingInputFamilies: missing.map((item) => item.family),
+    basicInputCoveragePct: Math.round((basicPresent / families.filter((item) => item.mode === "basic").length) * 100),
+    enhancedInputCoveragePct: Math.round((enhancedPresent / families.filter((item) => item.mode === "enhanced").length) * 100),
+  };
+}
+
+function missingInputResearchTasks(profile = {}) {
+  return (profile.missingInputFamilies || []).map((family) => ({
+    id: `collect-${family}`,
+    priority: ["liquidity", "volume", "buys-sells", "transactions"].includes(family) ? "high" : "medium",
+    agent: "Organic Input Agent",
+    title: `Collect ${family} input for organic-demand verification.`,
+    status: "open",
+    reason: `The ${family} input family is missing; score stays explicit but confidence remains limited.`,
+    evidenceNeeded: [`Current ${family} value with source and timestamp.`],
+    sourceHints: ["DexScreener", "GeckoTerminal", "chain explorer", "provider payload", "official docs"],
+  }));
+}
+
 function promotionBlockedFor({ verdict = "", riskScore = 0, blockers = [], cap = 100, modules = {}, liquidity = 0, volume = 0 } = {}) {
   const highMarketSignal = num(liquidity) >= 1_000_000 || num(volume) >= 1_000_000;
   return Boolean(
@@ -1039,6 +1142,7 @@ function buildBlockers(modules = {}) {
 }
 
 export function analyzeOrganicDemandIntegrity(project = {}) {
+  const inputProfile = organicInputProfile(project);
   const holder = analyzeHolderQuality(project);
   const activity = analyzeActivityQuality(project);
   const activityAuthenticity = analyzeActivityAuthenticity(project);
@@ -1134,7 +1238,8 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     ...dataQuality.warnings,
     ...supplyIntegrity.warnings,
   ];
-  const researchTasks = buildResearchTasks(
+  const researchTasks = [
+    ...buildResearchTasks(
     {
       holder,
       activity,
@@ -1152,7 +1257,9 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     },
     cap,
     verdict
-  );
+    ),
+    ...missingInputResearchTasks(inputProfile),
+  ].filter((task, index, list) => list.findIndex((item) => item.id === task.id) === index);
   const promotionBlocked = promotionBlockedFor({
     verdict,
     riskScore,
@@ -1190,6 +1297,10 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
     organicDemandStrongBuyEligible: strongBuyEligible,
     organicDemandPromotionBlocked: promotionBlocked,
     organicDemandManualReviewLabel: manualReviewLabel,
+    organicEngineStatus: inputProfile.organicEngineStatus,
+    organicInputCoveragePct: inputProfile.organicInputCoveragePct,
+    organicAnalysisMode: inputProfile.organicAnalysisMode,
+    missingInputFamilies: inputProfile.missingInputFamilies,
     economicIntegrityResearchTasks: researchTasks,
     hardExitLiquidityUsd: exitLiquidity.hardExitLiquidityUsd,
     stablecoinExitLiquidityUsd: exitLiquidity.stablecoinReservesUsd,
@@ -1208,6 +1319,10 @@ export function analyzeOrganicDemandIntegrity(project = {}) {
       scoreCapReasons: cap.reasons,
       promotionBlocked,
       manualReviewLabel,
+      engineStatus: inputProfile.organicEngineStatus,
+      inputCoveragePct: inputProfile.organicInputCoveragePct,
+      analysisMode: inputProfile.organicAnalysisMode,
+      missingInputFamilies: inputProfile.missingInputFamilies,
       researchTasks,
       organicDemandScore,
       economicSustainabilityScore,
@@ -1268,6 +1383,10 @@ function compact(project = {}) {
     scoreCapReasons: project.economicIntegrityScoreCapReasons || [],
     promotionBlocked: Boolean(project.organicDemandPromotionBlocked),
     manualReviewLabel: project.organicDemandManualReviewLabel || "Unknown",
+    organicEngineStatus: project.organicEngineStatus || "FAILED",
+    organicInputCoveragePct: project.organicInputCoveragePct || 0,
+    missingInputFamilies: project.missingInputFamilies || [],
+    organicAnalysisMode: project.organicAnalysisMode || "partial",
     researchTaskCount: (project.economicIntegrityResearchTasks || []).length,
     researchTasks: (project.economicIntegrityResearchTasks || []).slice(0, 6),
     activityAuthenticityRiskScore: project.activityAuthenticityRiskScore || 0,
@@ -1307,13 +1426,16 @@ export function summarizeOrganicDemandIntegrity(projects = []) {
     disclaimer: "Research risk-control model only. It does not recommend buying, selling, or holding any asset.",
     totalProjects: safeProjects.length,
     analyzedProjects: analyzed.length,
-    confirmedOrganicDemand: confirmed.length,
-    institutionalBlocks: blocks.length,
-    tradableAnomalies: anomalies.length,
-    verificationRequired: verification.length,
-    promotionBlocked: analyzed.filter((project) => project.organicDemandPromotionBlocked).length,
-    openResearchTasks: analyzed.reduce((sum, project) => sum + (project.economicIntegrityResearchTasks || []).length, 0),
-    manualReviewRequired: manualReviewQueue.length,
+    organicEngineStatus: analyzed.length === safeProjects.length ? "PASS" : analyzed.length ? "PARTIAL" : "FAILED",
+    organicInputCoveragePct: Math.round(analyzed.reduce((sum, project) => sum + num(project.organicInputCoveragePct), 0) / Math.max(1, analyzed.length)),
+    missingInputFamilies: [...new Set(analyzed.flatMap((project) => project.missingInputFamilies || []))],
+    confirmedOrganicDemand: num(confirmed.length),
+    institutionalBlocks: num(blocks.length),
+    tradableAnomalies: num(anomalies.length),
+    verificationRequired: num(verification.length),
+    promotionBlocked: num(analyzed.filter((project) => project.organicDemandPromotionBlocked).length),
+    openResearchTasks: num(analyzed.reduce((sum, project) => sum + (project.economicIntegrityResearchTasks || []).length, 0)),
+    manualReviewRequired: num(manualReviewQueue.length),
     manualReviewQueue: manualReviewQueue.slice(0, 50).map(compact),
     topConfirmed: confirmed
       .sort((a, b) => num(b.organicEconomicIntegrityScore) - num(a.organicEconomicIntegrityScore))

@@ -599,7 +599,7 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${top ? scoreOf(top).toFixed(1) : "N/A"}</h2>
+      <h2>${top ? scoreOf(top).toFixed(1) : "No scored project"}</h2>
       <p>Top Score</p>
     </div>
 
@@ -629,7 +629,7 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
+      <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "Unknown")).join(" / ") || "No qualified small-cap candidate"}</h2>
       <p>Qualified Small-Cap Candidates</p>
     </div>
 

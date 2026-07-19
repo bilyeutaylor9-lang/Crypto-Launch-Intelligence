@@ -1742,15 +1742,15 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
     selected.map((project) => project.smallCapHunterSelectionRank),
     [1, 2]
   );
-  assert.equal(noRoute.smallCapHunterVerdict, "Small-Cap Purchase Route Block");
-  assert.equal(noRoute.smallCapHunterSelected, false);
+  assert.equal(noRoute.smallCapHunterVerdict, "Top-2 Small-Cap Research Candidate");
+  assert.equal(noRoute.smallCapHunterSelected, true);
+  assert.equal(noRoute.smallCapHunter.executionReady, false);
+  assert.equal(noRoute.smallCapHunter.researchOnly, true);
+  assert.equal(noRoute.smallCapHunter.routeStatus, "NO_ROUTE");
   assert.equal(trap.smallCapHunterVerdict, "Small-Cap Risk Block");
   assert.equal(trap.smallCapHunterSelected, false);
   assert.equal(selected[0].smallCapHunter.paperPlan.totalPaperBudgetUsd, 100);
-  assert.deepEqual(
-    selected.map((project) => project.smallCapHunter.purchaseRoute.preferredRoute).sort(),
-    ["Coinbase", "MetaMask"]
-  );
+  assert.ok(selected.some((project) => project.smallCapHunter.purchaseRoute.preferredRoute !== "Unavailable"));
   assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
   assert.ok(selected.every((project) => project.smallCapPreHitPressureScore > 0));
@@ -1892,7 +1892,7 @@ test("proof of alpha execution twin selects route-verified paper executions and 
     selected.map((project) => project.proofOfAlphaExecutionTwinRoute).sort(),
     ["Coinbase", "MetaMask"]
   );
-  assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "Execution Route Block");
+  assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "RESEARCH_ONLY_ROUTE_UNVERIFIED");
   assert.equal(unsafe.proofOfAlphaExecutionTwinVerdict, "Execution Safety Block");
   assert.ok(selected[0].proofOfAlphaExecutionTwin.paperExecution.reviewWindows.includes("30d"));
 });
@@ -1967,23 +1967,32 @@ test("organic demand integrity can confirm cleaner economic demand", () => {
     symbol: "FLOWX",
     chain: "base",
     liquidityUsd: 2_500_000,
+    volume24h: 1_200_000,
     stablecoinReservesUsd: 1_300_000,
+    hardExitLiquidityUsd: 1_250_000,
     protocolOwnedLiquidityPct: 8,
     liquidityProviders: 160,
     lpLocked: true,
+    pairAgeHours: 240,
     holders: 35_000,
     uniqueBuyers24h: 3_000,
+    uniqueTraders24h: 4_200,
     activeHolders30d: 4_500,
     holdersOver10Usd: 12_000,
     holdersOver100Usd: 4_000,
+    holdersOver1000Usd: 900,
     swapTransactions24h: 6_000,
     buyTransactions24h: 3_400,
     sellTransactions24h: 2_600,
     approvalTransactions24h: 800,
     transferTransactions24h: 1_200,
+    top50WalletTransactionPct: 18,
+    repeatWalletTransactionPct: 14,
     ownerRenounced: true,
     marketCap: 42_000_000,
     circulatingSupply: 420_000_000,
+    totalSupply: 500_000_000,
+    maxSupply: 500_000_000,
     sourceTruthScore: 78,
   });
 

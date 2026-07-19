@@ -7,11 +7,33 @@ function clamp(value = 0, min = 0, max = 100) {
 }
 
 function normalizeProbabilities(raw = {}) {
-  const total = Object.values(raw).reduce((sum, value) => sum + Math.max(0, num(value)), 0) || 1;
+  const entries = Object.entries(raw);
+  const total = entries.reduce((sum, [, value]) => sum + Math.max(0, num(value)), 0) || 1;
+  const scaled = entries.map(([key, value]) => {
+    const exact = (Math.max(0, num(value)) / total) * 100;
+    return {
+      key,
+      exact,
+      rounded: Math.floor(exact),
+      remainder: exact - Math.floor(exact),
+    };
+  });
+  let remaining = 100 - scaled.reduce((sum, item) => sum + item.rounded, 0);
 
-  return Object.fromEntries(
-    Object.entries(raw).map(([key, value]) => [key, Math.round((Math.max(0, num(value)) / total) * 100)])
-  );
+  for (const item of [...scaled].sort((a, b) => b.remainder - a.remainder)) {
+    if (remaining <= 0) break;
+    item.rounded += 1;
+    remaining -= 1;
+  }
+
+  while (remaining < 0) {
+    const target = [...scaled].sort((a, b) => b.rounded - a.rounded)[0];
+    if (!target || target.rounded <= 0) break;
+    target.rounded -= 1;
+    remaining += 1;
+  }
+
+  return Object.fromEntries(scaled.map((item) => [item.key, item.rounded]));
 }
 
 function entropy(probabilities = {}) {

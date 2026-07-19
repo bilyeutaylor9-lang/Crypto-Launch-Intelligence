@@ -48,7 +48,7 @@ export function buildEngineAudit() {
       /score/i.test(source),
       /reasons/i.test(source),
     ].filter(Boolean).length;
-    const readinessScore = Math.round(
+    const implementationCompletenessScore = Math.round(
       Math.min(
         100,
         exports.length * 10 +
@@ -67,8 +67,9 @@ export function buildEngineAudit() {
       hasAnalyzer,
       wiredInPipeline,
       advancedSignals,
-      readinessScore,
-      status: readinessScore >= 75 ? "state-of-art-ready" : readinessScore >= 50 ? "usable" : "needs-upgrade",
+      implementationCompletenessScore,
+      readinessScore: implementationCompletenessScore,
+      status: implementationCompletenessScore >= 75 ? "implementation-complete" : implementationCompletenessScore >= 50 ? "usable" : "needs-upgrade",
     };
   });
   const categoryCounts = engines.reduce((counts, engine) => {
@@ -76,24 +77,32 @@ export function buildEngineAudit() {
     return counts;
   }, {});
   const wiredCount = engines.filter((engine) => engine.wiredInPipeline).length;
-  const readyCount = engines.filter((engine) => engine.status === "state-of-art-ready").length;
+  const implementationCompleteCount = engines.filter((engine) => engine.status === "implementation-complete").length;
 
   return {
     generatedAt: new Date().toISOString(),
+    auditName: "Engine Implementation Completeness Audit",
+    caveat:
+      "This audit measures wiring, exports, batch support, and code-shape completeness. It does not prove prediction accuracy or profitable edge.",
     totalEngines: engines.length,
     wiredIntoPipeline: wiredCount,
-    stateOfArtReady: readyCount,
+    implementationComplete: implementationCompleteCount,
+    stateOfArtReady: implementationCompleteCount,
+    implementationCompletenessScore:
+      engines.length === 0
+        ? 0
+        : Math.round(engines.reduce((sum, engine) => sum + engine.implementationCompletenessScore, 0) / engines.length),
     readinessScore:
       engines.length === 0
         ? 0
         : Math.round(engines.reduce((sum, engine) => sum + engine.readinessScore, 0) / engines.length),
     categoryCounts,
-    topEngines: [...engines].sort((a, b) => b.readinessScore - a.readinessScore).slice(0, 20),
+    topEngines: [...engines].sort((a, b) => b.implementationCompletenessScore - a.implementationCompletenessScore).slice(0, 20),
     needsUpgrade: engines.filter((engine) => engine.status === "needs-upgrade"),
     engines,
     recommendation:
-      readyCount >= Math.round(engines.length * 0.65)
-        ? "Engine stack is broad and production-demo ready."
+      implementationCompleteCount >= Math.round(engines.length * 0.65)
+        ? "Engine stack is broadly implemented; validate predictive edge with outcome tracking before marketing production accuracy."
         : "Engine stack is broad; continue moving older discovery/risk engines to batch/evidence conventions.",
   };
 }
