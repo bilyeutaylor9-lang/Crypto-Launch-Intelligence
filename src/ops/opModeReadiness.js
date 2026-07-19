@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import "../config/loadEnv.js";
 import { getAllSources } from "../data/dataSourceManager.js";
-import { NATIVE_PROTOCOLS } from "../data/native/nativePoolConfig.js";
+import { getNativeProtocolConfigs } from "../data/native/nativePoolConfig.js";
 
 const REPORT_DIR = path.resolve("reports");
 const REPORT_FILE = path.join(REPORT_DIR, "op-mode-readiness.json");
@@ -298,19 +298,28 @@ function chainRpcKeys(protocol = {}) {
 }
 
 function nativeProtocolStatus(protocol = {}, env = process.env) {
-  const protocolKeys = [protocol.factoryEnv, protocol.programEnv, protocol.rpcEnv].filter(Boolean);
-  const protocolKeyPresent = protocolKeys.some((key) => hasEnv(env, key));
-  const rpcKeys = [...new Set([...(protocol.rpcEnv ? [protocol.rpcEnv] : []), ...chainRpcKeys(protocol)])];
-  const rpcPresent = rpcKeys.some((key) => hasEnv(env, key));
-  const liveReady =
-    protocol.family === "evm-deployment"
-      ? rpcPresent
-      : protocol.family === "evm-factory" || protocol.family === "solana-program"
-      ? protocolKeyPresent && rpcPresent
-      : protocolKeyPresent || rpcPresent;
+  const protocolKeys = [protocol.factoryEnv, protocol.programEnv, protocol.eventTopic0Env].filter(Boolean);
+  const rpcKeys = [
+    ...new Set([
+      ...(protocol.rpcCandidates || []),
+      ...(protocol.rpcEnv ? [protocol.rpcEnv] : []),
+      ...chainRpcKeys(protocol),
+    ]),
+  ];
+  const identifierReady =
+    protocol.family === "evm-factory"
+      ? Boolean(protocol.factoryAddress && protocol.eventTopic0)
+      : protocol.family === "solana-program"
+      ? Boolean(protocol.programId)
+      : protocol.family === "evm-deployment";
+  const rpcPresent = Boolean(protocol.rpcUrl) || rpcKeys.some((key) => hasEnv(env, key));
+  const liveReady = Boolean(protocol.configured);
+  const coverageWeight = liveReady ? (protocol.rpcSource === "env" ? 1 : protocol.usesPublicRpcFallback ? 0.65 : 0.75) : 0;
   const status = liveReady
-    ? "LIVE_READY"
-    : protocolKeyPresent
+    ? protocol.usesPublicRpcFallback
+      ? "LIVE_READY_PUBLIC_RPC"
+      : "LIVE_READY"
+    : identifierReady
     ? "MISSING_RPC"
     : rpcPresent
     ? "MISSING_PROTOCOL_ID"
@@ -324,38 +333,51 @@ function nativeProtocolStatus(protocol = {}, env = process.env) {
     priority: protocol.priority,
     status,
     liveReady,
-    configuredForDecoding: protocolKeyPresent,
+    coverageWeight,
+    configuredForDecoding: identifierReady,
+    rpcSource: protocol.rpcSource,
+    rpcEnvUsed: protocol.rpcEnvUsed,
+    usesPublicRpcFallback: Boolean(protocol.usesPublicRpcFallback),
+    usesStaticProtocolDefaults: Boolean(protocol.usesStaticProtocolDefaults),
     protocolKeys,
     rpcKeys,
-    missingProtocolKeys: protocolKeyPresent ? [] : protocolKeys,
+    missingProtocolKeys: identifierReady ? [] : protocolKeys,
     missingRpcKeys: rpcPresent ? [] : rpcKeys,
   };
 }
 
 export function buildNativeReadiness(env = process.env) {
-  const protocols = NATIVE_PROTOCOLS.map((protocol) => nativeProtocolStatus(protocol, env)).sort(
-    (a, b) => b.priority - a.priority
-  );
+  const protocols = getNativeProtocolConfigs({ env }).map((protocol) => nativeProtocolStatus(protocol, env));
   const liveReady = protocols.filter((protocol) => protocol.liveReady);
+  const publicRpcReady = liveReady.filter((protocol) => protocol.usesPublicRpcFallback);
+  const envRpcReady = liveReady.filter((protocol) => protocol.rpcSource === "env");
   const decodingReady = protocols.filter((protocol) => protocol.configuredForDecoding);
+  const effectiveLiveReadyProtocols = protocols.reduce((sum, protocol) => sum + num(protocol.coverageWeight), 0);
   const byChain = protocols.reduce((acc, protocol) => {
     acc[protocol.chain] = acc[protocol.chain] || {
       total: 0,
       liveReady: 0,
+      liveReadyPublicRpc: 0,
+      liveReadyEnvRpc: 0,
       configuredForDecoding: 0,
       protocols: [],
     };
     acc[protocol.chain].total += 1;
     acc[protocol.chain].liveReady += protocol.liveReady ? 1 : 0;
+    acc[protocol.chain].liveReadyPublicRpc += protocol.liveReady && protocol.usesPublicRpcFallback ? 1 : 0;
+    acc[protocol.chain].liveReadyEnvRpc += protocol.liveReady && protocol.rpcSource === "env" ? 1 : 0;
     acc[protocol.chain].configuredForDecoding += protocol.configuredForDecoding ? 1 : 0;
     acc[protocol.chain].protocols.push(protocol.id);
     return acc;
   }, {});
 
   return {
-    score: Math.round(clamp((liveReady.length / Math.max(1, protocols.length)) * 100)),
+    score: Math.round(clamp((effectiveLiveReadyProtocols / Math.max(1, protocols.length)) * 100)),
     totalProtocols: protocols.length,
     liveReadyProtocols: liveReady.length,
+    effectiveLiveReadyProtocols: Number(effectiveLiveReadyProtocols.toFixed(2)),
+    liveReadyEnvRpcProtocols: envRpcReady.length,
+    liveReadyPublicRpcProtocols: publicRpcReady.length,
     decodingReadyProtocols: decodingReady.length,
     unconfiguredProtocols: protocols.length - decodingReady.length,
     byChain,

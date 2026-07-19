@@ -23,8 +23,11 @@ test("OP mode key readiness reports missing groups without exposing values", () 
 
 test("OP mode native readiness requires protocol identifiers and RPC access", () => {
   const readiness = buildNativeReadiness({
+    NATIVE_PUBLIC_RPC_FALLBACKS: "false",
     BASE_AERODROME_FACTORY: "0xFactory",
     BASE_RPC_URL: "https://base.example",
+    BASE_AERODROME_POOL_CREATED_TOPIC0:
+      "0x783cca1c0412dd0d695e784568c98b25e9f8e00ae1352967ec6f45493ed1c2c",
     SOLANA_PUMP_FUN_PROGRAM: "pump-program",
   });
 
@@ -34,6 +37,16 @@ test("OP mode native readiness requires protocol identifiers and RPC access", ()
   assert.equal(aerodrome.status, "LIVE_READY");
   assert.equal(pump.status, "MISSING_RPC");
   assert.ok(readiness.liveReadyProtocols >= 1);
+});
+
+test("OP mode native readiness discounts public fallback RPC compared with dedicated RPC", () => {
+  const publicOnly = buildNativeReadiness({});
+  const withDedicatedBaseRpc = buildNativeReadiness({ BASE_RPC_URL: "https://base.example" });
+  const rawPublicRatio = Math.round((publicOnly.liveReadyProtocols / publicOnly.totalProtocols) * 100);
+
+  assert.ok(publicOnly.liveReadyPublicRpcProtocols > 0);
+  assert.ok(publicOnly.score < rawPublicRatio);
+  assert.ok(withDedicatedBaseRpc.score > publicOnly.score);
 });
 
 test("OP mode readiness produces next actions for weak setup", () => {
