@@ -54,6 +54,11 @@ import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEng
 import { writeScannerVNextReport } from "./scannerVNextReportEngine.js";
 import { writeAlphaTruthKernelReport } from "./alphaTruthKernelReportEngine.js";
 import { writeEngineDataReadinessReport } from "./engineDataReadinessReportEngine.js";
+import { writeCapitalMigrationReport } from "./capitalMigrationReportEngine.js";
+import { writeCapitalRotationReports } from "./capitalRotationReportEngine.js";
+import { writePipelineStageHealthReport } from "./pipelineStageHealthReportEngine.js";
+import { writeExactOutcomeLabReport } from "./exactOutcomeLabReportEngine.js";
+import { writeMathematicalValidationReport } from "./mathematicalValidationReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -217,6 +222,24 @@ export function generateReports(projects = [], meta = {}) {
     filePath: scannerVNextPath,
   } = writeScannerVNextReport(projects);
   const {
+    filePath: capitalMigrationCorePath,
+  } = writeCapitalMigrationReport(projects);
+  const {
+    chainCapitalRotationPath,
+    narrativeCapitalRotationPath,
+    marketCapRotationPath,
+    capitalOutflowWatchPath,
+  } = writeCapitalRotationReports(projects);
+  const {
+    filePath: pipelineStageHealthPath,
+  } = writePipelineStageHealthReport(projects);
+  const {
+    filePath: exactOutcomeHorizonLabPath,
+  } = writeExactOutcomeLabReport(projects);
+  const {
+    filePath: mathematicalValidationPath,
+  } = writeMathematicalValidationReport(meta);
+  const {
     filePath: engineDataReadinessPath,
   } = writeEngineDataReadinessReport(projects);
   const {
@@ -337,6 +360,14 @@ export function generateReports(projects = [], meta = {}) {
     marketOpportunityLearningPath,
     sevenDayTenXResearchPath,
     scannerVNextPath,
+    capitalMigrationCorePath,
+    chainCapitalRotationPath,
+    narrativeCapitalRotationPath,
+    marketCapRotationPath,
+    capitalOutflowWatchPath,
+    pipelineStageHealthPath,
+    exactOutcomeHorizonLabPath,
+    mathematicalValidationPath,
     engineDataReadinessPath,
     alphaTruthKernelPath,
     opModeReadinessPath,

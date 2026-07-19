@@ -4,6 +4,7 @@ import {
   SUPPORTED_CHAIN_REGISTRY,
   addressRejectionReason,
   chainRejectionReason,
+  classifyAddressState,
   normalizeAddress,
   normalizeChainId,
   normalizePoolAddress,
@@ -167,6 +168,9 @@ export function buildCanonicalProject(raw = {}, options = {}) {
   const poolAddress = normalizePoolAddress(rawPoolAddress, chainId);
   const tokenAddress = normalizedTokenAddress && normalizedTokenAddress !== poolAddress ? normalizedTokenAddress : null;
   const deployerAddress = normalizeWalletAddress(rawDeployerAddress, chainId);
+  const tokenAddressState = classifyAddressState(rawTokenAddress, chainId);
+  const poolAddressState = classifyAddressState(rawPoolAddress, chainId);
+  const chainStatus = chainId ? "SUPPORTED_CHAIN" : rawChain ? "UNSUPPORTED_OR_REJECTED_CHAIN" : "MISSING_CHAIN";
   const projectId = first([
     raw.canonicalProjectId,
     raw.permanentProjectKey,
@@ -244,8 +248,19 @@ export function buildCanonicalProject(raw = {}, options = {}) {
     symbol: raw.symbol || raw.ticker || raw.baseToken?.symbol || "UNKNOWN",
     name: raw.name || raw.baseToken?.name || "Unknown",
     identityConfidence: raw.identityConfidence ?? raw.identityResolutionScore ?? (identityEvidence.length ? 55 + Math.min(35, identityEvidence.length * 8) : 15),
+    identityStatus:
+      tokenAddress && poolAddress && !identityConflicts.length
+        ? "VALIDATED_ADDRESS"
+        : identityEvidence.length
+          ? "SYNTACTICALLY_VALID_UNVERIFIED"
+          : "MISSING_ADDRESS",
     identityEvidence,
     identityConflicts,
+    tokenAddressStatus: tokenAddress ? "SYNTACTICALLY_VALID_UNVERIFIED" : tokenAddressState.state,
+    poolAddressStatus: poolAddress ? "SYNTACTICALLY_VALID_UNVERIFIED" : poolAddressState.state,
+    rawTokenAddress: rawTokenAddress || null,
+    rawPoolAddress: rawPoolAddress || null,
+    chainStatus,
     priceUsd: nullableNumber(raw.priceUsd ?? raw.price),
     dexLiquidityUsd: nullableNumber(raw.dexLiquidityUsd),
     stableExitLiquidityUsd: nullableNumber(raw.stableExitLiquidityUsd ?? raw.hardExitLiquidityUsd),

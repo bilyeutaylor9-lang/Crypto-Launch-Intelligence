@@ -34,6 +34,11 @@ import { writeQuantumFieldReport } from "../src/reports/quantumFieldReportEngine
 import { writeQuantumSuiteHealthReport } from "../src/reports/quantumSuiteHealthReportEngine.js";
 import { writeProgressiveOpportunityReport } from "../src/reports/progressiveOpportunityReportEngine.js";
 import { writeEngineDataReadinessReport } from "../src/reports/engineDataReadinessReportEngine.js";
+import { writeCapitalMigrationReport } from "../src/reports/capitalMigrationReportEngine.js";
+import { writeCapitalRotationReports } from "../src/reports/capitalRotationReportEngine.js";
+import { writePipelineStageHealthReport } from "../src/reports/pipelineStageHealthReportEngine.js";
+import { writeExactOutcomeLabReport } from "../src/reports/exactOutcomeLabReportEngine.js";
+import { writeMathematicalValidationReport } from "../src/reports/mathematicalValidationReportEngine.js";
 import {
   REQUIRED_REPORT_FILES,
   validateReportContracts,
@@ -289,12 +294,18 @@ test("pipeline runs Execution Proof before Execution Twin", () => {
   const source = fs.readFileSync(path.resolve("src/intelligencePipeline.js"), "utf8");
   const canonical = source.indexOf('runEngine("Canonical Execution Route"');
   const proof = source.indexOf('runEngine("Execution Proof"');
+  const observation = source.indexOf('runEngine("Capital Flow Observation"');
+  const baseline = source.indexOf('runEngine("Capital Flow Baseline"');
+  const migration = source.indexOf('runEngine("Capital Migration Core"');
   const smallCap = source.indexOf('runEngine("Small Cap Hunter"');
   const twin = source.indexOf('runEngine("Proof of Alpha Execution Twin"');
 
   assert.ok(canonical > -1);
   assert.ok(proof > canonical);
-  assert.ok(smallCap > proof);
+  assert.ok(observation > proof);
+  assert.ok(baseline > observation);
+  assert.ok(migration > baseline);
+  assert.ok(smallCap > migration);
   assert.ok(twin > smallCap);
 });
 
@@ -348,6 +359,11 @@ test("mandatory report contracts are generated and validate", () => {
   writeQuantumSuiteHealthReport(processed);
   writeProgressiveOpportunityReport(processed);
   writeEngineDataReadinessReport(processed);
+  writeCapitalMigrationReport(processed);
+  writeCapitalRotationReports(processed);
+  writePipelineStageHealthReport(processed);
+  writeExactOutcomeLabReport(processed, { observations: [] });
+  writeMathematicalValidationReport();
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -425,6 +441,51 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       coreDataStarved: 1,
       topMissingInputs: [{ fields: "contractAddress or tokenAddress", count: 2 }],
     },
+    "capital-migration-core.json": {
+      status: "OK",
+      counts: { confirmedEarlyFlow: 0, earlyFlowResearch: 1 },
+      topCandidates: [{ symbol: "R1", lane: "EARLY_FLOW_RESEARCH", score: 48 }],
+    },
+    "chain-capital-rotation.json": {
+      projectsAnalyzed: 2,
+      topChainReceivingCapital: { chain: "base", netFlowUsd: 1200 },
+      chainRotation: [],
+    },
+    "narrative-capital-rotation.json": {
+      projectsAnalyzed: 2,
+      topNarrativeReceivingCapital: { narrative: "ai", netFlowUsd: 1200 },
+      narrativeRotation: [],
+    },
+    "market-cap-rotation.json": {
+      projectsAnalyzed: 2,
+      fastestImprovingMarketCapBucket: { marketCapBucket: "micro-cap", netFlowUsd: 1200 },
+      marketCapRotation: [],
+    },
+    "capital-outflow-watch.json": {
+      projectsAnalyzed: 2,
+      outflowWatch: [],
+      reason: "NO_CAPITAL_OUTFLOW_DETECTED",
+    },
+    "pipeline-stage-health.json": {
+      status: "PASS",
+      mandatoryStageFailures: 0,
+      skippedMandatoryStages: [],
+      stages: [],
+    },
+    "mathematical-validation.json": {
+      status: "PASS_WITH_LIMITATIONS",
+      warnings: [],
+      uncalibratedOutputs: [],
+    },
+    "exact-outcome-horizon-lab.json": {
+      status: "INSUFFICIENT_SAMPLE",
+      sampleState: "INSUFFICIENT_SAMPLE",
+      predictionsEvaluated: 0,
+    },
+    "institutional-ranking.json": {
+      counts: { moneyRanked: 0, executionReady: 0 },
+      institutionalMoneyRank: [],
+    },
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {
@@ -440,4 +501,6 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Execution Qualified"));
   assert.ok(html.includes("Organic Input Coverage"));
   assert.ok(html.includes("Quantum Suite Status"));
+  assert.ok(html.includes("Capital Migration"));
+  assert.ok(html.includes("Pipeline Health"));
 });

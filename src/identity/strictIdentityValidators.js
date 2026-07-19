@@ -76,6 +76,7 @@ const CHAIN_ALIASES = Object.freeze({
 
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]+$/;
 const EVM_RE = /^0x[a-fA-F0-9]{40}$/;
+const PLACEHOLDER_RE = /^(research-seed-|rescue-|unknown$|pending$|n\/a$|na$|none$|null$|undefined$|symbol-only$|unresolved:)/i;
 const OBVIOUS_NON_ADDRESS_TERMS = [
   "airdrop",
   "artificial-intelligence",
@@ -146,20 +147,80 @@ function looksLikeNonAddress(value = "") {
   const raw = clean(value);
   const lowered = raw.toLowerCase();
   if (!raw) return false;
+  if (PLACEHOLDER_RE.test(raw)) return true;
   if (/^https?:\/\//i.test(raw) || raw.includes("/") || raw.includes("?") || raw.includes("#")) return true;
   if (raw.includes(".") && !EVM_RE.test(raw)) return true;
   if (raw.includes(":") && !EVM_RE.test(raw)) return true;
   return OBVIOUS_NON_ADDRESS_TERMS.some((term) => lowered.includes(term));
 }
 
-export function normalizeAddress(value = "", chain = null) {
+export function classifyAddressState(value = "", chain = null) {
   const raw = clean(value);
   const normalizedChain = normalizeChainId(chain);
   const kind = normalizedChain ? chainKind(normalizedChain) : null;
-  if (!raw || looksLikeNonAddress(raw)) return null;
-  if (isValidEvmAddress(raw)) return kind === "solana" ? null : raw.toLowerCase();
-  if (isValidSolanaAddress(raw)) return kind === "evm" ? null : raw;
-  return null;
+
+  if (!raw) {
+    return {
+      state: "MISSING_ADDRESS",
+      normalized: null,
+      raw: raw || null,
+      reason: "Address is missing.",
+    };
+  }
+
+  if (PLACEHOLDER_RE.test(raw) || looksLikeNonAddress(raw)) {
+    return {
+      state: "SYNTHETIC_PLACEHOLDER",
+      normalized: null,
+      raw,
+      reason: `Address-like field contains a placeholder or non-address value: ${raw}.`,
+    };
+  }
+
+  if (isValidEvmAddress(raw)) {
+    if (kind === "solana") {
+      return {
+        state: "MALFORMED_ADDRESS",
+        normalized: null,
+        raw,
+        reason: "EVM address supplied for a Solana chain.",
+      };
+    }
+    return {
+      state: "SYNTACTICALLY_VALID_UNVERIFIED",
+      normalized: raw.toLowerCase(),
+      raw,
+      reason: "Address has valid EVM syntax but has not been verified on-chain in this step.",
+    };
+  }
+
+  if (isValidSolanaAddress(raw)) {
+    if (kind === "evm") {
+      return {
+        state: "MALFORMED_ADDRESS",
+        normalized: null,
+        raw,
+        reason: "Solana address supplied for an EVM chain.",
+      };
+    }
+    return {
+      state: "SYNTACTICALLY_VALID_UNVERIFIED",
+      normalized: raw,
+      raw,
+      reason: "Address has valid Solana syntax but has not been verified on-chain in this step.",
+    };
+  }
+
+  return {
+    state: "MALFORMED_ADDRESS",
+    normalized: null,
+    raw,
+    reason: `Address failed supported chain syntax validation: ${raw}.`,
+  };
+}
+
+export function normalizeAddress(value = "", chain = null) {
+  return classifyAddressState(value, chain).normalized;
 }
 
 export function normalizeTokenAddress(value = "", chain = null) {

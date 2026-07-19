@@ -8,9 +8,18 @@ export const REQUIRED_REPORT_FILES = [
   "quantum-field.json",
   "quantum-reasoning-brain.json",
   "quantum-suite-health.json",
+  "capital-migration-core.json",
+  "chain-capital-rotation.json",
+  "narrative-capital-rotation.json",
+  "market-cap-rotation.json",
+  "capital-outflow-watch.json",
+  "pipeline-stage-health.json",
+  "mathematical-validation.json",
+  "exact-outcome-horizon-lab.json",
   "debug-execution-proof.json",
   "debug-stage-health.json",
   "engine-data-readiness.json",
+  "institutional-ranking.json",
 ];
 
 function invalidValueIssues(value, location = "root", issues = []) {
@@ -24,6 +33,10 @@ function invalidValueIssues(value, location = "root", issues = []) {
   }
   if (typeof value === "string" && /^(nan|infinity|-infinity)$/i.test(value.trim())) {
     issues.push(`${location}: non-finite string`);
+    return issues;
+  }
+  if (typeof value === "string" && value.trim() === "N/A") {
+    issues.push(`${location}: ambiguous N/A placeholder`);
     return issues;
   }
   if (Array.isArray(value)) {
@@ -53,6 +66,9 @@ export function validateReportContracts(options = {}) {
     try {
       const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
       const valueIssues = invalidValueIssues(parsed, fileName).slice(0, 25);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
+        valueIssues.push(`${fileName}: empty report object`);
+      }
       if (valueIssues.length) {
         errors.push(...valueIssues);
         files.push({ fileName, status: "INVALID", issues: valueIssues });

@@ -45,6 +45,7 @@ function weightedScore(project = {}) {
     num(project.relativeStrengthScore) * 0.07 +
     num(project.buyPressureScore) * 0.08 +
     num(project.capitalFlowScore) * 0.1 +
+    num(project.capitalMigrationScore) * 0.1 +
     num(project.liquidityScore) * 0.08 +
     num(project.narrativeScore) * 0.08 +
     num(project.narrativeForecastScore) * 0.07 +
@@ -512,6 +513,14 @@ function printReportPaths(paths) {
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
   console.log(`7-Day Asym:   ${paths.sevenDayTenXResearchPath}`);
   if (paths.scannerVNextPath) console.log(`Scanner vNext: ${paths.scannerVNextPath}`);
+  if (paths.capitalMigrationCorePath) console.log(`Capital Migration: ${paths.capitalMigrationCorePath}`);
+  if (paths.chainCapitalRotationPath) console.log(`Chain Rotation: ${paths.chainCapitalRotationPath}`);
+  if (paths.narrativeCapitalRotationPath) console.log(`Narrative Rotation: ${paths.narrativeCapitalRotationPath}`);
+  if (paths.marketCapRotationPath) console.log(`Market-Cap Rotation: ${paths.marketCapRotationPath}`);
+  if (paths.capitalOutflowWatchPath) console.log(`Capital Outflow: ${paths.capitalOutflowWatchPath}`);
+  if (paths.pipelineStageHealthPath) console.log(`Pipeline Health: ${paths.pipelineStageHealthPath}`);
+  if (paths.exactOutcomeHorizonLabPath) console.log(`Outcome Horizons: ${paths.exactOutcomeHorizonLabPath}`);
+  if (paths.mathematicalValidationPath) console.log(`Math Validation: ${paths.mathematicalValidationPath}`);
   if (paths.engineDataReadinessPath) console.log(`Data Readiness:${paths.engineDataReadinessPath}`);
   if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);

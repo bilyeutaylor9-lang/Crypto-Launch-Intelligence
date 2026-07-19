@@ -17,6 +17,14 @@ const PUBLIC_REPORTS = [
   "quantum-field.json",
   "quantum-reasoning-brain.json",
   "quantum-suite-health.json",
+  "capital-migration-core.json",
+  "chain-capital-rotation.json",
+  "narrative-capital-rotation.json",
+  "market-cap-rotation.json",
+  "capital-outflow-watch.json",
+  "pipeline-stage-health.json",
+  "exact-outcome-horizon-lab.json",
+  "mathematical-validation.json",
   "outcome-calibration.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
@@ -140,6 +148,14 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const weightOptimizer = readJsonReport("weight-optimizer.json", reportsDir) || {};
   const breakoutBrain = readJsonReport("breakout-brain.json", reportsDir) || {};
   const quantumSuiteHealth = readJsonReport("quantum-suite-health.json", reportsDir) || {};
+  const capitalMigration = readJsonReport("capital-migration-core.json", reportsDir) || {};
+  const chainRotation = readJsonReport("chain-capital-rotation.json", reportsDir) || {};
+  const narrativeRotation = readJsonReport("narrative-capital-rotation.json", reportsDir) || {};
+  const marketCapRotation = readJsonReport("market-cap-rotation.json", reportsDir) || {};
+  const capitalOutflow = readJsonReport("capital-outflow-watch.json", reportsDir) || {};
+  const pipelineStageHealth = readJsonReport("pipeline-stage-health.json", reportsDir) || {};
+  const exactOutcomeLab = readJsonReport("exact-outcome-horizon-lab.json", reportsDir) || {};
+  const mathematicalValidation = readJsonReport("mathematical-validation.json", reportsDir) || {};
   const highTechAlphaStack = readJsonReport("high-tech-alpha-stack.json", reportsDir) || {};
   const selfEvolvingAlphaOS = readJsonReport("self-evolving-alpha-os.json", reportsDir) || {};
   const alphaTheses = readJsonReport("alpha-theses.json", reportsDir) || {};
@@ -218,6 +234,19 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         "NO QUALIFIED CANDIDATE",
     ],
     ["Exec Lead", executionReady.executionReady?.[0]?.symbol || progressiveOpportunities.executionReady?.[0]?.symbol || "NO VERIFIED ROUTE"],
+    ["Capital Migration", capitalMigration.status || "REPORT NOT GENERATED"],
+    ["Capital Lead", capitalMigration.topCandidates?.[0]?.symbol || "NO QUALIFIED FLOW LEADER"],
+    ["Confirmed Early Flow", capitalMigration.counts?.confirmedEarlyFlow ?? 0],
+    ["Research Flow", capitalMigration.counts?.earlyFlowResearch ?? 0],
+    ["Outflow Watch", capitalOutflow.outflowWatch?.length ?? 0],
+    ["Top Flow Chain", chainRotation.topChainReceivingCapital?.chain || "INSUFFICIENT INPUT DATA"],
+    ["Top Flow Narrative", narrativeRotation.topNarrativeReceivingCapital?.narrative || "INSUFFICIENT INPUT DATA"],
+    ["Top Flow Bucket", marketCapRotation.fastestImprovingMarketCapBucket?.marketCapBucket || "INSUFFICIENT INPUT DATA"],
+    ["Pipeline Health", pipelineStageHealth.status || "REPORT NOT GENERATED"],
+    ["Mandatory Failures", pipelineStageHealth.mandatoryStageFailures ?? 0],
+    ["Outcome Lab", exactOutcomeLab.status || "REPORT NOT GENERATED"],
+    ["Outcome Sample", exactOutcomeLab.sampleState || "INSUFFICIENT_SAMPLE"],
+    ["Math Validation", mathematicalValidation.status || "REPORT NOT GENERATED"],
     ["AI Candidate", topCouncil.symbol || topProject.symbol || "NO QUALIFIED CANDIDATE"],
     ["Council Score", topCouncil.score ?? topProject.aiEcosystemScore ?? 0],
     ["Simulation", topSimulation.symbol || topProject.symbol || "NO QUALIFIED CANDIDATE"],
@@ -616,6 +645,13 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./alpha-evolution-governor.json">Governor</a>
         <a class="button" href="./alpha-evolution-queue.json">Gov Queue</a>
         <a class="button" href="./proof-of-alpha-execution-twin.json">Execution Twin</a>
+        <a class="button" href="./capital-migration-core.json">Capital Migration</a>
+        <a class="button" href="./chain-capital-rotation.json">Chain Rotation</a>
+        <a class="button" href="./narrative-capital-rotation.json">Narrative Rotation</a>
+        <a class="button" href="./capital-outflow-watch.json">Outflow Watch</a>
+        <a class="button" href="./pipeline-stage-health.json">Pipeline Health</a>
+        <a class="button" href="./exact-outcome-horizon-lab.json">Outcome Lab</a>
+        <a class="button" href="./mathematical-validation.json">Math Validation</a>
         <a class="button" href="./organic-demand-integrity.json">Organic Integrity</a>
         <a class="button" href="./discovery-truth.json">Discovery Truth</a>
         <a class="button" href="./pre-consensus-breakout-hunter.json">Pre-Consensus</a>

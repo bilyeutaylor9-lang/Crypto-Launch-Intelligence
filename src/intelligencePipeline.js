@@ -112,6 +112,10 @@ import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeCanonicalExecutionRouteBatch } from "./engines/canonicalExecutionRouteEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
+import { analyzeCapitalFlowObservationBatch } from "./data/capitalFlowObservationStore.js";
+import { analyzeCapitalFlowBaselineBatch } from "./engines/capitalFlowBaselineEngine.js";
+import { analyzeCapitalMigrationCoreBatch } from "./engines/capitalMigrationCoreEngine.js";
+import { analyzeCapitalRotationMapBatch } from "./engines/capitalRotationMapEngine.js";
 import { analyzeSevenDayTenXResearchBatch } from "./engines/sevenDayTenXResearchEngine.js";
 import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
 import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
@@ -215,6 +219,9 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Project Identity Graph",
   "Source Truth",
   "Execution Proof",
+  "Capital Flow Observation",
+  "Capital Flow Baseline",
+  "Capital Migration Core",
   "Opportunity Proof",
   "Final Selection Integrity",
   "Discovery Decision",
@@ -558,6 +565,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.trendChangeScore, weight: 0.7 },
     { score: project.momentumCompressionScore, weight: 0.7 },
     { score: project.capitalFlowScore, weight: 1.0 },
+    { score: project.capitalMigrationScore, weight: 1.3 },
     { score: project.buyPressureScore, weight: 0.9 },
     { score: project.relativeStrengthScore, weight: 0.8 },
     { score: project.opportunityTimingScore, weight: 0.8 },
@@ -1909,6 +1917,14 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
+  const capitalFlowObservationOptions = {
+    ...(options.capitalFlowObservation || {}),
+    persist: options.capitalFlowObservation?.persist ?? options.saveMemory !== false,
+  };
+  results = await runEngine("Capital Flow Observation", analyzeCapitalFlowObservationBatch, results, capitalFlowObservationOptions);
+  results = await runEngine("Capital Flow Baseline", analyzeCapitalFlowBaselineBatch, results, options.capitalFlowBaseline || {});
+  results = await runEngine("Capital Migration Core", analyzeCapitalMigrationCoreBatch, results, options.capitalMigrationCore || {});
+  results = await runEngine("Capital Rotation Map", analyzeCapitalRotationMapBatch, results, options.capitalRotationMap || {});
   results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
