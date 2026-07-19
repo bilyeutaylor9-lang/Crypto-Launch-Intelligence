@@ -10,6 +10,7 @@ export const REQUIRED_REPORT_FILES = [
   "quantum-suite-health.json",
   "debug-execution-proof.json",
   "debug-stage-health.json",
+  "engine-data-readiness.json",
 ];
 
 function invalidValueIssues(value, location = "root", issues = []) {

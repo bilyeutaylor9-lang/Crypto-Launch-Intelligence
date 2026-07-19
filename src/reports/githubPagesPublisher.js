@@ -94,6 +94,7 @@ const PUBLIC_REPORTS = [
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
+  "engine-data-readiness.json",
 ];
 
 function copyIfExists(fileName = "", reportsDir = REPORTS_DIR, docsDir = DOCS_DIR) {
@@ -171,6 +172,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const autonomousResearch = readJsonReport("autonomous-research.json", reportsDir) || {};
   const sourceRouter = readJsonReport("source-router.json", reportsDir) || {};
   const audit = readJsonReport("engine-audit.json", reportsDir) || {};
+  const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -310,6 +312,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
     ["Engine Audit", audit.auditName || "REPORT NOT GENERATED"],
     ["Engines", audit.totalEngines ?? 0],
+    ["Data Readiness", engineDataReadiness.averageCoverage ?? 0],
+    ["Core Data Ready", engineDataReadiness.coreReady ?? 0],
+    ["Core Data Starved", engineDataReadiness.coreDataStarved ?? 0],
+    ["Top Data Gap", engineDataReadiness.topMissingInputs?.[0]?.fields || "NO CORE DATA GAP"],
   ]
     .map(
       ([label, value]) => `
@@ -621,6 +627,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
+        <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>

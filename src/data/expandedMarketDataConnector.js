@@ -1,6 +1,11 @@
 // src/data/expandedMarketDataConnector.js
 
 import { runConcurrent, runWithTimeBudget } from "../discovery/discoveryExecutionGrid.js";
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 const HOT_SEARCH_TERMS = [
   "ai",
@@ -54,6 +59,10 @@ function fromPair(pair = "") {
       .replace("USDT", "")
       .replace("USD", "")
   );
+}
+
+function normalizeProviderChain(value = "") {
+  return normalizeChainId(value);
 }
 
 async function fetchJson(url, options = {}) {
@@ -178,41 +187,55 @@ async function runProviderResult(source = "", fn, options = {}) {
 }
 
 function candidate(base = {}) {
-  const chain =
-    base.chain === null
+  const rawChain =
+    base.chain === null || base.chain === undefined
       ? null
-      : base.chain === undefined
-      ? String(base.source || "market").toLowerCase()
       : String(base.chain).toLowerCase();
+  const chain = normalizeProviderChain(rawChain);
   const marketCap = nullableNumber(base.marketCap);
   const fullyDilutedValue = nullableNumber(base.fullyDilutedValue ?? base.fdv);
+  const address = normalizeTokenAddress(base.address, chain);
+  const pairAddress = normalizePoolAddress(base.pairAddress, chain);
+  const providerAssetId = base.providerAssetId || base.id || null;
 
   return {
     name: base.name || "Unknown",
     symbol: normalizeSymbol(base.symbol || base.name || "UNKNOWN"),
     chain,
+    declaredChain: base.declaredChain || rawChain,
     exchange: base.exchange || null,
     baseSymbol: base.baseSymbol || normalizeSymbol(base.symbol || base.name || "UNKNOWN"),
     quoteSymbol: base.quoteSymbol || null,
     assetKey:
       base.assetKey ||
-      (base.address && chain ? `${chain}:${String(base.address).toLowerCase()}` : null) ||
-      (base.id ? `${base.source || "provider"}:${base.id}` : null) ||
+      (address && chain ? `${chain}:${String(address).toLowerCase()}` : null) ||
+      (providerAssetId ? `${base.source || "provider"}:${providerAssetId}` : null) ||
       `symbol:${normalizeSymbol(base.symbol || base.name || "UNKNOWN")}:${String(base.name || "").toLowerCase()}`,
-    marketKey: base.marketKey || (base.id ? `${base.source || "expanded-market"}:${base.id}` : null),
-    address: base.address || null,
-    pairAddress: base.pairAddress || base.id || null,
+    marketKey: base.marketKey || (providerAssetId ? `${base.source || "expanded-market"}:${providerAssetId}` : null),
+    providerAssetId,
+    address,
+    pairAddress,
     dex: base.dex || "market",
     url: base.url || null,
     priceUsd: nullableNumber(base.priceUsd),
     liquidityUsd: nullableNumber(base.liquidityUsd),
     volume24h: nullableNumber(base.volume24h),
+    volume6h: nullableNumber(base.volume6h),
+    volume1h: nullableNumber(base.volume1h),
     priceChange24h: nullableNumber(base.priceChange24h),
+    priceChange6h: nullableNumber(base.priceChange6h),
+    priceChange1h: nullableNumber(base.priceChange1h),
+    priceChange7d: nullableNumber(base.priceChange7d),
     marketCap,
     fullyDilutedValue,
     fdv: fullyDilutedValue,
     tvlUsd: nullableNumber(base.tvlUsd ?? base.tvl),
     tvl: nullableNumber(base.tvlUsd ?? base.tvl),
+    attentionSpendUsd: nullableNumber(base.attentionSpendUsd),
+    boostAmount: nullableNumber(base.boostAmount),
+    totalBoostAmount: nullableNumber(base.totalBoostAmount),
+    adType: base.adType || null,
+    claimDate: base.claimDate || null,
     category: base.category || "",
     source: base.source || "expanded-market",
     description: [base.description, base.name, base.symbol, base.category, base.source]
@@ -326,11 +349,11 @@ export async function getCoinLoreCandidates(options = {}) {
     candidate({
       name: asset.name,
       symbol: asset.symbol,
-      chain: "coinlore",
+      chain: null,
       id: asset.id,
       url: `https://www.coinlore.com/coin/${asset.nameid || asset.id}`,
       priceUsd: asset.price_usd,
-      liquidityUsd: asset.market_cap_usd,
+      liquidityUsd: null,
       volume24h: asset.volume24,
       priceChange24h: asset.percent_change_24h,
       marketCap: asset.market_cap_usd,
@@ -338,6 +361,67 @@ export async function getCoinLoreCandidates(options = {}) {
       description: `${asset.name || ""} ${asset.symbol || ""} CoinLore market data`,
     })
   );
+}
+
+export async function getCoinLoreAssetsCandidates(options = {}) {
+  const limit = Number(options.limit || 1000);
+  const assets = await fetchJson("https://api.coinlore.net/api/assets/");
+
+  return (Array.isArray(assets) ? assets : [])
+    .slice(0, limit)
+    .map((asset) =>
+      candidate({
+        name: asset.name,
+        symbol: asset.symbol,
+        chain: null,
+        id: asset.id,
+        url: `https://www.coinlore.com/coin/${asset.nameid || asset.id}`,
+        priceUsd: null,
+        liquidityUsd: null,
+        volume24h: null,
+        priceChange24h: null,
+        marketCap: null,
+        category: "coinlore asset universe",
+        source: "coinlore-assets",
+        description: `${asset.name || ""} ${asset.symbol || ""} CoinLore asset directory rank ${asset.rank || "unknown"}`,
+      })
+    );
+}
+
+export async function getCoinLoreMoversCandidates(options = {}) {
+  const limit = Number(options.limit || 120);
+  const sortWindows = options.sortWindows || ["1h", "24h", "7d"];
+  const rows = [];
+
+  for (const sort of sortWindows) {
+    const response = await fetchJson(`https://api.coinlore.net/api/movers/?sort=${encodeURIComponent(sort)}`);
+    const data = response.data || {};
+    for (const direction of ["winners", "losers"]) {
+      rows.push(
+        ...((data[direction] || []).map((asset) =>
+          candidate({
+            name: asset.name,
+            symbol: asset.symbol,
+            chain: null,
+            id: asset.id,
+            url: `https://www.coinlore.com/coin/${asset.nameid || asset.id}`,
+            priceUsd: asset.price_usd,
+            liquidityUsd: null,
+            volume24h: asset.volume24,
+            priceChange24h: asset.percent_change_24h,
+            priceChange1h: asset.percent_change_1h,
+            priceChange7d: asset.percent_change_7d,
+            marketCap: asset.market_cap_usd,
+            category: `coinlore ${sort} ${direction}`,
+            source: "coinlore-movers",
+            description: `${asset.name || ""} ${asset.symbol || ""} CoinLore ${sort} ${direction} mover`,
+          })
+        ))
+      );
+    }
+  }
+
+  return rows.slice(0, limit);
 }
 
 export async function getCryptoCompareCandidates(options = {}) {
@@ -366,7 +450,7 @@ export async function getCryptoCompareCandidates(options = {}) {
     return candidate({
       name: coin.FullName || coin.Name,
       symbol: coin.Name,
-      chain: "cryptocompare",
+      chain: null,
       id: coin.Id || coin.Name,
       url: coin.Url ? `https://www.cryptocompare.com${coin.Url}` : null,
       priceUsd: raw.PRICE,
@@ -392,13 +476,14 @@ export async function getDefiLlamaYieldCandidates(options = {}) {
       candidate({
         name: pool.project || pool.symbol,
         symbol: pool.symbol || pool.project,
-        chain: pool.chain || "defillama-yields",
+        chain: normalizeProviderChain(pool.chain),
+        declaredChain: pool.chain || null,
         id: pool.pool,
         dex: "yield-pool",
         url: pool.url || "https://defillama.com/yields",
-        priceUsd: 0,
+        priceUsd: null,
         liquidityUsd: pool.tvlUsd,
-        volume24h: 0,
+        volume24h: null,
         priceChange24h: pool.apyPct1D,
         tvl: pool.tvlUsd,
         category: "yield staking defi",
@@ -418,18 +503,85 @@ export async function getDefiLlamaStablecoinCandidates(options = {}) {
       candidate({
         name: asset.name,
         symbol: asset.symbol,
-        chain: "stablecoins",
+        chain: null,
         id: asset.id,
         url: "https://defillama.com/stablecoins",
         priceUsd: asset.price,
         liquidityUsd: asset.circulating?.peggedUSD,
-        volume24h: 0,
+        volume24h: null,
         marketCap: asset.circulating?.peggedUSD,
         category: "stablecoin payments settlement",
         source: "defillama-stablecoins",
         description: `${asset.name || ""} ${asset.symbol || ""} stablecoin payments settlement DeFiLlama`,
       })
     );
+}
+
+export async function getDexScreenerCommunityTakeoverCandidates(options = {}) {
+  const limit = Number(options.limit || 100);
+  const rows = await fetchJson("https://api.dexscreener.com/community-takeovers/latest/v1");
+
+  return (rows || []).slice(0, limit).map((takeover) =>
+    candidate({
+      name: takeover.header || takeover.description || takeover.tokenAddress,
+      symbol: takeover.header || takeover.tokenAddress,
+      chain: takeover.chainId,
+      address: takeover.tokenAddress,
+      pairAddress: null,
+      dex: "community-takeover",
+      url: takeover.url,
+      priceUsd: null,
+      liquidityUsd: null,
+      volume24h: null,
+      priceChange24h: null,
+      claimDate: takeover.claimDate,
+      category: "community takeover social catalyst",
+      source: "dexscreener-community-takeovers",
+      description: [
+        takeover.header,
+        takeover.description,
+        takeover.claimDate,
+        "DexScreener community takeover discovery",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    })
+  );
+}
+
+export async function getDexScreenerAdCandidates(options = {}) {
+  const limit = Number(options.limit || 100);
+  const rows = await fetchJson("https://api.dexscreener.com/ads/latest/v1");
+
+  return (rows || []).slice(0, limit).map((ad) =>
+    candidate({
+      name: ad.header || ad.description || ad.tokenAddress,
+      symbol: ad.header || ad.tokenAddress,
+      chain: ad.chainId,
+      address: ad.tokenAddress,
+      pairAddress: null,
+      dex: "token-ad",
+      url: ad.url,
+      priceUsd: null,
+      liquidityUsd: null,
+      volume24h: null,
+      priceChange24h: null,
+      adType: ad.type,
+      category: "paid ad attention discovery",
+      source: "dexscreener-ads",
+      description: [
+        ad.header,
+        ad.description,
+        ad.type,
+        ad.date,
+        ad.durationHours ? `duration ${ad.durationHours}h` : "",
+        ad.impressions ? `impressions ${ad.impressions}` : "",
+        "DexScreener ad discovery",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    })
+  );
 }
 
 export async function getDexScreenerSearchCandidates(options = {}) {
@@ -496,10 +648,10 @@ export async function getDexScreenerTokenProfileCandidates(options = {}) {
       pairAddress: null,
       dex: "token-profile",
       url: profile.url,
-      priceUsd: 0,
-      liquidityUsd: 0,
-      volume24h: 0,
-      priceChange24h: 0,
+      priceUsd: null,
+      liquidityUsd: null,
+      volume24h: null,
+      priceChange24h: null,
       category: "new token profile discovery",
       source: "dexscreener-profiles",
       description: [
@@ -533,10 +685,13 @@ export async function getDexScreenerBoostCandidates(options = {}) {
       pairAddress: null,
       dex: "token-boost",
       url: boost.url,
-      priceUsd: 0,
-      liquidityUsd: n(boost.totalAmount) * 1000,
-      volume24h: 0,
-      priceChange24h: 0,
+      priceUsd: null,
+      liquidityUsd: null,
+      volume24h: null,
+      priceChange24h: null,
+      boostAmount: boost.amount,
+      totalBoostAmount: boost.totalAmount,
+      attentionSpendUsd: n(boost.totalAmount) * 1000,
       category: "boosted token launch marketing discovery",
       source: "dexscreener-boosts",
       description: [
@@ -564,7 +719,10 @@ export async function getOkxTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.instId),
         symbol: fromPair(ticker.instId),
-        chain: "okx",
+        chain: null,
+        exchange: "OKX",
+        baseSymbol: fromPair(ticker.instId),
+        quoteSymbol: "USDT",
         id: ticker.instId,
         dex: "cex",
         url: `https://www.okx.com/trade-spot/${String(ticker.instId || "").toLowerCase()}`,
@@ -668,7 +826,10 @@ export async function getGateTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.currency_pair),
         symbol: fromPair(ticker.currency_pair),
-        chain: "gate",
+        chain: null,
+        exchange: "Gate",
+        baseSymbol: fromPair(ticker.currency_pair),
+        quoteSymbol: "USDT",
         id: ticker.currency_pair,
         dex: "cex",
         url: `https://www.gate.io/trade/${ticker.currency_pair}`,
@@ -694,7 +855,10 @@ export async function getMexcTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.symbol),
         symbol: fromPair(ticker.symbol),
-        chain: "mexc",
+        chain: null,
+        exchange: "MEXC",
+        baseSymbol: fromPair(ticker.symbol),
+        quoteSymbol: "USDT",
         id: ticker.symbol,
         dex: "cex",
         url: `https://www.mexc.com/exchange/${ticker.symbol}`,
@@ -720,7 +884,10 @@ export async function getBitgetTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.symbol),
         symbol: fromPair(ticker.symbol),
-        chain: "bitget",
+        chain: null,
+        exchange: "Bitget",
+        baseSymbol: fromPair(ticker.symbol),
+        quoteSymbol: "USDT",
         id: ticker.symbol,
         dex: "cex",
         url: `https://www.bitget.com/spot/${ticker.symbol}`,
@@ -746,7 +913,10 @@ export async function getHtxTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.symbol.toUpperCase()),
         symbol: fromPair(ticker.symbol.toUpperCase()),
-        chain: "htx",
+        chain: null,
+        exchange: "HTX",
+        baseSymbol: fromPair(ticker.symbol.toUpperCase()),
+        quoteSymbol: "USDT",
         id: ticker.symbol,
         dex: "cex",
         url: `https://www.htx.com/trade/${ticker.symbol}`,
@@ -773,7 +943,10 @@ export async function getBitfinexTickerCandidates(options = {}) {
       return candidate({
         name: fromPair(pair),
         symbol: fromPair(pair),
-        chain: "bitfinex",
+        chain: null,
+        exchange: "Bitfinex",
+        baseSymbol: fromPair(pair),
+        quoteSymbol: "USD",
         id: pair,
         dex: "cex",
         url: "https://trading.bitfinex.com",
@@ -799,7 +972,10 @@ export async function getBitstampTickerCandidates(options = {}) {
       candidate({
         name: fromPair(ticker.pair),
         symbol: fromPair(ticker.pair),
-        chain: "bitstamp",
+        chain: null,
+        exchange: "Bitstamp",
+        baseSymbol: fromPair(ticker.pair),
+        quoteSymbol: "USD",
         id: ticker.pair,
         dex: "cex",
         url: "https://www.bitstamp.net/markets/",
@@ -869,12 +1045,16 @@ export async function getExpandedMarketDataProviderBatch(options = {}) {
   const sourceCalls = [
     ["coincap", () => getCoinCapProviderResult({ limit }), true, true],
     ["coinlore", () => getCoinLoreCandidates({ limit })],
+    ["coinlore-assets", () => getCoinLoreAssetsCandidates({ limit })],
+    ["coinlore-movers", () => getCoinLoreMoversCandidates({ limit: Math.min(limit, 120) })],
     ["cryptocompare", () => getCryptoCompareCandidates({ limit, freeOnly })],
     ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit })],
     ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit })],
     ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit })],
     ["dexscreener-profiles", () => getDexScreenerTokenProfileCandidates({ limit })],
     ["dexscreener-boosts", () => getDexScreenerBoostCandidates({ limit })],
+    ["dexscreener-community-takeovers", () => getDexScreenerCommunityTakeoverCandidates({ limit })],
+    ["dexscreener-ads", () => getDexScreenerAdCandidates({ limit })],
     ["okx", () => getOkxTickerCandidates({ limit })],
     ["bybit", () => getBybitProviderResult({ limit }), true],
     ["gate", () => getGateTickerCandidates({ limit })],

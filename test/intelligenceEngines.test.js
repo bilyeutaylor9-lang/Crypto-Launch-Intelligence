@@ -2311,6 +2311,7 @@ test("Binance routes to Binance.US in US mode and keeps liquidity separate from 
     assert.equal(candidate.exchange, "Binance.US");
     assert.equal(candidate.baseSymbol, "BTC");
     assert.equal(candidate.quoteSymbol, "USDT");
+    assert.equal(candidate.pairAddress, null);
     assert.equal(candidate.liquidityUsd, null);
     assert.equal(candidate.volume24h, 1234567);
   } finally {
@@ -2353,6 +2354,7 @@ test("Gemini uses bulk price feed and avoids fake liquidity", async () => {
 
     assert.equal(candidate.source, "gemini");
     assert.equal(candidate.exchange, "Gemini");
+    assert.equal(candidate.pairAddress, null);
     assert.equal(candidate.liquidityUsd, null);
     assert.equal(candidate.volume24h, null);
     assert.equal(candidate.marketCap, null);

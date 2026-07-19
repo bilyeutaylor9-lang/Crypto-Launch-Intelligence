@@ -33,6 +33,7 @@ import { writeOrganicDemandIntegrityReport } from "../src/reports/organicDemandI
 import { writeQuantumFieldReport } from "../src/reports/quantumFieldReportEngine.js";
 import { writeQuantumSuiteHealthReport } from "../src/reports/quantumSuiteHealthReportEngine.js";
 import { writeProgressiveOpportunityReport } from "../src/reports/progressiveOpportunityReportEngine.js";
+import { writeEngineDataReadinessReport } from "../src/reports/engineDataReadinessReportEngine.js";
 import {
   REQUIRED_REPORT_FILES,
   validateReportContracts,
@@ -346,6 +347,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeQuantumFieldReport(processed);
   writeQuantumSuiteHealthReport(processed);
   writeProgressiveOpportunityReport(processed);
+  writeEngineDataReadinessReport(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -417,6 +419,12 @@ test("public dashboard validates reports and contains no literal N/A", () => {
     "debug-stage-health.json": { stageStatus: "COMPLETE", executionChecksVerified: 0, providerFailures: 0 },
     "report.json": { totalProjects: 2, projects: [] },
     "engine-audit.json": { auditName: "Engine Implementation Completeness Audit", totalEngines: 144 },
+    "engine-data-readiness.json": {
+      averageCoverage: 65,
+      coreReady: 1,
+      coreDataStarved: 1,
+      topMissingInputs: [{ fields: "contractAddress or tokenAddress", count: 2 }],
+    },
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {

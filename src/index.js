@@ -512,6 +512,7 @@ function printReportPaths(paths) {
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
   console.log(`7-Day Asym:   ${paths.sevenDayTenXResearchPath}`);
   if (paths.scannerVNextPath) console.log(`Scanner vNext: ${paths.scannerVNextPath}`);
+  if (paths.engineDataReadinessPath) console.log(`Data Readiness:${paths.engineDataReadinessPath}`);
   if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);

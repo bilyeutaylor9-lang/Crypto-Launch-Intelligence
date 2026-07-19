@@ -58,6 +58,7 @@
     "results:health": "node src/reports/reportContractValidator.js",
     "quantum:health": "cat reports/quantum-suite-health.json",
     "routes:debug": "cat reports/debug-execution-proof.json",
+    "data:readiness": "cat reports/engine-data-readiness.json",
     "results:verify": "npm run results:health && npm test",
     "backtest": "node src/outcomeBacktest.js",
     "learn": "node src/outcomeBacktest.js",
