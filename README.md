@@ -638,8 +638,72 @@ Memory files include:
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
+- `data/cli.db`
 
 These files are runtime memory and usually should not be committed.
+
+## Alpha Truth Kernel
+
+The Alpha Truth Kernel creates proof-carrying research receipts for top-ranked projects. A receipt records the project identity, contract, pool, score, final decision, market snapshot, execution-route status, evidence lineage, missing proof, and point-in-time outcome policy at the moment of the scan.
+
+It is designed to make the scanner accountable:
+
+- Internal AI opinions are stored, but they do not count as independent external evidence.
+- Correlated momentum and narrative derivatives are capped before confidence is raised.
+- Final qualification can be blocked by missing identity, route, security, liquidity, or evidence quorum.
+- Outcome V2 uses net executable token return and never uses future scanner score as proof.
+- Missing future snapshots stay missing instead of becoming neutral or positive labels.
+
+Read the latest proof packet after a scan:
+
+```bash
+npm run alpha:truth
+```
+
+## Optional Supabase Sync
+
+Crypto Launch Intelligence can sync completed scan results to Supabase for a hosted dashboard, shared research desk, or long-term queryable memory.
+
+Setup:
+
+```bash
+npm run supabase:schema
+```
+
+Either copy the SQL from `supabase/schema.sql` into the Supabase SQL Editor and run it, or use the checked-in migration:
+
+```bash
+npm run supabase:login
+npm run supabase:link
+npm run supabase:push
+```
+
+The project link targets Supabase project ref `hxziklrkbofamalimllz`. If the CLI asks for access, run `npm run supabase:login` first or set `SUPABASE_ACCESS_TOKEN` locally.
+
+Then add these values to `.env` locally or GitHub Secrets for Actions:
+
+```bash
+SUPABASE_ENABLED=true
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_SYNC_PROJECT_LIMIT=500
+SUPABASE_SYNC_ALPHA_RECEIPTS=true
+```
+
+Check configuration without exposing secrets:
+
+```bash
+npm run supabase:check
+```
+
+When Supabase is configured, normal scans sync:
+
+- `scan_runs`: one row per completed scan
+- `scan_projects`: ranked project rows with score, confidence, final state, liquidity, volume, and compact proof payload
+- `scan_reports`: local report paths generated during the run
+- `alpha_truth_receipts`: immutable point-in-time proof receipts for top ranked projects
+
+The sync is optional by default. If Supabase is down or credentials are missing, scans still complete locally. Set `SUPABASE_SYNC_REQUIRED=true` only if CI should fail when Supabase sync fails.
 
 ## Reports Generated
 
@@ -651,6 +715,7 @@ Every scan can generate a full research packet:
 | `reports/report.json` | Full machine-readable scan output |
 | `reports/opportunities.csv` | Spreadsheet-friendly opportunity export |
 | `reports/summary.txt` | Text summary |
+| `reports/alpha-truth-kernel.json` | Point-in-time proof receipts, evidence lineage, source telemetry, and coverage accounting |
 | `reports/ai-council.json` | AI Council debate and verdicts |
 | `reports/research-os.json` | Lifecycle, scenarios, red-team review, and research tasks |
 | `reports/ai-command-center.json` | Unified AI research desk report |
@@ -837,6 +902,7 @@ This writes `reports/op-mode-readiness.json` and checks:
 - Native launch/pool protocol identifiers
 - Chain RPC/WebSocket readiness
 - Memory datasets for outcomes, paper trades, source routing, native events, and universe accounting
+- Optional Supabase sync configuration
 - GitHub Actions environment wiring
 
 The report never prints secret values. It only reports which key names or protocol settings are present or missing.
@@ -977,6 +1043,19 @@ Run tests:
 
 ```bash
 npm test
+```
+
+Quality and production checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run test:integration
+npm run test:providers
+npm run test:backtest
+npm run test:load
+npm run test:coverage
 ```
 
 Run demo and refresh examples:

@@ -17,6 +17,8 @@ import {
   loadResearchCoverageLedger,
   saveResearchCoveragePlan,
 } from "./learning/researchCoverageStore.js";
+import { syncScanToSupabase } from "./storage/supabaseSync.js";
+import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -303,9 +305,9 @@ function printSummary(summary) {
   console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
   console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
   console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
-  console.log(`7-Day 10x Research Picks: ${summary.sevenDayTenXSelectedCount}`);
-  console.log(`7-Day 10x Watch: ${summary.sevenDayTenXWatchCount}`);
-  console.log(`7-Day 10x Blocks: ${summary.sevenDayTenXBlockedCount}`);
+  console.log(`7-Day Asymmetric Research Picks: ${summary.sevenDayTenXSelectedCount}`);
+  console.log(`7-Day Asymmetric Watch: ${summary.sevenDayTenXWatchCount}`);
+  console.log(`7-Day Asymmetric Blocks: ${summary.sevenDayTenXBlockedCount}`);
   console.log(`vNext Buy Eligible: ${summary.vNextBuyEligibleCount}`);
   console.log(`vNext Blocks / Restricted: ${summary.vNextBlockedCount} / ${summary.vNextRestrictedCount}`);
   console.log(`vNext Low Coverage: ${summary.vNextLowCoverageCount}`);
@@ -404,7 +406,7 @@ function printTopProjects(results) {
     }
     if (project.sevenDayTenXSelected || project.sevenDayTenXWatchRank) {
       console.log(
-        `   7-Day 10x Research: ${project.sevenDayTenXVerdict || "Watch"} (${project.sevenDayTenXScore || 0}, scenario ${project.sevenDayTenXModeledScenarioPct || 0}%)`
+        `   7-Day Asymmetric Research: ${project.sevenDayTenXVerdict || "Watch"} (${project.sevenDayTenXScore || 0}, scenario strength ${project.sevenDayAsymmetricScenarioStrength || project.sevenDayTenXModeledScenarioPct || 0})`
       );
     }
     if (project.organicDemandVerdict) {
@@ -496,8 +498,9 @@ function printReportPaths(paths) {
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
-  console.log(`7-Day 10x:    ${paths.sevenDayTenXResearchPath}`);
+  console.log(`7-Day Asym:   ${paths.sevenDayTenXResearchPath}`);
   if (paths.scannerVNextPath) console.log(`Scanner vNext: ${paths.scannerVNextPath}`);
+  if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
   if (paths.standard4000ExclusionsPath) console.log(`4000 Exclusions:${paths.standard4000ExclusionsPath}`);
@@ -537,6 +540,27 @@ function printReportPaths(paths) {
   console.log("Open dashboard with:");
   console.log("open reports/report.html");
   console.log("");
+}
+
+function printSupabaseSync(sync = {}) {
+  if (!sync.enabled && sync.status === "SKIPPED") return;
+
+  const detail =
+    sync.status === "OK"
+      ? `Run: ${sync.runId} | Projects: ${sync.syncedProjects || 0} | Reports: ${sync.syncedReports || 0} | Alpha receipts: ${sync.syncedAlphaReceipts || 0}`
+      : sync.reason || "unknown";
+
+  console.log(`Supabase Sync: ${sync.status || "UNKNOWN"} | ${detail}`);
+}
+
+function printAlphaTruthMemory(alphaTruth = {}) {
+  const persistence = alphaTruth.persistence || {};
+  if (!persistence.status) return;
+  const detail =
+    persistence.status === "OK"
+      ? `Receipts: ${persistence.receiptsSaved || 0} | Evidence events: ${persistence.evidenceEventsSaved || 0} | Sources: ${persistence.sourceHistorySaved || 0}`
+      : persistence.reason || "not persisted";
+  console.log(`Alpha Truth Memory: ${persistence.status} | ${detail}`);
 }
 
 async function main() {
@@ -597,26 +621,43 @@ async function main() {
       console.warn(`Research coverage ledger failed: ${error.message}`);
     }
 
+    const reportMeta = {
+      runId: `scan_${startedAt.getTime()}`,
+      startedAt: startedAt.toISOString(),
+      completedAt: new Date().toISOString(),
+      discoveredProjects: discoveredList.length,
+      discovery: discoveredProjects,
+      researchCoverage,
+      analysisFunnel: researchPlan.report,
+      scannedProjects: results.length,
+      engineMode: "full",
+      scoringMode: "institutional-weighted-fallback",
+      localAIMode: localAI.mode,
+      platform: "Crypto Launch Intelligence",
+    };
+
+    const alphaTruth = persistAlphaTruthMemory(results, reportMeta);
+    reportMeta.alphaTruth = alphaTruth.report;
+    reportMeta.alphaTruthPersistence = alphaTruth.persistence;
+
     const reportPaths = {
-      ...generateReports(results, {
-        startedAt: startedAt.toISOString(),
-        completedAt: new Date().toISOString(),
-        discoveredProjects: discoveredList.length,
-        discovery: discoveredProjects,
-        researchCoverage,
-        analysisFunnel: researchPlan.report,
-        scannedProjects: results.length,
-        engineMode: "full",
-        scoringMode: "institutional-weighted-fallback",
-        localAIMode: localAI.mode,
-        platform: "Crypto Launch Intelligence",
-      }),
+      ...generateReports(results, reportMeta),
       ...selectionAuditPaths,
     };
+
+    const supabaseSync = await syncScanToSupabase({
+      projects: results,
+      summary,
+      meta: reportMeta,
+      reportPaths,
+      alphaTruth: alphaTruth.report,
+    });
 
     printSummary(summary);
     printTopProjects(results);
     printAlerts(summary);
+    printAlphaTruthMemory(alphaTruth);
+    printSupabaseSync(supabaseSync);
     printReportPaths(reportPaths);
 
     console.log("Scan Complete.");

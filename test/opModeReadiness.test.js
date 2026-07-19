@@ -5,6 +5,7 @@ import {
   buildKeyReadiness,
   buildNativeReadiness,
   buildOpModeReadiness,
+  buildSupabaseReadiness,
 } from "../src/ops/opModeReadiness.js";
 
 test("OP mode key readiness reports missing groups without exposing values", () => {
@@ -59,4 +60,16 @@ test("OP mode readiness produces next actions for weak setup", () => {
   assert.equal(readiness.status, "SETUP_REQUIRED");
   assert.ok(readiness.nextActions.length > 0);
   assert.ok(readiness.datasets.missingCriticalDatasets.length > 0);
+});
+
+test("OP mode Supabase readiness reports setup without exposing secrets", () => {
+  const readiness = buildSupabaseReadiness({
+    SUPABASE_ENABLED: "true",
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "service-secret",
+  });
+
+  assert.equal(readiness.status, "READY");
+  assert.equal(readiness.hasKey, true);
+  assert.equal(JSON.stringify(readiness).includes("service-secret"), false);
 });

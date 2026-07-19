@@ -129,6 +129,7 @@ import {
   validateSniperIntegrityInvariants,
 } from "./engines/sniperIntegrityGateEngine.js";
 import { analyzeInstitutionalDataProvenanceBatch } from "./kernel/institutionalDataProvenanceLedger.js";
+import { analyzeEvidenceLineageCorrelationBatch } from "./kernel/evidenceLineageCorrelationGovernor.js";
 import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressiveOpportunityRankingEngine.js";
 import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
 import { analyzeMarketOpportunityLearningBatch } from "./engines/marketOpportunityLearningEngine.js";
@@ -1910,6 +1911,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Attention Gap", analyzeAttentionGapBatch, results);
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
+  results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
   results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
   results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});

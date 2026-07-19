@@ -3,6 +3,7 @@ import path from "path";
 import "../config/loadEnv.js";
 import { getAllSources } from "../data/dataSourceManager.js";
 import { getNativeProtocolConfigs } from "../data/native/nativePoolConfig.js";
+import { summarizeSupabaseConfig } from "../storage/supabaseSync.js";
 
 const REPORT_DIR = path.resolve("reports");
 const REPORT_FILE = path.join(REPORT_DIR, "op-mode-readiness.json");
@@ -447,6 +448,30 @@ export function buildDatasetReadiness(options = {}) {
   };
 }
 
+export function buildSupabaseReadiness(env = process.env) {
+  const config = summarizeSupabaseConfig(env);
+  const status = !config.enabled ? "DISABLED" : config.configured ? "READY" : "INCOMPLETE";
+
+  return {
+    score: status === "READY" ? 100 : status === "INCOMPLETE" ? 20 : 0,
+    status,
+    enabled: config.enabled,
+    configured: config.configured,
+    hasUrl: config.hasUrl,
+    hasKey: config.hasKey,
+    keyType: config.keyType,
+    required: config.required,
+    syncReports: config.syncReports,
+    projectLimit: config.projectLimit,
+    tables: config.tables,
+    missing: config.configured
+      ? []
+      : ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY"].filter((key) =>
+          key === "SUPABASE_URL" ? !config.hasUrl : !config.hasKey
+        ),
+  };
+}
+
 function workflowEnvReadiness(repoRoot = path.resolve(".")) {
   const workflowFiles = [
     path.join(repoRoot, ".github/workflows/pages-dashboard.yml"),
@@ -526,6 +551,13 @@ function nextActions(report = {}) {
       missing: report.automation.files.flatMap((file) => file.missingKeys).slice(0, 12),
     });
   }
+  if (report.supabase.enabled && report.supabase.status !== "READY") {
+    actions.push({
+      priority: "medium",
+      action: "Finish Supabase sync setup or disable SUPABASE_ENABLED until credentials are available.",
+      missing: report.supabase.missing,
+    });
+  }
 
   return actions;
 }
@@ -536,6 +568,7 @@ export function buildOpModeReadiness(options = {}) {
   const sources = buildSourceReadiness();
   const native = buildNativeReadiness(env);
   const datasets = buildDatasetReadiness(options);
+  const supabase = buildSupabaseReadiness(env);
   const automation = workflowEnvReadiness(options.repoRoot || path.resolve("."));
   const score = Math.round(
     keys.score * 0.25 +
@@ -555,6 +588,7 @@ export function buildOpModeReadiness(options = {}) {
     sources,
     native,
     datasets,
+    supabase,
     automation,
   };
 

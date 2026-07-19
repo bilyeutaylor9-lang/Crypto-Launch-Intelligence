@@ -635,6 +635,9 @@ function buildInvariantViolations(project = {}, gates = {}) {
   if (project.finalSelectionQualified === true && !gates.identity?.contractAddress && !gates.identity?.exchangeAssetId) {
     violations.push("Qualified + Missing Contract");
   }
+  if (project.finalSelectionQualified === true && project.evidenceLineageQualified === false) {
+    violations.push("Qualified + Independent Evidence Quorum Failed");
+  }
 
   return unique(violations);
 }
@@ -733,6 +736,15 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
 
   if (capRequired && !marketCap) {
     missingDataReasons.push("Market-cap/FDV data is missing for a small-cap validation strategy.");
+  }
+
+  if (project.evidenceLineageQualified === false) {
+    missingDataReasons.push(
+      `Independent evidence quorum is incomplete: ${(project.evidenceLineageMissingRequiredGroups || []).join(", ") || "required groups missing"}.`
+    );
+    warningReasons.push(
+      `Effective independent evidence count is ${project.effectiveIndependentEvidenceCount || 0}; correlated evidence penalty is ${project.evidenceCorrelationPenalty || 0}.`
+    );
   }
 
   if (identity.finalIdentityState === FINAL_IDENTITY_STATES.SYMBOL_ONLY) {

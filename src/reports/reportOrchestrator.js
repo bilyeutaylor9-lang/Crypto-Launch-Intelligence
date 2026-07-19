@@ -50,6 +50,7 @@ import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
 import { writeTop10BreakoutReports } from "./top10BreakoutReportEngine.js";
 import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEngine.js";
 import { writeScannerVNextReport } from "./scannerVNextReportEngine.js";
+import { writeAlphaTruthKernelReport } from "./alphaTruthKernelReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -206,6 +207,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: scannerVNextPath,
   } = writeScannerVNextReport(projects);
   const {
+    filePath: alphaTruthKernelPath,
+  } = writeAlphaTruthKernelReport(projects, meta);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -317,6 +321,7 @@ export function generateReports(projects = [], meta = {}) {
     marketOpportunityLearningPath,
     sevenDayTenXResearchPath,
     scannerVNextPath,
+    alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,
