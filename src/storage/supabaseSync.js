@@ -1,4 +1,6 @@
 // src/storage/supabaseSync.js
+import crypto from "node:crypto";
+
 import "../config/loadEnv.js";
 
 const DEFAULT_SCAN_RUNS_TABLE = "scan_runs";
@@ -62,6 +64,19 @@ function compactText(value = "", maxLength = 1200) {
   return raw.length > maxLength ? `${raw.slice(0, Math.max(0, maxLength - 18))}[truncated]` : raw;
 }
 
+function compactIndexedText(value = "", maxLength = 220) {
+  const raw = String(value ?? "").trim();
+  if (raw.length <= maxLength) return raw;
+  const hash = crypto.createHash("sha256").update(raw).digest("hex").slice(0, 16);
+  const prefixLength = Math.max(12, maxLength - hash.length - 6);
+  return `${raw.slice(0, prefixLength)}#${hash}`;
+}
+
+function nullableIndexedText(value = "", maxLength = 220) {
+  const raw = compactIndexedText(value, maxLength);
+  return raw || null;
+}
+
 function compactList(values = [], limit = 12) {
   return (Array.isArray(values) ? values : [values])
     .slice(0, limit)
@@ -73,8 +88,20 @@ function compactList(values = [], limit = 12) {
     .filter(Boolean);
 }
 
+function dedupeRows(rows = [], keyFor = () => "") {
+  const seen = new Map();
+
+  for (const row of rows) {
+    const key = keyFor(row);
+    if (!key || seen.has(key)) continue;
+    seen.set(key, row);
+  }
+
+  return [...seen.values()];
+}
+
 function projectKeyFor(project = {}) {
-  return String(
+  const raw = String(
     project.permanentProjectKey ||
       project.projectKey ||
       project.identityKey ||
@@ -84,6 +111,8 @@ function projectKeyFor(project = {}) {
       project.pairAddress ||
       `${project.chain || "unknown"}:${project.symbol || project.name || "unknown"}`
   ).toLowerCase();
+
+  return compactIndexedText(raw, 220);
 }
 
 function scoreOf(project = {}) {
@@ -94,8 +123,8 @@ function reportRowsFor(runId = "", reportPaths = {}) {
   return Object.entries(reportPaths || {})
     .filter(([key, value]) => key.endsWith("Path") && typeof value === "string" && value)
     .map(([key, value]) => ({
-      run_id: runId,
-      report_name: key.replace(/Path$/, ""),
+      run_id: compactIndexedText(runId, 180),
+      report_name: compactIndexedText(key.replace(/Path$/, ""), 120),
       report_path: value,
     }));
 }
@@ -118,26 +147,27 @@ function compactProjectPayload(project = {}) {
     smallCapHunterVerdict: project.smallCapHunterVerdict || null,
     proofOfAlphaExecutionTwinVerdict: project.proofOfAlphaExecutionTwinVerdict || null,
     opportunityThesis: compactText(project.opportunityThesis || project.explainabilitySummary || "", 900),
+    supabaseMemory: project.supabaseMemory || null,
   };
 }
 
 function receiptRowsFor(receipts = []) {
   return (Array.isArray(receipts) ? receipts : []).map((receipt) => ({
-    receipt_id: receipt.receiptId || receipt.receiptHash,
-    run_id: receipt.runId,
-    project_key: receipt.projectKey,
+    receipt_id: compactIndexedText(receipt.receiptId || receipt.receiptHash || `${receipt.runId}:${receipt.projectKey}`, 220),
+    run_id: compactIndexedText(receipt.runId, 180),
+    project_key: compactIndexedText(receipt.projectKey, 220),
     decision_at: receipt.decisionAt,
-    name: receipt.identity?.name || "Unknown",
-    symbol: receipt.identity?.symbol || "UNKNOWN",
-    chain: receipt.identity?.chain || null,
-    contract_address: receipt.identity?.contractAddress || null,
-    pool_address: receipt.identity?.poolAddress || null,
+    name: compactIndexedText(receipt.identity?.name || "Unknown", 240),
+    symbol: compactIndexedText(receipt.identity?.symbol || "UNKNOWN", 80),
+    chain: nullableIndexedText(receipt.identity?.chain, 80),
+    contract_address: nullableIndexedText(receipt.identity?.contractAddress, 160),
+    pool_address: nullableIndexedText(receipt.identity?.poolAddress, 160),
     rank: num(receipt.decision?.rank),
-    final_state: receipt.decision?.finalState || null,
+    final_state: nullableIndexedText(receipt.decision?.finalState, 80),
     final_qualified: Boolean(receipt.decision?.finalQualified),
     score: num(receipt.decision?.score),
-    confidence: receipt.decision?.confidence || null,
-    truth_status: receipt.truthStatus || "UNKNOWN",
+    confidence: nullableIndexedText(receipt.decision?.confidence, 80),
+    truth_status: compactIndexedText(receipt.truthStatus || "UNKNOWN", 80),
     effective_independent_evidence_count: num(receipt.evidenceLineage?.effectiveIndependentEvidenceCount),
     evidence_families_json: receipt.evidenceLineage?.groups || [],
     required_proof_json: receipt.requiredProof || {},
@@ -217,7 +247,7 @@ export function buildSupabaseScanPayload(input = {}, options = {}) {
   const best = sorted[0] || {};
 
   const run = {
-    run_id: runId,
+    run_id: compactIndexedText(runId, 180),
     started_at: startedAt,
     completed_at: completedAt,
     platform: meta.platform || "Crypto Launch Intelligence",
@@ -228,9 +258,9 @@ export function buildSupabaseScanPayload(input = {}, options = {}) {
     qualified_count: qualified.length,
     blocked_count: blocked.length,
     strong_watchlist_count: num(summary.strongWatchlistCount),
-    best_project: best.name || null,
-    best_symbol: best.symbol || null,
-    best_chain: best.chain || null,
+    best_project: nullableIndexedText(best.name, 240),
+    best_symbol: nullableIndexedText(best.symbol, 80),
+    best_chain: nullableIndexedText(best.chain, 80),
     best_score: scoreOf(best),
     market_regime: summary.marketRegime || null,
     scoring_model: summary.scoringPrimaryModel || "legacy",
@@ -241,30 +271,35 @@ export function buildSupabaseScanPayload(input = {}, options = {}) {
   };
 
   const projectRows = syncedProjects.map((project, index) => ({
-    run_id: runId,
+    run_id: compactIndexedText(runId, 180),
     project_key: projectKeyFor(project),
     rank: index + 1,
-    name: project.name || "Unknown",
-    symbol: project.symbol || "UNKNOWN",
-    chain: project.chain || null,
+    name: compactIndexedText(project.name || "Unknown", 240),
+    symbol: compactIndexedText(project.symbol || "UNKNOWN", 80),
+    chain: nullableIndexedText(project.chain, 80),
     score: scoreOf(project),
-    tier: project.pipelineTier || project.tier || null,
-    confidence: project.pipelineConfidence || project.confidence || null,
-    final_state: project.finalSelectionState || null,
+    tier: nullableIndexedText(project.pipelineTier || project.tier, 80),
+    confidence: nullableIndexedText(project.pipelineConfidence || project.confidence, 80),
+    final_state: nullableIndexedText(project.finalSelectionState, 80),
     final_qualified: Boolean(project.finalSelectionQualified || project.finalSelectionState === "QUALIFIED"),
     risk_score: clamp(project.riskScore ?? project.trapRiskScore ?? project.instantSafetyRiskScore),
     liquidity_usd: num(project.liquidityUsd ?? project.liquidity),
     volume_24h: num(project.volume24h ?? project.volume),
     market_cap_usd: num(project.circulatingMarketCapUsd ?? project.circulatingMarketCap ?? project.marketCap),
-    source: project.source || null,
+    source: nullableIndexedText(project.source, 120),
     payload_json: compactProjectPayload(project),
   }));
+  const dedupedProjectRows = dedupeRows(projectRows, (row) => `${row.run_id}:${row.project_key}`).map((row, index) => ({
+    ...row,
+    rank: index + 1,
+  }));
+  run.synced_project_count = dedupedProjectRows.length;
 
   return {
     run,
-    projects: projectRows,
-    reports: reportRowsFor(runId, reportPaths),
-    alphaReceipts: receiptRowsFor(input.alphaTruth?.receipts || []),
+    projects: dedupedProjectRows,
+    reports: dedupeRows(reportRowsFor(runId, reportPaths), (row) => `${row.run_id}:${row.report_name}`),
+    alphaReceipts: dedupeRows(receiptRowsFor(input.alphaTruth?.receipts || []), (row) => row.receipt_id),
   };
 }
 

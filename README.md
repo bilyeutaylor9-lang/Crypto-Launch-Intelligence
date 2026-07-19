@@ -680,6 +680,13 @@ npm run supabase:push
 
 The project link targets Supabase project ref `hxziklrkbofamalimllz`. If the CLI asks for access, run `npm run supabase:login` first or set `SUPABASE_ACCESS_TOKEN` locally.
 
+In non-interactive environments such as Codex, create a Supabase access token in the Supabase dashboard, then run:
+
+```bash
+SUPABASE_ACCESS_TOKEN=your_supabase_access_token npm run supabase:link
+SUPABASE_ACCESS_TOKEN=your_supabase_access_token npm run supabase:push
+```
+
 Then add these values to `.env` locally or GitHub Secrets for Actions:
 
 ```bash
@@ -700,12 +707,27 @@ Check configuration without exposing secrets:
 npm run supabase:check
 ```
 
+Verify live table reads and write a redacted memory report:
+
+```bash
+npm run supabase:health
+npm run supabase:memory
+```
+
+Verify the full write path with a system-only health row:
+
+```bash
+npm run supabase:health:live
+```
+
 When Supabase is configured, normal scans sync:
 
 - `scan_runs`: one row per completed scan
 - `scan_projects`: ranked project rows with score, confidence, final state, liquidity, volume, and compact proof payload
 - `scan_reports`: local report paths generated during the run
 - `alpha_truth_receipts`: immutable point-in-time proof receipts for top ranked projects
+
+Supabase also acts as remote scanner memory. At the start of a scan, the project reads recent Supabase history, tags candidates with `supabaseMemory`, writes `reports/supabase-memory.json`, and includes the memory summary in report metadata. This helps separate truly new candidates from names the scanner has already seen, previously blocked, or previously qualified.
 
 The sync is optional by default. If Supabase is down or credentials are missing, scans still complete locally. Set `SUPABASE_SYNC_REQUIRED=true` only if CI should fail when Supabase sync fails.
 

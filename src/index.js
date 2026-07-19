@@ -18,6 +18,12 @@ import {
   saveResearchCoveragePlan,
 } from "./learning/researchCoverageStore.js";
 import { syncScanToSupabase } from "./storage/supabaseSync.js";
+import {
+  applySupabaseMemory,
+  collectSupabaseMemory,
+  summarizeSupabaseMemoryImpact,
+  writeSupabaseMemoryReport,
+} from "./storage/supabaseMemory.js";
 import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
@@ -553,6 +559,15 @@ function printSupabaseSync(sync = {}) {
   console.log(`Supabase Sync: ${sync.status || "UNKNOWN"} | ${detail}`);
 }
 
+function printSupabaseMemory(memory = {}) {
+  if (!memory.status || memory.status === "SKIPPED") return;
+  const detail =
+    memory.status === "OK"
+      ? `Matched: ${memory.matchedProjects || 0} | Remembered: ${memory.rememberedProjects || 0} | New: ${memory.newOrUnseenProjects || 0}`
+      : memory.reason || "remote memory unavailable";
+  console.log(`Supabase Memory: ${memory.status} | ${detail}`);
+}
+
 function printAlphaTruthMemory(alphaTruth = {}) {
   const persistence = alphaTruth.persistence || {};
   if (!persistence.status) return;
@@ -604,7 +619,7 @@ async function main() {
       localAI,
     });
 
-    const results = normalizeForReports(pipelineResults);
+    let results = normalizeForReports(pipelineResults);
     const summary = summarizePipelineResults(results);
     let researchCoverage = researchPlan.report;
 
@@ -621,6 +636,17 @@ async function main() {
       console.warn(`Research coverage ledger failed: ${error.message}`);
     }
 
+    let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
+    try {
+      supabaseMemory = await collectSupabaseMemory({ projects: results });
+      results = applySupabaseMemory(results, supabaseMemory);
+    } catch (error) {
+      supabaseMemory = { status: "FAILED", reason: error.message };
+      results = applySupabaseMemory(results, supabaseMemory);
+      console.warn(`Supabase memory failed: ${error.message}`);
+    }
+    const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
+
     const reportMeta = {
       runId: `scan_${startedAt.getTime()}`,
       startedAt: startedAt.toISOString(),
@@ -633,6 +659,7 @@ async function main() {
       engineMode: "full",
       scoringMode: "institutional-weighted-fallback",
       localAIMode: localAI.mode,
+      supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
       platform: "Crypto Launch Intelligence",
     };
 
@@ -642,6 +669,7 @@ async function main() {
 
     const reportPaths = {
       ...generateReports(results, reportMeta),
+      supabaseMemoryPath,
       ...selectionAuditPaths,
     };
 
@@ -657,6 +685,7 @@ async function main() {
     printTopProjects(results);
     printAlerts(summary);
     printAlphaTruthMemory(alphaTruth);
+    printSupabaseMemory(reportMeta.supabaseMemory);
     printSupabaseSync(supabaseSync);
     printReportPaths(reportPaths);
 

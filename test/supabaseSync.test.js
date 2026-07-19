@@ -197,3 +197,72 @@ test("Supabase sync posts scan rows through PostgREST with conflict keys", async
   assert.equal(calls[0].headers.authorization, "Bearer service-secret");
   assert.equal(calls[1].body.length, 2);
 });
+
+test("Supabase sync compacts oversized indexed project fields before upload", async () => {
+  const hugeName = Array.from({ length: 800 }, (_, index) => `Token${index}`).join(" ");
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({
+      url,
+      body: JSON.parse(init.body),
+    });
+    return {
+      ok: true,
+      text: async () => "",
+    };
+  };
+
+  const result = await syncScanToSupabase(
+    {
+      projects: [
+        {
+          name: hugeName,
+          symbol: hugeName,
+          chain: "base",
+          pipelineScore: 88,
+        },
+        {
+          name: hugeName,
+          symbol: hugeName,
+          chain: "base",
+          pipelineScore: 72,
+        },
+      ],
+      meta: {
+        runId: "scan_oversized",
+        startedAt: "2026-07-19T00:00:00.000Z",
+        completedAt: "2026-07-19T00:01:00.000Z",
+      },
+      alphaTruth: {
+        receipts: [
+          {
+            receiptId: `receipt_${hugeName}`,
+            runId: "scan_oversized",
+            projectKey: `base:${hugeName}`,
+            decisionAt: "2026-07-19T00:01:00.000Z",
+            identity: { name: hugeName, symbol: hugeName, chain: "base" },
+            decision: { rank: 1, finalState: "RESEARCH_ONLY", score: 88 },
+            truthStatus: "RESEARCH_ONLY",
+            evidenceLineage: { effectiveIndependentEvidenceCount: 1, groups: [] },
+            requiredProof: {},
+            executionSnapshot: {},
+            marketSnapshot: {},
+          },
+        ],
+      },
+    },
+    { env: ENV, fetchImpl }
+  );
+  const projectRows = calls.find((call) => call.url.includes("/scan_projects"))?.body || [];
+  const receiptRows = calls.find((call) => call.url.includes("/alpha_truth_receipts"))?.body || [];
+
+  assert.equal(result.status, "OK");
+  assert.equal(result.syncedProjects, 1);
+  assert.equal(projectRows.length, 1);
+  assert.ok(projectRows[0].project_key.length <= 220);
+  assert.ok(projectRows[0].name.length <= 240);
+  assert.ok(projectRows[0].symbol.length <= 80);
+  assert.ok(receiptRows[0].receipt_id.length <= 220);
+  assert.ok(receiptRows[0].project_key.length <= 220);
+  assert.ok(receiptRows[0].symbol.length <= 80);
+});
