@@ -115,8 +115,15 @@ export function writeSummaryReport(projects = []) {
   );
   const reliableSources = ranked.filter((p) => Number(p.sourceReliabilityScore || 0) >= 70);
   const highTrapRisk = ranked.filter((p) => Number(p.trapRiskScore || 0) >= 60);
-  const aiStrongBuyCandidates = ranked.filter((p) =>
-    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
+  const aiStrongBuyCandidates = ranked.filter(
+    (p) =>
+      p.aiEcosystemVerdict === "AI Strong Buy" &&
+      p.strongBuyEvidenceGate?.readyForTrueStrongBuy === true &&
+      p.finalSelectionQualified === true &&
+      p.executionProofVerified === true
+  );
+  const aiResearchCandidates = ranked.filter(
+    (p) => p.aiEcosystemVerdict === "Best Available Research Candidate"
   );
   const preStrongBuy = ranked.filter((p) => p.strongBuyLifecycleStage === "Pre-Strong Buy");
   const highDisagreement = ranked.filter((p) => p.aiDisagreement?.level === "High");
@@ -306,6 +313,7 @@ Improving projects: ${improvingProjects.length}
 Reliable source setups: ${reliableSources.length}
 High trap-risk setups: ${highTrapRisk.length}
 AI strong-buy candidates: ${aiStrongBuyCandidates.length}
+AI research candidates: ${aiResearchCandidates.length}
 Pre-strong-buy lifecycle setups: ${preStrongBuy.length}
 High AI-disagreement setups: ${highDisagreement.length}
 Red-team blocks: ${redTeamBlocks.length}

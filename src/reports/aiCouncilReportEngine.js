@@ -34,14 +34,21 @@ export function writeAICouncilReports(projects = []) {
     .sort((a, b) => num(b.aiEcosystemScore) - num(a.aiEcosystemScore))
     .map(compactCouncil);
   const agentPerformance = summarizeAgentPerformanceMemory();
-  const strongBuyCandidates = councilProjects.filter((project) =>
-    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(project.verdict)
+  const strongBuyCandidates = councilProjects.filter(
+    (project) =>
+      project.verdict === "AI Strong Buy" &&
+      project.strongBuyEvidenceGate?.readyForTrueStrongBuy === true
+  );
+  const researchCandidates = councilProjects.filter(
+    (project) => project.verdict === "Best Available Research Candidate"
   );
   const report = {
     generatedAt: new Date().toISOString(),
     totalProjects: projects.length,
     strongBuyCandidateCount: strongBuyCandidates.length,
     strongBuyCandidates,
+    researchCandidateCount: researchCandidates.length,
+    researchCandidates,
     topCouncilSetups: councilProjects.slice(0, 25),
     agentPerformance,
   };

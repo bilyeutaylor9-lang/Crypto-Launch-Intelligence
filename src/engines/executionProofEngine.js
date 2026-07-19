@@ -1,3 +1,5 @@
+import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -188,10 +190,43 @@ function sellRouteConfirmedUnavailable(project = {}, routes = []) {
   return ["cannot sell", "sell unavailable", "sell route unavailable", "honeypot", "transfer blocked"].some((term) => text.includes(term));
 }
 
-function statusFor({ project, routes, buyRouteAvailable, sellRouteAvailable, liquidity, quoteAge, outage }) {
+function verifiedIdentity(project = {}) {
+  return Boolean(
+    project.identityVerified === true ||
+      project.contractVerified === true ||
+      project.projectIdentityVerdict === "Identity Resolved" ||
+      ["VERIFIED_CONTRACT", "VERIFIED_LISTING"].includes(project.finalIdentityState || project.identityState)
+  );
+}
+
+function safetyNonBlocked(project = {}, routes = []) {
+  return Boolean(
+    project.honeypotDetected !== true &&
+      num(project.honeypotRiskScore) < 85 &&
+      !sellRouteConfirmedUnavailable(project, routes) &&
+      !["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus) &&
+      project.verifiedScam !== true
+  );
+}
+
+function statusFor({
+  project,
+  routes,
+  buyRouteAvailable,
+  sellRouteAvailable,
+  liquidity,
+  quoteAge,
+  outage,
+  chainVerified,
+  contractVerified,
+  poolVerified,
+  quoteVerified,
+  safetyVerified,
+}) {
   if (project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || sellRouteConfirmedUnavailable(project, routes)) return "HONEYPOT_RISK";
   if (project.chainMismatch === true || project.contractChainMismatch === true) return "CHAIN_MISMATCH";
   if (project.canonicalIdentityHardBlock === true || project.identityStatus === "CONTRACT_CONFLICT") return "CONTRACT_MISMATCH";
+  if (!chainVerified || !contractVerified || !poolVerified || !quoteVerified || !safetyVerified) return outage ? "PROVIDER_UNAVAILABLE" : "UNKNOWN";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000 && quoteAge !== null && quoteAge > 21_600) return "STALE_QUOTE";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000) return "VERIFIED";
   if ((buyRouteAvailable || sellRouteAvailable || routes.some((route) => route.verified)) && liquidity > 0) return "PARTIALLY_VERIFIED";
@@ -222,6 +257,11 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
     project.smallCapHunter?.execution?.slippagePct,
   ]);
+  const chainVerified = Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
+  const contractVerified = Boolean(addressOf(project) && verifiedIdentity(project));
+  const poolVerified = Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
+  const quoteVerified = Boolean(price > 0 && liquidity > 0 && quoteAge !== null);
+  const safetyVerified = safetyNonBlocked(project, routes);
   const executionStatus = statusFor({
     project,
     routes,
@@ -230,6 +270,11 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     liquidity,
     quoteAge,
     outage,
+    chainVerified,
+    contractVerified,
+    poolVerified,
+    quoteVerified,
+    safetyVerified,
   });
   const failureReasons = [];
   if (executionStatus === "PROVIDER_UNAVAILABLE") failureReasons.push("Execution provider unavailable; no negative route conclusion made.");
@@ -240,6 +285,11 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (executionStatus === "HONEYPOT_RISK") failureReasons.push("Sell-route or honeypot evidence is unsafe.");
   if (executionStatus === "CONTRACT_MISMATCH") failureReasons.push("Contract identity mismatch prevents execution proof.");
   if (executionStatus === "CHAIN_MISMATCH") failureReasons.push("Chain mismatch prevents execution proof.");
+  if (!chainVerified) failureReasons.push("Correct chain is not verified.");
+  if (!contractVerified) failureReasons.push("Verified token contract is missing.");
+  if (!poolVerified) failureReasons.push("Verified liquidity pool is missing.");
+  if (!quoteVerified) failureReasons.push("Verified quote is missing or stale/unknown.");
+  if (!safetyVerified) failureReasons.push("Execution safety is blocked or unresolved.");
 
   const supportingSources = routes
     .filter((route) => route.verified || route.buy || route.sell)
@@ -263,6 +313,11 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     estimatedSlippage1000: slippageFor(liquidity, 1000, null),
     buyRouteAvailable,
     sellRouteAvailable,
+    chainVerified,
+    contractVerified,
+    poolVerified,
+    quoteVerified,
+    safetyVerified,
     honeypotEvidence: project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 ? "DETECTED" : null,
     transferTaxEvidence: project.transferTaxEvidence || project.taxEvidence || null,
     quoteFreshnessSeconds: quoteAge,
@@ -280,10 +335,32 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const moneyEvidence = {
     buyRoute: buyRouteAvailable ? { value: true, status: "VERIFIED" } : { value: null, status: executionStatus === "PROVIDER_UNAVAILABLE" ? "UNKNOWN" : "UNKNOWN", reason: failureReasons[0] || "Buy route not verified" },
     sellRoute: sellRouteAvailable ? { value: true, status: "VERIFIED" } : { value: null, status: executionStatus === "PROVIDER_UNAVAILABLE" ? "UNKNOWN" : "UNKNOWN", reason: failureReasons[0] || "Sell route not verified" },
+    chain: chainVerified ? { value: chainOf(project), status: "VERIFIED" } : { value: chainOf(project), status: "UNKNOWN", reason: "Correct chain not verified" },
+    contract: contractVerified ? { value: addressOf(project), status: "VERIFIED" } : { value: addressOf(project), status: "UNKNOWN", reason: "Verified token contract missing" },
+    pool: poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
     quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteAge <= 3600 ? "VERIFIED" : "STALE" },
     liquidity: liquidity ? { value: liquidity, status: liquidity >= 5_000 ? "VERIFIED" : "LOW" } : { value: null, status: "UNKNOWN", reason: "Liquidity provider unavailable or missing" },
     slippage100: executionProof.estimatedSlippage100 === null ? { value: null, status: "UNKNOWN", reason: "Slippage quote unavailable" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
   };
+  const executionCoverage = calculateEvidenceCoverage([
+    { label: "correct chain", status: chainVerified ? "VERIFIED" : "UNKNOWN" },
+    { label: "verified token contract", status: contractVerified ? "VERIFIED" : "UNKNOWN" },
+    { label: "verified liquidity pool", status: poolVerified ? "VERIFIED" : "UNKNOWN" },
+    { label: "verified quote", status: quoteVerified ? "VERIFIED" : "UNKNOWN" },
+    { label: "tradable buy route", status: buyRouteAvailable ? "VERIFIED" : "UNKNOWN" },
+    { label: "tradable sell route", status: sellRouteAvailable ? "VERIFIED" : "UNKNOWN" },
+    { label: "non-blocked safety", status: safetyVerified ? "VERIFIED" : "FAILED" },
+    numericMetric({
+      label: "liquidity depth",
+      value: liquidity,
+      source: "execution-proof",
+      timestamp: new Date().toISOString(),
+      confidence: liquidity >= 5_000 ? 85 : liquidity > 0 ? 45 : 0,
+      freshness: quoteAge === null ? "UNKNOWN" : quoteAge <= 3600 ? "FRESH" : "STALE",
+      provenance: "executionProof.liquidityUsd",
+      status: liquidity >= 5_000 ? "VERIFIED" : liquidity > 0 ? "PARTIAL" : "UNKNOWN",
+    }),
+  ]);
 
   const moneyConfidence = Math.round(
     clamp(
@@ -321,6 +398,8 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     moneyStatus: moneyStatusFor(executionStatus),
     moneyEvidence,
     moneyMissingEvidence,
+    executionEvidenceCoveragePercent: executionCoverage.evidenceCoveragePercent,
+    executionEvidenceCoverage: executionCoverage,
   };
 }
 

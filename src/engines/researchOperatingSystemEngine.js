@@ -19,7 +19,7 @@ function lifecycleStage(project = {}) {
   if (project.aiEcosystemVerdict === "AI Strong Buy" && project.strongBuyEvidenceGate?.readyForTrueStrongBuy) {
     return "AI Strong Buy";
   }
-  if (project.aiEcosystemVerdict === "Best Available Strong Buy Candidate") return "Pre-Strong Buy";
+  if (project.aiEcosystemVerdict === "Best Available Research Candidate") return "Research Candidate";
   if (project.aiEcosystemVerdict === "AI Priority Watch") return "Priority Watch";
   if (project.aiEcosystemVerdict === "AI Watchlist" || num(project.confidenceAdjustedScore) >= 50) {
     return "Watch";
@@ -204,8 +204,8 @@ function redTeam(project = {}) {
   if (num(project.tokenUnlockRiskScore) >= 60 || num(project.vestingPressureScore) >= 60) {
     concerns.push("Unlock or vesting pressure could invalidate the setup.");
   }
-  if (project.aiEcosystemVerdict === "Best Available Strong Buy Candidate") {
-    concerns.push("Best-available candidate is not the same as true strong-buy confirmation.");
+  if (project.aiEcosystemVerdict === "Best Available Research Candidate") {
+    concerns.push("Best-available research candidate still needs required proof before promotion.");
   }
 
   return {

@@ -198,6 +198,37 @@ test("confirmed execution and identity proof can reach sniper-ready lane", () =>
   assert.ok(project.moneyScore >= 60);
 });
 
+test("execution proof stays unknown when contract, pool, or quote evidence is missing", () => {
+  const [project] = analyzeExecutionProofBatch([
+    strongProject({
+      contractAddress: null,
+      pairAddress: null,
+      contractVerified: false,
+      identityVerified: false,
+      finalIdentityState: "UNRESOLVED_IDENTITY",
+      purchaseRoute: {
+        purchasable: true,
+        sellable: true,
+        preferredRoute: "MetaMask",
+        status: "Available Route Detected",
+        routes: [],
+      },
+      proofOfAlphaExecutionTwin: {
+        route: { detected: true, preferredRoute: "MetaMask", status: "Detected" },
+        quote: {},
+        safety: { blockers: [] },
+      },
+    }),
+  ]);
+
+  assert.equal(project.executionStatus, "UNKNOWN");
+  assert.equal(project.executionProofVerified, false);
+  assert.ok(project.executionEvidenceCoveragePercent < 100);
+  assert.ok(project.executionProof.failureReasons.includes("Verified token contract is missing."));
+  assert.ok(project.executionProof.failureReasons.includes("Verified liquidity pool is missing."));
+  assert.ok(project.executionProof.failureReasons.includes("Verified quote is missing or stale/unknown."));
+});
+
 test("AKE-style movers stay best-available when advisory AI rejects without deterministic danger", () => {
   const [project] = analyzeProgressiveOpportunityRankingBatch(
     analyzeFinalSelectionIntegrityBatch(

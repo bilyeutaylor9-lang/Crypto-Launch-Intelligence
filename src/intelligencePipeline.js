@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
 import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
@@ -131,6 +133,7 @@ import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressive
 import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
 import { analyzeMarketOpportunityLearningBatch } from "./engines/marketOpportunityLearningEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
+import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -203,6 +206,24 @@ function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
+const REQUIRED_ENGINE_NAMES = new Set([
+  "Project Identity Graph",
+  "Source Truth",
+  "Execution Proof",
+  "Opportunity Proof",
+  "Final Selection Integrity",
+  "Discovery Decision",
+  "Instant Safety Gate",
+  "Contract Authority Risk",
+  "Organic Demand Integrity",
+]);
+
+function engineCriticality(name = "", options = {}) {
+  if (options.required === true) return "REQUIRED";
+  if (options.required === false) return "OPTIONAL";
+  return REQUIRED_ENGINE_NAMES.has(name) ? "REQUIRED" : "OPTIONAL";
+}
+
 function engineKey(name = "Engine") {
   return String(name || "Engine")
     .trim()
@@ -217,6 +238,14 @@ function averageNumeric(values = []) {
 }
 
 function inferProjectCoverage(project = {}) {
+  const coverage = calculateEvidenceCoverage([
+    { label: "vNext evidence coverage", status: project.evidenceCoverageScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "opportunity evidence coverage", status: project.opportunityEvidenceCoverage > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "sniper evidence coverage", status: project.sniperEvidenceCoverage > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "source truth", status: project.sourceTruthScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "source reliability", status: project.sourceReliabilityScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "evidence array", status: Array.isArray(project.evidence) && project.evidence.length ? "VERIFIED" : "UNKNOWN" },
+  ]);
   return averageNumeric([
     project.evidenceCoverageScore,
     project.opportunityEvidenceCoverage,
@@ -224,6 +253,7 @@ function inferProjectCoverage(project = {}) {
     project.dataConfidenceScore,
     project.sourceReliabilityScore,
     project.sourceTruthScore,
+    coverage.evidenceCoveragePercent,
     Array.isArray(project.evidence) ? Math.min(100, project.evidence.length * 8) : 0,
   ]);
 }
@@ -244,12 +274,14 @@ function buildStandardEngineResult({
   projects = [],
   failureReason = "",
   durationMs = 0,
+  criticality = "OPTIONAL",
 } = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const coverage = averageNumeric(safeProjects.map(inferProjectCoverage));
   return {
     engineName: name,
     engineVersion: "v1",
+    criticality,
     status,
     score: averageNumeric(safeProjects.map(inferProjectScore)),
     confidence: coverage ? Number((coverage / 100).toFixed(2)) : 0,
@@ -271,7 +303,10 @@ function buildStandardEngineResult({
 function engineHealthFromResults(engineResults = {}) {
   const records = Object.values(engineResults || {});
   const countStatus = (status) => records.filter((record) => record.status === status).length;
+  const failures = records.filter((record) => record.status === "FAILED");
+  const requiredFailures = failures.filter((record) => record.criticality === "REQUIRED");
   return {
+    pipelineStatus: requiredFailures.length ? "FAILED" : failures.length ? "DEGRADED" : "OK",
     enginesAttempted: records.length,
     enginesSuccessful: countStatus("SUCCESS"),
     enginesPartial: countStatus("PARTIAL"),
@@ -280,10 +315,14 @@ function engineHealthFromResults(engineResults = {}) {
     enginesStale: countStatus("STALE"),
     averageEvidenceCoverage: averageNumeric(records.map((record) => record.evidenceCoverage)),
     staleSourceCount: countStatus("STALE"),
-    failedEngines: records
-      .filter((record) => record.status === "FAILED")
+    requiredEngineFailures: requiredFailures.map((record) => ({
+      engineName: record.engineName,
+      failureReason: record.failureReason,
+    })),
+    failedEngines: failures
       .map((record) => ({
         engineName: record.engineName,
+        criticality: record.criticality,
         failureReason: record.failureReason,
       })),
   };
@@ -306,24 +345,64 @@ function attachEngineResult(projects = [], record = {}) {
   return enriched;
 }
 
+function writePipelineFailureReport(record = {}, projects = []) {
+  const reportsDir = path.resolve("reports");
+  fs.mkdirSync(reportsDir, { recursive: true });
+  const report = {
+    generatedAt: new Date().toISOString(),
+    pipelineStatus: "FAILED",
+    reason: "Required engine failed.",
+    failedEngine: {
+      engineName: record.engineName,
+      status: record.status,
+      criticality: record.criticality,
+      failureReason: record.failureReason,
+      durationMs: record.durationMs,
+    },
+    projectsReturnedSafely: Array.isArray(projects) ? projects.length : 0,
+    actionRequired: [
+      "Fix the required engine failure before trusting scan output.",
+      "Re-run npm test and the scan command after repair.",
+      "Do not publish dashboard results from this failed run.",
+    ],
+  };
+  const filePath = path.join(reportsDir, "pipeline-failure-report.json");
+  fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
+  return filePath;
+}
+
+function maybeFailClosed(record = {}, projects = []) {
+  if (record.criticality !== "REQUIRED" || record.status !== "FAILED") return;
+  const filePath = writePipelineFailureReport(record, projects);
+  const error = new Error(`Required engine failed: ${record.engineName}. Failure report: ${filePath}`);
+  error.engineFailureReportPath = filePath;
+  error.engineResult = record;
+  throw error;
+}
+
 export async function runEngine(name, engine, projects, options = {}) {
   const safeProjects = Array.isArray(projects)
     ? projects
     : normalizeEngineOutput(projects, []);
   const startedAt = Date.now();
+  const criticality = engineCriticality(name, options);
 
   try {
     if (typeof engine !== "function") {
       console.log(`Skipping ${name}: engine not found`);
-      return attachEngineResult(
+      const record = buildStandardEngineResult({
+        name,
+        status: "FAILED",
+        projects: safeProjects,
+        failureReason: "Engine function was not found.",
+        criticality,
+      });
+      const nextProjects = attachEngineResult(
         safeProjects,
-        buildStandardEngineResult({
-          name,
-          status: "FAILED",
-          projects: safeProjects,
-          failureReason: "Engine function was not found.",
-        })
+        record
       );
+      maybeFailClosed(record, nextProjects);
+      return nextProjects;
     }
 
     console.log(`Running ${name}...`);
@@ -337,27 +416,35 @@ export async function runEngine(name, engine, projects, options = {}) {
         : normalized.length < safeProjects.length
           ? "PARTIAL"
           : "SUCCESS";
-    return attachEngineResult(
+    const record = buildStandardEngineResult({
+      name,
+      status,
+      projects: normalized,
+      durationMs: Date.now() - startedAt,
+      criticality,
+    });
+    const nextProjects = attachEngineResult(
       normalized,
-      buildStandardEngineResult({
-        name,
-        status,
-        projects: normalized,
-        durationMs: Date.now() - startedAt,
-      })
+      record
     );
+    return nextProjects;
   } catch (error) {
+    if (error.engineResult?.criticality === "REQUIRED") throw error;
     console.log(`${name} failed: ${error.message}`);
-    return attachEngineResult(
+    const record = buildStandardEngineResult({
+      name,
+      status: "FAILED",
+      projects: safeProjects,
+      failureReason: error.message,
+      durationMs: Date.now() - startedAt,
+      criticality,
+    });
+    const nextProjects = attachEngineResult(
       safeProjects,
-      buildStandardEngineResult({
-        name,
-        status: "FAILED",
-        projects: safeProjects,
-        failureReason: error.message,
-        durationMs: Date.now() - startedAt,
-      })
+      record
     );
+    maybeFailClosed(record, nextProjects);
+    return nextProjects;
   }
 }
 
@@ -2022,8 +2109,12 @@ export function summarizePipelineResults(results = []) {
   );
   const highTrapRiskSetups = safeResults.filter((p) => num(p.trapRiskScore) >= 60);
   const reliableSourceSetups = safeResults.filter((p) => num(p.sourceReliabilityScore) >= 70);
-  const aiStrongBuySetups = safeResults.filter((p) =>
-    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
+  const aiStrongBuySetups = safeResults.filter(
+    (p) =>
+      p.aiEcosystemVerdict === "AI Strong Buy" &&
+      p.strongBuyEvidenceGate?.readyForTrueStrongBuy === true &&
+      p.finalSelectionQualified === true &&
+      p.executionProofVerified === true
   );
   const preStrongBuySetups = safeResults.filter((p) => p.strongBuyLifecycleStage === "Pre-Strong Buy");
   const highDisagreementSetups = safeResults.filter((p) => p.aiDisagreement?.level === "High");

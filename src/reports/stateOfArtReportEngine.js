@@ -99,9 +99,18 @@ export function writeStateOfArtReport(projects = []) {
     .slice(0, 25)
     .map(compactProject);
   const aiStrongBuyCandidates = [...projects]
-    .filter((project) =>
-      ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(project.aiEcosystemVerdict)
+    .filter(
+      (project) =>
+        project.aiEcosystemVerdict === "AI Strong Buy" &&
+        project.strongBuyEvidenceGate?.readyForTrueStrongBuy === true &&
+        project.finalSelectionQualified === true &&
+        project.executionProofVerified === true
     )
+    .sort((a, b) => num(b.aiEcosystemScore) - num(a.aiEcosystemScore))
+    .slice(0, 25)
+    .map(compactProject);
+  const aiResearchCandidates = [...projects]
+    .filter((project) => project.aiEcosystemVerdict === "Best Available Research Candidate")
     .sort((a, b) => num(b.aiEcosystemScore) - num(a.aiEcosystemScore))
     .slice(0, 25)
     .map(compactProject);
@@ -123,9 +132,11 @@ export function writeStateOfArtReport(projects = []) {
       highTrapRisk: highTrapRisk.length,
       reliableSources: reliableSources.length,
       aiStrongBuyCandidates: aiStrongBuyCandidates.length,
+      aiResearchCandidates: aiResearchCandidates.length,
       simulationBrainCandidates: simulationBrainCandidates.length,
     },
     aiStrongBuyCandidates,
+    aiResearchCandidates,
     simulationBrainCandidates,
     topConfidenceAdjusted,
     hotNarratives,

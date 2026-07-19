@@ -71,7 +71,7 @@ function chain(project = {}) {
 }
 
 function marketCap(project = {}) {
-  return num(first([project.circulatingMarketCapUsd, project.marketCap, project.estimatedMarketCapUsd, project.fdv]));
+  return num(first([project.circulatingMarketCapUsd, project.circulatingMarketCap, project.marketCap, project.estimatedMarketCapUsd]));
 }
 
 function liquidity(project = {}) {

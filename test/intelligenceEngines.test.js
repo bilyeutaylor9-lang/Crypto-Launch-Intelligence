@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import { analyzeNarrativeLaunchStaking } from "../src/engines/narrativeLaunchStakingEngine.js";
 import { analyzeOpportunityProof } from "../src/engines/opportunityProofEngine.js";
@@ -213,7 +214,30 @@ test("web research agent builds a priority queue without spending search budget"
   assert.ok(results[0].webResearchPlan.queries.length > 0);
 });
 
-test("AI ecosystem council selects one best available strong-buy candidate when no true strong buy exists", () => {
+test("required pipeline engines fail closed and write a failure report", async () => {
+  const reportPath = "reports/pipeline-failure-report.json";
+  if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+
+  await assert.rejects(
+    () =>
+      runEngine(
+        "Execution Proof",
+        () => {
+          throw new Error("execution provider wrapper crashed");
+        },
+        [{ name: "Required Failure", symbol: "REQ" }]
+      ),
+    /Required engine failed: Execution Proof/
+  );
+
+  assert.equal(fs.existsSync(reportPath), true);
+  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  assert.equal(report.pipelineStatus, "FAILED");
+  assert.equal(report.failedEngine.engineName, "Execution Proof");
+  assert.match(report.failedEngine.failureReason, /execution provider wrapper crashed/);
+});
+
+test("AI ecosystem council selects one best available research candidate when no true strong buy exists", () => {
   const results = analyzeAIEcosystemCouncilBatch([
     {
       name: "BetterSetup",
@@ -239,11 +263,11 @@ test("AI ecosystem council selects one best available strong-buy candidate when 
   ]);
 
   const selected = results.find(
-    (project) => project.aiEcosystemVerdict === "Best Available Strong Buy Candidate"
+    (project) => project.aiEcosystemVerdict === "Best Available Research Candidate"
   );
 
   assert.equal(selected.name, "BetterSetup");
-  assert.match(selected.aiEcosystemCaveat, /manual confirmation/);
+  assert.match(selected.aiEcosystemCaveat, /not cleared every required gate/);
   assert.ok(selected.strongBuyEvidenceGate.blockers.length > 0);
   assert.ok(selected.aiDebate.moderator.length > 0);
   assert.ok(selected.whyNow.invalidation.length > 0);
@@ -273,6 +297,14 @@ test("AI ecosystem council grants true strong buy only when evidence gate clears
       outcomeLearningScore: 72,
       prePumpPatternScore: 74,
       projectChangeScore: 72,
+      discoverySources: ["dexscreener", "geckoterminal"],
+      identityVerified: true,
+      contractVerified: true,
+      projectIdentityVerdict: "Identity Resolved",
+      identityResolutionScore: 92,
+      executionProofVerified: true,
+      executionStatus: "VERIFIED",
+      activeLiquidityTruthScore: 82,
       trapRiskScore: 10,
       riskScore: 18,
       externalRiskScore: 0,
@@ -287,7 +319,7 @@ test("AI ecosystem council grants true strong buy only when evidence gate clears
 test("research operating system builds lifecycle, scenarios, tasks, and red-team review", () => {
   const result = analyzeResearchOperatingSystem({
     name: "ResearchOS",
-    aiEcosystemVerdict: "Best Available Strong Buy Candidate",
+    aiEcosystemVerdict: "Best Available Research Candidate",
     confidenceAdjustedScore: 62,
     narrativeHeatScore: 82,
     webResearchPriority: 72,
@@ -303,7 +335,7 @@ test("research operating system builds lifecycle, scenarios, tasks, and red-team
     },
   });
 
-  assert.equal(result.strongBuyLifecycleStage, "Pre-Strong Buy");
+  assert.equal(result.strongBuyLifecycleStage, "Research Candidate");
   assert.ok(result.multiTimeframeIntelligence.bestHorizon);
   assert.ok(result.scenarioPlan.bullCase.score >= result.scenarioPlan.bearCase.score);
   assert.ok(result.autonomousResearchTasks.some((task) => task.priority === "High"));

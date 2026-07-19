@@ -1,4 +1,5 @@
 import { summarizeSourceRouter } from "../data/adaptiveSourceRouter.js";
+import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -92,24 +93,61 @@ export function analyzeSourceTruth(project = {}, context = {}) {
   const sourceTruthScore = Math.round(
     clamp(avgTrust * 0.34 + agreement * 0.34 + sourceCountScore * 0.18 + num(project.sourceReliabilityScore) * 0.14 - conflictPenalty)
   );
+  const evidenceCoverage = calculateEvidenceCoverage([
+    {
+      label: "source stack",
+      status: normalized.length ? "VERIFIED" : "MISSING",
+    },
+    numericMetric({
+      label: "average source trust",
+      value: trustScores.length ? avgTrust : null,
+      source: "source-truth",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: trustScores.length ? 75 : 0,
+      freshness: project.staleEvidenceCount > 0 ? "STALE" : "CURRENT_OR_UNKNOWN",
+      provenance: "sourceTruth.averageTrust",
+    }),
+    numericMetric({
+      label: "evidence agreement",
+      value: agreement > 0 ? agreement : null,
+      source: "source-truth",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: agreement > 0 ? 70 : 0,
+      freshness: project.staleEvidenceCount > 0 ? "STALE" : "CURRENT_OR_UNKNOWN",
+      provenance: "sourceTruth.evidenceAgreement",
+    }),
+    numericMetric({
+      label: "source reliability",
+      value: project.sourceReliabilityScore,
+      source: "source-truth",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: project.sourceReliabilityScore === undefined ? 0 : 70,
+      freshness: project.staleEvidenceCount > 0 ? "STALE" : "CURRENT_OR_UNKNOWN",
+      provenance: "sourceReliabilityScore",
+    }),
+  ]);
+  const calibratedSourceTruthScore = Math.round(
+    clamp(sourceTruthScore - evidenceCoverage.confidencePenalty * 0.25)
+  );
 
   return {
     ...project,
-    sourceTruthScore,
+    sourceTruthScore: calibratedSourceTruthScore,
     sourceTruthVerdict:
-      sourceTruthScore >= 75
+      calibratedSourceTruthScore >= 75
         ? "Verified Source Stack"
-        : sourceTruthScore >= 58
+        : calibratedSourceTruthScore >= 58
         ? "Usable Source Stack"
-        : sourceTruthScore >= 40
+        : calibratedSourceTruthScore >= 40
         ? "Thin Source Stack"
         : "Weak Source Stack",
     sourceTruth: {
-      score: sourceTruthScore,
+      score: calibratedSourceTruthScore,
       sources: trustScores,
       sourceCount: normalized.length,
       averageTrust: avgTrust,
       evidenceAgreement: agreement,
+      evidenceCoverage,
       conflictPenalty,
       strongestSource: rankedTrustScores[0] || null,
       weakestSource: rankedTrustScores[rankedTrustScores.length - 1] || null,
@@ -123,9 +161,9 @@ export function analyzeSourceTruth(project = {}, context = {}) {
       {
         engine: "Source Truth Engine",
         signal: "source reliability, provider history, and cross-evidence agreement",
-        score: sourceTruthScore,
-        confidence: Math.min(0.86, 0.35 + normalized.length * 0.08),
-        impact: sourceTruthScore >= 65 ? "Positive" : sourceTruthScore <= 35 ? "Negative" : "Neutral",
+        score: calibratedSourceTruthScore,
+        confidence: Math.min(0.86, (evidenceCoverage.evidenceCoveragePercent / 100) * (0.35 + normalized.length * 0.08)),
+        impact: calibratedSourceTruthScore >= 65 ? "Positive" : calibratedSourceTruthScore <= 35 ? "Negative" : "Neutral",
         reasons: [
           `${normalized.length} normalized source groups.`,
           `Average source trust ${avgTrust}; evidence agreement ${agreement}.`,

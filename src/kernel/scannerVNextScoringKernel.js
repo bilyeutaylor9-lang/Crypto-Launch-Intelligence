@@ -340,7 +340,7 @@ function weightedAverage(items = []) {
 }
 
 function marketCap(project = {}) {
-  return num(first(project, ["circulatingMarketCapUsd", "marketCap", "estimatedMarketCapUsd", "fdv"]));
+  return num(first(project, ["circulatingMarketCapUsd", "circulatingMarketCap", "marketCap", "estimatedMarketCapUsd"]));
 }
 
 function liquidityUsd(project = {}) {

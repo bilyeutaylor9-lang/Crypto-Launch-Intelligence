@@ -50,7 +50,7 @@ function liquidityUsd(project = {}) {
 }
 
 function marketCapUsd(project = {}) {
-  return marketValue(project, ["marketCap", "fdv", "market.marketCap", "market.fdv"]);
+  return marketValue(project, ["marketCap", "circulatingMarketCap", "circulatingMarketCapUsd", "market.marketCap"]);
 }
 
 function returnPct(entry = 0, current = 0) {

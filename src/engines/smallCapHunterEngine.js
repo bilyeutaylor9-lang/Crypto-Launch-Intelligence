@@ -55,7 +55,7 @@ function average(values = []) {
 }
 
 function marketCap(project = {}) {
-  return num(project.marketCap || project.fdv || project.marketData?.marketCap || project.rawCandidate?.marketCap);
+  return num(project.marketCap || project.circulatingMarketCap || project.circulatingMarketCapUsd || project.marketData?.marketCap || project.rawCandidate?.marketCap);
 }
 
 function liquidity(project = {}) {

@@ -74,7 +74,7 @@ function normalizeForReports(tokens = []) {
           token.narrativeForecast?.narrative ||
           "",
         volume24h: token.volume24h ?? token.volume ?? "",
-        marketCap: token.marketCap ?? token.fdv ?? "",
+        marketCap: token.marketCap ?? token.circulatingMarketCap ?? token.circulatingMarketCapUsd ?? "",
         liquidity: token.liquidityUsd ?? token.liquidity ?? "",
       };
     })

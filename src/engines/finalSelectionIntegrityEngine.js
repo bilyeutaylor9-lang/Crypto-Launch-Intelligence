@@ -348,9 +348,8 @@ function marketCapUsd(project = {}) {
   return Math.max(
     num(project.marketCap),
     num(project.circulatingMarketCap),
+    num(project.circulatingMarketCapUsd),
     num(project.verifiedMarketCap),
-    num(project.fdv),
-    num(project.fullyDilutedValue),
     num(project.smallCapMarketCap),
     num(project.marketData?.marketCap),
     num(project.rawCandidate?.marketCap)
@@ -557,7 +556,7 @@ function selectedEarlier(project = {}, flags = previousSelectionFlags(project)) 
     Object.values(flags).some(Boolean) ||
       project.smallCapHunterVerdict === "Top-2 Small-Cap Research Candidate" ||
       project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate" ||
-      ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(project.aiEcosystemVerdict)
+      project.aiEcosystemVerdict === "AI Strong Buy"
   );
 }
 

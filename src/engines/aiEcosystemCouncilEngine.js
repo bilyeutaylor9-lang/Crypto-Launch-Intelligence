@@ -1,4 +1,5 @@
 import { summarizeAgentPerformanceMemory } from "../learning/agentPerformanceMemoryStore.js";
+import { calculateEvidenceCoverage, confidenceFromCoverage } from "../kernel/evidenceCoverage.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -34,6 +35,27 @@ function agent(name, score, stance, message) {
 function evidenceGate(project = {}, agents = [], councilScore = 0) {
   const bullishAgents = agents.filter((item) => item.score >= 70).length;
   const riskOfficer = agents.find((item) => item.name === "Risk Officer");
+  const sourceCount = new Set([
+    project.source,
+    ...(project.discoverySources || []),
+    ...(project.sources || []),
+    ...(project.evidenceSources || []),
+  ].filter(Boolean)).size;
+  const identityVerified =
+    project.identityVerified === true ||
+    project.contractVerified === true ||
+    project.projectIdentityVerdict === "Identity Resolved" ||
+    num(project.identityResolutionScore) >= 70;
+  const contractVerified =
+    project.contractVerified === true ||
+    project.finalIdentityState === "VERIFIED_CONTRACT" ||
+    project.identityState === "VERIFIED_CONTRACT";
+  const executionVerified = project.executionProofVerified === true || project.executionStatus === "VERIFIED";
+  const liquidityVerified =
+    project.activeLiquidityTruthVerdict === "Usable Exit Liquidity Confirmed" ||
+    num(project.activeLiquidityTruthScore) >= 60 ||
+    num(project.liquidityScore) >= 60;
+  const freshEnough = !project.staleEvidenceCount && !["STALE", "EXPIRED"].includes(project.dataFreshness);
   const checks = [
     {
       name: "Council score",
@@ -77,8 +99,50 @@ function evidenceGate(project = {}, agents = [], councilScore = 0) {
       value: num(riskOfficer?.score),
       required: ">= 60",
     },
+    {
+      name: "Identity certainty",
+      passed: identityVerified,
+      value: num(project.identityResolutionScore),
+      required: "verified identity or identity score >= 70",
+    },
+    {
+      name: "Independent source count",
+      passed: sourceCount >= 2 || num(project.sourceTruthScore) >= 60,
+      value: sourceCount,
+      required: ">= 2 independent sources or source truth >= 60",
+    },
+    {
+      name: "Data freshness",
+      passed: freshEnough,
+      value: project.dataFreshness || "CURRENT_OR_UNKNOWN",
+      required: "not stale",
+    },
+    {
+      name: "Execution proof",
+      passed: executionVerified,
+      value: project.executionStatus || "UNKNOWN",
+      required: "executionStatus VERIFIED",
+    },
+    {
+      name: "Liquidity verification",
+      passed: liquidityVerified,
+      value: num(project.activeLiquidityTruthScore || project.liquidityScore),
+      required: "verified usable liquidity",
+    },
+    {
+      name: "Contract verification",
+      passed: contractVerified,
+      value: project.finalIdentityState || project.identityState || project.contractVerified || false,
+      required: "verified token contract",
+    },
   ];
   const passed = checks.filter((check) => check.passed).length;
+  const evidenceCoverage = calculateEvidenceCoverage(
+    checks.map((check) => ({
+      label: check.name,
+      status: check.passed ? "VERIFIED" : check.value === undefined || check.value === null || check.value === "" ? "MISSING" : "UNKNOWN",
+    }))
+  );
 
   return {
     passed,
@@ -86,6 +150,7 @@ function evidenceGate(project = {}, agents = [], councilScore = 0) {
     readyForTrueStrongBuy: passed === checks.length,
     checks,
     blockers: checks.filter((check) => !check.passed).map((check) => check.name),
+    evidenceCoverage,
   };
 }
 
@@ -286,9 +351,14 @@ function applyBestCandidateFallback(projects = []) {
 
     return {
       ...project,
-      aiEcosystemVerdict: "Best Available Strong Buy Candidate",
+      aiEcosystemVerdict: "Best Available Research Candidate",
       aiEcosystemCaveat:
-        "This is the strongest candidate in the current scan, but it still needs manual confirmation before treating it as a true strong buy.",
+        "This is the strongest research candidate in the current scan, but it has not cleared every required gate for a strong-buy research designation.",
+      aiEcosystemCouncil: {
+        ...(project.aiEcosystemCouncil || {}),
+        verdict: "Best Available Research Candidate",
+        summary: "Council selected this as the best available research candidate in a weak scan.",
+      },
       alphaTags: [...new Set([...(project.alphaTags || []), "Best Available AI Candidate"])],
     };
   });
@@ -320,18 +390,22 @@ export function analyzeAIEcosystemCouncil(project = {}, options = {}) {
   const whyNowOutput = whyNow(project, agents, gate);
   const bullishAgents = agents.filter((item) => ["bullish", "cleared"].includes(item.stance));
   const cautiousAgents = agents.filter((item) => ["cautious", "blocked"].includes(item.stance));
+  const aiConfidenceScore = confidenceFromCoverage(councilScore, gate.evidenceCoverage);
 
   return {
     ...project,
     aiEcosystemScore: councilScore,
-    aiEcosystemConfidence: label(councilScore),
+    aiEcosystemConfidenceScore: aiConfidenceScore,
+    aiEcosystemConfidence: label(aiConfidenceScore),
     aiEcosystemVerdict: verdict,
+    aiEcosystemEvidenceCoverage: gate.evidenceCoverage.evidenceCoveragePercent,
     strongBuyEvidenceGate: gate,
     aiDebate: debate,
     whyNow: whyNowOutput,
     aiEcosystemCouncil: {
       score: councilScore,
-      confidence: label(councilScore),
+      confidence: label(aiConfidenceScore),
+      confidenceScore: aiConfidenceScore,
       verdict,
       performanceWeights: weights,
       agents,
@@ -346,8 +420,8 @@ export function analyzeAIEcosystemCouncil(project = {}, options = {}) {
       summary:
         verdict === "AI Strong Buy"
           ? "Council consensus supports a strong-buy research designation."
-          : verdict === "Best Available Strong Buy Candidate"
-          ? "Council selected this as the best available candidate in a weak scan."
+          : verdict === "Best Available Research Candidate"
+          ? "Council selected this as the best available research candidate in a weak scan."
           : "Council requires more confirmation before a strong-buy designation.",
     },
     evidence: [
