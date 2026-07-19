@@ -7,6 +7,7 @@ import {
   summarizeSupabaseConfig,
   syncScanToSupabase,
 } from "../src/storage/supabaseSync.js";
+import { createScannerSupabaseClient } from "../src/storage/supabaseClient.js";
 
 const ENV = {
   SUPABASE_ENABLED: "true",
@@ -29,7 +30,43 @@ test("Supabase config summary never exposes the API key", () => {
   assert.equal(summary.enabled, true);
   assert.equal(summary.configured, true);
   assert.equal(summary.hasKey, true);
+  assert.equal(summary.serverWriteCapable, true);
   assert.equal(serialized.includes("service-secret"), false);
+});
+
+test("Supabase config supports new Supabase URL, secret, publishable, and JWKS names", () => {
+  const config = resolveSupabaseConfig({
+    SUPABASE_URL: "https://example.supabase.co/",
+    SUPABASE_PUBLISHABLE_KEY: "public-key",
+    SUPABASE_SECRET_KEY: "server-secret",
+    SUPABASE_JWKS_URL: "https://example.supabase.co/auth/v1/.well-known/jwks.json",
+  });
+
+  assert.equal(config.enabled, true);
+  assert.equal(config.configured, true);
+  assert.equal(config.url, "https://example.supabase.co");
+  assert.equal(config.keyType, "secret");
+  assert.equal(config.serverWriteCapable, true);
+  assert.equal(config.jwksUrl.endsWith("/.well-known/jwks.json"), true);
+  assert.equal(JSON.stringify(summarizeSupabaseConfig({ ...ENV, SUPABASE_SECRET_KEY: "server-secret" })).includes("server-secret"), false);
+});
+
+test("Supabase publishable-only config is read-only and cannot sync scanner writes", async () => {
+  const env = {
+    SUPABASE_ENABLED: "true",
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_PUBLISHABLE_KEY: "public-key",
+  };
+  const config = resolveSupabaseConfig(env);
+  const sync = await syncScanToSupabase({ projects: [] }, { env });
+  const client = createScannerSupabaseClient({ env });
+
+  assert.equal(config.configured, true);
+  assert.equal(config.keyType, "publishable");
+  assert.equal(config.serverWriteCapable, false);
+  assert.equal(sync.status, "FAILED");
+  assert.match(sync.reason, /SUPABASE_SECRET_KEY|SUPABASE_SERVICE_ROLE_KEY/);
+  assert.equal(client.status, "PUBLIC_READ_ONLY");
 });
 
 test("Supabase payload builds a run, ranked project rows, and report rows", () => {

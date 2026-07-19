@@ -98,7 +98,10 @@ jobs:
           SOLANA_METEORA_DLMM_PROGRAM: ${{ secrets.SOLANA_METEORA_DLMM_PROGRAM }}
           SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || 'false' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_JWKS_URL: ${{ secrets.SUPABASE_JWKS_URL }}
           SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
 
       - name: Upload Reports

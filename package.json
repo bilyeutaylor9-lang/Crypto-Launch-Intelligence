@@ -212,7 +212,7 @@
     "dev": "node --watch src/index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "keywords": [
     "crypto",
@@ -243,6 +243,9 @@
   },
   "homepage": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence",
   "dependencies": {
+    "@supabase/server": "^1.4.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.7",
     "better-sqlite3": "^12.11.1",
     "commander": "^15.0.0",
     "fastify": "^5.10.0",

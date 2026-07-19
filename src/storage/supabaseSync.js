@@ -11,6 +11,28 @@ function text(value = "") {
   return String(value || "").trim();
 }
 
+function firstText(...values) {
+  return values.map((value) => text(value)).find(Boolean) || "";
+}
+
+function resolveSupabaseKey(env = {}) {
+  const candidates = [
+    ["secret", env.SUPABASE_SECRET_KEY, true],
+    ["service_role", env.SUPABASE_SERVICE_ROLE_KEY, true],
+    ["anon", env.SUPABASE_ANON_KEY, false],
+    ["publishable", env.SUPABASE_PUBLISHABLE_KEY, false],
+    ["next_public_publishable", env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, false],
+  ];
+
+  const found = candidates.find(([, value]) => text(value));
+
+  return {
+    key: found ? text(found[1]) : "",
+    keyType: found ? found[0] : "missing",
+    serverWriteCapable: Boolean(found?.[2]),
+  };
+}
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -132,16 +154,18 @@ function receiptRowsFor(receipts = []) {
 }
 
 export function resolveSupabaseConfig(env = process.env) {
-  const url = text(env.SUPABASE_URL).replace(/\/+$/, "");
-  const key = text(env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY);
-  const enabled = boolEnv(env.SUPABASE_ENABLED, Boolean(url && key));
+  const url = firstText(env.SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, "");
+  const keyConfig = resolveSupabaseKey(env);
+  const enabled = boolEnv(env.SUPABASE_ENABLED, Boolean(url && keyConfig.key));
 
   return {
     enabled,
-    configured: Boolean(url && key),
+    configured: Boolean(url && keyConfig.key),
     url,
-    key,
-    keyType: env.SUPABASE_SERVICE_ROLE_KEY ? "service_role" : env.SUPABASE_ANON_KEY ? "anon" : "missing",
+    key: keyConfig.key,
+    keyType: keyConfig.keyType,
+    serverWriteCapable: keyConfig.serverWriteCapable,
+    jwksUrl: text(env.SUPABASE_JWKS_URL),
     restUrl: url ? `${url}/rest/v1` : "",
     required: boolEnv(env.SUPABASE_SYNC_REQUIRED, false),
     syncReports: boolEnv(env.SUPABASE_SYNC_REPORTS, true),
@@ -165,6 +189,8 @@ export function summarizeSupabaseConfig(env = process.env) {
     hasUrl: Boolean(config.url),
     hasKey: Boolean(config.key),
     keyType: config.keyType,
+    serverWriteCapable: config.serverWriteCapable,
+    hasJwksUrl: Boolean(config.jwksUrl),
     required: config.required,
     syncReports: config.syncReports,
     syncAlphaReceipts: config.syncAlphaReceipts,
@@ -300,7 +326,20 @@ export async function syncScanToSupabase(input = {}, options = {}) {
     const result = {
       enabled: true,
       status: "FAILED",
-      reason: "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY are required.",
+      reason: "SUPABASE_URL and a Supabase key are required.",
+    };
+    if (config.required) throw new Error(result.reason);
+    return result;
+  }
+
+  if (!config.serverWriteCapable) {
+    const result = {
+      enabled: true,
+      status: "FAILED",
+      reason:
+        "Supabase scan sync requires SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY because RLS is enabled for scanner tables.",
+      keyType: config.keyType,
+      tables: config.tables,
     };
     if (config.required) throw new Error(result.reason);
     return result;

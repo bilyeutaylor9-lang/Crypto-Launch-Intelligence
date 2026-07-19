@@ -66,10 +66,29 @@ test("OP mode Supabase readiness reports setup without exposing secrets", () => 
   const readiness = buildSupabaseReadiness({
     SUPABASE_ENABLED: "true",
     SUPABASE_URL: "https://example.supabase.co",
-    SUPABASE_SERVICE_ROLE_KEY: "service-secret",
+    SUPABASE_SECRET_KEY: "service-secret",
+    SUPABASE_PUBLISHABLE_KEY: "public-secret",
+    SUPABASE_JWKS_URL: "https://example.supabase.co/auth/v1/.well-known/jwks.json",
   });
 
   assert.equal(readiness.status, "READY");
   assert.equal(readiness.hasKey, true);
+  assert.equal(readiness.keyType, "secret");
+  assert.equal(readiness.serverWriteCapable, true);
+  assert.equal(readiness.hasJwksUrl, true);
   assert.equal(JSON.stringify(readiness).includes("service-secret"), false);
+});
+
+test("OP mode Supabase readiness does not mark publishable-only keys as write-ready", () => {
+  const readiness = buildSupabaseReadiness({
+    SUPABASE_ENABLED: "true",
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_PUBLISHABLE_KEY: "public-secret",
+  });
+
+  assert.equal(readiness.status, "INCOMPLETE");
+  assert.equal(readiness.hasKey, true);
+  assert.equal(readiness.serverWriteCapable, false);
+  assert.ok(readiness.missing.some((item) => item.includes("server write key")));
+  assert.equal(JSON.stringify(readiness).includes("public-secret"), false);
 });

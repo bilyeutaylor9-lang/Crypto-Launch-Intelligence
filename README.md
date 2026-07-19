@@ -684,11 +684,15 @@ Then add these values to `.env` locally or GitHub Secrets for Actions:
 
 ```bash
 SUPABASE_ENABLED=true
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_URL=https://hxziklrkbofamalimllz.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SECRET_KEY=your_secret_key
+SUPABASE_JWKS_URL=https://hxziklrkbofamalimllz.supabase.co/auth/v1/.well-known/jwks.json
 SUPABASE_SYNC_PROJECT_LIMIT=500
 SUPABASE_SYNC_ALPHA_RECEIPTS=true
 ```
+
+`SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` is required for scanner writes because the scan tables use RLS. `SUPABASE_PUBLISHABLE_KEY` is useful for public dashboard/read clients, but by itself it is not enough for production scan sync.
 
 Check configuration without exposing secrets:
 

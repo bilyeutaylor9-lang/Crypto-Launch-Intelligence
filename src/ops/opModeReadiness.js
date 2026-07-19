@@ -450,7 +450,11 @@ export function buildDatasetReadiness(options = {}) {
 
 export function buildSupabaseReadiness(env = process.env) {
   const config = summarizeSupabaseConfig(env);
-  const status = !config.enabled ? "DISABLED" : config.configured ? "READY" : "INCOMPLETE";
+  const status = !config.enabled
+    ? "DISABLED"
+    : config.configured && config.serverWriteCapable
+      ? "READY"
+      : "INCOMPLETE";
 
   return {
     score: status === "READY" ? 100 : status === "INCOMPLETE" ? 20 : 0,
@@ -460,15 +464,19 @@ export function buildSupabaseReadiness(env = process.env) {
     hasUrl: config.hasUrl,
     hasKey: config.hasKey,
     keyType: config.keyType,
+    serverWriteCapable: config.serverWriteCapable,
+    hasJwksUrl: config.hasJwksUrl,
     required: config.required,
     syncReports: config.syncReports,
     projectLimit: config.projectLimit,
     tables: config.tables,
-    missing: config.configured
+    missing: status === "READY"
       ? []
-      : ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY"].filter((key) =>
-          key === "SUPABASE_URL" ? !config.hasUrl : !config.hasKey
-        ),
+      : [
+          !config.hasUrl ? "SUPABASE_URL" : "",
+          !config.hasKey ? "SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY" : "",
+          config.hasKey && !config.serverWriteCapable ? "server write key, not publishable/anon key" : "",
+        ].filter(Boolean),
   };
 }
 
