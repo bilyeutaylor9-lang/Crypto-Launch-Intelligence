@@ -1,4 +1,9 @@
 import { inspectBlockingVerdicts, normalizeDecisionText } from "../selection/blockingVerdictHelper.js";
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 export const FINAL_SELECTION_STATES = {
   QUALIFIED: "QUALIFIED",
@@ -101,14 +106,14 @@ function symbolOf(project = {}) {
 }
 
 function chainOf(project = {}) {
-  return lower(
+  return normalizeChainId(
     project.chainId ||
       project.chain ||
       project.network ||
       project.baseToken?.chain ||
       project.marketData?.chain ||
       ""
-  );
+  ) || "";
 }
 
 function firstString(values = []) {
@@ -116,7 +121,7 @@ function firstString(values = []) {
 }
 
 function contractAddressOf(project = {}) {
-  return firstString([
+  return normalizeTokenAddress(firstString([
     project.contractAddress,
     project.tokenAddress,
     project.address,
@@ -126,11 +131,11 @@ function contractAddressOf(project = {}) {
     project.rawCandidate?.address,
     project.smallCapHunter?.purchaseRoute?.routes?.find((route) => route.contract)?.contract,
     project.proofOfAlphaExecutionTwin?.route?.routes?.find((route) => route.contract)?.contract,
-  ]).toLowerCase();
+  ]), chainOf(project)) || "";
 }
 
 function pairAddressOf(project = {}) {
-  return firstString([
+  return normalizePoolAddress(firstString([
     project.pairAddress,
     project.poolAddress,
     project.pair?.address,
@@ -138,7 +143,7 @@ function pairAddressOf(project = {}) {
     project.rawCandidate?.poolAddress,
     project.smallCapHunter?.purchaseRoute?.routes?.find((route) => route.pairAddress)?.pairAddress,
     project.proofOfAlphaExecutionTwin?.route?.routes?.find((route) => route.pairAddress)?.pairAddress,
-  ]).toLowerCase();
+  ]), chainOf(project)) || "";
 }
 
 function officialDomain(project = {}) {
@@ -348,9 +353,8 @@ function marketCapUsd(project = {}) {
   return Math.max(
     num(project.marketCap),
     num(project.circulatingMarketCap),
+    num(project.circulatingMarketCapUsd),
     num(project.verifiedMarketCap),
-    num(project.fdv),
-    num(project.fullyDilutedValue),
     num(project.smallCapMarketCap),
     num(project.marketData?.marketCap),
     num(project.rawCandidate?.marketCap)
@@ -395,6 +399,12 @@ function trapRiskScore(project = {}) {
 function hasExplicitIdentityConflict(project = {}) {
   const canonicalStatus = project.canonicalIdentity?.identityStatus || project.identityStatus;
   if (canonicalStatus === "CONTRACT_CONFLICT" || project.canonicalIdentityHardBlock === true) return true;
+  const identityConflictText = normalizeDecisionText((project.identityConflicts || []).join(" "));
+  if (
+    identityConflictText.includes("token address equals pool address") ||
+    identityConflictText.includes("rejected token address") ||
+    identityConflictText.includes("rejected pool address")
+  ) return true;
   const hardMismatch =
     project.chainMismatch === true ||
     project.contractChainMismatch === true ||
@@ -557,7 +567,7 @@ function selectedEarlier(project = {}, flags = previousSelectionFlags(project)) 
     Object.values(flags).some(Boolean) ||
       project.smallCapHunterVerdict === "Top-2 Small-Cap Research Candidate" ||
       project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate" ||
-      ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(project.aiEcosystemVerdict)
+      project.aiEcosystemVerdict === "AI Strong Buy"
   );
 }
 
@@ -624,6 +634,9 @@ function buildInvariantViolations(project = {}, gates = {}) {
   }
   if (project.finalSelectionQualified === true && !gates.identity?.contractAddress && !gates.identity?.exchangeAssetId) {
     violations.push("Qualified + Missing Contract");
+  }
+  if (project.finalSelectionQualified === true && project.evidenceLineageQualified === false) {
+    violations.push("Qualified + Independent Evidence Quorum Failed");
   }
 
   return unique(violations);
@@ -723,6 +736,15 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
 
   if (capRequired && !marketCap) {
     missingDataReasons.push("Market-cap/FDV data is missing for a small-cap validation strategy.");
+  }
+
+  if (project.evidenceLineageQualified === false) {
+    missingDataReasons.push(
+      `Independent evidence quorum is incomplete: ${(project.evidenceLineageMissingRequiredGroups || []).join(", ") || "required groups missing"}.`
+    );
+    warningReasons.push(
+      `Effective independent evidence count is ${project.effectiveIndependentEvidenceCount || 0}; correlated evidence penalty is ${project.evidenceCorrelationPenalty || 0}.`
+    );
   }
 
   if (identity.finalIdentityState === FINAL_IDENTITY_STATES.SYMBOL_ONLY) {

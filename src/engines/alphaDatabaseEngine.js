@@ -68,7 +68,7 @@ export function createAlphaRecord(project = {}) {
       priceChange24h: num(project.priceChange24h),
       volume24h: num(project.volume24h),
       liquidityUsd: num(project.liquidityUsd ?? project.liquidity),
-      marketCap: num(project.marketCap ?? project.fdv),
+      marketCap: num(project.marketCap ?? project.circulatingMarketCap ?? project.circulatingMarketCapUsd),
     },
 
     intelligenceSignals: project.intelligenceSignals || {},
@@ -91,7 +91,7 @@ export function createAlphaSnapshot(project = {}) {
     timestamp: now(),
 
     price: project.priceUsd ?? project.price ?? null,
-    marketCap: project.marketCap ?? project.fdv ?? null,
+    marketCap: project.marketCap ?? project.circulatingMarketCap ?? project.circulatingMarketCapUsd ?? null,
     liquidity: project.liquidityUsd ?? project.liquidity ?? null,
     holders: project.holders ?? project.holderCount ?? null,
     volume24h: project.volume24h ?? project.volume ?? null,

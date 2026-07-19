@@ -10,8 +10,8 @@ function eligibleProject(overrides = {}) {
     name: "Gate Fixture",
     symbol: "GATE",
     chain: "base",
-    permanentProjectKey: "base:0xgate",
-    contractAddress: "0xgate",
+    permanentProjectKey: "base:0x0000000000000000000000000000000000009000",
+    contractAddress: "0x0000000000000000000000000000000000009000",
     identityVerified: true,
     finalSelectionState: "RESEARCH_ONLY",
     finalIntegrityVerdict: "RESEARCH_REQUIRED",
@@ -39,9 +39,9 @@ test("AI research gate rejects deterministic safety and identity failures", () =
 
 test("AI research gate keeps light and deep research within explicit limits", () => {
   const projects = [
-    eligibleProject({ permanentProjectKey: "base:deep", contractAddress: "0xdeep", pipelineScore: 92 }),
-    eligibleProject({ permanentProjectKey: "base:light", contractAddress: "0xlight", pipelineScore: 70, smartMoneyAccumulationScore: 30, catalystScore: 30 }),
-    eligibleProject({ permanentProjectKey: "base:thin", contractAddress: "0xthin", dataConfidenceScore: 44 }),
+    eligibleProject({ permanentProjectKey: "base:0x0000000000000000000000000000000000009001", contractAddress: "0x0000000000000000000000000000000000009001", pipelineScore: 92 }),
+    eligibleProject({ permanentProjectKey: "base:0x0000000000000000000000000000000000009002", contractAddress: "0x0000000000000000000000000000000000009002", pipelineScore: 70, smartMoneyAccumulationScore: 30, catalystScore: 30 }),
+    eligibleProject({ permanentProjectKey: "base:thin", contractAddress: "0x0000000000000000000000000000000000009003", dataConfidenceScore: 44 }),
   ];
   const selected = selectAIResearchCandidates(projects, { lightLimit: 1, deepLimit: 1 });
 
@@ -55,7 +55,7 @@ test("AI research gate queues no more than the top 100 eligible projects", () =>
   const projects = Array.from({ length: 120 }, (_, index) =>
     eligibleProject({
       permanentProjectKey: `base:top-${index}`,
-      contractAddress: `0xtop${index}`,
+      contractAddress: `0x${String(index + 1).padStart(40, "0")}`,
       pipelineScore: 90 - index / 10,
     })
   );
@@ -72,20 +72,20 @@ test("AI research queue reserves capacity for eligible underrepresented chains",
   const baseProjects = Array.from({ length: 120 }, (_, index) =>
     eligibleProject({
       permanentProjectKey: `base:base-${index}`,
-      contractAddress: `0xbase${index}`,
+      contractAddress: `0x${String(index + 200).padStart(40, "0")}`,
       pipelineScore: 95 - index / 10,
     })
   );
   const solana = eligibleProject({
     chain: "solana",
     permanentProjectKey: "solana:coverage",
-    contractAddress: "solcoverage",
+    contractAddress: "So11111111111111111111111111111111111111112",
     pipelineScore: 66,
   });
   const arbitrum = eligibleProject({
     chain: "arbitrum",
     permanentProjectKey: "arbitrum:coverage",
-    contractAddress: "arbcoverage",
+    contractAddress: "0x0000000000000000000000000000000000000abc",
     pipelineScore: 65,
   });
 

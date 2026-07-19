@@ -638,8 +638,98 @@ Memory files include:
 - `data/source-router-memory.json`
 - `data/watchtower-alerts.json`
 - `data/watchtower-brief.json`
+- `data/cli.db`
 
 These files are runtime memory and usually should not be committed.
+
+## Alpha Truth Kernel
+
+The Alpha Truth Kernel creates proof-carrying research receipts for top-ranked projects. A receipt records the project identity, contract, pool, score, final decision, market snapshot, execution-route status, evidence lineage, missing proof, and point-in-time outcome policy at the moment of the scan.
+
+It is designed to make the scanner accountable:
+
+- Internal AI opinions are stored, but they do not count as independent external evidence.
+- Correlated momentum and narrative derivatives are capped before confidence is raised.
+- Final qualification can be blocked by missing identity, route, security, liquidity, or evidence quorum.
+- Outcome V2 uses net executable token return and never uses future scanner score as proof.
+- Missing future snapshots stay missing instead of becoming neutral or positive labels.
+
+Read the latest proof packet after a scan:
+
+```bash
+npm run alpha:truth
+```
+
+## Optional Supabase Sync
+
+Crypto Launch Intelligence can sync completed scan results to Supabase for a hosted dashboard, shared research desk, or long-term queryable memory.
+
+Setup:
+
+```bash
+npm run supabase:schema
+```
+
+Either copy the SQL from `supabase/schema.sql` into the Supabase SQL Editor and run it, or use the checked-in migration:
+
+```bash
+npm run supabase:login
+npm run supabase:link
+npm run supabase:push
+```
+
+The project link targets Supabase project ref `hxziklrkbofamalimllz`. If the CLI asks for access, run `npm run supabase:login` first or set `SUPABASE_ACCESS_TOKEN` locally.
+
+In non-interactive environments such as Codex, create a Supabase access token in the Supabase dashboard, then run:
+
+```bash
+SUPABASE_ACCESS_TOKEN=your_supabase_access_token npm run supabase:link
+SUPABASE_ACCESS_TOKEN=your_supabase_access_token npm run supabase:push
+```
+
+Then add these values to `.env` locally or GitHub Secrets for Actions:
+
+```bash
+SUPABASE_ENABLED=true
+SUPABASE_URL=https://hxziklrkbofamalimllz.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SECRET_KEY=your_secret_key
+SUPABASE_JWKS_URL=https://hxziklrkbofamalimllz.supabase.co/auth/v1/.well-known/jwks.json
+SUPABASE_SYNC_PROJECT_LIMIT=500
+SUPABASE_SYNC_ALPHA_RECEIPTS=true
+```
+
+`SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` is required for scanner writes because the scan tables use RLS. `SUPABASE_PUBLISHABLE_KEY` is useful for public dashboard/read clients, but by itself it is not enough for production scan sync.
+
+Check configuration without exposing secrets:
+
+```bash
+npm run supabase:check
+```
+
+Verify live table reads and write a redacted memory report:
+
+```bash
+npm run supabase:health
+npm run supabase:memory
+```
+
+Verify the full write path with a system-only health row:
+
+```bash
+npm run supabase:health:live
+```
+
+When Supabase is configured, normal scans sync:
+
+- `scan_runs`: one row per completed scan
+- `scan_projects`: ranked project rows with score, confidence, final state, liquidity, volume, and compact proof payload
+- `scan_reports`: local report paths generated during the run
+- `alpha_truth_receipts`: immutable point-in-time proof receipts for top ranked projects
+
+Supabase also acts as remote scanner memory. At the start of a scan, the project reads recent Supabase history, tags candidates with `supabaseMemory`, writes `reports/supabase-memory.json`, and includes the memory summary in report metadata. This helps separate truly new candidates from names the scanner has already seen, previously blocked, or previously qualified.
+
+The sync is optional by default. If Supabase is down or credentials are missing, scans still complete locally. Set `SUPABASE_SYNC_REQUIRED=true` only if CI should fail when Supabase sync fails.
 
 ## Reports Generated
 
@@ -651,6 +741,7 @@ Every scan can generate a full research packet:
 | `reports/report.json` | Full machine-readable scan output |
 | `reports/opportunities.csv` | Spreadsheet-friendly opportunity export |
 | `reports/summary.txt` | Text summary |
+| `reports/alpha-truth-kernel.json` | Point-in-time proof receipts, evidence lineage, source telemetry, and coverage accounting |
 | `reports/ai-council.json` | AI Council debate and verdicts |
 | `reports/research-os.json` | Lifecycle, scenarios, red-team review, and research tasks |
 | `reports/ai-command-center.json` | Unified AI research desk report |
@@ -677,6 +768,7 @@ Every scan can generate a full research packet:
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
+| `reports/pre-breakout-radar.json` | Proof-gated pre-breakout radar with ARMED, WATCH, RESEARCH, and BLOCKED lanes, explicit missing evidence, route/liquidity checks, and no forced picks |
 | `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, Execution Score, Money Rank, best-available opportunities, execution-ready candidates, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
 | `reports/best-opportunity-now.json` | Authoritative market-leader verdict. Shows BEST OPPORTUNITY RIGHT NOW only when clear-leader requirements pass, otherwise NO CLEAR MARKET LEADER |
 | `reports/top-five-opportunities.json` | Direct top-five opportunity ranking from the unified Market Opportunity Rank |
@@ -837,6 +929,7 @@ This writes `reports/op-mode-readiness.json` and checks:
 - Native launch/pool protocol identifiers
 - Chain RPC/WebSocket readiness
 - Memory datasets for outcomes, paper trades, source routing, native events, and universe accounting
+- Optional Supabase sync configuration
 - GitHub Actions environment wiring
 
 The report never prints secret values. It only reports which key names or protocol settings are present or missing.
@@ -977,6 +1070,19 @@ Run tests:
 
 ```bash
 npm test
+```
+
+Quality and production checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run test:integration
+npm run test:providers
+npm run test:backtest
+npm run test:load
+npm run test:coverage
 ```
 
 Run demo and refresh examples:

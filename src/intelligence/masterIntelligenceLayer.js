@@ -64,7 +64,7 @@ function extractMarketFields(token = {}, market = {}) {
     exchange: token.exchange || source.exchange,
 
     priceUsd: source.priceUsd ?? source.price,
-    marketCap: source.marketCap ?? source.fdv,
+    marketCap: source.marketCap ?? source.circulatingMarketCap ?? source.circulatingMarketCapUsd,
     fdv: source.fdv,
     liquidityUsd: source.liquidityUsd ?? source.liquidity,
     volume24h: source.volume24h ?? source.volume,

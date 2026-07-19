@@ -21,15 +21,15 @@ function avg(values = []) {
 }
 
 function liquidity(project = {}) {
-  return num(project.liquidityUsd || project.liquidity || project.smallCapHunter?.execution?.liquidityUsd);
+  return num(project.executionProof?.liquidityUsd || project.canonicalExecutionRoute?.liquidityUsd || project.liquidityUsd || project.liquidity || project.smallCapHunter?.execution?.liquidityUsd);
 }
 
 function volume(project = {}) {
-  return num(project.volume24h || project.volume || project.smallCapHunter?.execution?.volume24h);
+  return num(project.executionProof?.volume24hUsd || project.canonicalExecutionRoute?.volume24hUsd || project.volume24h || project.volume || project.smallCapHunter?.execution?.volume24h);
 }
 
 function price(project = {}) {
-  return num(project.priceUsd || project.price || project.marketData?.priceUsd);
+  return num(project.executionProof?.price || project.canonicalExecutionRoute?.priceUsd || project.priceUsd || project.price || project.marketData?.priceUsd);
 }
 
 function maxRisk(project = {}) {
@@ -56,6 +56,52 @@ function normalizeRouteName(value = "") {
 }
 
 function routeProof(project = {}) {
+  const proof = project.executionProof || {};
+  if (proof.executionStatus || project.executionStatus) {
+    const status = proof.executionStatus || project.executionStatus;
+    const detected = ["VERIFIED", "PARTIALLY_VERIFIED"].includes(status);
+    return {
+      detected,
+      preferredRoute: normalizeRouteName(proof.venue || project.canonicalExecutionRoute?.venue || "Execution Proof"),
+      status,
+      confidence: detected ? (status === "VERIFIED" ? 88 : 66) : 24,
+      routes: [
+        {
+          type: proof.venue || project.canonicalExecutionRoute?.venue || "Execution Proof",
+          status,
+          confidence: detected ? 88 : 24,
+          contract: proof.contractAddress,
+          pairAddress: proof.pairAddress,
+          routeType: project.canonicalExecutionRoute?.routeType || "UNKNOWN",
+        },
+      ],
+      blockers: detected ? [] : proof.failureReasons || project.moneyMissingEvidence || ["Execution proof did not verify a buy and sell route."],
+    };
+  }
+
+  const canonical = project.canonicalExecutionRoute;
+  if (canonical) {
+    const detected = ["VERIFIED", "PARTIALLY_VERIFIED", "DETECTED"].includes(canonical.status);
+    return {
+      detected,
+      preferredRoute: normalizeRouteName(canonical.venue || "Canonical Route"),
+      status: canonical.status,
+      confidence: canonical.confidence || (canonical.status === "VERIFIED" ? 82 : canonical.status === "PARTIALLY_VERIFIED" ? 62 : 36),
+      routes: [
+        {
+          type: canonical.venue,
+          status: canonical.status,
+          confidence: canonical.confidence,
+          contract: canonical.contractAddress,
+          pairAddress: canonical.pairAddress,
+          routeType: canonical.routeType,
+          url: canonical.routeUrl,
+        },
+      ],
+      blockers: canonical.status === "VERIFIED" ? [] : canonical.missingEvidence || ["Canonical route is not fully verified."],
+    };
+  }
+
   const route = project.smallCapHunter?.purchaseRoute || {};
   const routes = Array.isArray(route.routes) ? route.routes : [];
   const preferredRoute = normalizeRouteName(route.preferredRoute || routes[0]?.type || "Unavailable");
@@ -122,12 +168,14 @@ function safetyScan(project = {}) {
   const risk = maxRisk(project);
   const route = routeProof(project);
   const contractKnown = Boolean(
-    project.address ||
+    project.executionProof?.contractAddress ||
+      project.canonicalExecutionRoute?.contractAddress ||
+      project.address ||
       project.tokenAddress ||
       project.contractAddress ||
       route.routes?.some((item) => item.contract)
   );
-  const pairKnown = Boolean(project.pairAddress || route.routes?.some((item) => item.pairAddress));
+  const pairKnown = Boolean(project.executionProof?.pairAddress || project.canonicalExecutionRoute?.pairAddress || project.pairAddress || route.routes?.some((item) => item.pairAddress));
   const sourceProof = avg([
     project.sourceTruthScore,
     project.proofScore,
@@ -186,7 +234,7 @@ function outcomeMemoryScore(project = {}) {
 }
 
 function verdictFor({ score = 0, route = {}, quote = {}, safety = {}, thesis = 0 } = {}) {
-  if (!route.detected) return "Execution Route Block";
+  if (!route.detected) return "RESEARCH_ONLY_ROUTE_UNVERIFIED";
   if (quote.blocker) return "Execution Liquidity Block";
   if (safety.blockers.length) return "Execution Safety Block";
   if (score >= 70 && thesis >= 58) return "Execution-Verified Alpha Candidate";
@@ -351,6 +399,7 @@ function compact(project = {}) {
     finalWarningReasons: project.finalWarningReasons || [],
     confidence: project.proofOfAlphaExecutionTwinConfidence || "Unknown",
     route: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
+    routeStatus: project.proofOfAlphaExecutionTwin?.route?.status || project.executionStatus || project.canonicalExecutionRoute?.status || "NO_ROUTE",
     slippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,
     quote: project.proofOfAlphaExecutionTwin?.quote || {},
     safety: project.proofOfAlphaExecutionTwin?.safety || {},
@@ -366,6 +415,34 @@ export function summarizeProofOfAlphaExecutionTwin(projects = []) {
   const selected = twins
     .filter((project) => project.proofOfAlphaExecutionTwinSelected)
     .sort((a, b) => num(a.proofOfAlphaExecutionTwinRank) - num(b.proofOfAlphaExecutionTwinRank));
+  const verified = twins.filter((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate");
+  const partial = twins.filter((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution Watch");
+  const providerUnavailable = twins.filter((project) =>
+    ["PROVIDER_UNAVAILABLE", "UNKNOWN"].includes(project.executionStatus) ||
+    project.canonicalExecutionRoute?.status === "PROVIDER_UNAVAILABLE"
+  );
+  const noRoute = twins.filter((project) =>
+    project.proofOfAlphaExecutionTwinVerdict === "RESEARCH_ONLY_ROUTE_UNVERIFIED" ||
+    project.canonicalExecutionRoute?.status === "NO_ROUTE"
+  );
+  const researchCandidates = [...twins]
+    .filter((project) => !["Execution Safety Block"].includes(project.proofOfAlphaExecutionTwinVerdict))
+    .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))
+    .slice(0, 25);
+  const reasonSummary = {
+    verifiedCount: verified.length,
+    partiallyVerifiedCount: partial.length,
+    providerUnavailableCount: providerUnavailable.length,
+    noRouteCount: noRoute.length,
+    topReason:
+      verified.length === 0
+        ? noRoute.length
+          ? "No execution-verified routes were available; research candidates are route-unverified."
+          : providerUnavailable.length
+          ? "Execution providers were unavailable for some candidates."
+          : "No candidate passed route, liquidity, safety, and thesis requirements."
+        : "Verified execution candidates available.",
+  };
 
   return {
     generatedAt: new Date().toISOString(),
@@ -374,9 +451,16 @@ export function summarizeProofOfAlphaExecutionTwin(projects = []) {
     totalProjects: safeProjects.length,
     twinProjects: twins.length,
     selectedCount: selected.length,
+    verifiedCount: verified.length,
+    partiallyVerifiedCount: partial.length,
+    providerUnavailableCount: providerUnavailable.length,
+    noRouteCount: noRoute.length,
     routeBlocks: twins.filter((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution Route Block").length,
     liquidityBlocks: twins.filter((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution Liquidity Block").length,
     safetyBlocks: twins.filter((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution Safety Block").length,
+    reasonSummary,
+    topVerifiedExecutions: selected.map(compact),
+    topExecutionResearchCandidates: researchCandidates.map(compact),
     topExecutions: selected.map(compact),
     topProjects: [...twins]
       .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))

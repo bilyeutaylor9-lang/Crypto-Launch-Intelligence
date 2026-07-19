@@ -93,6 +93,17 @@ function pipelineImports(source = "") {
   return bindings;
 }
 
+function pipelineRunLocals(source = "") {
+  const locals = new Set();
+  const runPattern = /runEngine\(\s*["']([^"']+)["']\s*,\s*([A-Za-z_$][\w$]*)/g;
+
+  for (const match of source.matchAll(runPattern)) {
+    locals.add(match[2]);
+  }
+
+  return locals;
+}
+
 export function getPipelineEngineUsage(source = fs.readFileSync(PIPELINE_FILE, "utf8")) {
   const bindings = pipelineImports(source);
   const usage = [];
@@ -138,6 +149,8 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
   }
 
   const startedAt = Date.now();
+  const memoryBefore = process.memoryUsage().heapUsed;
+  const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
       () => engine([{ ...sample }], { auditMode: true, saveMemory: false }),
@@ -159,6 +172,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
         executionStatus: "INVALID_RETURN",
         timeoutMs,
         durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
       };
     }
     if (!identityPreserved(result, sample)) {
@@ -168,6 +182,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
         executionStatus: "IDENTITY_CORRUPTED",
         timeoutMs,
         durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
       };
     }
     if (missingScores.length || invalidScores.length) {
@@ -180,6 +195,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
         executionStatus: "INVALID_OUTPUT",
         timeoutMs,
         durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
       };
     }
 
@@ -188,6 +204,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
       executionStatus: "EXECUTED",
       timeoutMs,
       durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
       scoreFields,
     };
   } catch (error) {
@@ -197,6 +214,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
       executionStatus: "EXECUTION_FAILED",
       timeoutMs,
       durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
     };
   }
 }
@@ -215,6 +233,8 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
   }
 
   const startedAt = Date.now();
+  const memoryBefore = process.memoryUsage().heapUsed;
+  const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
       () => engine([{ ...sample }], { auditMode: true, saveMemory: false }),
@@ -230,6 +250,7 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
         executionStatus: "INVALID_RETURN",
         timeoutMs,
         durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
       };
     }
     if (!identityPreserved(result, sample)) {
@@ -239,6 +260,7 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
         executionStatus: "IDENTITY_CORRUPTED",
         timeoutMs,
         durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
       };
     }
 
@@ -247,6 +269,7 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
       executionStatus: "PIPELINE_EXECUTED",
       timeoutMs,
       durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
     };
   } catch (error) {
     return {
@@ -255,8 +278,230 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
       executionStatus: "EXECUTION_FAILED",
       timeoutMs,
       durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
     };
   }
+}
+
+function groupDuplicates(items = [], keyFn = (item) => item) {
+  const groups = new Map();
+  for (const item of items) {
+    const key = keyFn(item);
+    const list = groups.get(key) || [];
+    list.push(item);
+    groups.set(key, list);
+  }
+  return [...groups.entries()]
+    .filter(([, list]) => list.length > 1)
+    .map(([key, list]) => ({ key, count: list.length, items: list }));
+}
+
+function detectContractCycles(contracts = []) {
+  const byId = new Map(contracts.map((contract) => [contract.id, contract]));
+  const visiting = new Set();
+  const visited = new Set();
+  const cycles = [];
+
+  function visit(id = "", stack = []) {
+    if (visiting.has(id)) {
+      const start = stack.indexOf(id);
+      cycles.push([...stack.slice(start), id]);
+      return;
+    }
+    if (visited.has(id)) return;
+
+    visiting.add(id);
+    const contract = byId.get(id);
+    for (const dep of contract?.dependsOn || []) {
+      if (byId.has(dep)) visit(dep, [...stack, id]);
+    }
+    visiting.delete(id);
+    visited.add(id);
+  }
+
+  for (const contract of contracts) visit(contract.id, []);
+  return cycles;
+}
+
+export function buildEngineHealthReport(results = []) {
+  const pipelineSource = fs.existsSync(PIPELINE_FILE) ? fs.readFileSync(PIPELINE_FILE, "utf8") : "";
+  const imports = pipelineImports(pipelineSource);
+  const runLocals = pipelineRunLocals(pipelineSource);
+  const usage = getPipelineEngineUsage(pipelineSource);
+  const contracts = getEngineContracts();
+  const contractById = new Map(contracts.map((contract) => [contract.id, contract]));
+  const contractByModule = new Map(contracts.map((contract) => [moduleFileFor(contract), contract]));
+  const pipelineIndexByModule = new Map();
+  usage.forEach((entry, index) => {
+    if (!pipelineIndexByModule.has(entry.engine)) pipelineIndexByModule.set(entry.engine, index);
+  });
+
+  const failed = results.filter((result) => result.status === "FAIL");
+  const dormant = results.filter((result) => result.status === "DORMANT");
+  const activeUncontracted = results.filter((result) => result.status === "PIPELINE_ACTIVE_UNCONTRACTED");
+  const executed = results.filter((result) => ["EXECUTED", "PIPELINE_EXECUTED"].includes(result.executionStatus));
+  const timeouts = results.filter((result) => /timed out/i.test(result.issue || ""));
+  const silentFailures = results.filter((result) => result.status !== "FAIL" && result.issue);
+  const unexpectedMutations = results.filter((result) => result.executionStatus === "IDENTITY_CORRUPTED");
+  const memoryGrowthWatchlist = results
+    .filter((result) => num(result.memoryDeltaBytes) > 25_000_000)
+    .map((result) => ({
+      engine: result.engine,
+      memoryDeltaBytes: result.memoryDeltaBytes,
+      status: result.status,
+    }));
+  const memoryLeaks = memoryGrowthWatchlist
+    .filter((result) => num(result.memoryDeltaBytes) > 250_000_000)
+    .map((result) => ({
+      ...result,
+      severity: "POSSIBLE_LEAK",
+      basis: "Single-run heap delta exceeded 250MB; confirm with repeated engine:audit:full runs.",
+    }));
+  const neverCalledEngines = results.filter((result) =>
+    ["DORMANT", "NOT_EXECUTED"].includes(result.status) || result.executionStatus === "NOT_EXECUTED"
+  );
+  const deadImports = [...imports.entries()]
+    .filter(([localName]) => !runLocals.has(localName))
+    .map(([localName, binding]) => ({ localName, ...binding }));
+  const usedExportsByModule = new Map();
+  for (const entry of usage) {
+    const current = usedExportsByModule.get(entry.engine) || new Set();
+    current.add(entry.exportName);
+    usedExportsByModule.set(entry.engine, current);
+  }
+  for (const contract of contracts) {
+    const module = moduleFileFor(contract);
+    const current = usedExportsByModule.get(module) || new Set();
+    current.add(contract.exportName);
+    usedExportsByModule.set(module, current);
+  }
+  const deadExports = results.flatMap((result) => {
+    const used = usedExportsByModule.get(result.engine) || new Set();
+    return (result.exports || [])
+      .filter((exportName) => !used.has(exportName))
+      .map((exportName) => ({ engine: result.engine, exportName }));
+  });
+  const duplicateEngines = [
+    ...groupDuplicates(usage, (entry) => entry.stage.toLowerCase()),
+    ...groupDuplicates(results.flatMap((result) => (result.exports || []).map((exportName) => ({ engine: result.engine, exportName }))), (entry) => entry.exportName),
+  ];
+  const pipelineLoops = detectContractCycles(contracts);
+  const engineOrderingProblems = [];
+  for (const contract of contracts) {
+    const contractModule = moduleFileFor(contract);
+    const contractIndex = pipelineIndexByModule.get(contractModule);
+    for (const depId of contract.dependsOn || []) {
+      const dep = contractById.get(depId);
+      if (!dep) {
+        engineOrderingProblems.push({
+          engine: contract.id,
+          dependency: depId,
+          issue: "Declared dependency is missing from the contract manifest.",
+        });
+        continue;
+      }
+      if (num(dep.priority) > num(contract.priority)) {
+        engineOrderingProblems.push({
+          engine: contract.id,
+          dependency: depId,
+          issue: "Dependency priority is after dependent engine.",
+        });
+      }
+      const depIndex = pipelineIndexByModule.get(moduleFileFor(dep));
+      if (contractIndex !== undefined && depIndex !== undefined && depIndex > contractIndex) {
+        engineOrderingProblems.push({
+          engine: contract.id,
+          dependency: depId,
+          issue: "Pipeline runs dependency after dependent engine.",
+        });
+      }
+    }
+  }
+
+  const contractCoveragePercent = results.length
+    ? Math.round((results.filter((result) => contractByModule.has(result.engine)).length / results.length) * 100)
+    : 0;
+  const pipelineCoveragePercent = results.length
+    ? Math.round((results.filter((result) => pipelineIndexByModule.has(result.engine)).length / results.length) * 100)
+    : 0;
+  const executionCoveragePercent = results.length
+    ? Math.round((executed.length / results.length) * 100)
+    : 0;
+  const healthScore = Math.round(
+    Math.max(
+      0,
+      Math.min(
+        100,
+        100 -
+          failed.length * 12 -
+          timeouts.length * 8 -
+          unexpectedMutations.length * 10 -
+          memoryLeaks.length * 3 -
+          activeUncontracted.length * 1.5 -
+          engineOrderingProblems.length * 3 -
+          Math.min(12, dormant.length * 0.2)
+      )
+    )
+  );
+  const warnings = [
+    ...(activeUncontracted.length ? [`${activeUncontracted.length} live pipeline engines are missing explicit contracts.`] : []),
+    ...(dormant.length ? [`${dormant.length} engine modules are dormant or never called by the live pipeline.`] : []),
+    ...(deadImports.length ? [`${deadImports.length} pipeline imports are not passed to runEngine.`] : []),
+    ...(deadExports.length ? [`${deadExports.length} exported engine functions are not used by pipeline or contracts.`] : []),
+    ...(engineOrderingProblems.length ? [`${engineOrderingProblems.length} dependency ordering issue(s) detected.`] : []),
+    ...(pipelineLoops.length ? [`${pipelineLoops.length} dependency loop(s) detected.`] : []),
+    ...(memoryGrowthWatchlist.length ? [`${memoryGrowthWatchlist.length} engines showed notable single-run heap growth.`] : []),
+    ...(memoryLeaks.length ? [`${memoryLeaks.length} engines exceeded the possible memory-leak heap-growth threshold.`] : []),
+  ];
+
+  return {
+    generatedAt: new Date().toISOString(),
+    status: failed.length ? "FAILED" : warnings.length ? "DEGRADED" : "OK",
+    healthScore,
+    coverage: {
+      totalEngines: results.length,
+      pipelineUsageCount: usage.length,
+      contractCount: contracts.length,
+      contractCoveragePercent,
+      pipelineCoveragePercent,
+      executionCoveragePercent,
+    },
+    runtime: {
+      executedEngines: executed.length,
+      dormantEngines: dormant.length,
+      activeUncontractedEngines: activeUncontracted.length,
+      timeoutCount: timeouts.length,
+      totalDurationMs: results.reduce((sum, result) => sum + num(result.durationMs), 0),
+      slowestEngines: [...results]
+        .filter((result) => num(result.durationMs) > 0)
+        .sort((a, b) => num(b.durationMs) - num(a.durationMs))
+        .slice(0, 10)
+        .map((result) => ({ engine: result.engine, durationMs: result.durationMs, status: result.status })),
+    },
+    failures: failed,
+    warnings,
+    unusedEngines: dormant.map((result) => result.engine),
+    duplicateEngines,
+    neverCalledEngines: neverCalledEngines.map((result) => result.engine),
+    orphanEngines: dormant.map((result) => result.engine),
+    deadImports,
+    deadExports,
+    timeouts,
+    silentFailures,
+    unexpectedMutations,
+    memoryGrowthWatchlist,
+    pipelineLoops,
+    memoryLeaks,
+    engineOrderingProblems,
+    dependencyGraph: contracts.map((contract) => ({
+      id: contract.id,
+      module: moduleFileFor(contract),
+      dependsOn: contract.dependsOn || [],
+      priority: contract.priority,
+      phase: contract.phase,
+    })),
+    results,
+  };
 }
 
 export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
@@ -334,6 +579,11 @@ export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
 
 if (process.argv[1]?.includes("engineHealthCheck.js")) {
   const results = await runEngineHealthCheck({}, { executePipelineActive: process.argv.includes("--full") });
+  const report = buildEngineHealthReport(results);
+  const reportsDir = path.resolve("reports");
+  fs.mkdirSync(reportsDir, { recursive: true });
+  const healthPath = path.join(reportsDir, "engine-health-report.json");
+  fs.writeFileSync(healthPath, JSON.stringify(report, null, 2));
   console.table(results.map((result) => ({
     engine: result.engine,
     contract: result.contractId || "",
@@ -348,6 +598,7 @@ if (process.argv[1]?.includes("engineHealthCheck.js")) {
   const activeUncontracted = results.filter((result) => result.status === "PIPELINE_ACTIVE_UNCONTRACTED");
   const dormant = results.filter((result) => result.status === "DORMANT");
   console.log(`\nExecuted ${executed.length} engines. ${activeUncontracted.length} active pipeline engines need explicit contracts. ${dormant.length} modules are dormant.`);
+  console.log(`Engine health report: ${healthPath}`);
 
   if (failed.length > 0) {
     console.log(`\n${failed.length} engine checks failed.`);

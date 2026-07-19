@@ -174,6 +174,40 @@ function sniperRows(projects = [], emptyMessage = "No projects") {
     .join("");
 }
 
+function vNextRows(projects = [], emptyMessage = "No vNext-scored projects") {
+  if (!projects.length) {
+    return `
+      <tr>
+        <td colspan="15" class="empty">${esc(emptyMessage)}</td>
+      </tr>
+    `;
+  }
+
+  return projects
+    .map(
+      (p) => `
+        <tr>
+          <td>${esc(p.vNextRank ?? "")}</td>
+          <td>${esc(p.legacyRank ?? "")}</td>
+          <td>${esc(p.name || "Unknown")}</td>
+          <td>${esc(p.symbol || "")}</td>
+          <td>${esc(p.chain || p.finalChain || "")}</td>
+          <td><strong>${esc(p.vNextScore ?? "")}</strong></td>
+          <td>${esc(p.legacyScore ?? "")}</td>
+          <td>${esc(p.vNextProjectCategory || "")}</td>
+          <td>${esc(p.vNextMarketStage || "")}</td>
+          <td>${esc(p.vNextSafetyState || "")}</td>
+          <td>${esc(p.evidenceCoverageScore ?? "")}%</td>
+          <td>${esc(p.vNextRecommendation || "")}</td>
+          <td>${esc(p.vNextScoreFormula?.calculation || "")}</td>
+          <td>${listText([...(p.vNextSafetyBlockers || []), ...(p.vNextSafetyWarnings || [])])}</td>
+          <td>${esc(p.reasonForDifference || "")}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
 function causalNetworkRows(projects = [], emptyMessage = "No projects") {
   if (!projects.length) {
     return `
@@ -305,6 +339,12 @@ export function writeHtmlReport(projects = []) {
   const confidenceRanked = [...projects].sort(
     (a, b) => Number(b.confidenceAdjustedScore || 0) - Number(a.confidenceAdjustedScore || 0)
   );
+  const vNextRanked = [...projects]
+    .filter((project) => project.vNextScore !== undefined)
+    .sort((a, b) => Number(b.vNextScore || 0) - Number(a.vNextScore || 0));
+  const vNextBuyEligible = vNextRanked.filter((project) => project.vNextBuyEligible);
+  const vNextBlocked = vNextRanked.filter((project) => project.vNextSafetyState === "BLOCKED");
+  const vNextLowCoverage = vNextRanked.filter((project) => Number(project.evidenceCoverageScore || 0) < 40);
   const top = ranked[0];
   const avg =
     ranked.length === 0
@@ -559,7 +599,7 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${top ? scoreOf(top).toFixed(1) : "N/A"}</h2>
+      <h2>${top ? scoreOf(top).toFixed(1) : "No scored project"}</h2>
       <p>Top Score</p>
     </div>
 
@@ -589,7 +629,7 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "N/A")).join(" / ") || "N/A"}</h2>
+      <h2>${smallCapPicks.map((p) => esc(p.symbol || p.name || "Unknown")).join(" / ") || "No qualified small-cap candidate"}</h2>
       <p>Qualified Small-Cap Candidates</p>
     </div>
 
@@ -652,7 +692,32 @@ export function writeHtmlReport(projects = []) {
       <h2>${causalNetworkLowFragility.length}</h2>
       <p>Low-Fragility Causal Cases</p>
     </div>
+
+    <div class="card">
+      <h2>${vNextBuyEligible.length}</h2>
+      <p>vNext Buy-Eligible Research</p>
+    </div>
+
+    <div class="card">
+      <h2>${vNextBlocked.length}</h2>
+      <p>vNext Hard Blocks</p>
+    </div>
+
+    <div class="card">
+      <h2>${vNextLowCoverage.length}</h2>
+      <p>vNext Low-Coverage Cases</p>
+    </div>
   </div>
+
+  <h2 class="section-title">Scanner vNext Shadow Score</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>vNext</th><th>Legacy</th><th>Project</th><th>Symbol</th><th>Chain</th><th>vNext Score</th><th>Legacy Score</th><th>Category</th><th>Stage</th><th>Safety</th><th>Evidence</th><th>Recommendation</th><th>Formula</th><th>Blocks / Warnings</th><th>Difference</th>
+      </tr>
+    </thead>
+    <tbody>${vNextRows(vNextRanked.slice(0, 20))}</tbody>
+  </table>
 
   <h2 class="section-title">Final Qualified - Progressive Ladder</h2>
   <table>

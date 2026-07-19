@@ -43,7 +43,7 @@ function explain(symbol = "") {
     return;
   }
 
-  console.log(`${project.name || "Unknown"} (${project.symbol || "N/A"})`);
+  console.log(`${project.name || "Unknown"} (${project.symbol || "Unknown"})`);
   console.log(`Score: ${project.pipelineScore || project.opportunityScore || 0}`);
   console.log(`AI Council: ${project.aiEcosystemVerdict || "Unknown"} (${project.aiEcosystemScore || 0})`);
   console.log(`Quantum: ${project.quantumDecisionState || "Unknown"} | Bull ${project.quantumBullProbability || 0}% / Bear ${project.quantumBearProbability || 0}%`);
@@ -54,7 +54,7 @@ function explain(symbol = "") {
     `Small-Cap Hunter: ${project.smallCapHunterVerdict || "Unknown"} (${project.smallCapHunterScore || 0}) | ${project.smallCapBand || "Unknown cap band"} | Route ${project.smallCapHunter?.purchaseRoute?.preferredRoute || "Unavailable"}`
   );
   console.log(
-    `Execution Twin: ${project.proofOfAlphaExecutionTwinVerdict || "Unknown"} (${project.proofOfAlphaExecutionTwinScore || 0}) | Route ${project.proofOfAlphaExecutionTwinRoute || "Unavailable"} | Slippage ${project.proofOfAlphaExecutionTwinSlippagePct ?? "N/A"}%`
+    `Execution Twin: ${project.proofOfAlphaExecutionTwinVerdict || "Unknown"} (${project.proofOfAlphaExecutionTwinScore || 0}) | Route ${project.proofOfAlphaExecutionTwinRoute || "Unavailable"} | Slippage ${project.proofOfAlphaExecutionTwinSlippagePct ?? "Not measured"}%`
   );
   console.log(
     `Organic Integrity: ${project.organicDemandVerdict || "Unknown"} (${project.organicEconomicIntegrityScore || 0}) | Risk ${project.economicIntegrityRiskScore || 0} | Hard Exit $${project.hardExitLiquidityUsd || 0}`
@@ -283,6 +283,12 @@ switch (command) {
   case "microcaps":
   case "micro-caps":
     runNpm("small-caps", args);
+    break;
+  case "pre-breakout":
+  case "pre-breakout-radar":
+  case "breakout-radar":
+  case "radar":
+    runNpm("pre-breakout-radar", args);
     break;
   case "execution-twin":
   case "proof-execution":

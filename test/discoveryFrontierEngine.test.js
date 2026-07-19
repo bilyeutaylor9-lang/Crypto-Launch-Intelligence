@@ -97,3 +97,30 @@ test("discovery frontier normalizes common chain aliases without creating fake c
   assert.deepEqual(frontier.chains.map((chain) => chain.chain), ["bsc"]);
   assert.equal(frontier.chains[0].state, "SINGLE_SOURCE_OBSERVED");
 });
+
+test("discovery frontier rejects categories and provider names as chain coverage", () => {
+  const frontier = buildDiscoveryFrontier({
+    projects: [
+      {
+        chain: "gaming",
+        address: "0x3333333333333333333333333333333333333333",
+        source: "coingecko",
+      },
+      {
+        chain: "coinbase",
+        address: "0x4444444444444444444444444444444444444444",
+        source: "coinbase",
+      },
+    ],
+    sourceManifest: [
+      { id: "coingecko", candidateGenerator: true, status: "IMPLEMENTED", chains: ["base"] },
+      { id: "dexscreener", candidateGenerator: true, status: "IMPLEMENTED", chains: ["base"] },
+    ],
+    nativeCoverage: { totalProtocols: 0, configuredProtocols: 0, unconfiguredProtocols: 0, byChain: {} },
+  });
+
+  assert.equal(normalizeDiscoveryChain("gaming"), "unknown");
+  assert.equal(normalizeDiscoveryChain("coinbase"), "unknown");
+  assert.deepEqual(frontier.chains.map((chain) => chain.chain), ["base"]);
+  assert.equal(frontier.observedChainCount, 0);
+});

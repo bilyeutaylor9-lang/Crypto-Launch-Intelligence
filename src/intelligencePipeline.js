@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
 import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
@@ -82,6 +84,7 @@ import { analyzeAIEcosystemCouncilBatch } from "./engines/aiEcosystemCouncilEngi
 import { analyzeResearchOperatingSystemBatch } from "./engines/researchOperatingSystemEngine.js";
 import { analyzeAutonomousAlphaLabBatch } from "./engines/autonomousAlphaLabEngine.js";
 import { analyzeQuantumReasoningBrainBatch } from "./engines/quantumReasoningBrainEngine.js";
+import { analyzeQuantumSuiteHealthBatch } from "./engines/quantumSuiteHealthEngine.js";
 import { analyzeWorldModelBrainBatch } from "./engines/worldModelBrainEngine.js";
 import { analyzeAutonomousMarketScientistBatch } from "./engines/autonomousMarketScientistEngine.js";
 import { analyzeSelfTrainingMarketSimulationBrainBatch } from "./engines/selfTrainingMarketSimulationBrainEngine.js";
@@ -106,14 +109,20 @@ import { analyzeCausalMarketTwinBatch } from "./engines/causalMarketTwinEngine.j
 import { analyzeAutonomousCausalAlphaNetworkBatch } from "./engines/autonomousCausalAlphaNetworkEngine.js";
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
+import { analyzeCanonicalExecutionRouteBatch } from "./engines/canonicalExecutionRouteEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
+import { analyzeCapitalFlowObservationBatch } from "./data/capitalFlowObservationStore.js";
+import { analyzeCapitalFlowBaselineBatch } from "./engines/capitalFlowBaselineEngine.js";
+import { analyzeCapitalMigrationCoreBatch } from "./engines/capitalMigrationCoreEngine.js";
+import { analyzeCapitalRotationMapBatch } from "./engines/capitalRotationMapEngine.js";
 import { analyzeSevenDayTenXResearchBatch } from "./engines/sevenDayTenXResearchEngine.js";
 import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
 import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
 import { analyzeDistressedMicrocapTrapBatch } from "./engines/distressedMicrocapTrapEngine.js";
 import { analyzePreConsensusBreakoutHunterBatch } from "./engines/preConsensusBreakoutHunterEngine.js";
+import { analyzePreBreakoutRadarBatch } from "./engines/preBreakoutRadarEngine.js";
 import {
   analyzeFinalSelectionIntegrityBatch,
   validateFinalSelectionInvariants,
@@ -127,9 +136,13 @@ import {
   validateSniperIntegrityInvariants,
 } from "./engines/sniperIntegrityGateEngine.js";
 import { analyzeInstitutionalDataProvenanceBatch } from "./kernel/institutionalDataProvenanceLedger.js";
+import { analyzeEvidenceLineageCorrelationBatch } from "./kernel/evidenceLineageCorrelationGovernor.js";
 import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressiveOpportunityRankingEngine.js";
 import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
 import { analyzeMarketOpportunityLearningBatch } from "./engines/marketOpportunityLearningEngine.js";
+import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEngine.js";
+import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
+import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -202,25 +215,248 @@ function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
+const REQUIRED_ENGINE_NAMES = new Set([
+  "Project Identity Graph",
+  "Source Truth",
+  "Execution Proof",
+  "Capital Flow Observation",
+  "Capital Flow Baseline",
+  "Capital Migration Core",
+  "Opportunity Proof",
+  "Final Selection Integrity",
+  "Discovery Decision",
+  "Instant Safety Gate",
+  "Contract Authority Risk",
+  "Organic Demand Integrity",
+]);
+
+function engineCriticality(name = "", options = {}) {
+  if (options.required === true) return "REQUIRED";
+  if (options.required === false) return "OPTIONAL";
+  return REQUIRED_ENGINE_NAMES.has(name) ? "REQUIRED" : "OPTIONAL";
+}
+
+function engineKey(name = "Engine") {
+  return String(name || "Engine")
+    .trim()
+    .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
+    .replace(/^[A-Z]/, (chr) => chr.toLowerCase()) || "engine";
+}
+
+function averageNumeric(values = []) {
+  const active = values.map(num).filter((value) => value > 0);
+  if (!active.length) return 0;
+  return Math.round(active.reduce((sum, value) => sum + value, 0) / active.length);
+}
+
+function inferProjectCoverage(project = {}) {
+  const coverage = calculateEvidenceCoverage([
+    { label: "vNext evidence coverage", status: project.evidenceCoverageScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "opportunity evidence coverage", status: project.opportunityEvidenceCoverage > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "sniper evidence coverage", status: project.sniperEvidenceCoverage > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "source truth", status: project.sourceTruthScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "source reliability", status: project.sourceReliabilityScore > 0 ? "VERIFIED" : "UNKNOWN" },
+    { label: "evidence array", status: Array.isArray(project.evidence) && project.evidence.length ? "VERIFIED" : "UNKNOWN" },
+  ]);
+  return averageNumeric([
+    project.evidenceCoverageScore,
+    project.opportunityEvidenceCoverage,
+    project.sniperEvidenceCoverage,
+    project.dataConfidenceScore,
+    project.sourceReliabilityScore,
+    project.sourceTruthScore,
+    coverage.evidenceCoveragePercent,
+    Array.isArray(project.evidence) ? Math.min(100, project.evidence.length * 8) : 0,
+  ]);
+}
+
+function inferProjectScore(project = {}) {
+  return averageNumeric([
+    project.pipelineScore,
+    project.opportunityScore,
+    project.score,
+    project.confidenceAdjustedScore,
+    project.marketOpportunityRank,
+  ]);
+}
+
+function buildStandardEngineResult({
+  name = "Engine",
+  status = "SUCCESS",
+  projects = [],
+  failureReason = "",
+  durationMs = 0,
+  criticality = "OPTIONAL",
+} = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const coverage = averageNumeric(safeProjects.map(inferProjectCoverage));
+  return {
+    engineName: name,
+    engineVersion: "v1",
+    criticality,
+    status,
+    score: averageNumeric(safeProjects.map(inferProjectScore)),
+    confidence: coverage ? Number((coverage / 100).toFixed(2)) : 0,
+    evidenceCoverage: coverage,
+    dataFreshness: safeProjects.some((project) => project.staleEvidenceCount > 0) ? "STALE" : "CURRENT_OR_UNKNOWN",
+    evidence: [],
+    warnings:
+      status === "PARTIAL"
+        ? ["Engine returned fewer projects than it received."]
+        : status === "NO_DATA"
+          ? ["Engine returned no projects."]
+          : [],
+    failureReason,
+    calculatedAt: new Date().toISOString(),
+    durationMs,
+  };
+}
+
+function engineHealthFromResults(engineResults = {}) {
+  const records = Object.values(engineResults || {});
+  const countStatus = (status) => records.filter((record) => record.status === status).length;
+  const failures = records.filter((record) => record.status === "FAILED");
+  const requiredFailures = failures.filter((record) => record.criticality === "REQUIRED");
+  return {
+    pipelineStatus: requiredFailures.length ? "FAILED" : failures.length ? "DEGRADED" : "OK",
+    enginesAttempted: records.length,
+    enginesSuccessful: countStatus("SUCCESS"),
+    enginesPartial: countStatus("PARTIAL"),
+    enginesFailed: countStatus("FAILED"),
+    enginesNoData: countStatus("NO_DATA"),
+    enginesStale: countStatus("STALE"),
+    averageEvidenceCoverage: averageNumeric(records.map((record) => record.evidenceCoverage)),
+    staleSourceCount: countStatus("STALE"),
+    requiredEngineFailures: requiredFailures.map((record) => ({
+      engineName: record.engineName,
+      failureReason: record.failureReason,
+    })),
+    failedEngines: failures
+      .map((record) => ({
+        engineName: record.engineName,
+        criticality: record.criticality,
+        failureReason: record.failureReason,
+      })),
+  };
+}
+
+function attachEngineResult(projects = [], record = {}) {
+  const key = engineKey(record.engineName);
+  const enriched = (Array.isArray(projects) ? projects : []).map((project) => {
+    const engineResults = {
+      ...(project.engineResults || {}),
+      [key]: record,
+    };
+    return {
+      ...project,
+      engineResults,
+      engineHealth: engineHealthFromResults(engineResults),
+    };
+  });
+
+  return enriched;
+}
+
+function writePipelineFailureReport(record = {}, projects = []) {
+  const reportsDir = path.resolve("reports");
+  fs.mkdirSync(reportsDir, { recursive: true });
+  const report = {
+    generatedAt: new Date().toISOString(),
+    pipelineStatus: "FAILED",
+    reason: "Required engine failed.",
+    failedEngine: {
+      engineName: record.engineName,
+      status: record.status,
+      criticality: record.criticality,
+      failureReason: record.failureReason,
+      durationMs: record.durationMs,
+    },
+    projectsReturnedSafely: Array.isArray(projects) ? projects.length : 0,
+    actionRequired: [
+      "Fix the required engine failure before trusting scan output.",
+      "Re-run npm test and the scan command after repair.",
+      "Do not publish dashboard results from this failed run.",
+    ],
+  };
+  const filePath = path.join(reportsDir, "pipeline-failure-report.json");
+  fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
+  return filePath;
+}
+
+function maybeFailClosed(record = {}, projects = []) {
+  if (record.criticality !== "REQUIRED" || record.status !== "FAILED") return;
+  const filePath = writePipelineFailureReport(record, projects);
+  const error = new Error(`Required engine failed: ${record.engineName}. Failure report: ${filePath}`);
+  error.engineFailureReportPath = filePath;
+  error.engineResult = record;
+  throw error;
+}
+
 export async function runEngine(name, engine, projects, options = {}) {
   const safeProjects = Array.isArray(projects)
     ? projects
     : normalizeEngineOutput(projects, []);
+  const startedAt = Date.now();
+  const criticality = engineCriticality(name, options);
 
   try {
     if (typeof engine !== "function") {
       console.log(`Skipping ${name}: engine not found`);
-      return safeProjects;
+      const record = buildStandardEngineResult({
+        name,
+        status: "FAILED",
+        projects: safeProjects,
+        failureReason: "Engine function was not found.",
+        criticality,
+      });
+      const nextProjects = attachEngineResult(
+        safeProjects,
+        record
+      );
+      maybeFailClosed(record, nextProjects);
+      return nextProjects;
     }
 
     console.log(`Running ${name}...`);
 
     const timeoutMs = engineTimeoutMs(name, options);
     const output = await withEngineTimeout(engine(safeProjects, options), timeoutMs, name);
-    return normalizeEngineOutput(output, safeProjects);
+    const normalized = normalizeEngineOutput(output, safeProjects);
+    const status =
+      normalized.length === 0
+        ? "NO_DATA"
+        : normalized.length < safeProjects.length
+          ? "PARTIAL"
+          : "SUCCESS";
+    const record = buildStandardEngineResult({
+      name,
+      status,
+      projects: normalized,
+      durationMs: Date.now() - startedAt,
+      criticality,
+    });
+    const nextProjects = attachEngineResult(
+      normalized,
+      record
+    );
+    return nextProjects;
   } catch (error) {
+    if (error.engineResult?.criticality === "REQUIRED") throw error;
     console.log(`${name} failed: ${error.message}`);
-    return safeProjects;
+    const record = buildStandardEngineResult({
+      name,
+      status: "FAILED",
+      projects: safeProjects,
+      failureReason: error.message,
+      durationMs: Date.now() - startedAt,
+      criticality,
+    });
+    const nextProjects = attachEngineResult(
+      safeProjects,
+      record
+    );
+    maybeFailClosed(record, nextProjects);
+    return nextProjects;
   }
 }
 
@@ -329,6 +565,7 @@ function weightedInstitutionalScore(project = {}) {
     { score: project.trendChangeScore, weight: 0.7 },
     { score: project.momentumCompressionScore, weight: 0.7 },
     { score: project.capitalFlowScore, weight: 1.0 },
+    { score: project.capitalMigrationScore, weight: 1.3 },
     { score: project.buyPressureScore, weight: 0.9 },
     { score: project.relativeStrengthScore, weight: 0.8 },
     { score: project.opportunityTimingScore, weight: 0.8 },
@@ -1469,6 +1706,7 @@ export function addFinalScoring(projects = []) {
   const safeProjects = Array.isArray(projects)
     ? projects
     : normalizeEngineOutput(projects, []);
+  const vNextPrimary = process.env.SCORING_VNEXT_PRIMARY === "true";
 
   const scoredProjects = safeProjects
     .map((project) => {
@@ -1481,6 +1719,7 @@ export function addFinalScoring(projects = []) {
         ...dataConfidence,
         rawPipelineScore: breakdown.baseScore,
         pipelineScore,
+        legacyScore: pipelineScore,
         opportunityScore: pipelineScore,
         score: pipelineScore,
       };
@@ -1499,11 +1738,12 @@ export function addFinalScoring(projects = []) {
 
   const marketAdjustedProjects = enrichWithMarketContext(scoredProjects);
   const total = marketAdjustedProjects.length;
-
-  return marketAdjustedProjects
+  const legacyRanked = marketAdjustedProjects
     .map((project, index) => ({
       ...project,
       pipelineRank: index + 1,
+      legacyRank: index + 1,
+      legacyScore: Math.round(clamp(project.pipelineScore)),
       pipelinePercentile:
         total <= 1 ? 100 : Math.round(((total - index) / total) * 100),
     }))
@@ -1514,6 +1754,34 @@ export function addFinalScoring(projects = []) {
       pipelineConfidence: confidenceForProject(project),
       confidence: confidenceForProject(project),
     }));
+  const vNextScored = applyScannerVNextScoring(legacyRanked);
+
+  if (!vNextPrimary) {
+    return vNextScored.map((project) => ({
+      ...project,
+      vNextShadowMode: true,
+      scoringPrimaryModel: "legacy",
+    }));
+  }
+
+  const reranked = [...vNextScored].sort((a, b) => num(b.vNextScore) - num(a.vNextScore));
+  const rerankedTotal = reranked.length;
+
+  return reranked.map((project, index) => ({
+    ...project,
+    vNextShadowMode: false,
+    scoringPrimaryModel: "vNext",
+    pipelineScore: project.vNextScore,
+    opportunityScore: project.vNextScore,
+    score: project.vNextScore,
+    pipelineRank: index + 1,
+    pipelinePercentile:
+      rerankedTotal <= 1 ? 100 : Math.round(((rerankedTotal - index) / rerankedTotal) * 100),
+    pipelineTier: project.vNextRecommendation,
+    tier: project.vNextRecommendation,
+    pipelineConfidence: project.vNextConfidence,
+    confidence: project.vNextConfidence,
+  }));
 }
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
@@ -1621,6 +1889,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
   results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
   results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
+  results = await runEngine("Quantum Suite Health", analyzeQuantumSuiteHealthBatch, results);
   results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results, {
     timeoutMs: num(process.env.WORLD_MODEL_BRAIN_TIMEOUT_MS || 15000),
   });
@@ -1646,22 +1915,34 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
+  results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
+  results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
+  const capitalFlowObservationOptions = {
+    ...(options.capitalFlowObservation || {}),
+    persist: options.capitalFlowObservation?.persist ?? options.saveMemory !== false,
+  };
+  results = await runEngine("Capital Flow Observation", analyzeCapitalFlowObservationBatch, results, capitalFlowObservationOptions);
+  results = await runEngine("Capital Flow Baseline", analyzeCapitalFlowBaselineBatch, results, options.capitalFlowBaseline || {});
+  results = await runEngine("Capital Migration Core", analyzeCapitalMigrationCoreBatch, results, options.capitalMigrationCore || {});
+  results = await runEngine("Capital Rotation Map", analyzeCapitalRotationMapBatch, results, options.capitalRotationMap || {});
   results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
-  results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);
   results = await runEngine("Attention Gap", analyzeAttentionGapBatch, results);
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
+  results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
   results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});
   results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
+  results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
   results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
   results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
   results = await runEngine("Market Opportunity Learning", analyzeMarketOpportunityLearningBatch, results, {
@@ -1854,8 +2135,12 @@ export function summarizePipelineResults(results = []) {
   );
   const highTrapRiskSetups = safeResults.filter((p) => num(p.trapRiskScore) >= 60);
   const reliableSourceSetups = safeResults.filter((p) => num(p.sourceReliabilityScore) >= 70);
-  const aiStrongBuySetups = safeResults.filter((p) =>
-    ["AI Strong Buy", "Best Available Strong Buy Candidate"].includes(p.aiEcosystemVerdict)
+  const aiStrongBuySetups = safeResults.filter(
+    (p) =>
+      p.aiEcosystemVerdict === "AI Strong Buy" &&
+      p.strongBuyEvidenceGate?.readyForTrueStrongBuy === true &&
+      p.finalSelectionQualified === true &&
+      p.executionProofVerified === true
   );
   const preStrongBuySetups = safeResults.filter((p) => p.strongBuyLifecycleStage === "Pre-Strong Buy");
   const highDisagreementSetups = safeResults.filter((p) => p.aiDisagreement?.level === "High");
@@ -2018,6 +2303,11 @@ export function summarizePipelineResults(results = []) {
     ["ALREADY_PUMPED", "LATE_CHASE"].includes(p.preBreakoutMomentumStage)
   );
   const blockedPreConsensus = safeResults.filter((p) => (p.preConsensusHardBlockers || []).length > 0);
+  const preBreakoutRadarAnalyzed = safeResults.filter((p) => p.preBreakoutRadar);
+  const preBreakoutRadarArmed = safeResults.filter((p) => p.preBreakoutRadarLane === "ARMED");
+  const preBreakoutRadarWatch = safeResults.filter((p) => p.preBreakoutRadarLane === "WATCH");
+  const preBreakoutRadarResearch = safeResults.filter((p) => p.preBreakoutRadarLane === "RESEARCH");
+  const preBreakoutRadarBlocked = safeResults.filter((p) => p.preBreakoutRadarLane === "BLOCKED");
   const sniperAnalyzed = safeResults.filter((p) => p.sniperIntegrityGate);
   const armedSniperCandidates = safeResults.filter((p) => p.sniperQualified && p.sniperState === "ARMED");
   const sniperQuietAccumulation = safeResults.filter((p) => p.sniperState === "QUIET_ACCUMULATION");
@@ -2047,12 +2337,45 @@ export function summarizePipelineResults(results = []) {
   const topConfidenceAdjusted = [...safeResults]
     .sort((a, b) => num(b.confidenceAdjustedScore) - num(a.confidenceAdjustedScore))
     .slice(0, 10);
+  const vNextAnalyzed = safeResults.filter((p) => p.vNextScore !== undefined);
+  const vNextBuyEligible = vNextAnalyzed.filter((p) => p.vNextBuyEligible);
+  const vNextBlocked = vNextAnalyzed.filter((p) => p.vNextSafetyState === "BLOCKED");
+  const vNextRestricted = vNextAnalyzed.filter((p) => p.vNextSafetyState === "RESTRICTED_RESEARCH");
+  const vNextLateChase = vNextAnalyzed.filter((p) => ["EXTENDED", "LATE_CHASE"].includes(p.vNextMarketStage));
+  const vNextLowCoverage = vNextAnalyzed.filter((p) => num(p.evidenceCoverageScore) < 40);
+  const vNextDowngrades = vNextAnalyzed.filter((p) => p.recommendationDifference === "VNEXT_DOWNGRADE");
+  const vNextUpgrades = vNextAnalyzed.filter((p) => p.recommendationDifference === "VNEXT_UPGRADE");
+  const topVNextSetups = [...vNextAnalyzed]
+    .sort((a, b) => num(b.vNextScore) - num(a.vNextScore))
+    .slice(0, 10);
+  const engineHealth = safeResults[0]?.engineHealth || {
+    enginesAttempted: 0,
+    enginesSuccessful: 0,
+    enginesPartial: 0,
+    enginesFailed: 0,
+    enginesNoData: 0,
+    averageEvidenceCoverage: 0,
+    staleSourceCount: 0,
+  };
 
   return {
     scannedProjects: safeResults.length,
     topProject: safeResults[0] || null,
     marketContext,
     marketRegime: marketContext.regime,
+    engineHealth,
+    scoringPrimaryModel: safeResults[0]?.scoringPrimaryModel || "legacy",
+    vNextAnalyzedCount: vNextAnalyzed.length,
+    vNextBuyEligibleCount: vNextBuyEligible.length,
+    vNextBlockedCount: vNextBlocked.length,
+    vNextRestrictedCount: vNextRestricted.length,
+    vNextLateChaseCount: vNextLateChase.length,
+    vNextLowCoverageCount: vNextLowCoverage.length,
+    vNextUpgradeCount: vNextUpgrades.length,
+    vNextDowngradeCount: vNextDowngrades.length,
+    averageVNextEvidenceCoverage: Math.round(
+      averageNumeric(vNextAnalyzed.map((project) => project.evidenceCoverageScore))
+    ),
 
     institutionalAlphaCount: safeResults.filter((p) => p.pipelineScore >= 95).length,
     eliteOpportunityCount: safeResults.filter((p) => p.pipelineScore >= 90).length,
@@ -2178,6 +2501,11 @@ export function summarizePipelineResults(results = []) {
     quietAccumulationDetectedCount: quietAccumulationDetected.length,
     alreadyPumpedPreConsensusCount: alreadyPumpedPreConsensus.length,
     blockedPreConsensusCount: blockedPreConsensus.length,
+    preBreakoutRadarAnalyzedCount: preBreakoutRadarAnalyzed.length,
+    preBreakoutRadarArmedCount: preBreakoutRadarArmed.length,
+    preBreakoutRadarWatchCount: preBreakoutRadarWatch.length,
+    preBreakoutRadarResearchCount: preBreakoutRadarResearch.length,
+    preBreakoutRadarBlockedCount: preBreakoutRadarBlocked.length,
     sniperAnalyzedCount: sniperAnalyzed.length,
     armedSniperCandidateCount: armedSniperCandidates.length,
     sniperQuietAccumulationCount: sniperQuietAccumulation.length,
@@ -2212,6 +2540,40 @@ export function summarizePipelineResults(results = []) {
       trapRiskScore: project.trapRiskScore || 0,
       narrativeHeatScore: project.narrativeHeatScore || 0,
       projectChangeState: project.projectChangeState || "unknown",
+    })),
+    topVNextSetups: topVNextSetups.map((project) => ({
+      legacyRank: project.legacyRank || null,
+      vNextRank: project.vNextRank || null,
+      vNextBuyRank: project.vNextBuyRank || null,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || project.finalChain || "unknown",
+      legacyScore: project.legacyScore || 0,
+      vNextScore: project.vNextScore || 0,
+      recommendationDifference: project.recommendationDifference || "UNKNOWN",
+      reasonForDifference: project.reasonForDifference || "",
+      category: project.vNextProjectCategory || "Unknown",
+      marketStage: project.vNextMarketStage || "UNKNOWN",
+      safetyState: project.vNextSafetyState || "UNKNOWN",
+      recommendation: project.vNextRecommendation || "Unknown",
+      confidence: project.vNextConfidence || "Unknown",
+      evidenceCoverageScore: project.evidenceCoverageScore || 0,
+      missingEvidenceCount: project.missingEvidenceCount || 0,
+      staleEvidenceCount: project.staleEvidenceCount || 0,
+      failedEngineCount: project.failedEngineCount || 0,
+      uncertaintyScore: project.uncertaintyScore || 0,
+      alphaScore: project.alphaScore || 0,
+      evidenceConfidenceMultiplier: project.evidenceConfidenceMultiplier || 0,
+      timingMultiplier: project.timingMultiplier || 0,
+      executionMultiplier: project.executionMultiplier || 0,
+      explicitRiskPenalty: project.explicitRiskPenalty || 0,
+      scoreFormula: project.vNextScoreFormula || {},
+      qualityRatings: project.tradeQualityRatings || {},
+      practicalLiquidity: project.practicalLiquidity || {},
+      safetyBlockers: project.vNextSafetyBlockers || [],
+      safetyWarnings: project.vNextSafetyWarnings || [],
+      familyScores: project.deduplicatedEvidenceFamilyScores || {},
+      qualitySeparationSummary: project.qualitySeparationSummary || "",
     })),
     topAIStrongBuySetups: aiStrongBuySetups.slice(0, 10).map((project) => ({
       rank: project.pipelineRank || 0,

@@ -10,6 +10,10 @@ function lower(value = "") {
   return String(value || "").trim().toLowerCase();
 }
 
+function unique(items = []) {
+  return [...new Set(items.filter(Boolean))];
+}
+
 function chooseTopic(topics = [], index = 1) {
   return lower(topics[index] || "");
 }
@@ -58,7 +62,12 @@ async function rpcRequest(rpcUrl = "", method = "", params = [], options = {}) {
 }
 
 export async function fetchEvmFactoryLogs(config = {}, options = {}) {
-  const rpcUrl = options.rpcUrl || config.rpcUrl;
+  const rpcUrls = unique([
+    ...(Array.isArray(options.rpcUrls) ? options.rpcUrls : []),
+    ...(Array.isArray(config.rpcUrls) ? config.rpcUrls : []),
+    options.rpcUrl || config.rpcUrl,
+  ]);
+  const rpcUrl = rpcUrls[0];
   const factoryAddress = lower(options.factoryAddress || config.factoryAddress);
   const eventTopic0 = lower(options.eventTopic0 || config.eventTopic0);
 
@@ -70,25 +79,55 @@ export async function fetchEvmFactoryLogs(config = {}, options = {}) {
     };
   }
 
-  const latestHex = await rpcRequest(rpcUrl, "eth_blockNumber", [], options);
-  const latestBlock = numberFromQuantity(latestHex);
-  const lookbackBlocks = Math.max(1, Number(options.lookbackBlocks || process.env.NATIVE_EVM_LOOKBACK_BLOCKS || 120));
-  const requestedFrom = options.fromBlock == null ? null : numberFromQuantity(options.fromBlock);
-  const fromBlock = requestedFrom == null ? Math.max(0, latestBlock - lookbackBlocks + 1) : Math.min(requestedFrom, latestBlock);
-  const filter = {
-    address: factoryAddress,
-    fromBlock: hexQuantity(fromBlock),
-    toBlock: hexQuantity(latestBlock),
-    topics: [eventTopic0],
-  };
-  const logs = await rpcRequest(rpcUrl, "eth_getLogs", [filter], options);
+  const attempts = [];
+  let lastError = null;
+
+  for (const candidateRpcUrl of rpcUrls) {
+    try {
+      const latestHex = await rpcRequest(candidateRpcUrl, "eth_blockNumber", [], options);
+      const latestBlock = numberFromQuantity(latestHex);
+      const lookbackBlocks = Math.max(
+        1,
+        Number(options.lookbackBlocks || process.env.NATIVE_EVM_LOOKBACK_BLOCKS || 120)
+      );
+      const requestedFrom = options.fromBlock == null ? null : numberFromQuantity(options.fromBlock);
+      const fromBlock =
+        requestedFrom == null ? Math.max(0, latestBlock - lookbackBlocks + 1) : Math.min(requestedFrom, latestBlock);
+      const filter = {
+        address: factoryAddress,
+        fromBlock: hexQuantity(fromBlock),
+        toBlock: hexQuantity(latestBlock),
+        topics: [eventTopic0],
+      };
+      const logs = await rpcRequest(candidateRpcUrl, "eth_getLogs", [filter], options);
+
+      attempts.push({ rpcUrl: candidateRpcUrl, status: "OK" });
+      return {
+        status: "OK",
+        logs: Array.isArray(logs) ? logs : [],
+        fromBlock,
+        toBlock: latestBlock,
+        filter,
+        rpcUrl: candidateRpcUrl,
+        rpcAttempts: attempts,
+      };
+    } catch (error) {
+      lastError = error;
+      attempts.push({
+        rpcUrl: candidateRpcUrl,
+        status: "FAILED",
+        error: error.message,
+      });
+    }
+  }
 
   return {
-    status: "OK",
-    logs: Array.isArray(logs) ? logs : [],
-    fromBlock,
-    toBlock: latestBlock,
-    filter,
+    status: "RPC_FAILED",
+    logs: [],
+    reason: `All EVM RPC endpoints failed for ${config.id || config.protocol}: ${
+      lastError?.message || "unknown error"
+    }`,
+    rpcAttempts: attempts,
   };
 }
 
@@ -195,6 +234,8 @@ export class EvmFactoryEventAdapter extends NativePoolAdapter {
       events,
       fromBlock: collection.fromBlock || null,
       toBlock: collection.toBlock || null,
+      rpcUrl: collection.rpcUrl || null,
+      rpcAttempts: collection.rpcAttempts || [],
       reason: collection.reason || null,
     };
   }
@@ -222,6 +263,8 @@ export async function getEvmFactoryEventCandidates(options = {}) {
         status: result.status,
         configured: Boolean(adapter.config.configured),
         events: result.events.length,
+        rpcUrl: result.rpcUrl,
+        rpcAttempts: result.rpcAttempts,
         reason: result.reason,
       });
     } catch (error) {

@@ -4,6 +4,7 @@ import { writeWatchlist } from "./watchlistEngine.js";
 import { writeSummaryReport } from "./summaryReportEngine.js";
 import { writeHtmlReport } from "./htmlReportEngine.js";
 import { writeQuantumFieldReport } from "./quantumFieldReportEngine.js";
+import { writeQuantumSuiteHealthReport } from "./quantumSuiteHealthReportEngine.js";
 import { writeCalibrationReport } from "./calibrationReportEngine.js";
 import { writePrePumpPatternReport } from "./prePumpPatternReportEngine.js";
 import { writeInstitutionalVNextReport } from "./institutionalVNextReportEngine.js";
@@ -36,6 +37,7 @@ import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
 import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngine.js";
 import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js";
 import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
+import { writePreBreakoutRadarReport } from "./preBreakoutRadarReportEngine.js";
 import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
 import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
@@ -49,6 +51,14 @@ import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
 import { writeTop10BreakoutReports } from "./top10BreakoutReportEngine.js";
 import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEngine.js";
+import { writeScannerVNextReport } from "./scannerVNextReportEngine.js";
+import { writeAlphaTruthKernelReport } from "./alphaTruthKernelReportEngine.js";
+import { writeEngineDataReadinessReport } from "./engineDataReadinessReportEngine.js";
+import { writeCapitalMigrationReport } from "./capitalMigrationReportEngine.js";
+import { writeCapitalRotationReports } from "./capitalRotationReportEngine.js";
+import { writePipelineStageHealthReport } from "./pipelineStageHealthReportEngine.js";
+import { writeExactOutcomeLabReport } from "./exactOutcomeLabReportEngine.js";
+import { writeMathematicalValidationReport } from "./mathematicalValidationReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -57,6 +67,10 @@ export function generateReports(projects = [], meta = {}) {
   const summaryPath = writeSummaryReport(projects);
   const htmlPath = writeHtmlReport(projects);
   const quantumFieldPath = writeQuantumFieldReport(projects);
+  const {
+    healthPath: quantumSuiteHealthPath,
+    reasoningPath: quantumReasoningBrainPath,
+  } = writeQuantumSuiteHealthReport(projects);
   const calibrationPath = writeCalibrationReport();
   const prePumpPatternPath = writePrePumpPatternReport();
   const institutionalVNextPath = writeInstitutionalVNextReport(projects);
@@ -153,6 +167,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: preConsensusBreakoutPath,
   } = writePreConsensusBreakoutReport(projects);
   const {
+    filePath: preBreakoutRadarPath,
+  } = writePreBreakoutRadarReport(projects);
+  const {
     filePath: sniperReportPath,
   } = writeSniperReport(projects);
   const {
@@ -202,6 +219,33 @@ export function generateReports(projects = [], meta = {}) {
     filePath: sevenDayTenXResearchPath,
   } = writeSevenDayTenXResearchReport(projects);
   const {
+    filePath: scannerVNextPath,
+  } = writeScannerVNextReport(projects);
+  const {
+    filePath: capitalMigrationCorePath,
+  } = writeCapitalMigrationReport(projects);
+  const {
+    chainCapitalRotationPath,
+    narrativeCapitalRotationPath,
+    marketCapRotationPath,
+    capitalOutflowWatchPath,
+  } = writeCapitalRotationReports(projects);
+  const {
+    filePath: pipelineStageHealthPath,
+  } = writePipelineStageHealthReport(projects);
+  const {
+    filePath: exactOutcomeHorizonLabPath,
+  } = writeExactOutcomeLabReport(projects);
+  const {
+    filePath: mathematicalValidationPath,
+  } = writeMathematicalValidationReport(meta);
+  const {
+    filePath: engineDataReadinessPath,
+  } = writeEngineDataReadinessReport(projects);
+  const {
+    filePath: alphaTruthKernelPath,
+  } = writeAlphaTruthKernelReport(projects, meta);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -237,6 +281,8 @@ export function generateReports(projects = [], meta = {}) {
     jsonPath,
     csvPath,
     quantumFieldPath,
+    quantumSuiteHealthPath,
+    quantumReasoningBrainPath,
     calibrationPath,
     prePumpPatternPath,
     institutionalVNextPath,
@@ -282,6 +328,7 @@ export function generateReports(projects = [], meta = {}) {
     nativeDiscoveryMeshPath,
     discoveryDecisionPath,
     preConsensusBreakoutPath,
+    preBreakoutRadarPath,
     sniperReportPath,
     universeLedgerPath,
     integrityStackPath,
@@ -312,6 +359,17 @@ export function generateReports(projects = [], meta = {}) {
     localAIChiefJudgmentPath,
     marketOpportunityLearningPath,
     sevenDayTenXResearchPath,
+    scannerVNextPath,
+    capitalMigrationCorePath,
+    chainCapitalRotationPath,
+    narrativeCapitalRotationPath,
+    marketCapRotationPath,
+    capitalOutflowWatchPath,
+    pipelineStageHealthPath,
+    exactOutcomeHorizonLabPath,
+    mathematicalValidationPath,
+    engineDataReadinessPath,
+    alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

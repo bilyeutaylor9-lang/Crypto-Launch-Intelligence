@@ -1,4 +1,5 @@
 import { assembleOpportunityEvidence } from "../opportunity/opportunityEvidenceAssembler.js";
+import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -127,6 +128,48 @@ function opportunityLane(project = {}, rank = 0, horizons = {}) {
 
 export function calculateMarketOpportunityRank(project = {}) {
   const localAIConsensus = localAIConsensusScore(project);
+  const evidenceCoverage = calculateEvidenceCoverage([
+    numericMetric({
+      label: "progressive opportunity",
+      value: project.progressiveOpportunityScore ?? project.opportunityScoreV2 ?? project.pipelineScore,
+      source: "market-opportunity-rank",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: 70,
+      provenance: "progressiveOpportunityScore|opportunityScoreV2|pipelineScore",
+    }),
+    numericMetric({
+      label: "opportunity timing",
+      value: project.opportunityTimingScore,
+      source: "market-opportunity-rank",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: 70,
+      provenance: "opportunityTimingScore",
+    }),
+    numericMetric({
+      label: "trust score",
+      value: project.trustScore ?? project.progressiveTrustScore,
+      source: "market-opportunity-rank",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: 70,
+      provenance: "trustScore|progressiveTrustScore",
+    }),
+    numericMetric({
+      label: "attention gap",
+      value: project.attentionGapScore,
+      source: "market-opportunity-rank",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: 70,
+      provenance: "attentionGapScore",
+    }),
+    numericMetric({
+      label: "local ai consensus",
+      value: project.localAIStatus || project.localAIExecutionStatus ? localAIConsensus : null,
+      source: "market-opportunity-rank",
+      timestamp: project.scannedAt || project.updatedAt || new Date().toISOString(),
+      confidence: project.localAIStatus || project.localAIExecutionStatus ? 65 : 0,
+      provenance: "localAIConsensusScore",
+    }),
+  ]);
   const base = weighted([
     { score: project.progressiveOpportunityScore ?? project.opportunityScoreV2 ?? project.pipelineScore, weight: 30 },
     { score: project.opportunityTimingScore, weight: 25 },
@@ -146,8 +189,9 @@ export function calculateMarketOpportunityRank(project = {}) {
       : 0;
 
   return {
-    score: Math.round(clamp(base - hardBlockPenalty - severeRiskPenalty)),
+    score: Math.round(clamp(base - hardBlockPenalty - severeRiskPenalty - evidenceCoverage.confidencePenalty * 0.25)),
     localAIConsensus,
+    evidenceCoverage,
   };
 }
 
@@ -167,6 +211,7 @@ export function analyzeMarketOpportunityRank(project = {}) {
   const enriched = {
     ...project,
     localAIConsensusScore: rank.localAIConsensus,
+    marketOpportunityEvidenceCoverage: rank.evidenceCoverage.evidenceCoveragePercent,
     marketOpportunityRank,
     marketOpportunityRankScore: marketOpportunityRank,
     marketOpportunityRankLevel: classifyMarketOpportunityRank(marketOpportunityRank),

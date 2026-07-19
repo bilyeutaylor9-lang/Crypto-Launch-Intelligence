@@ -9,6 +9,7 @@
  */
 
 import { runConcurrent, runWithTimeBudget } from "../discovery/discoveryExecutionGrid.js";
+import { normalizeChainId } from "../identity/strictIdentityValidators.js";
 
 async function fetchJson(url, options = {}) {
   const controller = new AbortController();
@@ -59,6 +60,10 @@ function splitQuotePair(symbol = "") {
     baseSymbol: base,
     quoteSymbol: quote,
   };
+}
+
+function normalizeProviderChain(value = "") {
+  return normalizeChainId(value);
 }
 
 function classifyProviderStatus(error = {}) {
@@ -139,8 +144,10 @@ export async function getCoinPaprikaCandidates(options = {}) {
     symbol: coin.symbol || "UNKNOWN",
     chain: null,
     coinPaprikaId: coin.id || null,
+    providerAssetId: coin.id || null,
+    marketKey: coin.id ? `coinpaprika:${coin.id}` : null,
     address: null,
-    pairAddress: coin.id || null,
+    pairAddress: null,
     dex: "market-aggregate",
     url: `https://coinpaprika.com/coin/${coin.id}/`,
     priceUsd: n(coin.quotes?.USD?.price),
@@ -165,15 +172,18 @@ export async function getDefiLlamaProtocolCandidates(options = {}) {
     .map(protocol => ({
       name: protocol.name || "Unknown",
       symbol: protocol.symbol || protocol.name || "UNKNOWN",
-      chain: protocol.chain || "defillama",
+      chain: normalizeProviderChain(protocol.chain),
+      declaredChain: protocol.chain || null,
       address: null,
-      pairAddress: protocol.slug || protocol.name || null,
+      pairAddress: null,
+      providerAssetId: protocol.slug || protocol.name || null,
+      marketKey: protocol.slug ? `defillama:${protocol.slug}` : null,
       dex: "protocol",
       url: protocol.url || `https://defillama.com/protocol/${protocol.slug}`,
       priceUsd: null,
       liquidityUsd: null,
-      volume24h: n(protocol.volume24h || protocol.volume_24h || 0),
-      priceChange24h: n(protocol.change_1d || 0),
+      volume24h: nullableNumber(protocol.volume24h || protocol.volume_24h),
+      priceChange24h: nullableNumber(protocol.change_1d),
       tvl: n(protocol.tvl),
       protocolTvlUsd: n(protocol.tvl),
       category: protocol.category || "DeFi",
@@ -192,15 +202,18 @@ export async function getDefiLlamaChainCandidates(options = {}) {
   return chains.slice(0, limit).map(chain => ({
     name: chain.name || "Unknown Chain",
     symbol: chain.name || "CHAIN",
-    chain: chain.name || "defillama-chain",
+    chain: normalizeProviderChain(chain.name),
+    declaredChain: chain.name || null,
     address: null,
-    pairAddress: `defillama-chain-${chain.name}`,
+    pairAddress: null,
+    providerAssetId: chain.name ? `defillama-chain:${chain.name}` : null,
+    marketKey: chain.name ? `defillama-chain:${chain.name}` : null,
     dex: "chain-tvl",
     url: `https://defillama.com/chain/${encodeURIComponent(chain.name)}`,
     priceUsd: null,
     liquidityUsd: null,
-    volume24h: 0,
-    priceChange24h: n(chain.change_1d || 0),
+    volume24h: null,
+    priceChange24h: nullableNumber(chain.change_1d),
     tvl: n(chain.tvl),
     protocolTvlUsd: n(chain.tvl),
     researchOnly: true,
@@ -247,7 +260,7 @@ export async function getBinanceTickerCandidates(options = {}) {
         chain: null,
         exchange: config.exchange,
         address: null,
-        pairAddress: ticker.symbol,
+        pairAddress: null,
         marketKey: `${config.source}:${ticker.symbol}`,
         assetKey: `symbol:${baseSymbol || normalizeSymbol(ticker.symbol)}`,
         dex: "cex",
@@ -286,7 +299,7 @@ export async function getKuCoinTickerCandidates(options = {}) {
         chain: null,
         exchange: "KuCoin",
         address: null,
-        pairAddress: ticker.symbol,
+        pairAddress: null,
         marketKey: `kucoin:${ticker.symbol}`,
         exchangeAssetId: `kucoin:${symbol}`,
         dex: "cex",
@@ -319,7 +332,7 @@ export async function getCoinbaseProductCandidates(options = {}) {
         chain: null,
         exchange: "Coinbase",
         address: null,
-        pairAddress: product.id,
+        pairAddress: null,
         marketKey: `coinbase:${product.id}`,
         exchangeAssetId: `coinbase:${symbol}`,
         dex: "cex",
@@ -358,7 +371,7 @@ export async function getKrakenTickerCandidates(options = {}) {
       chain: null,
       exchange: "Kraken",
       address: null,
-      pairAddress: key,
+      pairAddress: null,
       marketKey: `kraken:${key}`,
       exchangeAssetId: `kraken:${symbol}`,
       dex: "cex",

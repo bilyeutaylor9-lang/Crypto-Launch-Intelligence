@@ -1,4 +1,10 @@
 import crypto from "crypto";
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+  normalizeWalletAddress,
+} from "../identity/strictIdentityValidators.js";
 
 function clean(value = "") {
   return String(value || "").trim().toLowerCase();
@@ -64,18 +70,18 @@ export function symbolIdentityForProject(project = {}) {
 }
 
 export function projectIdentitySignals(project = {}) {
-  const chain = clean(project.chain || project.chainId || "unknown");
+  const chain = normalizeChainId(project.chain || project.chainId) || "unknown";
   const tokenContracts = [
     project.address,
     project.tokenAddress,
     project.contractAddress,
     project.baseToken?.address,
-  ].map(clean).filter(Boolean);
+  ].map((value) => normalizeTokenAddress(value, chain)).filter(Boolean);
   const poolAddresses = [
     project.pairAddress,
     project.poolAddress,
     project.pair?.address,
-  ].map(clean).filter(Boolean);
+  ].map((value) => normalizePoolAddress(value, chain)).filter(Boolean);
   const websites = [
     project.website,
     project.url,
@@ -116,7 +122,7 @@ export function projectIdentitySignals(project = {}) {
     project.deployer,
     project.deployerAddress,
     project.creatorAddress,
-  ].map(clean).filter(Boolean);
+  ].map((value) => normalizeWalletAddress(value, chain)).filter(Boolean);
   const aliases = [
     project.name,
     project.symbol,

@@ -9,7 +9,7 @@ export function writeSevenDayTenXResearchReport(projects = []) {
   const report = {
     ...summarizeSevenDayTenXResearch(projects),
     operatingRules: [
-      "Treat 10x as a rare-event scenario, never a guarantee.",
+      "Treat asymmetric scenario strength as a heuristic, never a calibrated probability or guarantee.",
       "Only select candidates with verified identity, route, liquidity, safety, and independent evidence.",
       "Keep blocked projects visible with exact blockers instead of forcing a pick.",
       "Use bestAvailableWatchlist for manual research when no project qualifies.",

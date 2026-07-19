@@ -7,12 +7,32 @@ import { planResearchQueue } from "../src/index.js";
 import { planInstitutionalCandidateSelection } from "../src/discovery/institutionalCandidateSelector.js";
 import { calculatePreIntelligenceFeatures } from "../src/discovery/preIntelligenceFeatureEngine.js";
 
+function evmAddress(index = 0) {
+  return `0x${String(index).padStart(40, "0")}`;
+}
+
+function base58Seed(seed = 0) {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let value = Math.max(1, Number(seed) || 1);
+  let encoded = "";
+  while (value > 0) {
+    encoded = alphabet[value % alphabet.length] + encoded;
+    value = Math.floor(value / alphabet.length);
+  }
+  return encoded || "1";
+}
+
+function solanaAddress(index = 0) {
+  return `So${base58Seed(index).padStart(40, "1")}`;
+}
+
 function candidate(index = 0, overrides = {}) {
+  const chain = overrides.chain || (index % 5 === 0 ? "solana" : "base");
   return {
     name: `Candidate ${index}`,
     symbol: `C${index}`,
-    chain: index % 5 === 0 ? "solana" : "base",
-    address: `0x${String(index).padStart(40, "0")}`,
+    chain,
+    address: chain === "solana" ? solanaAddress(index) : evmAddress(index),
     source: index % 7 === 0 ? "github" : "dexscreener",
     discoverySources: [index % 7 === 0 ? "github" : "dexscreener"],
     liquidityUsd: 80_000 + index * 10,

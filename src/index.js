@@ -17,6 +17,14 @@ import {
   loadResearchCoverageLedger,
   saveResearchCoveragePlan,
 } from "./learning/researchCoverageStore.js";
+import { syncScanToSupabase } from "./storage/supabaseSync.js";
+import {
+  applySupabaseMemory,
+  collectSupabaseMemory,
+  summarizeSupabaseMemoryImpact,
+  writeSupabaseMemoryReport,
+} from "./storage/supabaseMemory.js";
+import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -37,6 +45,7 @@ function weightedScore(project = {}) {
     num(project.relativeStrengthScore) * 0.07 +
     num(project.buyPressureScore) * 0.08 +
     num(project.capitalFlowScore) * 0.1 +
+    num(project.capitalMigrationScore) * 0.1 +
     num(project.liquidityScore) * 0.08 +
     num(project.narrativeScore) * 0.08 +
     num(project.narrativeForecastScore) * 0.07 +
@@ -225,7 +234,11 @@ function printSummary(summary) {
   console.log("============= PIPELINE SUMMARY =============");
   console.log(`Projects Scanned: ${summary.scannedProjects}`);
   console.log(`Market Regime: ${summary.marketRegime || "Unknown"}`);
-  console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "N/A"}%`);
+  console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "Not reported"}%`);
+  console.log(`Scoring Model: ${summary.scoringPrimaryModel || "legacy"}`);
+  console.log(
+    `Engine Health: ${summary.engineHealth?.enginesSuccessful || 0}/${summary.engineHealth?.enginesAttempted || 0} successful | Failed: ${summary.engineHealth?.enginesFailed || 0} | Partial: ${summary.engineHealth?.enginesPartial || 0} | No Data: ${summary.engineHealth?.enginesNoData || 0} | Avg Coverage: ${summary.engineHealth?.averageEvidenceCoverage || 0}%`
+  );
   console.log(`Institutional Alpha: ${summary.institutionalAlphaCount}`);
   console.log(`A+ Opportunities: ${summary.aPlusOpportunityCount}`);
   console.log(`Strong Watchlist: ${summary.strongWatchlistCount}`);
@@ -299,9 +312,14 @@ function printSummary(summary) {
   console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
   console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
   console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
-  console.log(`7-Day 10x Research Picks: ${summary.sevenDayTenXSelectedCount}`);
-  console.log(`7-Day 10x Watch: ${summary.sevenDayTenXWatchCount}`);
-  console.log(`7-Day 10x Blocks: ${summary.sevenDayTenXBlockedCount}`);
+  console.log(`7-Day Asymmetric Research Picks: ${summary.sevenDayTenXSelectedCount}`);
+  console.log(`7-Day Asymmetric Watch: ${summary.sevenDayTenXWatchCount}`);
+  console.log(`7-Day Asymmetric Blocks: ${summary.sevenDayTenXBlockedCount}`);
+  console.log(`vNext Buy Eligible: ${summary.vNextBuyEligibleCount}`);
+  console.log(`vNext Blocks / Restricted: ${summary.vNextBlockedCount} / ${summary.vNextRestrictedCount}`);
+  console.log(`vNext Low Coverage: ${summary.vNextLowCoverageCount}`);
+  console.log(`vNext Upgrades / Downgrades: ${summary.vNextUpgradeCount} / ${summary.vNextDowngradeCount}`);
+  console.log(`vNext Evidence Coverage Avg: ${summary.averageVNextEvidenceCoverage}%`);
   console.log(`Final Qualified Candidates: ${summary.finalQualifiedCandidateCount}`);
   console.log(`Final Blocked Candidates: ${summary.finalBlockedCandidateCount}`);
   console.log(`Final Identity Conflicts: ${summary.finalIdentityConflictCount}`);
@@ -313,6 +331,10 @@ function printSummary(summary) {
   console.log(`Quiet Accumulation: ${summary.quietAccumulationDetectedCount}`);
   console.log(`Pre-Consensus Late/Already Pumped: ${summary.alreadyPumpedPreConsensusCount}`);
   console.log(`Pre-Consensus Blocked: ${summary.blockedPreConsensusCount}`);
+  console.log(`Pre-Breakout Radar ARMED: ${summary.preBreakoutRadarArmedCount}`);
+  console.log(`Pre-Breakout Radar Watch: ${summary.preBreakoutRadarWatchCount}`);
+  console.log(`Pre-Breakout Radar Research: ${summary.preBreakoutRadarResearchCount}`);
+  console.log(`Pre-Breakout Radar Blocked: ${summary.preBreakoutRadarBlockedCount}`);
   console.log(`Sniper ARMED Candidates: ${summary.armedSniperCandidateCount}`);
   console.log(`Sniper Quiet Accumulation: ${summary.sniperQuietAccumulationCount}`);
   console.log(`Sniper Fundamentals Accelerating: ${summary.sniperFundamentalsAcceleratingCount}`);
@@ -347,6 +369,14 @@ function printTopProjects(results) {
     console.log(`   Symbol: ${project.symbol || "-"}`);
     console.log(`   Chain: ${project.chain || "-"}`);
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
+    if (project.vNextScore !== undefined) {
+      console.log(
+        `   Legacy/vNext: ${project.legacyScore || 0} (#${project.legacyRank || "-"}) -> ${project.vNextScore || 0} (#${project.vNextRank || "-"}) | ${project.vNextRecommendation || "Unknown"}`
+      );
+      console.log(
+        `   vNext: ${project.vNextProjectCategory || "Unknown"} / ${project.vNextMarketStage || "UNKNOWN"} / ${project.vNextSafetyState || "UNKNOWN"} | Evidence ${project.evidenceCoverageScore || 0}% | ${project.reasonForDifference || "No material difference."}`
+      );
+    }
     if (project.confidenceAdjustedScore) {
       console.log(`   Confidence-Adjusted: ${project.confidenceAdjustedScore} (#${project.confidenceAdjustedRank || "-"})`);
     }
@@ -387,7 +417,7 @@ function printTopProjects(results) {
     }
     if (project.sevenDayTenXSelected || project.sevenDayTenXWatchRank) {
       console.log(
-        `   7-Day 10x Research: ${project.sevenDayTenXVerdict || "Watch"} (${project.sevenDayTenXScore || 0}, scenario ${project.sevenDayTenXModeledScenarioPct || 0}%)`
+        `   7-Day Asymmetric Research: ${project.sevenDayTenXVerdict || "Watch"} (${project.sevenDayTenXScore || 0}, scenario strength ${project.sevenDayAsymmetricScenarioStrength || project.sevenDayTenXModeledScenarioPct || 0})`
       );
     }
     if (project.organicDemandVerdict) {
@@ -438,6 +468,8 @@ function printReportPaths(paths) {
   console.log(`JSON Report:    ${paths.jsonPath}`);
   console.log(`CSV Export:     ${paths.csvPath}`);
   console.log(`Quantum Field:  ${paths.quantumFieldPath}`);
+  console.log(`Quantum Health: ${paths.quantumSuiteHealthPath}`);
+  console.log(`Quantum Brain:  ${paths.quantumReasoningBrainPath}`);
   console.log(`Patterns:       ${paths.prePumpPatternPath}`);
   console.log(`Calibration:    ${paths.calibrationPath}`);
   console.log(`vNext:          ${paths.institutionalVNextPath}`);
@@ -479,7 +511,18 @@ function printReportPaths(paths) {
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
-  console.log(`7-Day 10x:    ${paths.sevenDayTenXResearchPath}`);
+  console.log(`7-Day Asym:   ${paths.sevenDayTenXResearchPath}`);
+  if (paths.scannerVNextPath) console.log(`Scanner vNext: ${paths.scannerVNextPath}`);
+  if (paths.capitalMigrationCorePath) console.log(`Capital Migration: ${paths.capitalMigrationCorePath}`);
+  if (paths.chainCapitalRotationPath) console.log(`Chain Rotation: ${paths.chainCapitalRotationPath}`);
+  if (paths.narrativeCapitalRotationPath) console.log(`Narrative Rotation: ${paths.narrativeCapitalRotationPath}`);
+  if (paths.marketCapRotationPath) console.log(`Market-Cap Rotation: ${paths.marketCapRotationPath}`);
+  if (paths.capitalOutflowWatchPath) console.log(`Capital Outflow: ${paths.capitalOutflowWatchPath}`);
+  if (paths.pipelineStageHealthPath) console.log(`Pipeline Health: ${paths.pipelineStageHealthPath}`);
+  if (paths.exactOutcomeHorizonLabPath) console.log(`Outcome Horizons: ${paths.exactOutcomeHorizonLabPath}`);
+  if (paths.mathematicalValidationPath) console.log(`Math Validation: ${paths.mathematicalValidationPath}`);
+  if (paths.engineDataReadinessPath) console.log(`Data Readiness:${paths.engineDataReadinessPath}`);
+  if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
   if (paths.standard4000ExclusionsPath) console.log(`4000 Exclusions:${paths.standard4000ExclusionsPath}`);
@@ -487,6 +530,7 @@ function printReportPaths(paths) {
   if (paths.candidateRescueReportPath) console.log(`Rescue Report:  ${paths.candidateRescueReportPath}`);
   if (paths.missedOpportunityAuditPath) console.log(`Missed Audit:   ${paths.missedOpportunityAuditPath}`);
   console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
+  console.log(`Pre-Breakout:  ${paths.preBreakoutRadarPath}`);
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
   console.log(`Integrity Stack: ${paths.integrityStackPath}`);
@@ -519,6 +563,36 @@ function printReportPaths(paths) {
   console.log("Open dashboard with:");
   console.log("open reports/report.html");
   console.log("");
+}
+
+function printSupabaseSync(sync = {}) {
+  if (!sync.enabled && sync.status === "SKIPPED") return;
+
+  const detail =
+    sync.status === "OK"
+      ? `Run: ${sync.runId} | Projects: ${sync.syncedProjects || 0} | Reports: ${sync.syncedReports || 0} | Alpha receipts: ${sync.syncedAlphaReceipts || 0}`
+      : sync.reason || "unknown";
+
+  console.log(`Supabase Sync: ${sync.status || "UNKNOWN"} | ${detail}`);
+}
+
+function printSupabaseMemory(memory = {}) {
+  if (!memory.status || memory.status === "SKIPPED") return;
+  const detail =
+    memory.status === "OK"
+      ? `Matched: ${memory.matchedProjects || 0} | Remembered: ${memory.rememberedProjects || 0} | New: ${memory.newOrUnseenProjects || 0}`
+      : memory.reason || "remote memory unavailable";
+  console.log(`Supabase Memory: ${memory.status} | ${detail}`);
+}
+
+function printAlphaTruthMemory(alphaTruth = {}) {
+  const persistence = alphaTruth.persistence || {};
+  if (!persistence.status) return;
+  const detail =
+    persistence.status === "OK"
+      ? `Receipts: ${persistence.receiptsSaved || 0} | Evidence events: ${persistence.evidenceEventsSaved || 0} | Sources: ${persistence.sourceHistorySaved || 0}`
+      : persistence.reason || "not persisted";
+  console.log(`Alpha Truth Memory: ${persistence.status} | ${detail}`);
 }
 
 async function main() {
@@ -562,7 +636,7 @@ async function main() {
       localAI,
     });
 
-    const results = normalizeForReports(pipelineResults);
+    let results = normalizeForReports(pipelineResults);
     const summary = summarizePipelineResults(results);
     let researchCoverage = researchPlan.report;
 
@@ -579,26 +653,57 @@ async function main() {
       console.warn(`Research coverage ledger failed: ${error.message}`);
     }
 
+    let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
+    try {
+      supabaseMemory = await collectSupabaseMemory({ projects: results });
+      results = applySupabaseMemory(results, supabaseMemory);
+    } catch (error) {
+      supabaseMemory = { status: "FAILED", reason: error.message };
+      results = applySupabaseMemory(results, supabaseMemory);
+      console.warn(`Supabase memory failed: ${error.message}`);
+    }
+    const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
+
+    const reportMeta = {
+      runId: `scan_${startedAt.getTime()}`,
+      startedAt: startedAt.toISOString(),
+      completedAt: new Date().toISOString(),
+      discoveredProjects: discoveredList.length,
+      discovery: discoveredProjects,
+      researchCoverage,
+      analysisFunnel: researchPlan.report,
+      scannedProjects: results.length,
+      engineMode: "full",
+      scoringMode: "institutional-weighted-fallback",
+      localAIMode: localAI.mode,
+      supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
+      platform: "Crypto Launch Intelligence",
+    };
+
+    const alphaTruth = persistAlphaTruthMemory(results, reportMeta);
+    reportMeta.alphaTruth = alphaTruth.report;
+    reportMeta.alphaTruthPersistence = alphaTruth.persistence;
+
     const reportPaths = {
-      ...generateReports(results, {
-        startedAt: startedAt.toISOString(),
-        completedAt: new Date().toISOString(),
-        discoveredProjects: discoveredList.length,
-        discovery: discoveredProjects,
-        researchCoverage,
-        analysisFunnel: researchPlan.report,
-        scannedProjects: results.length,
-        engineMode: "full",
-        scoringMode: "institutional-weighted-fallback",
-        localAIMode: localAI.mode,
-        platform: "Crypto Launch Intelligence",
-      }),
+      ...generateReports(results, reportMeta),
+      supabaseMemoryPath,
       ...selectionAuditPaths,
     };
+
+    const supabaseSync = await syncScanToSupabase({
+      projects: results,
+      summary,
+      meta: reportMeta,
+      reportPaths,
+      alphaTruth: alphaTruth.report,
+    });
 
     printSummary(summary);
     printTopProjects(results);
     printAlerts(summary);
+    printAlphaTruthMemory(alphaTruth);
+    printSupabaseMemory(reportMeta.supabaseMemory);
+    printSupabaseSync(supabaseSync);
     printReportPaths(reportPaths);
 
     console.log("Scan Complete.");

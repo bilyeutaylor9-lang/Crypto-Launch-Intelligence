@@ -71,7 +71,7 @@ function chain(project = {}) {
 }
 
 function marketCap(project = {}) {
-  return num(first([project.circulatingMarketCapUsd, project.marketCap, project.estimatedMarketCapUsd, project.fdv]));
+  return num(first([project.circulatingMarketCapUsd, project.circulatingMarketCap, project.marketCap, project.estimatedMarketCapUsd]));
 }
 
 function liquidity(project = {}) {
@@ -372,7 +372,7 @@ function missingEvidence(project = {}, components = {}) {
   ];
 }
 
-function modeledTenXScenarioPct(score = 0, components = {}, penalties = []) {
+function asymmetricScenarioStrength(score = 0, components = {}, penalties = []) {
   const penaltyDrag = penalties.reduce((sum, item) => sum + num(item.penalty), 0);
   const rareEventBase = Math.max(0, (score - 52) * 0.28);
   const leverageBoost = Math.max(0, (components.lowCapLeverage - 70) * 0.035);
@@ -410,12 +410,13 @@ function reasons(project = {}, components = {}) {
     .slice(0, 8);
 }
 
-function paperPlan(project = {}, scenarioPct = 0) {
+function paperPlan(project = {}, scenarioStrength = 0) {
   return {
     mode: "Research-only watch plan",
     horizon: "7 days",
-    modeledTenXScenarioPct: scenarioPct,
-    note: "This is a rare-event scenario model, not a probability guarantee and not financial advice.",
+    asymmetricScenarioStrength: scenarioStrength,
+    modeledTenXScenarioPct: scenarioStrength,
+    note: "This is a rare-event scenario-strength heuristic, not an empirically calibrated probability and not financial advice.",
     confirmBeforeAnyRealTrade: [
       "Verify official contract, chain, pool, and website.",
       "Verify Coinbase availability or MetaMask route, slippage, taxes, and sell simulation.",
@@ -450,7 +451,7 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
   const score = Math.round(clamp(rawScore - penaltyTotal));
   const blockers = hardBlockers(project, components, minLiquidity);
   const missing = missingEvidence(project, components);
-  const scenarioPct = modeledTenXScenarioPct(score, components, penalties);
+  const scenarioStrength = asymmetricScenarioStrength(score, components, penalties);
   const tenXVerdict = verdict(score, blockers, components, missing);
   const selectedEligible =
     blockers.length === 0 &&
@@ -469,7 +470,8 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
     sevenDayTenXVerdict: tenXVerdict,
     sevenDayTenXConfidence: confidence(score, components, blockers),
     sevenDayTenXSelectedEligible: selectedEligible,
-    sevenDayTenXModeledScenarioPct: scenarioPct,
+    sevenDayAsymmetricScenarioStrength: scenarioStrength,
+    sevenDayTenXModeledScenarioPct: scenarioStrength,
     sevenDayTenXMarketCap: marketCap(project),
     sevenDayTenXLiquidityUsd: liquidity(project),
     sevenDayTenXBlockers: blockers,
@@ -482,7 +484,8 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
       penaltyTotal,
       verdict: tenXVerdict,
       confidence: confidence(score, components, blockers),
-      modeledTenXScenarioPct: scenarioPct,
+      asymmetricScenarioStrength: scenarioStrength,
+      modeledTenXScenarioPct: scenarioStrength,
       selectedEligible,
       componentWeights: COMPONENT_WEIGHTS,
       components,
@@ -490,7 +493,7 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
       blockers,
       missingEvidence: missing,
       reasons: reasons(project, components),
-      paperPlan: paperPlan(project, scenarioPct),
+      paperPlan: paperPlan(project, scenarioStrength),
       disclaimer: "Research signal only. Not financial advice, not a buy recommendation, and not a profit guarantee.",
     },
     evidence: [
@@ -598,6 +601,7 @@ function compact(project = {}) {
     liquidityUsd: project.sevenDayTenXLiquidityUsd || 0,
     finalSelectionState: project.finalSelectionState || "UNKNOWN",
     routeVerified: routeVerified(project),
+    asymmetricScenarioStrength: project.sevenDayAsymmetricScenarioStrength || project.sevenDayTenXModeledScenarioPct || 0,
     componentScores: project.sevenDayTenX?.components || {},
     blockers: project.sevenDayTenXBlockers || [],
     missingEvidence: project.sevenDayTenXMissingEvidence || [],

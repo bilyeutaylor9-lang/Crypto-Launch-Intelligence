@@ -73,3 +73,23 @@ test("project identity graph exposes symbol identity edges", () => {
   assert.ok(graph.edges.some((edge) => edge.type === "chainSymbolIdentity" && edge.chain === "base"));
   assert.ok(graph.edges.some((edge) => edge.type === "symbolInstance"));
 });
+
+test("project identity graph rejects fake address anchors", () => {
+  const enriched = attachProjectIdentity({
+    name: "Fake Address Alpha",
+    symbol: "FAA",
+    chain: "gaming",
+    address: "coingecko:fake-address-alpha",
+    tokenAddress: "FAA",
+    pairAddress: "https://dexscreener.com/base/faa",
+    deployerAddress: "github",
+  });
+  const graph = buildProjectIdentityGraph([enriched]);
+
+  assert.equal(enriched.projectIdentity.chain, "unknown");
+  assert.deepEqual(enriched.projectIdentity.tokenContracts, []);
+  assert.deepEqual(enriched.projectIdentity.poolAddresses, []);
+  assert.deepEqual(enriched.projectIdentity.deployerWallets, []);
+  assert.equal(identityKeyForProject(enriched), "unknown:alias:fake address alpha:faa");
+  assert.ok(!graph.edges.some((edge) => edge.type === "tokenContract"));
+});

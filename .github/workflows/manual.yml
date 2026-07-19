@@ -21,9 +21,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: npm
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Intelligence Scanner
         run: npm run scan:free-max
@@ -95,6 +96,13 @@ jobs:
           SOLANA_RAYDIUM_CLMM_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_CLMM_PROGRAM }}
           SOLANA_METEORA_DBC_PROGRAM: ${{ secrets.SOLANA_METEORA_DBC_PROGRAM }}
           SOLANA_METEORA_DLMM_PROGRAM: ${{ secrets.SOLANA_METEORA_DLMM_PROGRAM }}
+          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || 'false' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_JWKS_URL: ${{ secrets.SUPABASE_JWKS_URL }}
+          SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
 
       - name: Upload Reports
         uses: actions/upload-artifact@v4

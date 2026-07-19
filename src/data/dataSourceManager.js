@@ -81,6 +81,24 @@ export const SOURCE_STATUS = {
     chains: ["market"]
   },
 
+  coinLoreAssets: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 73,
+    category: "market",
+    chains: ["market"]
+  },
+
+  coinLoreMovers: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 73,
+    category: "market",
+    chains: ["market"]
+  },
+
   binance: {
     enabled: true,
     requiresKey: false,
@@ -196,6 +214,24 @@ export const SOURCE_STATUS = {
     priority: 61,
     category: "market",
     chains: ["market"]
+  },
+
+  dexScreenerCommunityTakeovers: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 72,
+    category: "social",
+    chains: ["ethereum", "base", "solana", "arbitrum", "polygon", "bsc"]
+  },
+
+  dexScreenerAds: {
+    enabled: true,
+    requiresKey: false,
+    tier: 3,
+    priority: 55,
+    category: "social",
+    chains: ["ethereum", "base", "solana", "arbitrum", "polygon", "bsc"]
   },
 
   // =========================

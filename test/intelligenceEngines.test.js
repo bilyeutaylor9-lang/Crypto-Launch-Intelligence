@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import { analyzeNarrativeLaunchStaking } from "../src/engines/narrativeLaunchStakingEngine.js";
 import { analyzeOpportunityProof } from "../src/engines/opportunityProofEngine.js";
@@ -213,7 +214,30 @@ test("web research agent builds a priority queue without spending search budget"
   assert.ok(results[0].webResearchPlan.queries.length > 0);
 });
 
-test("AI ecosystem council selects one best available strong-buy candidate when no true strong buy exists", () => {
+test("required pipeline engines fail closed and write a failure report", async () => {
+  const reportPath = "reports/pipeline-failure-report.json";
+  if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+
+  await assert.rejects(
+    () =>
+      runEngine(
+        "Execution Proof",
+        () => {
+          throw new Error("execution provider wrapper crashed");
+        },
+        [{ name: "Required Failure", symbol: "REQ" }]
+      ),
+    /Required engine failed: Execution Proof/
+  );
+
+  assert.equal(fs.existsSync(reportPath), true);
+  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  assert.equal(report.pipelineStatus, "FAILED");
+  assert.equal(report.failedEngine.engineName, "Execution Proof");
+  assert.match(report.failedEngine.failureReason, /execution provider wrapper crashed/);
+});
+
+test("AI ecosystem council selects one best available research candidate when no true strong buy exists", () => {
   const results = analyzeAIEcosystemCouncilBatch([
     {
       name: "BetterSetup",
@@ -239,11 +263,11 @@ test("AI ecosystem council selects one best available strong-buy candidate when 
   ]);
 
   const selected = results.find(
-    (project) => project.aiEcosystemVerdict === "Best Available Strong Buy Candidate"
+    (project) => project.aiEcosystemVerdict === "Best Available Research Candidate"
   );
 
   assert.equal(selected.name, "BetterSetup");
-  assert.match(selected.aiEcosystemCaveat, /manual confirmation/);
+  assert.match(selected.aiEcosystemCaveat, /not cleared every required gate/);
   assert.ok(selected.strongBuyEvidenceGate.blockers.length > 0);
   assert.ok(selected.aiDebate.moderator.length > 0);
   assert.ok(selected.whyNow.invalidation.length > 0);
@@ -273,6 +297,14 @@ test("AI ecosystem council grants true strong buy only when evidence gate clears
       outcomeLearningScore: 72,
       prePumpPatternScore: 74,
       projectChangeScore: 72,
+      discoverySources: ["dexscreener", "geckoterminal"],
+      identityVerified: true,
+      contractVerified: true,
+      projectIdentityVerdict: "Identity Resolved",
+      identityResolutionScore: 92,
+      executionProofVerified: true,
+      executionStatus: "VERIFIED",
+      activeLiquidityTruthScore: 82,
       trapRiskScore: 10,
       riskScore: 18,
       externalRiskScore: 0,
@@ -287,7 +319,7 @@ test("AI ecosystem council grants true strong buy only when evidence gate clears
 test("research operating system builds lifecycle, scenarios, tasks, and red-team review", () => {
   const result = analyzeResearchOperatingSystem({
     name: "ResearchOS",
-    aiEcosystemVerdict: "Best Available Strong Buy Candidate",
+    aiEcosystemVerdict: "Best Available Research Candidate",
     confidenceAdjustedScore: 62,
     narrativeHeatScore: 82,
     webResearchPriority: 72,
@@ -303,7 +335,7 @@ test("research operating system builds lifecycle, scenarios, tasks, and red-team
     },
   });
 
-  assert.equal(result.strongBuyLifecycleStage, "Pre-Strong Buy");
+  assert.equal(result.strongBuyLifecycleStage, "Research Candidate");
   assert.ok(result.multiTimeframeIntelligence.bestHorizon);
   assert.ok(result.scenarioPlan.bullCase.score >= result.scenarioPlan.bearCase.score);
   assert.ok(result.autonomousResearchTasks.some((task) => task.priority === "High"));
@@ -1710,15 +1742,15 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
     selected.map((project) => project.smallCapHunterSelectionRank),
     [1, 2]
   );
-  assert.equal(noRoute.smallCapHunterVerdict, "Small-Cap Purchase Route Block");
-  assert.equal(noRoute.smallCapHunterSelected, false);
+  assert.equal(noRoute.smallCapHunterVerdict, "Top-2 Small-Cap Research Candidate");
+  assert.equal(noRoute.smallCapHunterSelected, true);
+  assert.equal(noRoute.smallCapHunter.executionReady, false);
+  assert.equal(noRoute.smallCapHunter.researchOnly, true);
+  assert.equal(noRoute.smallCapHunter.routeStatus, "NO_ROUTE");
   assert.equal(trap.smallCapHunterVerdict, "Small-Cap Risk Block");
   assert.equal(trap.smallCapHunterSelected, false);
   assert.equal(selected[0].smallCapHunter.paperPlan.totalPaperBudgetUsd, 100);
-  assert.deepEqual(
-    selected.map((project) => project.smallCapHunter.purchaseRoute.preferredRoute).sort(),
-    ["Coinbase", "MetaMask"]
-  );
+  assert.ok(selected.some((project) => project.smallCapHunter.purchaseRoute.preferredRoute !== "Unavailable"));
   assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
   assert.ok(selected.every((project) => project.smallCapPreHitPressureScore > 0));
@@ -1735,7 +1767,12 @@ test("engine watchdog returns the last safe project list when a brain step stall
     { timeoutMs: 5 }
   );
 
-  assert.deepEqual(results, projects);
+  assert.equal(results[0].name, projects[0].name);
+  assert.equal(results[0].symbol, projects[0].symbol);
+  assert.equal(results[0].chain, projects[0].chain);
+  assert.equal(results[0].engineResults.worldModelBrain.status, "FAILED");
+  assert.match(results[0].engineResults.worldModelBrain.failureReason, /timed out/i);
+  assert.equal(results[0].engineHealth.enginesFailed, 1);
   assert.ok(Date.now() - startedAt < 500);
 });
 
@@ -1855,7 +1892,7 @@ test("proof of alpha execution twin selects route-verified paper executions and 
     selected.map((project) => project.proofOfAlphaExecutionTwinRoute).sort(),
     ["Coinbase", "MetaMask"]
   );
-  assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "Execution Route Block");
+  assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "RESEARCH_ONLY_ROUTE_UNVERIFIED");
   assert.equal(unsafe.proofOfAlphaExecutionTwinVerdict, "Execution Safety Block");
   assert.ok(selected[0].proofOfAlphaExecutionTwin.paperExecution.reviewWindows.includes("30d"));
 });
@@ -1930,23 +1967,32 @@ test("organic demand integrity can confirm cleaner economic demand", () => {
     symbol: "FLOWX",
     chain: "base",
     liquidityUsd: 2_500_000,
+    volume24h: 1_200_000,
     stablecoinReservesUsd: 1_300_000,
+    hardExitLiquidityUsd: 1_250_000,
     protocolOwnedLiquidityPct: 8,
     liquidityProviders: 160,
     lpLocked: true,
+    pairAgeHours: 240,
     holders: 35_000,
     uniqueBuyers24h: 3_000,
+    uniqueTraders24h: 4_200,
     activeHolders30d: 4_500,
     holdersOver10Usd: 12_000,
     holdersOver100Usd: 4_000,
+    holdersOver1000Usd: 900,
     swapTransactions24h: 6_000,
     buyTransactions24h: 3_400,
     sellTransactions24h: 2_600,
     approvalTransactions24h: 800,
     transferTransactions24h: 1_200,
+    top50WalletTransactionPct: 18,
+    repeatWalletTransactionPct: 14,
     ownerRenounced: true,
     marketCap: 42_000_000,
     circulatingSupply: 420_000_000,
+    totalSupply: 500_000_000,
+    maxSupply: 500_000_000,
     sourceTruthScore: 78,
   });
 
@@ -2265,6 +2311,7 @@ test("Binance routes to Binance.US in US mode and keeps liquidity separate from 
     assert.equal(candidate.exchange, "Binance.US");
     assert.equal(candidate.baseSymbol, "BTC");
     assert.equal(candidate.quoteSymbol, "USDT");
+    assert.equal(candidate.pairAddress, null);
     assert.equal(candidate.liquidityUsd, null);
     assert.equal(candidate.volume24h, 1234567);
   } finally {
@@ -2307,6 +2354,7 @@ test("Gemini uses bulk price feed and avoids fake liquidity", async () => {
 
     assert.equal(candidate.source, "gemini");
     assert.equal(candidate.exchange, "Gemini");
+    assert.equal(candidate.pairAddress, null);
     assert.equal(candidate.liquidityUsd, null);
     assert.equal(candidate.volume24h, null);
     assert.equal(candidate.marketCap, null);

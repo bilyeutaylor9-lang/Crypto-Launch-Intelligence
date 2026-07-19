@@ -1,5 +1,11 @@
 // src/data/dexScreenerConnector.js
 
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
+
 /**
  * DEX Screener Connector
  *
@@ -17,6 +23,12 @@ async function fetchJson(url) {
   }
 
   return response.json();
+}
+
+function nullableNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
 
 export async function getLatestTokenProfiles() {
@@ -40,15 +52,21 @@ export async function searchDexPairs(query) {
 }
 
 export function normalizeDexPair(pair = {}) {
+  const chain = normalizeChainId(pair.chainId);
+  const tokenAddress = normalizeTokenAddress(pair.baseToken?.address, chain);
+  const quoteTokenAddress = normalizeTokenAddress(pair.quoteToken?.address, chain);
+  const poolAddress = normalizePoolAddress(pair.pairAddress, chain);
+
   return {
     name: pair.baseToken?.name || "Unknown",
     symbol: pair.baseToken?.symbol || "UNKNOWN",
-    chain: pair.chainId || "unknown",
-    address: pair.baseToken?.address || null,
-    tokenAddress: pair.baseToken?.address || null,
-    quoteTokenAddress: pair.quoteToken?.address || null,
-    poolAddress: pair.pairAddress || null,
-    pairAddress: pair.pairAddress || null,
+    chain,
+    declaredChain: pair.chainId || null,
+    address: tokenAddress,
+    tokenAddress,
+    quoteTokenAddress,
+    poolAddress,
+    pairAddress: poolAddress,
     dex: pair.dexId || "unknown",
     url: pair.url || null,
     source: "dexscreener",
@@ -57,19 +75,19 @@ export function normalizeDexPair(pair = {}) {
     paidBoostEvidence: Boolean(pair.boosts),
     organicDemandEvidence: false,
 
-    priceUsd: Number(pair.priceUsd || 0),
-    liquidityUsd: Number(pair.liquidity?.usd || 0),
+    priceUsd: nullableNumber(pair.priceUsd),
+    liquidityUsd: nullableNumber(pair.liquidity?.usd),
 
-    volume24h: Number(pair.volume?.h24 || 0),
-    volume6h: Number(pair.volume?.h6 || 0),
-    volume1h: Number(pair.volume?.h1 || 0),
+    volume24h: nullableNumber(pair.volume?.h24),
+    volume6h: nullableNumber(pair.volume?.h6),
+    volume1h: nullableNumber(pair.volume?.h1),
 
-    priceChange24h: Number(pair.priceChange?.h24 || 0),
-    priceChange6h: Number(pair.priceChange?.h6 || 0),
-    priceChange1h: Number(pair.priceChange?.h1 || 0),
+    priceChange24h: nullableNumber(pair.priceChange?.h24),
+    priceChange6h: nullableNumber(pair.priceChange?.h6),
+    priceChange1h: nullableNumber(pair.priceChange?.h1),
 
-    buyTransactions24h: Number(pair.txns?.h24?.buys || 0),
-    sellTransactions24h: Number(pair.txns?.h24?.sells || 0),
+    buyTransactions24h: nullableNumber(pair.txns?.h24?.buys),
+    sellTransactions24h: nullableNumber(pair.txns?.h24?.sells),
 
     pairCreatedAt: pair.pairCreatedAt
       ? new Date(pair.pairCreatedAt).toISOString()

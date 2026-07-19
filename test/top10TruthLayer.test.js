@@ -35,6 +35,34 @@ test("CoinGecko category cannot become chain and market cap is not liquidity", (
   assert.equal(normalized.circulatingMarketCapUsd, 1_250_000);
 });
 
+test("invalid raw chain and address strings are null with explicit identity conflicts", () => {
+  const normalized = normalizeMetricTruth({
+    name: "Bad Identity",
+    symbol: "BAD",
+    source: "coingecko",
+    chain: "gaming",
+    address: "alpha-token",
+    tokenAddress: "coingecko:alpha-token",
+    contractAddress: "BAD",
+    pairAddress: "https://dexscreener.com/base/alpha",
+    poolAddress: "top-volume",
+    marketCap: 900_000,
+  });
+
+  assert.equal(normalized.chainId, null);
+  assert.equal(normalized.chain, null);
+  assert.equal(normalized.address, null);
+  assert.equal(normalized.tokenAddress, null);
+  assert.equal(normalized.contractAddress, null);
+  assert.equal(normalized.pairAddress, null);
+  assert.equal(normalized.poolAddress, null);
+  assert.ok(normalized.identityConflicts.some((reason) => reason.includes("Rejected non-chain value")));
+  assert.ok(normalized.identityConflicts.some((reason) => reason.includes("Rejected token address")));
+  assert.ok(normalized.identityConflicts.some((reason) => reason.includes("Rejected pool address")));
+  assert.equal(normalized.circulatingMarketCapUsd, 900_000);
+  assert.equal(normalized.dexLiquidityUsd, null);
+});
+
 test("GeckoTerminal pool address cannot be mistaken for token address", () => {
   const normalized = normalizeGeckoPool({
     id: `base_${POOL}`,
@@ -57,6 +85,25 @@ test("GeckoTerminal pool address cannot be mistaken for token address", () => {
   assert.equal(truth.poolAddress, POOL);
   assert.notEqual(truth.tokenAddress, truth.poolAddress);
   assert.equal(truth.dexLiquidityUsd, 75_000);
+});
+
+test("token address equal to pool address is flagged and token identity is withheld", () => {
+  const truth = normalizeMetricTruth({
+    name: "Same Address",
+    symbol: "SAME",
+    chain: "base",
+    source: "dexscreener",
+    address: TOKEN,
+    tokenAddress: TOKEN,
+    pairAddress: TOKEN,
+    poolAddress: TOKEN,
+    liquidityUsd: 25_000,
+  });
+
+  assert.equal(truth.tokenAddress, null);
+  assert.equal(truth.contractAddress, null);
+  assert.equal(truth.poolAddress, TOKEN);
+  assert.ok(truth.identityConflicts.some((reason) => reason.includes("Token address equals pool address")));
 });
 
 test("CEX volume and DeFiLlama TVL do not become token DEX liquidity", () => {

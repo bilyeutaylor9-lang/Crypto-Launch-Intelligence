@@ -101,7 +101,7 @@ function safeNumber(value = 0) {
 }
 
 function keyForCoin(project = {}) {
-  return String(project.pairAddress || project.symbol || project.name || "")
+  return String(project.coinGeckoId || project.marketKey || project.symbol || project.name || "")
     .toLowerCase()
     .trim();
 }
@@ -162,8 +162,10 @@ export function normalizeCoinGeckoMarket(coin = {}, meta = {}) {
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
     chain: null,
     coinGeckoId: coin.id || null,
+    providerAssetId: coin.id || null,
+    marketKey: coin.id ? `coingecko:${coin.id}` : null,
     address: null,
-    pairAddress: coin.id || null,
+    pairAddress: null,
     dex: "market-aggregate",
     url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
     category: meta.category || null,
@@ -208,8 +210,10 @@ export function normalizeCoinGeckoTrending(item = {}) {
     symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
     chain: null,
     coinGeckoId: coin.id || null,
+    providerAssetId: coin.id || null,
+    marketKey: coin.id ? `coingecko:${coin.id}` : null,
     address: null,
-    pairAddress: coin.id || null,
+    pairAddress: null,
     dex: "trending",
     url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
 

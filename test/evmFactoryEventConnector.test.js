@@ -42,6 +42,43 @@ test("EVM factory collector requests a bounded exact-topic log range", async () 
   });
 });
 
+test("EVM factory collector tries fallback RPC endpoints before failing the route", async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    const request = JSON.parse(init.body);
+    calls.push({ url, method: request.method });
+    if (url === "https://bad-rpc.example") {
+      throw new Error("temporary RPC outage");
+    }
+    return {
+      ok: true,
+      json: async () =>
+        request.method === "eth_blockNumber"
+          ? { jsonrpc: "2.0", id: 1, result: "0x64" }
+          : { jsonrpc: "2.0", id: 1, result: [] },
+    };
+  };
+
+  const result = await fetchEvmFactoryLogs(
+    {
+      id: "test-route",
+      rpcUrls: ["https://bad-rpc.example", "https://good-rpc.example"],
+      factoryAddress: FACTORY,
+      eventTopic0: TOPIC,
+    },
+    { fetchImpl, lookbackBlocks: 12 }
+  );
+
+  assert.equal(result.status, "OK");
+  assert.equal(result.rpcUrl, "https://good-rpc.example");
+  assert.deepEqual(result.rpcAttempts.map((attempt) => attempt.status), ["FAILED", "OK"]);
+  assert.deepEqual(calls.map((call) => call.url), [
+    "https://bad-rpc.example",
+    "https://good-rpc.example",
+    "https://good-rpc.example",
+  ]);
+});
+
 test("EVM factory adapter decodes configured pool and token fields from a raw log", async () => {
   const adapter = new EvmFactoryEventAdapter({
     id: "test-factory",

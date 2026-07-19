@@ -2,17 +2,9 @@ import { canonicalSourceId, getSourceManifest, SOURCE_STATUS } from "../config/s
 import { evidenceFamiliesForProject } from "./discoveryCoverageEngine.js";
 import { identityKeyForProject } from "./projectIdentityGraph.js";
 import { summarizeNativeProtocolCoverage } from "../data/native/nativePoolConfig.js";
+import { normalizeChainId } from "../identity/strictIdentityValidators.js";
 
 const NON_CONCRETE_CHAINS = new Set(["", "unknown", "multi-chain", "multi-evm", "prelaunch"]);
-
-const CHAIN_ALIASES = new Map([
-  ["eth", "ethereum"],
-  ["ethereum-mainnet", "ethereum"],
-  ["bnb", "bsc"],
-  ["binance-smart-chain", "bsc"],
-  ["matic", "polygon"],
-  ["avax", "avalanche"],
-]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -24,7 +16,8 @@ function clamp(value = 0, min = 0, max = 100) {
 
 export function normalizeDiscoveryChain(chain = "") {
   const normalized = String(chain || "").trim().toLowerCase();
-  return CHAIN_ALIASES.get(normalized) || normalized || "unknown";
+  if (NON_CONCRETE_CHAINS.has(normalized)) return normalized || "unknown";
+  return normalizeChainId(chain) || "unknown";
 }
 
 function isConcreteChain(chain = "") {

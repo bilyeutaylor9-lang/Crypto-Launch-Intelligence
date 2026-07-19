@@ -31,7 +31,7 @@ function negativePressure(...values) {
 }
 
 function marketCapGroup(project = {}) {
-  const cap = num(project.marketCap || project.circulatingMarketCap || project.fdv || project.fullyDilutedValue);
+  const cap = num(project.marketCap || project.circulatingMarketCap || project.circulatingMarketCapUsd);
   if (!cap) return "unknown";
   if (cap < 5_000_000) return "micro";
   if (cap < 50_000_000) return "small";

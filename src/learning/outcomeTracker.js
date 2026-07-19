@@ -41,8 +41,8 @@ function getPrice(project = {}) {
 function getMarketCap(project = {}) {
   return num(
     project.marketCap ??
-      project.fdv ??
-      project.fullyDilutedValuation ??
+      project.circulatingMarketCap ??
+      project.circulatingMarketCapUsd ??
       project.marketData?.marketCap
   );
 }

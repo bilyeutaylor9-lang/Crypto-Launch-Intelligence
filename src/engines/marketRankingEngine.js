@@ -34,7 +34,7 @@ export function calculateMarketRankScore(project = {}) {
 
   const liquidity = num(project.liquidityUsd);
   const volume = num(project.volume24h);
-  const marketCap = num(project.marketCap || project.liquidityUsd);
+  const marketCap = num(project.marketCap || project.circulatingMarketCap || project.circulatingMarketCapUsd);
   const priceChange24h = num(project.priceChange24h);
 
   if (liquidity >= 100000) score += 10;

@@ -292,7 +292,7 @@ function buildPaperTradingPlan(project = {}, best = null, score = 0) {
       entryTriggers: ["Wait for at least one strategy to score above 52."],
       invalidationRules: ["No active strategy edge."],
       reviewCadence: "Next full scan",
-      expectedHoldingWindow: "N/A",
+      expectedHoldingWindow: "Not estimated",
       promotionGate: "Needs a matched strategy, proof score above 50, and risk below 55.",
     };
   }

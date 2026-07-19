@@ -55,15 +55,15 @@ function average(values = []) {
 }
 
 function marketCap(project = {}) {
-  return num(project.marketCap || project.fdv || project.marketData?.marketCap || project.rawCandidate?.marketCap);
+  return num(project.marketCap || project.circulatingMarketCap || project.circulatingMarketCapUsd || project.marketData?.marketCap || project.rawCandidate?.marketCap);
 }
 
 function liquidity(project = {}) {
-  return num(project.liquidityUsd || project.liquidity || project.marketData?.liquidityUsd || project.rawCandidate?.liquidityUsd);
+  return num(project.canonicalExecutionRoute?.liquidityUsd || project.executionProof?.liquidityUsd || project.liquidityUsd || project.liquidity || project.marketData?.liquidityUsd || project.rawCandidate?.liquidityUsd);
 }
 
 function volume24h(project = {}) {
-  return num(project.volume24h || project.volume || project.marketData?.volume24h || project.rawCandidate?.volume24h);
+  return num(project.canonicalExecutionRoute?.volume24hUsd || project.executionProof?.volume24hUsd || project.volume24h || project.volume || project.marketData?.volume24h || project.rawCandidate?.volume24h);
 }
 
 function norm(value = "") {
@@ -131,6 +131,44 @@ function isDexRoute(project = {}) {
 }
 
 function purchaseRoute(project = {}) {
+  const canonical = project.canonicalExecutionRoute;
+  if (canonical) {
+    const verified = canonical.status === "VERIFIED";
+    const partial = canonical.status === "PARTIALLY_VERIFIED";
+    const detected = ["VERIFIED", "PARTIALLY_VERIFIED", "DETECTED"].includes(canonical.status);
+    return {
+      status: canonical.status,
+      purchasable: verified || partial,
+      preferredRoute: canonical.venue || "Unknown",
+      score: canonical.confidence || (verified ? 88 : partial ? 64 : detected ? 40 : 0),
+      buyRouteAvailable: Boolean(canonical.buyRouteAvailable),
+      sellRouteAvailable: Boolean(canonical.sellRouteAvailable),
+      routeType: canonical.routeType,
+      chain: canonical.chain,
+      contract: canonical.contractAddress,
+      pairAddress: canonical.pairAddress,
+      liquidityUsd: canonical.liquidityUsd,
+      volume24hUsd: canonical.volume24hUsd,
+      routes: [
+        {
+          type: canonical.venue || "Unknown",
+          status: canonical.status,
+          confidence: canonical.confidence,
+          routeType: canonical.routeType,
+          chain: canonical.chain,
+          contract: canonical.contractAddress,
+          pairAddress: canonical.pairAddress,
+          url: canonical.routeUrl,
+        },
+      ],
+      mustVerify: canonical.missingEvidence?.length
+        ? canonical.missingEvidence.map((item) => `Verify ${item}.`)
+        : [
+            "Confirm the route, contract, pair, slippage, liquidity, fees, taxes, and sell path before any real trade.",
+          ],
+    };
+  }
+
   const coinbase = isCoinbaseRoute(project);
   const chainSupported = isMetaMaskCompatibleChain(project.chain);
   const hasContract = Boolean(project.address || project.tokenAddress || project.contractAddress);
@@ -251,6 +289,63 @@ function executionScore(project = {}, budgetUsd = DEFAULT_BUDGET_USD, minLiquidi
         ? "$100 would be large relative to visible liquidity; slippage risk is high."
         : "Visible liquidity can likely absorb a small paper-sized order, subject to manual verification.",
   };
+}
+
+function routeStatus(project = {}, metrics = {}) {
+  const status = project.canonicalExecutionRoute?.status || metrics.purchaseRoute?.status || "NO_ROUTE";
+  if (/no .*route/i.test(status)) return "NO_ROUTE";
+  if (/available|detected/i.test(status)) return "DETECTED";
+  return status;
+}
+
+function executionReady(project = {}, metrics = {}, minLiquidity = DEFAULT_MIN_LIQUIDITY) {
+  const route = project.canonicalExecutionRoute;
+  const proof = project.executionProof || {};
+  return Boolean(
+    route?.status === "VERIFIED" &&
+      route.buyRouteAvailable === true &&
+      route.sellRouteAvailable === true &&
+      route.contractAddress &&
+      (route.pairAddress || route.routeType === "CEX") &&
+      num(route.liquidityUsd || proof.liquidityUsd) >= minLiquidity &&
+      ["VERIFIED", "PARTIALLY_VERIFIED"].includes(project.executionStatus || proof.executionStatus || "UNKNOWN") &&
+      metrics.risk < 78 &&
+      project.honeypotDetected !== true &&
+      project.verifiedScam !== true
+  );
+}
+
+function hardBlocked(project = {}, metrics = {}) {
+  return Boolean(
+    metrics.risk >= 78 ||
+      !metrics.band?.eligible ||
+      project.redTeamReview?.status === "Block" ||
+      project.verifiedScam === true ||
+      project.honeypotDetected === true ||
+      ["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus)
+  );
+}
+
+function missingEvidence(project = {}, metrics = {}) {
+  const route = project.canonicalExecutionRoute || {};
+  return [
+    ...(metrics.cap ? [] : ["market cap/FDV proof"]),
+    ...(route.status === "VERIFIED" ? [] : ["verified buy and sell route"]),
+    ...(route.contractAddress || project.contractAddress || project.tokenAddress || project.address ? [] : ["verified token contract"]),
+    ...(route.pairAddress || route.routeType === "CEX" || project.pairAddress || project.poolAddress ? [] : ["verified pool/pair"]),
+    ...(metrics.execution?.liquidityUsd >= DEFAULT_MIN_LIQUIDITY ? [] : ["minimum DEX liquidity"]),
+    ...(metrics.structure >= 45 ? [] : ["source/GitHub/roadmap proof"]),
+  ];
+}
+
+function blockers(project = {}, metrics = {}) {
+  const output = [];
+  if (metrics.risk >= 78) output.push("Risk stack is too high.");
+  if (!metrics.band?.eligible) output.push("Market cap is outside the configured small-cap range.");
+  if (project.redTeamReview?.status === "Block") output.push("Red-team block is active.");
+  if (project.verifiedScam || project.honeypotDetected) output.push("Scam or honeypot evidence is active.");
+  if (["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus)) output.push(`Instant safety gate is ${project.instantSafetyStatus}.`);
+  return output;
 }
 
 function structureScore(project = {}) {
@@ -422,6 +517,11 @@ function smallCapScore(project = {}, options = {}) {
     preHit,
     risk,
     riskIntegrity,
+    routeStatus: routeStatus(project, { purchaseRoute: route }),
+    missingEvidence: missingEvidence(project, { cap, band, execution, purchaseRoute: route, structure, risk }),
+    blockers: blockers(project, { cap, band, execution, purchaseRoute: route, structure, risk }),
+    hardBlocked: hardBlocked(project, { cap, band, execution, purchaseRoute: route, structure, risk }),
+    executionReady: executionReady(project, { cap, band, execution, purchaseRoute: route, structure, risk }, minLiquidity),
   };
 }
 
@@ -431,7 +531,7 @@ function verdictFor(metrics = {}, options = {}) {
 
   if (metrics.risk >= 78) return "Small-Cap Risk Block";
   if (!metrics.band.eligible) return "Too Large For Small-Cap Hunt";
-  if (requirePurchaseRoute && !metrics.purchaseRoute.purchasable) return "Small-Cap Purchase Route Block";
+  if (requirePurchaseRoute && !metrics.purchaseRoute.purchasable) return "Small-Cap Research Candidate - Route Unverified";
   if (metrics.execution.liquidityUsd > 0 && metrics.execution.liquidityUsd < minLiquidity) {
     return "Small-Cap Liquidity Block";
   }
@@ -537,6 +637,12 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
       preHitPressure: metrics.preHit,
       execution: metrics.execution,
       purchaseRoute: metrics.purchaseRoute,
+      routeStatus: metrics.routeStatus,
+      missingEvidence: metrics.missingEvidence,
+      blockers: metrics.blockers,
+      hardBlocked: metrics.hardBlocked,
+      researchOnly: !metrics.executionReady,
+      executionReady: metrics.executionReady,
       reasons: reasons(project, metrics),
       warnings: warnings(project, metrics),
       paperPlan: paperPlan(project, metrics, options),
@@ -570,14 +676,10 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
 function eligibleForSelection(project = {}) {
   return (
     project.smallCapHunter &&
-    ![
-      "Small-Cap Risk Block",
-      "Small-Cap Liquidity Block",
-      "Small-Cap Purchase Route Block",
-      "Too Large For Small-Cap Hunt",
-    ].includes(project.smallCapHunterVerdict) &&
+    !["Small-Cap Risk Block", "Too Large For Small-Cap Hunt"].includes(project.smallCapHunterVerdict) &&
+    !project.smallCapHunter.hardBlocked &&
+    !project.smallCapHunter.blockers?.length &&
     num(project.smallCapHunterScore) > 0 &&
-    project.smallCapHunter?.purchaseRoute?.purchasable &&
     project.redTeamReview?.status !== "Block"
   );
 }
@@ -635,6 +737,16 @@ export function summarizeSmallCapHunter(projects = []) {
   const selected = hunted
     .filter((project) => project.smallCapHunterSelected)
     .sort((a, b) => num(a.smallCapHunterSelectionRank) - num(b.smallCapHunterSelectionRank));
+  const research = hunted
+    .filter((project) => !project.smallCapHunter?.blockers?.length && !project.smallCapHunter?.hardBlocked)
+    .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
+    .slice(0, DEFAULT_TARGET_COUNT);
+  const executionReadyProjects = hunted
+    .filter((project) => project.smallCapHunter?.executionReady)
+    .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
+    .slice(0, DEFAULT_TARGET_COUNT);
+  const topTwoResearch = research.length ? research.map((project, index) => compact(project, index + 1)) : selected.map((project, index) => compact(project, index + 1));
+  const topTwoExecutionReady = executionReadyProjects.map((project, index) => compact(project, index + 1));
 
   return {
     generatedAt: new Date().toISOString(),
@@ -643,12 +755,15 @@ export function summarizeSmallCapHunter(projects = []) {
     totalProjects: safeProjects.length,
     huntedProjects: hunted.length,
     targetCount: DEFAULT_TARGET_COUNT,
-    selectedCount: selected.length,
-    topTwo: selected.map((project) => compact(project)),
+    selectedCount: topTwoResearch.length,
+    executionReadyCount: topTwoExecutionReady.length,
+    topTwoResearch,
+    topTwoExecutionReady,
+    topTwo: topTwoResearch,
     researchCandidates: hunted.filter((project) => project.smallCapHunterVerdict === "Top-2 Small-Cap Research Candidate").length,
     watchCount: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Watch").length,
     riskBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Risk Block").length,
-    purchaseRouteBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Purchase Route Block").length,
+    purchaseRouteBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Research Candidate - Route Unverified").length,
     topProjects: [...hunted]
       .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
       .slice(0, 50)
@@ -656,15 +771,22 @@ export function summarizeSmallCapHunter(projects = []) {
   };
 }
 
-function compact(project = {}) {
+function compact(project = {}, fallbackRank = null) {
   return {
-    selectionRank: project.smallCapHunterSelectionRank || null,
+    rank: project.smallCapHunterSelectionRank || fallbackRank || null,
+    selectionRank: project.smallCapHunterSelectionRank || fallbackRank || null,
     selected: Boolean(project.smallCapHunterSelected),
     name: project.name || "Unknown",
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
     score: project.smallCapHunterScore || 0,
     verdict: project.smallCapHunterVerdict || "Unknown",
+    routeStatus: project.smallCapHunter?.routeStatus || project.canonicalExecutionRoute?.status || "NO_ROUTE",
+    missingEvidence: project.smallCapHunter?.missingEvidence || [],
+    blockers: project.smallCapHunter?.blockers || [],
+    researchOnly: project.smallCapHunter?.researchOnly !== false,
+    executionReady: Boolean(project.smallCapHunter?.executionReady),
+    hardBlocked: Boolean(project.smallCapHunter?.hardBlocked),
     finalSelectionState: project.finalSelectionState || "UNKNOWN",
     finalSelectionQualified: Boolean(project.finalSelectionQualified),
     finalIntegrityVerdict: project.finalIntegrityVerdict || "Unknown",

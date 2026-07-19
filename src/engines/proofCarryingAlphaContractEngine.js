@@ -143,7 +143,7 @@ function entrySnapshot(project = {}) {
     priceUsd: num(project.priceUsd || project.price),
     liquidityUsd: num(project.liquidityUsd || project.liquidity),
     volume24h: num(project.volume24h || project.volume),
-    marketCap: num(project.marketCap || project.fdv),
+    marketCap: num(project.marketCap || project.circulatingMarketCap || project.circulatingMarketCapUsd),
     pipelineScore: num(project.pipelineScore || project.opportunityScore),
     contractScore: scoreOf(project),
     riskScore: maxRisk(project),

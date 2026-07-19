@@ -1,4 +1,16 @@
 import { canonicalSourceId } from "../config/sourceManifest.js";
+import {
+  REJECTED_CHAIN_VALUES,
+  SUPPORTED_CHAIN_REGISTRY,
+  addressRejectionReason,
+  chainRejectionReason,
+  classifyAddressState,
+  normalizeAddress,
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+  normalizeWalletAddress,
+} from "../identity/strictIdentityValidators.js";
 
 export const CANONICAL_PROJECT_FIELDS = [
   "projectId",
@@ -39,54 +51,14 @@ export const CANONICAL_PROJECT_FIELDS = [
   "evidenceConfidence",
 ];
 
-export const INVALID_CHAIN_VALUES = new Set([
-  "binance",
-  "binance-us",
-  "coinbase",
-  "coingecko",
-  "coingecko-trending",
-  "coinpaprika",
-  "defillama",
-  "defillama-chain",
-  "dexscreener",
-  "github",
-  "github-project-discovery",
-  "google-news",
-  "google news",
-  "kraken",
-  "kucoin",
-  "market",
-  "research-seed",
-  "research seed",
-  "top-volume",
-  "trending",
-]);
-
-const CHAIN_ALIASES = {
-  "1": "ethereum",
-  eth: "ethereum",
-  ethereum: "ethereum",
-  mainnet: "ethereum",
-  "8453": "base",
-  base: "base",
-  "56": "bsc",
-  bnb: "bsc",
-  bsc: "bsc",
-  "42161": "arbitrum",
-  arb: "arbitrum",
-  arbitrum: "arbitrum",
-  "137": "polygon",
-  matic: "polygon",
-  polygon: "polygon",
-  "10": "optimism",
-  op: "optimism",
-  optimism: "optimism",
-  "43114": "avalanche",
-  avax: "avalanche",
-  avalanche: "avalanche",
-  "101": "solana",
-  sol: "solana",
-  solana: "solana",
+export const INVALID_CHAIN_VALUES = REJECTED_CHAIN_VALUES;
+export {
+  SUPPORTED_CHAIN_REGISTRY,
+  normalizeAddress,
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+  normalizeWalletAddress,
 };
 
 export function nullableNumber(value) {
@@ -97,27 +69,6 @@ export function nullableNumber(value) {
 
 function clean(value = "") {
   return String(value ?? "").trim();
-}
-
-function lower(value = "") {
-  return clean(value).toLowerCase();
-}
-
-export function normalizeChainId(value = "") {
-  const key = lower(value)
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  if (!key || INVALID_CHAIN_VALUES.has(key)) return null;
-  return CHAIN_ALIASES[key] || key;
-}
-
-export function normalizeAddress(value = "") {
-  const raw = clean(value);
-  if (!raw) return null;
-  const lowered = raw.toLowerCase();
-  if (/^0x[a-f0-9]{40}$/.test(lowered)) return lowered;
-  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(raw)) return raw;
-  return raw;
 }
 
 export function officialDomainFrom(value = "") {
@@ -192,25 +143,34 @@ export function applyProvenance(project = {}, field = "", record = null) {
 export function buildCanonicalProject(raw = {}, options = {}) {
   const observedAt = options.observedAt || raw.observationTimestamp || raw.discoveredAt || new Date().toISOString();
   const source = canonicalSourceId(options.source || raw.source || raw.discoverySource || raw.provider || "unknown");
-  const chainId = normalizeChainId(first([
+  const rawChain = first([
     raw.chainId,
     raw.finalChainId,
     raw.finalChain,
     raw.network,
     raw.chain,
-  ]));
-  const tokenAddress = normalizeAddress(first([
+  ]);
+  const chainId = normalizeChainId(rawChain);
+  const rawTokenAddress = first([
     raw.finalContractAddress,
     raw.contractAddress,
     raw.tokenAddress,
     raw.address,
     raw.baseToken?.address,
-  ]));
-  const poolAddress = normalizeAddress(first([
+  ]);
+  const rawPoolAddress = first([
     raw.poolAddress,
     raw.pairAddress,
     raw.pair?.address,
-  ]));
+  ]);
+  const rawDeployerAddress = first([raw.deployerAddress, raw.deployer, raw.creatorAddress]);
+  const normalizedTokenAddress = normalizeTokenAddress(rawTokenAddress, chainId);
+  const poolAddress = normalizePoolAddress(rawPoolAddress, chainId);
+  const tokenAddress = normalizedTokenAddress && normalizedTokenAddress !== poolAddress ? normalizedTokenAddress : null;
+  const deployerAddress = normalizeWalletAddress(rawDeployerAddress, chainId);
+  const tokenAddressState = classifyAddressState(rawTokenAddress, chainId);
+  const poolAddressState = classifyAddressState(rawPoolAddress, chainId);
+  const chainStatus = chainId ? "SUPPORTED_CHAIN" : rawChain ? "UNSUPPORTED_OR_REJECTED_CHAIN" : "MISSING_CHAIN";
   const projectId = first([
     raw.canonicalProjectId,
     raw.permanentProjectKey,
@@ -258,20 +218,27 @@ export function buildCanonicalProject(raw = {}, options = {}) {
   ]);
   const identityConflicts = [
     ...(Array.isArray(raw.identityConflicts) ? raw.identityConflicts : []),
-    ...(!chainId && raw.chain ? [`Ignored non-chain value in chain field: ${raw.chain}`] : []),
-    ...(tokenAddress && poolAddress && tokenAddress === poolAddress
+    chainRejectionReason(rawChain),
+    addressRejectionReason(rawTokenAddress, "token address", chainId),
+    addressRejectionReason(rawPoolAddress, "pool address", chainId),
+    addressRejectionReason(rawDeployerAddress, "deployer address", chainId),
+    ...(normalizedTokenAddress && poolAddress && normalizedTokenAddress === poolAddress
       ? ["Token address equals pool address; token identity requires verification."]
       : []),
-  ];
+  ].filter(Boolean);
 
   return {
     ...raw,
     projectId: projectId || raw.projectId || null,
     parentProjectId: raw.parentProjectId || null,
     chainId,
-    tokenAddress: tokenAddress && tokenAddress !== poolAddress ? tokenAddress : null,
+    chain: chainId,
+    address: tokenAddress,
+    contractAddress: tokenAddress,
+    tokenAddress,
+    pairAddress: poolAddress,
     poolAddress,
-    deployerAddress: normalizeAddress(raw.deployerAddress || raw.deployer || raw.creatorAddress),
+    deployerAddress,
     officialDomain,
     officialRepositories,
     coinGeckoId: raw.coinGeckoId || raw.coingeckoId || null,
@@ -281,8 +248,19 @@ export function buildCanonicalProject(raw = {}, options = {}) {
     symbol: raw.symbol || raw.ticker || raw.baseToken?.symbol || "UNKNOWN",
     name: raw.name || raw.baseToken?.name || "Unknown",
     identityConfidence: raw.identityConfidence ?? raw.identityResolutionScore ?? (identityEvidence.length ? 55 + Math.min(35, identityEvidence.length * 8) : 15),
+    identityStatus:
+      tokenAddress && poolAddress && !identityConflicts.length
+        ? "VALIDATED_ADDRESS"
+        : identityEvidence.length
+          ? "SYNTACTICALLY_VALID_UNVERIFIED"
+          : "MISSING_ADDRESS",
     identityEvidence,
     identityConflicts,
+    tokenAddressStatus: tokenAddress ? "SYNTACTICALLY_VALID_UNVERIFIED" : tokenAddressState.state,
+    poolAddressStatus: poolAddress ? "SYNTACTICALLY_VALID_UNVERIFIED" : poolAddressState.state,
+    rawTokenAddress: rawTokenAddress || null,
+    rawPoolAddress: rawPoolAddress || null,
+    chainStatus,
     priceUsd: nullableNumber(raw.priceUsd ?? raw.price),
     dexLiquidityUsd: nullableNumber(raw.dexLiquidityUsd),
     stableExitLiquidityUsd: nullableNumber(raw.stableExitLiquidityUsd ?? raw.hardExitLiquidityUsd),
