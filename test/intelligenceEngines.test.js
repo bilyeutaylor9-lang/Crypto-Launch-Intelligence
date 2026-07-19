@@ -1735,7 +1735,12 @@ test("engine watchdog returns the last safe project list when a brain step stall
     { timeoutMs: 5 }
   );
 
-  assert.deepEqual(results, projects);
+  assert.equal(results[0].name, projects[0].name);
+  assert.equal(results[0].symbol, projects[0].symbol);
+  assert.equal(results[0].chain, projects[0].chain);
+  assert.equal(results[0].engineResults.worldModelBrain.status, "FAILED");
+  assert.match(results[0].engineResults.worldModelBrain.failureReason, /timed out/i);
+  assert.equal(results[0].engineHealth.enginesFailed, 1);
   assert.ok(Date.now() - startedAt < 500);
 });
 

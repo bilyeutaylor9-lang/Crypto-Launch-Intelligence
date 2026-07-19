@@ -49,6 +49,7 @@ import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
 import { writeTop10BreakoutReports } from "./top10BreakoutReportEngine.js";
 import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEngine.js";
+import { writeScannerVNextReport } from "./scannerVNextReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -202,6 +203,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: sevenDayTenXResearchPath,
   } = writeSevenDayTenXResearchReport(projects);
   const {
+    filePath: scannerVNextPath,
+  } = writeScannerVNextReport(projects);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -312,6 +316,7 @@ export function generateReports(projects = [], meta = {}) {
     localAIChiefJudgmentPath,
     marketOpportunityLearningPath,
     sevenDayTenXResearchPath,
+    scannerVNextPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

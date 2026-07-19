@@ -226,6 +226,10 @@ function printSummary(summary) {
   console.log(`Projects Scanned: ${summary.scannedProjects}`);
   console.log(`Market Regime: ${summary.marketRegime || "Unknown"}`);
   console.log(`Healthy Breadth: ${summary.marketContext?.healthyBreadth ?? "N/A"}%`);
+  console.log(`Scoring Model: ${summary.scoringPrimaryModel || "legacy"}`);
+  console.log(
+    `Engine Health: ${summary.engineHealth?.enginesSuccessful || 0}/${summary.engineHealth?.enginesAttempted || 0} successful | Failed: ${summary.engineHealth?.enginesFailed || 0} | Partial: ${summary.engineHealth?.enginesPartial || 0} | No Data: ${summary.engineHealth?.enginesNoData || 0} | Avg Coverage: ${summary.engineHealth?.averageEvidenceCoverage || 0}%`
+  );
   console.log(`Institutional Alpha: ${summary.institutionalAlphaCount}`);
   console.log(`A+ Opportunities: ${summary.aPlusOpportunityCount}`);
   console.log(`Strong Watchlist: ${summary.strongWatchlistCount}`);
@@ -302,6 +306,11 @@ function printSummary(summary) {
   console.log(`7-Day 10x Research Picks: ${summary.sevenDayTenXSelectedCount}`);
   console.log(`7-Day 10x Watch: ${summary.sevenDayTenXWatchCount}`);
   console.log(`7-Day 10x Blocks: ${summary.sevenDayTenXBlockedCount}`);
+  console.log(`vNext Buy Eligible: ${summary.vNextBuyEligibleCount}`);
+  console.log(`vNext Blocks / Restricted: ${summary.vNextBlockedCount} / ${summary.vNextRestrictedCount}`);
+  console.log(`vNext Low Coverage: ${summary.vNextLowCoverageCount}`);
+  console.log(`vNext Upgrades / Downgrades: ${summary.vNextUpgradeCount} / ${summary.vNextDowngradeCount}`);
+  console.log(`vNext Evidence Coverage Avg: ${summary.averageVNextEvidenceCoverage}%`);
   console.log(`Final Qualified Candidates: ${summary.finalQualifiedCandidateCount}`);
   console.log(`Final Blocked Candidates: ${summary.finalBlockedCandidateCount}`);
   console.log(`Final Identity Conflicts: ${summary.finalIdentityConflictCount}`);
@@ -347,6 +356,14 @@ function printTopProjects(results) {
     console.log(`   Symbol: ${project.symbol || "-"}`);
     console.log(`   Chain: ${project.chain || "-"}`);
     console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
+    if (project.vNextScore !== undefined) {
+      console.log(
+        `   Legacy/vNext: ${project.legacyScore || 0} (#${project.legacyRank || "-"}) -> ${project.vNextScore || 0} (#${project.vNextRank || "-"}) | ${project.vNextRecommendation || "Unknown"}`
+      );
+      console.log(
+        `   vNext: ${project.vNextProjectCategory || "Unknown"} / ${project.vNextMarketStage || "UNKNOWN"} / ${project.vNextSafetyState || "UNKNOWN"} | Evidence ${project.evidenceCoverageScore || 0}% | ${project.reasonForDifference || "No material difference."}`
+      );
+    }
     if (project.confidenceAdjustedScore) {
       console.log(`   Confidence-Adjusted: ${project.confidenceAdjustedScore} (#${project.confidenceAdjustedRank || "-"})`);
     }
@@ -480,6 +497,7 @@ function printReportPaths(paths) {
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
   console.log(`7-Day 10x:    ${paths.sevenDayTenXResearchPath}`);
+  if (paths.scannerVNextPath) console.log(`Scanner vNext: ${paths.scannerVNextPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
   if (paths.standard4000ExclusionsPath) console.log(`4000 Exclusions:${paths.standard4000ExclusionsPath}`);

@@ -129,6 +129,8 @@
     "alpha:small-caps": "cat reports/small-cap-hunter.json",
     "tenx:7d": "cat reports/seven-day-tenx-research.json",
     "seven-day-tenx": "cat reports/seven-day-tenx-research.json",
+    "scanner:vnext": "cat reports/scanner-vnext.json",
+    "scan:vnext": "SCORING_VNEXT_PRIMARY=true npm run scan:debug100",
     "execution-twin": "cat reports/proof-of-alpha-execution-twin.json",
     "alpha:execution-twin": "cat reports/proof-of-alpha-execution-twin.json",
     "organic-integrity": "cat reports/organic-demand-integrity.json",
