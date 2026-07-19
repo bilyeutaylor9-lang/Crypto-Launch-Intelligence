@@ -1,15 +1,22 @@
+import {
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "./strictIdentityValidators.js";
+
 function lower(value = "") {
   return String(value || "").trim().toLowerCase();
 }
 
 function normalizeContract(item = {}, fallbackChain = "") {
   if (typeof item === "string") {
-    return { chain: lower(fallbackChain || "unknown"), address: lower(item) };
+    const chain = normalizeChainId(fallbackChain) || "";
+    return { chain: chain || "unknown", address: normalizeTokenAddress(item, chain) || "" };
   }
 
+  const chain = normalizeChainId(item.chain || item.network || fallbackChain) || "";
   return {
-    chain: lower(item.chain || item.network || fallbackChain || "unknown"),
-    address: lower(item.address || item.tokenAddress || item.contractAddress),
+    chain: chain || "unknown",
+    address: normalizeTokenAddress(item.address || item.tokenAddress || item.contractAddress, chain) || "",
     bridge: lower(item.bridge || item.source || ""),
   };
 }

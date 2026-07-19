@@ -1,28 +1,10 @@
-const CHAIN_ALIASES = {
-  "1": "ethereum",
-  eth: "ethereum",
-  mainnet: "ethereum",
-  ethereum: "ethereum",
-  "8453": "base",
-  base: "base",
-  "42161": "arbitrum",
-  arb: "arbitrum",
-  arbitrum: "arbitrum",
-  "10": "optimism",
-  op: "optimism",
-  optimism: "optimism",
-  "137": "polygon",
-  matic: "polygon",
-  polygon: "polygon",
-  "56": "bsc",
-  bnb: "bsc",
-  bsc: "bsc",
-  "101": "solana",
-  sol: "solana",
-  solana: "solana",
-  avax: "avalanche",
-  avalanche: "avalanche",
-};
+import {
+  addressRejectionReason,
+  chainRejectionReason,
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "./strictIdentityValidators.js";
 
 const BRIDGE_TERMS = ["bridged", "wormhole", "wrapped", "weth", "wbtc", "portal", "layerzero", "omnichain"];
 const CONTRACT_CONFLICT_TERMS = ["contract mismatch", "chain mismatch", "counterfeit", "impersonation", "incompatible contract"];
@@ -47,17 +29,8 @@ function normalizeName(value = "") {
     .trim();
 }
 
-function normalizeAddress(value = "") {
-  const raw = lower(value);
-  if (!raw) return "";
-  if (/^0x[a-f0-9]{40}$/.test(raw)) return raw;
-  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(clean(value))) return clean(value);
-  return raw;
-}
-
 function normalizeChain(value = "") {
-  const key = lower(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return CHAIN_ALIASES[key] || key || "";
+  return normalizeChainId(value) || "";
 }
 
 function first(values = []) {
@@ -87,11 +60,12 @@ function sourceValues(project = {}, key = "") {
 function collectContracts(project = {}) {
   const contracts = [];
   const add = (address, chain, source, verified = false, role = "token") => {
-    const normalizedAddress = normalizeAddress(address);
+    const normalizedChain = normalizeChain(chain || project.chainId || project.chain || project.network);
+    const normalizedAddress = normalizeTokenAddress(address, normalizedChain);
     if (!normalizedAddress) return;
     contracts.push({
       address: normalizedAddress,
-      chain: normalizeChain(chain || project.chainId || project.chain || project.network),
+      chain: normalizedChain,
       source,
       verified: Boolean(verified),
       role,
@@ -123,6 +97,7 @@ function collectContracts(project = {}) {
 }
 
 function collectPairs(project = {}) {
+  const chain = normalizeChain(project.chainId || project.chain || project.network);
   return [
     project.finalPairAddress,
     project.pairAddress,
@@ -134,7 +109,7 @@ function collectPairs(project = {}) {
     ...(project.smallCapHunter?.purchaseRoute?.routes || []).map((route) => route.pairAddress),
     ...(project.proofOfAlphaExecutionTwin?.route?.routes || []).map((route) => route.pairAddress),
   ]
-    .map(normalizeAddress)
+    .map((address) => normalizePoolAddress(address, chain))
     .filter(Boolean);
 }
 
@@ -228,6 +203,31 @@ function conflictFromText(project = {}) {
   return CONTRACT_CONFLICT_TERMS.some((term) => text.includes(term));
 }
 
+function identityInputWarnings(project = {}) {
+  const rawChain = first([project.finalChainId, project.chainId, project.chain, project.network]);
+  const chain = normalizeChain(rawChain);
+  return [
+    ...(Array.isArray(project.identityConflicts) ? project.identityConflicts : []),
+    chainRejectionReason(rawChain),
+    addressRejectionReason(
+      first([
+        project.finalContractAddress,
+        project.contractAddress,
+        project.tokenAddress,
+        project.address,
+        project.baseToken?.address,
+      ]),
+      "token address",
+      chain
+    ),
+    addressRejectionReason(
+      first([project.finalPairAddress, project.pairAddress, project.poolAddress, project.pair?.address]),
+      "pool address",
+      chain
+    ),
+  ].filter(Boolean);
+}
+
 function buildCanonicalId({ chain, address, pairAddress, domain, symbol, name }) {
   if (chain && address) return `chain:${chain}:contract:${address}`;
   if (chain && pairAddress) return `chain:${chain}:pair:${pairAddress}`;
@@ -258,6 +258,7 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
   const pairs = collectPairs(project);
   const aliases = collectAliases(project);
   const sourceIdentities = collectSourceIdentities(project, contracts, pairs);
+  const inputWarnings = identityInputWarnings(project);
   const verifiedContracts = contracts.filter((contract) => contract.verified || project.contractVerified === true);
   const primaryContract = verifiedContracts[0] || contracts[0] || null;
   const canonicalChain = normalizeChain(project.finalChainId || project.chainId || primaryContract?.chain || project.chain || project.network);
@@ -289,12 +290,13 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
   else if (multiChainVariant) identityStatus = "MULTICHAIN_VARIANT";
   else if (canonicalChain && canonicalAddress && verifiedContracts.length) identityStatus = "VERIFIED";
   else if (canonicalChain && canonicalAddress) identityStatus = "PROBABLE_MATCH";
-  else if (pairAddress && (project.baseToken?.address || project.tokenAddress || project.contractAddress)) identityStatus = "PROBABLE_MATCH";
+  else if (pairAddress && contracts.length) identityStatus = "PROBABLE_MATCH";
   else if (domain || sourceIdentities.some((identity) => identity.type === "external-id")) identityStatus = "WEAK_MATCH";
   else if (collisionDetected) identityStatus = "SYMBOL_COLLISION";
 
   const conflictReasons = [];
   if (contractConflict) conflictReasons.push("Incompatible verified contract, chain, or external identity evidence.");
+  conflictReasons.push(...inputWarnings);
   if (collisionDetected && identityStatus === "SYMBOL_COLLISION") conflictReasons.push("Ticker symbol appears across multiple unresolved identities.");
   if (contractSet.size > 1 && !contractConflict) conflictReasons.push("Multiple aliases/contracts observed; treated as variant evidence until verified.");
 

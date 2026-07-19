@@ -86,7 +86,8 @@ export function normalizeBirdeyeToken(token = {}, meta = {}) {
     symbol: token.symbol || "UNKNOWN",
     chain,
     address: token.address || token.tokenAddress || null,
-    pairAddress: token.address || token.tokenAddress || null,
+    pairAddress: token.pairAddress || token.poolAddress || null,
+    poolAddress: token.poolAddress || token.pairAddress || null,
     dex: "birdeye",
     url: token.address
       ? `https://birdeye.so/token/${token.address}?chain=${encodeURIComponent(chain)}`

@@ -6,6 +6,7 @@ import {
   nullableNumber,
   provenanceRecord,
 } from "./canonicalProjectSchema.js";
+import { chainRejectionReason } from "../identity/strictIdentityValidators.js";
 
 const DEX_MARKET_SOURCES = new Set([
   "dexscreener",
@@ -191,10 +192,11 @@ export function normalizeMetricTruth(raw = {}, options = {}) {
     project = withField(project, "maxSupply", num(raw.maxSupply), source, "max_supply");
   }
 
-  const canonicalChain = normalizeChainId(project.chainId || raw.chainId || raw.network || raw.chain);
+  const rawChain = first([project.chainId, raw.chainId, raw.network, raw.chain]);
+  const canonicalChain = normalizeChainId(rawChain);
   const chainWarnings = [
     ...(project.identityConflicts || []),
-    ...(!canonicalChain && raw.chain ? [`Rejected non-chain chain value: ${raw.chain}`] : []),
+    chainRejectionReason(rawChain),
   ];
   const evidenceSources = unique([
     ...(Array.isArray(project.evidenceSources) ? project.evidenceSources : []),
@@ -208,8 +210,8 @@ export function normalizeMetricTruth(raw = {}, options = {}) {
     chainId: canonicalChain,
     address: project.tokenAddress || null,
     tokenAddress: project.tokenAddress || null,
-    contractAddress: project.contractAddress || project.tokenAddress || null,
-    pairAddress: project.poolAddress || project.pairAddress || null,
+    contractAddress: project.tokenAddress || null,
+    pairAddress: project.poolAddress || null,
     poolAddress: project.poolAddress || null,
     liquidityUsd: project.dexLiquidityUsd,
     marketCap: project.circulatingMarketCapUsd,

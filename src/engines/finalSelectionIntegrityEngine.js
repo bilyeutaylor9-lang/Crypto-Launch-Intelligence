@@ -1,4 +1,9 @@
 import { inspectBlockingVerdicts, normalizeDecisionText } from "../selection/blockingVerdictHelper.js";
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 export const FINAL_SELECTION_STATES = {
   QUALIFIED: "QUALIFIED",
@@ -101,14 +106,14 @@ function symbolOf(project = {}) {
 }
 
 function chainOf(project = {}) {
-  return lower(
+  return normalizeChainId(
     project.chainId ||
       project.chain ||
       project.network ||
       project.baseToken?.chain ||
       project.marketData?.chain ||
       ""
-  );
+  ) || "";
 }
 
 function firstString(values = []) {
@@ -116,7 +121,7 @@ function firstString(values = []) {
 }
 
 function contractAddressOf(project = {}) {
-  return firstString([
+  return normalizeTokenAddress(firstString([
     project.contractAddress,
     project.tokenAddress,
     project.address,
@@ -126,11 +131,11 @@ function contractAddressOf(project = {}) {
     project.rawCandidate?.address,
     project.smallCapHunter?.purchaseRoute?.routes?.find((route) => route.contract)?.contract,
     project.proofOfAlphaExecutionTwin?.route?.routes?.find((route) => route.contract)?.contract,
-  ]).toLowerCase();
+  ]), chainOf(project)) || "";
 }
 
 function pairAddressOf(project = {}) {
-  return firstString([
+  return normalizePoolAddress(firstString([
     project.pairAddress,
     project.poolAddress,
     project.pair?.address,
@@ -138,7 +143,7 @@ function pairAddressOf(project = {}) {
     project.rawCandidate?.poolAddress,
     project.smallCapHunter?.purchaseRoute?.routes?.find((route) => route.pairAddress)?.pairAddress,
     project.proofOfAlphaExecutionTwin?.route?.routes?.find((route) => route.pairAddress)?.pairAddress,
-  ]).toLowerCase();
+  ]), chainOf(project)) || "";
 }
 
 function officialDomain(project = {}) {
@@ -394,6 +399,12 @@ function trapRiskScore(project = {}) {
 function hasExplicitIdentityConflict(project = {}) {
   const canonicalStatus = project.canonicalIdentity?.identityStatus || project.identityStatus;
   if (canonicalStatus === "CONTRACT_CONFLICT" || project.canonicalIdentityHardBlock === true) return true;
+  const identityConflictText = normalizeDecisionText((project.identityConflicts || []).join(" "));
+  if (
+    identityConflictText.includes("token address equals pool address") ||
+    identityConflictText.includes("rejected token address") ||
+    identityConflictText.includes("rejected pool address")
+  ) return true;
   const hardMismatch =
     project.chainMismatch === true ||
     project.contractChainMismatch === true ||

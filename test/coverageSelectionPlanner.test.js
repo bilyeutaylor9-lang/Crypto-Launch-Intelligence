@@ -5,6 +5,33 @@ import { planCoverageSelection } from "../src/discovery/coverageSelectionPlanner
 import { rankAndLimitCandidates } from "../src/discoveryManager.js";
 import { identityKeyForProject } from "../src/discovery/projectIdentityGraph.js";
 
+function evmAddress(seed = 0) {
+  const hex = [...String(seed)]
+    .map((char) => char.charCodeAt(0).toString(16))
+    .join("")
+    .slice(0, 40);
+  return `0x${hex.padStart(40, "0")}`;
+}
+
+function numericSeed(seed = "") {
+  return [...String(seed || "1")].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+}
+
+function base58Seed(seed = 0) {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let value = Math.max(1, numericSeed(seed));
+  let encoded = "";
+  while (value > 0) {
+    encoded = alphabet[value % alphabet.length] + encoded;
+    value = Math.floor(value / alphabet.length);
+  }
+  return encoded || "1";
+}
+
+function solanaAddress(seed = 0) {
+  return `So${base58Seed(seed).padStart(40, "1")}`;
+}
+
 function project({
   name,
   symbol,
@@ -18,7 +45,7 @@ function project({
     name,
     symbol,
     chain,
-    address: address || `0x${String(symbol || name).toLowerCase()}`,
+    address: address || (chain === "solana" ? solanaAddress(symbol || name) : evmAddress(symbol || name)),
     source,
     discoverySources: [source],
     discoveryPriorityScore: priority,
@@ -57,15 +84,16 @@ test("coverage selection reserves deep-research capacity for underrepresented ch
 });
 
 test("coverage selection merges exact duplicate identities without consuming extra review slots", () => {
-  const first = project({ name: "One Asset", symbol: "ONE", address: "0xone", priority: 80 });
+  const oneAddress = evmAddress(111);
+  const first = project({ name: "One Asset", symbol: "ONE", address: oneAddress, priority: 80 });
   const duplicate = project({
     name: "One Asset duplicate feed",
     symbol: "ONE",
-    address: "0xone",
+    address: oneAddress,
     source: "geckoterminal",
     priority: 20,
   });
-  const distinct = project({ name: "Distinct", symbol: "DST", address: "0xdistinct", priority: 70 });
+  const distinct = project({ name: "Distinct", symbol: "DST", address: evmAddress(222), priority: 70 });
 
   const plan = planCoverageSelection([first, duplicate, distinct], { limit: 3 });
 

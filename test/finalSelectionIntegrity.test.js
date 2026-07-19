@@ -182,6 +182,35 @@ test("missing contract cannot become qualified", () => {
   assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Contract address")));
 });
 
+test("fake chain and address strings cannot qualify a high scoring candidate", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      chain: "gaming",
+      chainId: "coinbase",
+      contractAddress: "AKE",
+      tokenAddress: "coingecko:ake",
+      address: "https://example.com/token",
+      pairAddress: "https://dexscreener.com/base/ake",
+      poolAddress: "top-volume",
+      contractVerified: true,
+      chainVerified: true,
+      identityConflicts: [
+        "Rejected non-chain value in chain field: gaming",
+        "Rejected token address: non-address value \"AKE\".",
+        "Rejected pool address: non-address value \"top-volume\".",
+      ],
+    }),
+  ]);
+
+  assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "IDENTITY_CONFLICT");
+  assert.equal(result.finalCandidateSelected, false);
+  assert.equal(result.finalContractAddress, "");
+  assert.equal(result.finalPairAddress, "");
+  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("Identity conflict")));
+  assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Contract address")));
+});
+
 test("missing liquidity cannot become qualified", () => {
   const [result] = analyzeFinalSelectionIntegrityBatch([
     qualifiedFixture({
