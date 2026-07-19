@@ -48,6 +48,7 @@ import { writeEvidenceCalibratedKernelReport } from "../kernel/evidenceCalibrate
 import { writeSourceRouterReport } from "../data/adaptiveSourceRouter.js";
 import { writeLocalAIResearchReport } from "./localAIResearchReportEngine.js";
 import { writeTop10BreakoutReports } from "./top10BreakoutReportEngine.js";
+import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -198,6 +199,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: marketOpportunityLearningPath,
   } = writeMarketOpportunityLearningReport(projects, meta);
   const {
+    filePath: sevenDayTenXResearchPath,
+  } = writeSevenDayTenXResearchReport(projects);
+  const {
     filePath: opModeReadinessPath,
     report: opModeReadiness,
   } = writeOpModeReadinessReport();
@@ -307,6 +311,7 @@ export function generateReports(projects = [], meta = {}) {
     crawlerChangesPath,
     localAIChiefJudgmentPath,
     marketOpportunityLearningPath,
+    sevenDayTenXResearchPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,

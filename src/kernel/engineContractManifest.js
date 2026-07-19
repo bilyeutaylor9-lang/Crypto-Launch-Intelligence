@@ -475,6 +475,28 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: false,
   },
   {
+    id: "sevenDayTenXResearch",
+    phase: "ranking",
+    priority: 138,
+    module: "./engines/sevenDayTenXResearchEngine.js",
+    exportName: "analyzeSevenDayTenXResearchBatch",
+    dependsOn: ["marketOpportunityLearning", "progressiveOpportunityRanking", "sniperIntegrityGate"],
+    inputContract: {
+      requiredAny: [["marketCap", "fdv", "circulatingMarketCapUsd"], ["liquidityUsd", "dexLiquidityUsd", "stableExitLiquidityUsd"]],
+      optional: ["contractAddress", "tokenAddress", "pairAddress", "purchaseRouteConfirmed", "instantSafetyStatus"],
+    },
+    outputContract: {
+      requiredAny: [["sevenDayTenXScore", "sevenDayTenXVerdict", "sevenDayTenX"]],
+      scoreFields: ["sevenDayTenXScore", "sevenDayTenXRawScore", "sevenDayTenXModeledScenarioPct"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: false,
+    canBlockCandidate: false,
+  },
+  {
     id: "alphaEvolutionGovernor",
     phase: "governor",
     priority: 140,

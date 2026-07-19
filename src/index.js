@@ -299,6 +299,9 @@ function printSummary(summary) {
   console.log(`Execution Twin Picks: ${summary.executionTwinSelectedCount}`);
   console.log(`Execution Twin Route Blocks: ${summary.executionTwinRouteBlockCount}`);
   console.log(`Execution Twin Safety Blocks: ${summary.executionTwinSafetyBlockCount}`);
+  console.log(`7-Day 10x Research Picks: ${summary.sevenDayTenXSelectedCount}`);
+  console.log(`7-Day 10x Watch: ${summary.sevenDayTenXWatchCount}`);
+  console.log(`7-Day 10x Blocks: ${summary.sevenDayTenXBlockedCount}`);
   console.log(`Final Qualified Candidates: ${summary.finalQualifiedCandidateCount}`);
   console.log(`Final Blocked Candidates: ${summary.finalBlockedCandidateCount}`);
   console.log(`Final Identity Conflicts: ${summary.finalIdentityConflictCount}`);
@@ -380,6 +383,11 @@ function printTopProjects(results) {
     if (project.proofOfAlphaExecutionTwinSelected) {
       console.log(
         `   Execution Twin: #${project.proofOfAlphaExecutionTwinRank} (${project.proofOfAlphaExecutionTwinScore || 0}) via ${project.proofOfAlphaExecutionTwinRoute || "unverified route"}`
+      );
+    }
+    if (project.sevenDayTenXSelected || project.sevenDayTenXWatchRank) {
+      console.log(
+        `   7-Day 10x Research: ${project.sevenDayTenXVerdict || "Watch"} (${project.sevenDayTenXScore || 0}, scenario ${project.sevenDayTenXModeledScenarioPct || 0}%)`
       );
     }
     if (project.organicDemandVerdict) {
@@ -471,6 +479,7 @@ function printReportPaths(paths) {
   console.log(`Small Caps:    ${paths.smallCapHunterPath}`);
   console.log(`Execution Twin:${paths.proofOfAlphaExecutionTwinPath}`);
   console.log(`Organic Integrity:${paths.organicDemandIntegrityPath}`);
+  console.log(`7-Day 10x:    ${paths.sevenDayTenXResearchPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
   if (paths.standard4000ExclusionsPath) console.log(`4000 Exclusions:${paths.standard4000ExclusionsPath}`);

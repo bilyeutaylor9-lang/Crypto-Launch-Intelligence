@@ -83,6 +83,13 @@ const REPORT_PRIORITY_FIELDS = [
   "sniperQualified",
   "smallCapHunterScore",
   "smallCapHunterSelected",
+  "sevenDayTenXScore",
+  "sevenDayTenXSelected",
+  "sevenDayTenXSelectionRank",
+  "sevenDayTenXWatchRank",
+  "sevenDayTenXVerdict",
+  "sevenDayTenXConfidence",
+  "sevenDayTenXModeledScenarioPct",
 ];
 
 function countItems(value) {

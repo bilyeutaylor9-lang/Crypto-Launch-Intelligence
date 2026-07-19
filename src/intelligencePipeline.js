@@ -108,6 +108,7 @@ import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGove
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
+import { analyzeSevenDayTenXResearchBatch } from "./engines/sevenDayTenXResearchEngine.js";
 import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
 import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
@@ -1667,6 +1668,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     recordSnapshot: options.saveMemory !== false,
     ...(options.marketOpportunityLearning || {}),
   });
+  results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {
@@ -1993,6 +1995,13 @@ export function summarizePipelineResults(results = []) {
     .filter((p) => p.proofOfAlphaExecutionTwin)
     .sort((a, b) => num(b.proofOfAlphaExecutionTwinScore) - num(a.proofOfAlphaExecutionTwinScore))
     .slice(0, 10);
+  const sevenDayTenXSelections = safeResults.filter((p) => p.sevenDayTenXSelected);
+  const sevenDayTenXWatch = safeResults.filter((p) => p.sevenDayTenXWatchRank);
+  const sevenDayTenXBlocked = safeResults.filter((p) => (p.sevenDayTenXBlockers || []).length > 0);
+  const topSevenDayTenXSetups = [...safeResults]
+    .filter((p) => p.sevenDayTenX)
+    .sort((a, b) => num(b.sevenDayTenXScore) - num(a.sevenDayTenXScore))
+    .slice(0, 10);
   const finalQualifiedCandidates = safeResults.filter((p) => p.finalSelectionState === "QUALIFIED");
   const finalResearchOnlyCandidates = safeResults.filter((p) => p.finalSelectionState === "RESEARCH_ONLY");
   const finalBlockedCandidates = safeResults.filter((p) => p.finalSelectionState === "BLOCKED");
@@ -2154,6 +2163,9 @@ export function summarizePipelineResults(results = []) {
     executionTwinRouteBlockCount: executionTwinRouteBlocks.length,
     executionTwinSafetyBlockCount: executionTwinSafetyBlocks.length,
     executionTwinLiquidityBlockCount: executionTwinLiquidityBlocks.length,
+    sevenDayTenXSelectedCount: sevenDayTenXSelections.length,
+    sevenDayTenXWatchCount: sevenDayTenXWatch.length,
+    sevenDayTenXBlockedCount: sevenDayTenXBlocked.length,
     finalQualifiedCandidateCount: finalQualifiedCandidates.length,
     finalResearchOnlyCandidateCount: finalResearchOnlyCandidates.length,
     finalBlockedCandidateCount: finalBlockedCandidates.length,
@@ -2496,6 +2508,24 @@ export function summarizePipelineResults(results = []) {
       quote: project.proofOfAlphaExecutionTwin?.quote || {},
       safety: project.proofOfAlphaExecutionTwin?.safety || {},
       paperExecution: project.proofOfAlphaExecutionTwin?.paperExecution || {},
+    })),
+    topSevenDayTenXSetups: topSevenDayTenXSetups.map((project) => ({
+      selectionRank: project.sevenDayTenXSelectionRank || null,
+      watchRank: project.sevenDayTenXWatchRank || null,
+      selected: Boolean(project.sevenDayTenXSelected),
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.sevenDayTenXScore || 0,
+      verdict: project.sevenDayTenXVerdict || "Unknown",
+      confidence: project.sevenDayTenXConfidence || "Unknown",
+      modeledTenXScenarioPct: project.sevenDayTenXModeledScenarioPct || 0,
+      marketCap: project.sevenDayTenXMarketCap || 0,
+      liquidityUsd: project.sevenDayTenXLiquidityUsd || 0,
+      blockers: project.sevenDayTenXBlockers || [],
+      missingEvidence: project.sevenDayTenXMissingEvidence || [],
+      componentScores: project.sevenDayTenX?.components || {},
+      reasons: project.sevenDayTenX?.reasons || [],
     })),
     topOrganicIntegrityRisks: topOrganicIntegrityRisks.map((project) => ({
       name: project.name || "Unknown",

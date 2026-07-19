@@ -127,6 +127,8 @@
     "alpha:queue": "cat reports/alpha-evolution-queue.json",
     "small-caps": "cat reports/small-cap-hunter.json",
     "alpha:small-caps": "cat reports/small-cap-hunter.json",
+    "tenx:7d": "cat reports/seven-day-tenx-research.json",
+    "seven-day-tenx": "cat reports/seven-day-tenx-research.json",
     "execution-twin": "cat reports/proof-of-alpha-execution-twin.json",
     "alpha:execution-twin": "cat reports/proof-of-alpha-execution-twin.json",
     "organic-integrity": "cat reports/organic-demand-integrity.json",
