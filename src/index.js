@@ -330,6 +330,10 @@ function printSummary(summary) {
   console.log(`Quiet Accumulation: ${summary.quietAccumulationDetectedCount}`);
   console.log(`Pre-Consensus Late/Already Pumped: ${summary.alreadyPumpedPreConsensusCount}`);
   console.log(`Pre-Consensus Blocked: ${summary.blockedPreConsensusCount}`);
+  console.log(`Pre-Breakout Radar ARMED: ${summary.preBreakoutRadarArmedCount}`);
+  console.log(`Pre-Breakout Radar Watch: ${summary.preBreakoutRadarWatchCount}`);
+  console.log(`Pre-Breakout Radar Research: ${summary.preBreakoutRadarResearchCount}`);
+  console.log(`Pre-Breakout Radar Blocked: ${summary.preBreakoutRadarBlockedCount}`);
   console.log(`Sniper ARMED Candidates: ${summary.armedSniperCandidateCount}`);
   console.log(`Sniper Quiet Accumulation: ${summary.sniperQuietAccumulationCount}`);
   console.log(`Sniper Fundamentals Accelerating: ${summary.sniperFundamentalsAcceleratingCount}`);
@@ -514,6 +518,7 @@ function printReportPaths(paths) {
   if (paths.candidateRescueReportPath) console.log(`Rescue Report:  ${paths.candidateRescueReportPath}`);
   if (paths.missedOpportunityAuditPath) console.log(`Missed Audit:   ${paths.missedOpportunityAuditPath}`);
   console.log(`Pre-Consensus: ${paths.preConsensusBreakoutPath}`);
+  console.log(`Pre-Breakout:  ${paths.preBreakoutRadarPath}`);
   console.log(`Sniper Report:  ${paths.sniperReportPath}`);
   console.log(`Universe Ledger: ${paths.universeLedgerPath}`);
   console.log(`Integrity Stack: ${paths.integrityStackPath}`);

@@ -116,6 +116,7 @@ import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEn
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
 import { analyzeDistressedMicrocapTrapBatch } from "./engines/distressedMicrocapTrapEngine.js";
 import { analyzePreConsensusBreakoutHunterBatch } from "./engines/preConsensusBreakoutHunterEngine.js";
+import { analyzePreBreakoutRadarBatch } from "./engines/preBreakoutRadarEngine.js";
 import {
   analyzeFinalSelectionIntegrityBatch,
   validateFinalSelectionInvariants,
@@ -1913,6 +1914,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
   results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
   results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});
   results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
@@ -2279,6 +2281,11 @@ export function summarizePipelineResults(results = []) {
     ["ALREADY_PUMPED", "LATE_CHASE"].includes(p.preBreakoutMomentumStage)
   );
   const blockedPreConsensus = safeResults.filter((p) => (p.preConsensusHardBlockers || []).length > 0);
+  const preBreakoutRadarAnalyzed = safeResults.filter((p) => p.preBreakoutRadar);
+  const preBreakoutRadarArmed = safeResults.filter((p) => p.preBreakoutRadarLane === "ARMED");
+  const preBreakoutRadarWatch = safeResults.filter((p) => p.preBreakoutRadarLane === "WATCH");
+  const preBreakoutRadarResearch = safeResults.filter((p) => p.preBreakoutRadarLane === "RESEARCH");
+  const preBreakoutRadarBlocked = safeResults.filter((p) => p.preBreakoutRadarLane === "BLOCKED");
   const sniperAnalyzed = safeResults.filter((p) => p.sniperIntegrityGate);
   const armedSniperCandidates = safeResults.filter((p) => p.sniperQualified && p.sniperState === "ARMED");
   const sniperQuietAccumulation = safeResults.filter((p) => p.sniperState === "QUIET_ACCUMULATION");
@@ -2472,6 +2479,11 @@ export function summarizePipelineResults(results = []) {
     quietAccumulationDetectedCount: quietAccumulationDetected.length,
     alreadyPumpedPreConsensusCount: alreadyPumpedPreConsensus.length,
     blockedPreConsensusCount: blockedPreConsensus.length,
+    preBreakoutRadarAnalyzedCount: preBreakoutRadarAnalyzed.length,
+    preBreakoutRadarArmedCount: preBreakoutRadarArmed.length,
+    preBreakoutRadarWatchCount: preBreakoutRadarWatch.length,
+    preBreakoutRadarResearchCount: preBreakoutRadarResearch.length,
+    preBreakoutRadarBlockedCount: preBreakoutRadarBlocked.length,
     sniperAnalyzedCount: sniperAnalyzed.length,
     armedSniperCandidateCount: armedSniperCandidates.length,
     sniperQuietAccumulationCount: sniperQuietAccumulation.length,

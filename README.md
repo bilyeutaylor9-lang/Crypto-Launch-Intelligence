@@ -768,6 +768,7 @@ Every scan can generate a full research packet:
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
+| `reports/pre-breakout-radar.json` | Proof-gated pre-breakout radar with ARMED, WATCH, RESEARCH, and BLOCKED lanes, explicit missing evidence, route/liquidity checks, and no forced picks |
 | `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, Execution Score, Money Rank, best-available opportunities, execution-ready candidates, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
 | `reports/best-opportunity-now.json` | Authoritative market-leader verdict. Shows BEST OPPORTUNITY RIGHT NOW only when clear-leader requirements pass, otherwise NO CLEAR MARKET LEADER |
 | `reports/top-five-opportunities.json` | Direct top-five opportunity ranking from the unified Market Opportunity Rank |

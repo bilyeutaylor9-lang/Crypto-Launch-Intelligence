@@ -284,6 +284,12 @@ switch (command) {
   case "micro-caps":
     runNpm("small-caps", args);
     break;
+  case "pre-breakout":
+  case "pre-breakout-radar":
+  case "breakout-radar":
+  case "radar":
+    runNpm("pre-breakout-radar", args);
+    break;
   case "execution-twin":
   case "proof-execution":
   case "proof-of-alpha":

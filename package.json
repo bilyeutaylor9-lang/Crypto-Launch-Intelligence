@@ -145,6 +145,8 @@
     "alpha:organic-integrity": "cat reports/organic-demand-integrity.json",
     "pre-consensus": "cat reports/pre-consensus-breakout-hunter.json",
     "alpha:pre-consensus": "cat reports/pre-consensus-breakout-hunter.json",
+    "pre-breakout-radar": "cat reports/pre-breakout-radar.json",
+    "alpha:pre-breakout": "cat reports/pre-breakout-radar.json",
     "sniper": "cat reports/sniper-report.json",
     "alpha:sniper": "cat reports/sniper-report.json",
     "universe-ledger": "cat reports/universe-ledger.json",

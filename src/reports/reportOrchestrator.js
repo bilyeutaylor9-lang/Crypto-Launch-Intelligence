@@ -36,6 +36,7 @@ import { writeDiscoveryTruthReport } from "./discoveryTruthReportEngine.js";
 import { writeNativeDiscoveryMeshReport } from "./nativeDiscoveryMeshReportEngine.js";
 import { writeDiscoveryDecisionReport } from "./discoveryDecisionReportEngine.js";
 import { writePreConsensusBreakoutReport } from "./preConsensusBreakoutReportEngine.js";
+import { writePreBreakoutRadarReport } from "./preBreakoutRadarReportEngine.js";
 import { writeSniperReport } from "./sniperReportEngine.js";
 import { writeUniverseLedgerReport } from "./universeLedgerReportEngine.js";
 import { writeIntegrityStackReport } from "./integrityStackReportEngine.js";
@@ -154,6 +155,9 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: preConsensusBreakoutPath,
   } = writePreConsensusBreakoutReport(projects);
+  const {
+    filePath: preBreakoutRadarPath,
+  } = writePreBreakoutRadarReport(projects);
   const {
     filePath: sniperReportPath,
   } = writeSniperReport(projects);
@@ -290,6 +294,7 @@ export function generateReports(projects = [], meta = {}) {
     nativeDiscoveryMeshPath,
     discoveryDecisionPath,
     preConsensusBreakoutPath,
+    preBreakoutRadarPath,
     sniperReportPath,
     universeLedgerPath,
     integrityStackPath,

@@ -54,6 +54,7 @@ const PUBLIC_REPORTS = [
   "native-discovery-mesh.json",
   "discovery-decision-engine.json",
   "pre-consensus-breakout-hunter.json",
+  "pre-breakout-radar.json",
   "sniper-report.json",
   "universe-ledger.json",
   "integrity-stack.json",
@@ -145,6 +146,7 @@ function writeLandingPage(copiedFiles = []) {
   const discoveryTruth = readJsonReport("discovery-truth.json") || {};
   const nativeDiscoveryMesh = readJsonReport("native-discovery-mesh.json") || {};
   const discoveryDecision = readJsonReport("discovery-decision-engine.json") || {};
+  const preBreakoutRadar = readJsonReport("pre-breakout-radar.json") || {};
   const sourceTruth = readJsonReport("source-truth.json") || {};
   const universeLedger = readJsonReport("universe-ledger.json") || {};
   const integrityStack = readJsonReport("integrity-stack.json") || {};
@@ -252,6 +254,8 @@ function writeLandingPage(copiedFiles = []) {
     ["Native Stage", nativeDiscoveryMesh.topCandidates?.[0]?.stage || "N/A"],
     ["Decision Pass", discoveryDecision.summary?.pass ?? "N/A"],
     ["Critical Risks", discoveryDecision.feeds?.criticalRisks?.length ?? "N/A"],
+    ["Radar ARMED", preBreakoutRadar.armedCount ?? "N/A"],
+    ["Radar Watch", preBreakoutRadar.watchCount ?? "N/A"],
     ["Universe Ledger", universeLedger.persistentLedger?.trackedProjects ?? "N/A"],
     ["Ledger Promoted", universeLedger.persistentLedger?.totals?.promoted ?? "N/A"],
     ["Integrity Stack", integrityStack.status || "N/A"],
@@ -579,6 +583,7 @@ function writeLandingPage(copiedFiles = []) {
         <a class="button" href="./organic-demand-integrity.json">Organic Integrity</a>
         <a class="button" href="./discovery-truth.json">Discovery Truth</a>
         <a class="button" href="./pre-consensus-breakout-hunter.json">Pre-Consensus</a>
+        <a class="button" href="./pre-breakout-radar.json">Pre-Breakout Radar</a>
         <a class="button" href="./sniper-report.json">Sniper</a>
         <a class="button" href="./source-truth.json">Source Truth</a>
         <a class="button" href="./github-intelligence-pro.json">GitHub Pro</a>
