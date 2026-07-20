@@ -111,7 +111,7 @@ test("missing route evidence lowers Trust Score without zeroing Opportunity Scor
   assert.ok(missingRoute.executionScore < withRoute.executionScore);
   assert.ok(missingRoute.moneyRankScore < withRoute.moneyRankScore);
   assert.notEqual(missingRoute.opportunityRankingTier, "SNIPER_READY");
-  assert.ok(missingRoute.missingEvidence.some((item) => item.includes("Verify Coinbase")));
+  assert.ok(missingRoute.missingEvidence.some((item) => item.includes("fresh buy/sell route")));
 });
 
 test("hard-blocked projects cannot enter positive opportunity tiers", () => {

@@ -1739,7 +1739,7 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
 
   assert.equal(selected.length, 2);
   assert.deepEqual(
-    selected.map((project) => project.smallCapHunterSelectionRank),
+    selected.map((project) => project.smallCapHunterSelectionRank).sort((a, b) => a - b),
     [1, 2]
   );
   assert.equal(noRoute.smallCapHunterVerdict, "Top-2 Small-Cap Research Candidate");

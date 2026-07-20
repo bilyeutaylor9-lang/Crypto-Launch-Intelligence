@@ -571,9 +571,9 @@ function buildMissingEvidence(project = {}, trust = {}, hardBlockers = []) {
   if (trust.washTradingResistance < 55) missing.push("Verify organic volume and buyer quality before treating activity as real demand.");
   if (executionProviderUnavailable(project)) {
     missing.push("Execution provider unavailable; retry route verification before any final candidate status.");
-    missing.push("Verify Coinbase, MetaMask, DEX, or execution route before any final candidate status.");
+    missing.push("Verify a fresh buy/sell route before any final candidate status.");
   }
-  else if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or execution route before any final candidate status.");
+  else if (!routeVerified(project)) missing.push("Verify a fresh buy/sell route before any final candidate status.");
   if (!["COMPLETE", "PARTIAL"].includes(project.localAIStatus || "")) missing.push("Queue local AI research for thesis review and risk-only criticism.");
   if (num(project.comparableSampleSize || project.calibrationSampleSize || project.outcomeWinSampleSize) < 30) missing.push("Outcome calibration sample is too small for measured probabilities.");
 
@@ -584,9 +584,9 @@ function buildExecutionMissingEvidence(project = {}, execution = {}, tradeSizeCh
   const missing = [];
   if (executionProviderUnavailable(project)) {
     missing.push("Execution provider unavailable; route remains unknown, not proven absent.");
-    missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
+    missing.push("Verify exchange, wallet, DEX, aggregator, or bridge-aware route with a fresh quote.");
   }
-  else if (!routeVerified(project)) missing.push("Verify Coinbase, MetaMask, DEX, or aggregator route with a fresh quote.");
+  else if (!routeVerified(project)) missing.push("Verify exchange, wallet, DEX, aggregator, or bridge-aware route with a fresh quote.");
   if (routeFailureDetected(project)) missing.push("Execution route has confirmed negative evidence or no route after provider checks.");
   if (execution.quoteFreshness < 55) missing.push("Refresh stale execution quote before ranking as execution-ready.");
   if (execution.slippageControl < 55) missing.push("Confirm slippage and price impact with a live quote.");

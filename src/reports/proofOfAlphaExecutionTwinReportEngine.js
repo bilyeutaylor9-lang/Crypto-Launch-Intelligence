@@ -9,9 +9,9 @@ export function writeProofOfAlphaExecutionTwinReport(projects = []) {
   const report = {
     ...summarizeProofOfAlphaExecutionTwin(projects),
     operatingRules: [
-      "Promote only paper-executable candidates with detected Coinbase or MetaMask-compatible route proof.",
+      "Promote only paper-executable candidates with verified buy and sell route proof across CEX, DEX, aggregator, or bridge-aware routes.",
       "Block candidates when route proof, liquidity depth, slippage, contract/pair proof, or safety checks fail.",
-      "Treat every quote as a simulation until manually verified inside Coinbase or MetaMask.",
+      "Treat every quote as a simulation until manually verified inside the chosen exchange, wallet, DEX, aggregator, or bridge path.",
       "Feed paper execution outcomes back into future scan memory before trusting the pattern.",
     ],
     commandMap: {

@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
+import os from "os";
+import path from "path";
 
 import {
   analyzeFinalSelectionIntegrityBatch,
@@ -280,7 +282,8 @@ test("dashboard shows no qualified candidates instead of promoting rejected proj
 
 test("dashboard qualified serialization matches saved JSON final record", () => {
   const [qualified] = analyzeFinalSelectionIntegrityBatch([qualifiedFixture()]);
-  const jsonPath = writeJsonReport([qualified], { test: "final-selection" });
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "final-selection-json-"));
+  const jsonPath = writeJsonReport([qualified], { test: "final-selection", reportsDir });
   const htmlPath = writeHtmlReport([qualified]);
   const saved = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
   const html = fs.readFileSync(htmlPath, "utf8");

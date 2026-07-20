@@ -13,6 +13,7 @@ import {
   analyzeSmallCapHunterBatch,
   summarizeSmallCapHunter,
 } from "../src/engines/smallCapHunterEngine.js";
+import { analyzeRouteAccessibilityBatch } from "../src/engines/routeAccessibilityEngine.js";
 import {
   analyzeProofOfAlphaExecutionTwinBatch,
   summarizeProofOfAlphaExecutionTwin,
@@ -39,13 +40,14 @@ import { writeCapitalRotationReports } from "../src/reports/capitalRotationRepor
 import { writePipelineStageHealthReport } from "../src/reports/pipelineStageHealthReportEngine.js";
 import { writeExactOutcomeLabReport } from "../src/reports/exactOutcomeLabReportEngine.js";
 import { writeMathematicalValidationReport } from "../src/reports/mathematicalValidationReportEngine.js";
+import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilityReportEngine.js";
 import {
   REQUIRED_REPORT_FILES,
   validateReportContracts,
 } from "../src/reports/reportContractValidator.js";
 import { publishGithubPagesDashboard } from "../src/reports/githubPagesPublisher.js";
 
-const NOW = "2026-07-19T00:00:00.000Z";
+const NOW = new Date().toISOString();
 const CONTRACT_A = "0x1111111111111111111111111111111111111111";
 const CONTRACT_B = "0x3333333333333333333333333333333333333333";
 const PAIR_A = "0x2222222222222222222222222222222222222222";
@@ -127,7 +129,9 @@ function project(overrides = {}) {
 function routePipeline(projects) {
   return analyzeProofOfAlphaExecutionTwinBatch(
     analyzeSmallCapHunterBatch(
-      analyzeExecutionProofBatch(analyzeCanonicalExecutionRouteBatch(projects))
+      analyzeRouteAccessibilityBatch(
+        analyzeExecutionProofBatch(analyzeCanonicalExecutionRouteBatch(projects))
+      )
     )
   );
 }
@@ -294,6 +298,7 @@ test("pipeline runs Execution Proof before Execution Twin", () => {
   const source = fs.readFileSync(path.resolve("src/intelligencePipeline.js"), "utf8");
   const canonical = source.indexOf('runEngine("Canonical Execution Route"');
   const proof = source.indexOf('runEngine("Execution Proof"');
+  const accessibility = source.indexOf('runEngine("Route Accessibility"');
   const observation = source.indexOf('runEngine("Capital Flow Observation"');
   const baseline = source.indexOf('runEngine("Capital Flow Baseline"');
   const migration = source.indexOf('runEngine("Capital Migration Core"');
@@ -302,7 +307,8 @@ test("pipeline runs Execution Proof before Execution Twin", () => {
 
   assert.ok(canonical > -1);
   assert.ok(proof > canonical);
-  assert.ok(observation > proof);
+  assert.ok(accessibility > proof);
+  assert.ok(observation > accessibility);
   assert.ok(baseline > observation);
   assert.ok(migration > baseline);
   assert.ok(smallCap > migration);
@@ -364,6 +370,7 @@ test("mandatory report contracts are generated and validate", () => {
   writePipelineStageHealthReport(processed);
   writeExactOutcomeLabReport(processed, { observations: [] });
   writeMathematicalValidationReport();
+  writeRouteAccessibilityReports(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -441,6 +448,43 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       coreDataStarved: 1,
       topMissingInputs: [{ fields: "contractAddress or tokenAddress", count: 2 }],
     },
+    "route-universe.json": {
+      status: "OK",
+      routeCount: 2,
+      executionReadyCount: 1,
+      userAccessibleCount: 1,
+      researchEligibleCount: 2,
+      routes: [],
+      prohibitedOutputs: ["NOT ON COINBASE = REJECTED", "NOT ON METAMASK = REJECTED"],
+    },
+    "alternative-execution-routes.json": {
+      status: "OK",
+      routeCount: 2,
+      executionReadyCount: 1,
+      userAccessibleCount: 1,
+      researchEligibleCount: 2,
+      routes: [],
+      prohibitedOutputs: ["NOT ON COINBASE = REJECTED", "NOT ON METAMASK = REJECTED"],
+    },
+    "user-accessibility-ranking.json": {
+      status: "OK",
+      routeCount: 2,
+      executionReadyCount: 1,
+      userAccessibleCount: 1,
+      researchEligibleCount: 2,
+      topProjectsByOpportunity: [{ symbol: "R1", opportunityRank: 1, accessibilityRank: 2 }],
+      topProjectsByUserAccessibility: [{ symbol: "R2", opportunityRank: 2, accessibilityRank: 1 }],
+      prohibitedOutputs: ["NOT ON COINBASE = REJECTED", "NOT ON METAMASK = REJECTED"],
+    },
+    "venue-coverage-health.json": {
+      status: "OK",
+      routeCount: 2,
+      executionReadyCount: 1,
+      userAccessibleCount: 1,
+      researchEligibleCount: 2,
+      venueCoverageHealth: [{ venue: "Uniswap", routes: 1, verifiedRoutes: 1, executionReadyRoutes: 1, regionRestricted: 0 }],
+      prohibitedOutputs: ["NOT ON COINBASE = REJECTED", "NOT ON METAMASK = REJECTED"],
+    },
     "capital-migration-core.json": {
       status: "OK",
       counts: { confirmedEarlyFlow: 0, earlyFlowResearch: 1 },
@@ -503,4 +547,6 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Quantum Suite Status"));
   assert.ok(html.includes("Capital Migration"));
   assert.ok(html.includes("Pipeline Health"));
+  assert.ok(html.includes("Route Universe"));
+  assert.ok(html.includes("Accessibility #1"));
 });

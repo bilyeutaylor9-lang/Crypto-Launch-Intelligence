@@ -103,6 +103,10 @@ const PUBLIC_REPORTS = [
   "source-router.json",
   "engine-audit.json",
   "engine-data-readiness.json",
+  "route-universe.json",
+  "alternative-execution-routes.json",
+  "user-accessibility-ranking.json",
+  "venue-coverage-health.json",
 ];
 
 function copyIfExists(fileName = "", reportsDir = REPORTS_DIR, docsDir = DOCS_DIR) {
@@ -189,6 +193,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const sourceRouter = readJsonReport("source-router.json", reportsDir) || {};
   const audit = readJsonReport("engine-audit.json", reportsDir) || {};
   const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
+  const routeUniverse = readJsonReport("route-universe.json", reportsDir) || {};
+  const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
+  const userAccessibility = readJsonReport("user-accessibility-ranking.json", reportsDir) || {};
+  const venueCoverage = readJsonReport("venue-coverage-health.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -345,6 +353,12 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Core Data Ready", engineDataReadiness.coreReady ?? 0],
     ["Core Data Starved", engineDataReadiness.coreDataStarved ?? 0],
     ["Top Data Gap", engineDataReadiness.topMissingInputs?.[0]?.fields || "NO CORE DATA GAP"],
+    ["Route Universe", routeUniverse.routeCount ?? 0],
+    ["Alternative Routes", alternativeRoutes.routes?.length ?? 0],
+    ["User Accessible", userAccessibility.userAccessibleCount ?? 0],
+    ["Opportunity #1", userAccessibility.topProjectsByOpportunity?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Accessibility #1", userAccessibility.topProjectsByUserAccessibility?.[0]?.symbol || "NO ACCESSIBLE CANDIDATE"],
+    ["Venue Coverage", venueCoverage.venueCoverageHealth?.[0]?.venue || "NO VERIFIED VENUE"],
   ]
     .map(
       ([label, value]) => `
@@ -603,6 +617,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
           <li><strong>Progressive Debug Ladder:</strong> shows identity, trust, execution, money, and final-integrity gates for every candidate.</li>
           <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
           <li><strong>Market Opportunity Learning:</strong> records top opportunity receipts, grades later scans when market data is available, and produces cautious weight hints.</li>
+          <li><strong>Route Accessibility:</strong> separates strongest opportunities from easiest current buy routes across CEX, DEX, aggregator, wallet, region, and bridge paths.</li>
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
       </div>
@@ -664,6 +679,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
+        <a class="button" href="./route-universe.json">Route Universe</a>
+        <a class="button" href="./alternative-execution-routes.json">Alt Routes</a>
+        <a class="button" href="./user-accessibility-ranking.json">Accessibility Rank</a>
+        <a class="button" href="./venue-coverage-health.json">Venue Health</a>
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>

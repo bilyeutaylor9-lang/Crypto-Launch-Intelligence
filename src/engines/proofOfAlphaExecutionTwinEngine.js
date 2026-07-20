@@ -5,6 +5,23 @@ function positiveNumber(value, fallback) {
 
 const DEFAULT_BUDGET_USD = positiveNumber(process.env.EXECUTION_TWIN_BUDGET_USD, 100);
 const DEFAULT_TARGET_COUNT = positiveNumber(process.env.EXECUTION_TWIN_TARGET_COUNT, 2);
+const CEX_NAMES = [
+  "coinbase",
+  "kraken",
+  "binance",
+  "binance.us",
+  "gemini",
+  "okx",
+  "bybit",
+  "kucoin",
+  "gate",
+  "mexc",
+  "bitget",
+  "crypto.com",
+  "htx",
+  "upbit",
+  "bithumb",
+];
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -55,7 +72,38 @@ function normalizeRouteName(value = "") {
   return raw;
 }
 
+function legacyRouteLooksCex(route = {}) {
+  const routeText = [
+    route.preferredRoute,
+    route.status,
+    ...(route.routes || []).flatMap((item) => [item.type, item.venue, item.exchange, item.routeType]),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return CEX_NAMES.some((name) => routeText.includes(name)) ||
+    (route.routes || []).some((item) => ["CEX", "CEX_SPOT"].includes(item.routeType));
+}
+
 function routeProof(project = {}) {
+  if (project.routeAccessibility) {
+    const best =
+      project.bestVerifiedRoute ||
+      project.bestBuyRoute ||
+      project.canonicalRoutes?.find((route) => route.buyRouteAvailable || route.sellRouteAvailable) ||
+      null;
+    const detected = project.executionReady === true && best?.buyRouteAvailable === true && best?.sellRouteAvailable === true;
+    return {
+      detected,
+      preferredRoute: normalizeRouteName(project.bestVerifiedVenue || best?.venue || "Route Research Required"),
+      status: project.accessibilityLane || (detected ? "EXECUTION_READY" : "ROUTE_RESEARCH_REQUIRED"),
+      confidence: detected ? clamp(project.routeAccessibility.accessibilityScore || best?.accessibilityScore || 70) : 0,
+      routes: project.canonicalRoutes || [],
+      blockers: detected ? [] : project.missingRouteEvidence || ["Verified fresh buy and sell route proof is missing."],
+    };
+  }
+
   const proof = project.executionProof || {};
   if (proof.executionStatus || project.executionStatus) {
     const status = proof.executionStatus || project.executionStatus;
@@ -114,7 +162,7 @@ function routeProof(project = {}) {
     status: route.status || (detected ? "Detected" : "No verified route"),
     confidence,
     routes,
-    blockers: detected ? [] : ["No Coinbase or MetaMask-compatible route proof."],
+    blockers: detected ? [] : ["No verified exchange, wallet, DEX, aggregator, or bridge-aware route proof."],
   };
 }
 
@@ -185,10 +233,11 @@ function safetyScan(project = {}) {
   ]);
   const blockers = [];
 
-  if (!route.detected) blockers.push("No verified Coinbase/MetaMask execution route.");
+  const routeIsCex = legacyRouteLooksCex(route);
+  if (!route.detected) blockers.push("No verified fresh buy/sell execution route.");
   if (risk >= 78) blockers.push("Risk stack is too high for execution verification.");
-  if (!contractKnown && route.preferredRoute === "MetaMask") blockers.push("MetaMask route needs exact token contract proof.");
-  if (!pairKnown && route.preferredRoute === "MetaMask") blockers.push("MetaMask route needs exact pair/liquidity proof.");
+  if (!contractKnown && !routeIsCex) blockers.push("Wallet or DEX route needs exact token contract proof.");
+  if (!pairKnown && !routeIsCex) blockers.push("Wallet or DEX route needs exact pair/liquidity proof.");
   if (sourceProof > 0 && sourceProof < 45) blockers.push("Source/proof stack is too weak.");
   if (project.redTeamReview?.status === "Block") blockers.push("Red-team block is active.");
 
@@ -196,8 +245,8 @@ function safetyScan(project = {}) {
     score: Math.round(
       clamp(
         (route.detected ? 25 : 0) +
-          (contractKnown || route.preferredRoute === "Coinbase" ? 18 : 0) +
-          (pairKnown || route.preferredRoute === "Coinbase" ? 12 : 0) +
+          (contractKnown || routeIsCex ? 18 : 0) +
+          (pairKnown || routeIsCex ? 12 : 0) +
           sourceProof * 0.28 +
           (100 - risk) * 0.17
       )
@@ -268,7 +317,7 @@ function buildTwin(project = {}, options = {}) {
   const verdict = verdictFor({ score, route, quote, safety, thesis });
   const confidence = confidenceFor({ route, quote, safety, score });
   const invalidationRules = [
-    "Route disappears from Coinbase or MetaMask-compatible liquidity sources.",
+    "Verified buy or sell route disappears from the chosen exchange, wallet, DEX, aggregator, or bridge path.",
     "Estimated $100 slippage rises above 5%.",
     "Risk, trap, unlock, or sell-pressure score rises above 78.",
     "Token contract or pair cannot be manually verified.",
@@ -302,7 +351,7 @@ function buildTwin(project = {}, options = {}) {
     },
     invalidationRules,
     requiredManualChecks: [
-      "Confirm Coinbase regional availability or exact MetaMask network/contract/pair.",
+      "Confirm regional availability, exact network, contract, pool/market, buy path, and sell path in the chosen route.",
       "Confirm slippage and fees inside the actual trade screen before any real order.",
       "Confirm token taxes, honeypot status, contract ownership, and liquidity lock.",
       "Confirm unlocks, emissions, insiders, and top-holder concentration.",

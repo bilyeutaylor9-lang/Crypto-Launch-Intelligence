@@ -168,7 +168,25 @@ function routeSources(project = {}) {
     });
   }
 
-  if (["coinbase", "binance", "kraken", "gemini", "kucoin", "okx"].some((name) => source.includes(name))) {
+  if (
+    [
+      "coinbase",
+      "kraken",
+      "binance",
+      "binance.us",
+      "gemini",
+      "okx",
+      "bybit",
+      "kucoin",
+      "gate",
+      "mexc",
+      "bitget",
+      "crypto.com",
+      "htx",
+      "upbit",
+      "bithumb",
+    ].some((name) => source.includes(name))
+  ) {
     sources.push({
       source: project.source || project.exchange || "cex-market-data",
       venue: project.exchange || project.source || "CEX",

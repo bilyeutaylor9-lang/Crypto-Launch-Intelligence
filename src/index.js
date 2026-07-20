@@ -522,6 +522,10 @@ function printReportPaths(paths) {
   if (paths.exactOutcomeHorizonLabPath) console.log(`Outcome Horizons: ${paths.exactOutcomeHorizonLabPath}`);
   if (paths.mathematicalValidationPath) console.log(`Math Validation: ${paths.mathematicalValidationPath}`);
   if (paths.engineDataReadinessPath) console.log(`Data Readiness:${paths.engineDataReadinessPath}`);
+  if (paths.routeUniversePath) console.log(`Route Universe: ${paths.routeUniversePath}`);
+  if (paths.alternativeRoutesPath) console.log(`Alt Routes:     ${paths.alternativeRoutesPath}`);
+  if (paths.userAccessibilityRankingPath) console.log(`Access Rank:    ${paths.userAccessibilityRankingPath}`);
+  if (paths.venueCoverageHealthPath) console.log(`Venue Health:   ${paths.venueCoverageHealthPath}`);
   if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);

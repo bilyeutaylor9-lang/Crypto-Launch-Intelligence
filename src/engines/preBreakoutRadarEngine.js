@@ -427,7 +427,7 @@ function missingEvidence(project = {}, components = {}, minLiquidity = DEFAULT_M
   if (!tokenAddress(project)) missing.push("valid token contract");
   if (!poolAddress(project)) missing.push("tradable pool/pair");
   if (!hasVerifiedIdentity(project)) missing.push("verified identity");
-  if (!route.verified) missing.push("verified Coinbase/MetaMask execution route");
+  if (!route.verified) missing.push("verified fresh buy/sell execution route");
   if (liquidity(project) < minLiquidity) missing.push("minimum executable DEX liquidity");
   if (components.evidenceTrust < 58) missing.push("independent evidence quorum");
   if (components.safetyIntegrity < 62) missing.push("safety integrity confirmation");

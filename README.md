@@ -10,6 +10,8 @@
 
 Crypto Launch Intelligence is an AI-powered crypto research desk built to discover early-stage market opportunities before they become obvious.
 
+The scanner searches the complete legitimate market and never confuses "easy for me to buy" with "best opportunity." Coinbase, MetaMask, preferred wallets, preferred exchanges, and geographic availability belong in a separate accessibility layer, not the core project-quality ranking.
+
 It scans free market, launch, social, GitHub, roadmap, liquidity, narrative, catalyst, wallet, and web research sources, then routes every project through a multi-agent intelligence pipeline.
 
 This is not a simple token screener. It is a layered research system with:
@@ -29,7 +31,7 @@ This is not a simple token screener. It is a layered research system with:
 - Causal signal reasoning
 - Autonomous Alpha Knowledge Graph
 - Causal Market Twin scenario engine
-- Small-Cap Hunter for two best-available $100 paper-research candidates with Coinbase/MetaMask route gating
+- Small-Cap Hunter for two best-available $100 paper-research candidates with route accessibility separated from project-quality scoring
 - Proof-of-Alpha Execution Twin for route-verified $100 paper execution simulations
 - Organic Demand Integrity layer for holder, activity, liquidity, admin-control, yield, and valuation-truth risk
 - Organic proof queue that assigns wallet-flow, supply-truth, liquidity-exit, contract-safety, and evidence-auditor tasks before promotion
@@ -206,7 +208,8 @@ The project now behaves like a miniature autonomous research organization.
 | Market Opportunity Learning | Records top opportunity receipts, grades later scans when price/liquidity data exists, and produces cautious signal-family weight hints | `reports/market-opportunity-learning.json` |
 | GitHub Pro | Scores repository velocity, contributors, releases, and repo risk | `reports/github-intelligence-pro.json` |
 | Alpha Evolution Governor | Fuses contracts, outcomes, sources, agents, discovery, risk, and memory into one operating queue | `reports/alpha-evolution-governor.json` |
-| Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, Coinbase/MetaMask route gating, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
+| Small-Cap Hunter | Selects two best-available small-cap research candidates with $100 paper sizing, route accessibility, liquidity checks, structure checks, upside stack, and risk blocks | `reports/small-cap-hunter.json` |
+| Route Accessibility | Separates opportunity rank from user-accessibility rank across CEX, DEX, aggregator, wallet, region, bridge, buy-path, and sell-path checks | `reports/route-universe.json`, `reports/user-accessibility-ranking.json` |
 | Proof-of-Alpha Execution Twin | Simulates whether a $100 paper execution is actually route-verified, liquid enough, safe enough, and linked to a falsifiable alpha thesis | `reports/proof-of-alpha-execution-twin.json` |
 | Organic Demand Integrity | Separates real demand from dust holders, repeat-wallet activity, circular volume, repetitive trade sizes, protocol-owned liquidity, extreme yield, privileged controls, supply contradictions, valuation disagreement, and unresolved proof tasks | `reports/organic-demand-integrity.json` |
 | Discovery Truth Network | Audits active source coverage, discovery lanes, identity evidence, shadow rejects, and independent evidence families | `reports/discovery-truth.json` |
@@ -429,7 +432,7 @@ Small-Cap Hunter is built for small-account research mode.
 It searches the full scan output for two best-available candidates that are:
 
 - Small enough to still have asymmetric upside potential
-- Detectable through Coinbase or a MetaMask-compatible wallet route
+- Visible through a legitimate exchange, wallet, DEX, aggregator, or bridge-aware route when execution status is needed
 - Liquid enough for a $100 paper-sized plan
 - Supported by source truth, proof, roadmap, GitHub, graph, or catalyst structure
 - Confirmed by AI/OS/governor consensus where available
@@ -442,14 +445,9 @@ npm run scan:op
 npm run small-caps
 ```
 
-The output is `reports/small-cap-hunter.json`. It includes the top two candidates, score, cap band, liquidity impact estimate, paper plan, warnings, and manual verification checklist. This is research software only, not a buy list.
+The output is `reports/small-cap-hunter.json`. It includes the top two candidates, score, cap band, liquidity impact estimate, paper plan, warnings, accessibility status, and manual verification checklist. This is research software only, not a buy list.
 
-By default, Small-Cap Hunter will not select a token unless it detects one of these routes:
-
-- Coinbase source, Coinbase exchange field, or Coinbase market URL
-- MetaMask-compatible chain plus a token contract or DEX pair route from free DEX sources
-
-You can loosen that gate for research experiments with `SMALL_CAP_REQUIRE_PURCHASE_ROUTE=false`, but the safer default is to require route proof.
+Small-Cap Hunter does not lower a project-quality score just because the project is not on Coinbase or not MetaMask-compatible. Route status is reported separately through `reports/route-universe.json`, `reports/alternative-execution-routes.json`, `reports/user-accessibility-ranking.json`, and `reports/venue-coverage-health.json`.
 
 ## Proof-of-Alpha Execution Twin
 
@@ -457,7 +455,7 @@ The Execution Twin is the accountability layer above Small-Cap Hunter.
 
 It asks:
 
-- Can a normal user actually reach this token through Coinbase or MetaMask?
+- Can a normal user actually reach this token through a verified exchange, wallet, DEX, aggregator, or bridge-aware route?
 - Is there enough visible liquidity for a $100 paper execution?
 - Is estimated slippage tolerable?
 - Is the route backed by contract or pair proof?
@@ -762,7 +760,11 @@ Every scan can generate a full research packet:
 | `reports/causal-market-twin.json` | Scenario probabilities, expected return, best/worst paths, and next experiments |
 | `reports/alpha-evolution-governor.json` | Meta-governor operating report |
 | `reports/alpha-evolution-queue.json` | Promote, priority research, recheck, evidence-gap, and risk-block queues |
-| `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with Coinbase/MetaMask route status, $100 paper plan, structure score, upside score, and risk warnings |
+| `reports/small-cap-hunter.json` | Two best-available small-cap research candidates with accessibility status, $100 paper plan, structure score, upside score, and risk warnings |
+| `reports/route-universe.json` | Complete detected route universe with CEX, DEX, wallet, region, bridge, cost, slippage, and buy/sell proof fields |
+| `reports/alternative-execution-routes.json` | Non-Coinbase and non-MetaMask routes that can keep strong projects visible as research candidates |
+| `reports/user-accessibility-ranking.json` | Separate opportunity and user-accessibility rankings so convenience cannot overwrite project quality |
+| `reports/venue-coverage-health.json` | Venue-level route coverage, verification, execution-ready counts, and region restrictions |
 | `reports/proof-of-alpha-execution-twin.json` | Route-verified $100 paper execution simulations with slippage, safety, thesis, and invalidation checks |
 | `reports/organic-demand-integrity.json` | Organic demand, hard exit liquidity, admin-control, yield sustainability, holder authenticity, and valuation-disagreement checks |
 | `reports/discovery-truth.json` | Source capability audit, discovery coverage, evidence-family independence, identity graph, lanes, and rejected-candidate shadow watchlist |

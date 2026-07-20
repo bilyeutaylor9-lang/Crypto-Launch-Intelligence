@@ -3,8 +3,11 @@ import assert from "node:assert/strict";
 
 import {
   addressRejectionReason,
+  isValidCosmosAddress,
   isValidEvmAddress,
   isValidSolanaAddress,
+  isValidSuiAddress,
+  isValidTonAddress,
   normalizeChainId,
   normalizePoolAddress,
   normalizeTokenAddress,
@@ -12,12 +15,18 @@ import {
 
 const EVM = "0xABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD";
 const SOL = "So11111111111111111111111111111111111111112";
+const SUI = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const TON = "0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const COSMOS = "cosmos1p8s3ww7c8u0dls0c0fj3y7r7yqruw8k6awf69d";
 
 test("strict chain registry normalizes only supported chain aliases", () => {
   assert.equal(normalizeChainId("8453"), "base");
   assert.equal(normalizeChainId("binance-smart-chain"), "bsc");
   assert.equal(normalizeChainId("0xa4b1"), "arbitrum");
   assert.equal(normalizeChainId("SOL"), "solana");
+  assert.equal(normalizeChainId("sui-network"), "sui");
+  assert.equal(normalizeChainId("the-open-network"), "ton");
+  assert.equal(normalizeChainId("osmosis"), "cosmos");
 
   assert.equal(normalizeChainId("gaming"), null);
   assert.equal(normalizeChainId("depin"), null);
@@ -38,5 +47,12 @@ test("address validators reject provider IDs, URLs, tickers, and wrong-chain add
   assert.equal(isValidSolanaAddress(SOL), true);
   assert.equal(normalizeTokenAddress(SOL, "solana"), SOL);
   assert.equal(normalizeTokenAddress(SOL, "ethereum"), null);
+  assert.equal(isValidSuiAddress(SUI), true);
+  assert.equal(normalizeTokenAddress(SUI, "sui"), SUI);
+  assert.equal(normalizeTokenAddress(SUI, "base"), null);
+  assert.equal(isValidTonAddress(TON), true);
+  assert.equal(normalizeTokenAddress(TON, "ton"), TON);
+  assert.equal(isValidCosmosAddress(COSMOS), true);
+  assert.equal(normalizeTokenAddress(COSMOS, "cosmos"), COSMOS);
   assert.match(addressRejectionReason("AKE", "token address", "base"), /Rejected token address/);
 });

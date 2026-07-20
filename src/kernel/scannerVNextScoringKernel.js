@@ -616,7 +616,7 @@ function hardSafety(project = {}, liquidity = {}, coverageScore = 0, safetyCover
   if (deployerRisk >= 85) blockers.push("Malicious or high-risk deployer history.");
   if (!tokenAddress(project)) blockers.push("Unresolved token contract.");
   if (!poolAddress(project)) warnings.push("Tradable pool is not verified.");
-  if (!routeVerified(project)) warnings.push("Coinbase/MetaMask or execution route is not verified.");
+  if (!routeVerified(project)) warnings.push("Fresh buy/sell execution route is not verified.");
   if (coverageScore < 40) warnings.push("Evidence coverage is below the 40% strong-recommendation floor.");
   if (safetyCoverageScore < 50) warnings.push("Safety evidence coverage is too thin; treat missing safety as unresolved risk.");
 

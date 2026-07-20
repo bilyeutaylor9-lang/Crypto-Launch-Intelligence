@@ -59,6 +59,7 @@ import { writeCapitalRotationReports } from "./capitalRotationReportEngine.js";
 import { writePipelineStageHealthReport } from "./pipelineStageHealthReportEngine.js";
 import { writeExactOutcomeLabReport } from "./exactOutcomeLabReportEngine.js";
 import { writeMathematicalValidationReport } from "./mathematicalValidationReportEngine.js";
+import { writeRouteAccessibilityReports } from "./routeAccessibilityReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -243,6 +244,12 @@ export function generateReports(projects = [], meta = {}) {
     filePath: engineDataReadinessPath,
   } = writeEngineDataReadinessReport(projects);
   const {
+    routeUniversePath,
+    alternativeRoutesPath,
+    userAccessibilityRankingPath,
+    venueCoverageHealthPath,
+  } = writeRouteAccessibilityReports(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -369,6 +376,10 @@ export function generateReports(projects = [], meta = {}) {
     exactOutcomeHorizonLabPath,
     mathematicalValidationPath,
     engineDataReadinessPath,
+    routeUniversePath,
+    alternativeRoutesPath,
+    userAccessibilityRankingPath,
+    venueCoverageHealthPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,

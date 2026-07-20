@@ -131,6 +131,36 @@ function isDexRoute(project = {}) {
 }
 
 function purchaseRoute(project = {}) {
+  if (project.routeAccessibility && Array.isArray(project.canonicalRoutes)) {
+    const best =
+      project.bestVerifiedRoute ||
+      project.bestBuyRoute ||
+      project.canonicalRoutes.find((route) => route.buyRouteAvailable || route.sellRouteAvailable) ||
+      project.canonicalRoutes[0] ||
+      null;
+    const purchasable = project.executionReady === true && best?.buyRouteAvailable === true && best?.sellRouteAvailable === true;
+    return {
+      status: project.accessibilityLane || (purchasable ? "EXECUTION_READY" : "ROUTE_RESEARCH_REQUIRED"),
+      purchasable,
+      preferredRoute: project.bestVerifiedVenue || best?.venue || "Route Research Required",
+      score: project.routeAccessibility.accessibilityScore || best?.accessibilityScore || 0,
+      buyRouteAvailable: Boolean(best?.buyRouteAvailable),
+      sellRouteAvailable: Boolean(best?.sellRouteAvailable),
+      routeType: best?.routeType,
+      chain: best?.chain,
+      contract: best?.tokenAddress,
+      pairAddress: best?.poolAddress,
+      liquidityUsd: best?.liquidityUsd,
+      volume24hUsd: project.canonicalExecutionRoute?.volume24hUsd,
+      routes: project.canonicalRoutes,
+      mustVerify: project.missingRouteEvidence?.length
+        ? project.missingRouteEvidence.map((item) => `Verify ${item}.`)
+        : [
+            "Confirm the selected exchange, wallet, DEX, aggregator, bridge, contract, pool, slippage, fees, taxes, liquidity, and sell path before any real trade.",
+          ],
+    };
+  }
+
   const canonical = project.canonicalExecutionRoute;
   if (canonical) {
     const verified = canonical.status === "VERIFIED";
@@ -205,19 +235,18 @@ function purchaseRoute(project = {}) {
   const best = routes.sort((a, b) => num(b.confidence) - num(a.confidence))[0] || null;
 
   return {
-    status: routes.length ? "Available Route Detected" : "No Coinbase/MetaMask Route Detected",
+    status: routes.length ? "Available Route Detected" : "No Verified Route Detected",
     purchasable: routes.length > 0,
     preferredRoute: best?.type || "Unavailable",
     score: routes.length ? Math.max(...routes.map((route) => num(route.confidence))) : 0,
     routes,
     mustVerify: routes.length
       ? [
-          "Confirm the asset is available in your Coinbase region or inside MetaMask before any real trade.",
-          "Verify exact token contract, network, pair, slippage, fees, taxes, and wallet support.",
+          "Confirm the selected exchange, wallet, DEX, aggregator, bridge, contract, pool, slippage, fees, taxes, liquidity, and sell path before any real trade.",
         ]
       : [
-          "No Coinbase listing or MetaMask-compatible route was detected from current free-source data.",
-          "Do not promote without a verified Coinbase market or wallet-compatible contract/pair route.",
+          "No fully verified buy/sell execution route was detected from current free-source data.",
+          "Keep this as research-only until a legitimate exchange, wallet, DEX, aggregator, or bridge-aware route is verified.",
         ],
   };
 }
@@ -299,6 +328,18 @@ function routeStatus(project = {}, metrics = {}) {
 }
 
 function executionReady(project = {}, metrics = {}, minLiquidity = DEFAULT_MIN_LIQUIDITY) {
+  if (project.routeAccessibility) {
+    return Boolean(
+      project.executionReady === true &&
+        project.bestVerifiedRoute?.buyRouteAvailable === true &&
+        project.bestVerifiedRoute?.sellRouteAvailable === true &&
+        num(project.bestVerifiedRoute?.quoteAgeSeconds) <= 21_600 &&
+        metrics.risk < 78 &&
+        project.honeypotDetected !== true &&
+        project.verifiedScam !== true
+    );
+  }
+
   const route = project.canonicalExecutionRoute;
   const proof = project.executionProof || {};
   return Boolean(
@@ -330,7 +371,8 @@ function missingEvidence(project = {}, metrics = {}) {
   const route = project.canonicalExecutionRoute || {};
   return [
     ...(metrics.cap ? [] : ["market cap/FDV proof"]),
-    ...(route.status === "VERIFIED" ? [] : ["verified buy and sell route"]),
+    ...(project.executionReady === true || route.status === "VERIFIED" ? [] : ["verified fresh buy and sell route"]),
+    ...(project.missingRouteEvidence || []),
     ...(route.contractAddress || project.contractAddress || project.tokenAddress || project.address ? [] : ["verified token contract"]),
     ...(route.pairAddress || route.routeType === "CEX" || project.pairAddress || project.poolAddress ? [] : ["verified pool/pair"]),
     ...(metrics.execution?.liquidityUsd >= DEFAULT_MIN_LIQUIDITY ? [] : ["minimum DEX liquidity"]),
@@ -495,13 +537,12 @@ function smallCapScore(project = {}, options = {}) {
   const score = Math.round(
     clamp(
       band.score * 0.1 +
-        execution.score * 0.12 +
-        route.score * 0.1 +
-        structure * 0.16 +
-        upside * 0.17 +
+        execution.score * 0.14 +
+        structure * 0.18 +
+        upside * 0.18 +
         consensus * 0.1 +
-        preHit.score * 0.18 +
-        riskIntegrity * 0.07
+        preHit.score * 0.22 +
+        riskIntegrity * 0.08
     )
   );
 
@@ -527,16 +568,16 @@ function smallCapScore(project = {}, options = {}) {
 
 function verdictFor(metrics = {}, options = {}) {
   const minLiquidity = num(options.minLiquidity || DEFAULT_MIN_LIQUIDITY);
-  const requirePurchaseRoute = options.requirePurchaseRoute ?? DEFAULT_REQUIRE_PURCHASE_ROUTE;
 
   if (metrics.risk >= 78) return "Small-Cap Risk Block";
   if (!metrics.band.eligible) return "Too Large For Small-Cap Hunt";
-  if (requirePurchaseRoute && !metrics.purchaseRoute.purchasable) return "Small-Cap Research Candidate - Route Unverified";
   if (metrics.execution.liquidityUsd > 0 && metrics.execution.liquidityUsd < minLiquidity) {
     return "Small-Cap Liquidity Block";
   }
   if (metrics.score >= 68 && metrics.structure >= 45 && metrics.execution.score >= 40) {
-    return "Small-Cap Research Candidate";
+    return metrics.purchaseRoute.purchasable
+      ? "Small-Cap Research Candidate"
+      : "Small-Cap Research Candidate - Route Research Required";
   }
   if (metrics.score >= 52) return "Small-Cap Watch";
   return "Small-Cap Thin Data";
@@ -569,7 +610,7 @@ function warnings(project = {}, metrics = {}) {
   ];
 
   if (!metrics.cap) output.push("Market cap/FDV is unknown; verify cap before treating it as a true small cap.");
-  if (!metrics.purchaseRoute.purchasable) output.push("No Coinbase or MetaMask route was detected; do not select without route proof.");
+  if (!metrics.purchaseRoute.purchasable) output.push("No fully verified buy/sell execution route was detected; keep this research-only until route proof exists.");
   if (metrics.risk >= 55) output.push("Risk stack is elevated; review trap, unlock, sell pressure, and false-positive signals.");
   if (metrics.preHit?.trapPenalty >= 60) output.push("Pre-hit pressure is contaminated by trap, wash, bundled-launch, or sell-pressure signals.");
   if (metrics.preHit?.identityConfidence < 35) output.push("Identity confidence is weak; symbol/name collision checks need manual verification.");
@@ -648,7 +689,7 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
       paperPlan: paperPlan(project, metrics, options),
       mustVerify: [
         "Official token contract, pair, chain, and website.",
-        "Coinbase availability or MetaMask token contract/pair route.",
+        "Verified exchange, wallet, DEX, aggregator, bridge, buy route, and sell route when applicable.",
         "Actual liquidity depth, slippage, taxes, honeypot status, and lock status.",
         "Recent roadmap/catalyst evidence from official or trusted sources.",
         "Token unlocks, emissions, team allocation, and insider sell pressure.",

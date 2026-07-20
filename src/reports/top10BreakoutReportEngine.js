@@ -295,7 +295,7 @@ function missingEvidence(project = {}) {
   if (!chain(project)) missing.push("Verified chain is missing.");
   if (!tokenAddress(project)) missing.push("Verified token contract address is missing.");
   if (!poolAddress(project)) missing.push("Primary tradable pool is missing.");
-  if (!routeVerified(project)) missing.push("Verified Coinbase, MetaMask, DEX, or aggregator execution route is missing.");
+  if (!routeVerified(project)) missing.push("Verified fresh buy/sell execution route is missing.");
   if (!dexLiquidity(project)) missing.push("DEX liquidity or stable exit liquidity is missing.");
   if (independentEvidenceFamilies(project).length < 2) missing.push("Needs at least two independent evidence families.");
   if (!(project.instantSafetyStatus === "PASS" || project.contractVerified || project.contractSafetyVerified)) {

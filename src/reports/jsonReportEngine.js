@@ -305,7 +305,12 @@ function summarizeMeta(meta = {}) {
 }
 
 export function writeJsonReport(projects = [], meta = {}) {
-  const reportsDir = path.resolve("reports");
+  const {
+    reportsDir: requestedReportsDir,
+    reportFileName = "report.json",
+    ...reportMeta
+  } = meta || {};
+  const reportsDir = path.resolve(requestedReportsDir || "reports");
   fs.mkdirSync(reportsDir, { recursive: true });
   const compactedProjects = compactProjects(projects);
 
@@ -313,13 +318,13 @@ export function writeJsonReport(projects = [], meta = {}) {
     generatedAt: new Date().toISOString(),
     totalProjects: compactedProjects.projects.length,
     meta: {
-      ...summarizeMeta(meta),
+      ...summarizeMeta(reportMeta),
       reportSerialization: compactedProjects.serialization,
     },
     projects: compactedProjects.projects,
   };
 
-  const filePath = path.join(reportsDir, "report.json");
+  const filePath = path.join(reportsDir, reportFileName);
   fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
 
   return filePath;

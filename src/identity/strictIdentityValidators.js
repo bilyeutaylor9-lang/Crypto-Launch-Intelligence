@@ -7,6 +7,9 @@ export const SUPPORTED_CHAIN_REGISTRY = Object.freeze({
   optimism: { chainId: 10, kind: "evm", name: "Optimism" },
   avalanche: { chainId: 43114, kind: "evm", name: "Avalanche" },
   solana: { chainId: 101, kind: "solana", name: "Solana" },
+  sui: { chainId: "sui", kind: "sui", name: "Sui" },
+  ton: { chainId: "ton", kind: "ton", name: "TON" },
+  cosmos: { chainId: "cosmos", kind: "cosmos", name: "Cosmos" },
 });
 
 export const REJECTED_CHAIN_VALUES = new Set([
@@ -72,10 +75,20 @@ const CHAIN_ALIASES = Object.freeze({
   "101": "solana",
   sol: "solana",
   solana: "solana",
+  sui: "sui",
+  "sui-network": "sui",
+  ton: "ton",
+  "the-open-network": "ton",
+  cosmos: "cosmos",
+  "cosmos-hub": "cosmos",
+  osmosis: "cosmos",
 });
 
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]+$/;
 const EVM_RE = /^0x[a-fA-F0-9]{40}$/;
+const SUI_RE = /^0x[a-fA-F0-9]{64}$/;
+const TON_RE = /^(?:-?\d+:[a-fA-F0-9]{64}|[EU]Q[A-Za-z0-9_-]{46})$/;
+const COSMOS_RE = /^(?:cosmos|osmo|sei|inj|akash|celestia|tia)1[02-9ac-hj-np-z]{20,80}$/i;
 const PLACEHOLDER_RE = /^(research-seed-|rescue-|unknown$|pending$|n\/a$|na$|none$|null$|undefined$|symbol-only$|unresolved:)/i;
 const OBVIOUS_NON_ADDRESS_TERMS = [
   "airdrop",
@@ -143,10 +156,31 @@ export function isValidSolanaAddress(value = "") {
   return raw.length >= 32 && raw.length <= 44 && BASE58_RE.test(raw);
 }
 
+export function isValidSuiAddress(value = "") {
+  return SUI_RE.test(clean(value));
+}
+
+export function isValidTonAddress(value = "") {
+  return TON_RE.test(clean(value));
+}
+
+export function isValidCosmosAddress(value = "") {
+  return COSMOS_RE.test(clean(value));
+}
+
 function looksLikeNonAddress(value = "") {
   const raw = clean(value);
   const lowered = raw.toLowerCase();
   if (!raw) return false;
+  if (
+    isValidEvmAddress(raw) ||
+    isValidSolanaAddress(raw) ||
+    isValidSuiAddress(raw) ||
+    isValidTonAddress(raw) ||
+    isValidCosmosAddress(raw)
+  ) {
+    return false;
+  }
   if (PLACEHOLDER_RE.test(raw)) return true;
   if (/^https?:\/\//i.test(raw) || raw.includes("/") || raw.includes("?") || raw.includes("#")) return true;
   if (raw.includes(".") && !EVM_RE.test(raw)) return true;
@@ -178,12 +212,12 @@ export function classifyAddressState(value = "", chain = null) {
   }
 
   if (isValidEvmAddress(raw)) {
-    if (kind === "solana") {
+    if (kind && kind !== "evm") {
       return {
         state: "MALFORMED_ADDRESS",
         normalized: null,
         raw,
-        reason: "EVM address supplied for a Solana chain.",
+        reason: `EVM address supplied for a ${kind} chain.`,
       };
     }
     return {
@@ -195,12 +229,12 @@ export function classifyAddressState(value = "", chain = null) {
   }
 
   if (isValidSolanaAddress(raw)) {
-    if (kind === "evm") {
+    if (kind && kind !== "solana") {
       return {
         state: "MALFORMED_ADDRESS",
         normalized: null,
         raw,
-        reason: "Solana address supplied for an EVM chain.",
+        reason: `Solana address supplied for a ${kind} chain.`,
       };
     }
     return {
@@ -208,6 +242,57 @@ export function classifyAddressState(value = "", chain = null) {
       normalized: raw,
       raw,
       reason: "Address has valid Solana syntax but has not been verified on-chain in this step.",
+    };
+  }
+
+  if (isValidSuiAddress(raw)) {
+    if (kind && kind !== "sui") {
+      return {
+        state: "MALFORMED_ADDRESS",
+        normalized: null,
+        raw,
+        reason: `Sui address supplied for a ${kind} chain.`,
+      };
+    }
+    return {
+      state: "SYNTACTICALLY_VALID_UNVERIFIED",
+      normalized: raw.toLowerCase(),
+      raw,
+      reason: "Address has valid Sui syntax but has not been verified on-chain in this step.",
+    };
+  }
+
+  if (isValidTonAddress(raw)) {
+    if (kind && kind !== "ton") {
+      return {
+        state: "MALFORMED_ADDRESS",
+        normalized: null,
+        raw,
+        reason: `TON address supplied for a ${kind} chain.`,
+      };
+    }
+    return {
+      state: "SYNTACTICALLY_VALID_UNVERIFIED",
+      normalized: raw,
+      raw,
+      reason: "Address has valid TON syntax but has not been verified on-chain in this step.",
+    };
+  }
+
+  if (isValidCosmosAddress(raw)) {
+    if (kind && kind !== "cosmos") {
+      return {
+        state: "MALFORMED_ADDRESS",
+        normalized: null,
+        raw,
+        reason: `Cosmos-family address supplied for a ${kind} chain.`,
+      };
+    }
+    return {
+      state: "SYNTACTICALLY_VALID_UNVERIFIED",
+      normalized: raw,
+      raw,
+      reason: "Address has valid Cosmos-family syntax but has not been verified on-chain in this step.",
     };
   }
 

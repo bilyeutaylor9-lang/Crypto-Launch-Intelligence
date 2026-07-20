@@ -112,6 +112,7 @@ import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeCanonicalExecutionRouteBatch } from "./engines/canonicalExecutionRouteEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
+import { analyzeRouteAccessibilityBatch } from "./engines/routeAccessibilityEngine.js";
 import { analyzeCapitalFlowObservationBatch } from "./data/capitalFlowObservationStore.js";
 import { analyzeCapitalFlowBaselineBatch } from "./engines/capitalFlowBaselineEngine.js";
 import { analyzeCapitalMigrationCoreBatch } from "./engines/capitalMigrationCoreEngine.js";
@@ -219,6 +220,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Project Identity Graph",
   "Source Truth",
   "Execution Proof",
+  "Route Accessibility",
   "Capital Flow Observation",
   "Capital Flow Baseline",
   "Capital Migration Core",
@@ -1917,6 +1919,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
+  results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
   const capitalFlowObservationOptions = {
     ...(options.capitalFlowObservation || {}),
     persist: options.capitalFlowObservation?.persist ?? options.saveMemory !== false,

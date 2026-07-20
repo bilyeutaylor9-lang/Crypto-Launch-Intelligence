@@ -10,9 +10,9 @@ export function writeSmallCapHunterReport(projects = []) {
     ...summarizeSmallCapHunter(projects),
     operatingRules: [
       "Always surface two best-available small-cap research candidates when enough eligible projects exist.",
-      "Only promote candidates with a detected Coinbase route or MetaMask-compatible route.",
+      "Keep small-cap opportunity quality separate from user accessibility and preferred venue convenience.",
       "Never treat this report as financial advice or a guaranteed buy list.",
-      "Require manual verification of Coinbase availability or MetaMask contract/pair route before any real trade.",
+      "Require manual verification of a legitimate exchange, wallet, DEX, aggregator, bridge, buy route, and sell route before any real trade.",
       "Require manual verification of contract, source identity, liquidity, slippage, unlocks, and jurisdiction before any real trade.",
       "Use the $100 plan as a paper simulation for small-account research sizing.",
     ],

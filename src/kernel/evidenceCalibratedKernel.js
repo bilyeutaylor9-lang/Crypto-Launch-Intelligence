@@ -473,7 +473,7 @@ export function buildFinalDecision(project = {}, scoring = {}, ledger = {}, audi
   }
   if (ledger.uniqueSourceCount < 3) promotionRequirements.push("Add at least three independent evidence sources");
   if (!project.purchaseRouteConfirmed && !project.smallCapHunter?.purchaseRoute?.purchasable) {
-    promotionRequirements.push("Verify Coinbase or MetaMask purchase route before any execution-grade label");
+    promotionRequirements.push("Verify a fresh buy and sell route through an exchange, wallet, DEX, aggregator, or bridge-aware path before any execution-grade label");
   }
   if (!["PASS", "WATCH"].includes(project.organicDemandFirewallStatus || "WATCH")) {
     promotionRequirements.push("Pass organic buyer and demand integrity firewall");

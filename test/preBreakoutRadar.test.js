@@ -165,7 +165,7 @@ test("high signal with partial route stays watchlisted and cannot become armed",
 
   assert.equal(result.preBreakoutRadarSelected, false);
   assert.equal(result.preBreakoutRadarLane, "WATCH");
-  assert.ok(result.preBreakoutRadarMissingEvidence.includes("verified Coinbase/MetaMask execution route"));
+  assert.ok(result.preBreakoutRadarMissingEvidence.includes("verified fresh buy/sell execution route"));
   assert.equal(result.preBreakoutRadarWatchRank, 1);
 });
 

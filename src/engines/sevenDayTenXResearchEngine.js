@@ -345,7 +345,7 @@ function hardBlockers(project = {}, components = {}, minLiquidity = DEFAULT_MIN_
   if (!chain(project)) blockers.push("Chain is missing.");
   if (!tokenAddress(project)) blockers.push("Token contract address is missing.");
   if (!poolAddress(project)) blockers.push("Tradable pool/pair is missing.");
-  if (!routeVerified(project)) blockers.push("Coinbase/MetaMask or execution route is not verified.");
+  if (!routeVerified(project)) blockers.push("Fresh buy/sell execution route is not verified.");
   if (liquidity(project) < minLiquidity) blockers.push("Visible tradable liquidity is below the minimum.");
   if (project.instantSafetyStatus === "CRITICAL" || project.instantSafetyStatus === "RESTRICTED") blockers.push(`Instant safety gate is ${project.instantSafetyStatus}.`);
   if (num(project.contractAuthorityRiskScore) >= 70 || project.honeypotDetected || project.verifiedScam) blockers.push("Contract authority or honeypot risk is too high.");
@@ -362,7 +362,7 @@ function missingEvidence(project = {}, components = {}) {
   return [
     ...(!tokenAddress(project) ? ["verified token contract"] : []),
     ...(!poolAddress(project) ? ["tradable pool"] : []),
-    ...(!routeVerified(project) ? ["Coinbase/MetaMask execution route"] : []),
+    ...(!routeVerified(project) ? ["fresh buy/sell execution route"] : []),
     ...(liquidity(project) <= 0 ? ["DEX liquidity"] : []),
     ...(components.nearTermCatalyst < 55 ? ["near-term catalyst proof"] : []),
     ...(components.organicDemand < 55 ? ["organic buyer/demand proof"] : []),
@@ -419,7 +419,7 @@ function paperPlan(project = {}, scenarioStrength = 0) {
     note: "This is a rare-event scenario-strength heuristic, not an empirically calibrated probability and not financial advice.",
     confirmBeforeAnyRealTrade: [
       "Verify official contract, chain, pool, and website.",
-      "Verify Coinbase availability or MetaMask route, slippage, taxes, and sell simulation.",
+      "Verify exchange, wallet, DEX, aggregator, or bridge-aware route, slippage, taxes, and sell simulation.",
       "Reject if price already ran ahead of liquidity, buyers, and catalyst proof.",
       "Reject if contract authority, LP control, unlock, deployer, or wash-trading risk rises.",
     ],
