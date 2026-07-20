@@ -1,0 +1,95 @@
+export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
+  IDENTITY: [
+    { source: "DexScreener", authority: 82, cost: 1, latencyMs: 1200, fields: ["tokenAddress", "poolAddress", "chain"] },
+    { source: "GeckoTerminal", authority: 82, cost: 1, latencyMs: 1600, fields: ["tokenAddress", "poolAddress", "chain"] },
+    { source: "native RPC", authority: 88, cost: 2, latencyMs: 2500, fields: ["tokenAddress", "poolAddress", "deployerAddress"] },
+    { source: "Blockscout", authority: 78, cost: 1, latencyMs: 1500, fields: ["contractVerified", "tokenAddress"] },
+    { source: "official project links", authority: 64, cost: 2, latencyMs: 3000, fields: ["website", "githubRepo"] },
+  ],
+  MARKET: [
+    { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
+    { source: "GeckoTerminal", authority: 80, cost: 1, latencyMs: 1600, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
+    { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "priceUsd"] },
+    { source: "CoinPaprika", authority: 72, cost: 1, latencyMs: 1800, fields: ["circulatingMarketCapUsd", "priceUsd"] },
+    { source: "CoinLore", authority: 65, cost: 1, latencyMs: 1500, fields: ["circulatingMarketCapUsd", "volume24hUsd", "priceUsd"] },
+    { source: "CEX public tickers", authority: 68, cost: 1, latencyMs: 1700, fields: ["volume24hUsd", "marketPair"] },
+  ],
+  SECURITY: [
+    { source: "GoPlus", authority: 80, cost: 1, latencyMs: 2000, fields: ["honeypotDetected", "sellRestricted", "contractVerified"] },
+    { source: "Sourcify", authority: 80, cost: 1, latencyMs: 2000, fields: ["contractVerified"] },
+    { source: "Blockscout", authority: 78, cost: 1, latencyMs: 1600, fields: ["contractVerified", "ownerRenounced"] },
+    { source: "RugCheck", authority: 78, cost: 1, latencyMs: 1800, fields: ["honeypotDetected", "sellRestricted"] },
+    { source: "chain RPC", authority: 86, cost: 2, latencyMs: 2400, fields: ["mintAuthorityEnabled", "blacklistEnabled"] },
+  ],
+  WALLETS: [
+    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "uniqueBuyers24h"] },
+    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "wallets"] },
+    { source: "wallet-history database", authority: 76, cost: 1, latencyMs: 1200, fields: ["smartWalletScore", "smartWalletArrivalScore"] },
+  ],
+  DEVELOPMENT: [
+    { source: "GitHub discovery", authority: 62, cost: 1, latencyMs: 1600, fields: ["githubRepo", "developerActivityScore", "commits30d"] },
+    { source: "official website", authority: 58, cost: 2, latencyMs: 3000, fields: ["website", "githubRepo"] },
+    { source: "package registries", authority: 64, cost: 2, latencyMs: 2400, fields: ["developerActivityScore"] },
+  ],
+  CATALYSTS: [
+    { source: "official announcements", authority: 72, cost: 2, latencyMs: 3000, fields: ["roadmap", "liveCatalystEvents"] },
+    { source: "official roadmap", authority: 72, cost: 2, latencyMs: 3000, fields: ["roadmap"] },
+    { source: "verified exchange announcements", authority: 78, cost: 2, latencyMs: 2500, fields: ["liveCatalystEvents", "marketPair"] },
+    { source: "reputable news sources", authority: 58, cost: 2, latencyMs: 3200, fields: ["liveCatalystEvents"] },
+  ],
+  EXECUTION: [
+    { source: "Jupiter", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "Uniswap quote adapters", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "Aerodrome", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "PancakeSwap", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "DEX aggregators", authority: 80, cost: 1, latencyMs: 1500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "CEX order books", authority: 72, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+    { source: "bridge quote adapters", authority: 68, cost: 2, latencyMs: 2500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable"] },
+  ],
+});
+
+export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
+  tokenAddress: "IDENTITY",
+  poolAddress: "IDENTITY",
+  chain: "IDENTITY",
+  projectId: "IDENTITY",
+  circulatingMarketCapUsd: "MARKET",
+  fullyDilutedValuationUsd: "MARKET",
+  estimatedMarketCapUsd: "MARKET",
+  priceUsd: "MARKET",
+  liquidityUsd: "MARKET",
+  stableExitLiquidityUsd: "MARKET",
+  volume24hUsd: "MARKET",
+  uniqueBuyers24h: "WALLETS",
+  buyTransactions24h: "WALLETS",
+  sellTransactions24h: "WALLETS",
+  holderCount: "WALLETS",
+  wallets: "WALLETS",
+  smartWalletScore: "WALLETS",
+  smartWalletArrivalScore: "WALLETS",
+  githubRepo: "DEVELOPMENT",
+  developerActivityScore: "DEVELOPMENT",
+  commits30d: "DEVELOPMENT",
+  contributors30d: "DEVELOPMENT",
+  roadmap: "CATALYSTS",
+  catalystScore: "CATALYSTS",
+  liveCatalystEvents: "CATALYSTS",
+  honeypotDetected: "SECURITY",
+  sellRestricted: "SECURITY",
+  contractVerified: "SECURITY",
+  ownerRenounced: "SECURITY",
+  mintAuthorityEnabled: "SECURITY",
+  blacklistEnabled: "SECURITY",
+  purchaseRouteConfirmed: "EXECUTION",
+  sellRouteAvailable: "EXECUTION",
+  executionStatus: "EXECUTION",
+});
+
+export function sourceFamilyForField(field = "") {
+  return FIELD_TO_EVIDENCE_FAMILY[field] || "MARKET";
+}
+
+export function sourcesForField(field = "") {
+  const family = sourceFamilyForField(field);
+  return ENRICHMENT_SOURCE_REGISTRY[family] || [];
+}

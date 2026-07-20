@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { assertReportContracts } from "./reportContractValidator.js";
+import { REQUIRED_REPORT_FILES, assertReportContracts } from "./reportContractValidator.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -107,6 +107,19 @@ const PUBLIC_REPORTS = [
   "alternative-execution-routes.json",
   "user-accessibility-ranking.json",
   "venue-coverage-health.json",
+  "data-starvation-root-cause.json",
+  "data-starvation-by-chain.json",
+  "data-starvation-by-provider.json",
+  "data-starvation-by-engine.json",
+  "data-starvation-by-field.json",
+  "starvation-rescue-queue.json",
+  "starvation-recovery-results.json",
+  "recovered-opportunity-watchlist.json",
+  "early-asymmetry-ranking.json",
+  "first-seen-opportunities.json",
+  "missed-winner-replay.json",
+  "pre-breakout-sequence-analysis.json",
+  "early-opportunity-outcomes.json",
 ];
 
 function copyIfExists(fileName = "", reportsDir = REPORTS_DIR, docsDir = DOCS_DIR) {
@@ -197,6 +210,11 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
   const userAccessibility = readJsonReport("user-accessibility-ranking.json", reportsDir) || {};
   const venueCoverage = readJsonReport("venue-coverage-health.json", reportsDir) || {};
+  const dataStarvation = readJsonReport("data-starvation-root-cause.json", reportsDir) || {};
+  const starvationRescue = readJsonReport("starvation-rescue-queue.json", reportsDir) || {};
+  const firstSeenOpportunities = readJsonReport("first-seen-opportunities.json", reportsDir) || {};
+  const missedWinnerReplay = readJsonReport("missed-winner-replay.json", reportsDir) || {};
+  const earlyAsymmetry = readJsonReport("early-asymmetry-ranking.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -234,6 +252,16 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Early High Conv", progressiveOpportunities.counts?.earlyHighConviction ?? 0],
     ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? 0],
     ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? 0],
+    ["Starvation Status", dataStarvation.status || "REPORT NOT GENERATED"],
+    ["External Missing", dataStarvation.externalDataMissing ?? 0],
+    ["Pipeline Output Missing", dataStarvation.pipelineOutputMissing ?? 0],
+    ["Not Applicable", dataStarvation.notApplicable ?? 0],
+    ["Rescue Queue", starvationRescue.rescueCandidates ?? 0],
+    ["Top Rescue", starvationRescue.top25RescueCandidates?.[0]?.symbol || "NO RESCUE CANDIDATE"],
+    ["First Seen", firstSeenOpportunities.sampleSize ?? 0],
+    ["Replay Status", missedWinnerReplay.status || "REPORT NOT GENERATED"],
+    ["Early Recall Success", missedWinnerReplay.earlyRecallSuccesses ?? 0],
+    ["Asymmetry Lead", earlyAsymmetry.topResearchCandidates?.[0]?.symbol || "NO RESEARCH LEADER"],
     ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
     [
       "Money Lead",
@@ -730,7 +758,13 @@ export function publishGithubPagesDashboard(options = {}) {
   const reportsDir = path.resolve(options.reportsDir || REPORTS_DIR);
   const docsDir = path.resolve(options.docsDir || DOCS_DIR);
   fs.mkdirSync(docsDir, { recursive: true });
-  const validation = assertReportContracts({ reportsDir });
+  const validation =
+    path.resolve(reportsDir) === REPORTS_DIR
+      ? assertReportContracts({ reportsDir })
+      : assertReportContracts({
+          reportsDir,
+          requiredFiles: REQUIRED_REPORT_FILES.filter((fileName) => fs.existsSync(path.join(reportsDir, fileName))),
+        });
 
   const copiedFiles = PUBLIC_REPORTS.filter((fileName) => copyIfExists(fileName, reportsDir, docsDir));
   writeLandingPage(copiedFiles, { reportsDir, docsDir });

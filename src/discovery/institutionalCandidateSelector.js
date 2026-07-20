@@ -86,6 +86,80 @@ function selectStage(projects = [], limit = 0, scoreField = "", stage = "") {
   }));
 }
 
+function isStarvationRescueCandidate(project = {}) {
+  return Boolean(
+    project.starvationRescueEligible === true ||
+      project.standardSelectionReason === "STARVATION_RESCUE_RESERVE" ||
+      ((project.dataStarvationMissingEvidence || project.preIntelligenceMissingEvidence || []).length &&
+        num(project.earlyAsymmetryResearchPriorityScore || project.preIntelligenceOpportunityScore) >= 35)
+  );
+}
+
+function isUnderrepresentedCandidate(project = {}) {
+  return ["solana", "sui", "ton", "cosmos", "osmosis", "sei", "aptos"].includes(String(project.chain || "").toLowerCase()) ||
+    ["github", "google-news", "coinlore"].includes(String(project.source || "").toLowerCase());
+}
+
+function isIdentityResolutionCandidate(project = {}) {
+  return Boolean(project.identityRescueNeeded || (project.preIntelligenceMissingEvidence || []).some((item) => /identity|contract|pool/i.test(String(item))));
+}
+
+function isMissedWinnerPatternCandidate(project = {}) {
+  return Boolean(
+    project.missedWinnerPatternMatch === true ||
+      project.preBreakoutTimingState === "LATE_CHASE" ||
+      project.prePump?.status === "ALREADY_PUMPED" ||
+      num(project.prePumpPatternScore) >= 70
+  );
+}
+
+function selectStageWithAllocation(projects = [], limit = 0, scoreField = "", stage = "", allocation = {}) {
+  const target = Math.max(0, Math.min(limit, projects.length));
+  if (!target) return [];
+  const requestedTotal = Object.values(allocation).reduce((sum, value) => sum + num(value), 0);
+  const scale = requestedTotal > target ? target / requestedTotal : 1;
+  const budget = Object.fromEntries(
+    Object.entries(allocation).map(([key, value]) => [key, Math.max(0, Math.floor(num(value) * scale))])
+  );
+  const scored = projects
+    .map((project) => ({ ...project, [scoreField]: stageScore(project, stage) }))
+    .sort(compareByScore(scoreField));
+  const selected = [];
+  const keys = new Set();
+  const take = (pool = [], count = 0, lane = "") => {
+    for (const project of pool) {
+      if (selected.length >= target || selected.filter((item) => item[`${stage}SelectionLane`] === lane).length >= count) break;
+      const key = project.standardSelectionIdentityKey || project.projectId || `${project.chain}:${project.symbol}:${project.name}`;
+      if (keys.has(key)) continue;
+      keys.add(key);
+      selected.push({
+        ...project,
+        [`${stage}SelectionLane`]: lane,
+      });
+    }
+  };
+
+  take(scored, budget.leaders ?? target, "LEADERS");
+  take(scored.filter(isStarvationRescueCandidate), budget.starvationRescue || 0, "STARVATION_RESCUE");
+  take(scored.filter(isUnderrepresentedCandidate), budget.underrepresented || 0, "UNDERREPRESENTED_CHAIN_OR_SOURCE");
+  take(scored.filter(isIdentityResolutionCandidate), budget.identityResolution || 0, "IDENTITY_RESOLUTION");
+  take(scored.filter(isMissedWinnerPatternCandidate), budget.missedWinnerPatterns || budget.redTeamOrMissedWinner || 0, "MISSED_WINNER_OR_RED_TEAM");
+  take(
+    scored
+      .filter((project) => !keys.has(project.standardSelectionIdentityKey || project.projectId || `${project.chain}:${project.symbol}:${project.name}`))
+      .sort((a, b) => String(a.standardSelectionIdentityKey || a.symbol).localeCompare(String(b.standardSelectionIdentityKey || b.symbol))),
+    budget.randomizedAudit || budget.randomizedControl || 0,
+    "DETERMINISTIC_AUDIT_CONTROL"
+  );
+  take(scored, target, "MERIT_FILL");
+
+  return selected.slice(0, target).map((project, index) => ({
+    ...project,
+    [`${stage}SelectionRank`]: index + 1,
+    [`${stage}SelectionState`]: "SELECTED",
+  }));
+}
+
 function compact(project = {}) {
   return {
     name: project.name || "Unknown",
@@ -148,10 +222,10 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
   const enriched = analyzePreIntelligenceFeaturesBatch(projects);
   const lanePlan = allocateCandidateLanes(enriched, config, options);
   const standard = lanePlan.selected;
-  const advanced = selectStage(standard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced");
-  const deep = selectStage(advanced, config.deepIntelligenceLimit, "deepSelectionScore", "deep");
-  const crawler = selectStage(deep, config.crawlerResearchLimit, "crawlerSelectionScore", "crawler");
-  const llama3 = selectStage(crawler, config.localAITopProjectLimit, "llama3SelectionScore", "llama");
+  const advanced = selectStageWithAllocation(standard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced", config.stageBudgets?.advanced || {});
+  const deep = selectStageWithAllocation(advanced, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
+  const crawler = selectStageWithAllocation(deep, config.crawlerResearchLimit, "crawlerSelectionScore", "crawler", config.stageBudgets?.crawler || {});
+  const llama3 = selectStageWithAllocation(crawler, config.localAITopProjectLimit, "llama3SelectionScore", "llama", config.stageBudgets?.localAI || {});
   const debate = selectStage(llama3, config.finalistDebateLimit, "debateSelectionScore", "debate");
   const finalists = selectStage(debate, config.finalistComparisonLimit, "finalistSelectionScore", "finalist");
   const shadowAudit = buildShadowAudit(standard, lanePlan.deferred);

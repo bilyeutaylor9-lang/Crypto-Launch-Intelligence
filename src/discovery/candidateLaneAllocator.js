@@ -65,6 +65,7 @@ function selectionReasonLabel(reason = "") {
     ATTENTION_GAP_RESERVE: "Attention Gap Reserve",
     CATALYST_DEVELOPER_RESERVE: "Catalyst/Developer Reserve",
     COVERAGE_RESERVE: "Coverage Reserve",
+    STARVATION_RESCUE_RESERVE: "Data Starvation Rescue",
     DEFERRED_ROTATION: "Deferred Rotation",
     MERIT_FILL: "Merit Fill",
   }[reason] || reason;
@@ -102,6 +103,19 @@ function concentration(items = [], getter = () => "unknown") {
       status: count / total > 0.35 ? "CONCENTRATED" : "OK",
     }))
     .sort((a, b) => b.count - a.count);
+}
+
+function isStarvationRescueCandidate(project = {}) {
+  const missing = project.dataStarvationMissingEvidence || project.preIntelligenceMissingEvidence || [];
+  const recoverable = Array.isArray(missing)
+    ? missing.some((item) => (typeof item === "string" ? true : item.recoverable !== false && item.rootCause !== "NOT_APPLICABLE"))
+    : false;
+  return Boolean(
+    project.starvationRescueEligible === true ||
+      (recoverable &&
+        num(project.earlyAsymmetryResearchPriorityScore || project.preIntelligenceOpportunityScore) >= 35 &&
+        !(project.preIntelligenceHardBlockers || []).length)
+  );
 }
 
 export function allocateCandidateLanes(projects = [], config = {}, options = {}) {
@@ -158,6 +172,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     ATTENTION_GAP_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.attentionGapReserve) || Math.round(target * 0.1))),
     CATALYST_DEVELOPER_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.catalystDeveloperReserve) || Math.round(target * 0.075))),
     COVERAGE_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.coverageReserve) || Math.round(target * 0.05))),
+    STARVATION_RESCUE_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.starvationRescueReserve) || Math.round(target * 0.075))),
     DEFERRED_ROTATION: Math.max(0, Math.floor(num(config.laneBudgets?.deferredRotation) || Math.round(target * 0.025))),
   };
 
@@ -202,6 +217,14 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     (project) => project.preIntelligenceComponents?.catalystDeveloperChange,
     "catalyst or developer change outside composite cut",
     55
+  );
+  laneSelect(
+    unique.filter((candidate) => isStarvationRescueCandidate(candidate.project)),
+    budgets.STARVATION_RESCUE_RESERVE,
+    "STARVATION_RESCUE_RESERVE",
+    (project) => project.starvationRescueScore || project.earlyAsymmetryResearchPriorityScore || project.preIntelligenceOpportunityScore,
+    "recoverable data-starved early opportunity outside composite cut",
+    35
   );
 
   const buckets = new Map();
@@ -280,7 +303,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     selectionReasons: Object.fromEntries(selectedReasonByIdentity),
     budgets,
     report: {
-      policy: "Institutional multi-lane 4,000 selector: 60% composite, 15% acceleration, 10% attention gap, 7.5% catalyst/developer, 5% coverage, 2.5% rotation, then merit fill.",
+      policy: "Institutional multi-lane 4,000 selector: composite, acceleration, attention gap, catalyst/developer, data-starvation rescue, coverage, rotation, then merit fill. Missing data is not treated as zero; recoverable hidden candidates receive reserved capacity.",
       runSequence,
       configuredLimit: limit,
       candidateCount: candidates.length,
@@ -309,6 +332,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
         accelerationReserve: selectedByReason.ACCELERATION_RESERVE || 0,
         attentionGapReserve: selectedByReason.ATTENTION_GAP_RESERVE || 0,
         catalystDeveloperReserve: selectedByReason.CATALYST_DEVELOPER_RESERVE || 0,
+        starvationRescueReserve: selectedByReason.STARVATION_RESCUE_RESERVE || 0,
         coverageReserve: selectedByReason.COVERAGE_RESERVE || 0,
         deferredRotation: selectedByReason.DEFERRED_ROTATION || 0,
         meritFill: selectedByReason.MERIT_FILL || 0,

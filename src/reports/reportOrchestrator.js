@@ -60,6 +60,12 @@ import { writePipelineStageHealthReport } from "./pipelineStageHealthReportEngin
 import { writeExactOutcomeLabReport } from "./exactOutcomeLabReportEngine.js";
 import { writeMathematicalValidationReport } from "./mathematicalValidationReportEngine.js";
 import { writeRouteAccessibilityReports } from "./routeAccessibilityReportEngine.js";
+import { writeDataStarvationRootCauseReports } from "./dataStarvationRootCauseReportEngine.js";
+import { writeStarvationRescueQueueReport } from "./starvationRescueQueueReportEngine.js";
+import { writeRecoveredOpportunityWatchlistReport } from "./recoveredOpportunityWatchlistReportEngine.js";
+import { writeFirstSeenOpportunityReport } from "./firstSeenOpportunityReportEngine.js";
+import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.js";
+import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -250,6 +256,32 @@ export function generateReports(projects = [], meta = {}) {
     venueCoverageHealthPath,
   } = writeRouteAccessibilityReports(projects, meta);
   const {
+    dataStarvationRootCausePath,
+    dataStarvationByChainPath,
+    dataStarvationByProviderPath,
+    dataStarvationByEnginePath,
+    dataStarvationByFieldPath,
+  } = writeDataStarvationRootCauseReports(projects, meta);
+  const {
+    filePath: starvationRescueQueuePath,
+    report: starvationRescueQueue,
+  } = writeStarvationRescueQueueReport(projects, meta);
+  const {
+    filePath: recoveredOpportunityWatchlistPath,
+    recoveryPath: starvationRecoveryResultsPath,
+  } = writeRecoveredOpportunityWatchlistReport(projects, meta);
+  const {
+    filePath: firstSeenOpportunitiesPath,
+  } = writeFirstSeenOpportunityReport(projects, meta);
+  const {
+    filePath: missedWinnerReplayPath,
+  } = writeMissedWinnerReplayReport(projects, meta);
+  const {
+    filePath: earlyAsymmetryRankingPath,
+    preBreakoutSequencePath,
+    earlyOpportunityOutcomesPath,
+  } = writeEarlyAsymmetryReport(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -380,6 +412,19 @@ export function generateReports(projects = [], meta = {}) {
     alternativeRoutesPath,
     userAccessibilityRankingPath,
     venueCoverageHealthPath,
+    dataStarvationRootCausePath,
+    dataStarvationByChainPath,
+    dataStarvationByProviderPath,
+    dataStarvationByEnginePath,
+    dataStarvationByFieldPath,
+    starvationRescueQueuePath,
+    starvationRecoveryResultsPath,
+    recoveredOpportunityWatchlistPath,
+    firstSeenOpportunitiesPath,
+    missedWinnerReplayPath,
+    earlyAsymmetryRankingPath,
+    preBreakoutSequencePath,
+    earlyOpportunityOutcomesPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
@@ -399,5 +444,6 @@ export function generateReports(projects = [], meta = {}) {
     watchtowerHitRate: watchtowerPerformance.hitRate,
     watchtowerEvaluatedAlerts: watchtowerPerformance.evaluatedAlerts,
     watchtowerPendingAlerts: watchtowerPerformance.pendingAlerts,
+    starvationRescueCandidateCount: starvationRescueQueue.rescueCandidates || 0,
   };
 }

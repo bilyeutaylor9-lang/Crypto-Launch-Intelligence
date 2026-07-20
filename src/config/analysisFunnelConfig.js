@@ -78,12 +78,38 @@ export function resolveAnalysisFunnelConfig(env = process.env, overrides = {}) {
     finalistComparisonLimit,
     winnerLimit: positiveInteger(overrides.winnerLimit || env.WINNER_LIMIT, DEFAULTS.winnerLimit, finalistComparisonLimit),
     laneBudgets: {
-      compositeMerit: Math.round(standardIntelligenceLimit * 0.6),
+      compositeMerit: Math.round(standardIntelligenceLimit * 0.525),
       accelerationReserve: Math.round(standardIntelligenceLimit * 0.15),
       attentionGapReserve: Math.round(standardIntelligenceLimit * 0.1),
       catalystDeveloperReserve: Math.round(standardIntelligenceLimit * 0.075),
       coverageReserve: Math.round(standardIntelligenceLimit * 0.05),
+      starvationRescueReserve: Math.round(standardIntelligenceLimit * 0.075),
       deferredRotation: Math.max(1, Math.round(standardIntelligenceLimit * 0.025)),
+    },
+    stageBudgets: {
+      advanced: {
+        leaders: Math.min(advancedIntelligenceLimit, 1050),
+        starvationRescue: Math.min(advancedIntelligenceLimit, 300),
+        underrepresented: Math.min(advancedIntelligenceLimit, 100),
+        randomizedAudit: Math.min(advancedIntelligenceLimit, 50),
+      },
+      deep: {
+        leaders: Math.min(deepIntelligenceLimit, 325),
+        starvationRescue: Math.min(deepIntelligenceLimit, 125),
+        missedWinnerPatterns: Math.min(deepIntelligenceLimit, 30),
+        randomizedControl: Math.min(deepIntelligenceLimit, 20),
+      },
+      crawler: {
+        leaders: Math.min(crawlerResearchLimit, 190),
+        starvationRescue: Math.min(crawlerResearchLimit, 80),
+        identityResolution: Math.min(crawlerResearchLimit, 20),
+        randomizedControl: Math.min(crawlerResearchLimit, 10),
+      },
+      localAI: {
+        leaders: Math.min(localAITopProjectLimit, 65),
+        starvationRescue: Math.min(localAITopProjectLimit, 25),
+        redTeamOrMissedWinner: Math.min(localAITopProjectLimit, 10),
+      },
     },
   };
 }

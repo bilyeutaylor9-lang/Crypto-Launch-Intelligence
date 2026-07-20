@@ -142,6 +142,19 @@ import { analyzeProgressiveOpportunityRankingBatch } from "./engines/progressive
 import { analyzeMarketOpportunityRankBatch } from "./engines/marketOpportunityRankEngine.js";
 import { analyzeMarketOpportunityLearningBatch } from "./engines/marketOpportunityLearningEngine.js";
 import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEngine.js";
+import { analyzeDataStarvationRootCauseBatch } from "./engines/dataStarvationRootCauseEngine.js";
+import { analyzeValueOfInformationBatch } from "./engines/valueOfInformationEngine.js";
+import { analyzeStarvationRescueBatch } from "./engines/starvationRescueEngine.js";
+import { analyzeEarlyAsymmetryTriageBatch } from "./engines/earlyAsymmetryTriageEngine.js";
+import { analyzePreBreakoutSequenceBatch } from "./engines/preBreakoutSequenceEngine.js";
+import { analyzeAttentionGapV2Batch } from "./engines/attentionGapV2Engine.js";
+import { analyzeBuyerBreadthAccelerationBatch } from "./engines/buyerBreadthAccelerationEngine.js";
+import { analyzeLiquidityFormationBatch } from "./engines/liquidityFormationEngine.js";
+import { analyzeSmartWalletNoveltyBatch } from "./engines/smartWalletNoveltyEngine.js";
+import { analyzeDeveloperAccelerationV2Batch } from "./engines/developerAccelerationV2Engine.js";
+import { analyzeIdentityRescueBatch } from "./engines/identityRescueEngine.js";
+import { analyzeResearchReadinessBatch } from "./engines/researchReadinessEngine.js";
+import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunityEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 
@@ -221,6 +234,12 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Source Truth",
   "Execution Proof",
   "Route Accessibility",
+  "Data Starvation Root Cause",
+  "Value Of Information",
+  "Starvation Rescue",
+  "Early Asymmetry Triage",
+  "Research Readiness",
+  "First Seen Opportunity",
   "Capital Flow Observation",
   "Capital Flow Baseline",
   "Capital Migration Core",
@@ -1934,6 +1953,13 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);
   results = await runEngine("Attention Gap", analyzeAttentionGapBatch, results);
+  results = await runEngine("Buyer Breadth Acceleration", analyzeBuyerBreadthAccelerationBatch, results);
+  results = await runEngine("Liquidity Formation", analyzeLiquidityFormationBatch, results);
+  results = await runEngine("Smart Wallet Novelty", analyzeSmartWalletNoveltyBatch, results);
+  results = await runEngine("Developer Acceleration v2", analyzeDeveloperAccelerationV2Batch, results);
+  results = await runEngine("Attention Gap v2", analyzeAttentionGapV2Batch, results);
+  results = await runEngine("Pre-Breakout Sequence", analyzePreBreakoutSequenceBatch, results);
+  results = await runEngine("Early Asymmetry Triage", analyzeEarlyAsymmetryTriageBatch, results);
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
   results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
@@ -1946,6 +1972,15 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
+  results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
+  results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
+  results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
+  results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
+  results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
+  results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
+    ...(options.firstSeenOpportunity || {}),
+    meta: options.meta || {},
+  });
   results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
   results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
   results = await runEngine("Market Opportunity Learning", analyzeMarketOpportunityLearningBatch, results, {

@@ -1,6 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { summarizeRouteAccessibility } from "../engines/routeAccessibilityEngine.js";
+import { writeDataStarvationRootCauseReports } from "./dataStarvationRootCauseReportEngine.js";
+import { writeStarvationRescueQueueReport } from "./starvationRescueQueueReportEngine.js";
+import { writeRecoveredOpportunityWatchlistReport } from "./recoveredOpportunityWatchlistReportEngine.js";
+import { writeFirstSeenOpportunityReport } from "./firstSeenOpportunityReportEngine.js";
+import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.js";
+import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
 
 const REPORTS_DIR = path.resolve("reports");
 
@@ -50,12 +56,50 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
     ...shared,
     venueCoverageHealth: report.venueCoverageHealth,
   });
+  const {
+    dataStarvationRootCausePath,
+    dataStarvationByChainPath,
+    dataStarvationByProviderPath,
+    dataStarvationByEnginePath,
+    dataStarvationByFieldPath,
+  } = writeDataStarvationRootCauseReports(projects, meta);
+  const {
+    filePath: starvationRescueQueuePath,
+  } = writeStarvationRescueQueueReport(projects, meta);
+  const {
+    filePath: recoveredOpportunityWatchlistPath,
+    recoveryPath: starvationRecoveryResultsPath,
+  } = writeRecoveredOpportunityWatchlistReport(projects, meta);
+  const {
+    filePath: firstSeenOpportunitiesPath,
+  } = writeFirstSeenOpportunityReport(projects, meta);
+  const {
+    filePath: missedWinnerReplayPath,
+  } = writeMissedWinnerReplayReport(projects, meta);
+  const {
+    filePath: earlyAsymmetryRankingPath,
+    preBreakoutSequencePath,
+    earlyOpportunityOutcomesPath,
+  } = writeEarlyAsymmetryReport(projects, meta);
 
   return {
     routeUniversePath,
     alternativeRoutesPath,
     userAccessibilityRankingPath,
     venueCoverageHealthPath,
+    dataStarvationRootCausePath,
+    dataStarvationByChainPath,
+    dataStarvationByProviderPath,
+    dataStarvationByEnginePath,
+    dataStarvationByFieldPath,
+    starvationRescueQueuePath,
+    starvationRecoveryResultsPath,
+    recoveredOpportunityWatchlistPath,
+    firstSeenOpportunitiesPath,
+    missedWinnerReplayPath,
+    earlyAsymmetryRankingPath,
+    preBreakoutSequencePath,
+    earlyOpportunityOutcomesPath,
     report,
   };
 }

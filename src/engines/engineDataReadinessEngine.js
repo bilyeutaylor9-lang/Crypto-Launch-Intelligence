@@ -1,4 +1,7 @@
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
+import { applyCanonicalAliases, canonicalValue } from "../data/canonicalAliasResolver.js";
+import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
+import { fieldApplicability } from "./dataStarvationRootCauseEngine.js";
 
 function hasOwn(project = {}, field = "") {
   return Object.prototype.hasOwnProperty.call(project, field);
@@ -21,11 +24,11 @@ function hasValue(project = {}, field = "") {
 }
 
 const SOURCE_HINTS_BY_FIELD = {
-  address: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC"],
-  tokenAddress: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC"],
-  contractAddress: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC"],
-  pairAddress: ["DexScreener", "GeckoTerminal", "native RPC pool listeners"],
-  poolAddress: ["DexScreener", "GeckoTerminal", "native RPC pool listeners"],
+  address: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC", "official docs"],
+  tokenAddress: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC", "official docs"],
+  contractAddress: ["DexScreener", "GeckoTerminal", "GoPlus", "Sourcify", "Blockscout", "native RPC", "official docs"],
+  pairAddress: ["DexScreener", "GeckoTerminal", "native RPC pool listeners", "official docs"],
+  poolAddress: ["DexScreener", "GeckoTerminal", "native RPC pool listeners", "official docs"],
   liquidityUsd: ["DexScreener", "GeckoTerminal", "native RPC pool listeners"],
   dexLiquidityUsd: ["DexScreener", "GeckoTerminal", "native RPC pool listeners"],
   stableExitLiquidityUsd: ["DexScreener", "GeckoTerminal", "execution proof"],
@@ -60,26 +63,38 @@ function sourceHintsForField(field = "") {
   return SOURCE_HINTS_BY_FIELD[field] || DEFAULT_SOURCE_HINTS;
 }
 
-function evaluateRequiredGroup(project = {}, group = []) {
+function evaluateRequiredGroup(project = {}, group = [], contract = {}) {
   const fields = Array.isArray(group) ? group : [group].filter(Boolean);
-  const present = fields.filter((field) => hasValue(project, field));
-  const missing = fields.filter((field) => !hasValue(project, field));
+  const canonicalFields = [...new Set(fields.map((field) => canonicalFieldForAlias(field) || field))];
+  const applicability = canonicalFields.map((field) => ({
+    field,
+    ...fieldApplicability(project, field, contract),
+  }));
+  const applicableFields = applicability.filter((item) => item.status !== "NOT_APPLICABLE").map((item) => item.field);
+  const notApplicable = applicability.filter((item) => item.status === "NOT_APPLICABLE");
+  const present = applicableFields.filter((field) => hasValue(project, field) || hasValue({ value: canonicalValue(project, field) }, "value"));
+  const missing = applicableFields.filter((field) => !present.includes(field));
 
   return {
     fields,
-    satisfied: present.length > 0,
+    canonicalFields,
+    satisfied: present.length > 0 || (canonicalFields.length > 0 && notApplicable.length === canonicalFields.length),
     present,
     missing,
+    notApplicable,
     sourceHints: [...new Set(missing.flatMap(sourceHintsForField))],
   };
 }
 
 export function evaluateEngineDataReadiness(project = {}, contract = {}) {
+  const aliased = applyCanonicalAliases(project);
   const requiredGroups = contract.inputContract?.requiredAny || [];
   const optionalFields = contract.inputContract?.optional || [];
-  const groups = requiredGroups.map((group) => evaluateRequiredGroup(project, group));
-  const optionalPresent = optionalFields.filter((field) => hasValue(project, field));
-  const optionalMissing = optionalFields.filter((field) => !hasValue(project, field));
+  const groups = requiredGroups.map((group) => evaluateRequiredGroup(aliased, group, contract));
+  const optionalCanonicalFields = [...new Set(optionalFields.map((field) => canonicalFieldForAlias(field) || field))];
+  const optionalApplicable = optionalCanonicalFields.filter((field) => fieldApplicability(aliased, field, contract).status !== "NOT_APPLICABLE");
+  const optionalPresent = optionalApplicable.filter((field) => hasValue(aliased, field) || hasValue({ value: canonicalValue(aliased, field) }, "value"));
+  const optionalMissing = optionalApplicable.filter((field) => !optionalPresent.includes(field));
   const requiredSatisfied = groups.filter((group) => group.satisfied).length;
   const requiredTotal = groups.length;
   const requiredCoveragePct = requiredTotal ? Math.round((requiredSatisfied / requiredTotal) * 100) : 100;
@@ -108,8 +123,16 @@ export function evaluateEngineDataReadiness(project = {}, contract = {}) {
     requiredTotal,
     missingRequiredGroups: missingRequiredGroups.map((group) => ({
       fields: group.fields,
+      canonicalFields: group.canonicalFields,
       sourceHints: group.sourceHints,
     })),
+    notApplicableGroups: groups
+      .filter((group) => group.notApplicable.length)
+      .map((group) => ({
+        fields: group.fields,
+        canonicalFields: group.canonicalFields,
+        notApplicable: group.notApplicable,
+      })),
     optionalMissing,
     nextSources: [
       ...new Set([

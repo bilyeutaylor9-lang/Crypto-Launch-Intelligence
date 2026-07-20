@@ -222,6 +222,7 @@ function printResearchCoverage(coverage = {}) {
   console.log(`Acceleration Reserve: ${allocation.accelerationReserve || 0}`);
   console.log(`Attention Gap Reserve: ${allocation.attentionGapReserve || 0}`);
   console.log(`Catalyst/Developer Reserve: ${allocation.catalystDeveloperReserve || 0}`);
+  console.log(`Data-Starvation Rescue Reserve: ${allocation.starvationRescueReserve || 0}`);
   console.log(`Coverage Reserve: ${allocation.coverageReserve || 0}`);
   console.log(`Deferred Rotation: ${allocation.deferredRotation || 0}`);
   console.log(`Rescued Candidates: ${allocation.rescuedCandidates || 0}`);
@@ -526,6 +527,15 @@ function printReportPaths(paths) {
   if (paths.alternativeRoutesPath) console.log(`Alt Routes:     ${paths.alternativeRoutesPath}`);
   if (paths.userAccessibilityRankingPath) console.log(`Access Rank:    ${paths.userAccessibilityRankingPath}`);
   if (paths.venueCoverageHealthPath) console.log(`Venue Health:   ${paths.venueCoverageHealthPath}`);
+  if (paths.dataStarvationRootCausePath) console.log(`Starvation:     ${paths.dataStarvationRootCausePath}`);
+  if (paths.dataStarvationByProviderPath) console.log(`Starve Providers:${paths.dataStarvationByProviderPath}`);
+  if (paths.starvationRescueQueuePath) console.log(`Rescue Queue:   ${paths.starvationRescueQueuePath}`);
+  if (paths.recoveredOpportunityWatchlistPath) console.log(`Recovered Watch:${paths.recoveredOpportunityWatchlistPath}`);
+  if (paths.firstSeenOpportunitiesPath) console.log(`First Seen:     ${paths.firstSeenOpportunitiesPath}`);
+  if (paths.missedWinnerReplayPath) console.log(`Replay Lab:     ${paths.missedWinnerReplayPath}`);
+  if (paths.earlyAsymmetryRankingPath) console.log(`Early Asymmetry:${paths.earlyAsymmetryRankingPath}`);
+  if (paths.preBreakoutSequencePath) console.log(`Sequence:       ${paths.preBreakoutSequencePath}`);
+  if (paths.earlyOpportunityOutcomesPath) console.log(`Early Outcomes: ${paths.earlyOpportunityOutcomesPath}`);
   if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);
