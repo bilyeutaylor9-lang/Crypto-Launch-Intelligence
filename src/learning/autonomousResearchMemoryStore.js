@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "autonomous-research-memory.json");
@@ -140,10 +141,23 @@ export function loadAutonomousResearchMemory() {
 }
 
 export function saveAutonomousResearchMemory(projects = []) {
-  const memory = readMemory();
   const records = (Array.isArray(projects) ? projects : [])
     .filter((project) => project.autonomousResearchOrchestrator)
     .map(compactRun);
+
+  if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
+    const sidecar = appendMemorySidecar(MEMORY_FILE, records, { recordType: "autonomous-research" });
+    return {
+      file: sidecar.file,
+      saved: records.length,
+      totalRecords: null,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
+  const memory = readMemory();
   const updated = {
     ...memory,
     records: [...memory.records, ...records].slice(-MAX_RECORDS),

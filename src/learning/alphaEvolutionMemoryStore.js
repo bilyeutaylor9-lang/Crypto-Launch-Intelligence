@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "alpha-evolution-governor-memory.json");
@@ -49,13 +50,59 @@ export function loadAlphaEvolutionMemory() {
 }
 
 export function saveAlphaEvolutionMemory(projects = []) {
-  const memory = readMemory();
   const generatedAt = new Date().toISOString();
   const safeProjects = Array.isArray(projects) ? projects : [];
   const governed = safeProjects.filter((project) => project.alphaEvolutionGovernor);
   const topProjects = [...governed]
     .sort((a, b) => Number(b.alphaEvolutionGovernorScore || 0) - Number(a.alphaEvolutionGovernorScore || 0))
     .slice(0, 25);
+
+  const run = {
+    generatedAt,
+    totalProjects: safeProjects.length,
+    governedProjects: governed.length,
+    promote: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Promote").length,
+    priorityResearch: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Priority Research").length,
+    recheckSoon: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Recheck Soon").length,
+    evidenceGaps: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Evidence Gap").length,
+    riskBlocks: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Risk Block").length,
+    topProjects: topProjects.map((project, index) => ({
+      rank: index + 1,
+      symbol: project.symbol || "UNKNOWN",
+      name: project.name || "Unknown",
+      score: project.alphaEvolutionGovernorScore || 0,
+      verdict: project.alphaEvolutionGovernorVerdict || "Unknown",
+    })),
+  };
+
+  if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
+    const projectSnapshots = governed.map((project) => ({
+      generatedAt,
+      key: projectKey(project),
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      score: project.alphaEvolutionGovernorScore || 0,
+      verdict: project.alphaEvolutionGovernorVerdict || "Unknown",
+      action: project.alphaEvolutionGovernor?.actionPlan?.primaryAction || "Review",
+      contractVerdict: project.proofCarryingAlphaContractVerdict || "Unknown",
+      outcomeVerdict: project.outcomeJudgeVerdict || "Unknown",
+      riskScore: project.alphaEvolutionGovernor?.moduleScores?.riskFirewall || 0,
+    }));
+    const sidecar = appendMemorySidecar(MEMORY_FILE, [{ run }, ...projectSnapshots], {
+      recordType: "alpha-evolution",
+    });
+    return {
+      file: sidecar.file,
+      savedProjects: governed.length,
+      runs: null,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
+  const memory = readMemory();
 
   for (const project of governed) {
     const key = projectKey(project);
@@ -81,24 +128,6 @@ export function saveAlphaEvolutionMemory(projects = []) {
       history: [...(previous.history || []), snapshot].slice(-25),
     };
   }
-
-  const run = {
-    generatedAt,
-    totalProjects: safeProjects.length,
-    governedProjects: governed.length,
-    promote: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Promote").length,
-    priorityResearch: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Priority Research").length,
-    recheckSoon: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Recheck Soon").length,
-    evidenceGaps: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Evidence Gap").length,
-    riskBlocks: governed.filter((project) => project.alphaEvolutionGovernorVerdict === "Governor Risk Block").length,
-    topProjects: topProjects.map((project, index) => ({
-      rank: index + 1,
-      symbol: project.symbol || "UNKNOWN",
-      name: project.name || "Unknown",
-      score: project.alphaEvolutionGovernorScore || 0,
-      verdict: project.alphaEvolutionGovernorVerdict || "Unknown",
-    })),
-  };
 
   memory.runs = [...(memory.runs || []), run].slice(-MAX_RUNS);
   writeMemory(memory);

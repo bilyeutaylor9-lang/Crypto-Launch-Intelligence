@@ -821,28 +821,46 @@ function unique(values = []) {
   return [...new Set(values.filter(Boolean))];
 }
 
-export function aliasesForCanonicalField(field = "") {
-  return unique([
-    ...(CANONICAL_FIELD_ALIAS_REGISTRY[field] || []),
-    ...(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY[field] || []),
-    field,
+let aliasIndex = null;
+
+function comparableAlias(value = "") {
+  return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
+}
+
+function buildAliasIndex() {
+  if (aliasIndex) return aliasIndex;
+
+  const fields = unique([
+    ...Object.keys(CANONICAL_FIELD_ALIAS_REGISTRY),
+    ...Object.keys(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY),
   ]);
+  const aliasesByField = new Map();
+  const canonicalByAlias = new Map();
+
+  for (const field of fields) {
+    const aliases = unique([
+      ...(CANONICAL_FIELD_ALIAS_REGISTRY[field] || []),
+      ...(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY[field] || []),
+      field,
+    ]);
+    aliasesByField.set(field, aliases);
+    canonicalByAlias.set(comparableAlias(field), field);
+    for (const alias of aliases) {
+      canonicalByAlias.set(comparableAlias(alias), field);
+    }
+  }
+
+  aliasIndex = { fields, aliasesByField, canonicalByAlias };
+  return aliasIndex;
+}
+
+export function aliasesForCanonicalField(field = "") {
+  const index = buildAliasIndex();
+  return index.aliasesByField.get(field) || unique([field]);
 }
 
 export function canonicalFieldForAlias(alias = "") {
   const direct = String(alias || "").trim();
   if (!direct) return null;
-  const comparable = direct.replace(/[_\-\s]+/g, "").toLowerCase();
-  const fields = unique([
-    ...Object.keys(CANONICAL_FIELD_ALIAS_REGISTRY),
-    ...Object.keys(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY),
-  ]);
-  for (const field of fields) {
-    const aliases = aliasesForCanonicalField(field);
-    if (field.toLowerCase() === comparable) return field;
-    if (aliases.some((candidate) => candidate.replace(/[_\-\s]+/g, "").toLowerCase() === comparable)) {
-      return field;
-    }
-  }
-  return null;
+  return buildAliasIndex().canonicalByAlias.get(comparableAlias(direct)) || null;
 }

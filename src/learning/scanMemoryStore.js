@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "scan-history.json");
@@ -318,10 +319,23 @@ export function createScanRecord(project = {}) {
 }
 
 export function saveScanMemory(projects = []) {
-  const existing = readMemory();
   const safeProjects = Array.isArray(projects) ? projects : [];
-
   const newRecords = safeProjects.map(createScanRecord);
+
+  if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
+    const sidecar = appendMemorySidecar(MEMORY_FILE, newRecords, { recordType: "scan-history" });
+    return {
+      saved: newRecords.length,
+      totalRecords: null,
+      maxRecords: MAX_RECORDS,
+      file: sidecar.file,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
+  const existing = readMemory();
   const updated = [...existing, ...newRecords].slice(-MAX_RECORDS);
 
   writeMemory(updated);

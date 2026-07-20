@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "alpha-knowledge-graph.json");
@@ -276,9 +277,24 @@ export function loadAlphaKnowledgeGraphMemory() {
 }
 
 export function saveAlphaKnowledgeGraph(projects = []) {
-  const graph = readGraph();
   const generatedAt = new Date().toISOString();
   const safeProjects = Array.isArray(projects) ? projects : [];
+
+  if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
+    const snapshots = safeProjects.map((project) => compactSnapshot(project, generatedAt));
+    const sidecar = appendMemorySidecar(MEMORY_FILE, snapshots, { recordType: "alpha-knowledge-graph-snapshot" });
+    return {
+      file: sidecar.file,
+      savedProjects: snapshots.length,
+      trackedProjects: null,
+      generatedAt,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
+  const graph = readGraph();
 
   for (const project of safeProjects) {
     const snapshot = compactSnapshot(project, generatedAt);

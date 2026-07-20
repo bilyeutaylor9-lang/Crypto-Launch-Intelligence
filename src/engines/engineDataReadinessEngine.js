@@ -1,9 +1,10 @@
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
-import { canonicalValue } from "../data/canonicalAliasResolver.js";
+import { canonicalValue, resolveCanonicalAliases } from "../data/canonicalAliasResolver.js";
 import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
 import { fieldApplicability } from "./dataStarvationRootCauseEngine.js";
 
 let cachedEngineContracts = null;
+const contractFieldCache = new WeakMap();
 
 function engineContracts(options = {}) {
   if (options.contracts) return options.contracts;
@@ -69,6 +70,26 @@ const DEFAULT_SOURCE_HINTS = ["DexScreener", "GeckoTerminal", "CoinGecko", "Coin
 
 function sourceHintsForField(field = "") {
   return SOURCE_HINTS_BY_FIELD[field] || DEFAULT_SOURCE_HINTS;
+}
+
+function canonicalFieldsForContracts(contracts = []) {
+  if (contractFieldCache.has(contracts)) return contractFieldCache.get(contracts);
+
+  const fields = new Set();
+  for (const contract of contracts) {
+    for (const group of contract.inputContract?.requiredAny || []) {
+      for (const field of Array.isArray(group) ? group : [group].filter(Boolean)) {
+        fields.add(canonicalFieldForAlias(field) || field);
+      }
+    }
+    for (const field of contract.inputContract?.optional || []) {
+      fields.add(canonicalFieldForAlias(field) || field);
+    }
+  }
+
+  const canonicalFields = [...fields];
+  contractFieldCache.set(contracts, canonicalFields);
+  return canonicalFields;
 }
 
 function evaluateRequiredGroup(project = {}, group = [], contract = {}, lookupCanonicalValue = canonicalValue) {
@@ -195,12 +216,22 @@ function summarizeReadiness(readiness = []) {
 
 export function analyzeEngineDataReadiness(project = {}, options = {}) {
   const contracts = engineContracts(options);
-  const lookupCache = new Map();
+  const resolvedChain = canonicalValue(project, "chain", { disableSemanticScan: true });
+  const canonicalFields = options.canonicalFields || canonicalFieldsForContracts(contracts);
+  const aliasResolution = resolveCanonicalAliases(project, {
+    fields: canonicalFields,
+    disableSemanticScan: true,
+    resolvedChain,
+  });
+  const lookupCache = new Map(Object.entries(aliasResolution.resolved || {}));
   const lookupCanonicalValue = (target = project, field = "") => {
     const canonicalField = canonicalFieldForAlias(field) || field;
-    if (lookupCache.has(canonicalField)) return lookupCache.get(canonicalField);
-    const value = canonicalValue(target, canonicalField);
-    lookupCache.set(canonicalField, value);
+    if (target === project && lookupCache.has(canonicalField)) return lookupCache.get(canonicalField);
+    const value = canonicalValue(target, canonicalField, {
+      disableSemanticScan: true,
+      resolvedChain,
+    });
+    if (target === project) lookupCache.set(canonicalField, value);
     return value;
   };
   const readiness = contracts.map((contract) => evaluateEngineDataReadiness(project, contract, { lookupCanonicalValue }));

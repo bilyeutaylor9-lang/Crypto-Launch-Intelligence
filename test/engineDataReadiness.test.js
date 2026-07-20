@@ -75,6 +75,41 @@ test("engine data readiness opens source plans when required inputs are missing"
   assert.ok(summary.topMissingInputs.some((item) => item.fields === "contractAddress or tokenAddress"));
 });
 
+test("engine data readiness stays bounded on enriched project payloads", () => {
+  const heavyEngineResults = Object.fromEntries(
+    Array.from({ length: 120 }, (_, index) => [
+      `engine${index}`,
+      {
+        engineName: `Engine ${index}`,
+        evidence: Array.from({ length: 20 }, (__, evidenceIndex) => ({
+          source: `source-${evidenceIndex}`,
+          value: evidenceIndex,
+        })),
+        warnings: Array.from({ length: 20 }, (__, warningIndex) => `warning-${warningIndex}`),
+      },
+    ])
+  );
+  const projects = Array.from({ length: 25 }, (_, index) => ({
+    name: `Bounded ${index}`,
+    symbol: `BND${index}`,
+    chain: "base",
+    tokenAddress: "0x1111111111111111111111111111111111111111",
+    poolAddress: "0x2222222222222222222222222222222222222222",
+    priceUsd: 0.005,
+    liquidityUsd: 100000,
+    volume24h: 50000,
+    marketCap: 900000,
+    engineResults: heavyEngineResults,
+  }));
+
+  const startedAt = Date.now();
+  const summary = summarizeEngineDataReadiness(projects);
+  const durationMs = Date.now() - startedAt;
+
+  assert.equal(summary.projectsAnalyzed, 25);
+  assert.ok(durationMs < 2000, `expected bounded readiness analysis, got ${durationMs}ms`);
+});
+
 test("CoinLore assets and movers add no-key discovery rows without fake addresses", async () => {
   const originalFetch = globalThis.fetch;
 

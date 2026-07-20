@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const CONTRACT_FILE = path.join(DATA_DIR, "alpha-contracts.json");
@@ -51,9 +52,48 @@ export function getProjectAlphaContracts(project = {}, limit = 25) {
 }
 
 export function saveAlphaContracts(projects = []) {
+  const generatedAt = new Date().toISOString();
+  const newContracts = (Array.isArray(projects) ? projects : [])
+    .filter((project) => project.proofCarryingAlphaContract?.contractId)
+    .map((project) => ({
+      ...project.proofCarryingAlphaContract,
+      lastSeenAt: generatedAt,
+      latestScore: project.proofCarryingAlphaContractScore || project.proofCarryingAlphaContract.scoreNow || 0,
+      latestVerdict:
+        project.proofCarryingAlphaContractVerdict ||
+        project.proofCarryingAlphaContract.verdict ||
+        "Unknown",
+      latestProjectSnapshot: {
+        name: project.name || "Unknown",
+        symbol: project.symbol || "UNKNOWN",
+        chain: project.chain || "unknown",
+        priceUsd: Number(project.priceUsd || project.price || 0),
+        liquidityUsd: Number(project.liquidityUsd || project.liquidity || 0),
+        volume24h: Number(project.volume24h || project.volume || 0),
+        pipelineScore: Number(project.pipelineScore || project.opportunityScore || 0),
+        riskScore: Math.max(
+          Number(project.trapRiskScore || 0),
+          Number(project.riskScore || 0),
+          Number(project.sellPressureScore || 0),
+          Number(project.externalRiskScore || 0)
+        ),
+      },
+    }));
+
+  if (shouldUseAppendOnlyMemory(CONTRACT_FILE)) {
+    const sidecar = appendMemorySidecar(CONTRACT_FILE, newContracts, { recordType: "alpha-contract" });
+    return {
+      saved: newContracts.length,
+      totalContracts: null,
+      file: sidecar.file,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
   const existing = readContracts();
   const byId = new Map(existing.map((contract) => [contract.contractId, contract]));
-  const generatedAt = new Date().toISOString();
 
   for (const project of Array.isArray(projects) ? projects : []) {
     const contract = project.proofCarryingAlphaContract;

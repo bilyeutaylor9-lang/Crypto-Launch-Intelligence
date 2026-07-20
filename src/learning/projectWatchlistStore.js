@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const WATCHLIST_FILE = path.join(DATA_DIR, "project-watchlist.json");
@@ -112,17 +113,41 @@ function trendFromHistory(history = [], currentScore = 0) {
 }
 
 export function saveProjectWatchlist(projects = []) {
-  const store = readStore();
   const safeProjects = Array.isArray(projects) ? projects : [];
+  const records = safeProjects.map(compactWatchRecord);
 
-  for (const project of safeProjects) {
+  if (shouldUseAppendOnlyMemory(WATCHLIST_FILE)) {
+    const sidecar = appendMemorySidecar(
+      WATCHLIST_FILE,
+      safeProjects.map((project, index) => ({
+        id: projectWatchId(project),
+        name: project.name || "Unknown",
+        symbol: project.symbol || "UNKNOWN",
+        chain: project.chain || "unknown",
+        record: records[index],
+      })),
+      { recordType: "project-watchlist" }
+    );
+    return {
+      saved: safeProjects.length,
+      watchedProjects: null,
+      file: sidecar.file,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+    };
+  }
+
+  const store = readStore();
+
+  for (const [index, project] of safeProjects.entries()) {
     const id = projectWatchId(project);
     const existing = store.projects[id] || {
       id,
       firstSeenAt: new Date().toISOString(),
       history: [],
     };
-    const record = compactWatchRecord(project);
+    const record = records[index];
     const history = [...(existing.history || []), record].slice(-MAX_HISTORY);
 
     store.projects[id] = {

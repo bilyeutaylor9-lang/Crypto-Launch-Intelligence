@@ -413,6 +413,16 @@ function maybeFailClosed(record = {}, projects = []) {
   throw error;
 }
 
+async function saveMemoryStep(label = "Memory", action = () => null) {
+  const startedAt = Date.now();
+  console.log(`Saving ${label}...`);
+  const result = await action();
+  const durationMs = Date.now() - startedAt;
+  const mode = result?.persistenceMode ? ` | ${result.persistenceMode}` : "";
+  console.log(`Saved ${label} in ${durationMs}ms${mode}`);
+  return result;
+}
+
 export async function runEngine(name, engine, projects, options = {}) {
   const safeProjects = Array.isArray(projects)
     ? projects
@@ -2009,73 +2019,73 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
 
   if (options.saveMemory !== false) {
     try {
-      await saveScanMemory(results);
+      await saveMemoryStep("scan memory", () => saveScanMemory(results));
     } catch (error) {
       console.log(`Scan memory save failed: ${error.message}`);
     }
 
     try {
-      await saveProjectWatchlist(results);
+      await saveMemoryStep("project watchlist", () => saveProjectWatchlist(results));
     } catch (error) {
       console.log(`Project watchlist save failed: ${error.message}`);
     }
 
     try {
-      await saveOutcomeSnapshots(results);
+      await saveMemoryStep("outcome snapshots", () => saveOutcomeSnapshots(results));
     } catch (error) {
       console.log(`Outcome snapshot save failed: ${error.message}`);
     }
 
     try {
-      saveInternetResearchMemory(results);
+      await saveMemoryStep("internet research memory", () => saveInternetResearchMemory(results));
     } catch (error) {
       console.log(`Internet research memory save failed: ${error.message}`);
     }
 
     try {
-      saveAgentCouncilMemory(results);
+      await saveMemoryStep("agent council memory", () => saveAgentCouncilMemory(results));
     } catch (error) {
       console.log(`Agent council memory save failed: ${error.message}`);
     }
 
     try {
-      saveStrategyMemory(results);
+      await saveMemoryStep("strategy memory", () => saveStrategyMemory(results));
     } catch (error) {
       console.log(`Strategy memory save failed: ${error.message}`);
     }
 
     try {
-      savePaperTradingOutcomes(results);
+      await saveMemoryStep("paper trading outcomes", () => savePaperTradingOutcomes(results));
     } catch (error) {
       console.log(`Paper trading outcome save failed: ${error.message}`);
     }
 
     try {
-      saveAutonomousResearchMemory(results);
+      await saveMemoryStep("autonomous research memory", () => saveAutonomousResearchMemory(results));
     } catch (error) {
       console.log(`Autonomous research memory save failed: ${error.message}`);
     }
 
     try {
-      saveAlphaContracts(results);
+      await saveMemoryStep("alpha contracts", () => saveAlphaContracts(results));
     } catch (error) {
       console.log(`Alpha contract memory save failed: ${error.message}`);
     }
 
     try {
-      saveAlphaKnowledgeGraph(results);
+      await saveMemoryStep("alpha knowledge graph", () => saveAlphaKnowledgeGraph(results));
     } catch (error) {
       console.log(`Alpha knowledge graph save failed: ${error.message}`);
     }
 
     try {
-      saveCausalAlphaEvents(results);
+      await saveMemoryStep("causal alpha event lake", () => saveCausalAlphaEvents(results));
     } catch (error) {
       console.log(`Causal alpha event lake save failed: ${error.message}`);
     }
 
     try {
-      saveAlphaEvolutionMemory(results);
+      await saveMemoryStep("alpha evolution memory", () => saveAlphaEvolutionMemory(results));
     } catch (error) {
       console.log(`Alpha evolution memory save failed: ${error.message}`);
     }

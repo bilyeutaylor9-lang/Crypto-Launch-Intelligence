@@ -337,7 +337,14 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   const profile = providerProfile(provider);
   const resolvedChain = canonicalField === "chain"
     ? null
-    : resolveCanonicalAliases(project, { fields: ["chain"], sourceProvider: provider, shallow: true }).resolved.chain ?? null;
+    : options.resolvedChain !== undefined
+      ? options.resolvedChain
+      : resolveCanonicalAliases(project, {
+        fields: ["chain"],
+        sourceProvider: provider,
+        shallow: true,
+        disableSemanticScan: true,
+      }).resolved.chain ?? null;
 
   const explicitCandidates = aliases
     .map((sourcePath) => ({
@@ -477,7 +484,7 @@ export function applyCanonicalAliases(project = {}, options = {}) {
   };
 }
 
-export function canonicalValue(project = {}, field = "") {
+export function canonicalValue(project = {}, field = "", options = {}) {
   const canonicalField = canonicalFieldForAlias(field) || field;
   if (project.canonicalAliases && hasOwn(project.canonicalAliases, canonicalField)) {
     return project.canonicalAliases[canonicalField];
@@ -485,5 +492,10 @@ export function canonicalValue(project = {}, field = "") {
   if (hasOwn(project, canonicalField) && hasRawValue(project[canonicalField])) {
     return project[canonicalField];
   }
-  return resolveCanonicalAliases(project, { fields: [canonicalField], disableSemanticScan: true }).resolved[canonicalField] ?? null;
+  return resolveCanonicalAliases(project, {
+    fields: [canonicalField],
+    disableSemanticScan: options.disableSemanticScan ?? true,
+    resolvedChain: options.resolvedChain,
+    sourceProvider: options.sourceProvider,
+  }).resolved[canonicalField] ?? null;
 }

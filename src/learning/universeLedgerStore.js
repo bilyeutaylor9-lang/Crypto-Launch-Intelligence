@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { attachProjectIdentity, identityKeyForProject } from "../discovery/projectIdentityGraph.js";
+import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const LEDGER_FILE = path.join(DATA_DIR, "universe-ledger.json");
@@ -531,8 +532,23 @@ export function loadUniverseLedger() {
 }
 
 export function saveUniverseLedger(projects = [], context = {}) {
-  const ledger = readLedger();
   const snapshot = buildUniverseLedgerSnapshot(projects, context);
+
+  if (shouldUseAppendOnlyMemory(LEDGER_FILE)) {
+    const sidecar = appendMemorySidecar(LEDGER_FILE, snapshot.records, { recordType: "universe-ledger" });
+    return {
+      file: sidecar.file,
+      generatedAt: snapshot.observedAt,
+      savedProjects: snapshot.records.length,
+      trackedProjects: null,
+      persistenceMode: sidecar.mode,
+      legacyFilePreserved: sidecar.legacyFilePreserved,
+      legacyFileBytes: sidecar.legacyFileBytes,
+      totals: snapshot.totals,
+    };
+  }
+
+  const ledger = readLedger();
 
   for (const record of snapshot.records) {
     const previous = ledger.projects[record.projectId] || {
