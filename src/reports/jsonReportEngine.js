@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 
-const MAX_TOTAL_PROJECT_PAYLOAD_CHARS = 96_000_000;
-const MAX_PROJECT_PAYLOAD_CHARS = 64_000;
-const MIN_PROJECT_PAYLOAD_CHARS = 2_048;
+const DEFAULT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = 32_000_000;
+const DEFAULT_MAX_PROJECT_PAYLOAD_CHARS = 64_000;
+const DEFAULT_MIN_PROJECT_PAYLOAD_CHARS = 2_048;
+const STREAM_COPY_BUFFER_BYTES = 64 * 1024;
 
 const REPORT_PRIORITY_FIELDS = [
   "name",
@@ -119,6 +120,32 @@ function countItems(value) {
   return Array.isArray(value) ? value.length : 0;
 }
 
+function configuredPositiveInteger(names = [], fallback = 0) {
+  const candidates = Array.isArray(names) ? names : [names];
+  for (const name of candidates) {
+    const value = Number.parseInt(process.env[name] || "", 10);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  return fallback;
+}
+
+function reportPayloadLimits() {
+  return {
+    maxTotalProjectPayloadChars: configuredPositiveInteger(
+      ["REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS", "MAX_TOTAL_PROJECT_PAYLOAD_CHARS"],
+      DEFAULT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS
+    ),
+    maxProjectPayloadChars: configuredPositiveInteger(
+      ["REPORT_MAX_PROJECT_PAYLOAD_CHARS", "MAX_PROJECT_PAYLOAD_CHARS"],
+      DEFAULT_MAX_PROJECT_PAYLOAD_CHARS
+    ),
+    minProjectPayloadChars: configuredPositiveInteger(
+      ["REPORT_MIN_PROJECT_PAYLOAD_CHARS", "MIN_PROJECT_PAYLOAD_CHARS"],
+      DEFAULT_MIN_PROJECT_PAYLOAD_CHARS
+    ),
+  };
+}
+
 function boundedNumber(value) {
   return Number.isFinite(value) ? value : String(value);
 }
@@ -205,9 +232,13 @@ function compactProject(project, budgetChars) {
 
 function compactProjects(projects = []) {
   const safeProjects = Array.isArray(projects) ? projects : [];
+  const limits = reportPayloadLimits();
   const budgetChars = Math.max(
-    MIN_PROJECT_PAYLOAD_CHARS,
-    Math.min(MAX_PROJECT_PAYLOAD_CHARS, Math.floor(MAX_TOTAL_PROJECT_PAYLOAD_CHARS / Math.max(1, safeProjects.length)))
+    limits.minProjectPayloadChars,
+    Math.min(
+      limits.maxProjectPayloadChars,
+      Math.floor(limits.maxTotalProjectPayloadChars / Math.max(1, safeProjects.length))
+    )
   );
   let truncatedProjects = 0;
 
@@ -225,6 +256,100 @@ function compactProjects(projects = []) {
       truncatedProjects,
     },
   };
+}
+
+function temporaryReportPath(filePath = "", suffix = "tmp") {
+  const directory = path.dirname(filePath);
+  const baseName = path.basename(filePath);
+  return path.join(directory, `.${baseName}.${process.pid}.${Date.now()}.${suffix}`);
+}
+
+function cleanupTempFile(filePath = "") {
+  if (!filePath) return;
+  try {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch {
+    // Best-effort cleanup only; the atomic report write should not fail because
+    // a previous diagnostic temp file was already removed by the OS or runner.
+  }
+}
+
+function copyFileContentsSync(sourcePath = "", destinationFd = null) {
+  const sourceFd = fs.openSync(sourcePath, "r");
+  const buffer = Buffer.allocUnsafe(STREAM_COPY_BUFFER_BYTES);
+  try {
+    let bytesRead = 0;
+    do {
+      bytesRead = fs.readSync(sourceFd, buffer, 0, buffer.length, null);
+      if (bytesRead > 0) fs.writeSync(destinationFd, buffer.subarray(0, bytesRead));
+    } while (bytesRead > 0);
+  } finally {
+    fs.closeSync(sourceFd);
+  }
+}
+
+function writeCompactedProjectsTemp(projects = [], filePath = "") {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const limits = reportPayloadLimits();
+  const budgetChars = Math.max(
+    limits.minProjectPayloadChars,
+    Math.min(
+      limits.maxProjectPayloadChars,
+      Math.floor(limits.maxTotalProjectPayloadChars / Math.max(1, safeProjects.length))
+    )
+  );
+  const tempProjectsPath = temporaryReportPath(filePath, "projects.tmp");
+  let truncatedProjects = 0;
+  const fd = fs.openSync(tempProjectsPath, "w");
+
+  try {
+    fs.writeSync(fd, "[");
+    safeProjects.forEach((project, index) => {
+      const compacted = compactProject(project, budgetChars);
+      if (compacted.truncated) truncatedProjects += 1;
+      if (index > 0) fs.writeSync(fd, ",");
+      fs.writeSync(fd, "\n");
+      fs.writeSync(fd, JSON.stringify(compacted.value));
+    });
+    if (safeProjects.length) fs.writeSync(fd, "\n");
+    fs.writeSync(fd, "]");
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  return {
+    tempProjectsPath,
+    serialization: {
+      rawProjectCount: safeProjects.length,
+      projectPayloadCharacterLimit: budgetChars,
+      totalProjectPayloadCharacterLimit: limits.maxTotalProjectPayloadChars,
+      truncatedProjects,
+      streamingMode: "temp-file-atomic-stream",
+    },
+  };
+}
+
+function writeReportEnvelope({ filePath = "", projectsPath = "", reportHeader = {} } = {}) {
+  const tempReportPath = temporaryReportPath(filePath, "report.tmp");
+  const fd = fs.openSync(tempReportPath, "w");
+
+  try {
+    fs.writeSync(fd, "{\n");
+    fs.writeSync(fd, `"generatedAt": ${JSON.stringify(reportHeader.generatedAt)},\n`);
+    fs.writeSync(fd, `"totalProjects": ${JSON.stringify(reportHeader.totalProjects)},\n`);
+    fs.writeSync(fd, `"meta": ${JSON.stringify(reportHeader.meta, null, 2)},\n`);
+    fs.writeSync(fd, `"projects": `);
+    copyFileContentsSync(projectsPath, fd);
+    fs.writeSync(fd, "\n}\n");
+  } catch (error) {
+    fs.closeSync(fd);
+    cleanupTempFile(tempReportPath);
+    throw error;
+  }
+
+  fs.closeSync(fd);
+  fs.renameSync(tempReportPath, filePath);
+  return filePath;
 }
 
 function summarizeDiscovery(discovery = {}) {
@@ -312,20 +437,26 @@ export function writeJsonReport(projects = [], meta = {}) {
   } = meta || {};
   const reportsDir = path.resolve(requestedReportsDir || "reports");
   fs.mkdirSync(reportsDir, { recursive: true });
-  const compactedProjects = compactProjects(projects);
-
-  const report = {
-    generatedAt: new Date().toISOString(),
-    totalProjects: compactedProjects.projects.length,
-    meta: {
-      ...summarizeMeta(reportMeta),
-      reportSerialization: compactedProjects.serialization,
-    },
-    projects: compactedProjects.projects,
-  };
-
   const filePath = path.join(reportsDir, reportFileName);
-  fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
+  const streamedProjects = writeCompactedProjectsTemp(projects, filePath);
+
+  try {
+    writeReportEnvelope({
+      filePath,
+      projectsPath: streamedProjects.tempProjectsPath,
+      reportHeader: {
+        generatedAt: new Date().toISOString(),
+        totalProjects: Array.isArray(projects) ? projects.length : 0,
+        meta: {
+          ...summarizeMeta(reportMeta),
+          reportSerialization: streamedProjects.serialization,
+        },
+      },
+    });
+  } finally {
+    cleanupTempFile(streamedProjects.tempProjectsPath);
+    cleanupTempFile(temporaryReportPath(filePath, "report.tmp"));
+  }
 
   return filePath;
 }

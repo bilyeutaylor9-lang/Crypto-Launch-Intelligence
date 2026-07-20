@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
+import os from "os";
+import path from "path";
 
 import { writeJsonReport } from "../src/reports/jsonReportEngine.js";
 
@@ -77,4 +79,46 @@ test("JSON report bounds an oversized enriched project while preserving final de
   assert.equal(project.pipelineScore, 71);
   assert.equal(report.meta.reportSerialization.truncatedProjects, 1);
   assert.ok(fs.statSync(reportPath).size < 100_000);
+});
+
+test("JSON report streams two thousand projects without leaving temporary report files", () => {
+  const previousTotalLimit = process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "json-report-stream-"));
+  process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = "2000000";
+
+  try {
+    const projects = Array.from({ length: 2_000 }, (_, index) => ({
+      name: `Streaming Candidate ${index}`,
+      symbol: `STR${index}`,
+      chain: index % 2 === 0 ? "base" : "solana",
+      finalSelectionState: "RESEARCH_ONLY",
+      pipelineScore: index % 100,
+      bulkyResearchGraph: "r".repeat(12_000),
+      nestedEvidence: Array.from({ length: 12 }, (__, evidenceIndex) => ({
+        evidenceIndex,
+        payload: "e".repeat(512),
+      })),
+    }));
+
+    const reportPath = writeJsonReport(projects, { reportsDir });
+    const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+    const leftoverTemps = fs
+      .readdirSync(reportsDir)
+      .filter((fileName) => fileName.includes(".tmp"));
+
+    assert.equal(report.totalProjects, 2_000);
+    assert.equal(report.projects.length, 2_000);
+    assert.equal(report.meta.reportSerialization.rawProjectCount, 2_000);
+    assert.equal(report.meta.reportSerialization.streamingMode, "temp-file-atomic-stream");
+    assert.ok(report.meta.reportSerialization.truncatedProjects > 0);
+    assert.ok(fs.statSync(reportPath).size < 6_000_000);
+    assert.deepEqual(leftoverTemps, []);
+  } finally {
+    if (previousTotalLimit === undefined) {
+      delete process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+    } else {
+      process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = previousTotalLimit;
+    }
+    fs.rmSync(reportsDir, { recursive: true, force: true });
+  }
 });
