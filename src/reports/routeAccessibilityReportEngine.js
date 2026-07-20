@@ -7,6 +7,7 @@ import { writeRecoveredOpportunityWatchlistReport } from "./recoveredOpportunity
 import { writeFirstSeenOpportunityReport } from "./firstSeenOpportunityReportEngine.js";
 import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.js";
 import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
+import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 
 const REPORTS_DIR = path.resolve("reports");
 
@@ -81,6 +82,14 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
     preBreakoutSequencePath,
     earlyOpportunityOutcomesPath,
   } = writeEarlyAsymmetryReport(projects, meta);
+  const {
+    aliasResolutionSummaryPath,
+    aliasResolutionConflictsPath,
+    providerVocabularyCoveragePath,
+    unresolvedFieldVerbiagePath,
+    rejectedAliasCandidatesPath,
+    aliasStarvationRecoveriesPath,
+  } = writeAliasResolutionReports(projects, meta);
 
   return {
     routeUniversePath,
@@ -100,6 +109,12 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
     earlyAsymmetryRankingPath,
     preBreakoutSequencePath,
     earlyOpportunityOutcomesPath,
+    aliasResolutionSummaryPath,
+    aliasResolutionConflictsPath,
+    providerVocabularyCoveragePath,
+    unresolvedFieldVerbiagePath,
+    rejectedAliasCandidatesPath,
+    aliasStarvationRecoveriesPath,
     report,
   };
 }

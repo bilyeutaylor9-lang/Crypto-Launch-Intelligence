@@ -95,7 +95,7 @@ function developmentEvidenceApplicable(project = {}) {
 }
 
 export function fieldApplicability(project = {}, canonicalField = "", contract = {}) {
-  const chain = normalizeChainId(canonicalValue(project, "chain") || project.chain || project.chainId);
+  const chain = normalizeChainId(project.chain || project.chainId || project.network || canonicalValue(project, "chain"));
   const family = chain ? chainKind(chain) : null;
   const venue = venueType(project);
   const life = lifecycle(project);
@@ -186,8 +186,14 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
 
 export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   const now = options.now ? new Date(options.now) : new Date();
-  const aliased = applyCanonicalAliases(project);
   const contracts = options.contracts || getEngineContracts();
+  const contractFields = contracts.flatMap((contract) =>
+    (contract.inputContract?.requiredAny || []).flatMap((group) => (Array.isArray(group) ? group : [group]))
+  );
+  const aliased = applyCanonicalAliases(project, {
+    fields: [...new Set(contractFields.map((field) => canonicalFieldForAlias(field) || field))],
+    disableSemanticScan: true,
+  });
   const missing = [];
   const notApplicable = [];
   const satisfied = [];

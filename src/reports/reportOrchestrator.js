@@ -66,6 +66,7 @@ import { writeRecoveredOpportunityWatchlistReport } from "./recoveredOpportunity
 import { writeFirstSeenOpportunityReport } from "./firstSeenOpportunityReportEngine.js";
 import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.js";
 import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
+import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 
 export function generateReports(projects = [], meta = {}) {
   const jsonPath = writeJsonReport(projects, meta);
@@ -282,6 +283,14 @@ export function generateReports(projects = [], meta = {}) {
     earlyOpportunityOutcomesPath,
   } = writeEarlyAsymmetryReport(projects, meta);
   const {
+    aliasResolutionSummaryPath,
+    aliasResolutionConflictsPath,
+    providerVocabularyCoveragePath,
+    unresolvedFieldVerbiagePath,
+    rejectedAliasCandidatesPath,
+    aliasStarvationRecoveriesPath,
+  } = writeAliasResolutionReports(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -425,6 +434,12 @@ export function generateReports(projects = [], meta = {}) {
     earlyAsymmetryRankingPath,
     preBreakoutSequencePath,
     earlyOpportunityOutcomesPath,
+    aliasResolutionSummaryPath,
+    aliasResolutionConflictsPath,
+    providerVocabularyCoveragePath,
+    unresolvedFieldVerbiagePath,
+    rejectedAliasCandidatesPath,
+    aliasStarvationRecoveriesPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,

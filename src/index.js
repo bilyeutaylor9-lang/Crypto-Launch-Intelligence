@@ -536,6 +536,12 @@ function printReportPaths(paths) {
   if (paths.earlyAsymmetryRankingPath) console.log(`Early Asymmetry:${paths.earlyAsymmetryRankingPath}`);
   if (paths.preBreakoutSequencePath) console.log(`Sequence:       ${paths.preBreakoutSequencePath}`);
   if (paths.earlyOpportunityOutcomesPath) console.log(`Early Outcomes: ${paths.earlyOpportunityOutcomesPath}`);
+  if (paths.aliasResolutionSummaryPath) console.log(`Alias Summary:  ${paths.aliasResolutionSummaryPath}`);
+  if (paths.aliasResolutionConflictsPath) console.log(`Alias Conflicts:${paths.aliasResolutionConflictsPath}`);
+  if (paths.providerVocabularyCoveragePath) console.log(`Provider Vocab: ${paths.providerVocabularyCoveragePath}`);
+  if (paths.unresolvedFieldVerbiagePath) console.log(`Unknown Fields: ${paths.unresolvedFieldVerbiagePath}`);
+  if (paths.rejectedAliasCandidatesPath) console.log(`Rejected Alias: ${paths.rejectedAliasCandidatesPath}`);
+  if (paths.aliasStarvationRecoveriesPath) console.log(`Alias Recovery: ${paths.aliasStarvationRecoveriesPath}`);
   if (paths.alphaTruthKernelPath) console.log(`Alpha Truth:   ${paths.alphaTruthKernelPath}`);
   console.log(`Discovery Truth: ${paths.discoveryTruthPath}`);
   if (paths.standard4000SelectionPath) console.log(`4000 Selection: ${paths.standard4000SelectionPath}`);

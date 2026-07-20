@@ -36,6 +36,12 @@ export const REQUIRED_REPORT_FILES = [
   "missed-winner-replay.json",
   "pre-breakout-sequence-analysis.json",
   "early-opportunity-outcomes.json",
+  "alias-resolution-summary.json",
+  "alias-resolution-conflicts.json",
+  "provider-vocabulary-coverage.json",
+  "unresolved-field-verbiage.json",
+  "rejected-alias-candidates.json",
+  "alias-starvation-recoveries.json",
   "institutional-ranking.json",
 ];
 

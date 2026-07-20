@@ -120,6 +120,12 @@ const PUBLIC_REPORTS = [
   "missed-winner-replay.json",
   "pre-breakout-sequence-analysis.json",
   "early-opportunity-outcomes.json",
+  "alias-resolution-summary.json",
+  "alias-resolution-conflicts.json",
+  "provider-vocabulary-coverage.json",
+  "unresolved-field-verbiage.json",
+  "rejected-alias-candidates.json",
+  "alias-starvation-recoveries.json",
 ];
 
 function copyIfExists(fileName = "", reportsDir = REPORTS_DIR, docsDir = DOCS_DIR) {
@@ -215,6 +221,9 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const firstSeenOpportunities = readJsonReport("first-seen-opportunities.json", reportsDir) || {};
   const missedWinnerReplay = readJsonReport("missed-winner-replay.json", reportsDir) || {};
   const earlyAsymmetry = readJsonReport("early-asymmetry-ranking.json", reportsDir) || {};
+  const aliasResolution = readJsonReport("alias-resolution-summary.json", reportsDir) || {};
+  const aliasConflicts = readJsonReport("alias-resolution-conflicts.json", reportsDir) || {};
+  const unresolvedVerbiage = readJsonReport("unresolved-field-verbiage.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -262,6 +271,9 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Replay Status", missedWinnerReplay.status || "REPORT NOT GENERATED"],
     ["Early Recall Success", missedWinnerReplay.earlyRecallSuccesses ?? 0],
     ["Asymmetry Lead", earlyAsymmetry.topResearchCandidates?.[0]?.symbol || "NO RESEARCH LEADER"],
+    ["Alias Resolved", aliasResolution.fieldsResolvedByExactAlias + aliasResolution.fieldsResolvedByProviderAlias + aliasResolution.fieldsResolvedByStructuralAlias + aliasResolution.fieldsResolvedBySemanticAlias + aliasResolution.fieldsResolvedByFuzzyAlias || 0],
+    ["Alias Conflicts", aliasConflicts.conflictsDetected ?? 0],
+    ["Unknown Verbiage", unresolvedVerbiage.topUnknownFieldNames?.length ?? 0],
     ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
     [
       "Money Lead",

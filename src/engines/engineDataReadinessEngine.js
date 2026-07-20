@@ -1,7 +1,15 @@
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
-import { applyCanonicalAliases, canonicalValue } from "../data/canonicalAliasResolver.js";
+import { canonicalValue } from "../data/canonicalAliasResolver.js";
 import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
 import { fieldApplicability } from "./dataStarvationRootCauseEngine.js";
+
+let cachedEngineContracts = null;
+
+function engineContracts(options = {}) {
+  if (options.contracts) return options.contracts;
+  if (!cachedEngineContracts) cachedEngineContracts = getEngineContracts();
+  return cachedEngineContracts;
+}
 
 function hasOwn(project = {}, field = "") {
   return Object.prototype.hasOwnProperty.call(project, field);
@@ -63,7 +71,7 @@ function sourceHintsForField(field = "") {
   return SOURCE_HINTS_BY_FIELD[field] || DEFAULT_SOURCE_HINTS;
 }
 
-function evaluateRequiredGroup(project = {}, group = [], contract = {}) {
+function evaluateRequiredGroup(project = {}, group = [], contract = {}, lookupCanonicalValue = canonicalValue) {
   const fields = Array.isArray(group) ? group : [group].filter(Boolean);
   const canonicalFields = [...new Set(fields.map((field) => canonicalFieldForAlias(field) || field))];
   const applicability = canonicalFields.map((field) => ({
@@ -72,7 +80,7 @@ function evaluateRequiredGroup(project = {}, group = [], contract = {}) {
   }));
   const applicableFields = applicability.filter((item) => item.status !== "NOT_APPLICABLE").map((item) => item.field);
   const notApplicable = applicability.filter((item) => item.status === "NOT_APPLICABLE");
-  const present = applicableFields.filter((field) => hasValue(project, field) || hasValue({ value: canonicalValue(project, field) }, "value"));
+  const present = applicableFields.filter((field) => hasValue(project, field) || hasValue({ value: lookupCanonicalValue(project, field) }, "value"));
   const missing = applicableFields.filter((field) => !present.includes(field));
 
   return {
@@ -86,14 +94,15 @@ function evaluateRequiredGroup(project = {}, group = [], contract = {}) {
   };
 }
 
-export function evaluateEngineDataReadiness(project = {}, contract = {}) {
-  const aliased = applyCanonicalAliases(project);
+export function evaluateEngineDataReadiness(project = {}, contract = {}, options = {}) {
   const requiredGroups = contract.inputContract?.requiredAny || [];
   const optionalFields = contract.inputContract?.optional || [];
-  const groups = requiredGroups.map((group) => evaluateRequiredGroup(aliased, group, contract));
+  const aliased = project;
+  const lookupCanonicalValue = options.lookupCanonicalValue || canonicalValue;
+  const groups = requiredGroups.map((group) => evaluateRequiredGroup(aliased, group, contract, lookupCanonicalValue));
   const optionalCanonicalFields = [...new Set(optionalFields.map((field) => canonicalFieldForAlias(field) || field))];
   const optionalApplicable = optionalCanonicalFields.filter((field) => fieldApplicability(aliased, field, contract).status !== "NOT_APPLICABLE");
-  const optionalPresent = optionalApplicable.filter((field) => hasValue(aliased, field) || hasValue({ value: canonicalValue(aliased, field) }, "value"));
+  const optionalPresent = optionalApplicable.filter((field) => hasValue(aliased, field) || hasValue({ value: lookupCanonicalValue(aliased, field) }, "value"));
   const optionalMissing = optionalApplicable.filter((field) => !optionalPresent.includes(field));
   const requiredSatisfied = groups.filter((group) => group.satisfied).length;
   const requiredTotal = groups.length;
@@ -185,8 +194,16 @@ function summarizeReadiness(readiness = []) {
 }
 
 export function analyzeEngineDataReadiness(project = {}, options = {}) {
-  const contracts = options.contracts || getEngineContracts();
-  const readiness = contracts.map((contract) => evaluateEngineDataReadiness(project, contract));
+  const contracts = engineContracts(options);
+  const lookupCache = new Map();
+  const lookupCanonicalValue = (target = project, field = "") => {
+    const canonicalField = canonicalFieldForAlias(field) || field;
+    if (lookupCache.has(canonicalField)) return lookupCache.get(canonicalField);
+    const value = canonicalValue(target, canonicalField);
+    lookupCache.set(canonicalField, value);
+    return value;
+  };
+  const readiness = contracts.map((contract) => evaluateEngineDataReadiness(project, contract, { lookupCanonicalValue }));
   const summary = summarizeReadiness(readiness);
   const nextSourcePlan = [
     ...new Set(readiness.flatMap((item) => item.nextSources || [])),
@@ -214,7 +231,7 @@ export function analyzeEngineDataReadinessBatch(projects = [], options = {}) {
 
 export function summarizeEngineDataReadiness(projects = []) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const contracts = getEngineContracts();
+  const contracts = engineContracts();
   const analyzed = safeProjects.map((project) =>
     project.engineDataReadiness ? project : analyzeEngineDataReadiness(project, { contracts })
   );
