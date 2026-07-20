@@ -186,6 +186,19 @@ function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
 
+const DEFAULT_PROJECT_ENGINE_RESULT_LIMIT = 200;
+const ENGINE_HEALTH_FAILURE_LIMIT = 50;
+const ENGINE_RESULT_WARNING_LIMIT = 3;
+
+function configuredPositiveInteger(envName = "", fallback = 0) {
+  const configured = Math.floor(num(process.env[envName]));
+  return configured > 0 ? configured : fallback;
+}
+
+function projectEngineResultLimit() {
+  return configuredPositiveInteger("MAX_PROJECT_ENGINE_RESULTS", DEFAULT_PROJECT_ENGINE_RESULT_LIMIT);
+}
+
 function normalizeEngineOutput(output, fallback = []) {
   if (Array.isArray(output)) return output;
   if (Array.isArray(output?.results)) return output.results;
@@ -333,6 +346,26 @@ function buildStandardEngineResult({
   };
 }
 
+function compactEngineResultRecord(record = {}) {
+  return {
+    engineName: record.engineName || "Engine",
+    engineVersion: record.engineVersion || "v1",
+    criticality: record.criticality || "OPTIONAL",
+    status: record.status || "NO_DATA",
+    score: num(record.score),
+    confidence: num(record.confidence),
+    evidenceCoverage: num(record.evidenceCoverage),
+    dataFreshness: record.dataFreshness || "CURRENT_OR_UNKNOWN",
+    warningCount: Array.isArray(record.warnings) ? record.warnings.length : 0,
+    warnings: Array.isArray(record.warnings)
+      ? record.warnings.slice(0, ENGINE_RESULT_WARNING_LIMIT)
+      : [],
+    failureReason: record.failureReason || "",
+    calculatedAt: record.calculatedAt || new Date().toISOString(),
+    durationMs: num(record.durationMs),
+  };
+}
+
 function engineHealthFromResults(engineResults = {}) {
   const records = Object.values(engineResults || {});
   const countStatus = (status) => records.filter((record) => record.status === status).length;
@@ -361,17 +394,97 @@ function engineHealthFromResults(engineResults = {}) {
   };
 }
 
+function boundedAppend(list = [], item = null, limit = ENGINE_HEALTH_FAILURE_LIMIT) {
+  const safe = Array.isArray(list) ? list : [];
+  if (!item) return safe.slice(-limit);
+  return [...safe, item].slice(-limit);
+}
+
+function updateEngineHealth(previousHealth = {}, record = {}) {
+  const previousAttempted = num(previousHealth.enginesAttempted);
+  const coverageTotal =
+    num(previousHealth.evidenceCoverageTotal) ||
+    num(previousHealth.averageEvidenceCoverage) * previousAttempted;
+  const attempted = previousAttempted + 1;
+  const status = record.status || "NO_DATA";
+  const failedRecord =
+    status === "FAILED"
+      ? {
+          engineName: record.engineName,
+          criticality: record.criticality,
+          failureReason: record.failureReason,
+        }
+      : null;
+  const requiredFailureRecord =
+    status === "FAILED" && record.criticality === "REQUIRED"
+      ? {
+          engineName: record.engineName,
+          failureReason: record.failureReason,
+        }
+      : null;
+  const requiredEngineFailures = boundedAppend(
+    previousHealth.requiredEngineFailures,
+    requiredFailureRecord
+  );
+  const failedEngines = boundedAppend(previousHealth.failedEngines, failedRecord);
+  const requiredFailureCount =
+    num(previousHealth.requiredEngineFailureCount) +
+    (requiredFailureRecord ? 1 : 0);
+  const failedCount = num(previousHealth.enginesFailed) + (status === "FAILED" ? 1 : 0);
+
+  return {
+    pipelineStatus: requiredFailureCount ? "FAILED" : failedCount ? "DEGRADED" : "OK",
+    enginesAttempted: attempted,
+    enginesSuccessful: num(previousHealth.enginesSuccessful) + (status === "SUCCESS" ? 1 : 0),
+    enginesPartial: num(previousHealth.enginesPartial) + (status === "PARTIAL" ? 1 : 0),
+    enginesFailed: failedCount,
+    enginesNoData: num(previousHealth.enginesNoData) + (status === "NO_DATA" ? 1 : 0),
+    enginesStale: num(previousHealth.enginesStale) + (status === "STALE" ? 1 : 0),
+    averageEvidenceCoverage: Math.round((coverageTotal + num(record.evidenceCoverage)) / attempted),
+    evidenceCoverageTotal: coverageTotal + num(record.evidenceCoverage),
+    staleSourceCount: num(previousHealth.staleSourceCount) + (status === "STALE" ? 1 : 0),
+    requiredEngineFailureCount: requiredFailureCount,
+    requiredEngineFailures,
+    failedEngines,
+  };
+}
+
+function trimEngineResults(engineResults = {}) {
+  const limit = projectEngineResultLimit();
+  if (!limit || limit < 1) return engineResults;
+
+  const keys = Object.keys(engineResults || {});
+  const excess = keys.length - limit;
+  if (excess <= 0) return engineResults;
+
+  keys.slice(0, excess).forEach((key) => {
+    delete engineResults[key];
+  });
+  return engineResults;
+}
+
 function attachEngineResult(projects = [], record = {}) {
   const key = engineKey(record.engineName);
+  const compactRecord = compactEngineResultRecord(record);
   const enriched = (Array.isArray(projects) ? projects : []).map((project) => {
-    const engineResults = {
-      ...(project.engineResults || {}),
-      [key]: record,
-    };
+    const safeProject = project && typeof project === "object" ? project : {};
+    const engineResults =
+      safeProject.engineResults && typeof safeProject.engineResults === "object"
+        ? safeProject.engineResults
+        : {};
+    const hadExistingRecord = Boolean(engineResults[key]);
+    const previousHealth =
+      safeProject.engineHealth ||
+      (Object.keys(engineResults).length ? engineHealthFromResults(engineResults) : {});
+    engineResults[key] = compactRecord;
+    trimEngineResults(engineResults);
+
     return {
-      ...project,
+      ...safeProject,
       engineResults,
-      engineHealth: engineHealthFromResults(engineResults),
+      engineHealth: hadExistingRecord
+        ? engineHealthFromResults(engineResults)
+        : updateEngineHealth(previousHealth, compactRecord),
     };
   });
 
