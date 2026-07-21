@@ -123,6 +123,7 @@ const PUBLIC_REPORTS = [
   "alias-resolution-summary.json",
   "alias-resolution-conflicts.json",
   "provider-vocabulary-coverage.json",
+  "advertised-category-coverage.json",
   "unresolved-field-verbiage.json",
   "rejected-alias-candidates.json",
   "alias-starvation-recoveries.json",
@@ -224,6 +225,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const aliasResolution = readJsonReport("alias-resolution-summary.json", reportsDir) || {};
   const aliasConflicts = readJsonReport("alias-resolution-conflicts.json", reportsDir) || {};
   const unresolvedVerbiage = readJsonReport("unresolved-field-verbiage.json", reportsDir) || {};
+  const advertisedCategoryCoverage = readJsonReport("advertised-category-coverage.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -274,6 +276,18 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Alias Resolved", aliasResolution.fieldsResolvedByExactAlias + aliasResolution.fieldsResolvedByProviderAlias + aliasResolution.fieldsResolvedByStructuralAlias + aliasResolution.fieldsResolvedBySemanticAlias + aliasResolution.fieldsResolvedByFuzzyAlias || 0],
     ["Alias Conflicts", aliasConflicts.conflictsDetected ?? 0],
     ["Unknown Verbiage", unresolvedVerbiage.topUnknownFieldNames?.length ?? 0],
+    ["Category Coverage", advertisedCategoryCoverage.status || "REPORT NOT GENERATED"],
+    ["Advertised Categories", advertisedCategoryCoverage.advertisedCategoryCount ?? 0],
+    ["Categories With Results", advertisedCategoryCoverage.categoriesWithAnyResult ?? 0],
+    ["Strict Category Results", advertisedCategoryCoverage.categoriesWithStrictResults ?? 0],
+    ["Research Fallbacks", advertisedCategoryCoverage.categoriesUsingResearchFallback ?? 0],
+    ["Research Backfills", advertisedCategoryCoverage.categoriesUsingResearchBackfill ?? 0],
+    ["Empty Categories", advertisedCategoryCoverage.emptyCategories ?? 0],
+    [
+      "Category Lead",
+      advertisedCategoryCoverage.categories?.find((category) => category.displayedResults?.length)
+        ?.displayedResults?.[0]?.symbol || "NO CATEGORY RESULT",
+    ],
     ["Best Lead", progressiveOpportunities.bestAvailableOpportunities?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
     [
       "Money Lead",
@@ -654,6 +668,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
           <li><strong>Dossier Swarm:</strong> specialist agents build project research packets.</li>
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
+          <li><strong>Advertised Category Coverage:</strong> gives every public category a strict-result lane plus a research-only fallback lane when proof is incomplete.</li>
           <li><strong>Progressive Debug Ladder:</strong> shows identity, trust, execution, money, and final-integrity gates for every candidate.</li>
           <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
           <li><strong>Market Opportunity Learning:</strong> records top opportunity receipts, grades later scans when market data is available, and produces cautious weight hints.</li>
@@ -746,6 +761,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./missed-opportunity-audit.json">Missed Audit</a>
         <a class="button" href="./institutional-ranking.json">Money Rank</a>
         <a class="button" href="./best-available.json">Best Available</a>
+        <a class="button" href="./advertised-category-coverage.json">Category Coverage</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>
         <a class="button" href="./emerging-radar.json">Emerging Radar</a>
         <a class="button" href="./blocked-projects.json">Blocked</a>

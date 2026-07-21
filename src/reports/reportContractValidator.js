@@ -42,6 +42,7 @@ export const REQUIRED_REPORT_FILES = [
   "unresolved-field-verbiage.json",
   "rejected-alias-candidates.json",
   "alias-starvation-recoveries.json",
+  "advertised-category-coverage.json",
   "institutional-ranking.json",
 ];
 
