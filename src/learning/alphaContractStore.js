@@ -1,23 +1,89 @@
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const CONTRACT_FILE = path.join(DATA_DIR, "alpha-contracts.json");
 const MAX_CONTRACTS = Number(process.env.MAX_ALPHA_CONTRACTS || 5000);
+const DEFAULT_MAX_LOAD_CONTRACTS = 5000;
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function readContracts() {
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function maxLoadContracts(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_ALPHA_CONTRACT_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_CONTRACTS;
+}
+
+function fileMtimeMs(filePath = CONTRACT_FILE) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
+function readLegacyContracts(filePath = CONTRACT_FILE, limit = DEFAULT_MAX_LOAD_CONTRACTS) {
+  const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return Array.isArray(parsed) ? parsed.slice(-limit) : [];
+}
+
+export function loadAlphaContractsFromFile(filePath = CONTRACT_FILE, options = {}) {
   ensureDataDir();
 
-  if (!fs.existsSync(CONTRACT_FILE)) return [];
+  const resolvedPath = path.resolve(filePath);
+  const sidecarPath = memorySidecarPath(resolvedPath);
+  const mtimeMs = fileMtimeMs(resolvedPath);
+  const sidecarMtimeMs = fileMtimeMs(sidecarPath);
+  const limit = maxLoadContracts(options);
+
+  if (!mtimeMs && !sidecarMtimeMs) return [];
+
+  const sidecarContracts = sidecarMtimeMs
+    ? readMemorySidecarTail(resolvedPath, {
+        limit,
+        maxBytes: Number(options.sidecarMaxBytes || process.env.ALPHA_CONTRACT_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const legacyBytes = memoryFileSizeBytes(resolvedPath);
+  const largeLegacyJson = legacyBytes > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarContracts.length && boolEnv(process.env.ALPHA_CONTRACT_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead =
+    options.allowLargeLegacyRead === true ||
+    boolEnv(process.env.ALPHA_CONTRACT_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) return sidecarContracts;
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(CONTRACT_FILE, "utf8"));
-    return Array.isArray(parsed) ? parsed : [];
+    const legacyContracts = mtimeMs ? readLegacyContracts(resolvedPath, limit) : [];
+    return sidecarContracts.length
+      ? [...legacyContracts, ...sidecarContracts].slice(-limit)
+      : legacyContracts;
+  } catch {
+    return sidecarContracts;
+  }
+}
+
+function readContracts() {
+  try {
+    return loadAlphaContractsFromFile(CONTRACT_FILE);
   } catch {
     return [];
   }

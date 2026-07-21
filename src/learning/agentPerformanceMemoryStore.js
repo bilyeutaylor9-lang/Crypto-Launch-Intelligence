@@ -1,10 +1,18 @@
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "agent-performance-memory.json");
 const MAX_RECORDS = Number(process.env.MAX_AGENT_PERFORMANCE_RECORDS || 25000);
+const DEFAULT_MAX_LOAD_RECORDS = 5000;
 let cachedSummary = null;
 let cachedSummaryMtimeMs = null;
 
@@ -49,32 +57,76 @@ function memoryMtimeMs() {
   }
 }
 
-function readMemory() {
+function fileMtimeMs(filePath = MEMORY_FILE) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function maxLoadRecords(options = {}) {
+  const configured = Math.floor(Number(options.limit || process.env.MAX_AGENT_PERFORMANCE_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_RECORDS;
+}
+
+function emptyMemory() {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    records: [],
+    outcomes: [],
+  };
+}
+
+function readMemory(options = {}) {
   ensureDataDir();
 
-  if (!fs.existsSync(MEMORY_FILE)) {
+  const sidecarPath = memorySidecarPath(MEMORY_FILE);
+  const mtimeMs = fileMtimeMs(MEMORY_FILE);
+  const sidecarMtimeMs = fileMtimeMs(sidecarPath);
+  const limit = maxLoadRecords(options);
+
+  if (!mtimeMs && !sidecarMtimeMs) return emptyMemory();
+
+  const sidecarRecords = sidecarMtimeMs
+    ? readMemorySidecarTail(MEMORY_FILE, {
+        limit,
+        maxBytes: Number(process.env.AGENT_PERFORMANCE_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const largeLegacyJson = memoryFileSizeBytes(MEMORY_FILE) > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarRecords.length && boolEnv(process.env.AGENT_PERFORMANCE_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead = boolEnv(process.env.AGENT_PERFORMANCE_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) {
     return {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      records: [],
-      outcomes: [],
+      ...emptyMemory(),
+      records: sidecarRecords,
     };
   }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
+    const legacyRecords = Array.isArray(parsed.records) ? parsed.records.slice(-limit) : [];
+    const legacyOutcomes = Array.isArray(parsed.outcomes) ? parsed.outcomes.slice(-limit) : [];
     return {
       version: parsed.version || 1,
       updatedAt: parsed.updatedAt || new Date().toISOString(),
-      records: Array.isArray(parsed.records) ? parsed.records : [],
-      outcomes: Array.isArray(parsed.outcomes) ? parsed.outcomes : [],
+      records: sidecarRecords.length
+        ? [...legacyRecords, ...sidecarRecords].slice(-limit)
+        : legacyRecords,
+      outcomes: legacyOutcomes,
     };
   } catch {
     return {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      records: [],
-      outcomes: [],
+      ...emptyMemory(),
+      records: sidecarRecords,
     };
   }
 }
@@ -132,7 +184,7 @@ export function loadAgentPerformanceMemory() {
 }
 
 export function summarizeAgentPerformanceMemory() {
-  const mtimeMs = memoryMtimeMs();
+  const mtimeMs = `${memoryMtimeMs()}:${fileMtimeMs(memorySidecarPath(MEMORY_FILE))}`;
   if (cachedSummary && cachedSummaryMtimeMs === mtimeMs) return cachedSummary;
 
   const memory = readMemory();

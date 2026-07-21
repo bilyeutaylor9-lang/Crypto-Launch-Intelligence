@@ -67,8 +67,15 @@ import { writeFirstSeenOpportunityReport } from "./firstSeenOpportunityReportEng
 import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.js";
 import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
 import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
+import {
+  compactMetaForReportWriters,
+  compactProjectsForReportWriters,
+} from "./reportPayloadCompactor.js";
 
 export function generateReports(projects = [], meta = {}) {
+  projects = compactProjectsForReportWriters(projects);
+  meta = compactMetaForReportWriters(meta);
+
   const jsonPath = writeJsonReport(projects, meta);
   const csvPath = writeCsvReport(projects);
   const { filePath: watchlistPath, watchlist } = writeWatchlist(projects);

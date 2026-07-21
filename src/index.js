@@ -9,6 +9,10 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
+import {
+  compactMetaForReportWriters,
+  compactProjectsForReportWriters,
+} from "./reports/reportPayloadCompactor.js";
 import { resolveAnalysisFunnelConfig } from "./config/analysisFunnelConfig.js";
 import { planInstitutionalCandidateSelection } from "./discovery/institutionalCandidateSelector.js";
 import { writeCandidateSelectionAuditReports } from "./discovery/candidateSelectionAudit.js";
@@ -142,6 +146,15 @@ function normalizeForReports(projects = []) {
       };
     })
     .sort((a, b) => scoreOf(b) - scoreOf(a));
+}
+
+function runOptionalGarbageCollection(label = "scan") {
+  if (typeof globalThis.gc !== "function") return;
+  try {
+    globalThis.gc();
+  } catch (error) {
+    console.warn(`Garbage collection hint failed after ${label}: ${error.message}`);
+  }
 }
 
 function printBanner() {
@@ -623,20 +636,20 @@ async function main() {
 
     console.log("Discovering projects...\n");
 
-    const discoveredProjects = await runDiscoveryManager();
+    let discoveredProjects = await runDiscoveryManager();
 
-    const discoveredList = Array.isArray(discoveredProjects)
+    let discoveredList = Array.isArray(discoveredProjects)
       ? discoveredProjects
       : discoveredProjects.candidates || [];
 
     printDiscoveryStats(discoveredProjects, discoveredList);
 
     const researchLedger = loadResearchCoverageLedger();
-    const researchPlan = planResearchQueue(discoveredList, {
+    let researchPlan = planResearchQueue(discoveredList, {
       history: researchLedger,
       runSequence: num(researchLedger.runCount) + 1,
     });
-    const researchQueue = researchPlan.selected;
+    let researchQueue = researchPlan.selected;
     const selectionAuditPaths = writeCandidateSelectionAuditReports(researchPlan);
 
     console.log("");
@@ -650,13 +663,14 @@ async function main() {
       `Local AI Mode: ${localAI.mode} | Inline Research: ${localAI.inline ? localAI.inlineLimit : 0} | Queue: ${localAI.queue ? "enabled" : "disabled"}`
     );
 
-    const pipelineResults = await runIntelligencePipeline(researchQueue, {
+    let pipelineResults = await runIntelligencePipeline(researchQueue, {
       saveMemory: true,
       freeOnly: discoveredProjects.freeMode?.enabled === true,
       localAI,
     });
 
     let results = normalizeForReports(pipelineResults);
+    pipelineResults = null;
     const summary = summarizePipelineResults(results);
     let researchCoverage = researchPlan.report;
 
@@ -684,7 +698,7 @@ async function main() {
     }
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
-    const reportMeta = {
+    let reportMeta = {
       runId: `scan_${startedAt.getTime()}`,
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
@@ -703,6 +717,14 @@ async function main() {
     const alphaTruth = persistAlphaTruthMemory(results, reportMeta);
     reportMeta.alphaTruth = alphaTruth.report;
     reportMeta.alphaTruthPersistence = alphaTruth.persistence;
+
+    results = compactProjectsForReportWriters(results);
+    reportMeta = compactMetaForReportWriters(reportMeta);
+    discoveredProjects = null;
+    discoveredList = [];
+    researchPlan = null;
+    researchQueue = [];
+    runOptionalGarbageCollection("report compaction");
 
     const reportPaths = {
       ...generateReports(results, reportMeta),

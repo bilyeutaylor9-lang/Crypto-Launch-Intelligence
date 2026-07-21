@@ -1,43 +1,130 @@
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const WATCHLIST_FILE = path.join(DATA_DIR, "project-watchlist.json");
 const MAX_HISTORY = Number(process.env.MAX_PROJECT_WATCH_HISTORY || 120);
+const DEFAULT_MAX_LOAD_RECORDS = 10000;
 let cachedStore = null;
-let cachedMtimeMs = null;
+let cachedStoreKey = "";
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function readStore() {
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function maxLoadRecords(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_PROJECT_WATCH_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_RECORDS;
+}
+
+function fileMtimeMs(filePath = WATCHLIST_FILE) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
+function emptyStore() {
+  return {
+    version: 1,
+    updatedAt: null,
+    projects: {},
+  };
+}
+
+function storeFromSidecarRecords(records = []) {
+  const store = emptyStore();
+  for (const entry of Array.isArray(records) ? records : []) {
+    const record = entry?.record || entry;
+    const id = entry?.id || projectWatchId(entry);
+    if (!id || !record) continue;
+    const existing = store.projects[id] || {
+      id,
+      firstSeenAt: record.scannedAt || null,
+      history: [],
+    };
+    const history = [...(existing.history || []), record].slice(-MAX_HISTORY);
+    store.projects[id] = {
+      ...existing,
+      id,
+      name: entry.name || existing.name || "Unknown",
+      symbol: entry.symbol || existing.symbol || "UNKNOWN",
+      chain: entry.chain || existing.chain || "unknown",
+      lastSeenAt: record.scannedAt || existing.lastSeenAt || null,
+      lastScore: record.score,
+      lastConviction: record.conviction,
+      lastAllocationBucket: record.allocationBucket,
+      lastWatchlistPriority: record.watchlistPriority,
+      lastThesis: record.thesis,
+      trend: trendFromHistory(existing.history || [], record.score),
+      history,
+    };
+    if (record.scannedAt && (!store.updatedAt || Date.parse(record.scannedAt) > Date.parse(store.updatedAt))) {
+      store.updatedAt = record.scannedAt;
+    }
+  }
+  return store;
+}
+
+function readStore(options = {}) {
   ensureDataDir();
 
-  let mtimeMs = null;
-  try {
-    mtimeMs = fs.statSync(WATCHLIST_FILE).mtimeMs;
-  } catch {
+  const sidecarPath = memorySidecarPath(WATCHLIST_FILE);
+  const mtimeMs = fileMtimeMs(WATCHLIST_FILE);
+  const sidecarMtimeMs = fileMtimeMs(sidecarPath);
+  const limit = maxLoadRecords(options);
+  const cacheKey = `${mtimeMs}:${sidecarMtimeMs}:${limit}`;
+
+  if (!mtimeMs && !sidecarMtimeMs) {
     cachedStore = null;
-    cachedMtimeMs = null;
-    return {
-      version: 1,
-      updatedAt: null,
-      projects: {},
-    };
+    cachedStoreKey = "";
+    return emptyStore();
   }
 
-  if (cachedStore && cachedMtimeMs === mtimeMs) return cachedStore;
+  if (cachedStore && cachedStoreKey === cacheKey) return cachedStore;
+
+  const sidecarRecords = sidecarMtimeMs
+    ? readMemorySidecarTail(WATCHLIST_FILE, {
+        limit,
+        maxBytes: Number(process.env.PROJECT_WATCH_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const largeLegacyJson = memoryFileSizeBytes(WATCHLIST_FILE) > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarRecords.length && boolEnv(process.env.PROJECT_WATCH_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead = boolEnv(process.env.PROJECT_WATCH_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) {
+    cachedStore = storeFromSidecarRecords(sidecarRecords);
+    cachedStoreKey = cacheKey;
+    return cachedStore;
+  }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(WATCHLIST_FILE, "utf8"));
     cachedStore = parsed?.projects ? parsed : { version: 1, updatedAt: null, projects: {} };
-    cachedMtimeMs = mtimeMs;
+    cachedStoreKey = cacheKey;
     return cachedStore;
   } catch {
-    cachedStore = { version: 1, updatedAt: null, projects: {} };
-    cachedMtimeMs = mtimeMs;
+    cachedStore = storeFromSidecarRecords(sidecarRecords);
+    cachedStoreKey = cacheKey;
     return cachedStore;
   }
 }
@@ -51,7 +138,7 @@ function writeStore(store = {}) {
   };
   fs.writeFileSync(WATCHLIST_FILE, JSON.stringify(normalized, null, 2));
   cachedStore = normalized;
-  cachedMtimeMs = fs.statSync(WATCHLIST_FILE).mtimeMs;
+  cachedStoreKey = "";
 }
 
 export function projectWatchId(project = {}) {

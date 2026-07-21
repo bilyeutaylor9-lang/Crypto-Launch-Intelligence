@@ -7,6 +7,7 @@ import {
   freshnessFromTimestamp,
   identityState,
   num,
+  toTime,
   unique,
   weightedAverage,
 } from "../sniper/sniperFramework.js";
@@ -323,7 +324,18 @@ export function buildSniperEvidenceFamilies(project = {}) {
   const catalysts = catalystDerived(project);
   const tokenValue = tokenValueDerived(project);
   const missingCriticalData = criticalMissingData(project);
-  const freshness = freshnessFromTimestamp(project.sourceTimestamp || project.marketDataTimestamp || project.observationTimestamp || project.scanTimestamp);
+  const evidenceTimestamp =
+    project.sourceTimestamp ||
+    project.marketDataTimestamp ||
+    project.observationTimestamp ||
+    project.scanTimestamp;
+  const pointInTimeNow = toTime(
+    project.observationTimestamp ||
+      project.scanTimestamp ||
+      project.predictionTimestamp ||
+      project.dataCutoffTimestamp
+  );
+  const freshness = freshnessFromTimestamp(evidenceTimestamp, pointInTimeNow || Date.now());
   const idState = identityState(project);
   const manipulationRisk = Math.max(
     num(project.washTradingRiskScore),

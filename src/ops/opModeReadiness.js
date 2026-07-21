@@ -3,6 +3,12 @@ import path from "path";
 import "../config/loadEnv.js";
 import { getAllSources } from "../data/dataSourceManager.js";
 import { getNativeProtocolConfigs } from "../data/native/nativePoolConfig.js";
+import {
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+} from "../learning/boundedMemoryStore.js";
 import { summarizeSupabaseConfig } from "../storage/supabaseSync.js";
 
 const REPORT_DIR = path.resolve("reports");
@@ -168,6 +174,11 @@ const DATASET_SPECS = [
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
 }
 
 function clamp(value = 0, min = 0, max = 100) {
@@ -391,6 +402,8 @@ export function buildNativeReadiness(env = process.env) {
 
 function readJson(filePath = "") {
   if (!fs.existsSync(filePath)) return null;
+  const largeJson = memoryFileSizeBytes(filePath) > memoryRewriteLimitBytes(process.env);
+  if (largeJson && !boolEnv(process.env.OP_READINESS_ALLOW_LARGE_JSON_READ, false)) return null;
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch {
@@ -412,22 +425,47 @@ function countJsonItems(value) {
   return Object.keys(value).length;
 }
 
+function sidecarRecordEstimate(filePath = "") {
+  const sidecarPath = memorySidecarPath(filePath);
+  if (!fs.existsSync(sidecarPath)) return 0;
+  try {
+    return readMemorySidecarTail(filePath, {
+      limit: 10000,
+      maxBytes: Number(process.env.OP_READINESS_SIDECAR_READ_BYTES || 8 * 1024 * 1024),
+    }).length;
+  } catch {
+    return 0;
+  }
+}
+
 function datasetStatus(spec = {}, dataDir = DATA_DIR) {
   const filePath = path.join(dataDir, spec.file);
   const exists = fs.existsSync(filePath);
-  const parsed = readJson(filePath);
-  const records = countJsonItems(parsed);
   const bytes = exists ? fs.statSync(filePath).size : 0;
+  const sidecarPath = memorySidecarPath(filePath);
+  const sidecarBytes = memoryFileSizeBytes(sidecarPath);
+  const largeJsonSkipped =
+    exists &&
+    bytes > memoryRewriteLimitBytes(process.env) &&
+    !boolEnv(process.env.OP_READINESS_ALLOW_LARGE_JSON_READ, false);
+  const parsed = readJson(filePath);
+  const sidecarRecords = parsed ? 0 : sidecarRecordEstimate(filePath);
+  const records = parsed ? countJsonItems(parsed) : sidecarRecords;
+  const active = records > 0 || (largeJsonSkipped && bytes > 0);
 
   return {
     id: spec.id,
     label: spec.label,
     critical: Boolean(spec.critical),
     file: filePath,
+    sidecarFile: sidecarBytes > 0 ? sidecarPath : null,
     exists,
+    largeJsonSkipped,
     records,
+    recordEstimate: parsed ? false : sidecarRecords > 0,
     bytes,
-    status: !exists ? "MISSING" : records > 0 ? "ACTIVE" : "EMPTY",
+    sidecarBytes,
+    status: !exists ? "MISSING" : active ? "ACTIVE" : "EMPTY",
   };
 }
 

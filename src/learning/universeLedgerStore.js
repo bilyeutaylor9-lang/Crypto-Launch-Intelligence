@@ -1,12 +1,20 @@
 import fs from "fs";
 import path from "path";
 import { attachProjectIdentity, identityKeyForProject } from "../discovery/projectIdentityGraph.js";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const LEDGER_FILE = path.join(DATA_DIR, "universe-ledger.json");
 const MAX_PROJECTS = Number(process.env.MAX_UNIVERSE_LEDGER_PROJECTS || 100000);
 const MAX_HISTORY = Number(process.env.MAX_UNIVERSE_LEDGER_HISTORY || 24);
+const DEFAULT_MAX_LOAD_RECORDS = 10000;
 
 const EVIDENCE_FAMILIES = [
   "identity",
@@ -29,12 +37,30 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function maxLoadRecords(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_UNIVERSE_LEDGER_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_RECORDS;
+}
+
 function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function fileMtimeMs(filePath = LEDGER_FILE) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
 }
 
 function emptyLedger() {
@@ -87,15 +113,72 @@ function normalizeLedger(parsed = {}) {
   };
 }
 
-function readLedger() {
+function ledgerFromRecords(records = []) {
+  const ledger = emptyLedger();
+  for (const record of Array.isArray(records) ? records : []) {
+    const projectId = record?.projectId || record?.identityKey;
+    if (!projectId) continue;
+    const previous = ledger.projects[projectId] || {
+      projectId,
+      firstSeenAt: record.firstSeenAt || record.lastSeenAt || null,
+      history: [],
+      observations: 0,
+    };
+    ledger.projects[projectId] = {
+      ...previous,
+      projectId,
+      firstSeenAt: previous.firstSeenAt || record.firstSeenAt || record.lastSeenAt || null,
+      lastSeenAt: record.lastSeenAt || previous.lastSeenAt || null,
+      observations: num(previous.observations) + 1,
+      latest: record,
+      history: [
+        ...(previous.history || []),
+        {
+          at: record.lastSeenAt,
+          finalState: record.finalState,
+          lifecycleState: record.lifecycleState,
+          funnelStage: record.processing?.stage,
+          riskClass: record.riskClass,
+          dataCoverageScore: record.dataCoverageScore,
+          aggregateRiskScore: record.aggregateRiskScore,
+        },
+      ].slice(-MAX_HISTORY),
+    };
+    if (record.lastSeenAt && (!ledger.generatedAt || Date.parse(record.lastSeenAt) > Date.parse(ledger.generatedAt))) {
+      ledger.generatedAt = record.lastSeenAt;
+    }
+  }
+  ledger.projects = trimProjects(ledger.projects);
+  ledger.indexes = rebuildIndexes(ledger.projects);
+  return ledger;
+}
+
+function readLedger(options = {}) {
   ensureDataDir();
 
-  if (!fs.existsSync(LEDGER_FILE)) return emptyLedger();
+  const sidecarPath = memorySidecarPath(LEDGER_FILE);
+  const mtimeMs = fileMtimeMs(LEDGER_FILE);
+  const sidecarMtimeMs = fileMtimeMs(sidecarPath);
+  const limit = maxLoadRecords(options);
+
+  if (!mtimeMs && !sidecarMtimeMs) return emptyLedger();
+
+  const sidecarRecords = sidecarMtimeMs
+    ? readMemorySidecarTail(LEDGER_FILE, {
+        limit,
+        maxBytes: Number(process.env.UNIVERSE_LEDGER_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const largeLegacyJson = memoryFileSizeBytes(LEDGER_FILE) > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarRecords.length && boolEnv(process.env.UNIVERSE_LEDGER_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead = boolEnv(process.env.UNIVERSE_LEDGER_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) return ledgerFromRecords(sidecarRecords);
 
   try {
     return normalizeLedger(JSON.parse(fs.readFileSync(LEDGER_FILE, "utf8")));
   } catch {
-    return emptyLedger();
+    return ledgerFromRecords(sidecarRecords);
   }
 }
 

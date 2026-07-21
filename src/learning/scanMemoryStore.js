@@ -2,14 +2,22 @@
 
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "scan-history.json");
 const MAX_RECORDS = Number(process.env.MAX_SCAN_MEMORY_RECORDS || 25000);
+const DEFAULT_MAX_LOAD_RECORDS = 5000;
 
 let memoryCache = null;
-let memoryCacheMtimeMs = 0;
+let memoryCacheKey = "";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -19,36 +27,95 @@ function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function getMemoryMtimeMs() {
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function maxLoadRecords(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_SCAN_MEMORY_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_RECORDS;
+}
+
+function getMemoryMtimeMs(filePath = MEMORY_FILE) {
   try {
-    return fs.statSync(MEMORY_FILE).mtimeMs;
+    return fs.statSync(filePath).mtimeMs;
   } catch {
     return 0;
   }
 }
 
-function readMemory() {
+function readLegacyJsonMemory(filePath = MEMORY_FILE, limit = DEFAULT_MAX_LOAD_RECORDS) {
+  const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return Array.isArray(parsed) ? parsed.slice(-limit) : [];
+}
+
+export function loadScanMemoryFromFile(filePath = MEMORY_FILE, options = {}) {
   ensureDataDir();
 
-  const mtimeMs = getMemoryMtimeMs();
-  if (memoryCache && memoryCacheMtimeMs === mtimeMs) return memoryCache;
+  const resolvedPath = path.resolve(filePath);
+  const sidecarPath = memorySidecarPath(resolvedPath);
+  const mtimeMs = getMemoryMtimeMs(resolvedPath);
+  const sidecarMtimeMs = getMemoryMtimeMs(sidecarPath);
+  const limit = maxLoadRecords(options);
+  const cacheKey = `${resolvedPath}:${mtimeMs}:${sidecarMtimeMs}:${limit}`;
+  const useCache = resolvedPath === MEMORY_FILE && options.useCache !== false;
+  if (useCache && memoryCache && memoryCacheKey === cacheKey) return memoryCache;
 
-  if (!mtimeMs) {
-    memoryCache = [];
-    memoryCacheMtimeMs = 0;
-    return memoryCache;
+  if (!mtimeMs && !sidecarMtimeMs) {
+    if (useCache) {
+      memoryCache = [];
+      memoryCacheKey = cacheKey;
+      return memoryCache;
+    }
+    return [];
+  }
+
+  const sidecarRecords = sidecarMtimeMs
+    ? readMemorySidecarTail(resolvedPath, {
+        limit,
+        maxBytes: Number(options.sidecarMaxBytes || process.env.SCAN_MEMORY_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const legacyBytes = memoryFileSizeBytes(resolvedPath);
+  const largeLegacyJson = legacyBytes > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarRecords.length && boolEnv(process.env.SCAN_MEMORY_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead =
+    options.allowLargeLegacyRead === true ||
+    boolEnv(process.env.SCAN_MEMORY_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) {
+    if (useCache) {
+      memoryCache = sidecarRecords;
+      memoryCacheKey = cacheKey;
+      return memoryCache;
+    }
+    return sidecarRecords;
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
-    memoryCache = Array.isArray(parsed) ? parsed : [];
-    memoryCacheMtimeMs = mtimeMs;
-    return memoryCache;
+    const legacyRecords = mtimeMs ? readLegacyJsonMemory(resolvedPath, limit) : [];
+    const records = sidecarRecords.length
+      ? [...legacyRecords, ...sidecarRecords].slice(-limit)
+      : legacyRecords;
+    if (useCache) {
+      memoryCache = records;
+      memoryCacheKey = cacheKey;
+      return memoryCache;
+    }
+    return records;
   } catch {
-    memoryCache = [];
-    memoryCacheMtimeMs = mtimeMs;
-    return memoryCache;
+    if (useCache) {
+      memoryCache = sidecarRecords;
+      memoryCacheKey = cacheKey;
+      return memoryCache;
+    }
+    return sidecarRecords;
   }
+}
+
+function readMemory() {
+  return loadScanMemoryFromFile(MEMORY_FILE);
 }
 
 function writeMemory(records = []) {
@@ -56,7 +123,7 @@ function writeMemory(records = []) {
   const trimmed = records.slice(-MAX_RECORDS);
   fs.writeFileSync(MEMORY_FILE, JSON.stringify(trimmed, null, 2));
   memoryCache = trimmed;
-  memoryCacheMtimeMs = getMemoryMtimeMs();
+  memoryCacheKey = "";
 }
 
 function tokenId(project = {}) {
@@ -354,6 +421,12 @@ export function loadScanMemory() {
 
 export function clearScanMemory() {
   writeMemory([]);
+  try {
+    const sidecarPath = memorySidecarPath(MEMORY_FILE);
+    if (fs.existsSync(sidecarPath)) fs.unlinkSync(sidecarPath);
+  } catch {
+    // Best-effort cleanup for local maintenance.
+  }
 
   return {
     cleared: true,

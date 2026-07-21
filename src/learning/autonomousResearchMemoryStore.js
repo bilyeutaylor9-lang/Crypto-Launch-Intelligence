@@ -1,27 +1,45 @@
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "autonomous-research-memory.json");
 const MAX_RECORDS = Number(process.env.MAX_AUTONOMOUS_RESEARCH_RECORDS || 25000);
+const DEFAULT_MAX_LOAD_RECORDS = 5000;
 let cachedMemory = null;
-let cachedMemoryMtimeMs = null;
+let cachedMemoryKey = "";
 let cachedHistoryIndex = null;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function maxLoadRecords(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_AUTONOMOUS_RESEARCH_LOAD_RECORDS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_RECORDS;
+}
+
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function memoryMtimeMs() {
+function memoryMtimeMs(filePath = MEMORY_FILE) {
   try {
-    return fs.statSync(MEMORY_FILE).mtimeMs;
+    return fs.statSync(filePath).mtimeMs;
   } catch {
-    return null;
+    return 0;
   }
 }
 
@@ -42,31 +60,63 @@ function projectId(project = {}) {
   ).toLowerCase();
 }
 
-function readMemory() {
-  ensureDataDir();
-  const mtimeMs = memoryMtimeMs();
-  if (cachedMemory && cachedMemoryMtimeMs === mtimeMs) return cachedMemory;
+function memoryFromRecords(records = []) {
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    records: Array.isArray(records) ? records : [],
+  };
+}
 
-  if (mtimeMs === null) {
+function readMemory(options = {}) {
+  ensureDataDir();
+  const sidecarPath = memorySidecarPath(MEMORY_FILE);
+  const mtimeMs = memoryMtimeMs(MEMORY_FILE);
+  const sidecarMtimeMs = memoryMtimeMs(sidecarPath);
+  const limit = maxLoadRecords(options);
+  const cacheKey = `${mtimeMs}:${sidecarMtimeMs}:${limit}`;
+  if (cachedMemory && cachedMemoryKey === cacheKey) return cachedMemory;
+
+  if (!mtimeMs && !sidecarMtimeMs) {
     cachedMemory = emptyMemory();
-    cachedMemoryMtimeMs = null;
+    cachedMemoryKey = cacheKey;
+    cachedHistoryIndex = null;
+    return cachedMemory;
+  }
+
+  const sidecarRecords = sidecarMtimeMs
+    ? readMemorySidecarTail(MEMORY_FILE, {
+        limit,
+        maxBytes: Number(process.env.AUTONOMOUS_RESEARCH_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const largeLegacyJson = memoryFileSizeBytes(MEMORY_FILE) > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarRecords.length && boolEnv(process.env.AUTONOMOUS_RESEARCH_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead = boolEnv(process.env.AUTONOMOUS_RESEARCH_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) {
+    cachedMemory = memoryFromRecords(sidecarRecords);
+    cachedMemoryKey = cacheKey;
     cachedHistoryIndex = null;
     return cachedMemory;
   }
 
   try {
     const parsed = JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
+    const legacyRecords = Array.isArray(parsed.records) ? parsed.records.slice(-limit) : [];
     cachedMemory = {
       version: parsed.version || 1,
       updatedAt: parsed.updatedAt || new Date().toISOString(),
-      records: Array.isArray(parsed.records) ? parsed.records : [],
+      records: sidecarRecords.length
+        ? [...legacyRecords, ...sidecarRecords].slice(-limit)
+        : legacyRecords,
     };
-    cachedMemoryMtimeMs = mtimeMs;
+    cachedMemoryKey = cacheKey;
     cachedHistoryIndex = null;
     return cachedMemory;
   } catch {
-    cachedMemory = emptyMemory();
-    cachedMemoryMtimeMs = mtimeMs;
+    cachedMemory = memoryFromRecords(sidecarRecords);
+    cachedMemoryKey = cacheKey;
     cachedHistoryIndex = null;
     return cachedMemory;
   }
@@ -84,7 +134,7 @@ function writeMemory(memory = {}) {
     JSON.stringify(normalized, null, 2)
   );
   cachedMemory = normalized;
-  cachedMemoryMtimeMs = memoryMtimeMs();
+  cachedMemoryKey = "";
   cachedHistoryIndex = null;
 }
 

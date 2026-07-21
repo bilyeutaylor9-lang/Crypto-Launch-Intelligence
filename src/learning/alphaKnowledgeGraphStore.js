@@ -1,11 +1,19 @@
 import fs from "fs";
 import path from "path";
-import { appendMemorySidecar, shouldUseAppendOnlyMemory } from "./boundedMemoryStore.js";
+import {
+  appendMemorySidecar,
+  memoryFileSizeBytes,
+  memoryRewriteLimitBytes,
+  memorySidecarPath,
+  readMemorySidecarTail,
+  shouldUseAppendOnlyMemory,
+} from "./boundedMemoryStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "alpha-knowledge-graph.json");
 const MAX_PROJECTS = Number(process.env.MAX_ALPHA_KNOWLEDGE_GRAPH_PROJECTS || 10000);
 const MAX_HISTORY = Number(process.env.MAX_ALPHA_KNOWLEDGE_GRAPH_HISTORY || 40);
+const DEFAULT_MAX_LOAD_PROJECTS = 5000;
 
 const NARRATIVE_TERMS = {
   ai: ["ai", "agent", "bittensor", "compute", "model"],
@@ -25,8 +33,26 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return /^(true|1|yes|on)$/i.test(String(value).trim());
+}
+
+function maxLoadProjects(options = {}) {
+  const configured = Math.floor(num(options.limit || process.env.MAX_ALPHA_KNOWLEDGE_GRAPH_LOAD_PROJECTS));
+  return configured > 0 ? configured : DEFAULT_MAX_LOAD_PROJECTS;
+}
+
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function fileMtimeMs(filePath = MEMORY_FILE) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
+  }
 }
 
 function emptyGraph() {
@@ -59,15 +85,61 @@ function normalizeGraph(parsed = {}) {
   };
 }
 
-function readGraph() {
+function graphFromSnapshots(snapshots = []) {
+  const graph = emptyGraph();
+  for (const snapshot of Array.isArray(snapshots) ? snapshots : []) {
+    const key = snapshot?.key || alphaKnowledgeGraphProjectKey(snapshot);
+    if (!key) continue;
+    const previous = graph.projects[key] || {
+      key,
+      firstSeenAt: snapshot.at || new Date().toISOString(),
+      scans: 0,
+      history: [],
+    };
+    graph.projects[key] = {
+      ...previous,
+      key,
+      firstSeenAt: previous.firstSeenAt || snapshot.at,
+      lastSeenAt: snapshot.at || previous.lastSeenAt || null,
+      scans: num(previous.scans) + 1,
+      latest: snapshot,
+      history: [...(previous.history || []), snapshot].slice(-MAX_HISTORY),
+    };
+    if (snapshot.at && (!graph.generatedAt || Date.parse(snapshot.at) > Date.parse(graph.generatedAt))) {
+      graph.generatedAt = snapshot.at;
+    }
+  }
+  graph.projects = trimProjects(graph.projects);
+  graph.indexes = rebuildIndexes(graph.projects);
+  return graph;
+}
+
+function readGraph(options = {}) {
   ensureDataDir();
 
-  if (!fs.existsSync(MEMORY_FILE)) return emptyGraph();
+  const sidecarPath = memorySidecarPath(MEMORY_FILE);
+  const mtimeMs = fileMtimeMs(MEMORY_FILE);
+  const sidecarMtimeMs = fileMtimeMs(sidecarPath);
+  const limit = maxLoadProjects(options);
+
+  if (!mtimeMs && !sidecarMtimeMs) return emptyGraph();
+
+  const sidecarSnapshots = sidecarMtimeMs
+    ? readMemorySidecarTail(MEMORY_FILE, {
+        limit,
+        maxBytes: Number(process.env.ALPHA_KNOWLEDGE_GRAPH_SIDECAR_READ_BYTES || 16 * 1024 * 1024),
+      })
+    : [];
+  const largeLegacyJson = memoryFileSizeBytes(MEMORY_FILE) > memoryRewriteLimitBytes(process.env);
+  const preferSidecar = sidecarSnapshots.length && boolEnv(process.env.ALPHA_KNOWLEDGE_GRAPH_PREFER_SIDECAR, true);
+  const allowLargeLegacyRead = boolEnv(process.env.ALPHA_KNOWLEDGE_GRAPH_ALLOW_LARGE_JSON_READ, false);
+
+  if (preferSidecar || (largeLegacyJson && !allowLargeLegacyRead)) return graphFromSnapshots(sidecarSnapshots);
 
   try {
     return normalizeGraph(JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8")));
   } catch {
-    return emptyGraph();
+    return graphFromSnapshots(sidecarSnapshots);
   }
 }
 
