@@ -307,6 +307,51 @@ test("contradictory reject cannot remain qualified", () => {
   assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Advisory AI decision")));
 });
 
+test("unverified route and identity states stop qualification without becoming hard blocks", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    {
+      name: "Incomplete Early Lead",
+      symbol: "IEL",
+      chain: "base",
+      contractAddress: "0x0000000000000000000000000000000000000a33",
+      pairAddress: "0x0000000000000000000000000000000000000b33",
+      pipelineScore: 78,
+      liquidityUsd: 125_000,
+      riskScore: 12,
+      trapRiskScore: 8,
+      projectIdentityVerdict: "Identity Unverified",
+      proofOfAlphaExecutionTwinVerdict: "RESEARCH_ONLY_ROUTE_UNVERIFIED",
+      executionProof: {
+        executionStatus: "UNKNOWN",
+        buyRouteAvailable: false,
+      },
+      adversarialSimulationReview: {
+        status: "Block",
+      },
+    },
+  ]);
+
+  assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "INSUFFICIENT_DATA");
+  assert.equal(result.finalBlockingReasons.length, 0);
+  assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Identity state")));
+  assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Advisory signal: adversarialSimulationReview.status: Block")));
+});
+
+test("deterministic safety verdicts still hard block candidates", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      instantSafetyVerdict: "Honeypot detected",
+      riskScore: 10,
+      trapRiskScore: 8,
+    }),
+  ]);
+
+  assert.equal(result.finalSelectionQualified, false);
+  assert.equal(result.finalSelectionState, "BLOCKED");
+  assert.ok(result.finalBlockingReasons.some((reason) => reason.includes("Honeypot")));
+});
+
 test("identity conflict blocks final selection", () => {
   const [result] = analyzeFinalSelectionIntegrityBatch([
     qualifiedFixture({

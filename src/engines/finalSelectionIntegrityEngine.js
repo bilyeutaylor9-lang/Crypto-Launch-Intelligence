@@ -60,10 +60,8 @@ const HARD_FINAL_VERDICT_FIELDS = [
   "proofVerdict",
   "contractVerdict",
   "executionVerdict",
-  "proofOfAlphaExecutionTwinVerdict",
   "organicDemandVerdict",
   "identityVerdict",
-  "projectIdentityVerdict",
   "routeVerdict",
   "riskVerdict",
   "redTeamVerdict",
@@ -72,9 +70,18 @@ const HARD_FINAL_VERDICT_FIELDS = [
   "adversarialSimulationStatus",
 ];
 
+const HARD_FINAL_NESTED_VERDICT_PATHS = [
+  ["proofOfAlphaExecutionTwin", "quote", "blocker"],
+  ["proofOfAlphaExecutionTwin", "safety", "blockers"],
+  ["strongBuyEvidenceGate", "blockers"],
+  ["economicIntegrityBlockers"],
+];
+
 const ADVISORY_FINAL_VERDICT_FIELDS = [
   "aiDecision",
   "allocationBucket",
+  "proofOfAlphaExecutionTwinVerdict",
+  "projectIdentityVerdict",
   "sourceTruthVerdict",
   "discoveryDecisionVerdict",
   "alphaEvolutionGovernorVerdict",
@@ -83,6 +90,14 @@ const ADVISORY_FINAL_VERDICT_FIELDS = [
   "selfEvolvingAlphaOSDecision",
   "dossierSwarmDecision",
   "simulationDecision",
+];
+
+const ADVISORY_FINAL_NESTED_VERDICT_PATHS = [
+  ["redTeamReview", "status"],
+  ["adversarialSimulationReview", "status"],
+  ["smallCapHunter", "purchaseRoute", "status"],
+  ["proofOfAlphaExecutionTwin", "route", "status"],
+  ["alphaEvolutionGovernor", "blockers"],
 ];
 
 function num(value = 0) {
@@ -646,10 +661,13 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   const config = { ...DEFAULT_OPTIONS, ...options };
   const previousFlags = previousSelectionFlags(project);
   const wasSelectedEarlier = selectedEarlier(project, previousFlags);
-  const verdicts = inspectBlockingVerdicts(project, { verdictFields: HARD_FINAL_VERDICT_FIELDS });
+  const verdicts = inspectBlockingVerdicts(project, {
+    verdictFields: HARD_FINAL_VERDICT_FIELDS,
+    nestedPaths: HARD_FINAL_NESTED_VERDICT_PATHS,
+  });
   const advisoryVerdicts = inspectBlockingVerdicts(project, {
     verdictFields: ADVISORY_FINAL_VERDICT_FIELDS,
-    nestedPaths: [],
+    nestedPaths: ADVISORY_FINAL_NESTED_VERDICT_PATHS,
   });
   const identity = resolveFinalIdentity(project, collisionContext);
   const route = routeFrom(project);

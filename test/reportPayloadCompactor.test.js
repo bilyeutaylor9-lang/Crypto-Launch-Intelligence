@@ -17,6 +17,22 @@ test("report project compactor preserves ranking fields while bounding raw resea
       pipelineScore: 88,
       finalSelectionState: "RESEARCH_ONLY",
       finalBlockingReasons: Array.from({ length: 100 }, (_, index) => `block-${index}`),
+      quantumOutcomeField: {
+        scenarioCount: 4096,
+        expectedReturnPct: 12,
+        bestCaseReturnPct: 80,
+        baseCaseReturnPct: 14,
+        worstCaseReturnPct: -20,
+        positiveProbability: 62,
+        doubleProbability: 12,
+        collapseProbability: 8,
+      },
+      quantumReasoningBrain: {
+        score: 71,
+        decisionState: "Research Watch",
+        probabilities: { bull: 35, base: 40, bear: 20, blackSwan: 5 },
+        entropyScore: 34,
+      },
       rawProviderPayload: { payload: "x".repeat(500_000) },
       websiteText: "w".repeat(500_000),
       nestedGraph: {
@@ -33,6 +49,8 @@ test("report project compactor preserves ranking fields while bounding raw resea
   assert.equal(compacted.symbol, "HVY");
   assert.equal(compacted.pipelineScore, 88);
   assert.equal(compacted.finalSelectionState, "RESEARCH_ONLY");
+  assert.equal(compacted.quantumOutcomeField.scenarioCount, 4096);
+  assert.equal(compacted.quantumReasoningBrain.probabilities.bull, 35);
   assert.equal(compacted.rawProviderPayload.omittedFromReport, true);
   assert.equal(compacted.websiteText.omittedFromReport, true);
   assert.ok(compacted.finalBlockingReasons.length <= 11);

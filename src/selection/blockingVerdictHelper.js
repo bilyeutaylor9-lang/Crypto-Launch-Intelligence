@@ -8,8 +8,6 @@ export const BLOCKING_TERMS = [
   "reject",
   "rejected",
   "avoid",
-  "unavailable",
-  "unverified",
   "conflicted",
   "conflict",
   "failed",
@@ -17,6 +15,35 @@ export const BLOCKING_TERMS = [
   "honeypot",
   "scam",
   "rug",
+];
+
+const NON_BLOCKING_UNKNOWN_PATTERNS = [
+  /\bresearch only\b/,
+  /\broute unverified\b/,
+  /\bidentity unverified\b/,
+  /\bprovider unavailable\b/,
+  /\bfetch failed\b/,
+  /\bmissing api key\b/,
+  /\brate limit/,
+  /\bunknown\b/,
+  /\binsufficient\b/,
+  /\bnot verified\b/,
+  /\bunverified\b/,
+  /\bunavailable\b/,
+];
+
+const DETERMINISTIC_BLOCKING_PATTERNS = [
+  /\bhoneypot\b/,
+  /\bscam\b/,
+  /\brug\b/,
+  /\bunsafe\b/,
+  /\brisk heavy\b/,
+  /\bdefensive avoid\b/,
+  /\bconflict/,
+  /\bconflicted\b/,
+  /\bblock(?:ed)?\b/,
+  /\breject(?:ed)?\b/,
+  /\bavoid\b/,
 ];
 
 export const VERDICT_FIELDS = [
@@ -82,6 +109,12 @@ function flattenValues(value) {
 function blockingTermsFor(value = "") {
   const text = normalizeDecisionText(value);
   if (!text) return [];
+  if (
+    NON_BLOCKING_UNKNOWN_PATTERNS.some((pattern) => pattern.test(text)) &&
+    !DETERMINISTIC_BLOCKING_PATTERNS.some((pattern) => pattern.test(text))
+  ) {
+    return [];
+  }
 
   return BLOCKING_TERMS.filter((term) => text.includes(normalizeDecisionText(term)));
 }

@@ -73,6 +73,12 @@ const DECISION_FIELDS = [
   "sevenDayTenXSelected",
   "preBreakoutRadarScore",
   "preBreakoutRadarState",
+  "quantumOpportunityScore",
+  "quantumOutcomeField",
+  "quantumBrainScore",
+  "quantumReasoningBrain",
+  "quantumSuiteStatus",
+  "quantumSuiteHealth",
 ];
 
 const EVIDENCE_FIELDS = [
