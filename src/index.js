@@ -116,6 +116,31 @@ export function selectResearchQueue(projects = [], options = {}) {
   return planResearchQueue(projects, options).selected;
 }
 
+function buildPipelineStageSelection(plan = {}) {
+  return {
+    standard: plan.selected || [],
+    advanced: plan.advanced || [],
+    deep: plan.deep || [],
+    crawler: plan.crawler || [],
+    llama: plan.llama3 || [],
+    debate: plan.debate || [],
+    finalist: plan.finalists || [],
+  };
+}
+
+function summarizePipelineStageExecution(plan = {}) {
+  const selection = buildPipelineStageSelection(plan);
+  return {
+    enabled: true,
+    mode: "progressive-stage-execution",
+    stageCounts: Object.fromEntries(
+      Object.entries(selection).map(([stage, projects]) => [stage, Array.isArray(projects) ? projects.length : 0])
+    ),
+    policy:
+      "Discovery can target the full public universe; expensive intelligence runs only on the stage-selected candidates.",
+  };
+}
+
 function normalizeForReports(projects = []) {
   return [...projects]
     .map((project) => {
@@ -663,10 +688,13 @@ async function main() {
       `Local AI Mode: ${localAI.mode} | Inline Research: ${localAI.inline ? localAI.inlineLimit : 0} | Queue: ${localAI.queue ? "enabled" : "disabled"}`
     );
 
+    const pipelineStageExecution = summarizePipelineStageExecution(researchPlan);
     let pipelineResults = await runIntelligencePipeline(researchQueue, {
       saveMemory: true,
       freeOnly: discoveredProjects.freeMode?.enabled === true,
       localAI,
+      progressiveFunnel: true,
+      analysisFunnelSelection: buildPipelineStageSelection(researchPlan),
     });
 
     let results = normalizeForReports(pipelineResults);
@@ -706,8 +734,9 @@ async function main() {
       discovery: discoveredProjects,
       researchCoverage,
       analysisFunnel: researchPlan.report,
+      pipelineStageExecution,
       scannedProjects: results.length,
-      engineMode: "full",
+      engineMode: "progressive-stage-execution",
       scoringMode: "institutional-weighted-fallback",
       localAIMode: localAI.mode,
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),

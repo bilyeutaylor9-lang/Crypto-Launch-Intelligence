@@ -189,6 +189,134 @@ function clamp(value = 0, min = 0, max = 100) {
 const DEFAULT_PROJECT_ENGINE_RESULT_LIMIT = 200;
 const ENGINE_HEALTH_FAILURE_LIMIT = 50;
 const ENGINE_RESULT_WARNING_LIMIT = 3;
+const DEFAULT_ENGINE_TIMEOUT_MS = 15_000;
+const PIPELINE_STAGE_ORDER = [
+  "standard",
+  "advanced",
+  "deep",
+  "crawler",
+  "llama",
+  "debate",
+  "finalist",
+];
+
+const ENGINE_STAGE_OVERRIDES = {
+  "External Intelligence": "crawler",
+  "Web Research Agent": "crawler",
+  "Roadmap Catalyst Profit": "crawler",
+  "X Social Intelligence": "crawler",
+  "Live Catalyst Radar": "crawler",
+  "Project Dossier Swarm": "crawler",
+  "AI Research Commander": "crawler",
+  "Autonomous Alpha Investigator": "crawler",
+
+  "Whale Activity": "advanced",
+  "Smart Wallet": "advanced",
+  "Smart Wallet Performance": "advanced",
+  "Smart Money Accumulation": "advanced",
+  "Exchange Probability": "advanced",
+  "Catalysts": "advanced",
+  "Catalyst Calendar": "advanced",
+  "Funding Backers": "advanced",
+  "Partnerships": "advanced",
+  "Ecosystem Integration": "advanced",
+  "Institutional Learning": "advanced",
+  "Outcome Learning": "advanced",
+  "Pre-Pump Pattern Database": "advanced",
+  "Signal Combination Learning": "advanced",
+  "Quantum Outcome Field": "advanced",
+  "Outcome Calibration": "advanced",
+  "Narrative Heat Index": "advanced",
+  "AI Research Analyst": "advanced",
+  "Institutional vNext": "advanced",
+  "Source Truth": "advanced",
+  "GitHub Intelligence Pro": "advanced",
+  "Active Liquidity Truth": "advanced",
+  "Liquidity Control Risk": "advanced",
+  "Organic Buyer Classifier": "advanced",
+  "Deployer Reputation": "advanced",
+  "Wallet Cluster": "advanced",
+  "Bundled Launch": "advanced",
+  "Wash Trading": "advanced",
+  "Smart Wallet Arrival": "advanced",
+  "Buyer Retention": "advanced",
+  "Organic Buyer Firewall": "advanced",
+  "Contract Authority Risk": "advanced",
+  "Organic Demand Integrity": "advanced",
+  "Missed Winner Lab": "advanced",
+  "Project Change Detection": "advanced",
+  "Opportunity Proof": "advanced",
+  "Trap Risk": "advanced",
+  "Confidence-Adjusted Rank": "advanced",
+
+  "Canonical Execution Route": "deep",
+  "Execution Proof": "deep",
+  "Route Accessibility": "deep",
+  "Capital Flow Observation": "deep",
+  "Capital Flow Baseline": "deep",
+  "Capital Migration Core": "deep",
+  "Capital Rotation Map": "deep",
+  "Small Cap Hunter": "deep",
+  "Proof of Alpha Execution Twin": "deep",
+  "Quiet Accumulation": "deep",
+  "Pre-Breakout Momentum": "deep",
+  "Information Advantage": "deep",
+  "Attention Gap": "deep",
+  "Buyer Breadth Acceleration": "deep",
+  "Liquidity Formation": "deep",
+  "Smart Wallet Novelty": "deep",
+  "Developer Acceleration v2": "deep",
+  "Attention Gap v2": "deep",
+  "Pre-Breakout Sequence": "deep",
+  "Early Asymmetry Triage": "deep",
+  "Distressed Microcap Trap": "deep",
+  "Pre-Consensus Breakout Hunter": "deep",
+  "Evidence Lineage Governor": "deep",
+  "Pre-Breakout Radar": "deep",
+  "Sniper Outcome Labels": "deep",
+  "Sniper Point-in-Time Dataset": "deep",
+  "Sniper Lifecycle State": "deep",
+  "Sniper Evidence Families": "deep",
+  "Sniper Integrity Gate": "deep",
+  "Institutional Data Provenance": "deep",
+  "Engine Data Readiness": "deep",
+  "Data Starvation Root Cause": "deep",
+  "Value Of Information": "deep",
+  "Identity Rescue": "deep",
+  "Starvation Rescue": "deep",
+  "Research Readiness": "deep",
+  "First Seen Opportunity": "deep",
+  "Progressive Opportunity Ranking": "deep",
+  "Market Opportunity Rank": "deep",
+  "Market Opportunity Learning": "deep",
+  "7-Day Asymmetric Research": "deep",
+
+  "Research Operating System": "llama",
+  "Autonomous Alpha Lab": "llama",
+  "Quantum Reasoning Brain": "llama",
+  "Quantum Suite Health": "llama",
+  "World Model Brain": "llama",
+  "Autonomous Market Scientist": "llama",
+  "Self-Training Market Simulation Brain": "llama",
+  "Autonomous Outcome Judge": "llama",
+  "Autonomous Research Orchestrator": "llama",
+  "Self-Evolving Alpha OS": "llama",
+  "Autonomous Alpha Knowledge Graph": "llama",
+  "Causal Market Twin": "llama",
+
+  "AI Ecosystem Council": "debate",
+  "AI Portfolio War Room": "debate",
+  "Autonomous Strategy Lab": "debate",
+  "Causal Alpha Brain": "debate",
+  "Autonomous Alpha OS": "debate",
+  "Paper Trading Outcome Lab": "debate",
+  "Auto-Learning Weight Optimizer": "debate",
+  "Breakout Brain": "debate",
+  "High-Tech Alpha Stack": "debate",
+  "Proof-Carrying Alpha Contract": "debate",
+  "Autonomous Causal Alpha Network": "debate",
+  "Alpha Evolution Governor": "debate",
+};
 
 function configuredPositiveInteger(envName = "", fallback = 0) {
   const configured = Math.floor(num(process.env[envName]));
@@ -226,7 +354,8 @@ function engineTimeoutMs(name = "", options = {}) {
   const global = num(process.env.ENGINE_TIMEOUT_MS);
   if (global > 0) return global;
 
-  return 0;
+  const fallback = num(process.env.DEFAULT_ENGINE_TIMEOUT_MS || DEFAULT_ENGINE_TIMEOUT_MS);
+  return fallback > 0 ? fallback : DEFAULT_ENGINE_TIMEOUT_MS;
 }
 
 function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
@@ -240,6 +369,199 @@ function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
   });
 
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
+function pipelineStageForEngine(name = "") {
+  return ENGINE_STAGE_OVERRIDES[name] || "standard";
+}
+
+function compactStageName(stage = "") {
+  if (stage === "llama3" || stage === "localAI" || stage === "localAi") return "llama";
+  if (stage === "finalists") return "finalist";
+  return PIPELINE_STAGE_ORDER.includes(stage) ? stage : "standard";
+}
+
+function stageSelectionList(selections = {}, stage = "") {
+  const normalized = compactStageName(stage);
+  if (Array.isArray(selections[normalized])) return selections[normalized];
+  if (normalized === "llama" && Array.isArray(selections.llama3)) return selections.llama3;
+  if (normalized === "llama" && Array.isArray(selections.localAI)) return selections.localAI;
+  if (normalized === "finalist" && Array.isArray(selections.finalists)) return selections.finalists;
+  return [];
+}
+
+function projectStageIdentityKey(project = {}, index = 0) {
+  const chain = String(project.chain || project.canonicalChain || project.network || project.chainId || "unknown").toLowerCase();
+  const address = String(
+    project.canonicalAddress ||
+      project.tokenAddress ||
+      project.contractAddress ||
+      project.address ||
+      ""
+  ).toLowerCase();
+  const pool = String(project.poolAddress || project.pairAddress || project.marketAddress || "").toLowerCase();
+  const symbol = String(project.symbol || project.ticker || project.canonicalSymbol || "").toUpperCase();
+  const name = String(project.name || project.canonicalName || "").toLowerCase();
+  const direct = [
+    project.standardSelectionIdentityKey,
+    project.canonicalProjectId,
+    project.permanentProjectKey,
+    project.identityKey,
+    project.projectId,
+    address ? `${chain}:token:${address}` : "",
+    pool ? `${chain}:pool:${pool}` : "",
+    symbol || name ? `${chain}:symbol:${symbol}:name:${name}` : "",
+  ].find((value) => String(value || "").trim());
+
+  return String(direct || `index:${index}`);
+}
+
+function buildStageKeySet(projects = []) {
+  return new Set((Array.isArray(projects) ? projects : []).map(projectStageIdentityKey));
+}
+
+function buildStageMetadata(selections = {}) {
+  const metadata = new Map();
+  const remember = (project = {}, index = 0, stage = "standard") => {
+    const key = projectStageIdentityKey(project, index);
+    const current = metadata.get(key) || {
+      progressivePipelineStages: [],
+      progressivePipelineStageRanks: {},
+      progressivePipelineStageLanes: {},
+    };
+    if (!current.progressivePipelineStages.includes(stage)) {
+      current.progressivePipelineStages.push(stage);
+    }
+    const rank = project[`${stage}SelectionRank`] || (stage === "standard" ? project.standardSelectionRank : null) || index + 1;
+    const lane = project[`${stage}SelectionLane`] || (stage === "standard" ? project.standardSelectionLane : null) || "";
+    current.progressivePipelineStageRanks[stage] = rank;
+    if (lane) current.progressivePipelineStageLanes[stage] = lane;
+    current[`${stage}SelectionState`] = project[`${stage}SelectionState`] || "SELECTED";
+    current[`${stage}SelectionRank`] = rank;
+    if (lane) current[`${stage}SelectionLane`] = lane;
+    if (project[`${stage}SelectionScore`] !== undefined) {
+      current[`${stage}SelectionScore`] = project[`${stage}SelectionScore`];
+    }
+    metadata.set(key, current);
+  };
+
+  for (const stage of PIPELINE_STAGE_ORDER) {
+    stageSelectionList(selections, stage).forEach((project, index) => remember(project, index, stage));
+  }
+
+  return metadata;
+}
+
+export function buildProgressivePipelineStageContext(options = {}, projects = []) {
+  const enabled =
+    options.progressiveFunnel === true ||
+    options.progressivePipeline === true ||
+    process.env.PROGRESSIVE_PIPELINE_EXECUTION === "true";
+  if (!enabled) {
+    return {
+      enabled: false,
+      stageSets: null,
+      metadataByKey: new Map(),
+      report: { enabled: false },
+    };
+  }
+
+  const selections = options.analysisFunnelSelection || options.funnelStages || {};
+  const stageSets = {};
+  for (const stage of PIPELINE_STAGE_ORDER) {
+    const list = stage === "standard" ? projects : stageSelectionList(selections, stage);
+    stageSets[stage] = stage === "standard" ? buildStageKeySet(projects) : buildStageKeySet(list);
+  }
+
+  const metadataByKey = buildStageMetadata({
+    standard: projects,
+    ...selections,
+  });
+
+  const stageCounts = Object.fromEntries(
+    PIPELINE_STAGE_ORDER.map((stage) => [stage, stageSets[stage]?.size || 0])
+  );
+
+  return {
+    enabled: true,
+    stageSets,
+    metadataByKey,
+    report: {
+      enabled: true,
+      mode: "progressive-stage-execution",
+      stageCounts,
+      policy:
+        "Standard engines run on the broad queue; expensive web, AI, execution, sniper, and debate engines run only on their selected funnel stages.",
+    },
+  };
+}
+
+function attachProgressiveStageMetadata(projects = [], context = {}) {
+  if (!context.enabled || !(context.metadataByKey instanceof Map)) return projects;
+  return (Array.isArray(projects) ? projects : []).map((project, index) => ({
+    ...project,
+    ...(context.metadataByKey.get(projectStageIdentityKey(project, index)) || {}),
+  }));
+}
+
+function mergeStageResults(allProjects = [], stageResults = []) {
+  const byKey = new Map();
+  (Array.isArray(stageResults) ? stageResults : []).forEach((project, index) => {
+    byKey.set(projectStageIdentityKey(project, index), project);
+  });
+
+  return (Array.isArray(allProjects) ? allProjects : []).map((project, index) => {
+    const key = projectStageIdentityKey(project, index);
+    return byKey.get(key) || project;
+  });
+}
+
+export async function runStagedPipelineEngine(
+  name,
+  engine,
+  projects = [],
+  engineOptions = {},
+  stage = "standard",
+  context = {}
+) {
+  const safeProjects = Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []);
+  const normalizedStage = compactStageName(stage);
+  if (!context.enabled || normalizedStage === "standard") {
+    return runEngine(name, engine, safeProjects, engineOptions);
+  }
+
+  const stageSet = context.stageSets?.[normalizedStage] || new Set();
+  const stageProjects = safeProjects.filter((project, index) =>
+    stageSet.has(projectStageIdentityKey(project, index))
+  );
+  if (!stageProjects.length) {
+    console.log(`Skipping ${name}: no ${normalizedStage} stage projects selected.`);
+    return safeProjects;
+  }
+
+  console.log(
+    `Progressive Stage: ${normalizedStage} | ${name} on ${stageProjects.length}/${safeProjects.length} projects`
+  );
+  const staged = await runEngine(name, engine, stageProjects, engineOptions);
+  return mergeStageResults(safeProjects, staged);
+}
+
+async function runLocalAIResearchPipelineStage(projects = [], options = {}, context = {}) {
+  if (!context.enabled) return runLocalAIResearchStage(projects, options);
+  const stageSet = context.stageSets?.llama || new Set();
+  const stageProjects = projects.filter((project, index) =>
+    stageSet.has(projectStageIdentityKey(project, index))
+  );
+  if (!stageProjects.length) {
+    console.log("Skipping Local AI research queue: no llama stage projects selected.");
+    return projects;
+  }
+
+  console.log(
+    `Progressive Stage: llama | Local AI research queue on ${stageProjects.length}/${projects.length} projects`
+  );
+  const staged = await runLocalAIResearchStage(stageProjects, options);
+  return mergeStageResults(projects, staged);
 }
 
 const REQUIRED_ENGINE_NAMES = new Set([
@@ -1933,6 +2255,23 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   let results = Array.isArray(projects)
     ? [...projects]
     : normalizeEngineOutput(projects, []);
+  const stageContext = buildProgressivePipelineStageContext(options, results);
+  results = attachProgressiveStageMetadata(results, stageContext);
+  if (stageContext.enabled) {
+    console.log(
+      `Progressive pipeline execution enabled: standard=${stageContext.report.stageCounts.standard}, advanced=${stageContext.report.stageCounts.advanced}, deep=${stageContext.report.stageCounts.deep}, crawler=${stageContext.report.stageCounts.crawler}, llama=${stageContext.report.stageCounts.llama}, debate=${stageContext.report.stageCounts.debate}, finalist=${stageContext.report.stageCounts.finalist}`
+    );
+  }
+  const runPipelineEngine = (name, engine, currentProjects, engineOptions = {}) =>
+    runStagedPipelineEngine(
+      name,
+      engine,
+      currentProjects,
+      engineOptions,
+      pipelineStageForEngine(name),
+      stageContext
+    );
+  const runEngine = runPipelineEngine;
 
   results = await runEngine("Rich Token Intelligence", analyzeRichTokenIntelligenceBatch, results);
   results = await runEngine("Narrative Intelligence", analyzeNarratives, results);
@@ -2023,7 +2362,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
 
   // Deterministic identity, liquidity, demand, wallet, and safety checks must
   // complete before local research can contribute its bounded evidence adjustment.
-  results = await runLocalAIResearchStage(results, options);
+  results = await runLocalAIResearchPipelineStage(results, options, stageContext);
   results = await runEngine("Final Scoring", addFinalScoring, results);
   results = await runEngine("Project Change Detection", analyzeProjectChangeBatch, results);
   results = await runEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
