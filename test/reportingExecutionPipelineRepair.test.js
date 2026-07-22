@@ -42,6 +42,7 @@ import { writeExactOutcomeLabReport } from "../src/reports/exactOutcomeLabReport
 import { writeMathematicalValidationReport } from "../src/reports/mathematicalValidationReportEngine.js";
 import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilityReportEngine.js";
 import { writeAdvertisedCategoryCoverageReport } from "../src/reports/advertisedCategoryCoverageReportEngine.js";
+import { writeCrawlerReports } from "../src/reports/webCrawlerReportEngine.js";
 import {
   REQUIRED_REPORT_FILES,
   validateReportContracts,
@@ -373,6 +374,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeMathematicalValidationReport();
   writeRouteAccessibilityReports(processed);
   writeAdvertisedCategoryCoverageReport(processed);
+  writeCrawlerReports(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);

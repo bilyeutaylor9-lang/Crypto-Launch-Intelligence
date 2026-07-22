@@ -68,6 +68,7 @@ import { writeMissedWinnerReplayReport } from "./missedWinnerReplayReportEngine.
 import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
 import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 import { writeAdvertisedCategoryCoverageReport } from "./advertisedCategoryCoverageReportEngine.js";
+import { writeCrawlerReports } from "./webCrawlerReportEngine.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -302,6 +303,10 @@ export function generateReports(projects = [], meta = {}) {
     filePath: advertisedCategoryCoveragePath,
   } = writeAdvertisedCategoryCoverageReport(projects, meta);
   const {
+    healthPath: crawlerHealthPath,
+    markdownPath: crawlerHealthMarkdownPath,
+  } = writeCrawlerReports(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -452,6 +457,8 @@ export function generateReports(projects = [], meta = {}) {
     rejectedAliasCandidatesPath,
     aliasStarvationRecoveriesPath,
     advertisedCategoryCoveragePath,
+    crawlerHealthPath,
+    crawlerHealthMarkdownPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
