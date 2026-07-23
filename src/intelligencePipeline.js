@@ -155,6 +155,7 @@ import { analyzeDeveloperAccelerationV2Batch } from "./engines/developerAccelera
 import { analyzeIdentityRescueBatch } from "./engines/identityRescueEngine.js";
 import { analyzeResearchReadinessBatch } from "./engines/researchReadinessEngine.js";
 import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunityEngine.js";
+import { analyzeUtilityQualityBatch } from "./engines/utilityQualityEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 
@@ -2443,6 +2444,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     ...(options.firstSeenOpportunity || {}),
     meta: options.meta || {},
   });
+  results = await runEngine("Utility Quality", analyzeUtilityQualityBatch, results, options.utilityQuality || {});
   results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
   results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
   results = await runEngine("Market Opportunity Learning", analyzeMarketOpportunityLearningBatch, results, {

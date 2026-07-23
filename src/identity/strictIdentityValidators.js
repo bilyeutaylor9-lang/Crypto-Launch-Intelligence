@@ -1,33 +1,10 @@
-export const SUPPORTED_CHAIN_REGISTRY = Object.freeze({
-  ethereum: { chainId: 1, kind: "evm", name: "Ethereum" },
-  base: { chainId: 8453, kind: "evm", name: "Base" },
-  bsc: { chainId: 56, kind: "evm", name: "BNB Smart Chain" },
-  arbitrum: { chainId: 42161, kind: "evm", name: "Arbitrum" },
-  polygon: { chainId: 137, kind: "evm", name: "Polygon" },
-  optimism: { chainId: 10, kind: "evm", name: "Optimism" },
-  avalanche: { chainId: 43114, kind: "evm", name: "Avalanche" },
-  solana: { chainId: 101, kind: "solana", name: "Solana" },
-  sui: { chainId: "sui", kind: "sui", name: "Sui" },
-  ton: { chainId: "ton", kind: "ton", name: "TON" },
-  cosmos: { chainId: "cosmos", kind: "cosmos", name: "Cosmos" },
-  aptos: { chainId: "aptos", kind: "aptos", name: "Aptos" },
-  sei: { chainId: "sei", kind: "cosmos", name: "Sei" },
-  osmosis: { chainId: "osmosis-1", kind: "cosmos", name: "Osmosis" },
-  tron: { chainId: "tron", kind: "tron", name: "Tron" },
-  near: { chainId: "near", kind: "near", name: "Near" },
-  fantom: { chainId: 250, kind: "evm", name: "Fantom" },
-  linea: { chainId: 59144, kind: "evm", name: "Linea" },
-  scroll: { chainId: 534352, kind: "evm", name: "Scroll" },
-  zksync: { chainId: 324, kind: "evm", name: "zkSync Era" },
-  mantle: { chainId: 5000, kind: "evm", name: "Mantle" },
-  blast: { chainId: 81457, kind: "evm", name: "Blast" },
-  ronin: { chainId: 2020, kind: "evm", name: "Ronin" },
-  mode: { chainId: 34443, kind: "evm", name: "Mode" },
-  berachain: { chainId: 80094, kind: "evm", name: "Berachain" },
-  sonic: { chainId: 146, kind: "evm", name: "Sonic" },
-  hyperliquid: { chainId: "hyperliquid", kind: "hyperliquid", name: "Hyperliquid" },
-  "robinhood-chain": { chainId: "robinhood-chain", kind: "evm", name: "Robinhood Chain" },
-});
+import {
+  CHAIN_ALIASES,
+  SUPPORTED_CHAIN_REGISTRY,
+  normalizeChainAliasKey,
+} from "../data/chainAliasRegistry.js";
+
+export { SUPPORTED_CHAIN_REGISTRY };
 
 export const REJECTED_CHAIN_VALUES = new Set([
   "artificial-intelligence",
@@ -50,122 +27,9 @@ export const REJECTED_CHAIN_VALUES = new Set([
   "real-world-assets-rwa",
   "research",
   "research-seed",
-  "robinhood",
   "top-volume",
   "trending",
 ]);
-
-const CHAIN_ALIASES = Object.freeze({
-  "1": "ethereum",
-  "0x1": "ethereum",
-  "eip155-1": "ethereum",
-  eth: "ethereum",
-  ethereum: "ethereum",
-  "ethereum-mainnet": "ethereum",
-  mainnet: "ethereum",
-  "8453": "base",
-  "0x2105": "base",
-  "eip155-8453": "base",
-  base: "base",
-  "base-mainnet": "base",
-  "coinbase-l2": "base",
-  "coinbase-layer-2": "base",
-  "56": "bsc",
-  "0x38": "bsc",
-  "eip155-56": "bsc",
-  bnb: "bsc",
-  "bnb-chain": "bsc",
-  "bnb-smart-chain": "bsc",
-  "binance-smart-chain": "bsc",
-  "smart-chain": "bsc",
-  bep20: "bsc",
-  bsc: "bsc",
-  "42161": "arbitrum",
-  "0xa4b1": "arbitrum",
-  "eip155-42161": "arbitrum",
-  arb: "arbitrum",
-  "arbitrum-one": "arbitrum",
-  arbitrum: "arbitrum",
-  "137": "polygon",
-  "0x89": "polygon",
-  "eip155-137": "polygon",
-  matic: "polygon",
-  "polygon-pos": "polygon",
-  polygon: "polygon",
-  "10": "optimism",
-  "0xa": "optimism",
-  "eip155-10": "optimism",
-  op: "optimism",
-  "op-mainnet": "optimism",
-  optimism: "optimism",
-  "43114": "avalanche",
-  "0xa86a": "avalanche",
-  "eip155-43114": "avalanche",
-  avax: "avalanche",
-  "avax-c": "avalanche",
-  avalanche: "avalanche",
-  "avalanche-c": "avalanche",
-  "avalanche-c-chain": "avalanche",
-  "101": "solana",
-  sol: "solana",
-  solana: "solana",
-  "solana-mainnet": "solana",
-  "solana-mainnet-beta": "solana",
-  "mainnet-beta": "solana",
-  sui: "sui",
-  "sui-mainnet": "sui",
-  "sui-network": "sui",
-  ton: "ton",
-  "ton-mainnet": "ton",
-  "the-open-network": "ton",
-  aptos: "aptos",
-  "aptos-mainnet": "aptos",
-  sei: "sei",
-  "sei-mainnet": "sei",
-  "sei-network": "sei",
-  cosmos: "cosmos",
-  cosmoshub: "cosmos",
-  "cosmos-hub": "cosmos",
-  "cosmoshub-4": "cosmos",
-  osmosis: "cosmos",
-  osmo: "cosmos",
-  "osmosis-1": "cosmos",
-  tron: "tron",
-  trx: "tron",
-  "tron-mainnet": "tron",
-  trc20: "tron",
-  near: "near",
-  "near-protocol": "near",
-  "near-mainnet": "near",
-  ftm: "fantom",
-  fantom: "fantom",
-  opera: "fantom",
-  "fantom-opera": "fantom",
-  linea: "linea",
-  "linea-mainnet": "linea",
-  scroll: "scroll",
-  "scroll-mainnet": "scroll",
-  zksync: "zksync",
-  "zksync-era": "zksync",
-  mantle: "mantle",
-  "mantle-mainnet": "mantle",
-  blast: "blast",
-  "blast-mainnet": "blast",
-  ronin: "ronin",
-  "ronin-mainnet": "ronin",
-  mode: "mode",
-  "mode-network": "mode",
-  berachain: "berachain",
-  bera: "berachain",
-  "berachain-mainnet": "berachain",
-  sonic: "sonic",
-  "sonic-mainnet": "sonic",
-  "fantom-sonic": "sonic",
-  hyperliquid: "hyperliquid",
-  "hyperliquid-l1": "hyperliquid",
-  "robinhood-chain": "robinhood-chain",
-  "robinhood-l2": "robinhood-chain",
-});
 
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]+$/;
 const EVM_RE = /^0x[a-fA-F0-9]{40}$/;
@@ -198,11 +62,7 @@ function clean(value = "") {
 }
 
 function chainKey(value = "") {
-  return clean(value)
-    .toLowerCase()
-    .replace(/[_\s]+/g, "-")
-    .replace(/[^a-z0-9-]+/g, "")
-    .replace(/^-+|-+$/g, "");
+  return normalizeChainAliasKey(value);
 }
 
 export function normalizeChainId(value = "") {
@@ -411,4 +271,44 @@ export function addressRejectionReason(value = "", role = "address", chain = nul
   const normalizedChain = normalizeChainId(chain);
   if (normalizedChain) return `Rejected ${role}: invalid ${normalizedChain} address "${raw}".`;
   return `Rejected ${role}: invalid or unsupported address "${raw}".`;
+}
+
+export function summarizeUnknownChainValues(projects = []) {
+  const unknown = new Map();
+
+  for (const project of Array.isArray(projects) ? projects : []) {
+    const raw =
+      project.chainId ||
+      project.chain ||
+      project.network ||
+      project.rawCandidate?.chain ||
+      "";
+    if (!raw || normalizeChainId(raw)) continue;
+
+    const key = clean(raw);
+    if (!key) continue;
+    const current = unknown.get(key) || {
+      rawValue: key,
+      count: 0,
+      providers: new Set(),
+      examples: [],
+    };
+    current.count += 1;
+    current.providers.add(project.source || project.provider || project.discoverySource || "unknown");
+    if (current.examples.length < 5) {
+      current.examples.push({
+        name: project.name || null,
+        symbol: project.symbol || null,
+        contract: project.contractAddress || project.tokenAddress || project.address || null,
+      });
+    }
+    unknown.set(key, current);
+  }
+
+  return [...unknown.values()]
+    .map((entry) => ({
+      ...entry,
+      providers: [...entry.providers],
+    }))
+    .sort((a, b) => b.count - a.count);
 }

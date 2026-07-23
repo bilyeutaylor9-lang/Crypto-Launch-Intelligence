@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  CHAIN_ALIAS_GROUPS,
+  SUPPORTED_CHAIN_REGISTRY,
+} from "../src/data/chainAliasRegistry.js";
+import {
   addressRejectionReason,
   isValidCosmosAddress,
   isValidEvmAddress,
@@ -10,6 +14,7 @@ import {
   isValidTonAddress,
   normalizeChainId,
   normalizePoolAddress,
+  summarizeUnknownChainValues,
   normalizeTokenAddress,
 } from "../src/identity/strictIdentityValidators.js";
 
@@ -26,13 +31,58 @@ test("strict chain registry normalizes only supported chain aliases", () => {
   assert.equal(normalizeChainId("SOL"), "solana");
   assert.equal(normalizeChainId("sui-network"), "sui");
   assert.equal(normalizeChainId("the-open-network"), "ton");
-  assert.equal(normalizeChainId("osmosis"), "cosmos");
+  assert.equal(normalizeChainId("osmosis"), "osmosis");
 
   assert.equal(normalizeChainId("gaming"), null);
   assert.equal(normalizeChainId("depin"), null);
   assert.equal(normalizeChainId("coinbase"), null);
   assert.equal(normalizeChainId("google-news"), null);
   assert.equal(normalizeChainId("made-up-chain"), null);
+});
+
+test("extensive chain aliases normalize centrally", () => {
+  for (const [canonical, aliases] of Object.entries(CHAIN_ALIAS_GROUPS)) {
+    for (const alias of aliases) {
+      assert.equal(normalizeChainId(alias), canonical, `${alias} should normalize to ${canonical}`);
+    }
+  }
+
+  for (const canonical of Object.keys(SUPPORTED_CHAIN_REGISTRY)) {
+    assert.equal(normalizeChainId(canonical), canonical);
+  }
+});
+
+test("Robinhood Chain and Osmosis stay distinct from provider/category vocabulary", () => {
+  assert.equal(normalizeChainId("robinhood"), "robinhood-chain");
+  assert.equal(normalizeChainId("Robinhood Chain"), "robinhood-chain");
+  assert.equal(normalizeChainId("rhchain"), "robinhood-chain");
+  assert.equal(normalizeChainId("osmosis"), "osmosis");
+  assert.equal(normalizeChainId("osmo"), "osmosis");
+  assert.equal(normalizeChainId("osmosis-1"), "osmosis");
+  assert.equal(normalizeChainId("cosmoshub-4"), "cosmos");
+  assert.equal(normalizeChainId("eip155:1"), "ethereum");
+  assert.equal(normalizeChainId("eip155:8453"), "base");
+  assert.equal(normalizeChainId("eip155:42161"), "arbitrum");
+  assert.equal(normalizeChainId("coinbase"), null);
+  assert.equal(normalizeChainId("binance"), null);
+  assert.equal(normalizeChainId("bitget"), null);
+  assert.equal(normalizeChainId("dexscreener"), null);
+  assert.equal(normalizeChainId("github"), null);
+  assert.equal(normalizeChainId("trending"), null);
+  assert.equal(normalizeChainId("totally-made-up-network"), null);
+});
+
+test("unknown chain values are audited for review instead of guessed", () => {
+  const unknown = summarizeUnknownChainValues([
+    { name: "One", symbol: "ONE", chain: "provider-new-chain-name", source: "geckoterminal" },
+    { name: "Two", symbol: "TWO", network: "provider-new-chain-name", provider: "dexscreener" },
+    { name: "Known", symbol: "OSMO", chain: "osmosis", source: "geckoterminal" },
+  ]);
+
+  assert.equal(unknown.length, 1);
+  assert.equal(unknown[0].rawValue, "provider-new-chain-name");
+  assert.equal(unknown[0].count, 2);
+  assert.deepEqual(unknown[0].providers.sort(), ["dexscreener", "geckoterminal"]);
 });
 
 test("address validators reject provider IDs, URLs, tickers, and wrong-chain addresses", () => {

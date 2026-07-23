@@ -129,6 +129,7 @@ const PUBLIC_REPORTS = [
   "alias-starvation-recoveries.json",
   "crawler-health.json",
   "crawler-health.md",
+  "real-utility-opportunities.json",
   "web-crawler-preimplementation-audit.json",
   "web-crawler-preimplementation-audit.md",
 ];
@@ -231,6 +232,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const unresolvedVerbiage = readJsonReport("unresolved-field-verbiage.json", reportsDir) || {};
   const advertisedCategoryCoverage = readJsonReport("advertised-category-coverage.json", reportsDir) || {};
   const crawlerHealth = readJsonReport("crawler-health.json", reportsDir) || {};
+  const utilityQuality = readJsonReport("real-utility-opportunities.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -293,6 +295,9 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Crawler Seeds", crawlerHealth.seedUrlsDiscovered ?? 0],
     ["Crawler Rejected", crawlerHealth.seedUrlsRejected ?? 0],
     ["Crawler Evidence", crawlerHealth.evidenceRecords ?? 0],
+    ["Real Utility", utilityQuality.realUtilityQualifiedCount ?? 0],
+    ["Utility Lead", utilityQuality.topRealUtilityResearch?.[0]?.symbol || "NO UTILITY LEAD"],
+    ["Meme Speculative", utilityQuality.memeSpeculationCount ?? 0],
     [
       "Category Lead",
       advertisedCategoryCoverage.categories?.find((category) => category.displayedResults?.length)

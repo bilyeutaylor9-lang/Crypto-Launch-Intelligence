@@ -63,6 +63,7 @@
     "crawler:url": "node src/crawler/cli.js --mode url",
     "crawler:health": "node src/crawler/cli.js --mode health",
     "crawler:test": "node --test test/crawlerCore.test.js",
+    "utility:report": "cat reports/real-utility-opportunities.json",
     "quantum:health": "cat reports/quantum-suite-health.json",
     "routes:debug": "cat reports/debug-execution-proof.json",
     "route:universe": "cat reports/route-universe.json",

@@ -341,6 +341,7 @@ function executionComponents(project = {}, hardBlockers = [], tradeSizeChecks = 
 }
 
 function opportunityComponents(project = {}) {
+  const utilityQuality = utilityQualityComponent(project);
   return {
     momentumAcceleration: weightedAvailable([
       { score: project.accelerationScore, weight: 1.2 },
@@ -390,6 +391,7 @@ function opportunityComponents(project = {}) {
       { score: project.roadmapCatalystProfitScore, weight: 0.9 },
       { score: project.exchangeProbabilityScore, weight: 0.6 },
     ]),
+    utilityQuality,
     developerCommunityChange: weightedAvailable([
       { score: project.developerActivityScore ?? project.developerScore, weight: 1.0 },
       { score: project.githubProScore ?? project.githubQualityScore ?? project.githubScore, weight: 0.9 },
@@ -404,6 +406,36 @@ function opportunityComponents(project = {}) {
       { score: project.preConsensusOpportunityScore, weight: 0.9 },
     ]),
   };
+}
+
+function utilityQualityComponent(project = {}) {
+  const explicitUtilityClassification = clean(project.utilityClassification);
+  const utilityFields = [
+    project.utilityQualityScore,
+    project.realUtilityScore,
+    project.infrastructureNarrativeScore,
+    project.ecosystemIntegrationScore,
+    project.tokenUtilityScore,
+    project.tokenomicsScore,
+  ];
+  const hasPositiveUtilityEvidence = utilityFields.some((value) => Number.isFinite(Number(value)) && Number(value) > 0);
+  const hasExplicitUtilityReview = [
+    "REAL_UTILITY",
+    "UTILITY_RESEARCH",
+    "MIXED_MEME_UTILITY",
+    "UTILITY_BLOCKED_BY_SAFETY",
+  ].includes(explicitUtilityClassification);
+
+  if (!hasPositiveUtilityEvidence && !hasExplicitUtilityReview) return undefined;
+
+  return weightedAvailable([
+    { score: project.utilityQualityScore, weight: 1.2 },
+    { score: project.realUtilityScore, weight: 1.0 },
+    { score: project.infrastructureNarrativeScore, weight: 0.8 },
+    { score: project.ecosystemIntegrationScore, weight: 0.8 },
+    { score: project.tokenUtilityScore, weight: 0.8 },
+    { score: project.tokenomicsScore, weight: 0.6 },
+  ]);
 }
 
 function trustComponents(project = {}) {
@@ -546,6 +578,7 @@ function buildWhyNowSignals(project = {}, components = {}) {
   add("Holder/buyer growth", components.holderBuyerGrowth, "Holder, buyer, retention, or community growth is improving.");
   add("Narrative acceleration", components.narrativeAcceleration, "Narrative heat, social acceleration, or sector momentum is rising.");
   add("Catalyst proximity", components.catalystProximity, "A catalyst or roadmap event is close enough to monitor.");
+  add("Real utility evidence", components.utilityQuality, "Product, developer, adoption, token utility, or source-backed catalyst evidence is improving.");
   add("Developer/community change", components.developerCommunityChange, "Builder or community activity changed meaningfully.");
   add("Relative strength", components.relativeMarketStrength, "Relative strength or breakout pressure beats nearby alternatives.");
 
@@ -911,8 +944,9 @@ function laneFor({ tier, gateTrace, opportunityScore, trustScore, executionScore
   return LANES.EMERGING_RESEARCH;
 }
 
-function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute, finalQualified = false }) {
+function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute, finalQualified = false, memeOnlySpeculative = false }) {
   if (hardBlockers.length) return TIERS.BLOCKED;
+  if (memeOnlySpeculative && opportunityScore >= 62) return TIERS.SPECULATIVE_SIGNAL;
   if (finalQualified && opportunityScore >= 80 && trustScore >= 75 && executionScore >= 70 && hasRoute) return TIERS.SNIPER_READY;
   if (opportunityScore >= 77 && trustScore >= 60 && executionScore >= 45) return TIERS.EARLY_HIGH_CONVICTION;
   if (opportunityScore >= 70 && trustScore >= 40) return TIERS.EMERGING_RADAR;
@@ -940,10 +974,11 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
       smartWalletArrival: 15,
       buyPressureAcceleration: 10,
       holderBuyerGrowth: 10,
-      narrativeAcceleration: 10,
+      narrativeAcceleration: 6,
       catalystProximity: 10,
-      developerCommunityChange: 5,
-      relativeMarketStrength: 5,
+      utilityQuality: 10,
+      developerCommunityChange: 7,
+      relativeMarketStrength: 4,
     },
     null
   );
@@ -984,6 +1019,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     hardBlockers,
     routeVerified: hasRoute,
     finalQualified: project.finalSelectionQualified === true || project.finalSelectionState === "QUALIFIED",
+    memeOnlySpeculative: project.memeOnlySpeculative === true,
   });
   const opportunityCoverage = scoreCoverage(opp);
   const trustCoverage = scoreCoverage(trust);
@@ -1094,6 +1130,10 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     opportunityConfidence: confidenceFor(opportunityScore, trustScore, executionScore, evidenceCoverage, hardBlockers),
     opportunityEvidenceCoverage: evidenceCoverage,
     opportunityScoreComponents: opp,
+    utilityQualityScore: project.utilityQualityScore || 0,
+    utilityClassification: project.utilityClassification || "UNKNOWN_UTILITY",
+    realUtilityQualified: Boolean(project.realUtilityQualified),
+    memeOnlySpeculative: Boolean(project.memeOnlySpeculative),
     trustScoreComponents: trust,
     opportunityWhyNowSignals: buildWhyNowSignals(project, opp),
     missingEvidence,

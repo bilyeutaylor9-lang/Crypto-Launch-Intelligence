@@ -1,13 +1,17 @@
 import fs from "fs";
 import path from "path";
 import { summarizeEngineDataReadiness } from "../engines/engineDataReadinessEngine.js";
+import { summarizeUnknownChainValues } from "../identity/strictIdentityValidators.js";
 
 export function writeEngineDataReadinessReport(projects = []) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
+  const unknownChainAliases = summarizeUnknownChainValues(projects);
   const report = {
     ...summarizeEngineDataReadiness(projects),
+    unknownChainAliasCount: unknownChainAliases.length,
+    unknownChainAliases,
     disclaimer:
       "Data readiness is an input-coverage audit. It does not qualify a project, predict performance, or provide financial advice.",
   };

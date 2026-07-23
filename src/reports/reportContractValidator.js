@@ -44,6 +44,7 @@ export const REQUIRED_REPORT_FILES = [
   "alias-starvation-recoveries.json",
   "advertised-category-coverage.json",
   "crawler-health.json",
+  "real-utility-opportunities.json",
   "institutional-ranking.json",
 ];
 

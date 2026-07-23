@@ -69,6 +69,7 @@ import { writeEarlyAsymmetryReport } from "./earlyAsymmetryReportEngine.js";
 import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 import { writeAdvertisedCategoryCoverageReport } from "./advertisedCategoryCoverageReportEngine.js";
 import { writeCrawlerReports } from "./webCrawlerReportEngine.js";
+import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -307,6 +308,9 @@ export function generateReports(projects = [], meta = {}) {
     markdownPath: crawlerHealthMarkdownPath,
   } = writeCrawlerReports(projects, meta);
   const {
+    filePath: utilityQualityPath,
+  } = writeUtilityQualityReport(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -459,6 +463,7 @@ export function generateReports(projects = [], meta = {}) {
     advertisedCategoryCoveragePath,
     crawlerHealthPath,
     crawlerHealthMarkdownPath,
+    utilityQualityPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
