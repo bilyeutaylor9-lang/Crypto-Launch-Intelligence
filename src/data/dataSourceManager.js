@@ -338,13 +338,21 @@ export const SOURCE_STATUS = {
   // Chain / Explorer Sources
   // =========================
   etherscan: {
-    enabled: Boolean(process.env.ETHERSCAN_API_KEY),
+    enabled: true,
     requiresKey: true,
     envKey: "ETHERSCAN_API_KEY",
+    alternateEnvKeys: [
+      "BASESCAN_API_KEY",
+      "BSCSCAN_API_KEY",
+      "ARBISCAN_API_KEY",
+      "OPTIMISTIC_ETHERSCAN_API_KEY",
+      "POLYGONSCAN_API_KEY",
+      "SNOWTRACE_API_KEY"
+    ],
     tier: 2,
-    priority: 82,
+    priority: 86,
     category: "explorer",
-    chains: ["ethereum"]
+    chains: ["ethereum", "base", "bsc", "arbitrum", "optimism", "polygon", "avalanche"]
   },
 
   basescan: {

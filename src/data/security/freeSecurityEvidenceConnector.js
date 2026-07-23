@@ -1,10 +1,12 @@
 import { getBlockscoutSecurityEvidence } from "./blockscoutConnector.js";
+import { getEtherscanV2SecurityEvidence } from "./etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./goplusSecurityConnector.js";
 import { getSourcifySecurityEvidence } from "./sourcifyV2Connector.js";
 import { summarizeSecurityEvidence } from "./securityEvidenceUtils.js";
 
 const DEFAULT_PROVIDERS = [
   getGoPlusSecurityEvidence,
+  getEtherscanV2SecurityEvidence,
   getSourcifySecurityEvidence,
   getBlockscoutSecurityEvidence,
 ];

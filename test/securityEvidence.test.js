@@ -2,6 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { normalizeBlockscoutSecurityEvidence } from "../src/data/security/blockscoutConnector.js";
+import {
+  buildEtherscanV2Url,
+  getEtherscanV2SecurityEvidence,
+  normalizeEtherscanV2SecurityEvidence,
+} from "../src/data/security/etherscanV2Connector.js";
 import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEvidenceConnector.js";
 import { normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
@@ -72,6 +77,87 @@ test("Blockscout normalizer preserves proxy and implementation evidence", () => 
   assert.equal(result.proxy, true);
   assert.match(result.implementationAddress, /^0x3333/);
   assert.ok(result.riskFindings.some((item) => item.includes("proxy")));
+});
+
+test("Etherscan V2 normalizer preserves ABI, source, creator, and proxy proof without storing giant blobs", () => {
+  const result = normalizeEtherscanV2SecurityEvidence(
+    {
+      sourceCode: {
+        status: "1",
+        message: "OK",
+        result: [
+          {
+            SourceCode: "contract TestToken { function totalSupply() public view returns (uint256) {} }",
+            ABI: JSON.stringify([
+              { type: "function", name: "totalSupply", inputs: [], outputs: [] },
+              { type: "event", name: "Transfer", inputs: [] },
+            ]),
+            ContractName: "TestToken",
+            CompilerVersion: "v0.8.24+commit.e11b9ed9",
+            CompilerType: "solc",
+            OptimizationUsed: "1",
+            LicenseType: "MIT",
+            Proxy: "1",
+            Implementation: "0x3333333333333333333333333333333333333333",
+          },
+        ],
+      },
+      abi: {
+        status: "1",
+        message: "OK",
+        result: JSON.stringify([{ type: "function", name: "balanceOf", inputs: [], outputs: [] }]),
+      },
+      creation: {
+        status: "1",
+        message: "OK",
+        result: [
+          {
+            contractAddress: ADDRESS,
+            contractCreator: "0x2222222222222222222222222222222222222222",
+            txHash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            blockNumber: "123",
+            timestamp: "1710000000",
+            creationBytecode: `0x${"11".repeat(2048)}`,
+          },
+        ],
+      },
+    },
+    { chain: "base", chainId: "8453", address: ADDRESS }
+  );
+
+  assert.equal(result.status, "EVIDENCE_AVAILABLE");
+  assert.equal(result.provider, "etherscan-v2");
+  assert.equal(result.verifiedSource, true);
+  assert.equal(result.abiAvailable, true);
+  assert.equal(result.abiFunctionCount, 1);
+  assert.equal(result.abiEventCount, 0);
+  assert.equal(result.proxy, true);
+  assert.equal(result.implementationAddress, "0x3333333333333333333333333333333333333333");
+  assert.equal(result.creatorAddress, "0x2222222222222222222222222222222222222222");
+  assert.equal(result.creationBlockNumber, 123);
+  assert.equal(result.raw.source.SourceCodeLength > 0, true);
+  assert.equal(result.raw.source.SourceCode, undefined);
+  assert.equal(result.raw.source.ABI, undefined);
+  assert.equal(result.raw.creation.creationBytecode, undefined);
+});
+
+test("Etherscan V2 connector requires a configured key and sanitized V2 contract URL", async () => {
+  const result = await getEtherscanV2SecurityEvidence(
+    { symbol: "NOKEY", chain: "base", address: ADDRESS },
+    { env: {}, useCache: false }
+  );
+  const url = buildEtherscanV2Url({
+    chainId: "8453",
+    action: "getcontractcreation",
+    address: ADDRESS,
+    apiKey: "test-key",
+  });
+
+  assert.equal(result.status, "UNKNOWN");
+  assert.ok(result.warnings.some((warning) => warning.includes("ETHERSCAN_API_KEY")));
+  assert.match(url, /chainid=8453/);
+  assert.match(url, /action=getcontractcreation/);
+  assert.match(url, /contractaddresses=0x1111111111111111111111111111111111111111/);
 });
 
 test("free security connector degrades to UNKNOWN when providers have no evidence", async () => {

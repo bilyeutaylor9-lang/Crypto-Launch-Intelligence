@@ -23,6 +23,31 @@ test("OP mode key readiness reports missing groups without exposing values", () 
   assert.equal(JSON.stringify(readiness).includes("sk-test"), false);
 });
 
+test("OP mode explorer readiness treats Etherscan V2 as multi-chain EVM coverage", () => {
+  const readiness = buildKeyReadiness({
+    ETHERSCAN_API_KEY: "etherscan-v2-secret",
+    SOLSCAN_API_KEY: "solscan-secret",
+  });
+  const explorer = readiness.groups.find((group) => group.id === "explorer");
+
+  assert.equal(explorer.status, "READY");
+  assert.equal(explorer.presentRequired, 2);
+  assert.equal(JSON.stringify(readiness).includes("etherscan-v2-secret"), false);
+  assert.equal(JSON.stringify(readiness).includes("solscan-secret"), false);
+});
+
+test("OP mode explorer readiness accepts legacy chain explorer keys as EVM fallback", () => {
+  const readiness = buildKeyReadiness({
+    BASESCAN_API_KEY: "base-secret",
+    SOLSCAN_API_KEY: "solscan-secret",
+  });
+  const explorer = readiness.groups.find((group) => group.id === "explorer");
+
+  assert.equal(explorer.status, "READY");
+  assert.deepEqual(explorer.items[0].presentKeys, ["BASESCAN_API_KEY"]);
+  assert.equal(JSON.stringify(readiness).includes("base-secret"), false);
+});
+
 test("OP mode native readiness requires protocol identifiers and RPC access", () => {
   const readiness = buildNativeReadiness({
     NATIVE_PUBLIC_RPC_FALLBACKS: "false",
