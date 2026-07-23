@@ -50,6 +50,7 @@ import {
   validateReportContracts,
 } from "../src/reports/reportContractValidator.js";
 import { publishGithubPagesDashboard } from "../src/reports/githubPagesPublisher.js";
+import { sanitizeReportValue } from "../src/reports/reportValueSanitizer.js";
 
 const NOW = new Date().toISOString();
 const CONTRACT_A = "0x1111111111111111111111111111111111111111";
@@ -460,6 +461,19 @@ test("report contract validator rejects non-finite report values", () => {
   assert.ok(failed.errors.some((error) => error.includes("non-finite")));
 });
 
+test("report sanitizer removes provider placeholder strings before public validation", () => {
+  const sanitized = sanitizeReportValue({
+    name: "N/A",
+    symbol: "NaN",
+    nested: [{ value: "Infinity" }, { value: "-Infinity" }],
+  });
+
+  assert.equal(sanitized.name, "Unknown");
+  assert.equal(sanitized.symbol, "UNKNOWN");
+  assert.equal(sanitized.nested[0].value, "Unknown");
+  assert.equal(sanitized.nested[1].value, "Unknown");
+});
+
 test("public dashboard validates reports and contains no literal N/A", () => {
   const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-dashboard-reports-"));
   const docsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-dashboard-docs-"));
@@ -496,8 +510,16 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       organicInputCoveragePct: 25,
       missingInputFamilies: ["holders"],
     },
-    "quantum-field.json": { totalProjects: 2, projectedProjects: 2, topFields: [] },
-    "quantum-reasoning-brain.json": { totalProjects: 2, reasoningBrainsCompleted: 2, topQuantumReasoningStates: [] },
+    "quantum-field.json": {
+      totalProjects: 2,
+      projectedProjects: 2,
+      topFields: [{ name: "N/A", symbol: "NaN", chain: "base" }],
+    },
+    "quantum-reasoning-brain.json": {
+      totalProjects: 2,
+      reasoningBrainsCompleted: 2,
+      topQuantumReasoningStates: [{ name: "NaN", symbol: "N/A", chain: "base" }],
+    },
     "quantum-suite-health.json": {
       status: "PASS",
       projectsExpected: 2,
@@ -515,6 +537,7 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       coreReady: 1,
       coreDataStarved: 1,
       topMissingInputs: [{ fields: "contractAddress or tokenAddress", count: 2 }],
+      mostReadyProjects: [{ name: "N/A", symbol: "NaN", score: 50 }],
     },
     "route-universe.json": {
       status: "OK",
@@ -606,9 +629,15 @@ test("public dashboard validates reports and contains no literal N/A", () => {
 
   const result = publishGithubPagesDashboard({ reportsDir, docsDir });
   const html = fs.readFileSync(path.join(docsDir, "index.html"), "utf8");
+  const quantumField = JSON.parse(fs.readFileSync(path.join(docsDir, "quantum-field.json"), "utf8"));
+  const quantumReasoning = JSON.parse(fs.readFileSync(path.join(docsDir, "quantum-reasoning-brain.json"), "utf8"));
 
   assert.equal(result.validation.status, "PASS");
   assert.equal(html.includes("N/A"), false);
+  assert.equal(quantumField.topFields[0].name, "Unknown");
+  assert.equal(quantumField.topFields[0].symbol, "UNKNOWN");
+  assert.equal(quantumReasoning.topQuantumReasoningStates[0].name, "Unknown");
+  assert.equal(quantumReasoning.topQuantumReasoningStates[0].symbol, "UNKNOWN");
   assert.ok(html.includes("Small-Cap Execution #1"));
   assert.ok(html.includes("Execution Qualified"));
   assert.ok(html.includes("Organic Input Coverage"));

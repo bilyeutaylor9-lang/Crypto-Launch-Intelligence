@@ -70,6 +70,8 @@ import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 import { writeAdvertisedCategoryCoverageReport } from "./advertisedCategoryCoverageReportEngine.js";
 import { writeCrawlerReports } from "./webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
+import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
+import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -349,6 +351,8 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: localAIResearchPath,
   } = writeLocalAIResearchReport();
+
+  sanitizeReportJsonFiles(REQUIRED_REPORT_FILES);
 
   return {
     htmlPath,

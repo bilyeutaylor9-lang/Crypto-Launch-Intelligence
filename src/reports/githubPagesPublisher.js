@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { REQUIRED_REPORT_FILES, assertReportContracts } from "./reportContractValidator.js";
+import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -801,6 +802,7 @@ export function publishGithubPagesDashboard(options = {}) {
   const reportsDir = path.resolve(options.reportsDir || REPORTS_DIR);
   const docsDir = path.resolve(options.docsDir || DOCS_DIR);
   fs.mkdirSync(docsDir, { recursive: true });
+  sanitizeReportJsonFiles(PUBLIC_REPORTS, reportsDir);
   const validation =
     path.resolve(reportsDir) === REPORTS_DIR
       ? assertReportContracts({ reportsDir })
