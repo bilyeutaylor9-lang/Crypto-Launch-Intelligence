@@ -2361,43 +2361,16 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);
   results = await runEngine("Missed Winner Lab", analyzeMissedWinnerLabBatch, results, options.missedWinnerLab || {});
 
-  // Deterministic identity, liquidity, demand, wallet, and safety checks must
-  // complete before local research can contribute its bounded evidence adjustment.
-  results = await runLocalAIResearchPipelineStage(results, options, stageContext);
   results = await runEngine("Final Scoring", addFinalScoring, results);
   results = await runEngine("Project Change Detection", analyzeProjectChangeBatch, results);
   results = await runEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
   results = await runEngine("Trap Risk", analyzeTrapRiskBatch, results);
   results = await runEngine("Confidence-Adjusted Rank", analyzeConfidenceAdjustedRankBatch, results);
-  results = await runEngine("AI Ecosystem Council", analyzeAIEcosystemCouncilBatch, results);
-  results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
-  results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
-  results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
-  results = await runEngine("Quantum Suite Health", analyzeQuantumSuiteHealthBatch, results);
-  results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results, {
-    timeoutMs: num(process.env.WORLD_MODEL_BRAIN_TIMEOUT_MS || 15000),
-  });
-  results = await runEngine("Autonomous Market Scientist", analyzeAutonomousMarketScientistBatch, results);
-  results = await runEngine("Self-Training Market Simulation Brain", analyzeSelfTrainingMarketSimulationBrainBatch, results);
-  results = await runEngine("Autonomous Outcome Judge", analyzeAutonomousOutcomeJudgeBatch, results, options.outcomeJudge || {});
   results = await runEngine("Live Catalyst Radar", analyzeLiveCatalystRadarBatch, results);
   results = await runEngine("Project Dossier Swarm", analyzeProjectDossierSwarmBatch, results, options.dossierSwarm || {});
   results = await runEngine("AI Research Commander", analyzeAIResearchCommanderBatch, results);
   results = await runEngine("Autonomous Alpha Investigator", analyzeAutonomousAlphaInvestigatorBatch, results);
-  results = await runEngine("AI Portfolio War Room", analyzeAIPortfolioWarRoomBatch, results);
-  results = await runEngine("Autonomous Strategy Lab", analyzeAutonomousStrategyLabBatch, results);
-  results = await runEngine("Causal Alpha Brain", analyzeCausalAlphaBrainBatch, results);
-  results = await runEngine("Autonomous Alpha OS", analyzeAutonomousAlphaOSBatch, results);
-  results = await runEngine("Paper Trading Outcome Lab", analyzePaperTradingOutcomeLabBatch, results);
-  results = await runEngine("Auto-Learning Weight Optimizer", analyzeAutoLearningWeightOptimizerBatch, results);
-  results = await runEngine("Breakout Brain", analyzeBreakoutBrainBatch, results, options.breakoutBrain || {});
-  results = await runEngine("Autonomous Research Orchestrator", analyzeAutonomousResearchOrchestratorBatch, results, options.autonomousResearch || {});
-  results = await runEngine("High-Tech Alpha Stack", analyzeHighTechAlphaStackBatch, results);
-  results = await runEngine("Self-Evolving Alpha OS", analyzeSelfEvolvingAlphaOSBatch, results);
-  results = await runEngine("Proof-Carrying Alpha Contract", analyzeProofCarryingAlphaContractBatch, results);
-  results = await runEngine("Autonomous Alpha Knowledge Graph", analyzeAutonomousAlphaKnowledgeGraphBatch, results);
-  results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
-  results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
+
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
@@ -2409,8 +2382,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Capital Flow Baseline", analyzeCapitalFlowBaselineBatch, results, options.capitalFlowBaseline || {});
   results = await runEngine("Capital Migration Core", analyzeCapitalMigrationCoreBatch, results, options.capitalMigrationCore || {});
   results = await runEngine("Capital Rotation Map", analyzeCapitalRotationMapBatch, results, options.capitalRotationMap || {});
-  results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
-  results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
   results = await runEngine("Quiet Accumulation", analyzeQuietAccumulationBatch, results);
   results = await runEngine("Pre-Breakout Momentum", analyzePreBreakoutMomentumBatch, results);
   results = await runEngine("Information Advantage", analyzeInformationAdvantageBatch, results);
@@ -2425,14 +2396,47 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
   results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
-  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
-  results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
   results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});
   results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
+
+  // Deterministic route, execution, liquidity, safety, and sniper evidence must
+  // exist before advisory AI/council engines interpret the opportunity.
+  results = await runLocalAIResearchPipelineStage(results, options, stageContext);
+  results = await runEngine("AI Ecosystem Council", analyzeAIEcosystemCouncilBatch, results);
+  results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
+  results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
+  results = await runEngine("Quantum Reasoning Brain", analyzeQuantumReasoningBrainBatch, results);
+  results = await runEngine("Quantum Suite Health", analyzeQuantumSuiteHealthBatch, results);
+  results = await runEngine("World Model Brain", analyzeWorldModelBrainBatch, results, {
+    timeoutMs: num(process.env.WORLD_MODEL_BRAIN_TIMEOUT_MS || 15000),
+  });
+  results = await runEngine("Autonomous Market Scientist", analyzeAutonomousMarketScientistBatch, results);
+  results = await runEngine("Self-Training Market Simulation Brain", analyzeSelfTrainingMarketSimulationBrainBatch, results);
+  results = await runEngine("Autonomous Outcome Judge", analyzeAutonomousOutcomeJudgeBatch, results, options.outcomeJudge || {});
+  results = await runEngine("AI Portfolio War Room", analyzeAIPortfolioWarRoomBatch, results);
+  results = await runEngine("Autonomous Strategy Lab", analyzeAutonomousStrategyLabBatch, results);
+  results = await runEngine("Causal Alpha Brain", analyzeCausalAlphaBrainBatch, results);
+  results = await runEngine("Autonomous Alpha OS", analyzeAutonomousAlphaOSBatch, results);
+  results = await runEngine("Paper Trading Outcome Lab", analyzePaperTradingOutcomeLabBatch, results);
+  results = await runEngine("Auto-Learning Weight Optimizer", analyzeAutoLearningWeightOptimizerBatch, results);
+  results = await runEngine("Breakout Brain", analyzeBreakoutBrainBatch, results, options.breakoutBrain || {});
+  results = await runEngine("Autonomous Research Orchestrator", analyzeAutonomousResearchOrchestratorBatch, results, options.autonomousResearch || {});
+  results = await runEngine("High-Tech Alpha Stack", analyzeHighTechAlphaStackBatch, results);
+  results = await runEngine("Self-Evolving Alpha OS", analyzeSelfEvolvingAlphaOSBatch, results);
+  results = await runEngine("Proof-Carrying Alpha Contract", analyzeProofCarryingAlphaContractBatch, results);
+  results = await runEngine("Autonomous Alpha Knowledge Graph", analyzeAutonomousAlphaKnowledgeGraphBatch, results);
+  results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
+  results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
+  results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
+  results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
+  results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
+  results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
+  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
   results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});

@@ -297,7 +297,7 @@ test("execution twin returns research candidates when no route is verified", () 
   assert.ok(report.reasonSummary.topReason.includes("route-unverified"));
 });
 
-test("pipeline runs Execution Proof before Execution Twin", () => {
+test("pipeline funnels proof and execution data into AI, final integrity, and ranking", () => {
   const source = fs.readFileSync(path.resolve("src/intelligencePipeline.js"), "utf8");
   const canonical = source.indexOf('runEngine("Canonical Execution Route"');
   const proof = source.indexOf('runEngine("Execution Proof"');
@@ -307,6 +307,14 @@ test("pipeline runs Execution Proof before Execution Twin", () => {
   const migration = source.indexOf('runEngine("Capital Migration Core"');
   const smallCap = source.indexOf('runEngine("Small Cap Hunter"');
   const twin = source.indexOf('runEngine("Proof of Alpha Execution Twin"');
+  const council = source.indexOf('runEngine("AI Ecosystem Council"');
+  const breakout = source.indexOf('runEngine("Breakout Brain"');
+  const governor = source.indexOf('runEngine("Alpha Evolution Governor"');
+  const finalSmallCap = source.lastIndexOf('runEngine("Small Cap Hunter"');
+  const finalTwin = source.lastIndexOf('runEngine("Proof of Alpha Execution Twin"');
+  const finalIntegrity = source.indexOf('runEngine("Final Selection Integrity"');
+  const preBreakout = source.indexOf('runEngine("Pre-Breakout Radar"');
+  const progressiveRanking = source.indexOf('runEngine("Progressive Opportunity Ranking"');
 
   assert.ok(canonical > -1);
   assert.ok(proof > canonical);
@@ -314,8 +322,16 @@ test("pipeline runs Execution Proof before Execution Twin", () => {
   assert.ok(observation > accessibility);
   assert.ok(baseline > observation);
   assert.ok(migration > baseline);
-  assert.ok(smallCap > migration);
+  assert.ok(council > proof);
+  assert.ok(breakout > council);
+  assert.ok(smallCap > breakout);
   assert.ok(twin > smallCap);
+  assert.ok(governor > twin);
+  assert.ok(finalSmallCap > governor);
+  assert.ok(finalTwin > finalSmallCap);
+  assert.ok(finalIntegrity > finalTwin);
+  assert.ok(preBreakout > finalIntegrity);
+  assert.ok(progressiveRanking > preBreakout);
 });
 
 test("organic report uses explicit zeroes and opens missing-input research tasks", () => {
