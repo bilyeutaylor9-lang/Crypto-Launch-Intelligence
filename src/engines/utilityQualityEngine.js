@@ -1,3 +1,5 @@
+import { resolveCanonicalAliases } from "../data/canonicalAliasResolver.js";
+
 const UTILITY_TERMS = {
   product: ["app", "dapp", "platform", "protocol", "mainnet", "testnet", "sdk", "api", "docs", "developer", "product", "game", "marketplace", "wallet", "payments", "storage", "compute"],
   infrastructure: ["infrastructure", "oracle", "bridge", "rollup", "sequencer", "data availability", "indexer", "middleware", "interoperability", "depin", "gpu", "wireless"],
@@ -23,6 +25,21 @@ const MEME_TERMS = [
   "culture coin",
 ];
 
+const UTILITY_ALIAS_FIELDS = Object.freeze([
+  "website",
+  "description",
+  "websiteText",
+  "roadmap",
+  "githubRepo",
+  "developerActivityScore",
+  "commits30d",
+  "contributors30d",
+  "socialFollowers",
+  "socialAccelerationScore",
+  "catalystScore",
+  "liveCatalystEvents",
+]);
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -33,6 +50,50 @@ function clamp(value = 0, min = 0, max = 100) {
 
 function clean(value = "") {
   return String(value ?? "").trim();
+}
+
+function hasRawValue(value) {
+  if (value === null || value === undefined || value === "") return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "number") return Number.isFinite(value);
+  return true;
+}
+
+function normalizeUtilityProject(project = {}) {
+  if (project.utilityAliasNormalized) return project;
+  const resolution = project.canonicalAliases
+    ? {
+        resolved: project.canonicalAliases,
+        provenance: project.canonicalAliasProvenance || {},
+        audits: project.aliasResolutionAudit || [],
+      }
+    : resolveCanonicalAliases(project, {
+        fields: UTILITY_ALIAS_FIELDS,
+        disableSemanticScan: false,
+      });
+  const normalized = { ...project };
+
+  for (const field of UTILITY_ALIAS_FIELDS) {
+    const value = resolution.resolved?.[field];
+    if (hasRawValue(value) && !hasRawValue(normalized[field])) normalized[field] = value;
+  }
+
+  return {
+    ...normalized,
+    utilityAliasNormalized: true,
+    canonicalAliases: {
+      ...(project.canonicalAliases || {}),
+      ...(resolution.resolved || {}),
+    },
+    canonicalAliasProvenance: {
+      ...(project.canonicalAliasProvenance || {}),
+      ...(resolution.provenance || {}),
+    },
+    aliasResolutionAudit: [
+      ...(Array.isArray(project.aliasResolutionAudit) ? project.aliasResolutionAudit : []),
+      ...(Array.isArray(resolution.audits) ? resolution.audits : []),
+    ],
+  };
 }
 
 function text(project = {}) {
@@ -112,6 +173,7 @@ function categorySignals(project = {}) {
 }
 
 export function analyzeUtilityQuality(project = {}) {
+  project = normalizeUtilityProject(project);
   const body = text(project);
   const signals = categorySignals(project);
   const memeHits = hits(body, MEME_TERMS);

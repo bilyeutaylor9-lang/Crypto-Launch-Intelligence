@@ -220,7 +220,7 @@ export function analyzeEngineDataReadiness(project = {}, options = {}) {
   const canonicalFields = options.canonicalFields || canonicalFieldsForContracts(contracts);
   const aliasResolution = resolveCanonicalAliases(project, {
     fields: canonicalFields,
-    disableSemanticScan: true,
+    disableSemanticScan: options.disableSemanticScan ?? false,
     resolvedChain,
   });
   const lookupCache = new Map(Object.entries(aliasResolution.resolved || {}));
@@ -228,7 +228,7 @@ export function analyzeEngineDataReadiness(project = {}, options = {}) {
     const canonicalField = canonicalFieldForAlias(field) || field;
     if (target === project && lookupCache.has(canonicalField)) return lookupCache.get(canonicalField);
     const value = canonicalValue(target, canonicalField, {
-      disableSemanticScan: true,
+      disableSemanticScan: options.disableSemanticScan ?? false,
       resolvedChain,
     });
     if (target === project) lookupCache.set(canonicalField, value);

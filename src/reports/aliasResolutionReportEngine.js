@@ -58,6 +58,35 @@ function entries(map = {}) {
     .sort((a, b) => b.count - a.count);
 }
 
+const UNKNOWN_FIELD_IGNORE_FIELDS = new Set([
+  "score",
+  "status",
+  "warnings",
+  "engineName",
+  "engineVersion",
+  "criticality",
+  "confidence",
+  "evidenceCoverage",
+  "dataFreshness",
+  "warningCount",
+]);
+
+const UNKNOWN_FIELD_IGNORE_PATHS = Object.freeze([
+  /^engineResults(\.|$)/,
+  /^engineDataReadiness\.engines(\.|$)/,
+  /^aliasResolutionAudit(\.|$)/,
+  /^canonicalAliasProvenance(\.|$)/,
+  /^canonicalAliases(\.|$)/,
+  /^canonicalAliasConflicts(\.|$)/,
+]);
+
+function shouldIgnoreUnknownField(raw = {}) {
+  const field = String(raw.field || "");
+  const pathValue = String(raw.path || "");
+  if (UNKNOWN_FIELD_IGNORE_FIELDS.has(field)) return true;
+  return UNKNOWN_FIELD_IGNORE_PATHS.some((pattern) => pattern.test(pathValue));
+}
+
 function aliasType(record = {}) {
   return String(record.normalizationRule || "").split(":")[0] || "UNKNOWN";
 }
@@ -87,6 +116,7 @@ export function summarizeAliasResolution(projects = []) {
   const unknownFields = [];
   for (const project of projects) {
     for (const raw of flatten(project)) {
+      if (shouldIgnoreUnknownField(raw)) continue;
       const canonical = canonicalFieldForAlias(raw.path) || canonicalFieldForAlias(raw.field);
       if (canonical) continue;
       const potential = ["liquidityUsd", "circulatingMarketCapUsd", "volume24hUsd", "uniqueBuyers24h", "holderCount"]

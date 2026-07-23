@@ -75,6 +75,36 @@ test("utility quality separates real utility from meme-only speculation", () => 
   assert.equal(meme.utilityClassification, "MEME_SPECULATION");
 });
 
+test("utility quality uses canonical aliases for provider-style product evidence", () => {
+  const [utility] = analyzeUtilityQualityBatch([
+    base({
+      name: "AliasCompute",
+      symbol: "ACMP",
+      category: "AI infrastructure",
+      metadata: {
+        description: "AI compute protocol with SDK API mainnet app developer docs revenue fees staking utility enterprise users integrations.",
+      },
+      links: {
+        website: "https://aliascompute.example",
+        github: "https://github.com/aliascompute/protocol",
+      },
+      commitCount30d: 34,
+      uniqueContributors30d: 6,
+      ecosystemIntegrationScore: 78,
+      tokenomicsScore: 76,
+      liveCatalystRadarScore: 72,
+      discoverySources: ["dexscreener", "github", "official-docs"],
+    }),
+  ]);
+
+  assert.equal(utility.website, "https://aliascompute.example");
+  assert.equal(utility.githubRepo, "https://github.com/aliascompute/protocol");
+  assert.equal(utility.commits30d, 34);
+  assert.equal(utility.contributors30d, 6);
+  assert.equal(utility.realUtilityQualified, true);
+  assert.equal(utility.utilityClassification, "REAL_UTILITY");
+});
+
 test("progressive ranking lets utility outrank meme-only hype without hiding memes", () => {
   const candidates = analyzeUtilityQualityBatch([
     base({

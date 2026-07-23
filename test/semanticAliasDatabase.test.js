@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 
 import { resolveCanonicalAliases } from "../src/data/canonicalAliasResolver.js";
 import { analyzeDataStarvationRootCause } from "../src/engines/dataStarvationRootCauseEngine.js";
-import { evaluateEngineDataReadiness } from "../src/engines/engineDataReadinessEngine.js";
+import { analyzeEngineDataReadiness, evaluateEngineDataReadiness } from "../src/engines/engineDataReadinessEngine.js";
 import { normalizeBooleanVocabulary, normalizeStatusVocabulary } from "../src/data/statusVocabularyNormalizer.js";
 import { normalizeVenue, parseVenueProtocolVersion } from "../src/data/venueVocabularyRegistry.js";
 import { normalizeQuoteAsset, parseMarketPair } from "../src/data/semanticAliasNormalizer.js";
+import { summarizeAliasResolution } from "../src/reports/aliasResolutionReportEngine.js";
 
 const EVM = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -169,6 +170,54 @@ test("internal output gaps and provider-specific nested fields are classified co
     }
   );
   assert.equal(readiness.status, "READY");
+});
+
+test("safe semantic aliases feed readiness and starvation recovery", () => {
+  const project = {
+    source: "dexscreener",
+    chain: "base",
+    liqudity_usdd: 123_000,
+  };
+  const contract = {
+    id: "semanticLiquidity",
+    phase: "market",
+    affectsFinalDecision: true,
+    canBlockCandidate: true,
+    inputContract: { requiredAny: [["liquidityUsd"]], optional: [] },
+  };
+
+  const readiness = analyzeEngineDataReadiness(project, { contracts: [contract] });
+  assert.equal(readiness.engineDataReadinessStatus, "CORE_READY");
+
+  const starvation = analyzeDataStarvationRootCause(project, { contracts: [contract] });
+  assert.equal(starvation.dataStarvationStatus, "ENOUGH_EVIDENCE_TO_RANK");
+  assert.equal(starvation.liquidityUsd, 123_000);
+  assert.equal(starvation.dataStarvationBlockingResearchCount, 0);
+});
+
+test("alias unresolved-verbiage report ignores internal engine metadata noise", () => {
+  const summary = summarizeAliasResolution([
+    {
+      symbol: "NOISE",
+      source: "dexscreener",
+      engineResults: {
+        one: {
+          score: 72,
+          status: "OK",
+          warnings: [],
+          engineName: "Noise Engine",
+          engineVersion: "1.0.0",
+        },
+      },
+      providerPayload: {
+        strangeProviderLiquidityName: 55_000,
+      },
+    },
+  ]);
+
+  assert.equal(summary.unknownFields.some((item) => item.field === "score"), false);
+  assert.equal(summary.unknownFields.some((item) => item.field === "status"), false);
+  assert.equal(summary.unknownFields.some((item) => item.field === "strangeProviderLiquidityName"), true);
 });
 
 test("conflicting aliases are reported instead of silently selecting the bullish value", () => {

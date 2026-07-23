@@ -192,7 +192,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   );
   const aliased = applyCanonicalAliases(project, {
     fields: [...new Set(contractFields.map((field) => canonicalFieldForAlias(field) || field))],
-    disableSemanticScan: true,
+    disableSemanticScan: options.disableSemanticScan ?? false,
   });
   const missing = [];
   const notApplicable = [];

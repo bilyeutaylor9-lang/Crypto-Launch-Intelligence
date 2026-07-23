@@ -132,6 +132,27 @@ function flattenObject(object = {}, prefix = "", output = []) {
   return output;
 }
 
+const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
+  /^engineResults(\.|$)/,
+  /^aliasResolutionAudit(\.|$)/,
+  /^canonicalAliasProvenance(\.|$)/,
+  /^canonicalAliasConflicts(\.|$)/,
+  /^canonicalAliases(\.|$)/,
+  /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
+  /\.(engineName|engineVersion|criticality|warningCount)$/i,
+]);
+
+function semanticScanFields(project = {}, options = {}) {
+  const ignores = options.semanticScanIgnores || DEFAULT_SEMANTIC_SCAN_IGNORES;
+  const maxFields = Number.isFinite(Number(options.semanticScanMaxFields))
+    ? Math.max(0, Number(options.semanticScanMaxFields))
+    : 1200;
+  const flattened = flattenObject(project).filter((item) =>
+    !ignores.some((pattern) => pattern.test(String(item.sourcePath || "")))
+  );
+  return maxFields ? flattened.slice(0, maxFields) : flattened;
+}
+
 function comparable(value = "") {
   return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
 }
@@ -428,7 +449,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 
 export function resolveCanonicalAliases(project = {}, options = {}) {
   const fields = options.fields || [...new Set([...Object.keys(CANONICAL_FIELD_ALIAS_REGISTRY), ...Object.keys(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY)])];
-  const semanticFields = options.disableSemanticScan ? [] : flattenObject(project);
+  const semanticFields = options.disableSemanticScan ? [] : semanticScanFields(project, options);
   const resolved = {};
   const provenance = {};
   const conflicts = {};
