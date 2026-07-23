@@ -63,6 +63,24 @@ export const SOURCE_STATUS = {
     chains: ["ethereum", "base", "solana", "arbitrum", "optimism", "polygon", "bsc", "avalanche"]
   },
 
+  defiLlamaYields: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 76,
+    category: "market",
+    chains: ["market"]
+  },
+
+  defiLlamaStablecoins: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 75,
+    category: "market",
+    chains: ["ethereum", "base", "solana", "arbitrum", "optimism", "polygon", "bsc", "avalanche"]
+  },
+
   coinPaprika: {
     enabled: true,
     requiresKey: false,
@@ -234,6 +252,15 @@ export const SOURCE_STATUS = {
     chains: ["ethereum", "base", "solana", "arbitrum", "polygon", "bsc"]
   },
 
+  nativeDiscoveryMesh: {
+    enabled: true,
+    requiresKey: false,
+    tier: 1,
+    priority: 94,
+    category: "chain",
+    chains: ["ethereum", "base", "solana", "arbitrum", "optimism", "polygon", "bsc", "avalanche"]
+  },
+
   // =========================
   // Premium Market Sources
   // =========================
@@ -399,6 +426,15 @@ export const SOURCE_STATUS = {
     chains: ["ethereum", "base", "optimism", "arbitrum", "polygon", "bsc"]
   },
 
+  sourcify: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 72,
+    category: "explorer",
+    chains: ["ethereum", "base", "optimism", "arbitrum", "polygon", "bsc", "avalanche"]
+  },
+
   // =========================
   // Developer / GitHub Sources
   // =========================
@@ -416,6 +452,15 @@ export const SOURCE_STATUS = {
     requiresKey: false,
     tier: 1,
     priority: 86,
+    category: "developer",
+    chains: ["all"]
+  },
+
+  githubProjectDiscovery: {
+    enabled: true,
+    requiresKey: false,
+    tier: 1,
+    priority: 84,
     category: "developer",
     chains: ["all"]
   },
@@ -499,6 +544,42 @@ export const SOURCE_STATUS = {
     tier: 3,
     priority: 58,
     category: "news",
+    chains: ["all"]
+  },
+
+  googleNewsDiscovery: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 73,
+    category: "news",
+    chains: ["all"]
+  },
+
+  researchSeeds: {
+    enabled: true,
+    requiresKey: false,
+    tier: 3,
+    priority: 58,
+    category: "research",
+    chains: ["all"]
+  },
+
+  candidateRescue: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 74,
+    category: "research",
+    chains: ["all"]
+  },
+
+  aiDiscoverySwarm: {
+    enabled: true,
+    requiresKey: false,
+    tier: 2,
+    priority: 72,
+    category: "research",
     chains: ["all"]
   },
 

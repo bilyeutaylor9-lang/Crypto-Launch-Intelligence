@@ -6,6 +6,7 @@ const WORKFLOW_PATHS = [
   ".github/workflows/manual.yml",
   ".github/workflows/pages-dashboard.yml",
 ];
+const REQUIRED_NATIVE_CHAINS = ["base", "solana", "bsc", "polygon", "arbitrum", "ethereum", "optimism", "avalanche"];
 
 for (const workflowPath of WORKFLOW_PATHS) {
   test(`${workflowPath} hardens wide scans against overlap and OOM failures`, () => {
@@ -18,5 +19,8 @@ for (const workflowPath of WORKFLOW_PATHS) {
     assert.match(workflow, /run:\s*npm run scan:free-max/);
     assert.match(workflow, /if:\s*always\(\)/);
     assert.match(workflow, /if-no-files-found:\s*ignore/);
+    for (const chain of REQUIRED_NATIVE_CHAINS) {
+      assert.match(workflow, new RegExp(`NATIVE_DISCOVERY_CHAINS:.*${chain}`));
+    }
   });
 }

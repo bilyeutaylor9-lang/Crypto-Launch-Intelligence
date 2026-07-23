@@ -172,6 +172,73 @@ const DATASET_SPECS = [
   },
 ];
 
+const FREE_COVERAGE_GROUPS = [
+  {
+    id: "market-universe",
+    label: "Free market universe",
+    target: 8,
+    sources: [
+      "dexScreener",
+      "geckoTerminal",
+      "coinGecko",
+      "defiLlama",
+      "defiLlamaYields",
+      "defiLlamaStablecoins",
+      "coinPaprika",
+      "coinLore",
+      "coinLoreAssets",
+      "coinLoreMovers",
+    ],
+  },
+  {
+    id: "exchange-routes",
+    label: "Free exchange route feeds",
+    target: 8,
+    sources: [
+      "binance",
+      "kuCoin",
+      "coinbase",
+      "kraken",
+      "okx",
+      "gate",
+      "mexc",
+      "bitget",
+      "htx",
+      "bitfinex",
+      "bitstamp",
+      "gemini",
+    ],
+  },
+  {
+    id: "research-discovery",
+    label: "Free research discovery",
+    target: 5,
+    sources: [
+      "googleNewsDiscovery",
+      "githubProjectDiscovery",
+      "github",
+      "githubTrending",
+      "rssNews",
+      "researchSeeds",
+      "candidateRescue",
+      "aiDiscoverySwarm",
+      "npm",
+    ],
+  },
+  {
+    id: "safety-contract",
+    label: "Free safety and contract checks",
+    target: 4,
+    sources: ["goPlus", "honeypotChecker", "rugCheck", "sourcify", "blockscout"],
+  },
+  {
+    id: "native-launch",
+    label: "Free native launch discovery",
+    target: 1,
+    sources: ["nativeDiscoveryMesh"],
+  },
+];
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -302,6 +369,50 @@ export function buildSourceReadiness() {
     premiumEnabledSources: enabled.filter((source) => source.requiresKey).length,
     missingKeySources,
     categories,
+  };
+}
+
+export function buildFreeCoverageReadiness() {
+  const sources = getAllSources({ includeDisabled: true });
+  const byName = new Map(sources.map((source) => [source.name, source]));
+  const groups = FREE_COVERAGE_GROUPS.map((group) => {
+    const items = group.sources.map((name) => {
+      const source = byName.get(name);
+      const enabled = Boolean(source && source.enabled && !source.requiresKey);
+      return {
+        name,
+        enabled,
+        category: source?.category || "unknown",
+        tier: source?.tier || null,
+      };
+    });
+    const enabledCount = items.filter((item) => item.enabled).length;
+    const target = Math.max(1, num(group.target || items.length));
+    const score = Math.round(clamp((enabledCount / target) * 100));
+    return {
+      id: group.id,
+      label: group.label,
+      target,
+      score,
+      status: enabledCount >= target ? "READY" : enabledCount > 0 ? "PARTIAL" : "MISSING",
+      enabledCount,
+      totalSources: items.length,
+      missingSources: items.filter((item) => !item.enabled).map((item) => item.name),
+      sources: items,
+    };
+  });
+
+  return {
+    score: weightedAverage(groups.map((group) => ({ ...group, weight: 1 }))),
+    status: groups.every((group) => group.status === "READY")
+      ? "READY"
+      : groups.some((group) => group.status === "MISSING")
+        ? "PARTIAL"
+        : "READY_WITH_GAPS",
+    readyGroups: groups.filter((group) => group.status === "READY").length,
+    partialGroups: groups.filter((group) => group.status === "PARTIAL").length,
+    missingGroups: groups.filter((group) => group.status === "MISSING").length,
+    groups,
   };
 }
 
@@ -569,6 +680,16 @@ function nextActions(report = {}) {
       missing: report.keys.missingCriticalKeys.slice(0, 12),
     });
   }
+  if (report.freeCoverage.score < 80) {
+    actions.push({
+      priority: "high",
+      action: "Restore free public-source coverage before relying on premium feeds.",
+      missing: report.freeCoverage.groups
+        .filter((group) => group.status !== "READY")
+        .flatMap((group) => group.missingSources.map((source) => `${group.id}:${source}`))
+        .slice(0, 16),
+    });
+  }
   if (report.native.liveReadyProtocols === 0) {
     actions.push({
       priority: "critical",
@@ -612,16 +733,18 @@ export function buildOpModeReadiness(options = {}) {
   const env = options.env || process.env;
   const keys = buildKeyReadiness(env);
   const sources = buildSourceReadiness();
+  const freeCoverage = buildFreeCoverageReadiness();
   const native = buildNativeReadiness(env);
   const datasets = buildDatasetReadiness(options);
   const supabase = buildSupabaseReadiness(env);
   const automation = workflowEnvReadiness(options.repoRoot || path.resolve("."));
   const score = Math.round(
     keys.score * 0.25 +
-      sources.score * 0.15 +
-      native.score * 0.25 +
+      sources.score * 0.1 +
+      freeCoverage.score * 0.15 +
+      native.score * 0.22 +
       Math.max(datasets.score, datasets.criticalScore) * 0.2 +
-      automation.score * 0.15
+      automation.score * 0.08
   );
   const report = {
     generatedAt: new Date().toISOString(),
@@ -632,6 +755,7 @@ export function buildOpModeReadiness(options = {}) {
     status: opStatus(score),
     keys,
     sources,
+    freeCoverage,
     native,
     datasets,
     supabase,
@@ -666,6 +790,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
           .filter((group) => group.status !== "READY")
           .map((group) => ({ id: group.id, status: group.status, missing: group.missingRequired })),
         liveReadyNativeProtocols: report.native.liveReadyProtocols,
+        freeCoverage: {
+          status: report.freeCoverage.status,
+          score: report.freeCoverage.score,
+          readyGroups: report.freeCoverage.readyGroups,
+          partialGroups: report.freeCoverage.partialGroups,
+          missingGroups: report.freeCoverage.missingGroups,
+        },
         missingCriticalDatasets: report.datasets.missingCriticalDatasets.map((dataset) => dataset.id),
         nextActions: report.nextActions,
       },

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildFreeCoverageReadiness,
   buildKeyReadiness,
   buildNativeReadiness,
   buildOpModeReadiness,
@@ -50,6 +51,24 @@ test("OP mode native readiness discounts public fallback RPC compared with dedic
   assert.ok(withDedicatedBaseRpc.score > publicOnly.score);
 });
 
+test("OP mode free coverage reports the public-source floor separately from premium keys", () => {
+  const readiness = buildFreeCoverageReadiness();
+  const market = readiness.groups.find((group) => group.id === "market-universe");
+  const exchanges = readiness.groups.find((group) => group.id === "exchange-routes");
+  const research = readiness.groups.find((group) => group.id === "research-discovery");
+  const safety = readiness.groups.find((group) => group.id === "safety-contract");
+
+  assert.equal(readiness.status, "READY");
+  assert.ok(readiness.score >= 90);
+  assert.equal(market.status, "READY");
+  assert.equal(exchanges.status, "READY");
+  assert.equal(research.status, "READY");
+  assert.equal(safety.status, "READY");
+  assert.equal(market.sources.some((source) => source.name === "defiLlamaYields" && source.enabled), true);
+  assert.equal(research.sources.some((source) => source.name === "githubProjectDiscovery" && source.enabled), true);
+  assert.equal(safety.sources.some((source) => source.name === "sourcify" && source.enabled), true);
+});
+
 test("OP mode readiness produces next actions for weak setup", () => {
   const readiness = buildOpModeReadiness({
     env: {},
@@ -58,6 +77,7 @@ test("OP mode readiness produces next actions for weak setup", () => {
   });
 
   assert.equal(readiness.status, "SETUP_REQUIRED");
+  assert.equal(readiness.freeCoverage.status, "READY");
   assert.ok(readiness.nextActions.length > 0);
   assert.ok(readiness.datasets.missingCriticalDatasets.length > 0);
 });

@@ -66,7 +66,7 @@ jobs:
           ZERION_API_KEY: ${{ secrets.ZERION_API_KEY }}
           TOKENSNIFFER_API_KEY: ${{ secrets.TOKENSNIFFER_API_KEY }}
           NATIVE_DISCOVERY_COLLECT: ${{ vars.NATIVE_DISCOVERY_COLLECT || 'true' }}
-          NATIVE_DISCOVERY_CHAINS: ${{ vars.NATIVE_DISCOVERY_CHAINS || 'base,solana,bsc,polygon,arbitrum' }}
+          NATIVE_DISCOVERY_CHAINS: ${{ vars.NATIVE_DISCOVERY_CHAINS || 'base,solana,bsc,polygon,arbitrum,ethereum,optimism,avalanche' }}
           BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
           BASE_WS_URL: ${{ secrets.BASE_WS_URL }}
           ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
