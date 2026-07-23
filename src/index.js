@@ -29,6 +29,7 @@ import {
   writeSupabaseMemoryReport,
 } from "./storage/supabaseMemory.js";
 import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
+import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -742,6 +743,7 @@ async function main() {
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
       platform: "Crypto Launch Intelligence",
     };
+    reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
 
     const alphaTruth = persistAlphaTruthMemory(results, reportMeta);
     reportMeta.alphaTruth = alphaTruth.report;

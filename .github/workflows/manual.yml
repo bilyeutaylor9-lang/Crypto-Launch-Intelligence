@@ -9,9 +9,16 @@ on:
   schedule:
     - cron: "0 */6 * * *"
 
+concurrency:
+  group: intelligence-scan-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   intelligence-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
 
     steps:
       - name: Checkout Repository
@@ -105,7 +112,13 @@ jobs:
           SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
 
       - name: Upload Reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: intelligence-reports
-          path: reports/
+          path: |
+            reports/**
+            data/**/*.json
+            *.log
+            npm-debug.log*
+          if-no-files-found: ignore

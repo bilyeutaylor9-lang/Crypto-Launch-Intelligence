@@ -44,6 +44,7 @@ import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilit
 import { writeAdvertisedCategoryCoverageReport } from "../src/reports/advertisedCategoryCoverageReportEngine.js";
 import { writeCrawlerReports } from "../src/reports/webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEngine.js";
+import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
   validateReportContracts,
@@ -398,6 +399,51 @@ test("mandatory report contracts are generated and validate", () => {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
   }
   assert.equal(validateReportContracts().status, "PASS");
+});
+
+test("pipeline stage health aggregates progressive stage engine records across projects", () => {
+  const engineRecord = (engineName, status = "SUCCESS") => ({
+    engineName,
+    status,
+    criticality: "REQUIRED",
+    durationMs: 5,
+  });
+  const broadProject = project({
+    symbol: "BROAD",
+    engineResults: {
+      projectIdentityGraph: engineRecord("Project Identity Graph"),
+      instantSafetyGate: engineRecord("Instant Safety Gate"),
+    },
+  });
+  const stagedProject = project({
+    symbol: "STAGE",
+    canonicalExecutionRoute: { venue: "Uniswap", routeStatus: "VERIFIED" },
+    canonicalExecutionRouteStatus: "VERIFIED",
+    executionProof: { status: "VERIFIED" },
+    executionStatus: "VERIFIED",
+    researchEligible: true,
+    capitalFlowBaseline: { status: "OBSERVED" },
+    capitalMigrationScore: 42,
+    finalSelectionState: "BLOCKED",
+    finalSelectionQualified: false,
+    engineResults: {
+      canonicalExecutionRoute: engineRecord("Canonical Execution Route"),
+      executionProof: engineRecord("Execution Proof"),
+      routeAccessibility: engineRecord("Route Accessibility"),
+      capitalFlowBaseline: engineRecord("Capital Flow Baseline"),
+      capitalMigrationCore: engineRecord("Capital Migration Core"),
+      finalSelectionIntegrity: engineRecord("Final Selection Integrity"),
+    },
+  });
+
+  const health = buildPipelineStageHealth([broadProject, stagedProject]);
+  const byName = new Map(health.stages.map((stage) => [stage.engineName, stage]));
+
+  assert.equal(byName.get("Canonical Execution Route").engineStatus, "PASS");
+  assert.equal(byName.get("Canonical Execution Route").projectsProcessed, 1);
+  assert.equal(byName.get("Execution Proof").engineStatus, "PASS");
+  assert.equal(byName.get("Capital Migration Core").engineStatus, "PASS");
+  assert.equal(health.skippedMandatoryStages.includes("Canonical Execution Route"), false);
 });
 
 test("report contract validator rejects non-finite report values", () => {

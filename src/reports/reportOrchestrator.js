@@ -76,6 +76,10 @@ import {
 } from "./reportPayloadCompactor.js";
 
 export function generateReports(projects = [], meta = {}) {
+  const precomputedPipelineStageHealth = meta.pipelineStageHealth;
+  meta = { ...meta };
+  delete meta.pipelineStageHealth;
+
   projects = compactProjectsForReportWriters(projects);
   meta = compactMetaForReportWriters(meta);
 
@@ -250,7 +254,9 @@ export function generateReports(projects = [], meta = {}) {
   } = writeCapitalRotationReports(projects);
   const {
     filePath: pipelineStageHealthPath,
-  } = writePipelineStageHealthReport(projects);
+  } = writePipelineStageHealthReport(projects, {
+    precomputedReport: precomputedPipelineStageHealth,
+  });
   const {
     filePath: exactOutcomeHorizonLabPath,
   } = writeExactOutcomeLabReport(projects);
