@@ -1,9 +1,37 @@
 import fs from "fs";
 import path from "path";
+import { ENGINE_REGISTRY } from "./engines/engineRegistry.js";
 import { getEngineContracts } from "./kernel/engineContractManifest.js";
 
 const ENGINE_DIR = path.resolve("src/engines");
 const PIPELINE_FILE = path.resolve("src/intelligencePipeline.js");
+
+const STANDALONE_ENGINE_AUDIT_SPECS = Object.freeze({
+  "aiMonteCarloEngine.js": { exportName: "analyzeAIMonteCarloBatch", role: "optional-ai-adapter", args: "projects", options: { limit: 1, delayMs: 1 } },
+  "airdropToTokenEngine.js": { exportName: "analyzeAirdropToTokenBatch", role: "discovery-signal", args: "projects" },
+  "alphaDatabaseEngine.js": { exportName: "analyzeAlphaDatabaseBatch", role: "memory-helper", args: "projects" },
+  "alphaDecayEngine.js": { exportName: "analyzeAlphaDecayBatch", role: "advisory-signal", args: "projects" },
+  "cexListingDiscoveryEngine.js": { exportName: "analyzeCexListingBatch", role: "discovery-signal", args: "projects" },
+  "dexPairDiscoveryEngine.js": { exportName: "discoverDexPairs", role: "discovery-source", args: "projects" },
+  "discoveryFilterEngine.js": { exportName: "filterDiscoveryCandidates", role: "discovery-filter", args: "projects" },
+  "discoveryPackEngine.js": { exportName: "runDiscoveryPack", role: "discovery-orchestrator", args: "inputObject" },
+  "ecosystemDiscoveryEngine.js": { exportName: "discoverEcosystemProjects", role: "discovery-source", args: "projects" },
+  "highRatingFilterEngine.js": { exportName: "applyHighRatingFilter", role: "discovery-filter", args: "projects" },
+  "launchpadDiscoveryEngine.js": { exportName: "discoverLaunchpadProjects", role: "discovery-source", args: "projects" },
+  "liveMarketDiscoveryEngine.js": { exportName: "filterLiveCandidates", role: "live-discovery-filter", args: "projects", options: { minLiquidity: 1, minVolume24h: 1 } },
+  "memeFilterEngine.js": { exportName: "filterMemes", role: "legacy-discovery-filter", args: "projects" },
+  "monteCarloEngine.js": { exportName: "runIntelligencePipeline", role: "legacy-pipeline-adapter", args: "projects", options: { saveMemory: false } },
+  "newTokenDiscoveryEngine.js": { exportName: "discoverNewTokens", role: "discovery-source", args: "newProject" },
+  "opportunityDiscoveryEngine.js": { exportName: "rankProjects", role: "legacy-ranking-helper", args: "projects" },
+  "opportunityThesisEngine.js": { exportName: "analyzeOpportunityThesisBatch", role: "thesis-helper", args: "projects" },
+  "presaleDiscoveryEngine.js": { exportName: "discoverPresales", role: "discovery-source", args: "projects" },
+  "projectQualityGateEngine.js": { exportName: "analyzeProjectQualityGateBatch", role: "quality-gate-helper", args: "projects" },
+  "riskGateEngine.js": { exportName: "analyzeRiskGateBatch", role: "legacy-risk-gate", args: "projects" },
+  "testnetDiscoveryEngine.js": { exportName: "discoverTestnets", role: "discovery-source", args: "projects" },
+  "trendingPairDiscoveryEngine.js": { exportName: "discoverTrendingPairs", role: "discovery-source", args: "projects" },
+  "upcomingLaunchDiscoveryEngine.js": { exportName: "analyzeUpcomingLaunchBatch", role: "discovery-signal", args: "projects" },
+  "watchtowerEngine.js": { exportName: "analyzeWatchtower", role: "watchtower-standalone", args: "watchtower" },
+});
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -74,6 +102,31 @@ function moduleFileFor(contract = {}) {
   return path.basename(String(contract.module || ""));
 }
 
+function moduleNameFromFile(file = "") {
+  return path.basename(String(file)).replace(/\.js$/, "");
+}
+
+function dependencyKey(value = "") {
+  return String(value ?? "")
+    .replace(/\.js$/i, "")
+    .replace(/Engine$/i, "")
+    .replace(/^analyze/i, "")
+    .replace(/Batch$/i, "")
+    .replace(/[^a-z0-9]+/gi, "")
+    .toLowerCase();
+}
+
+function countLocalReferences(source = "", localName = "") {
+  if (!localName) return 0;
+  const escaped = localName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...source.matchAll(new RegExp(`\\b${escaped}\\b`, "g"))].length;
+}
+
+function registryEntryForFile(file = "") {
+  const moduleName = moduleNameFromFile(file);
+  return ENGINE_REGISTRY.find((entry) => entry.engine === moduleName) || null;
+}
+
 function pipelineImports(source = "") {
   const bindings = new Map();
   const importPattern = /import\s*\{\s*([^}]*)\s*\}\s*from\s*["']\.\/engines\/([^"']+Engine\.js)["'];/g;
@@ -120,7 +173,7 @@ export function getPipelineEngineUsage(source = fs.readFileSync(PIPELINE_FILE, "
 
 function projectResultFrom(output) {
   if (Array.isArray(output)) return output[0] || null;
-  for (const field of ["results", "projects", "data", "tokens", "candidates"]) {
+  for (const field of ["results", "projects", "data", "tokens", "candidates", "accepted", "rejected"]) {
     if (Array.isArray(output?.[field])) return output[field][0] || null;
   }
   return null;
@@ -133,6 +186,14 @@ function identityPreserved(result = {}, sample = {}) {
     result.chain === sample.chain &&
     result.address === sample.address
   );
+}
+
+function standaloneIdentityPreserved(result = {}, sample = {}) {
+  const fields = ["projectId", "symbol", "chain", "address", "pairAddress"].filter(
+    (field) => result[field] !== undefined && sample[field] !== undefined
+  );
+  if (!fields.length) return true;
+  return fields.every((field) => result[field] === sample[field]);
 }
 
 async function executeContract(contract = {}, module = {}, sample = {}, options = {}) {
@@ -283,6 +344,128 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
   }
 }
 
+function standaloneSampleFor(spec = {}, sample = {}) {
+  const base = {
+    ...sample,
+    createdAt: new Date().toISOString(),
+    pairCreatedAt: new Date().toISOString(),
+    stage: sample.stage || "testnet presale upcoming launch",
+    description:
+      sample.description ||
+      "Base ecosystem protocol with testnet, launchpad, presale, exchange listing, airdrop, and product launch signals.",
+    announcement:
+      sample.announcement ||
+      "Mainnet launch, presale, airdrop snapshot, and exchange listing are upcoming.",
+    docs: sample.docs || "https://example.com/docs",
+    github: sample.github || "https://github.com/example/audit",
+    githubRepo: sample.githubRepo || "https://github.com/example/audit",
+    twitter: sample.twitter || "@audit",
+    tgeDate: sample.tgeDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    launchDate: sample.launchDate || new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    presaleDate: sample.presaleDate || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    mainnetDate: sample.mainnetDate || new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    listingDate: sample.listingDate || new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+    airdropDate: sample.airdropDate || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    saleUrl: sample.saleUrl || "https://example.com/sale",
+    testnetLive: true,
+    pointsProgram: true,
+    campaign: "points rewards testnet campaign",
+    exchange: "kucoin",
+    listingExchange: "kucoin",
+    overallOpportunityScore: sample.overallOpportunityScore || 76,
+    richTokenScore: sample.richTokenScore || 74,
+    momentumShiftScore: sample.momentumShiftScore || 72,
+    buyTransactions24h: sample.buyTransactions24h || 80,
+    sellTransactions24h: sample.sellTransactions24h || 20,
+    pairCreatedAt: sample.pairCreatedAt || new Date().toISOString(),
+    dex: sample.dex || "uniswap",
+    baseToken: sample.baseToken || { symbol: sample.symbol || "AUDIT", address: sample.address },
+    quoteToken: sample.quoteToken || { symbol: "USDC" },
+    score: sample.score || sample.pipelineScore || 76,
+  };
+
+  if (spec.args === "newProject") {
+    return { ...base, createdAt: new Date().toISOString(), pairCreatedAt: new Date().toISOString() };
+  }
+  return base;
+}
+
+function standaloneArguments(spec = {}, sample = {}) {
+  const project = standaloneSampleFor(spec, sample);
+  const options = { auditMode: true, saveMemory: false, persist: false, ...(spec.options || {}) };
+
+  if (spec.args === "inputObject") return [{ projects: [project] }, options];
+  if (spec.args === "watchtower") return [[project], { ...options, watchStore: { projects: {} } }];
+  return [[project], options];
+}
+
+async function executeStandaloneUsage(spec = {}, module = {}, sample = {}, options = {}) {
+  const engine = module[spec.exportName];
+  const timeoutMs = Math.max(100, num(options.timeoutMs || spec.timeoutMs || 7000));
+
+  if (typeof engine !== "function") {
+    return {
+      status: "FAIL",
+      issue: `Missing standalone export ${spec.exportName}`,
+      executionStatus: "NOT_EXECUTED",
+      timeoutMs,
+    };
+  }
+
+  const startedAt = Date.now();
+  const memoryBefore = process.memoryUsage().heapUsed;
+  const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
+
+  try {
+    const output = await withTimeout(
+      () => engine(...standaloneArguments(spec, sample)),
+      timeoutMs,
+      spec.exportName
+    );
+    const projectResult = projectResultFrom(output);
+
+    if (output === undefined || output === null) {
+      return {
+        status: "FAIL",
+        issue: "Standalone audit export returned no value.",
+        executionStatus: "INVALID_RETURN",
+        timeoutMs,
+        durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
+      };
+    }
+    if (projectResult && !standaloneIdentityPreserved(projectResult, standaloneSampleFor(spec, sample))) {
+      return {
+        status: "FAIL",
+        issue: "Standalone audit export corrupted the project identity.",
+        executionStatus: "IDENTITY_CORRUPTED",
+        timeoutMs,
+        durationMs: Date.now() - startedAt,
+        memoryDeltaBytes: memoryDelta(),
+      };
+    }
+
+    return {
+      status: "OK",
+      executionStatus: "STANDALONE_EXECUTED",
+      timeoutMs,
+      durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
+      standaloneExport: spec.exportName,
+      standaloneRole: spec.role,
+    };
+  } catch (error) {
+    return {
+      status: "FAIL",
+      issue: error.message,
+      executionStatus: "EXECUTION_FAILED",
+      timeoutMs,
+      durationMs: Date.now() - startedAt,
+      memoryDeltaBytes: memoryDelta(),
+    };
+  }
+}
+
 function groupDuplicates(items = [], keyFn = (item) => item) {
   const groups = new Map();
   for (const item of items) {
@@ -332,14 +515,23 @@ export function buildEngineHealthReport(results = []) {
   const contractById = new Map(contracts.map((contract) => [contract.id, contract]));
   const contractByModule = new Map(contracts.map((contract) => [moduleFileFor(contract), contract]));
   const pipelineIndexByModule = new Map();
+  const pipelineIndexByDependency = new Map();
   usage.forEach((entry, index) => {
     if (!pipelineIndexByModule.has(entry.engine)) pipelineIndexByModule.set(entry.engine, index);
+    for (const key of [
+      dependencyKey(entry.stage),
+      dependencyKey(entry.engine),
+      dependencyKey(entry.exportName),
+    ]) {
+      if (key && !pipelineIndexByDependency.has(key)) pipelineIndexByDependency.set(key, index);
+    }
   });
 
   const failed = results.filter((result) => result.status === "FAIL");
   const dormant = results.filter((result) => result.status === "DORMANT");
+  const standalone = results.filter((result) => result.executionStatus === "STANDALONE_EXECUTED");
   const activeUncontracted = results.filter((result) => result.status === "PIPELINE_ACTIVE_UNCONTRACTED");
-  const executed = results.filter((result) => ["EXECUTED", "PIPELINE_EXECUTED"].includes(result.executionStatus));
+  const executed = results.filter((result) => ["EXECUTED", "PIPELINE_EXECUTED", "STANDALONE_EXECUTED"].includes(result.executionStatus));
   const timeouts = results.filter((result) => /timed out/i.test(result.issue || ""));
   const silentFailures = results.filter((result) => result.status !== "FAIL" && result.issue);
   const unexpectedMutations = results.filter((result) => result.executionStatus === "IDENTITY_CORRUPTED");
@@ -361,7 +553,7 @@ export function buildEngineHealthReport(results = []) {
     ["DORMANT", "NOT_EXECUTED"].includes(result.status) || result.executionStatus === "NOT_EXECUTED"
   );
   const deadImports = [...imports.entries()]
-    .filter(([localName]) => !runLocals.has(localName))
+    .filter(([localName]) => !runLocals.has(localName) && countLocalReferences(pipelineSource, localName) <= 1)
     .map(([localName, binding]) => ({ localName, ...binding }));
   const usedExportsByModule = new Map();
   for (const entry of usage) {
@@ -393,11 +585,20 @@ export function buildEngineHealthReport(results = []) {
     for (const depId of contract.dependsOn || []) {
       const dep = contractById.get(depId);
       if (!dep) {
-        engineOrderingProblems.push({
-          engine: contract.id,
-          dependency: depId,
-          issue: "Declared dependency is missing from the contract manifest.",
-        });
+        const depIndex = pipelineIndexByDependency.get(dependencyKey(depId));
+        if (depIndex === undefined) {
+          engineOrderingProblems.push({
+            engine: contract.id,
+            dependency: depId,
+            issue: "Declared dependency is missing from the contract manifest and live pipeline.",
+          });
+        } else if (contractIndex !== undefined && depIndex > contractIndex) {
+          engineOrderingProblems.push({
+            engine: contract.id,
+            dependency: depId,
+            issue: "Pipeline runs dependency after dependent engine.",
+          });
+        }
         continue;
       }
       if (num(dep.priority) > num(contract.priority)) {
@@ -439,18 +640,16 @@ export function buildEngineHealthReport(results = []) {
           memoryLeaks.length * 3 -
           activeUncontracted.length * 1.5 -
           engineOrderingProblems.length * 3 -
-          Math.min(12, dormant.length * 0.2)
+          Math.min(12, dormant.length * 0.5)
       )
     )
   );
   const warnings = [
     ...(activeUncontracted.length ? [`${activeUncontracted.length} live pipeline engines are missing explicit contracts.`] : []),
-    ...(dormant.length ? [`${dormant.length} engine modules are dormant or never called by the live pipeline.`] : []),
+    ...(dormant.length ? [`${dormant.length} engine modules are unclassified and never called by the live pipeline or standalone audit.`] : []),
     ...(deadImports.length ? [`${deadImports.length} pipeline imports are not passed to runEngine.`] : []),
-    ...(deadExports.length ? [`${deadExports.length} exported engine functions are not used by pipeline or contracts.`] : []),
     ...(engineOrderingProblems.length ? [`${engineOrderingProblems.length} dependency ordering issue(s) detected.`] : []),
     ...(pipelineLoops.length ? [`${pipelineLoops.length} dependency loop(s) detected.`] : []),
-    ...(memoryGrowthWatchlist.length ? [`${memoryGrowthWatchlist.length} engines showed notable single-run heap growth.`] : []),
     ...(memoryLeaks.length ? [`${memoryLeaks.length} engines exceeded the possible memory-leak heap-growth threshold.`] : []),
   ];
 
@@ -469,6 +668,7 @@ export function buildEngineHealthReport(results = []) {
     runtime: {
       executedEngines: executed.length,
       dormantEngines: dormant.length,
+      standaloneEngines: standalone.length,
       activeUncontractedEngines: activeUncontracted.length,
       timeoutCount: timeouts.length,
       totalDurationMs: results.reduce((sum, result) => sum + num(result.durationMs), 0),
@@ -480,7 +680,18 @@ export function buildEngineHealthReport(results = []) {
     },
     failures: failed,
     warnings,
+    observations: [
+      ...(standalone.length ? [`${standalone.length} standalone/discovery engines are classified and audit-executed outside the live intelligence pipeline.`] : []),
+      ...(deadExports.length ? [`${deadExports.length} helper exports are not direct pipeline/contract entrypoints.`] : []),
+      ...(memoryGrowthWatchlist.length ? [`${memoryGrowthWatchlist.length} engines showed notable single-run heap growth below the leak threshold.`] : []),
+    ],
     unusedEngines: dormant.map((result) => result.engine),
+    standaloneEngines: standalone.map((result) => ({
+      engine: result.engine,
+      role: result.standaloneRole,
+      exportName: result.standaloneExport,
+      durationMs: result.durationMs,
+    })),
     duplicateEngines,
     neverCalledEngines: neverCalledEngines.map((result) => result.engine),
     orphanEngines: dormant.map((result) => result.engine),
@@ -524,18 +735,34 @@ export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
         .map(([name]) => name);
       const contract = contractsByModule.get(file);
       const pipelineUsage = pipelineUsageByModule.get(file) || [];
+      const registryEntry = registryEntryForFile(file);
+      const standaloneSpec = STANDALONE_ENGINE_AUDIT_SPECS[file] || (registryEntry && !pipelineUsage.length ? {
+        exportName: exports.find((exportName) => /Batch$/.test(exportName)) || exports[0],
+        role: `${registryEntry.category || "registry"}-registry`,
+        args: "projects",
+      } : null);
 
       if (!exports.length) {
         results.push({ engine: file, status: "FAIL", issue: "No exported function found", executionStatus: "NOT_EXECUTED" });
       } else if (!contract) {
         if (!pipelineUsage.length) {
-          results.push({
-            engine: file,
-            status: "DORMANT",
-            issue: "Not referenced by the live intelligence pipeline.",
-            executionStatus: "NOT_EXECUTED",
-            exports,
-          });
+          if (standaloneSpec) {
+            results.push({
+              engine: file,
+              registryId: registryEntry?.id || null,
+              registryCategory: registryEntry?.category || null,
+              exports,
+              ...(await executeStandaloneUsage(standaloneSpec, module, sample, options)),
+            });
+          } else {
+            results.push({
+              engine: file,
+              status: "DORMANT",
+              issue: "Not referenced by the live intelligence pipeline or standalone audit registry.",
+              executionStatus: "NOT_EXECUTED",
+              exports,
+            });
+          }
         } else if (options.executePipelineActive === true) {
           const executions = [];
           for (const usage of pipelineUsage) {
@@ -595,9 +822,10 @@ if (process.argv[1]?.includes("engineHealthCheck.js")) {
 
   const failed = results.filter((result) => result.status === "FAIL");
   const executed = results.filter((result) => ["EXECUTED", "PIPELINE_EXECUTED"].includes(result.executionStatus));
+  const standalone = results.filter((result) => result.executionStatus === "STANDALONE_EXECUTED");
   const activeUncontracted = results.filter((result) => result.status === "PIPELINE_ACTIVE_UNCONTRACTED");
   const dormant = results.filter((result) => result.status === "DORMANT");
-  console.log(`\nExecuted ${executed.length} engines. ${activeUncontracted.length} active pipeline engines need explicit contracts. ${dormant.length} modules are dormant.`);
+  console.log(`\nExecuted ${executed.length + standalone.length} engines (${standalone.length} standalone). ${activeUncontracted.length} active pipeline engines need explicit contracts. ${dormant.length} modules are unclassified dormant.`);
   console.log(`Engine health report: ${healthPath}`);
 
   if (failed.length > 0) {

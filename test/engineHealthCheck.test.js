@@ -37,3 +37,17 @@ test("engine audit discovers the live pipeline exports instead of treating them 
   assert.equal(finalSelection?.exportName, "analyzeFinalSelectionIntegrityBatch");
   assert.equal(prePump?.exportName, "prePumpDetectionEngine");
 });
+
+test("full engine audit classifies and executes standalone discovery engines", async () => {
+  const results = await runEngineHealthCheck({}, { executePipelineActive: true, timeoutMs: 12_000 });
+  const report = buildEngineHealthReport(results);
+
+  assert.equal(report.status, "OK");
+  assert.equal(report.failures.length, 0);
+  assert.equal(report.runtime.dormantEngines, 0);
+  assert.equal(report.runtime.activeUncontractedEngines, 0);
+  assert.equal(report.engineOrderingProblems.length, 0);
+  assert.equal(report.warnings.length, 0);
+  assert.ok(report.runtime.standaloneEngines >= 20);
+  assert.ok(report.coverage.executionCoveragePercent >= 100);
+});

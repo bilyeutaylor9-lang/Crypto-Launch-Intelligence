@@ -2293,7 +2293,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     freeOnly,
   });
   results = await runEngine("Web Research Agent", analyzeWebResearchAgentBatch, results, options.webResearchAgent || {});
-  results = await runEngine("Roadmap Catalyst Profit", analyzeRoadmapCatalystProfitBatch, results, options.roadmapCatalystProfit || {});
   results = await runEngine("X Social Intelligence", analyzeXSocialIntelligenceBatch, results);
   results = await runEngine("Liquidity Intelligence", analyzeLiquidityBatch, results);
   results = await runEngine("Holder Growth", analyzeHolderGrowthBatch, results);
@@ -2322,11 +2321,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sell Pressure", analyzeSellPressureBatch, results);
   results = await runEngine("Relative Strength", analyzeRelativeStrengthBatch, results);
   results = await runEngine("Smart Money Rotation", analyzeSmartMoneyRotationBatch, results);
-  results = await runEngine("Opportunity Timing", analyzeOpportunityTimingBatch, results);
-  results = await runEngine("Early Breakout", analyzeEarlyBreakoutBatch, results);
   results = await runEngine("Volatility Expansion", analyzeVolatilityExpansionBatch, results);
   results = await runEngine("Liquidity Expansion", analyzeLiquidityExpansionBatch, results);
   results = await runEngine("Momentum Shift", analyzeMomentumShiftBatch, results);
+  results = await runEngine("Opportunity Timing", analyzeOpportunityTimingBatch, results);
+  results = await runEngine("Early Breakout", analyzeEarlyBreakoutBatch, results);
   results = await runEngine("Opportunity Timing Refresh", analyzeOpportunityTimingBatch, results);
 
   results = await runEngine("Pre-Pump Detection", prePumpDetectionEngine, results, options.prePump || {});
@@ -2340,10 +2339,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Narrative Heat Index", analyzeNarrativeHeatIndexBatch, results);
   results = await runEngine("AI Research Analyst", analyzeAIResearchAnalystBatch, results);
   results = await runEngine("Institutional vNext", analyzeInstitutionalVNextBatch, results);
+  results = await runEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
   results = await runEngine("Source Reliability", analyzeSourceReliabilityBatch, results);
   results = await runEngine("Source Truth", analyzeSourceTruthBatch, results);
   results = await runEngine("GitHub Intelligence Pro", analyzeGithubIntelligenceProBatch, results);
-  results = await runEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
+  results = await runEngine("Roadmap Catalyst Profit", analyzeRoadmapCatalystProfitBatch, results, options.roadmapCatalystProfit || {});
   results = await runEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
   results = await runEngine("Liquidity Control Risk", analyzeLiquidityControlRiskBatch, results);
   results = await runEngine("Organic Buyer Classifier", analyzeOrganicBuyerClassifierBatch, results);
@@ -2398,7 +2398,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Autonomous Alpha Knowledge Graph", analyzeAutonomousAlphaKnowledgeGraphBatch, results);
   results = await runEngine("Causal Market Twin", analyzeCausalMarketTwinBatch, results);
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
-  results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
@@ -2433,6 +2432,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Sniper Lifecycle State", analyzeSniperLifecycleStateBatch, results);
   results = await runEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
   results = await runEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
+  results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
   results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
