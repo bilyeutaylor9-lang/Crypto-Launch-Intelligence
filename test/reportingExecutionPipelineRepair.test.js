@@ -44,6 +44,7 @@ import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilit
 import { writeAdvertisedCategoryCoverageReport } from "../src/reports/advertisedCategoryCoverageReportEngine.js";
 import { writeCrawlerReports } from "../src/reports/webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEngine.js";
+import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -395,6 +396,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeAdvertisedCategoryCoverageReport(processed);
   writeCrawlerReports(processed);
   writeUtilityQualityReport(processed);
+  writeHighUpsideScalpReport(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);

@@ -70,6 +70,7 @@ import { writeAliasResolutionReports } from "./aliasResolutionReportEngine.js";
 import { writeAdvertisedCategoryCoverageReport } from "./advertisedCategoryCoverageReportEngine.js";
 import { writeCrawlerReports } from "./webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
+import { writeHighUpsideScalpReport } from "./highUpsideScalpReportEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -319,6 +320,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: utilityQualityPath,
   } = writeUtilityQualityReport(projects, meta);
   const {
+    filePath: highUpsideScalpPath,
+  } = writeHighUpsideScalpReport(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -474,6 +478,7 @@ export function generateReports(projects = [], meta = {}) {
     crawlerHealthPath,
     crawlerHealthMarkdownPath,
     utilityQualityPath,
+    highUpsideScalpPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,

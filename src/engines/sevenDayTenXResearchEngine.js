@@ -4,6 +4,9 @@ import { inspectBlockingVerdicts, normalizeDecisionText } from "../selection/blo
 const DEFAULT_TARGET_COUNT = Number(process.env.SEVEN_DAY_TENX_TARGET_COUNT || 3);
 const DEFAULT_MAX_MARKET_CAP = Number(process.env.SEVEN_DAY_TENX_MAX_MARKET_CAP || 75_000_000);
 const DEFAULT_MIN_LIQUIDITY = Number(process.env.SEVEN_DAY_TENX_MIN_LIQUIDITY || 10_000);
+const DEFAULT_MAX_PRICE_CHANGE_24H_PCT = Number(process.env.SEVEN_DAY_TENX_MAX_PRICE_CHANGE_24H_PCT || 85);
+const DEFAULT_MAX_PRICE_CHANGE_7D_PCT = Number(process.env.SEVEN_DAY_TENX_MAX_PRICE_CHANGE_7D_PCT || 220);
+const DEFAULT_MAX_PRICE_CHANGE_30D_PCT = Number(process.env.SEVEN_DAY_TENX_MAX_PRICE_CHANGE_30D_PCT || 650);
 
 const COMPONENT_WEIGHTS = {
   lowCapLeverage: 14,
@@ -88,6 +91,68 @@ function liquidity(project = {}) {
 
 function volume(project = {}) {
   return num(first([project.volume24h, project.volume, project.marketData?.volume24h, project.rawCandidate?.volume24h]));
+}
+
+function priceChange24h(project = {}) {
+  return num(first([project.priceChange24hPct, project.priceChange24h, project.price_change_percentage_24h]));
+}
+
+function priceChange7d(project = {}) {
+  return num(first([project.priceChange7dPct, project.priceChange7d, project.price_change_percentage_7d]));
+}
+
+function priceChange30d(project = {}) {
+  return num(first([project.priceChange30dPct, project.priceChange30d, project.price_change_percentage_30d]));
+}
+
+function utilityQuality(project = {}) {
+  return average([
+    project.utilityQualityScore,
+    project.realUtilityScore,
+    project.productEvidenceScore,
+    project.developerAccelerationScore,
+    project.developerActivityScore,
+    project.githubProScore,
+    project.ecosystemIntegrationScore,
+    project.tokenomicsScore,
+  ]);
+}
+
+function isMemeOnlySpeculation(project = {}) {
+  return project.memeOnlySpeculative === true || project.utilityClassification === "MEME_SPECULATION";
+}
+
+function extensionState(project = {}, options = {}) {
+  const max24h = num(options.maxPriceChange24hPct || DEFAULT_MAX_PRICE_CHANGE_24H_PCT);
+  const max7d = num(options.maxPriceChange7dPct || DEFAULT_MAX_PRICE_CHANGE_7D_PCT);
+  const max30d = num(options.maxPriceChange30dPct || DEFAULT_MAX_PRICE_CHANGE_30D_PCT);
+  const change24h = priceChange24h(project);
+  const change7d = priceChange7d(project);
+  const change30d = priceChange30d(project);
+  const alreadyTenX =
+    change24h >= 900 ||
+    change7d >= 900 ||
+    change30d >= 900 ||
+    project.priceAlreadyTenX === true ||
+    project.alreadyTenX === true;
+  const lateChase =
+    alreadyTenX ||
+    change24h >= max24h ||
+    change7d >= max7d ||
+    change30d >= max30d ||
+    ["ALREADY_PUMPED", "LATE_CHASE", "EXTENDED"].includes(project.preBreakoutMomentumStage || project.prePump?.status);
+
+  return {
+    status: alreadyTenX ? "ALREADY_10X" : lateChase ? "LATE_CHASE" : "PRE_EXTENSION",
+    priceChange24hPct: change24h,
+    priceChange7dPct: change7d,
+    priceChange30dPct: change30d,
+    thresholds: {
+      maxPriceChange24hPct: max24h,
+      maxPriceChange7dPct: max7d,
+      maxPriceChange30dPct: max30d,
+    },
+  };
 }
 
 function routeVerified(project = {}) {
@@ -335,12 +400,16 @@ function riskPenalties(project = {}) {
   return penalties;
 }
 
-function hardBlockers(project = {}, components = {}, minLiquidity = DEFAULT_MIN_LIQUIDITY) {
+function hardBlockers(project = {}, components = {}, minLiquidity = DEFAULT_MIN_LIQUIDITY, options = {}) {
   const blockers = [...inspectBlockingVerdicts(project).blockingVerdictReasons];
   const finalState = project.finalSelectionState || project.finalState;
+  const extension = extensionState(project, options);
 
   if (["BLOCKED", "IDENTITY_CONFLICT"].includes(finalState)) blockers.push(`Final selection state is ${finalState}.`);
   if (project.identityConflict || project.finalIdentityState === "CONFLICTED_IDENTITY") blockers.push("Identity conflict detected.");
+  if (extension.status === "ALREADY_10X") blockers.push("Already moved near or beyond a 10x-style price expansion; route to missed-winner/late-chase review.");
+  if (extension.status === "LATE_CHASE") blockers.push("Price is already extended for this high-upside research mode.");
+  if (isMemeOnlySpeculation(project)) blockers.push("Meme-only speculation is excluded from the real-utility high-upside candidate lane.");
   if (!hasVerifiedIdentity(project)) blockers.push("Identity is not verified enough for a 7-day high-upside candidate.");
   if (!chain(project)) blockers.push("Chain is missing.");
   if (!tokenAddress(project)) blockers.push("Token contract address is missing.");
@@ -364,6 +433,7 @@ function missingEvidence(project = {}, components = {}) {
     ...(!poolAddress(project) ? ["tradable pool"] : []),
     ...(!routeVerified(project) ? ["fresh buy/sell execution route"] : []),
     ...(liquidity(project) <= 0 ? ["DEX liquidity"] : []),
+    ...(components.utilityQuality < 45 && !project.realUtilityQualified ? ["real utility/product evidence"] : []),
     ...(components.nearTermCatalyst < 55 ? ["near-term catalyst proof"] : []),
     ...(components.organicDemand < 55 ? ["organic buyer/demand proof"] : []),
     ...(components.smartMoneyArrival < 50 ? ["smart-wallet arrival proof"] : []),
@@ -444,12 +514,14 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
     liquidityTradability: liquidityTradability(project, minLiquidity),
     evidenceTrust: evidenceTrust(project),
     safetyIntegrity: safetyIntegrity(project),
+    utilityQuality: utilityQuality(project),
   };
   const rawScore = weightedScore(components);
   const penalties = riskPenalties(project);
   const penaltyTotal = Number(penalties.reduce((sum, item) => sum + num(item.penalty), 0).toFixed(2));
   const score = Math.round(clamp(rawScore - penaltyTotal));
-  const blockers = hardBlockers(project, components, minLiquidity);
+  const extension = extensionState(project, options);
+  const blockers = hardBlockers(project, components, minLiquidity, options);
   const missing = missingEvidence(project, components);
   const scenarioStrength = asymmetricScenarioStrength(score, components, penalties);
   const tenXVerdict = verdict(score, blockers, components, missing);
@@ -472,6 +544,8 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
     sevenDayTenXSelectedEligible: selectedEligible,
     sevenDayAsymmetricScenarioStrength: scenarioStrength,
     sevenDayTenXModeledScenarioPct: scenarioStrength,
+    sevenDayTenXLateChaseStatus: extension.status,
+    sevenDayTenXPriceExtension: extension,
     sevenDayTenXMarketCap: marketCap(project),
     sevenDayTenXLiquidityUsd: liquidity(project),
     sevenDayTenXBlockers: blockers,
@@ -489,6 +563,13 @@ export function analyzeSevenDayTenXResearch(project = {}, options = {}) {
       selectedEligible,
       componentWeights: COMPONENT_WEIGHTS,
       components,
+      utilityMode:
+        project.realUtilityQualified || components.utilityQuality >= 55
+          ? "REAL_OR_DEVELOPING_UTILITY"
+          : isMemeOnlySpeculation(project)
+            ? "MEME_SPECULATION_BLOCKED"
+            : "UTILITY_EVIDENCE_INCOMPLETE",
+      lateChaseStatus: extension.status,
       penalties,
       blockers,
       missingEvidence: missing,
@@ -601,6 +682,11 @@ function compact(project = {}) {
     liquidityUsd: project.sevenDayTenXLiquidityUsd || 0,
     finalSelectionState: project.finalSelectionState || "UNKNOWN",
     routeVerified: routeVerified(project),
+    utilityClassification: project.utilityClassification || "UNKNOWN_UTILITY",
+    realUtilityQualified: Boolean(project.realUtilityQualified),
+    memeOnlySpeculative: Boolean(project.memeOnlySpeculative),
+    lateChaseStatus: project.sevenDayTenXLateChaseStatus || "UNKNOWN",
+    priceExtension: project.sevenDayTenXPriceExtension || {},
     asymmetricScenarioStrength: project.sevenDayAsymmetricScenarioStrength || project.sevenDayTenXModeledScenarioPct || 0,
     componentScores: project.sevenDayTenX?.components || {},
     blockers: project.sevenDayTenXBlockers || [],

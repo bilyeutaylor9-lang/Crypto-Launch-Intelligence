@@ -30,6 +30,7 @@ import {
 } from "./storage/supabaseMemory.js";
 import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js";
+import { engineProfileReport } from "./config/engineProfileConfig.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -696,6 +697,7 @@ async function main() {
       localAI,
       progressiveFunnel: true,
       analysisFunnelSelection: buildPipelineStageSelection(researchPlan),
+      engineProfile: process.env.PIPELINE_ENGINE_PROFILE,
     });
 
     let results = normalizeForReports(pipelineResults);
@@ -738,6 +740,7 @@ async function main() {
       pipelineStageExecution,
       scannedProjects: results.length,
       engineMode: "progressive-stage-execution",
+      engineProfile: engineProfileReport(process.env.PIPELINE_ENGINE_PROFILE),
       scoringMode: "institutional-weighted-fallback",
       localAIMode: localAI.mode,
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),

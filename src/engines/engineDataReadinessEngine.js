@@ -260,11 +260,16 @@ export function analyzeEngineDataReadinessBatch(projects = [], options = {}) {
   return projects.map((project) => analyzeEngineDataReadiness(project, options));
 }
 
-export function summarizeEngineDataReadiness(projects = []) {
+export function summarizeEngineDataReadiness(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const contracts = engineContracts();
+  const contracts = engineContracts(options);
   const analyzed = safeProjects.map((project) =>
-    project.engineDataReadiness ? project : analyzeEngineDataReadiness(project, { contracts })
+    project.engineDataReadiness
+      ? project
+      : analyzeEngineDataReadiness(project, {
+          contracts,
+          disableSemanticScan: options.disableSemanticScan ?? true,
+        })
   );
   const statuses = analyzed.reduce((acc, project) => {
     const status = project.engineDataReadinessStatus || "UNKNOWN";

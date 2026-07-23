@@ -158,6 +158,10 @@ import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunity
 import { analyzeUtilityQualityBatch } from "./engines/utilityQualityEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
+import {
+  resolveEngineProfile,
+  shouldRunEngineForProfile,
+} from "./config/engineProfileConfig.js";
 
 import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 
@@ -662,7 +666,9 @@ function buildStandardEngineResult({
         ? ["Engine returned fewer projects than it received."]
         : status === "NO_DATA"
           ? ["Engine returned no projects."]
-          : [],
+          : status === "SKIPPED"
+            ? ["Engine skipped by the active engine profile."]
+            : [],
     failureReason,
     calculatedAt: new Date().toISOString(),
     durationMs,
@@ -700,6 +706,7 @@ function engineHealthFromResults(engineResults = {}) {
     enginesSuccessful: countStatus("SUCCESS"),
     enginesPartial: countStatus("PARTIAL"),
     enginesFailed: countStatus("FAILED"),
+    enginesSkipped: countStatus("SKIPPED"),
     enginesNoData: countStatus("NO_DATA"),
     enginesStale: countStatus("STALE"),
     averageEvidenceCoverage: averageNumeric(records.map((record) => record.evidenceCoverage)),
@@ -761,6 +768,7 @@ function updateEngineHealth(previousHealth = {}, record = {}) {
     enginesSuccessful: num(previousHealth.enginesSuccessful) + (status === "SUCCESS" ? 1 : 0),
     enginesPartial: num(previousHealth.enginesPartial) + (status === "PARTIAL" ? 1 : 0),
     enginesFailed: failedCount,
+    enginesSkipped: num(previousHealth.enginesSkipped) + (status === "SKIPPED" ? 1 : 0),
     enginesNoData: num(previousHealth.enginesNoData) + (status === "NO_DATA" ? 1 : 0),
     enginesStale: num(previousHealth.enginesStale) + (status === "STALE" ? 1 : 0),
     averageEvidenceCoverage: Math.round((coverageTotal + num(record.evidenceCoverage)) / attempted),
@@ -865,6 +873,20 @@ export async function runEngine(name, engine, projects, options = {}) {
     : normalizeEngineOutput(projects, []);
   const startedAt = Date.now();
   const criticality = engineCriticality(name, options);
+  const profileDecision = shouldRunEngineForProfile(name, options.engineProfile);
+
+  if (!profileDecision.run) {
+    console.log(`Skipping ${name}: ${profileDecision.reason}`);
+    const record = buildStandardEngineResult({
+      name,
+      status: "SKIPPED",
+      projects: safeProjects,
+      failureReason: profileDecision.reason,
+      durationMs: Date.now() - startedAt,
+      criticality,
+    });
+    return attachEngineResult(safeProjects, record);
+  }
 
   try {
     if (typeof engine !== "function") {
@@ -2253,9 +2275,11 @@ export function addFinalScoring(projects = []) {
 
 export async function runIntelligencePipeline(projects = [], options = {}) {
   const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
+  const engineProfile = resolveEngineProfile(options.engineProfile);
   let results = Array.isArray(projects)
     ? [...projects]
     : normalizeEngineOutput(projects, []);
+  console.log(`Engine Profile: ${engineProfile.label} (${engineProfile.id})`);
   const stageContext = buildProgressivePipelineStageContext(options, results);
   results = attachProgressiveStageMetadata(results, stageContext);
   if (stageContext.enabled) {
@@ -2268,7 +2292,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       name,
       engine,
       currentProjects,
-      engineOptions,
+      { ...engineOptions, engineProfile },
       pipelineStageForEngine(name),
       stageContext
     );
@@ -2404,7 +2428,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
 
   // Deterministic route, execution, liquidity, safety, and sniper evidence must
   // exist before advisory AI/council engines interpret the opportunity.
-  results = await runLocalAIResearchPipelineStage(results, options, stageContext);
+  if (engineProfile.skipLocalAIResearch) {
+    console.log(`Skipping Local AI research queue: ${engineProfile.label} keeps this scan in deterministic high-upside mode.`);
+  } else {
+    results = await runLocalAIResearchPipelineStage(results, options, stageContext);
+  }
   results = await runEngine("AI Ecosystem Council", analyzeAIEcosystemCouncilBatch, results);
   results = await runEngine("Research Operating System", analyzeResearchOperatingSystemBatch, results);
   results = await runEngine("Autonomous Alpha Lab", analyzeAutonomousAlphaLabBatch, results);
@@ -2500,52 +2528,56 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       console.log(`Internet research memory save failed: ${error.message}`);
     }
 
-    try {
-      await saveMemoryStep("agent council memory", () => saveAgentCouncilMemory(results));
-    } catch (error) {
-      console.log(`Agent council memory save failed: ${error.message}`);
-    }
+    if (engineProfile.skipAutonomousMemoryStores) {
+      console.log(`Skipping autonomous/council memory stores: ${engineProfile.label} keeps persistence lean.`);
+    } else {
+      try {
+        await saveMemoryStep("agent council memory", () => saveAgentCouncilMemory(results));
+      } catch (error) {
+        console.log(`Agent council memory save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("strategy memory", () => saveStrategyMemory(results));
-    } catch (error) {
-      console.log(`Strategy memory save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("strategy memory", () => saveStrategyMemory(results));
+      } catch (error) {
+        console.log(`Strategy memory save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("paper trading outcomes", () => savePaperTradingOutcomes(results));
-    } catch (error) {
-      console.log(`Paper trading outcome save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("paper trading outcomes", () => savePaperTradingOutcomes(results));
+      } catch (error) {
+        console.log(`Paper trading outcome save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("autonomous research memory", () => saveAutonomousResearchMemory(results));
-    } catch (error) {
-      console.log(`Autonomous research memory save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("autonomous research memory", () => saveAutonomousResearchMemory(results));
+      } catch (error) {
+        console.log(`Autonomous research memory save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("alpha contracts", () => saveAlphaContracts(results));
-    } catch (error) {
-      console.log(`Alpha contract memory save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("alpha contracts", () => saveAlphaContracts(results));
+      } catch (error) {
+        console.log(`Alpha contract memory save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("alpha knowledge graph", () => saveAlphaKnowledgeGraph(results));
-    } catch (error) {
-      console.log(`Alpha knowledge graph save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("alpha knowledge graph", () => saveAlphaKnowledgeGraph(results));
+      } catch (error) {
+        console.log(`Alpha knowledge graph save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("causal alpha event lake", () => saveCausalAlphaEvents(results));
-    } catch (error) {
-      console.log(`Causal alpha event lake save failed: ${error.message}`);
-    }
+      try {
+        await saveMemoryStep("causal alpha event lake", () => saveCausalAlphaEvents(results));
+      } catch (error) {
+        console.log(`Causal alpha event lake save failed: ${error.message}`);
+      }
 
-    try {
-      await saveMemoryStep("alpha evolution memory", () => saveAlphaEvolutionMemory(results));
-    } catch (error) {
-      console.log(`Alpha evolution memory save failed: ${error.message}`);
+      try {
+        await saveMemoryStep("alpha evolution memory", () => saveAlphaEvolutionMemory(results));
+      } catch (error) {
+        console.log(`Alpha evolution memory save failed: ${error.message}`);
+      }
     }
   }
 
