@@ -87,9 +87,72 @@ test("hottest-ten-now excludes late-chase, meme-only, unsafe, and no-sell-route 
   ]);
 
   assert.equal(report.returnedCount, 0);
-  assert.equal(report.rejectedOrNotCurrent.length, 4);
+  assert.equal(report.rejectedOrNotCurrent.length, 3);
   assert.ok(report.countsByLane.ALREADY_EXTENDED_OR_LATE_CHASE >= 1);
   assert.ok(report.countsByLane.MEME_ONLY_OR_NO_VERIFIED_UTILITY >= 1);
   assert.ok(report.countsByLane.DETERMINISTIC_SAFETY_OR_SCALP_BLOCK >= 1);
-  assert.ok(report.countsByLane.BUY_AND_SELL_ROUTE_NOT_VERIFIED >= 1);
+  assert.ok(report.countsByLane.RESEARCH_BOARD_NEEDS_MISSING_INFO >= 1);
+  assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "NOSALE"), true);
+  assert.equal(report.topTenHighestRatedNow.some((project) => project.symbol === "NOSALE"), false);
+  assert.equal(report.topTenCurrentResearchBoard.find((project) => project.symbol === "NOSALE").reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
+});
+
+test("hottest-ten-now keeps non-danger final-selection blocks on the research board", () => {
+  const report = summarizeHottestTenNow([
+    candidate({
+      symbol: "PROOF",
+      liveExecutionReady: false,
+      executionProofState: "MARKET_OBSERVED",
+      executionProof: { buyRouteAvailable: true, sellRouteAvailable: false },
+      purchaseRouteConfirmed: false,
+      sellRouteAvailable: false,
+      finalSelectionState: "BLOCKED",
+      finalSelectionBlockers: ["EXECUTION_EVIDENCE_MISSING", "SNIPER_EVIDENCE_FAMILY_QUORUM_MISSING"],
+    }),
+  ]);
+
+  assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.currentResearchBoardCount, 1);
+  assert.equal(report.topTenCurrentResearchBoard[0].symbol, "PROOF");
+  assert.equal(report.topTenCurrentResearchBoard[0].lane, "RESEARCH_BOARD_NEEDS_MISSING_INFO");
+  assert.equal(report.topTenCurrentResearchBoard[0].reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
+  assert.ok(report.topTenCurrentResearchBoard[0].missingInfoNeeded.includes("fresh buy quote and sell route"));
+  assert.ok(report.topTenCurrentResearchBoard[0].nextSourcesNeeded.length > 0);
+});
+
+test("hottest-ten-now still excludes confirmed safety and identity hard blocks", () => {
+  const report = summarizeHottestTenNow([
+    candidate({ symbol: "HONEY", honeypotDetected: true }),
+    candidate({ symbol: "CONFLICT", finalSelectionBlockers: ["contract mismatch against official identity"] }),
+    candidate({ symbol: "SCALP", scalpNoTrade: true, scalpMicrostructureBlockers: ["cannot sell through verified route"] }),
+  ]);
+
+  assert.equal(report.currentResearchBoardCount, 0);
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.countsByLane.DETERMINISTIC_SAFETY_OR_SCALP_BLOCK, 3);
+  assert.equal(report.rejectedOrNotCurrent.length, 3);
+});
+
+test("hottest-ten-now fills a top-ten research board without forcing buy-ready picks", () => {
+  const projects = Array.from({ length: 12 }, (_, index) =>
+    candidate({
+      symbol: `UTIL${index + 1}`,
+      liveExecutionReady: false,
+      executionProofState: "MARKET_OBSERVED",
+      executionProof: { buyRouteAvailable: true, sellRouteAvailable: false },
+      purchaseRouteConfirmed: false,
+      sellRouteAvailable: false,
+      sevenDayTenXScore: 70 - index,
+    })
+  );
+  const report = summarizeHottestTenNow(projects);
+
+  assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.currentResearchBoardCount, 10);
+  assert.equal(report.topTenCurrentResearchBoard.length, 10);
+  assert.equal(report.topTenHighestRatedNow.length, 0);
+  assert.equal(report.notForced, true);
+  assert.match(report.disclaimer, /not financial advice/i);
 });

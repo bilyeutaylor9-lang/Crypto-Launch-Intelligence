@@ -206,12 +206,20 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
               <th>7d</th>
               <th>Liquidity</th>
               <th>Route</th>
+              <th>Needs</th>
             </tr>
           </thead>
           <tbody>
             ${rows
-              .map(
-                (candidate) => `
+              .map((candidate) => {
+                const needs = [
+                  ...(candidate.missingInfoNeeded || []),
+                  ...(candidate.missingEvidence || []),
+                ]
+                  .filter(Boolean)
+                  .slice(0, 3)
+                  .join(", ");
+                return `
                   <tr>
                     <td>${escapeHtml(candidate.rank ?? "")}</td>
                     <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
@@ -223,9 +231,10 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd ?? candidate.scalpLiquidityUsd))}</td>
                     <td>${candidate.liveExecutionReady ? "Live Ready" : candidate.routeReady || candidate.buySellRouteVerified || (candidate.buyRouteAvailable && candidate.sellRouteAvailable) ? "Verified" : "Research"}</td>
+                    <td>${escapeHtml(needs || candidate.reasonNotQualified || "Current checks")}</td>
                   </tr>
-                `
-              )
+                `;
+              })
               .join("")}
           </tbody>
         </table>
