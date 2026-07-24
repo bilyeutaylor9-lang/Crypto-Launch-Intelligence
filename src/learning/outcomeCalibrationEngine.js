@@ -27,7 +27,6 @@ export const CALIBRATED_SIGNALS = [
   { key: "xSocial", label: "X Social", positive: true },
   { key: "institutionalWatch", label: "Institutional Watch", positive: true },
   { key: "learningEdge", label: "Learning Edge", positive: true },
-  { key: "outcomeLearning", label: "Outcome Learning", positive: true },
   { key: "signalCombination", label: "Signal Combination", positive: true },
   { key: "quantumOpportunity", label: "Quantum Opportunity", positive: true },
   { key: "sellPressure", label: "Sell Pressure", positive: false },
@@ -93,12 +92,12 @@ function closestSnapshotAfter(snapshots = [], fromMs = 0, horizonHours = 24) {
   )[0];
 }
 
-function labelOutcome(changePct = 0, scoreDelta = 0) {
-  if (changePct >= 100 || scoreDelta >= 25) return "major_winner";
-  if (changePct >= 35 || scoreDelta >= 15) return "winner";
-  if (changePct >= 12 || scoreDelta >= 7) return "positive";
-  if (changePct <= -35 || scoreDelta <= -20) return "major_loser";
-  if (changePct <= -15 || scoreDelta <= -10) return "loser";
+function labelOutcome(changePct = 0) {
+  if (changePct >= 100) return "major_winner";
+  if (changePct >= 35) return "winner";
+  if (changePct >= 12) return "positive";
+  if (changePct <= -35) return "major_loser";
+  if (changePct <= -15) return "loser";
   return "neutral";
 }
 
@@ -111,7 +110,7 @@ function outcomeScore(label = "neutral") {
   return 0;
 }
 
-function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEFAULT_HORIZONS) {
+export function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEFAULT_HORIZONS) {
   const snapshotsByKey = groupByKey(snapshots);
   const examples = [];
 
@@ -124,21 +123,19 @@ function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEFAULT_HO
     const fromLiquidity = num(record.market?.liquidityUsd);
     const fromScore = num(record.scores?.pipeline);
 
-    if (!fromMs || !projectSnapshots.length) continue;
+    if (!fromMs || fromPrice <= 0 || !projectSnapshots.length) continue;
 
     for (const horizonHours of horizons) {
       const future = closestSnapshotAfter(projectSnapshots, fromMs, horizonHours);
       if (!future) continue;
+      if (num(future.priceUsd) <= 0) continue;
 
       const priceChangePct = pctChange(fromPrice, future.priceUsd);
       const marketCapChangePct = pctChange(fromMarketCap, future.marketCap);
       const liquidityChangePct = pctChange(fromLiquidity, future.liquidityUsd);
       const scoreDelta = num(future.score) - fromScore;
-      const primaryChangePct =
-        [priceChangePct, marketCapChangePct, liquidityChangePct]
-          .filter((value) => value !== 0)
-          .sort((a, b) => Math.abs(b) - Math.abs(a))[0] || scoreDelta;
-      const label = labelOutcome(primaryChangePct, scoreDelta);
+      const primaryChangePct = priceChangePct;
+      const label = labelOutcome(primaryChangePct);
 
       examples.push({
         key,
@@ -152,9 +149,10 @@ function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEFAULT_HO
         priceChangePct: Number(priceChangePct.toFixed(2)),
         marketCapChangePct: Number(marketCapChangePct.toFixed(2)),
         liquidityChangePct: Number(liquidityChangePct.toFixed(2)),
-        scoreDelta: Number(scoreDelta.toFixed(2)),
+        scannerScoreDeltaIgnored: Number(scoreDelta.toFixed(2)),
         primaryChangePct: Number(primaryChangePct.toFixed(2)),
         outcomeLabel: label,
+        outcomeBasis: "PRICE_ONLY_POINT_IN_TIME_SNAPSHOT",
         outcomeScore: outcomeScore(label),
       });
     }
@@ -261,7 +259,8 @@ function topOutcomes(examples = [], direction = "winner") {
     horizonHours: example.horizonHours,
     outcomeLabel: example.outcomeLabel,
     primaryChangePct: example.primaryChangePct,
-    scoreDelta: example.scoreDelta,
+    outcomeBasis: example.outcomeBasis,
+    scannerScoreDeltaIgnored: example.scannerScoreDeltaIgnored,
     pipelineScore: num(example.scores?.pipeline),
   }));
 }
@@ -283,6 +282,8 @@ export function buildOutcomeCalibrationReport(options = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
+    learningKernel: "TRUTH_ONLY_PRICE_OUTCOME",
+    scoreBasedOutcomeLabelsAllowed: false,
     horizons,
     totalExamples: total,
     uniqueProjects: new Set(examples.map((example) => example.key)).size,

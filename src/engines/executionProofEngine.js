@@ -292,6 +292,81 @@ function moneyStatusFor(status = "") {
   return "VERIFIED_NEGATIVE";
 }
 
+function verifiedTaxEvidence(project = {}) {
+  return Boolean(
+    project.taxesVerified === true ||
+      project.transferTaxVerified === true ||
+      project.transferTaxEvidence ||
+      project.taxEvidence ||
+      project.buyTaxPct !== undefined ||
+      project.sellTaxPct !== undefined ||
+      project.executionProof?.taxesVerified === true ||
+      project.proofOfAlphaExecutionTwin?.taxes?.verified === true
+  );
+}
+
+function sellSimulationPassed(project = {}) {
+  const simulation = lower(
+    [
+      project.sellSimulationStatus,
+      project.executionSellSimulationStatus,
+      project.executionProof?.sellSimulationStatus,
+      project.proofOfAlphaExecutionTwin?.simulation?.sellStatus,
+      project.proofOfAlphaExecutionTwin?.sellSimulationStatus,
+    ].join(" ")
+  );
+  return Boolean(
+    project.sellSimulationPassed === true ||
+      project.executionProof?.sellSimulationPassed === true ||
+      project.proofOfAlphaExecutionTwin?.simulation?.sellPassed === true ||
+      /passed|success|successful|verified/.test(simulation)
+  );
+}
+
+function orderBookDepthVerified(project = {}) {
+  return Boolean(
+    project.orderBookDepthVerified === true ||
+      project.executionProof?.orderBookDepthVerified === true ||
+      num(project.orderBookDepthUsd) > 0 ||
+      num(project.bidDepthUsd) > 0 ||
+      num(project.askDepthUsd) > 0
+  );
+}
+
+function executionProofStateFor({
+  project,
+  routes,
+  executionStatus,
+  buyRouteAvailable,
+  sellRouteAvailable,
+  chainVerified,
+  contractVerified,
+  poolVerified,
+  quoteVerified,
+  quoteAge,
+}) {
+  if (["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(executionStatus)) return executionStatus;
+  if (executionStatus === "PROVIDER_UNAVAILABLE") return "PROVIDER_UNAVAILABLE";
+
+  const marketObserved = routes.length > 0 || priceUsd(project) > 0 || liquidity > 0;
+  if (!marketObserved) return "NO_VERIFIED_ROUTE";
+  if (!chainVerified || !contractVerified || !poolVerified) return "MARKET_OBSERVED";
+  if (!buyRouteAvailable) return "PAIR_IDENTITY_VERIFIED";
+  if (!quoteVerified) return "PAIR_IDENTITY_VERIFIED";
+  if (!sellRouteAvailable) return "BUY_QUOTE_VERIFIED";
+
+  const taxVerified = verifiedTaxEvidence(project);
+  const simulationPassed = sellSimulationPassed(project);
+  const depthVerified = orderBookDepthVerified(project);
+  const freshEnough = quoteAge !== null && quoteAge <= 3600;
+
+  if (freshEnough && simulationPassed && taxVerified && depthVerified) return "LIVE_EXECUTION_READY";
+  if (simulationPassed) return "SELL_SIMULATION_PASSED";
+  if (taxVerified) return "TAXES_VERIFIED";
+  if (depthVerified) return "ORDER_BOOK_DEPTH_VERIFIED";
+  return "SELL_QUOTE_VERIFIED";
+}
+
 export function analyzeExecutionProof(project = {}, options = {}) {
   const routes = routeSources(project);
   const liquidity = liquidityUsd(project);
@@ -307,6 +382,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
     project.smallCapHunter?.execution?.slippagePct,
   ]);
+  const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
   const chainVerified = Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
   const contractVerified = Boolean(addressOf(project) && verifiedIdentity(project));
   const poolVerified = Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
@@ -341,6 +417,21 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (!quoteVerified) failureReasons.push("Verified quote is missing or stale/unknown.");
   if (!safetyVerified) failureReasons.push("Execution safety is blocked or unresolved.");
 
+  const executionProofState = executionProofStateFor({
+    project,
+    routes,
+    executionStatus,
+    buyRouteAvailable,
+    sellRouteAvailable,
+    chainVerified,
+    contractVerified,
+    poolVerified,
+    quoteVerified,
+    quoteAge,
+    liquidity,
+    estimatedSlippage100,
+  });
+
   const supportingSources = routes
     .filter((route) => route.verified || route.buy || route.sell)
     .map((route) => route.source)
@@ -358,9 +449,19 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     liquidityUsd: liquidity || null,
     volume24hUsd: volume || null,
     estimatedSlippage25: slippageFor(liquidity, 25, null),
-    estimatedSlippage100: slippageFor(liquidity, 100, observedSlippage),
+    estimatedSlippage100,
     estimatedSlippage500: slippageFor(liquidity, 500, null),
     estimatedSlippage1000: slippageFor(liquidity, 1000, null),
+    executionProofState,
+    liveExecutionReady: executionProofState === "LIVE_EXECUTION_READY",
+    executionProofActionability:
+      executionProofState === "LIVE_EXECUTION_READY"
+        ? "LIVE_EXECUTION_READY"
+        : executionProofState === "SELL_SIMULATION_PASSED"
+          ? "SIMULATED_SELL_READY_RESEARCH"
+          : ["SELL_QUOTE_VERIFIED", "ORDER_BOOK_DEPTH_VERIFIED", "TAXES_VERIFIED"].includes(executionProofState)
+            ? "QUOTE_VERIFIED_RESEARCH"
+            : "MARKET_OBSERVED_RESEARCH_ONLY",
     buyRouteAvailable,
     sellRouteAvailable,
     chainVerified,
@@ -438,6 +539,8 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     ...project,
     executionProof,
     executionStatus,
+    executionProofState,
+    liveExecutionReady: executionProofState === "LIVE_EXECUTION_READY",
     executionProofVerified: executionStatus === "VERIFIED",
     executionProofPartiallyVerified: executionStatus === "PARTIALLY_VERIFIED",
     executionProviderUnavailable: executionStatus === "PROVIDER_UNAVAILABLE",

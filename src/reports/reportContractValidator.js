@@ -47,6 +47,7 @@ export const REQUIRED_REPORT_FILES = [
   "real-utility-opportunities.json",
   "high-upside-scalp-research.json",
   "scalp-microstructure.json",
+  "hottest-ten-now.json",
   "institutional-ranking.json",
 ];
 

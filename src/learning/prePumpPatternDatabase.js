@@ -149,26 +149,24 @@ function cosineSimilarity(a = {}, b = {}) {
   return dot / (Math.sqrt(magA) * Math.sqrt(magB));
 }
 
-function classifyOutcome(primaryChangePct = 0, scoreDelta = 0) {
-  if (primaryChangePct >= 75 || scoreDelta >= 25) return "pre_breakout";
-  if (primaryChangePct >= 30 || scoreDelta >= 14) return "breakout";
-  if (primaryChangePct <= -40 || scoreDelta <= -20) return "rug_or_dump";
-  if (primaryChangePct <= -18 || scoreDelta <= -10) return "fade";
+function classifyOutcome(primaryChangePct = 0) {
+  if (primaryChangePct >= 75) return "pre_breakout";
+  if (primaryChangePct >= 30) return "breakout";
+  if (primaryChangePct <= -40) return "rug_or_dump";
+  if (primaryChangePct <= -18) return "fade";
   return "neutral";
 }
 
 function outcomeForRecord(record = {}, snapshots = [], horizonHours = 168) {
   const future = closestSnapshotAfter(snapshots, timestampOf(record), horizonHours);
   if (!future) return null;
+  if (num(record.market?.priceUsd) <= 0 || num(future.priceUsd) <= 0) return null;
 
   const priceChangePct = pctChange(record.market?.priceUsd, future.priceUsd);
   const marketCapChangePct = pctChange(record.market?.marketCap, future.marketCap);
   const liquidityChangePct = pctChange(record.market?.liquidityUsd, future.liquidityUsd);
   const scoreDelta = num(future.score) - num(record.scores?.pipeline);
-  const primaryChangePct =
-    [priceChangePct, marketCapChangePct, liquidityChangePct]
-      .filter((value) => value !== 0)
-      .sort((a, b) => Math.abs(b) - Math.abs(a))[0] || scoreDelta;
+  const primaryChangePct = priceChangePct;
 
   return {
     horizonHours,
@@ -177,8 +175,10 @@ function outcomeForRecord(record = {}, snapshots = [], horizonHours = 168) {
     marketCapChangePct: Number(marketCapChangePct.toFixed(2)),
     liquidityChangePct: Number(liquidityChangePct.toFixed(2)),
     scoreDelta: Number(scoreDelta.toFixed(2)),
+    scannerScoreDeltaIgnored: Number(scoreDelta.toFixed(2)),
     primaryChangePct: Number(primaryChangePct.toFixed(2)),
-    label: classifyOutcome(primaryChangePct, scoreDelta),
+    label: classifyOutcome(primaryChangePct),
+    outcomeBasis: "PRICE_ONLY_POINT_IN_TIME_SNAPSHOT",
   };
 }
 

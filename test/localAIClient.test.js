@@ -50,6 +50,33 @@ test("local Llama config supports OpenAI-compatible servers", () => {
   assert.equal(config.maxTokens, 99);
 });
 
+test("brain cloud env aliases configure OpenAI-compatible local AI client", () => {
+  const previous = {
+    BRAIN_CLOUD_BASE_URL: process.env.BRAIN_CLOUD_BASE_URL,
+    BRAIN_CLOUD_MODEL: process.env.BRAIN_CLOUD_MODEL,
+    BRAIN_CLOUD_API_KEY: process.env.BRAIN_CLOUD_API_KEY,
+    BRAIN_CLOUD_PROVIDER: process.env.BRAIN_CLOUD_PROVIDER,
+  };
+
+  process.env.BRAIN_CLOUD_BASE_URL = "https://brain.example/v1";
+  process.env.BRAIN_CLOUD_MODEL = "llama-3.1-cloud";
+  process.env.BRAIN_CLOUD_API_KEY = "brain-key";
+  process.env.BRAIN_CLOUD_PROVIDER = "openai-compatible";
+
+  try {
+    const config = getLocalAIConfig();
+    assert.equal(config.provider, "openai-compatible");
+    assert.equal(config.baseUrl, "https://brain.example/v1");
+    assert.equal(config.model, "llama-3.1-cloud");
+    assert.equal(config.apiKey, "brain-key");
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
 test("OpenAI-compatible Llama inspection checks /v1/models", async () => {
   const result = await inspectLocalAI({
     provider: "openai-compatible",

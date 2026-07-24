@@ -58,12 +58,19 @@ function booleanOption(value, fallback = false) {
 export function getOllamaConfig(overrides = {}) {
   const baseUrl = normalizedBaseUrl(
     overrides.baseUrl ||
+      process.env.BRAIN_CLOUD_BASE_URL ||
+      process.env.CLOUD_AI_BASE_URL ||
       process.env.LOCAL_AI_BASE_URL ||
       process.env.LLAMA_BASE_URL ||
       process.env.OLLAMA_BASE_URL
   );
   const provider = normalizeProvider(
-    overrides.provider || process.env.LOCAL_AI_PROVIDER || process.env.LLAMA_PROVIDER || process.env.OLLAMA_PROVIDER,
+    overrides.provider ||
+      process.env.BRAIN_CLOUD_PROVIDER ||
+      process.env.CLOUD_AI_PROVIDER ||
+      process.env.LOCAL_AI_PROVIDER ||
+      process.env.LLAMA_PROVIDER ||
+      process.env.OLLAMA_PROVIDER,
     baseUrl
   );
 
@@ -72,14 +79,28 @@ export function getOllamaConfig(overrides = {}) {
     baseUrl,
     model: String(
       overrides.model ||
+        process.env.BRAIN_CLOUD_MODEL ||
+        process.env.CLOUD_AI_MODEL ||
         process.env.LOCAL_AI_MODEL ||
         process.env.LLAMA_MODEL ||
         process.env.OLLAMA_MODEL ||
         DEFAULT_MODEL
     ),
-    apiKey: String(overrides.apiKey || process.env.LOCAL_AI_API_KEY || process.env.LLAMA_API_KEY || ""),
+    apiKey: String(
+      overrides.apiKey ||
+        process.env.BRAIN_CLOUD_API_KEY ||
+        process.env.CLOUD_AI_API_KEY ||
+        process.env.LOCAL_AI_API_KEY ||
+        process.env.LLAMA_API_KEY ||
+        ""
+    ),
     timeoutMs: boundedInteger(
-      overrides.timeoutMs || process.env.LOCAL_AI_TIMEOUT_MS || process.env.LLAMA_TIMEOUT_MS || process.env.OLLAMA_TIMEOUT_MS,
+      overrides.timeoutMs ||
+        process.env.BRAIN_CLOUD_TIMEOUT_MS ||
+        process.env.CLOUD_AI_TIMEOUT_MS ||
+        process.env.LOCAL_AI_TIMEOUT_MS ||
+        process.env.LLAMA_TIMEOUT_MS ||
+        process.env.OLLAMA_TIMEOUT_MS,
       DEFAULT_TIMEOUT_MS,
       1_000,
       300_000

@@ -63,11 +63,11 @@ function closestSnapshotAfter(snapshots = [], targetMs = 0) {
     .sort((a, b) => Math.abs(timestampOf(a) - targetMs) - Math.abs(timestampOf(b) - targetMs))[0] || null;
 }
 
-function labelOutcome(changePct = 0, scoreDelta = 0) {
-  if (changePct >= 75 || scoreDelta >= 20) return "major_hit";
-  if (changePct >= 25 || scoreDelta >= 10) return "hit";
-  if (changePct <= -30 || scoreDelta <= -15) return "major_miss";
-  if (changePct <= -12 || scoreDelta <= -8) return "miss";
+function labelOutcome(changePct = 0) {
+  if (changePct >= 75) return "major_hit";
+  if (changePct >= 25) return "hit";
+  if (changePct <= -30) return "major_miss";
+  if (changePct <= -12) return "miss";
   return "neutral";
 }
 
@@ -105,16 +105,14 @@ function evaluateAlert(alert = {}, snapshotsByKey = new Map(), horizons = DEFAUL
     .map((horizonHours) => {
       const future = closestSnapshotAfter(snapshots, alertMs + horizonHours * 60 * 60 * 1000);
       if (!future) return null;
+      if (num(baseline.priceUsd) <= 0 || num(future.priceUsd) <= 0) return null;
 
       const priceChangePct = pctChange(baseline.priceUsd, future.priceUsd);
       const marketCapChangePct = pctChange(baseline.marketCap, future.marketCap);
       const liquidityChangePct = pctChange(baseline.liquidityUsd, future.liquidityUsd);
       const scoreDelta = num(future.score) - num(baseline.score);
-      const primaryChangePct =
-        [priceChangePct, marketCapChangePct, liquidityChangePct]
-          .filter((value) => value !== 0)
-          .sort((a, b) => Math.abs(b) - Math.abs(a))[0] || scoreDelta;
-      const outcomeLabel = labelOutcome(primaryChangePct, scoreDelta);
+      const primaryChangePct = priceChangePct;
+      const outcomeLabel = labelOutcome(primaryChangePct);
 
       return {
         horizonHours,
@@ -123,7 +121,9 @@ function evaluateAlert(alert = {}, snapshotsByKey = new Map(), horizons = DEFAUL
         marketCapChangePct: Number(marketCapChangePct.toFixed(2)),
         liquidityChangePct: Number(liquidityChangePct.toFixed(2)),
         scoreDelta: Number(scoreDelta.toFixed(2)),
+        scannerScoreDeltaIgnored: Number(scoreDelta.toFixed(2)),
         primaryChangePct: Number(primaryChangePct.toFixed(2)),
+        outcomeBasis: "PRICE_ONLY_POINT_IN_TIME_SNAPSHOT",
         outcomeLabel,
       };
     })

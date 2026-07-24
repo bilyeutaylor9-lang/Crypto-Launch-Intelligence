@@ -42,6 +42,12 @@ function pctChange(oldValue = 0, newValue = 0) {
   return ((newNum - oldNum) / oldNum) * 100;
 }
 
+function labelMarketOutcome(priceChangePct = 0) {
+  if (priceChangePct >= 50) return "winner";
+  if (priceChangePct <= -25) return "trap";
+  return "neutral";
+}
+
 function vectorFromProject(project = {}) {
   return {
     marketRank: num(project.marketRankScore),
@@ -119,7 +125,7 @@ function projectKeyFromRecord(record = {}) {
   return String(record.id || `${record.chain || "unknown"}:${record.symbol || record.name || "unknown"}`).toLowerCase();
 }
 
-function buildOutcomeByKey(snapshots = []) {
+export function buildOutcomeByKey(snapshots = []) {
   const grouped = new Map();
 
   for (const snapshot of snapshots) {
@@ -136,13 +142,12 @@ function buildOutcomeByKey(snapshots = []) {
     );
     const first = ordered[0] || {};
     const last = ordered.at(-1) || {};
+    if (ordered.length < 2 || num(first.priceUsd) <= 0 || num(last.priceUsd) <= 0) continue;
+
     const priceChangePct = pctChange(first.priceUsd, last.priceUsd);
     const marketCapChangePct = pctChange(first.marketCap, last.marketCap);
     const liquidityChangePct = pctChange(first.liquidityUsd, last.liquidityUsd);
     const scoreDelta = num(last.score) - num(first.score);
-    const bestMovePct = [priceChangePct, marketCapChangePct, liquidityChangePct]
-      .filter((value) => value !== 0)
-      .sort((a, b) => Math.abs(b) - Math.abs(a))[0] || priceChangePct;
 
     outcomes.set(key, {
       key,
@@ -152,21 +157,17 @@ function buildOutcomeByKey(snapshots = []) {
       priceChangePct,
       marketCapChangePct,
       liquidityChangePct,
-      scoreDelta,
-      bestMovePct,
-      label:
-        bestMovePct >= 50 || scoreDelta >= 18
-          ? "winner"
-          : bestMovePct <= -25 || scoreDelta <= -15
-          ? "trap"
-          : "neutral",
+      scannerScoreDeltaIgnored: Number(scoreDelta.toFixed(2)),
+      primaryMarketOutcomePct: priceChangePct,
+      label: labelMarketOutcome(priceChangePct),
+      outcomeSource: "PRICE_ONLY_POINT_IN_TIME_SNAPSHOT",
     });
   }
 
   return outcomes;
 }
 
-function buildTrainingSet(memory = [], snapshots = []) {
+export function buildTrainingSet(memory = [], snapshots = []) {
   const outcomesByKey = buildOutcomeByKey(snapshots);
   const latestRecordByKey = new Map();
 
@@ -178,20 +179,21 @@ function buildTrainingSet(memory = [], snapshots = []) {
   return [...latestRecordByKey.entries()]
     .map(([key, record]) => {
       const outcome = outcomesByKey.get(key);
-      const fallbackScore = num(record.scores?.pipeline);
-      const label = outcome?.label || (fallbackScore >= 80 ? "winner" : fallbackScore <= 40 ? "trap" : "neutral");
+      if (!outcome) return null;
 
       return {
         key,
         name: record.name || outcome?.name || "Unknown",
         symbol: record.symbol || outcome?.symbol || "Unknown",
         vector: vectorFromRecord(record),
-        label,
-        outcomePct: outcome?.bestMovePct || 0,
-        scoreDelta: outcome?.scoreDelta || 0,
-        sampleCount: outcome?.sampleCount || 1,
+        label: outcome.label,
+        outcomePct: outcome.primaryMarketOutcomePct,
+        outcomeSource: outcome.outcomeSource,
+        scannerScoreDeltaIgnored: outcome.scannerScoreDeltaIgnored,
+        sampleCount: outcome.sampleCount,
       };
     })
+    .filter(Boolean)
     .filter((item) => Object.values(item.vector).some((value) => num(value) > 0));
 }
 
@@ -289,8 +291,9 @@ export function analyzeOutcomeLearning(project = {}, context = {}) {
         label: sample.label,
         similarity: Math.round(sample.similarity * 100),
         outcomePct: Math.round(sample.outcomePct),
-        scoreDelta: Math.round(sample.scoreDelta),
+        outcomeSource: sample.outcomeSource,
       })),
+      learningKernel: "TRUTH_ONLY_PRICE_OUTCOME",
       summary,
     },
     evidence: [

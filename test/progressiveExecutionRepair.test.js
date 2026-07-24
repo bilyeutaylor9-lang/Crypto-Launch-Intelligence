@@ -193,9 +193,28 @@ test("confirmed execution and identity proof can reach sniper-ready lane", () =>
   );
 
   assert.equal(project.executionStatus, "VERIFIED");
+  assert.equal(project.executionProofState, "SELL_QUOTE_VERIFIED");
+  assert.equal(project.liveExecutionReady, false);
   assert.equal(project.progressiveLane, "SNIPER_READY");
   assert.equal(project.firstFailingGate, null);
   assert.ok(project.moneyScore >= 60);
+});
+
+test("execution proof exposes live-ready only after sell simulation, taxes, and depth are verified", () => {
+  const [project] = analyzeExecutionProofBatch([
+    strongProject({
+      sellSimulationPassed: true,
+      buyTaxPct: 0,
+      sellTaxPct: 0,
+      orderBookDepthUsd: 25_000,
+      quoteAgeSeconds: 30,
+    }),
+  ]);
+
+  assert.equal(project.executionStatus, "VERIFIED");
+  assert.equal(project.executionProofState, "LIVE_EXECUTION_READY");
+  assert.equal(project.liveExecutionReady, true);
+  assert.equal(project.executionProof.liveExecutionReady, true);
 });
 
 test("execution proof stays unknown when contract, pool, or quote evidence is missing", () => {

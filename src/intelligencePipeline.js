@@ -365,12 +365,20 @@ function engineTimeoutMs(name = "", options = {}) {
   return fallback > 0 ? fallback : DEFAULT_ENGINE_TIMEOUT_MS;
 }
 
-function withEngineTimeout(promise, timeoutMs = 0, name = "Engine") {
+function withEngineTimeout(promise, timeoutMs = 0, name = "Engine", controller = null) {
   if (!timeoutMs) return promise;
 
   let timeoutId;
   const timeout = new Promise((_, reject) => {
     timeoutId = setTimeout(() => {
+      if (controller && typeof controller.abort === "function") {
+        try {
+          controller.abort(`${name} timed out after ${timeoutMs}ms`);
+        } catch {
+          // Some runtimes do not accept an abort reason.
+          controller.abort();
+        }
+      }
       reject(new Error(`${name} timed out after ${timeoutMs}ms`));
     }, timeoutMs);
   });
@@ -596,6 +604,13 @@ const REQUIRED_ENGINE_NAMES = new Set([
 function engineCriticality(name = "", options = {}) {
   if (options.required === true) return "REQUIRED";
   if (options.required === false) return "OPTIONAL";
+  const profile =
+    options.engineProfile?.requiredEngines instanceof Set
+      ? options.engineProfile
+      : options.engineProfile
+        ? resolveEngineProfile(options.engineProfile)
+        : null;
+  if (profile?.requiredEngines?.has?.(name)) return "REQUIRED";
   return REQUIRED_ENGINE_NAMES.has(name) ? "REQUIRED" : "OPTIONAL";
 }
 
@@ -911,7 +926,12 @@ export async function runEngine(name, engine, projects, options = {}) {
     console.log(`Running ${name}...`);
 
     const timeoutMs = engineTimeoutMs(name, options);
-    const output = await withEngineTimeout(engine(safeProjects, options), timeoutMs, name);
+    const controller =
+      timeoutMs > 0 && typeof AbortController !== "undefined"
+        ? new AbortController()
+        : null;
+    const engineOptions = controller ? { ...options, signal: controller.signal } : options;
+    const output = await withEngineTimeout(engine(safeProjects, engineOptions), timeoutMs, name, controller);
     const normalized = normalizeEngineOutput(output, safeProjects);
     const status =
       normalized.length === 0
@@ -2463,8 +2483,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
-  results = await runEngine("Small Cap Hunter", analyzeSmallCapHunterBatch, results, options.smallCapHunter || {});
-  results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
   results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});

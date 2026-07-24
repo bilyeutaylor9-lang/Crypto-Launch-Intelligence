@@ -46,6 +46,7 @@ import { writeCrawlerReports } from "../src/reports/webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEngine.js";
 import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "../src/reports/scalpMicrostructureReportEngine.js";
+import { writeHottestTenNowReport } from "../src/reports/hottestTenNowReportEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -314,11 +315,11 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   const council = source.indexOf('runEngine("AI Ecosystem Council"');
   const breakout = source.indexOf('runEngine("Breakout Brain"');
   const governor = source.indexOf('runEngine("Alpha Evolution Governor"');
-  const finalSmallCap = source.lastIndexOf('runEngine("Small Cap Hunter"');
-  const finalTwin = source.lastIndexOf('runEngine("Proof of Alpha Execution Twin"');
   const finalIntegrity = source.indexOf('runEngine("Final Selection Integrity"');
   const preBreakout = source.indexOf('runEngine("Pre-Breakout Radar"');
   const progressiveRanking = source.indexOf('runEngine("Progressive Opportunity Ranking"');
+  const smallCapRuns = source.match(/runEngine\("Small Cap Hunter"/g) || [];
+  const executionTwinRuns = source.match(/runEngine\("Proof of Alpha Execution Twin"/g) || [];
 
   assert.ok(canonical > -1);
   assert.ok(proof > canonical);
@@ -331,9 +332,9 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   assert.ok(smallCap > breakout);
   assert.ok(twin > smallCap);
   assert.ok(governor > twin);
-  assert.ok(finalSmallCap > governor);
-  assert.ok(finalTwin > finalSmallCap);
-  assert.ok(finalIntegrity > finalTwin);
+  assert.equal(smallCapRuns.length, 1);
+  assert.equal(executionTwinRuns.length, 1);
+  assert.ok(finalIntegrity > governor);
   assert.ok(preBreakout > finalIntegrity);
   assert.ok(progressiveRanking > preBreakout);
 });
@@ -399,6 +400,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeUtilityQualityReport(processed);
   writeHighUpsideScalpReport(processed);
   writeScalpMicrostructureReport(processed);
+  writeHottestTenNowReport(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -696,6 +698,33 @@ test("public dashboard validates reports and contains no literal N/A", () => {
         },
       ],
     },
+    "hottest-ten-now.json": {
+      status: "PASS",
+      mode: "ALWAYS_HIGH_UPSIDE_CURRENT_MOMENT",
+      disclaimer: "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
+      projectsAnalyzed: 2,
+      targetCount: 10,
+      qualifiedNowCount: 1,
+      returnedCount: 1,
+      shortfallToTen: 9,
+      notForced: true,
+      topTenHighestRatedNow: [
+        {
+          rank: 1,
+          symbol: "UTIL",
+          chain: "base",
+          lane: "CURRENT_HIGH_UPSIDE_RESEARCH",
+          hottestTenNowScore: 86,
+          priceUsd: 0.0042,
+          priceChange24hPct: 18,
+          priceChange7dPct: 64,
+          liquidityUsd: 120000,
+          buySellRouteVerified: true,
+        },
+      ],
+      watchlistNeedsMoreConfirmation: [],
+      rejectedOrNotCurrent: [],
+    },
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {
@@ -713,20 +742,16 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.equal(quantumField.topFields[0].symbol, "UNKNOWN");
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].name, "Unknown");
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].symbol, "UNKNOWN");
-  assert.ok(html.includes("Small-Cap Execution #1"));
-  assert.ok(html.includes("Execution Qualified"));
-  assert.ok(html.includes("Organic Input Coverage"));
-  assert.ok(html.includes("Quantum Suite Status"));
-  assert.ok(html.includes("Capital Migration"));
-  assert.ok(html.includes("Pipeline Health"));
-  assert.ok(html.includes("Route Universe"));
-  assert.ok(html.includes("Accessibility #1"));
-  assert.ok(html.includes("High-Upside Scalp Research"));
-  assert.ok(html.includes("Scalp-Ready Research"));
-  assert.ok(html.includes("Scalp Microstructure"));
+  assert.ok(html.includes("Top 10 Current Research Board"));
+  assert.ok(html.includes("Top 10 Current Research"));
+  assert.ok(html.includes("Scan Truth"));
+  assert.ok(html.includes("Need Confirmation"));
   assert.ok(html.includes("UTIL"));
+  assert.equal(html.includes("<iframe"), false);
   assert.ok(result.copiedFiles.includes("high-upside-scalp-research.json"));
   assert.ok(result.copiedFiles.includes("scalp-microstructure.json"));
+  assert.ok(result.copiedFiles.includes("hottest-ten-now.json"));
   assert.equal(fs.existsSync(path.join(docsDir, "high-upside-scalp-research.json")), true);
   assert.equal(fs.existsSync(path.join(docsDir, "scalp-microstructure.json")), true);
+  assert.equal(fs.existsSync(path.join(docsDir, "hottest-ten-now.json")), true);
 });

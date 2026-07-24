@@ -134,6 +134,8 @@ export function resolveEngineProfile(input = null, env = process.env) {
   const profile = PROFILES[id] || PROFILES.full;
   const forceRun = csvSet(env.ENGINE_PROFILE_FORCE_RUN || env.PIPELINE_ENGINE_FORCE_RUN);
   const forceSkip = csvSet(env.ENGINE_PROFILE_FORCE_SKIP || env.PIPELINE_ENGINE_FORCE_SKIP);
+  const brainCloudEnabled =
+    String(env.BRAIN_CLOUD_ENABLED || env.CLOUD_AI_ENABLED || "").toLowerCase() === "true";
 
   return {
     ...profile,
@@ -141,6 +143,7 @@ export function resolveEngineProfile(input = null, env = process.env) {
     requiredEngines: new Set([...profile.requiredEngines, ...forceRun]),
     forceRun,
     forceSkip,
+    skipLocalAIResearch: brainCloudEnabled ? false : profile.skipLocalAIResearch,
   };
 }
 
