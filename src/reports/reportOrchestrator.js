@@ -71,6 +71,7 @@ import { writeAdvertisedCategoryCoverageReport } from "./advertisedCategoryCover
 import { writeCrawlerReports } from "./webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
 import { writeHighUpsideScalpReport } from "./highUpsideScalpReportEngine.js";
+import { writeScalpMicrostructureReport } from "./scalpMicrostructureReportEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -323,6 +324,9 @@ export function generateReports(projects = [], meta = {}) {
     filePath: highUpsideScalpPath,
   } = writeHighUpsideScalpReport(projects, meta);
   const {
+    filePath: scalpMicrostructurePath,
+  } = writeScalpMicrostructureReport(projects, meta);
+  const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
   const {
@@ -479,6 +483,7 @@ export function generateReports(projects = [], meta = {}) {
     crawlerHealthMarkdownPath,
     utilityQualityPath,
     highUpsideScalpPath,
+    scalpMicrostructurePath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,

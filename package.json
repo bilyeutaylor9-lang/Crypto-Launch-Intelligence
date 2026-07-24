@@ -68,6 +68,7 @@
     "crawler:test": "node --test test/crawlerCore.test.js",
     "utility:report": "cat reports/real-utility-opportunities.json",
     "scalp:report": "cat reports/high-upside-scalp-research.json",
+    "scalp:microstructure": "cat reports/scalp-microstructure.json",
     "quantum:health": "cat reports/quantum-suite-health.json",
     "routes:debug": "cat reports/debug-execution-proof.json",
     "route:universe": "cat reports/route-universe.json",

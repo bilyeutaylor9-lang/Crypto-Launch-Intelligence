@@ -139,7 +139,7 @@ function scoreProject(project = {}) {
     project.sniperIntegrityScore,
     project.finalIntegrityScore,
   ]);
-  const route = routeReady(project) ? 85 : 35;
+  const route = average([routeReady(project) ? 85 : 35, project.scalpMicrostructureScore]);
   const riskPenalty = average([
     project.trapRiskScore,
     project.contractAuthorityRiskScore,
@@ -171,7 +171,9 @@ function lane(project = {}, score = 0) {
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
+  if (String(project.scalpMicrostructureLane || "").startsWith("SCALP_NO_TRADE")) return project.scalpMicrostructureLane;
   if (!routeReady(project)) return "RESEARCH_ONLY_ROUTE_MISSING";
+  if (project.scalpMicrostructureLane === "SCALP_WATCHLIST") return "HIGH_UPSIDE_WATCH";
   if (score >= 72) return "SCALP_READY_RESEARCH";
   if (score >= 58) return "HIGH_UPSIDE_WATCH";
   return "LOWER_PRIORITY";
@@ -196,6 +198,14 @@ function compact(project = {}, rank = null) {
     priceChange7dPct: priceChange7d(project),
     routeReady: routeReady(project),
     executionStatus: project.executionStatus || "UNKNOWN",
+    scalpMicrostructureScore: project.scalpMicrostructureScore || 0,
+    scalpMicrostructureLane: project.scalpMicrostructureLane || "NOT_RUN",
+    scalpEstimatedTotalCostPct: project.scalpEstimatedTotalCostPct || 0,
+    scalpTradeSizeUsd: project.scalpTradeSizeUsd || 100,
+    scalpTradeSizeToDepthPct: project.scalpTradeSizeToDepthPct || 0,
+    scalpQuoteAgeSeconds: project.scalpQuoteAgeSeconds ?? null,
+    scalpMicrostructureBlockers: project.scalpMicrostructureBlockers || [],
+    scalpMicrostructureWarnings: project.scalpMicrostructureWarnings || [],
     utilityClassification: project.utilityClassification || "UNKNOWN_UTILITY",
     realUtilityQualified: Boolean(project.realUtilityQualified),
     lateChaseStatus: project.sevenDayTenXLateChaseStatus || "UNKNOWN",
@@ -235,6 +245,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const watch = scored.filter((project) => project.highUpsideScalpLane === "HIGH_UPSIDE_WATCH" || project.highUpsideScalpLane === "RESEARCH_ONLY_ROUTE_MISSING");
   const late = scored.filter((project) => project.highUpsideScalpLane === "LATE_CHASE_REJECTED");
   const meme = scored.filter((project) => project.highUpsideScalpLane === "MEME_SPECULATION_EXCLUDED");
+  const microstructureRejected = scored.filter((project) => String(project.highUpsideScalpLane || "").startsWith("SCALP_NO_TRADE"));
 
   return {
     generatedAt: new Date().toISOString(),
@@ -251,10 +262,12 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     highUpsideWatchCount: watch.length,
     lateChaseRejectedCount: late.length,
     memeSpeculationExcludedCount: meme.length,
+    microstructureRejectedCount: microstructureRejected.length,
     topScalpResearchCandidates: top.slice(0, 10).map((project, index) => compact(project, index + 1)),
     highUpsideWatchlist: watch.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     lateChaseRejected: late.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     memeSpeculationExcluded: meme.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    microstructureRejected: microstructureRejected.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     operatingRules: [
       "Do not chase assets that already completed a 10x-style move.",
       "Do not treat meme-only attention as real utility.",

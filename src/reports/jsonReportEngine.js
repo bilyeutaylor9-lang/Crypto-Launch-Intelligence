@@ -114,6 +114,18 @@ const REPORT_PRIORITY_FIELDS = [
   "sevenDayTenXVerdict",
   "sevenDayTenXConfidence",
   "sevenDayTenXModeledScenarioPct",
+  "scalpMicrostructureScore",
+  "scalpMicrostructureLane",
+  "scalpResearchQualified",
+  "scalpNoTrade",
+  "scalpEstimatedTotalCostPct",
+  "scalpTradeSizeUsd",
+  "scalpLiquidityUsd",
+  "scalpDepthUsd",
+  "scalpTradeSizeToDepthPct",
+  "scalpQuoteAgeSeconds",
+  "scalpMicrostructureBlockers",
+  "scalpMicrostructureWarnings",
 ];
 
 function countItems(value) {

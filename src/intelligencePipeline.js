@@ -118,6 +118,7 @@ import { analyzeCapitalFlowBaselineBatch } from "./engines/capitalFlowBaselineEn
 import { analyzeCapitalMigrationCoreBatch } from "./engines/capitalMigrationCoreEngine.js";
 import { analyzeCapitalRotationMapBatch } from "./engines/capitalRotationMapEngine.js";
 import { analyzeSevenDayTenXResearchBatch } from "./engines/sevenDayTenXResearchEngine.js";
+import { analyzeScalpMicrostructureBatch } from "./engines/scalpMicrostructureEngine.js";
 import { analyzeQuietAccumulationBatch } from "./engines/quietAccumulationEngine.js";
 import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEngine.js";
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
@@ -295,6 +296,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "Market Opportunity Rank": "deep",
   "Market Opportunity Learning": "deep",
   "7-Day Asymmetric Research": "deep",
+  "Scalp Microstructure": "deep",
 
   "Research Operating System": "llama",
   "Autonomous Alpha Lab": "llama",
@@ -2484,6 +2486,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     ...(options.marketOpportunityLearning || {}),
   });
   results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});
+  results = await runEngine("Scalp Microstructure", analyzeScalpMicrostructureBatch, results, options.scalpMicrostructure || {});
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

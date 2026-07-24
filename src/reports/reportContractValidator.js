@@ -46,6 +46,7 @@ export const REQUIRED_REPORT_FILES = [
   "crawler-health.json",
   "real-utility-opportunities.json",
   "high-upside-scalp-research.json",
+  "scalp-microstructure.json",
   "institutional-ranking.json",
 ];
 

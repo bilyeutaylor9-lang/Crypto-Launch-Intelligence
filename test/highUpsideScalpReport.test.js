@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { analyzeSevenDayTenXResearchBatch } from "../src/engines/sevenDayTenXResearchEngine.js";
 import { analyzeUtilityQualityBatch } from "../src/engines/utilityQualityEngine.js";
+import { analyzeScalpMicrostructureBatch } from "../src/engines/scalpMicrostructureEngine.js";
 import { summarizeHighUpsideScalpResearch } from "../src/reports/highUpsideScalpReportEngine.js";
 
 const TOKEN = "0x0000000000000000000000000000000000000abc";
@@ -33,6 +34,11 @@ function candidate(overrides = {}) {
     executionRouteAvailable: true,
     sellRouteAvailable: true,
     executionStatus: "VERIFIED",
+    quoteAgeSeconds: 60,
+    spreadPct: 0.3,
+    estimatedRoundTripSlippagePct: 1.1,
+    estimatedGasUsd: 0.2,
+    estimatedFeesUsd: 0.05,
     purchaseRoute: { sellable: true },
     proofOfAlphaExecutionTwin: {
       route: { detected: true, sellDetected: true },
@@ -101,9 +107,10 @@ function candidate(overrides = {}) {
 }
 
 function analyzed(projects = []) {
-  return analyzeSevenDayTenXResearchBatch(analyzeUtilityQualityBatch(projects), {
+  const tenX = analyzeSevenDayTenXResearchBatch(analyzeUtilityQualityBatch(projects), {
     targetCount: 10,
   });
+  return analyzeScalpMicrostructureBatch(tenX);
 }
 
 test("high-upside scalp report promotes pre-extension real-utility route-ready candidates", () => {
@@ -155,4 +162,21 @@ test("meme-only coins are excluded from real-utility scalp lane", () => {
 
   assert.equal(report.scalpReadyCount, 0);
   assert.equal(report.memeSpeculationExcluded[0].symbol, "MEME");
+});
+
+test("microstructure no-trade lanes cannot remain scalp-ready", () => {
+  const report = summarizeHighUpsideScalpResearch(
+    analyzed([
+      candidate({
+        symbol: "COSTLY",
+        spreadPct: 4,
+        estimatedRoundTripSlippagePct: 8,
+        estimatedGasUsd: 4,
+      }),
+    ])
+  );
+
+  assert.equal(report.scalpReadyCount, 0);
+  assert.equal(report.microstructureRejectedCount, 1);
+  assert.equal(report.microstructureRejected[0].lane, "SCALP_NO_TRADE_HIGH_COST");
 });

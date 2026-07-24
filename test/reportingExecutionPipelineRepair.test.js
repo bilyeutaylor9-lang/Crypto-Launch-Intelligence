@@ -45,6 +45,7 @@ import { writeAdvertisedCategoryCoverageReport } from "../src/reports/advertised
 import { writeCrawlerReports } from "../src/reports/webCrawlerReportEngine.js";
 import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEngine.js";
 import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
+import { writeScalpMicrostructureReport } from "../src/reports/scalpMicrostructureReportEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -397,6 +398,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeCrawlerReports(processed);
   writeUtilityQualityReport(processed);
   writeHighUpsideScalpReport(processed);
+  writeScalpMicrostructureReport(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -661,6 +663,39 @@ test("public dashboard validates reports and contains no literal N/A", () => {
         },
       ],
     },
+    "scalp-microstructure.json": {
+      status: "PASS",
+      mode: "SCALP_MICROSTRUCTURE_RESEARCH",
+      projectsAnalyzed: 2,
+      actionableResearchCount: 1,
+      watchlistCount: 1,
+      noTradeCount: 1,
+      topScalpMicrostructureResearch: [
+        {
+          rank: 1,
+          symbol: "UTIL",
+          chain: "base",
+          scalpMicrostructureLane: "SCALP_ACTIONABLE_RESEARCH",
+          scalpMicrostructureScore: 84,
+          scalpEstimatedTotalCostPct: 1.7,
+          scalpTradeSizeUsd: 100,
+          scalpLiquidityUsd: 120000,
+          buyRouteAvailable: true,
+          sellRouteAvailable: true,
+        },
+      ],
+      scalpWatchlist: [],
+      noTradeLanes: [
+        {
+          rank: 1,
+          symbol: "LATE",
+          chain: "base",
+          scalpMicrostructureLane: "SCALP_NO_TRADE_LATE_CHASE",
+          scalpMicrostructureScore: 20,
+          blockers: ["SCALP_LATE_CHASE_OR_ALREADY_EXTENDED"],
+        },
+      ],
+    },
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {
@@ -688,7 +723,10 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Accessibility #1"));
   assert.ok(html.includes("High-Upside Scalp Research"));
   assert.ok(html.includes("Scalp-Ready Research"));
+  assert.ok(html.includes("Scalp Microstructure"));
   assert.ok(html.includes("UTIL"));
   assert.ok(result.copiedFiles.includes("high-upside-scalp-research.json"));
+  assert.ok(result.copiedFiles.includes("scalp-microstructure.json"));
   assert.equal(fs.existsSync(path.join(docsDir, "high-upside-scalp-research.json")), true);
+  assert.equal(fs.existsSync(path.join(docsDir, "scalp-microstructure.json")), true);
 });

@@ -42,4 +42,5 @@ test("engine profile report documents the active high-upside mode", () => {
   assert.equal(report.skipLocalAIResearch, true);
   assert.ok(report.skippedEngines.includes("AI Portfolio War Room"));
   assert.ok(report.requiredEngines.includes("7-Day Asymmetric Research"));
+  assert.ok(report.requiredEngines.includes("Scalp Microstructure"));
 });

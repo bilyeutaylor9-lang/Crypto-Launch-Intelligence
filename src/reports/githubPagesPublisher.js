@@ -132,6 +132,7 @@ const PUBLIC_REPORTS = [
   "crawler-health.md",
   "real-utility-opportunities.json",
   "high-upside-scalp-research.json",
+  "scalp-microstructure.json",
   "web-crawler-preimplementation-audit.json",
   "web-crawler-preimplementation-audit.md",
 ];
@@ -214,13 +215,13 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.rank ?? "")}</td>
                     <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
                     <td>${escapeHtml(candidate.chain || "unknown")}</td>
-                    <td>${escapeHtml(candidate.lane || "UNKNOWN")}</td>
-                    <td>${escapeHtml(candidate.highUpsideScalpScore ?? 0)}</td>
+                    <td>${escapeHtml(candidate.lane || candidate.scalpMicrostructureLane || "UNKNOWN")}</td>
+                    <td>${escapeHtml(candidate.highUpsideScalpScore ?? candidate.scalpMicrostructureScore ?? 0)}</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.priceUsd))}</td>
                     <td>${escapeHtml(candidate.priceChange24hPct ?? 0)}%</td>
                     <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
-                    <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd))}</td>
-                    <td>${candidate.routeReady ? "Verified" : "Research"}</td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd ?? candidate.scalpLiquidityUsd))}</td>
+                    <td>${candidate.routeReady || (candidate.buyRouteAvailable && candidate.sellRouteAvailable) ? "Verified" : "Research"}</td>
                   </tr>
                 `
               )
@@ -310,6 +311,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const crawlerHealth = readJsonReport("crawler-health.json", reportsDir) || {};
   const utilityQuality = readJsonReport("real-utility-opportunities.json", reportsDir) || {};
   const highUpsideScalp = readJsonReport("high-upside-scalp-research.json", reportsDir) || {};
+  const scalpMicrostructure = readJsonReport("scalp-microstructure.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -383,6 +385,9 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Scalp Lead", scalpLead.symbol || "NO SCALP LEAD"],
     ["Late-Chase Kicked", highUpsideScalp.lateChaseRejectedCount ?? 0],
     ["Meme Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
+    ["Microstructure Pass", scalpMicrostructure.actionableResearchCount ?? 0],
+    ["Microstructure Watch", scalpMicrostructure.watchlistCount ?? 0],
+    ["Microstructure No-Trade", scalpMicrostructure.noTradeCount ?? 0],
     [
       "Category Lead",
       advertisedCategoryCoverage.categories?.find((category) => category.displayedResults?.length)
@@ -529,6 +534,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["High-Upside Watchlist", highUpsideScalp.highUpsideWatchCount ?? 0],
     ["Late-Chase Rejected", highUpsideScalp.lateChaseRejectedCount ?? 0],
     ["Meme-Only Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
+    ["Microstructure Rejected", highUpsideScalp.microstructureRejectedCount ?? 0],
   ]
     .map(
       ([label, value]) => `
@@ -845,6 +851,20 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       ${renderScalpCandidateTable(highUpsideScalp.highUpsideWatchlist, "High-Upside Watchlist")}
     </section>
     <section class="panel">
+      <h2>Scalp Microstructure</h2>
+      <p>${escapeHtml(
+        scalpMicrostructure.disclaimer ||
+          "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee."
+      )}</p>
+      <div class="metrics">
+        <div class="metric compact"><div class="metric-value">${escapeHtml(scalpMicrostructure.actionableResearchCount ?? 0)}</div><div class="metric-label">Actionable Research</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(scalpMicrostructure.watchlistCount ?? 0)}</div><div class="metric-label">Watchlist</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(scalpMicrostructure.noTradeCount ?? 0)}</div><div class="metric-label">No-Trade</div></div>
+      </div>
+      ${renderScalpCandidateTable(scalpMicrostructure.topScalpMicrostructureResearch, "Microstructure-Passed Research")}
+      ${renderScalpCandidateTable(scalpMicrostructure.noTradeLanes, "No-Trade Reasons")}
+    </section>
+    <section class="panel">
       <h2>${bestNowHeadline}</h2>
       <p>${bestNowText}</p>
       <div class="metrics">
@@ -930,6 +950,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./best-available.json">Best Available</a>
         <a class="button" href="./advertised-category-coverage.json">Category Coverage</a>
         <a class="button primary" href="./high-upside-scalp-research.json">High-Upside Scalp</a>
+        <a class="button" href="./scalp-microstructure.json">Scalp Microstructure</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>
         <a class="button" href="./emerging-radar.json">Emerging Radar</a>
         <a class="button" href="./blocked-projects.json">Blocked</a>

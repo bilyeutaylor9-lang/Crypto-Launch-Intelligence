@@ -541,6 +541,28 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: false,
   },
   {
+    id: "scalpMicrostructure",
+    phase: "execution",
+    priority: 139,
+    module: "./engines/scalpMicrostructureEngine.js",
+    exportName: "analyzeScalpMicrostructureBatch",
+    dependsOn: ["sevenDayTenXResearch", "routeAccessibility", "sniperIntegrityGate"],
+    inputContract: {
+      requiredAny: [["liquidityUsd", "dexLiquidityUsd", "stableExitLiquidityUsd"], ["purchaseRouteConfirmed", "executionStatus", "executionProof"]],
+      optional: ["sellRouteAvailable", "spreadPct", "estimatedSlippagePct", "quoteAgeSeconds", "priceChange24hPct", "priceChange7dPct"],
+    },
+    outputContract: {
+      requiredAny: [["scalpMicrostructureScore", "scalpMicrostructureLane", "scalpMicrostructure"]],
+      scoreFields: ["scalpMicrostructureScore", "scalpEstimatedTotalCostPct"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: false,
+    canBlockCandidate: true,
+  },
+  {
     id: "alphaEvolutionGovernor",
     phase: "governor",
     priority: 140,

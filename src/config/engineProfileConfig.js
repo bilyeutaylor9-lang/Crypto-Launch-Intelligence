@@ -85,6 +85,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "Market Opportunity Rank",
   "Market Opportunity Learning",
   "7-Day Asymmetric Research",
+  "Scalp Microstructure",
 ]);
 
 const PROFILES = {
