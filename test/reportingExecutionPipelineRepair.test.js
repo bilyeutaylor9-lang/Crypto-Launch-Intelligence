@@ -623,6 +623,44 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       counts: { moneyRanked: 0, executionReady: 0 },
       institutionalMoneyRank: [],
     },
+    "high-upside-scalp-research.json": {
+      status: "PASS",
+      mode: "HIGH_UPSIDE_SCALP_RESEARCH",
+      disclaimer: "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
+      projectsAnalyzed: 2,
+      scalpReadyCount: 1,
+      highUpsideWatchCount: 1,
+      lateChaseRejectedCount: 1,
+      memeSpeculationExcludedCount: 0,
+      topScalpResearchCandidates: [
+        {
+          rank: 1,
+          symbol: "UTIL",
+          chain: "base",
+          lane: "SCALP_READY_RESEARCH",
+          highUpsideScalpScore: 82,
+          priceUsd: 0.0042,
+          priceChange24hPct: 18,
+          priceChange7dPct: 64,
+          liquidityUsd: 120000,
+          routeReady: true,
+        },
+      ],
+      highUpsideWatchlist: [
+        {
+          rank: 1,
+          symbol: "WATCH",
+          chain: "solana",
+          lane: "HIGH_UPSIDE_WATCH",
+          highUpsideScalpScore: 68,
+          priceUsd: 0.0065,
+          priceChange24hPct: 9,
+          priceChange7dPct: 42,
+          liquidityUsd: 84000,
+          routeReady: false,
+        },
+      ],
+    },
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {
@@ -648,4 +686,9 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Pipeline Health"));
   assert.ok(html.includes("Route Universe"));
   assert.ok(html.includes("Accessibility #1"));
+  assert.ok(html.includes("High-Upside Scalp Research"));
+  assert.ok(html.includes("Scalp-Ready Research"));
+  assert.ok(html.includes("UTIL"));
+  assert.ok(result.copiedFiles.includes("high-upside-scalp-research.json"));
+  assert.equal(fs.existsSync(path.join(docsDir, "high-upside-scalp-research.json")), true);
 });

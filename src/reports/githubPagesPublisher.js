@@ -131,6 +131,7 @@ const PUBLIC_REPORTS = [
   "crawler-health.json",
   "crawler-health.md",
   "real-utility-opportunities.json",
+  "high-upside-scalp-research.json",
   "web-crawler-preimplementation-audit.json",
   "web-crawler-preimplementation-audit.md",
 ];
@@ -155,6 +156,80 @@ function readJsonReport(fileName = "", reportsDir = REPORTS_DIR) {
   } catch {
     return null;
   }
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatDashboardNumber(value = "") {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return value || "0";
+  if (Math.abs(number) >= 1000000) return `$${Math.round(number / 100000) / 10}M`;
+  if (Math.abs(number) >= 1000) return `$${Math.round(number / 100) / 10}K`;
+  return String(Math.round(number * 1000000) / 1000000);
+}
+
+function renderScalpCandidateTable(candidates = [], title = "Research Candidates") {
+  const rows = (Array.isArray(candidates) ? candidates : []).slice(0, 10);
+
+  if (!rows.length) {
+    return `
+      <div class="subsection">
+        <h3>${escapeHtml(title)}</h3>
+        <div class="empty">No candidates in this lane for the latest scan.</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="subsection">
+      <h3>${escapeHtml(title)}</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Symbol</th>
+              <th>Chain</th>
+              <th>Lane</th>
+              <th>Score</th>
+              <th>Price</th>
+              <th>24h</th>
+              <th>7d</th>
+              <th>Liquidity</th>
+              <th>Route</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                (candidate) => `
+                  <tr>
+                    <td>${escapeHtml(candidate.rank ?? "")}</td>
+                    <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
+                    <td>${escapeHtml(candidate.chain || "unknown")}</td>
+                    <td>${escapeHtml(candidate.lane || "UNKNOWN")}</td>
+                    <td>${escapeHtml(candidate.highUpsideScalpScore ?? 0)}</td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.priceUsd))}</td>
+                    <td>${escapeHtml(candidate.priceChange24hPct ?? 0)}%</td>
+                    <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd))}</td>
+                    <td>${candidate.routeReady ? "Verified" : "Research"}</td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
 }
 
 function writeLandingPage(copiedFiles = [], options = {}) {
@@ -234,6 +309,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const advertisedCategoryCoverage = readJsonReport("advertised-category-coverage.json", reportsDir) || {};
   const crawlerHealth = readJsonReport("crawler-health.json", reportsDir) || {};
   const utilityQuality = readJsonReport("real-utility-opportunities.json", reportsDir) || {};
+  const highUpsideScalp = readJsonReport("high-upside-scalp-research.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -242,6 +318,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const topSimulation = simulationBrain.topSimulationCandidates?.[0] || {};
   const bestNowProject = bestOpportunityNow.bestOpportunityNow || topFiveOpportunities.topFiveOpportunities?.[0] || {};
   const bestNowHeadline = bestOpportunityNow.headline || "NO CLEAR MARKET LEADER";
+  const scalpLead =
+    highUpsideScalp.topScalpResearchCandidates?.[0] || highUpsideScalp.highUpsideWatchlist?.[0] || {};
   const bestNowText =
     bestOpportunityNow.verdict === "CLEAR_MARKET_LEADER"
       ? `${bestNowProject.identity?.symbol || bestNowProject.symbol || "Leader"} leads with Market Opportunity Rank ${
@@ -299,6 +377,12 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Real Utility", utilityQuality.realUtilityQualifiedCount ?? 0],
     ["Utility Lead", utilityQuality.topRealUtilityResearch?.[0]?.symbol || "NO UTILITY LEAD"],
     ["Meme Speculative", utilityQuality.memeSpeculationCount ?? 0],
+    ["High-Upside Mode", highUpsideScalp.mode || "REPORT NOT GENERATED"],
+    ["Scalp Ready", highUpsideScalp.scalpReadyCount ?? 0],
+    ["Scalp Watch", highUpsideScalp.highUpsideWatchCount ?? 0],
+    ["Scalp Lead", scalpLead.symbol || "NO SCALP LEAD"],
+    ["Late-Chase Kicked", highUpsideScalp.lateChaseRejectedCount ?? 0],
+    ["Meme Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
     [
       "Category Lead",
       advertisedCategoryCoverage.categories?.find((category) => category.displayedResults?.length)
@@ -440,6 +524,22 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     )
     .join("");
 
+  const scalpReadyCards = [
+    ["Scalp-Ready Research", highUpsideScalp.scalpReadyCount ?? 0],
+    ["High-Upside Watchlist", highUpsideScalp.highUpsideWatchCount ?? 0],
+    ["Late-Chase Rejected", highUpsideScalp.lateChaseRejectedCount ?? 0],
+    ["Meme-Only Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="metric compact">
+          <div class="metric-value">${escapeHtml(value)}</div>
+          <div class="metric-label">${escapeHtml(label)}</div>
+        </div>
+      `
+    )
+    .join("");
+
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -546,6 +646,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       font-size: 13px;
     }
 
+    .metric.compact {
+      min-height: 64px;
+    }
+
     main {
       padding: 22px clamp(18px, 4vw, 42px) 42px;
     }
@@ -621,6 +725,42 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       margin-top: 18px;
     }
 
+    .subsection {
+      margin-top: 18px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 920px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--panel-2);
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
     .empty {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -685,6 +825,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
           <li><strong>Alpha Lab:</strong> strategy hypotheses, paper testing, and self-critique.</li>
           <li><strong>Progressive Opportunity Ranking:</strong> separates opportunity from trust, shows best-available leads, and keeps hard safety blocks authoritative.</li>
           <li><strong>Advertised Category Coverage:</strong> gives every public category a strict-result lane plus a research-only fallback lane when proof is incomplete.</li>
+          <li><strong>High-Upside Scalp Research:</strong> keeps already-extended and meme-only assets out of the scalp-ready lane while preserving research-only watch candidates.</li>
           <li><strong>Progressive Debug Ladder:</strong> shows identity, trust, execution, money, and final-integrity gates for every candidate.</li>
           <li><strong>Market Opportunity Rank:</strong> unifies opportunity, timing, trust, attention gap, evidence, and local AI consensus into one authoritative research decision.</li>
           <li><strong>Market Opportunity Learning:</strong> records top opportunity receipts, grades later scans when market data is available, and produces cautious weight hints.</li>
@@ -692,6 +833,16 @@ function writeLandingPage(copiedFiles = [], options = {}) {
           <li><strong>Engine Audit:</strong> transparent inventory of the scanner engine stack.</li>
         </ul>
       </div>
+    </section>
+    <section class="panel">
+      <h2>High-Upside Scalp Research</h2>
+      <p>${escapeHtml(
+        highUpsideScalp.disclaimer ||
+          "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee."
+      )}</p>
+      <div class="metrics">${scalpReadyCards}</div>
+      ${renderScalpCandidateTable(highUpsideScalp.topScalpResearchCandidates, "Scalp-Ready Research")}
+      ${renderScalpCandidateTable(highUpsideScalp.highUpsideWatchlist, "High-Upside Watchlist")}
     </section>
     <section class="panel">
       <h2>${bestNowHeadline}</h2>
@@ -778,6 +929,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./institutional-ranking.json">Money Rank</a>
         <a class="button" href="./best-available.json">Best Available</a>
         <a class="button" href="./advertised-category-coverage.json">Category Coverage</a>
+        <a class="button primary" href="./high-upside-scalp-research.json">High-Upside Scalp</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>
         <a class="button" href="./emerging-radar.json">Emerging Radar</a>
         <a class="button" href="./blocked-projects.json">Blocked</a>
