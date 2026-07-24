@@ -72,7 +72,10 @@ import {
   getCoinCapProviderResult,
   getGeminiTickerCandidates,
 } from "../src/data/expandedMarketDataConnector.js";
-import { __coinGeckoTestHooks } from "../src/data/coinGeckoConnector.js";
+import {
+  __coinGeckoTestHooks,
+  normalizeCoinGeckoListItem,
+} from "../src/data/coinGeckoConnector.js";
 import { __birdeyeTestHooks } from "../src/data/birdeyeConnector.js";
 
 test("narrative launch staking engine detects hot launch and staking setup", () => {
@@ -2266,24 +2269,73 @@ test("provider status classification handles auth, rate limits, region blocks, a
 });
 
 test("CoinGecko demo key headers and pacing are configurable", () => {
+  const oldGenericKey = process.env.COINGECKO_API_KEY;
   const oldDemoKey = process.env.COINGECKO_DEMO_API_KEY;
+  const oldProKey = process.env.COINGECKO_PRO_API_KEY;
+  const oldTier = process.env.COINGECKO_API_TIER;
   const oldDelay = process.env.COINGECKO_DELAY_MS;
   const oldRpm = process.env.COINGECKO_REQUESTS_PER_MINUTE;
 
+  delete process.env.COINGECKO_API_KEY;
+  delete process.env.COINGECKO_PRO_API_KEY;
+  delete process.env.COINGECKO_API_TIER;
   process.env.COINGECKO_DEMO_API_KEY = "demo-key";
   process.env.COINGECKO_REQUESTS_PER_MINUTE = "60";
   delete process.env.COINGECKO_DELAY_MS;
 
+  assert.equal(__coinGeckoTestHooks.coinGeckoAuthConfig().tier, "demo");
   assert.equal(__coinGeckoTestHooks.coinGeckoHeaders()["x-cg-demo-api-key"], "demo-key");
   assert.ok(__coinGeckoTestHooks.requestDelayMs() >= 1000);
   assert.equal(__coinGeckoTestHooks.requestDelayMs({ delayMs: 123 }), 123);
 
+  process.env.COINGECKO_PRO_API_KEY = "pro-key";
+  assert.equal(__coinGeckoTestHooks.coinGeckoAuthConfig().tier, "pro");
+  assert.equal(__coinGeckoTestHooks.coinGeckoBaseUrl(), "https://pro-api.coingecko.com/api/v3");
+  assert.equal(__coinGeckoTestHooks.coinGeckoHeaders()["x-cg-pro-api-key"], "pro-key");
+
+  delete process.env.COINGECKO_PRO_API_KEY;
+  delete process.env.COINGECKO_DEMO_API_KEY;
+  process.env.COINGECKO_API_KEY = "generic-pro-key";
+  process.env.COINGECKO_API_TIER = "pro";
+  assert.equal(__coinGeckoTestHooks.coinGeckoHeaders()["x-cg-pro-api-key"], "generic-pro-key");
+
+  if (oldGenericKey === undefined) delete process.env.COINGECKO_API_KEY;
+  else process.env.COINGECKO_API_KEY = oldGenericKey;
   if (oldDemoKey === undefined) delete process.env.COINGECKO_DEMO_API_KEY;
   else process.env.COINGECKO_DEMO_API_KEY = oldDemoKey;
+  if (oldProKey === undefined) delete process.env.COINGECKO_PRO_API_KEY;
+  else process.env.COINGECKO_PRO_API_KEY = oldProKey;
+  if (oldTier === undefined) delete process.env.COINGECKO_API_TIER;
+  else process.env.COINGECKO_API_TIER = oldTier;
   if (oldDelay === undefined) delete process.env.COINGECKO_DELAY_MS;
   else process.env.COINGECKO_DELAY_MS = oldDelay;
   if (oldRpm === undefined) delete process.env.COINGECKO_REQUESTS_PER_MINUTE;
   else process.env.COINGECKO_REQUESTS_PER_MINUTE = oldRpm;
+});
+
+test("CoinGecko coin list platform identities become strict chain-aware candidates", () => {
+  const candidate = normalizeCoinGeckoListItem({
+    id: "utility-alpha",
+    symbol: "ualpha",
+    name: "Utility Alpha",
+    platforms: {
+      ethereum: "0x00000000000000000000000000000000000000a1",
+      solana: "So11111111111111111111111111111111111111112",
+      "binance-smart-chain": "not-a-contract",
+      "real-world-assets-rwa": "rwa",
+    },
+  });
+
+  assert.equal(candidate.source, "coingecko-list");
+  assert.equal(candidate.coinGeckoId, "utility-alpha");
+  assert.equal(candidate.chain, "ethereum");
+  assert.equal(candidate.tokenAddress, "0x00000000000000000000000000000000000000a1");
+  assert.deepEqual(
+    candidate.coinGeckoPlatforms.map((platform) => platform.chain),
+    ["ethereum", "solana"]
+  );
+  assert.equal(__coinGeckoTestHooks.normalizeCoinGeckoPlatform("binance-smart-chain"), "bsc");
+  assert.equal(__coinGeckoTestHooks.normalizeCoinGeckoPlatform("real-world-assets-rwa"), null);
 });
 
 test("Binance routes to Binance.US in US mode and keeps liquidity separate from volume", async () => {

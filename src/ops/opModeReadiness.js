@@ -33,7 +33,11 @@ const KEY_GROUPS = [
     weight: 1.1,
     items: [
       { env: "BIRDEYE_API_KEY", label: "Birdeye" },
-      { env: "COINGECKO_DEMO_API_KEY", label: "CoinGecko demo key", optional: true },
+      {
+        oneOf: ["COINGECKO_PRO_API_KEY", "COINGECKO_DEMO_API_KEY", "COINGECKO_API_KEY"],
+        label: "CoinGecko API key",
+        optional: true,
+      },
       { env: "COINCAP_API_KEY", label: "CoinCap" },
       { env: "COINMARKETCAP_API_KEY", label: "CoinMarketCap" },
       { env: "CRYPTOCOMPARE_API_KEY", label: "CryptoCompare" },

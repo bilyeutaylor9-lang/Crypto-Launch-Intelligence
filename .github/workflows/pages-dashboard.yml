@@ -43,7 +43,12 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.5' }}
           GITHUB_TOKEN: ${{ github.token }}
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          COINGECKO_PRO_API_KEY: ${{ secrets.COINGECKO_PRO_API_KEY }}
           COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+          COINGECKO_API_TIER: ${{ vars.COINGECKO_API_TIER || 'demo' }}
+          COINGECKO_INCLUDE_COIN_LIST: ${{ vars.COINGECKO_INCLUDE_COIN_LIST || 'true' }}
+          COINGECKO_COIN_LIST_LIMIT: ${{ vars.COINGECKO_COIN_LIST_LIMIT || '20000' }}
           COINCAP_API_KEY: ${{ secrets.COINCAP_API_KEY }}
           COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
           CRYPTOCOMPARE_API_KEY: ${{ secrets.CRYPTOCOMPARE_API_KEY }}

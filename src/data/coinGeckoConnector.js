@@ -1,5 +1,7 @@
 // src/data/coinGeckoConnector.js
 
+import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
+
 /**
  * Crypto Launch Intelligence
  * CoinGecko Connector v2
@@ -13,7 +15,8 @@
  * - Adds safer fetch timeout
  */
 
-const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
+const COINGECKO_PUBLIC_BASE = "https://api.coingecko.com/api/v3";
+const COINGECKO_PRO_BASE = "https://pro-api.coingecko.com/api/v3";
 
 const DEFAULT_CATEGORIES = [
   "artificial-intelligence",
@@ -29,6 +32,34 @@ const DEFAULT_CATEGORIES = [
   "zero-knowledge-zk"
 ];
 
+const COINGECKO_PLATFORM_CHAIN_ALIASES = Object.freeze({
+  ethereum: "ethereum",
+  base: "base",
+  "binance-smart-chain": "bsc",
+  "bnb-smart-chain": "bsc",
+  "arbitrum-one": "arbitrum",
+  "polygon-pos": "polygon",
+  "optimistic-ethereum": "optimism",
+  avalanche: "avalanche",
+  solana: "solana",
+  sui: "sui",
+  "the-open-network": "ton",
+  aptos: "aptos",
+  osmosis: "osmosis",
+  tron: "tron",
+  "near-protocol": "near",
+  fantom: "fantom",
+  linea: "linea",
+  scroll: "scroll",
+  "zksync-era": "zksync",
+  mantle: "mantle",
+  blast: "blast",
+  ronin: "ronin",
+  "mode-network": "mode",
+  berachain: "berachain",
+  sonic: "sonic",
+});
+
 function sleep(ms = 750) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -42,13 +73,52 @@ class CoinGeckoRateLimitError extends Error {
   }
 }
 
+function boolEnv(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return !["false", "0", "no", "off"].includes(String(value).toLowerCase());
+}
+
+function coinGeckoAuthConfig(env = process.env) {
+  const tier = String(env.COINGECKO_API_TIER || env.COINGECKO_PLAN || "").toLowerCase();
+  const proKey = tier === "demo" ? "" : env.COINGECKO_PRO_API_KEY || (tier === "pro" ? env.COINGECKO_API_KEY : "");
+  const demoKey = tier === "pro" ? "" : env.COINGECKO_DEMO_API_KEY || env.COINGECKO_API_KEY || "";
+
+  if (proKey) {
+    return {
+      tier: "pro",
+      key: proKey,
+      headerName: "x-cg-pro-api-key",
+      baseUrl: env.COINGECKO_BASE_URL || COINGECKO_PRO_BASE,
+    };
+  }
+
+  if (demoKey) {
+    return {
+      tier: "demo",
+      key: demoKey,
+      headerName: "x-cg-demo-api-key",
+      baseUrl: env.COINGECKO_BASE_URL || COINGECKO_PUBLIC_BASE,
+    };
+  }
+
+  return {
+    tier: "public",
+    key: "",
+    headerName: null,
+    baseUrl: env.COINGECKO_BASE_URL || COINGECKO_PUBLIC_BASE,
+  };
+}
+
 function coinGeckoHeaders() {
+  const auth = coinGeckoAuthConfig();
   return {
     accept: "application/json",
-    ...(process.env.COINGECKO_DEMO_API_KEY
-      ? { "x-cg-demo-api-key": process.env.COINGECKO_DEMO_API_KEY }
-      : {}),
+    ...(auth.key && auth.headerName ? { [auth.headerName]: auth.key } : {}),
   };
+}
+
+function coinGeckoBaseUrl() {
+  return coinGeckoAuthConfig().baseUrl;
 }
 
 function requestDelayMs(options = {}) {
@@ -106,6 +176,11 @@ function keyForCoin(project = {}) {
     .trim();
 }
 
+function normalizeCoinGeckoPlatform(platform = "") {
+  const mapped = COINGECKO_PLATFORM_CHAIN_ALIASES[String(platform || "").toLowerCase()] || platform;
+  return normalizeChainId(mapped);
+}
+
 function dedupeProjects(projects = []) {
   const seen = new Map();
 
@@ -133,7 +208,7 @@ function dedupeProjects(projects = []) {
 }
 
 export async function getTrendingCoins() {
-  return fetchJson(`${COINGECKO_BASE}/search/trending`);
+  return fetchJson(`${coinGeckoBaseUrl()}/search/trending`);
 }
 
 export async function getMarkets(options = {}) {
@@ -153,7 +228,15 @@ export async function getMarkets(options = {}) {
 
   if (category) params.set("category", category);
 
-  return fetchJson(`${COINGECKO_BASE}/coins/markets?${params.toString()}`);
+  return fetchJson(`${coinGeckoBaseUrl()}/coins/markets?${params.toString()}`);
+}
+
+export async function getCoinList(options = {}) {
+  const includePlatform = options.includePlatform ?? true;
+  const params = new URLSearchParams({
+    include_platform: includePlatform ? "true" : "false",
+  });
+  return fetchJson(`${coinGeckoBaseUrl()}/coins/list?${params.toString()}`, options);
 }
 
 export function normalizeCoinGeckoMarket(coin = {}, meta = {}) {
@@ -238,6 +321,54 @@ export function normalizeCoinGeckoTrending(item = {}) {
   };
 }
 
+export function normalizeCoinGeckoListItem(coin = {}) {
+  const platformEntries = Object.entries(coin.platforms || {})
+    .map(([platform, address]) => {
+      const chain = normalizeCoinGeckoPlatform(platform);
+      const tokenAddress = chain ? normalizeTokenAddress(address, chain) : null;
+      return {
+        platform,
+        chain,
+        tokenAddress,
+        accepted: Boolean(chain && tokenAddress),
+      };
+    })
+    .filter((entry) => entry.accepted);
+  const primaryPlatform = platformEntries[0] || null;
+
+  return {
+    name: coin.name || "Unknown",
+    symbol: coin.symbol?.toUpperCase() || "UNKNOWN",
+    chain: primaryPlatform?.chain || null,
+    coinGeckoId: coin.id || null,
+    providerAssetId: coin.id || null,
+    marketKey: coin.id ? `coingecko:${coin.id}` : null,
+    tokenAddress: primaryPlatform?.tokenAddress || null,
+    address: primaryPlatform?.tokenAddress || null,
+    pairAddress: null,
+    dex: "identity-list",
+    url: coin.id ? `https://www.coingecko.com/en/coins/${coin.id}` : null,
+    category: "coingecko-identity",
+    narrativeCategory: null,
+    narrativeCategories: [],
+    priceUsd: null,
+    liquidityUsd: null,
+    volume24h: null,
+    marketCap: null,
+    circulatingMarketCapUsd: null,
+    coinGeckoPlatforms: platformEntries.map(({ platform, chain, tokenAddress }) => ({
+      platform,
+      chain,
+      tokenAddress,
+    })),
+    source: "coingecko-list",
+    sources: ["coingecko-list"],
+    description: [coin.name, coin.symbol, "coingecko platform identity"]
+      .filter(Boolean)
+      .join(" "),
+  };
+}
+
 export async function getCoinGeckoCandidates(options = {}) {
   const perPage = Number(options.perPage || process.env.COINGECKO_PER_PAGE || 100);
   const pages = Number(options.pages || process.env.COINGECKO_PAGES || 1);
@@ -245,9 +376,33 @@ export async function getCoinGeckoCandidates(options = {}) {
   const categories = (options.categories || DEFAULT_CATEGORIES).slice(0, categoryLimit);
   const delayMs = requestDelayMs(options);
   const stopOnRateLimit = options.stopOnRateLimit ?? process.env.COINGECKO_STOP_ON_429 !== "false";
+  const includeCoinList =
+    options.includeCoinList ??
+    boolEnv(process.env.COINGECKO_INCLUDE_COIN_LIST, Boolean(coinGeckoAuthConfig().key));
+  const coinListLimit = Number(options.coinListLimit || process.env.COINGECKO_COIN_LIST_LIMIT || 20000);
 
   const candidates = [];
   let rateLimited = false;
+
+  if (includeCoinList) {
+    try {
+      const coins = await getCoinList({ timeoutMs: options.timeoutMs });
+      candidates.push(
+        ...coins
+          .slice(0, coinListLimit > 0 ? coinListLimit : undefined)
+          .map(normalizeCoinGeckoListItem)
+      );
+    } catch (error) {
+      if (error.rateLimited) {
+        rateLimited = true;
+        console.warn(`CoinGecko paused during coin list: ${error.message}`);
+      } else {
+        console.warn(`CoinGecko coin list skipped: ${error.message}`);
+      }
+    }
+
+    if (!rateLimited) await sleep(delayMs);
+  }
 
   try {
     const trending = await getTrendingCoins();
@@ -314,7 +469,10 @@ export async function getCoinGeckoCandidates(options = {}) {
 }
 
 export const __coinGeckoTestHooks = {
+  coinGeckoAuthConfig,
+  coinGeckoBaseUrl,
   coinGeckoHeaders,
+  normalizeCoinGeckoPlatform,
   requestDelayMs,
 };
 
