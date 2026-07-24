@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { analyzeUtilityQuality } from "../engines/utilityQualityEngine.js";
 
 const TARGET_COUNT = 10;
 const MAX_AUDIT_ROWS = 50;
@@ -166,6 +167,28 @@ function utilityBlocked(project = {}) {
   );
 }
 
+function withUtilityAnalysis(project = {}) {
+  const analyzed = analyzeUtilityQuality(project);
+  if (project.memeOnlySpeculative === true || project.utilityClassification === "MEME_SPECULATION") {
+    return {
+      ...analyzed,
+      memeOnlySpeculative: true,
+      utilityClassification: "MEME_SPECULATION",
+    };
+  }
+  return analyzed;
+}
+
+function utilityEvidenceStrong(project = {}) {
+  return Boolean(
+    project.realUtilityQualified === true ||
+      ["REAL_UTILITY", "UTILITY_RESEARCH", "MIXED_MEME_UTILITY"].includes(project.utilityClassification) ||
+      num(project.utilityQualityScore) >= 45 ||
+      num(project.realUtilityScore) >= 45 ||
+      (Array.isArray(project.utilityEvidenceFamilies) && project.utilityEvidenceFamilies.length >= 2)
+  );
+}
+
 function hardRejectionReason(project = {}) {
   if (deterministicSafetyBlocked(project)) return "DETERMINISTIC_SAFETY_OR_SCALP_BLOCK";
   if (lateChase(project)) return "ALREADY_EXTENDED_OR_LATE_CHASE";
@@ -223,8 +246,7 @@ function hasSecurityHint(project = {}) {
 
 function hasUtilityHint(project = {}) {
   return Boolean(
-    project.utilityQualityScore ||
-      project.realUtilityScore ||
+    utilityEvidenceStrong(project) ||
       project.developerActivityScore ||
       project.developerAccelerationScore ||
       project.githubProScore ||
@@ -359,6 +381,7 @@ function scoreProject(project = {}) {
   ]);
   const subCentBonus = priceUsd(project) > 0 && priceUsd(project) < 0.01 ? 4 : 0;
   const smallCapBonus = marketCapUsd(project) > 0 && marketCapUsd(project) <= 75_000_000 ? 4 : 0;
+  const utilityProofAdjustment = utilityEvidenceStrong(project) ? 5 : -7;
 
   return Math.round(
     clamp(
@@ -369,7 +392,8 @@ function scoreProject(project = {}) {
         execution * 0.19 -
         riskPenalty * 0.24 +
         subCentBonus +
-        smallCapBonus
+        smallCapBonus +
+        utilityProofAdjustment
     )
   );
 }
@@ -441,13 +465,14 @@ function compactCandidate(project = {}, rank = null) {
 export function summarizeHottestTenNow(projects = [], meta = {}) {
   const scored = (Array.isArray(projects) ? projects : [])
     .map((project) => {
-      const score = scoreProject(project);
+      const utilityAnalyzed = withUtilityAnalysis(project);
+      const score = scoreProject(utilityAnalyzed);
       return {
-        ...project,
+        ...utilityAnalyzed,
         hottestTenNowScore: score,
-        hottestTenNowLane: lane(project, score),
-        hottestTenNowRejectionReason: hardRejectionReason(project) || (lane(project, score) === "LOWER_PRIORITY" ? "LOWER_PRIORITY" : ""),
-        hottestTenNowReasonNotQualified: reasonNotQualified(project, score),
+        hottestTenNowLane: lane(utilityAnalyzed, score),
+        hottestTenNowRejectionReason: hardRejectionReason(utilityAnalyzed) || (lane(utilityAnalyzed, score) === "LOWER_PRIORITY" ? "LOWER_PRIORITY" : ""),
+        hottestTenNowReasonNotQualified: reasonNotQualified(utilityAnalyzed, score),
       };
     })
     .sort((a, b) => num(b.hottestTenNowScore) - num(a.hottestTenNowScore));
