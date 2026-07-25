@@ -177,6 +177,185 @@ function formatDashboardNumber(value = "") {
   return String(Math.round(number * 1000000) / 1000000);
 }
 
+function num(value = 0) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function first(values = []) {
+  return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
+}
+
+function scoreForResearchWorthy(candidate = {}) {
+  return Math.max(
+    num(candidate.hottestTenNowScore),
+    num(candidate.highUpsideScalpScore),
+    num(candidate.scalpMicrostructureScore),
+    num(candidate.realUtilityScore),
+    num(candidate.utilityQualityScore),
+    num(candidate.progressiveOpportunityScore),
+    num(candidate.moneyRankScore),
+    num(candidate.earlyAsymmetryResearchPriorityScore),
+    num(candidate.opportunityScore),
+    num(candidate.score)
+  );
+}
+
+function researchKey(candidate = {}) {
+  return [
+    candidate.tokenAddress,
+    candidate.contractAddress,
+    candidate.verifiedContractAddress,
+    candidate.poolAddress,
+    candidate.primaryTradablePool,
+    candidate.symbol,
+    candidate.chain,
+  ]
+    .filter(Boolean)
+    .join("|")
+    .toLowerCase();
+}
+
+function compactResearchWorthyCandidate(candidate = {}, source = "research") {
+  return {
+    ...candidate,
+    source,
+    symbol: candidate.symbol || "UNKNOWN",
+    name: candidate.name || candidate.projectName || "Unknown",
+    chain: candidate.chain || candidate.requiredChain || "unknown",
+    lane: candidate.lane || candidate.scalpMicrostructureLane || candidate.accessibilityLane || candidate.qualificationState || "RESEARCH",
+    score: scoreForResearchWorthy(candidate),
+    priceUsd: first([candidate.priceUsd, candidate.currentPrice]),
+    marketCapUsd: first([candidate.marketCapUsd, candidate.marketCap]),
+    liquidityUsd: first([candidate.liquidityUsd, candidate.scalpLiquidityUsd, candidate.dexLiquidity]),
+    routeStatus:
+      candidate.liveExecutionReady || candidate.executionReady
+        ? "Live Ready"
+        : candidate.buySellRouteVerified || candidate.routeReady
+          ? "Route Research"
+          : "Needs Route Proof",
+    missing:
+      [
+        ...(candidate.missingInfoNeeded || []),
+        ...(candidate.missingEvidence || []),
+        ...(candidate.missingRouteEvidence || []),
+      ]
+        .filter(Boolean)
+        .slice(0, 3)
+        .join(", ") || candidate.reasonNotQualified || "Keep researching",
+  };
+}
+
+function buildResearchWorthyBoard({
+  hottestTenNow = {},
+  highUpsideScalp = {},
+  scalpMicrostructure = {},
+  utilityQuality = {},
+  progressiveOpportunities = {},
+  earlyAsymmetry = {},
+  institutionalRanking = {},
+  userAccessibility = {},
+} = {}) {
+  const sources = [
+    ...(hottestTenNow.topTenCurrentResearchBoard || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Hottest Ten")),
+    ...(hottestTenNow.topTenHighestRatedNow || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Qualified Now")),
+    ...(hottestTenNow.watchlistNeedsMoreConfirmation || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Needs Confirmation")),
+    ...(highUpsideScalp.topScalpResearchCandidates || []).map((candidate) => compactResearchWorthyCandidate(candidate, "High-Upside Scalp")),
+    ...(highUpsideScalp.highUpsideWatchlist || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Scalp Watch")),
+    ...(scalpMicrostructure.topScalpMicrostructureResearch || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Microstructure")),
+    ...(utilityQuality.topRealUtilityResearch || utilityQuality.realUtilityResearch || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Real Utility")),
+    ...(progressiveOpportunities.bestAvailableOpportunities || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Best Available")),
+    ...(progressiveOpportunities.institutionalMoneyRank || institutionalRanking.institutionalMoneyRank || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Money Rank")),
+    ...(earlyAsymmetry.topResearchCandidates || earlyAsymmetry.ranking || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Early Asymmetry")),
+    ...(userAccessibility.topProjectsByOpportunity || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Route Opportunity")),
+  ];
+  const byKey = new Map();
+
+  for (const candidate of sources) {
+    const key = researchKey(candidate) || `${candidate.source}:${candidate.symbol}:${candidate.chain}`;
+    const current = byKey.get(key);
+    if (!current || scoreForResearchWorthy(candidate) > scoreForResearchWorthy(current)) {
+      byKey.set(key, candidate);
+    }
+  }
+
+  return [...byKey.values()]
+    .filter((candidate) => !["BLOCKED", "LATE_CHASE_REJECTED", "MEME_SPECULATION_EXCLUDED"].includes(candidate.lane))
+    .sort((a, b) => scoreForResearchWorthy(b) - scoreForResearchWorthy(a))
+    .slice(0, 10)
+    .map((candidate, index) => ({ ...candidate, rank: index + 1 }));
+}
+
+function renderResearchWorthyBoard(candidates = []) {
+  if (!candidates.length) {
+    return `
+      <section class="panel hero-panel">
+        <div class="section-heading">
+          <div>
+            <h2>Research Worthy Now</h2>
+            <p>No research-worthy candidates passed the latest display filters. Check source health and rescue queues before loosening safety gates.</p>
+          </div>
+          <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+        </div>
+        <div class="empty">No current research board candidates in the latest published scan.</div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="panel hero-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Research Worthy Now</h2>
+          <p>First-look board for candidates worth manual research. Research output only, not financial advice or a profit guarantee.</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+          <a class="button" href="./user-accessibility-ranking.json">View Latest Route Analysis</a>
+          <a class="button" href="https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/actions/workflows/pages-dashboard.yml">Run Next GitHub Scan</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="priority-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Symbol</th>
+              <th>Chain</th>
+              <th>Why Shown</th>
+              <th>Score</th>
+              <th>Price</th>
+              <th>Market Cap</th>
+              <th>Liquidity</th>
+              <th>Route</th>
+              <th>Needs Next</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${candidates
+              .map(
+                (candidate) => `
+                  <tr>
+                    <td>${escapeHtml(candidate.rank)}</td>
+                    <td><strong>${escapeHtml(candidate.symbol)}</strong><br /><span class="muted">${escapeHtml(candidate.name)}</span></td>
+                    <td>${escapeHtml(candidate.chain)}</td>
+                    <td>${escapeHtml(candidate.source)}<br /><span class="muted">${escapeHtml(candidate.lane)}</span></td>
+                    <td><strong>${escapeHtml(candidate.score)}</strong></td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.priceUsd))}</td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.marketCapUsd))}</td>
+                    <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd))}</td>
+                    <td>${escapeHtml(candidate.routeStatus)}</td>
+                    <td>${escapeHtml(candidate.missing)}</td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
 function renderScalpCandidateTable(candidates = [], title = "Research Candidates") {
   const rows = (Array.isArray(candidates) ? candidates : []).slice(0, 10);
 
@@ -230,7 +409,7 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.priceChange24hPct ?? 0)}%</td>
                     <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd ?? candidate.scalpLiquidityUsd))}</td>
-                    <td>${candidate.liveExecutionReady ? "Live Ready" : candidate.routeReady || candidate.buySellRouteVerified || (candidate.buyRouteAvailable && candidate.sellRouteAvailable) ? "Verified" : "Research"}</td>
+                    <td>${candidate.liveExecutionReady ? "Live Ready" : candidate.routeReady || candidate.buySellRouteVerified ? "Route Research" : "Needs Route Proof"}</td>
                     <td>${escapeHtml(needs || candidate.reasonNotQualified || "Current checks")}</td>
                   </tr>
                 `;
@@ -339,6 +518,16 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     hottestTenNow.topTenCurrentResearchBoard ||
     hottestTenNow.topTenHighestRatedNow ||
     [];
+  const researchWorthyBoard = buildResearchWorthyBoard({
+    hottestTenNow,
+    highUpsideScalp,
+    scalpMicrostructure,
+    utilityQuality,
+    progressiveOpportunities,
+    earlyAsymmetry,
+    institutionalRanking,
+    userAccessibility,
+  });
   const bestNowText =
     bestOpportunityNow.verdict === "CLEAR_MARKET_LEADER"
       ? `${bestNowProject.identity?.symbol || bestNowProject.symbol || "Leader"} leads with Market Opportunity Rank ${
@@ -746,6 +935,40 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       color: var(--text);
     }
 
+    .hero-panel {
+      border-color: rgba(69, 224, 143, 0.42);
+      background: linear-gradient(180deg, rgba(18, 48, 31, 0.56), rgba(12, 22, 36, 0.96));
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 6px;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.45;
+    }
+
+    .priority-table {
+      min-width: 1080px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .links {
       display: flex;
       gap: 10px;
@@ -816,6 +1039,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     <div class="subtitle">Live high-upside research board. Research output only, not financial advice, and never a profit guarantee.</div>
   </header>
   <main>
+    ${renderResearchWorthyBoard(researchWorthyBoard)}
     <section class="panel">
       <h2>Top 10 Current Research Board</h2>
       <p>${escapeHtml(
@@ -886,10 +1110,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
-        <a class="button" href="./route-universe.json">Route Universe</a>
-        <a class="button" href="./alternative-execution-routes.json">Alt Routes</a>
-        <a class="button" href="./user-accessibility-ranking.json">Accessibility Rank</a>
-        <a class="button" href="./venue-coverage-health.json">Venue Health</a>
+        <a class="button" href="./route-universe.json">View Route Universe</a>
+        <a class="button" href="./alternative-execution-routes.json">View Alt Routes</a>
+        <a class="button" href="./user-accessibility-ranking.json">View Latest Route Analysis</a>
+        <a class="button" href="./venue-coverage-health.json">View Venue Health</a>
         <a class="button" href="./integrity-stack.json">Integrity Stack</a>
         <a class="button" href="./institutional-data-provenance.json">Provenance</a>
         <a class="button" href="./progressive-opportunities.json">Opportunities</a>

@@ -789,6 +789,11 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].name, "Unknown");
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].symbol, "UNKNOWN");
   assert.ok(html.includes("Top 10 Current Research Board"));
+  assert.ok(html.includes("Research Worthy Now"));
+  assert.ok(html.indexOf("Research Worthy Now") < html.indexOf("Top 10 Current Research Board"));
+  assert.ok(html.includes("View Latest Route Analysis"));
+  assert.ok(html.includes("Run Next GitHub Scan"));
+  assert.equal(html.includes("Run Unbiased Route"), false);
   assert.ok(html.includes("Top 10 Current Research"));
   assert.ok(html.includes("Scan Truth"));
   assert.ok(html.includes("Need Confirmation"));
