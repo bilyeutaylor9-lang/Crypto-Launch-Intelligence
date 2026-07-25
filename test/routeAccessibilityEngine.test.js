@@ -22,10 +22,13 @@ function route(overrides = {}) {
     poolAddress: EVM_POOL,
     buyRouteAvailable: true,
     sellRouteAvailable: true,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
     verificationStatus: "VERIFIED",
     liquidityUsd: 300_000,
     estimatedRoundTripSlippagePct: 1.2,
     quoteTimestamp: NOW,
+    regionStatus: "CONFIRMED_AVAILABLE",
     source: "test-route",
     ...overrides,
   };
@@ -140,7 +143,23 @@ test("weak Coinbase project cannot outrank stronger project by opportunity solel
       marketOpportunityScore: 58,
       executionRoutes: [route({ venue: "Coinbase", routeType: "CEX", chain: null, walletFamily: "Exchange Account", marketPair: "EASY-USD", poolAddress: null })],
     }),
-  ]);
+  ], {
+    preferences: {
+      preferredExchanges: ["Coinbase"],
+      preferredWallets: ["MetaMask"],
+      supportedChains: ["base", "solana"],
+      allowDexRoutes: true,
+      allowCexRoutes: true,
+      allowBridgedRoutes: true,
+      allowNewWalletSetup: false,
+      maxRouteHops: 3,
+      maxBridgeRisk: 55,
+      maxEstimatedSlippagePct: 8,
+      maxTotalRouteCostUsd: 50,
+      userRegion: "US",
+      userState: "AZ",
+    },
+  });
   const summary = summarizeRouteAccessibility([strong, weak]);
 
   assert.equal(summary.topProjectsByOpportunity[0].symbol, "STRONG");
@@ -187,7 +206,7 @@ test("region restrictions affect accessibility instead of project quality", () =
   const [result] = analyzeRouteAccessibilityBatch([
     project({
       symbol: "REG",
-      executionRoutes: [route({ venue: "Bybit", routeType: "CEX", chain: null, walletFamily: "Exchange Account", marketPair: "REG-USDT", poolAddress: null, supportedRegions: ["EU"] })],
+      executionRoutes: [route({ venue: "Bybit", routeType: "CEX", chain: null, walletFamily: "Exchange Account", marketPair: "REG-USDT", poolAddress: null, regionStatus: null, supportedRegions: ["EU"] })],
     }),
   ], {
     preferences: {
@@ -216,12 +235,12 @@ test("region restrictions affect accessibility instead of project quality", () =
 
 test("missing sell route prevents execution readiness", () => {
   const [result] = analyzeRouteAccessibilityBatch([
-    project({ symbol: "NOSALE", executionRoutes: [route({ sellRouteAvailable: false })] }),
+    project({ symbol: "NOSALE", executionRoutes: [route({ sellRouteAvailable: false, sellQuoteVerified: false })] }),
   ]);
 
   assert.equal(result.researchEligible, true);
   assert.equal(result.executionReady, false);
-  assert.ok(result.missingRouteEvidence.some((item) => item.includes("Sell route")));
+  assert.ok(result.missingRouteEvidence.some((item) => item.includes("sell quote")));
 });
 
 test("preferred settings cannot alter fundamental small-cap quality score or safety score", () => {
@@ -281,8 +300,95 @@ test("every execution-ready route has a fresh buy and sell path", () => {
   assert.equal(results.find((item) => item.symbol === "FRESH").executionReady, true);
   assert.equal(results.find((item) => item.symbol === "STALE").executionReady, false);
   assert.ok(executionReadyRoutes.every((candidateRoute) =>
-    candidateRoute.buyRouteAvailable &&
-    candidateRoute.sellRouteAvailable &&
+    candidateRoute.buyQuoteVerified &&
+    candidateRoute.sellQuoteVerified &&
     candidateRoute.quoteAgeSeconds <= 21_600
   ));
+});
+
+test("global route quality ignores preferred venues while user accessibility stays personal", () => {
+  const [mexcPreferred, coinbasePreferred] = analyzeRouteAccessibilityBatch([
+    project({ symbol: "MEXC", executionRoutes: [route({ venue: "MEXC", routeType: "CEX", marketPair: "MEXC-USDT", poolAddress: null, walletFamily: "Exchange Account" })] }),
+    project({ symbol: "COIN", executionRoutes: [route({ venue: "Coinbase", routeType: "CEX", marketPair: "COIN-USD", poolAddress: null, walletFamily: "Exchange Account" })] }),
+  ], {
+    preferences: {
+      preferredExchanges: ["Coinbase"],
+      preferredWallets: ["MetaMask", "Rabby", "Phantom"],
+      supportedChains: ["base"],
+      allowDexRoutes: true,
+      allowCexRoutes: true,
+      allowBridgedRoutes: true,
+      allowNewWalletSetup: true,
+      maxRouteHops: 3,
+      maxBridgeRisk: 55,
+      maxEstimatedSlippagePct: 8,
+      maxTotalRouteCostUsd: 50,
+      userRegion: "US",
+      userState: "AZ",
+    },
+  });
+
+  assert.equal(mexcPreferred.globalRouteQualityScore, coinbasePreferred.globalRouteQualityScore);
+  assert.ok(coinbasePreferred.userAccessibilityScore > mexcPreferred.userAccessibilityScore);
+});
+
+test("unknown region receives no user-accessible credit", () => {
+  const [result] = analyzeRouteAccessibilityBatch([
+    project({ symbol: "UNKREG", executionRoutes: [route({ regionStatus: "UNKNOWN" })] }),
+  ]);
+
+  assert.equal(result.regionStatus, "UNKNOWN");
+  assert.equal(result.executionReady, false);
+  assert.equal(result.userAccessible, false);
+  assert.equal(result.routeTruthStatus, "SELL_QUOTE_VERIFIED");
+  assert.ok(result.globalRouteQualityScore > result.userAccessibilityScore);
+});
+
+test("partial or detected route evidence cannot prove a sell route", () => {
+  const [result] = analyzeRouteAccessibilityBatch([
+    project({
+      symbol: "PART",
+      executionRoutes: [
+        route({
+          buyQuoteVerified: false,
+          sellQuoteVerified: false,
+          sellRouteAvailable: false,
+          status: "PARTIALLY_VERIFIED",
+          verificationStatus: "PARTIALLY_VERIFIED",
+        }),
+      ],
+    }),
+  ]);
+
+  assert.equal(result.executionReady, false);
+  assert.equal(result.sellQuoteVerified, false);
+  assert.notEqual(result.routeTruthStatus, "LIVE_EXECUTION_READY");
+});
+
+test("ticker-only market route is rejected as execution evidence", () => {
+  const [result] = analyzeRouteAccessibilityBatch([
+    project({
+      symbol: "TICK",
+      tokenAddress: null,
+      chain: null,
+      poolAddress: null,
+      executionRoutes: [
+        {
+          venue: "Coinbase",
+          routeType: "CEX",
+          marketPair: "TICK-USD",
+          buyQuoteVerified: true,
+          sellQuoteVerified: true,
+          liquidityUsd: 400_000,
+          estimatedRoundTripSlippagePct: 1.5,
+          quoteTimestamp: NOW,
+          regionStatus: "CONFIRMED_AVAILABLE",
+        },
+      ],
+    }),
+  ]);
+
+  assert.equal(result.executionReady, false);
+  assert.equal(result.routeTruthStatus, "REJECTED_TICKER_ONLY");
+  assert.ok(result.missingRouteEvidence.some((item) => item.includes("ticker-only")));
 });

@@ -536,6 +536,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Alternative Routes", alternativeRoutes.routes?.length ?? 0],
     ["User Accessible", userAccessibility.userAccessibleCount ?? 0],
     ["Opportunity #1", userAccessibility.topProjectsByOpportunity?.[0]?.symbol || "NO QUALIFIED CANDIDATE"],
+    ["Global Route #1", userAccessibility.topProjectsByGlobalRouteQuality?.[0]?.symbol || "NO VERIFIED ROUTE"],
+    ["Route Truth", userAccessibility.topProjectsByGlobalRouteQuality?.[0]?.routeTruthStatus || "NO VERIFIED ROUTE"],
     ["Accessibility #1", userAccessibility.topProjectsByUserAccessibility?.[0]?.symbol || "NO ACCESSIBLE CANDIDATE"],
     ["Venue Coverage", venueCoverage.venueCoverageHealth?.[0]?.venue || "NO VERIFIED VENUE"],
   ]

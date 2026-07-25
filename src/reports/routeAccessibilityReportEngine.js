@@ -51,6 +51,7 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
   const userAccessibilityRankingPath = writeReport("user-accessibility-ranking.json", {
     ...shared,
     topProjectsByOpportunity: report.topProjectsByOpportunity,
+    topProjectsByGlobalRouteQuality: report.topProjectsByGlobalRouteQuality,
     topProjectsByUserAccessibility: report.topProjectsByUserAccessibility,
   });
   const venueCoverageHealthPath = writeReport("venue-coverage-health.json", {

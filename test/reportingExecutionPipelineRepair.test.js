@@ -123,12 +123,22 @@ function project(overrides = {}) {
     instantSafetyStatus: "PASS",
     executionRoute: {
       venue: "Uniswap",
+      routeType: "DEX",
+      chain: "base",
       buyRouteAvailable: true,
       sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      tokenAddress: CONTRACT_A,
       contract: CONTRACT_A,
+      poolAddress: PAIR_A,
       pairAddress: PAIR_A,
       routeUrl: `https://app.uniswap.org/swap?outputCurrency=${CONTRACT_A}`,
       quoteAsset: "USDC",
+      quoteTimestamp: NOW,
+      liquidityUsd: 180_000,
+      estimatedRoundTripSlippagePct: 1.1,
+      regionStatus: "CONFIRMED_AVAILABLE",
     },
     ...overrides,
   };
@@ -266,7 +276,33 @@ test("small-cap report returns top two research candidates without pretending ro
 test("verified small-cap candidates appear in execution-ready output", () => {
   const routed = routePipeline([
     project({ symbol: "EXEC1" }),
-    project({ symbol: "EXEC2", contractAddress: CONTRACT_B, tokenAddress: CONTRACT_B, address: CONTRACT_B, pairAddress: PAIR_B, poolAddress: PAIR_B }),
+    project({
+      symbol: "EXEC2",
+      contractAddress: CONTRACT_B,
+      tokenAddress: CONTRACT_B,
+      address: CONTRACT_B,
+      pairAddress: PAIR_B,
+      poolAddress: PAIR_B,
+      executionRoute: {
+        venue: "Uniswap",
+        routeType: "DEX",
+        chain: "base",
+        buyRouteAvailable: true,
+        sellRouteAvailable: true,
+        buyQuoteVerified: true,
+        sellQuoteVerified: true,
+        tokenAddress: CONTRACT_B,
+        contract: CONTRACT_B,
+        poolAddress: PAIR_B,
+        pairAddress: PAIR_B,
+        routeUrl: `https://app.uniswap.org/swap?outputCurrency=${CONTRACT_B}`,
+        quoteAsset: "USDC",
+        quoteTimestamp: NOW,
+        liquidityUsd: 180_000,
+        estimatedRoundTripSlippagePct: 1.1,
+        regionStatus: "CONFIRMED_AVAILABLE",
+      },
+    }),
   ]);
   const smallCap = summarizeSmallCapHunter(routed);
   const executionTwin = summarizeProofOfAlphaExecutionTwin(routed);
