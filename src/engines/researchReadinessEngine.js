@@ -1,3 +1,5 @@
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -33,7 +35,7 @@ export function analyzeResearchReadiness(project = {}) {
       Math.min(100, recoverable * 12) * 0.06 -
       (safetyBlocked ? 100 : 0)
   ));
-  const executionReady = project.executionReady === true || project.executionProof?.executionStatus === "VERIFIED";
+  const executionReady = isLiveExecutionReady(project);
   const researchEligible = !safetyBlocked && (researchReadinessScore >= 35 || project.starvationRescueEligible === true);
   const qualityQualified = !safetyBlocked && researchReadinessScore >= 65 && evidenceCoverage >= 45;
 

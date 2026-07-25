@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const TIERS = {
   SNIPER_READY: "SNIPER_READY",
@@ -111,15 +112,7 @@ function sourceCount(project = {}) {
 }
 
 function routeVerified(project = {}) {
-  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(project.executionProof?.executionStatus || project.executionStatus)) return true;
-  return Boolean(
-    project.purchaseRouteConfirmed === true ||
-      project.executionRouteAvailable === true ||
-      project.purchaseRoute?.purchasable === true ||
-      project.smallCapHunter?.purchaseRoute?.purchasable === true ||
-      project.proofOfAlphaExecutionTwin?.route?.detected === true ||
-      project.proofOfAlphaExecutionTwinSelected === true
-  );
+  return isLiveExecutionReady(project);
 }
 
 function executionStatus(project = {}) {

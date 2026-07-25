@@ -190,7 +190,7 @@ export const CHAIN_DEFINITIONS = Object.freeze([
   },
   {
     canonical: "robinhood-chain",
-    chainId: "robinhood-chain",
+    chainId: 4663,
     kind: "evm",
     name: "Robinhood Chain",
     aliases: ["robinhood", "robinhoodchain", "robinhood-l2", "robinhood-layer-2", "robinhood-layer2", "rhchain", "rh-chain", "hood-chain", "hoodchain"],

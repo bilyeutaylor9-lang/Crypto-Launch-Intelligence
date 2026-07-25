@@ -155,6 +155,7 @@ test("news and repository discovery remain unresolved research until identity is
 });
 
 function strongProject(overrides = {}) {
+  const quoteTimestamp = new Date().toISOString();
   return {
     name: "Alpha Keeper",
     symbol: "AKE",
@@ -176,9 +177,31 @@ function strongProject(overrides = {}) {
     identityVerified: true,
     contractVerified: true,
     instantSafetyStatus: "PASS",
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProofState: "LIVE_EXECUTION_READY",
+    executionStatus: "LIVE_EXECUTION_READY",
+    exactIdentityVerified: true,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    orderBookDepthVerified: true,
+    orderBookDepthUsd: 180_000,
+    estimatedRoundTripSlippagePct: 1.8,
+    quoteTimestamp,
+    quoteAgeSeconds: 60,
     purchaseRouteConfirmed: true,
     executionRouteAvailable: true,
-    executionStatus: "VERIFIED",
+    executionProof: {
+      executionStatus: "LIVE_EXECUTION_READY",
+      executionProofState: "LIVE_EXECUTION_READY",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      orderBookDepthVerified: true,
+      observedSlippagePct: 1.8,
+      quoteTimestamp,
+      quoteAgeSeconds: 60,
+      exactIdentityVerified: true,
+    },
     accelerationScore: 84,
     preBreakoutMomentumScore: 82,
     momentumShiftScore: 80,

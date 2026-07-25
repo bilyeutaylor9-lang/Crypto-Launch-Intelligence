@@ -56,6 +56,8 @@ test("Robinhood Chain and Osmosis stay distinct from provider/category vocabular
   assert.equal(normalizeChainId("robinhood"), "robinhood-chain");
   assert.equal(normalizeChainId("Robinhood Chain"), "robinhood-chain");
   assert.equal(normalizeChainId("rhchain"), "robinhood-chain");
+  assert.equal(normalizeChainId("4663"), "robinhood-chain");
+  assert.equal(SUPPORTED_CHAIN_REGISTRY["robinhood-chain"].chainId, 4663);
   assert.equal(normalizeChainId("osmosis"), "osmosis");
   assert.equal(normalizeChainId("osmo"), "osmosis");
   assert.equal(normalizeChainId("osmosis-1"), "osmosis");

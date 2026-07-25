@@ -167,7 +167,17 @@ test("canonical execution route recognizes CEX, EVM DEX, and Solana venues", () 
     source: "coinbase",
     exchange: "Coinbase",
     priceUsd: 1.25,
-    executionRoute: { venue: "Coinbase", buyRouteAvailable: true, sellRouteAvailable: true },
+    marketPair: "CBA-USD",
+    executionRoute: {
+      venue: "Coinbase",
+      routeType: "CEX",
+      marketPair: "CBA-USD",
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteTimestamp: NOW,
+    },
   });
   const uniswap = analyzeCanonicalExecutionRoute(project());
   const jupiter = analyzeCanonicalExecutionRoute({
@@ -179,7 +189,7 @@ test("canonical execution route recognizes CEX, EVM DEX, and Solana venues", () 
     poolAddress: "11111111111111111111111111111111",
     liquidityUsd: 125_000,
     priceUsd: 0.08,
-    executionRoute: { venue: "Jupiter", buyRouteAvailable: true, sellRouteAvailable: true },
+    executionRoute: { venue: "Jupiter", buyRouteAvailable: true, sellRouteAvailable: true, buyQuoteVerified: true, sellQuoteVerified: true, quoteTimestamp: NOW },
   });
   const raydium = analyzeCanonicalExecutionRoute({
     name: "Raydium Asset",
@@ -190,7 +200,7 @@ test("canonical execution route recognizes CEX, EVM DEX, and Solana venues", () 
     poolAddress: "11111111111111111111111111111111",
     liquidityUsd: 95_000,
     priceUsd: 0.04,
-    executionRoute: { venue: "Raydium", buyRouteAvailable: true, sellRouteAvailable: true },
+    executionRoute: { venue: "Raydium", buyRouteAvailable: true, sellRouteAvailable: true, buyQuoteVerified: true, sellQuoteVerified: true, quoteTimestamp: NOW },
   });
 
   assert.equal(coinbase.canonicalExecutionRoute.status, "VERIFIED");

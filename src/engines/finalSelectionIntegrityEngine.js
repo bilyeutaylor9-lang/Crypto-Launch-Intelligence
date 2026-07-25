@@ -4,6 +4,10 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import {
+  hasVerifiedBuyQuote,
+  isLiveExecutionReady,
+} from "../execution/routeTruthV2.js";
 
 export const FINAL_SELECTION_STATES = {
   QUALIFIED: "QUALIFIED",
@@ -257,10 +261,9 @@ function contractVerified(project = {}) {
 
   if (explicitlyFalse(status)) return false;
   if (truthy(project.contractVerified) || truthy(project.contractVerificationStatus)) return true;
+  if (truthy(project.sourceCodeVerified) || truthy(project.explorerVerified) || truthy(project.sourcifyVerified)) return true;
+  if (project.canonicalIdentity?.identityStatus === "VERIFIED") return true;
   if (["VERIFIED_CONTRACT", "VERIFIED_LISTING"].includes(project.identityState || project.projectIdentityState)) return true;
-  if (project.projectIdentityVerdict === "Identity Resolved") return true;
-  if (project.sourceTruthVerdict === "Verified Source Stack") return true;
-  if (hasTrustedContractSource(project)) return true;
 
   return false;
 }
@@ -299,8 +302,8 @@ function routeFrom(project = {}) {
   const purchaseRoute = project.purchaseRoute || project.smallCapHunter?.purchaseRoute || {};
   const twinRoute = project.proofOfAlphaExecutionTwin?.route || {};
   const executionProof = project.executionProof || {};
-  const purchasable = purchaseRoute.purchasable === true || project.purchaseRouteAvailable === true;
-  const executionDetected = twinRoute.detected === true;
+  const purchasable = hasVerifiedBuyQuote(project) || hasVerifiedBuyQuote(purchaseRoute) || executionProof.buyQuoteVerified === true;
+  const executionDetected = isLiveExecutionReady(project);
   const routeStatus = firstString([
     executionProof.executionStatus,
     purchaseRoute.status,
@@ -317,11 +320,11 @@ function routeFrom(project = {}) {
   ]);
 
   return {
-    purchasable: purchasable || executionProof.buyRouteAvailable === true,
-    executionDetected: executionDetected || ["VERIFIED", "PARTIALLY_VERIFIED", "STALE_QUOTE"].includes(executionProof.executionStatus),
+    purchasable,
+    executionDetected,
     status: routeStatus,
     preferredRoute,
-    confirmed: purchasable || executionDetected || executionProof.buyRouteAvailable === true,
+    confirmed: purchasable,
   };
 }
 
@@ -339,18 +342,19 @@ function executionProofHardBlock(project = {}) {
 
 function executionRouteAvailable(project = {}) {
   const status = executionProofStatus(project);
-  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(status)) return true;
+  if (isLiveExecutionReady(project)) return true;
+  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(status)) return false;
   if (["PROVIDER_UNAVAILABLE", "UNKNOWN", "STALE_QUOTE"].includes(status)) return false;
   if (executionProofHardBlock(project)) return false;
-  if (project.executionRouteAvailable === true) return true;
+  if (project.executionRouteAvailable === true) return isLiveExecutionReady(project);
   if (project.executionRouteAvailable === false) return false;
   if (normalizeDecisionText(project.executionVerdict).includes("block")) return false;
   if (normalizeDecisionText(project.proofOfAlphaExecutionTwinVerdict).includes("block")) return false;
   if (project.proofOfAlphaExecutionTwin?.quote?.blocker) return false;
   if ((project.proofOfAlphaExecutionTwin?.safety?.blockers || []).length) return false;
-  if (project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate") return true;
+  if (project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate") return isLiveExecutionReady(project);
 
-  return routeFrom(project).executionDetected || project.proofOfAlphaExecutionTwinSelected === true;
+  return routeFrom(project).executionDetected;
 }
 
 function liquidityUsd(project = {}) {

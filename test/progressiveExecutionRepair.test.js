@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 
 import { attachCanonicalIdentityBatch } from "../src/identity/canonicalIdentityResolver.js";
+import { analyzeCanonicalExecutionRoute } from "../src/engines/canonicalExecutionRouteEngine.js";
 import {
   analyzeExecutionProofBatch,
   executionProofStageMetadata,
@@ -115,6 +116,45 @@ function strongProject(overrides = {}) {
   };
 }
 
+function liveExecutionOverrides() {
+  return {
+    quoteAgeSeconds: 30,
+    executionSlippagePct: 0.4,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    sellSimulationPassed: true,
+    buyTaxPct: 0,
+    sellTaxPct: 0,
+    orderBookDepthVerified: true,
+    purchaseRoute: {
+      purchasable: true,
+      sellable: true,
+      preferredRoute: "MetaMask",
+      status: "Live Route Verified",
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteAgeSeconds: 30,
+      routes: [
+        {
+          type: "DexScreener",
+          contract: "0x0000000000000000000000000000000000000cea",
+          pairAddress: "0x0000000000000000000000000000000000000cab",
+          quoteAsset: "USDC",
+          verified: true,
+          buyQuoteVerified: true,
+          sellQuoteVerified: true,
+          quoteAgeSeconds: 30,
+        },
+      ],
+    },
+    proofOfAlphaExecutionTwin: {
+      route: { detected: true, preferredRoute: "MetaMask", status: "Live Route Verified", buyQuoteVerified: true, sellQuoteVerified: true, quoteAgeSeconds: 30 },
+      quote: { liquidityUsd: 240_000, estimatedSlippagePct: 0.4, timestamp: new Date().toISOString() },
+      safety: { blockers: [] },
+    },
+  };
+}
+
 test("canonical identity resolver treats symbol collisions as review unless contracts conflict", () => {
   const [base, solana, conflict] = attachCanonicalIdentityBatch([
     strongProject({
@@ -162,6 +202,76 @@ test("execution provider outage is unknown evidence, not a no-route hard block",
   assert.ok(project.moneyEvidence.buyRoute.reason.includes("provider unavailable"));
 });
 
+test("canonical execution route does not infer sell proof from buy proof plus liquidity", () => {
+  const project = analyzeCanonicalExecutionRoute(
+    strongProject({
+      purchaseRoute: {
+        preferredRoute: "MetaMask",
+        buyQuoteVerified: true,
+        quoteAgeSeconds: 30,
+        routes: [
+          {
+            type: "Uniswap",
+            contract: "0x0000000000000000000000000000000000000cea",
+            pairAddress: "0x0000000000000000000000000000000000000cab",
+            buyQuoteVerified: true,
+            quoteAgeSeconds: 30,
+          },
+        ],
+      },
+      proofOfAlphaExecutionTwin: {
+        route: { detected: true, preferredRoute: "MetaMask", status: "Detected" },
+        quote: { liquidityUsd: 240_000, estimatedSlippagePct: 0.4, timestamp: new Date().toISOString() },
+        safety: { blockers: [] },
+      },
+      executionRoute: {
+        venue: "Uniswap",
+        routeType: "DEX",
+        chain: "base",
+        buyRouteAvailable: true,
+        buyQuoteVerified: true,
+        quoteAgeSeconds: 30,
+        contract: "0x0000000000000000000000000000000000000cea",
+        pairAddress: "0x0000000000000000000000000000000000000cab",
+        liquidityUsd: 240_000,
+      },
+    })
+  );
+
+  assert.equal(project.canonicalExecutionRoute.buyRouteAvailable, true);
+  assert.equal(project.canonicalExecutionRoute.sellRouteAvailable, false);
+  assert.notEqual(project.canonicalExecutionRoute.status, "VERIFIED");
+  assert.equal(project.canonicalExecutionRoute.routeTruthStatus, "BUY_QUOTE_VERIFIED");
+});
+
+test("partial execution proof cannot become execution-route available", () => {
+  const [project] = analyzeExecutionProofBatch([
+    strongProject({
+      quoteAgeSeconds: 30,
+      executionSlippagePct: 0.4,
+      purchaseRoute: {
+        preferredRoute: "MetaMask",
+        buyQuoteVerified: true,
+        quoteAgeSeconds: 30,
+        routes: [
+          {
+            type: "Uniswap",
+            contract: "0x0000000000000000000000000000000000000cea",
+            pairAddress: "0x0000000000000000000000000000000000000cab",
+            buyQuoteVerified: true,
+            quoteAgeSeconds: 30,
+          },
+        ],
+      },
+    }),
+  ]);
+
+  assert.equal(project.executionStatus, "PARTIALLY_VERIFIED");
+  assert.equal(project.executionRouteAvailable, false);
+  assert.equal(project.purchaseRouteConfirmed, true);
+  assert.equal(project.executionProof.sellQuoteVerified, false);
+});
+
 test("progressive ladder keeps provider outages visible in emerging research", () => {
   const [project] = analyzeProgressiveOpportunityRankingBatch(
     analyzeFinalSelectionIntegrityBatch(
@@ -189,12 +299,12 @@ test("progressive ladder keeps provider outages visible in emerging research", (
 
 test("confirmed execution and identity proof can reach sniper-ready lane", () => {
   const [project] = analyzeProgressiveOpportunityRankingBatch(
-    analyzeFinalSelectionIntegrityBatch(analyzeExecutionProofBatch([strongProject()]))
+    analyzeFinalSelectionIntegrityBatch(analyzeExecutionProofBatch([strongProject(liveExecutionOverrides())]))
   );
 
   assert.equal(project.executionStatus, "VERIFIED");
-  assert.equal(project.executionProofState, "SELL_QUOTE_VERIFIED");
-  assert.equal(project.liveExecutionReady, false);
+  assert.equal(project.executionProofState, "LIVE_EXECUTION_READY");
+  assert.equal(project.liveExecutionReady, true);
   assert.equal(project.progressiveLane, "SNIPER_READY");
   assert.equal(project.firstFailingGate, null);
   assert.ok(project.moneyScore >= 60);
@@ -203,6 +313,7 @@ test("confirmed execution and identity proof can reach sniper-ready lane", () =>
 test("execution proof exposes live-ready only after sell simulation, taxes, and depth are verified", () => {
   const [project] = analyzeExecutionProofBatch([
     strongProject({
+      ...liveExecutionOverrides(),
       sellSimulationPassed: true,
       buyTaxPct: 0,
       sellTaxPct: 0,
@@ -253,6 +364,7 @@ test("AKE-style movers stay best-available when advisory AI rejects without dete
     analyzeFinalSelectionIntegrityBatch(
       analyzeExecutionProofBatch([
         strongProject({
+          ...liveExecutionOverrides(),
           name: "AKE Style Runner",
           symbol: "AKE",
           aiDecision: "Reject",

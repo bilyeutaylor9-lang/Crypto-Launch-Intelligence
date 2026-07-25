@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const MAX_REPORT_ROWS = 50;
 
@@ -54,20 +55,7 @@ function priceChange7d(project = {}) {
 }
 
 function routeReady(project = {}) {
-  const status = String(project.executionStatus || project.routeStatus || "").toUpperCase();
-  const buyReady =
-    project.purchaseRouteConfirmed === true ||
-    project.executionRouteAvailable === true ||
-    project.executionProof?.buyRouteAvailable === true ||
-    project.proofOfAlphaExecutionTwin?.route?.detected === true ||
-    /VERIFIED|READY|AVAILABLE/.test(status);
-  const sellReady =
-    project.sellRouteAvailable === true ||
-    project.executionProof?.sellRouteAvailable === true ||
-    project.purchaseRoute?.sellable === true ||
-    project.proofOfAlphaExecutionTwin?.route?.sellDetected === true ||
-    /VERIFIED/.test(status);
-  return buyReady && sellReady;
+  return isLiveExecutionReady(project);
 }
 
 function deterministicSafetyBlocked(project = {}) {

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { attachCanonicalIdentityBatch } from "../identity/canonicalIdentityResolver.js";
 import { normalizeMetricTruthBatch, sourceFamiliesForProject } from "../data/metricTruthNormalizer.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const BREAKOUT_WEIGHTS = [
   ["earlyAcceleration", 18],
@@ -79,16 +80,7 @@ function chain(project = {}) {
 }
 
 function routeVerified(project = {}) {
-  const status = project.executionProof?.executionStatus || project.executionStatus;
-  return Boolean(
-    ["VERIFIED", "PARTIALLY_VERIFIED"].includes(status) ||
-      project.purchaseRouteConfirmed === true ||
-      project.executionRouteAvailable === true ||
-      project.purchaseRoute?.purchasable === true ||
-      project.smallCapHunter?.purchaseRoute?.purchasable === true ||
-      project.proofOfAlphaExecutionTwinSelected === true ||
-      project.proofOfAlphaExecutionTwin?.route?.detected === true
-  );
+  return isLiveExecutionReady(project);
 }
 
 function sourceList(project = {}) {

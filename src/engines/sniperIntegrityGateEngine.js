@@ -12,6 +12,7 @@ import { analyzeSniperEvidenceFamilies } from "./sniperEvidenceFamilyEngine.js";
 import { analyzeSniperLifecycleState } from "./sniperLifecycleStateEngine.js";
 import { analyzeSniperOutcomeLabels } from "./sniperOutcomeLabelEngine.js";
 import { analyzeSniperPointInTime } from "./sniperPointInTimeEngine.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const DEFAULT_GATES = {
   independentLeadingFamiliesAtOrAbove70: 3,
@@ -63,18 +64,12 @@ function confidenceAdjustedScore(project = {}, score = 0) {
 function hasVerifiedIdentity(project = {}) {
   return (
     project.identityVerified === true ||
-    ["VERIFIED_CONTRACT", "VERIFIED_EXCHANGE_ASSET"].includes(identityState(project)) ||
-    project.finalSelectionQualified === true
+    ["VERIFIED_CONTRACT", "VERIFIED_EXCHANGE_ASSET"].includes(identityState(project))
   );
 }
 
 function routeVerified(project = {}) {
-  return (
-    project.purchaseRouteConfirmed === true ||
-    project.purchaseRoute?.purchasable === true ||
-    project.smallCapHunter?.purchaseRoute?.purchasable === true ||
-    project.proofOfAlphaExecutionTwin?.route?.detected === true
-  );
+  return isLiveExecutionReady(project);
 }
 
 function exitLiquidityUsd(project = {}) {

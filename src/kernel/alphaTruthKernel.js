@@ -9,6 +9,7 @@ import {
 } from "../storage/db.js";
 import { buildEvidenceLineage } from "./evidenceLineageCorrelationGovernor.js";
 import { judgePointInTimeOutcomeV2 } from "./pointInTimeOutcomeJudgeV2.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const DEFAULT_RECEIPT_LIMIT = Number(process.env.ALPHA_TRUTH_RECEIPT_LIMIT || 100);
 const DEFAULT_PERSISTENCE_LIMIT = Number(process.env.ALPHA_TRUTH_PERSIST_LIMIT || 250);
@@ -98,11 +99,7 @@ function executionSnapshot(project = {}, observedAt = new Date().toISOString()) 
   const quote = twin.quote || project.executionQuote || {};
   const route = project.purchaseRoute || project.smallCapHunter?.purchaseRoute || twin.route || {};
   const routeStatus = proof.executionStatus || project.executionStatus || route.status || "UNKNOWN";
-  const verified = ["VERIFIED", "PARTIALLY_VERIFIED"].includes(routeStatus) ||
-    project.purchaseRouteConfirmed === true ||
-    project.executionRouteAvailable === true ||
-    route.purchasable === true ||
-    twin.route?.detected === true;
+  const verified = isLiveExecutionReady(project);
 
   return {
     observedAt,

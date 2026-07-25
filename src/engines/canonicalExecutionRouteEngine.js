@@ -3,6 +3,11 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import {
+  hasVerifiedBuyQuote,
+  hasVerifiedSellQuote,
+  routeQuoteAgeSeconds,
+} from "../execution/routeTruthV2.js";
 
 const CEX_VENUES = [
   ["Coinbase", ["coinbase", "coinbase.com"]],
@@ -156,6 +161,17 @@ function boolFromRoutes(routes = [], keys = []) {
   return routes.some((route) => keys.some((key) => route[key] === true));
 }
 
+function routeMarketPair(project = {}, routes = []) {
+  return first([
+    project.marketPair,
+    project.marketData?.marketPair,
+    project.rawCandidate?.marketPair,
+    routes.find((route) => route.marketPair || route.market || route.symbol)?.marketPair,
+    routes.find((route) => route.marketPair || route.market || route.symbol)?.market,
+    routes.find((route) => route.marketPair || route.market || route.symbol)?.symbol,
+  ]);
+}
+
 function routeStatusText(routes = []) {
   return routes.map((route) => lower(route.status || route.verdict || route.routeStatus)).join(" ");
 }
@@ -275,12 +291,16 @@ function statusFor({
   priceUsd,
   buyRouteAvailable,
   sellRouteAvailable,
+  buyQuoteVerified,
+  sellQuoteVerified,
+  quoteFresh,
+  exactIdentity,
   unavailable,
   routes,
 }) {
-  if (buyRouteAvailable && sellRouteAvailable && routeType === "CEX" && venue && priceUsd > 0) return "VERIFIED";
-  if (buyRouteAvailable && sellRouteAvailable && routeType && chain && contractAddress && pairAddress && liquidityUsd > 0) return "VERIFIED";
-  if ((buyRouteAvailable || sellRouteAvailable) && venue && (priceUsd > 0 || liquidityUsd > 0 || contractAddress || pairAddress)) return "PARTIALLY_VERIFIED";
+  if (buyQuoteVerified && sellQuoteVerified && quoteFresh && exactIdentity && routeType === "CEX" && venue && priceUsd > 0) return "VERIFIED";
+  if (buyQuoteVerified && sellQuoteVerified && quoteFresh && exactIdentity && routeType && chain && contractAddress && (pairAddress || routeType === "AGGREGATOR") && liquidityUsd > 0) return "VERIFIED";
+  if ((buyRouteAvailable || sellRouteAvailable || buyQuoteVerified || sellQuoteVerified) && venue && (priceUsd > 0 || liquidityUsd > 0 || contractAddress || pairAddress)) return "PARTIALLY_VERIFIED";
   if (venue || routes.length) return "DETECTED";
   if (unavailable) return "PROVIDER_UNAVAILABLE";
   return "NO_ROUTE";
@@ -310,11 +330,22 @@ function missingEvidenceFor(fields = {}) {
   if (fields.routeType !== "CEX" && !fields.chain) missing.push("supported chain");
   if (fields.routeType !== "CEX" && !fields.contractAddress) missing.push("verified token contract");
   if (fields.routeType !== "CEX" && !fields.pairAddress) missing.push("verified pair/pool address");
-  if (!fields.buyRouteAvailable) missing.push("buy route proof");
-  if (!fields.sellRouteAvailable) missing.push("sell route proof");
+  if (!fields.buyQuoteVerified) missing.push("fresh buy quote proof");
+  if (!fields.sellQuoteVerified) missing.push("fresh sell quote proof");
+  if (!fields.quoteFresh) missing.push("fresh quote timestamp");
   if (!fields.liquidityUsd && fields.routeType !== "CEX") missing.push("DEX liquidity");
   if (!fields.priceUsd) missing.push("current price quote");
   return missing;
+}
+
+function routeTruthStatusFor(fields = {}) {
+  if (fields.status === "PROVIDER_UNAVAILABLE") return "PROVIDER_UNAVAILABLE";
+  if (fields.status === "NO_ROUTE") return "NO_VERIFIED_ROUTE";
+  if (fields.buyQuoteVerified && fields.sellQuoteVerified && fields.quoteFresh && fields.exactIdentity) return "SELL_QUOTE_VERIFIED";
+  if (fields.buyQuoteVerified && fields.exactIdentity) return "BUY_QUOTE_VERIFIED";
+  if (fields.exactIdentity) return "PAIR_IDENTITY_VERIFIED";
+  if (fields.venue || fields.routeType || fields.supportingSources?.length) return "MARKET_OBSERVED";
+  return "UNVERIFIED";
 }
 
 export function analyzeCanonicalExecutionRoute(project = {}) {
@@ -334,8 +365,6 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   const pairAddress = tokenPoolIdentityConflict ? null : inferredPairAddress;
   const supporting = supportingSources(project, routes);
   const statusText = routeStatusText(routes);
-  const sourceObserved = Boolean(venue || supporting.length || DEX_SOURCE_HINTS.some((hint) => text.includes(hint)));
-  const hasRouteObject = routes.length > 0;
   const liquidityUsd = inferNumber(project, routes, [
     "dexLiquidityUsd",
     "liquidityUsd",
@@ -359,12 +388,23 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     "rawCandidate.priceUsd",
     "quote.priceUsd",
   ]);
-  const explicitBuy = boolFromRoutes(routes, ["buyRouteAvailable", "purchasable", "detected", "buy", "verified"]);
-  const explicitSell = boolFromRoutes(routes, ["sellRouteAvailable", "sellable", "sellDetected", "sell", "verified"]);
+  const quoteAgeSeconds = routeQuoteAgeSeconds({
+    quoteAgeSeconds: first([project.quoteAgeSeconds, project.executionQuoteAgeSeconds, routes.find((route) => route.quoteAgeSeconds)?.quoteAgeSeconds]),
+    quoteTimestamp: quoteTimestamp(project, routes),
+  });
+  const quoteFresh = quoteAgeSeconds !== null && quoteAgeSeconds <= 21_600;
+  const buyQuoteVerified = [project, ...routes].some(hasVerifiedBuyQuote);
+  const sellQuoteVerified = [project, ...routes].some(hasVerifiedSellQuote);
+  const explicitBuy = boolFromRoutes(routes, ["buyRouteAvailable", "purchasable", "canBuy", "buyAvailable"]);
+  const explicitSell = boolFromRoutes(routes, ["sellRouteAvailable", "sellable", "canSell", "sellAvailable"]);
   const sellBlocked = project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || /honeypot|cannot sell|sell unavailable|transfer blocked/.test(statusText);
-  const buyRouteAvailable = Boolean(explicitBuy || (sourceObserved && (routeType === "CEX" ? priceUsd > 0 : Boolean(contractAddress || pairAddress))));
-  const sellRouteAvailable = Boolean(!sellBlocked && (explicitSell || (buyRouteAvailable && (routeType === "CEX" || liquidityUsd > 0))));
+  const buyRouteAvailable = Boolean(buyQuoteVerified || explicitBuy);
+  const sellRouteAvailable = Boolean(!sellBlocked && (sellQuoteVerified || explicitSell));
   const unavailable = providerUnavailable(project, routes);
+  const marketPair = routeMarketPair(project, routes);
+  const exactIdentity = routeType === "CEX"
+    ? Boolean(venue && marketPair)
+    : Boolean(chain && contractAddress && (pairAddress || routeType === "AGGREGATOR"));
   const status = statusFor({
     routeType,
     venue,
@@ -375,6 +415,10 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     priceUsd,
     buyRouteAvailable,
     sellRouteAvailable,
+    buyQuoteVerified,
+    sellQuoteVerified,
+    quoteFresh,
+    exactIdentity,
     unavailable,
     routes,
   });
@@ -388,8 +432,13 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     priceUsd,
     buyRouteAvailable,
     sellRouteAvailable,
+    buyQuoteVerified,
+    sellQuoteVerified,
+    quoteFresh,
+    exactIdentity,
     supportingSources: supporting,
   };
+  const routeTruthStatus = routeTruthStatusFor({ ...fields, status });
   const failureReasons = [];
   if (status === "PROVIDER_UNAVAILABLE") failureReasons.push("Route provider unavailable; no negative route conclusion made.");
   if (status === "NO_ROUTE") failureReasons.push("No recognized CEX, DEX, aggregator, contract, pair, or market URL route was detected.");
@@ -414,10 +463,16 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     routeUrl: routeUrl(project, routes) || null,
     buyRouteAvailable,
     sellRouteAvailable,
+    buyQuoteVerified,
+    sellQuoteVerified,
+    exactIdentityVerified: exactIdentity,
+    routeTruthStatus,
     liquidityUsd,
     volume24hUsd,
     priceUsd,
     quoteTimestamp: quoteTimestamp(project, routes) || null,
+    quoteAgeSeconds,
+    marketPair: marketPair || null,
     supportingSources: supporting,
     confidence: confidenceFor(status, fields),
     missingEvidence: missingEvidenceFor(fields),

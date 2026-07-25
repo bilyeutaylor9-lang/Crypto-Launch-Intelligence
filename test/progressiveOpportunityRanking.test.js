@@ -7,6 +7,51 @@ import {
 } from "../src/engines/progressiveOpportunityRankingEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 
+function liveRouteProof() {
+  const quoteTimestamp = new Date().toISOString();
+  return {
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProofState: "LIVE_EXECUTION_READY",
+    executionStatus: "LIVE_EXECUTION_READY",
+    exactIdentityVerified: true,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    orderBookDepthVerified: true,
+    orderBookDepthUsd: 42_000,
+    estimatedRoundTripSlippagePct: 2.4,
+    quoteTimestamp,
+    quoteAgeSeconds: 60,
+    executionProof: {
+      executionStatus: "LIVE_EXECUTION_READY",
+      executionProofState: "LIVE_EXECUTION_READY",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      orderBookDepthVerified: true,
+      observedSlippagePct: 2.4,
+      quoteTimestamp,
+      quoteAgeSeconds: 60,
+      exactIdentityVerified: true,
+    },
+  };
+}
+
+function noLiveRouteProof() {
+  return {
+    routeTruthStatus: "UNKNOWN",
+    executionProofState: "UNKNOWN",
+    executionStatus: "UNKNOWN",
+    exactIdentityVerified: false,
+    buyQuoteVerified: false,
+    sellQuoteVerified: false,
+    orderBookDepthVerified: false,
+    estimatedRoundTripSlippagePct: null,
+    quoteTimestamp: null,
+    quoteAgeSeconds: null,
+    executionProof: { executionStatus: "UNKNOWN" },
+  };
+}
+
 function earlyMover(overrides = {}) {
   return {
     name: "Early Mover",
@@ -70,6 +115,7 @@ function earlyMover(overrides = {}) {
     finalSelectionState: "QUALIFIED",
     finalSelectionQualified: true,
     comparableSampleSize: 8,
+    ...liveRouteProof(),
     ...overrides,
   };
 }
@@ -101,6 +147,7 @@ test("missing route evidence lowers Trust Score without zeroing Opportunity Scor
       proofOfAlphaExecutionTwinScore: 0,
       finalSelectionState: "RESEARCH_ONLY",
       finalSelectionQualified: false,
+      ...noLiveRouteProof(),
     }),
   ]);
   const withRoute = ranked.find((project) => project.symbol === "ROUTE");
@@ -149,6 +196,7 @@ test("money rank favors executable evidence over unsupported hype", () => {
       proofOfAlphaExecutionTwinScore: 0,
       finalSelectionState: "RESEARCH_ONLY",
       finalSelectionQualified: false,
+      ...noLiveRouteProof(),
     }),
     earlyMover({
       symbol: "EXEC",
@@ -178,8 +226,6 @@ test("acceleration can outrank static high-quality but stagnant projects", () =>
       identityVerified: false,
       contractVerified: false,
       finalIdentityState: "PROBABLE_MATCH",
-      purchaseRouteConfirmed: false,
-      executionRouteAvailable: false,
     }),
     earlyMover({
       symbol: "STATIC",
@@ -239,6 +285,7 @@ test("final-qualified and research-only candidates are separated by the progress
         executionRouteAvailable: false,
         finalSelectionState: "RESEARCH_ONLY",
         finalSelectionQualified: false,
+        ...noLiveRouteProof(),
       }),
     ])
   );

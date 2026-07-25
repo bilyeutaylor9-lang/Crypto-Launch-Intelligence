@@ -104,6 +104,7 @@ function evidenceItemLineage(item = {}, index = 0) {
       freshness: "UNKNOWN",
       confidence: 0.45,
       score: 0,
+      derivedScore: false,
       internalOpinion: false,
     };
   }
@@ -125,6 +126,7 @@ function evidenceItemLineage(item = {}, index = 0) {
     freshness: freshness(timestamp),
     confidence: confidenceFromScore(num(item.confidence) > 1 ? item.confidence : num(item.confidence) * 100, 0.5),
     score: clamp(item.score || item.value || 0),
+    derivedScore: item.derivedScore === true,
     internalOpinion,
   };
 }
@@ -172,6 +174,7 @@ function scoreFieldLineage(project = {}) {
       freshness: freshness(project.updatedAt || project.observedAt || project.scannedAt || null),
       confidence: confidenceFromScore(value),
       score: clamp(value),
+      derivedScore: true,
       internalOpinion: entry.group === INTERNAL_AI_GROUP,
     };
   });
@@ -200,6 +203,7 @@ function sourceLineage(project = {}) {
     freshness: freshness(project.discoveredAt || project.updatedAt || null),
     confidence: 0.5,
     score: 50,
+    derivedScore: false,
     internalOpinion: false,
   }));
 }
@@ -226,18 +230,23 @@ function summarizeGroups(items = []) {
   return [...groups.values()].map((group) => {
     const averageScore = Math.round(clamp(average(group.items.map((item) => item.score))));
     const averageConfidence = Number((average(group.items.map((item) => item.confidence)) || 0).toFixed(2));
+    const rawFactItems = group.items.filter((item) => item.derivedScore !== true);
+    const rawFactProviders = new Set(rawFactItems.map((item) => lower(item.rawProvider)).filter(Boolean));
     return {
       group: group.group,
       evidenceFamilies: [...group.evidenceFamilies].filter(Boolean).sort(),
       rawProviders: [...group.rawProviders].filter(Boolean).sort(),
+      rawFactProviders: [...rawFactProviders].sort(),
       parentEngines: [...group.parentEngines].filter(Boolean).sort(),
       evidenceCount: group.items.length,
+      rawFactCount: rawFactItems.length,
+      derivedScoreCount: group.items.length - rawFactItems.length,
       averageScore,
-      cappedContribution: Math.round(clamp(averageScore * Math.min(1, 0.55 + group.rawProviders.size * 0.15))),
+      cappedContribution: Math.round(clamp(averageScore * Math.min(1, 0.55 + rawFactProviders.size * 0.15))),
       averageConfidence,
       internalOpinion: group.internalOpinion,
       status:
-        averageScore >= 65 && group.rawProviders.size >= 1
+        averageScore >= 65 && rawFactProviders.size >= 1
           ? "CONFIRMED"
           : averageScore >= 35
             ? "PARTIAL"

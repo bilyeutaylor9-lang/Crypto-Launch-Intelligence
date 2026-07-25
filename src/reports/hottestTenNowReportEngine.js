@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { analyzeUtilityQuality } from "../engines/utilityQualityEngine.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const TARGET_COUNT = 10;
 const MAX_AUDIT_ROWS = 50;
@@ -105,13 +106,7 @@ function executionTier(project = {}) {
 }
 
 function buySellRouteVerified(project = {}) {
-  return Boolean(
-    project.liveExecutionReady === true ||
-      project.executionProof?.liveExecutionReady === true ||
-      ["LIVE_EXECUTION_READY", "SELL_SIMULATION_PASSED", "TAXES_VERIFIED", "ORDER_BOOK_DEPTH_VERIFIED", "SELL_QUOTE_VERIFIED"].includes(executionState(project)) ||
-      (project.executionProof?.buyRouteAvailable === true && project.executionProof?.sellRouteAvailable === true) ||
-      (project.purchaseRouteConfirmed === true && (project.sellRouteAvailable === true || project.purchaseRoute?.sellable === true))
-  );
+  return isLiveExecutionReady(project);
 }
 
 function combinedBlockers(project = {}) {

@@ -3,6 +3,7 @@ import path from "path";
 import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligenceEngine.js";
 import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
+import { isLiveExecutionReady } from "./execution/routeTruthV2.js";
 
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
 import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
@@ -1156,6 +1157,24 @@ function weightedInstitutionalScore(project = {}) {
   return Math.round(clamp(score));
 }
 
+function executionTruthScore(project = {}) {
+  const state = String(
+    project.executionProofState ||
+      project.executionProof?.executionProofState ||
+      project.executionProof?.routeTruthStatus ||
+      project.routeTruthStatus ||
+      ""
+  ).toUpperCase();
+  if (isLiveExecutionReady(project)) return 92;
+  if (state === "SELL_SIMULATION_PASSED") return 82;
+  if (["TAXES_VERIFIED", "ORDER_BOOK_DEPTH_VERIFIED"].includes(state)) return 74;
+  if (state === "SELL_QUOTE_VERIFIED") return 68;
+  if (state === "BUY_QUOTE_VERIFIED") return 45;
+  if (state === "PAIR_IDENTITY_VERIFIED") return 32;
+  if (state === "MARKET_OBSERVED") return 18;
+  return 0;
+}
+
 function weightedAverage(items = []) {
   const active = items.filter((item) => num(item.score) > 0);
 
@@ -1277,6 +1296,12 @@ function buildSignalProfile(project = {}) {
       { score: project.institutionalVNextScore, weight: 1.1 },
       { score: project.institutionalConfidenceScore, weight: 0.9 },
       { score: project.evidenceQualityScore, weight: 0.7 },
+    ]),
+    execution: weightedAverage([
+      { score: executionTruthScore(project), weight: 1.4 },
+      { score: project.executionEvidenceCoveragePercent, weight: 0.7 },
+      { score: project.routeAccessibility?.globalRouteQualityScore, weight: 0.6 },
+      { score: project.scalpMicrostructureScore, weight: 0.6 },
     ]),
     quantumField: weightedAverage([
       { score: project.quantumOpportunityScore, weight: 1.0 },
@@ -1446,6 +1471,7 @@ function buildRiskFlags(project = {}, profile = {}) {
   if (num(project.bundledLaunchRiskScore) >= 70) risks.push("Bundled launch risk");
   if (project.discoveryDecisionTier === "CRITICAL") risks.push("Discovery decision critical block");
   if (project.discoveryDecisionTier === "RESTRICTED") risks.push("Discovery decision restricted");
+  if (project.executionProof && !isLiveExecutionReady(project)) risks.push("Execution not live-ready");
 
   return [...new Set(risks)];
 }
@@ -1996,6 +2022,7 @@ export function advancedScoreBreakdown(project = {}) {
   if (profile.fundamentals >= 65 && profile.devCommunity >= 65) bonus += 3;
   if (profile.socialIntelligence >= 70 && profile.learning >= 60) bonus += 4;
   if (profile.signalCombos >= 70 && num(project.outcomeLearningScore) >= 60) bonus += 5;
+  if (profile.execution >= 80) bonus += 4;
   if (num(project.prePumpPatternEdge) >= 15 && num(project.prePumpPatternScore) >= 65) bonus += 6;
   else if (num(project.prePumpPatternEdge) >= 8) bonus += 3;
   if ((project.winningSignalCombinations || []).length >= 2 && (project.trapSignalCombinations || []).length === 0) {
@@ -2069,6 +2096,7 @@ export function advancedScoreBreakdown(project = {}) {
   if (num(project.washTradingRiskScore) >= 75) penalty += 9;
   if (num(project.bundledLaunchRiskScore) >= 75) penalty += 8;
   if (project.projectIdentityVerdict === "Identity Risk") penalty += 10;
+  if (project.executionProof && !isLiveExecutionReady(project)) penalty += 8;
 
   const signalDensityScore = clamp(profile.activeClusterCount * 12 + profile.eliteClusterCount * 8);
   const dynamicWeightAdjustment = project.dynamicEngineWeights
@@ -2484,6 +2512,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
   results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = await runEngine("Post-Evidence Final Scoring", addFinalScoring, results);
   results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});

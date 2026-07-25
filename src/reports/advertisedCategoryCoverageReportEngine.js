@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import { analyzeProgressiveOpportunityRankingBatch } from "../engines/progressiveOpportunityRankingEngine.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const DEFAULT_LIMIT = 5;
 
@@ -34,17 +35,7 @@ function hasNumber(value) {
 }
 
 function routeVerified(project = {}) {
-  const status = project.executionStatus || project.executionProof?.executionStatus || project.canonicalExecutionRoute?.status;
-  return Boolean(
-    status === "VERIFIED" ||
-      project.executionReady === true ||
-      project.purchaseRouteConfirmed === true ||
-      project.executionRouteAvailable === true ||
-      project.purchaseRoute?.purchasable === true ||
-      project.smallCapHunter?.executionReady === true ||
-      project.smallCapHunter?.purchaseRoute?.purchasable === true ||
-      project.proofOfAlphaExecutionTwin?.route?.detected === true
-  );
+  return isLiveExecutionReady(project);
 }
 
 function deterministicSafetyBlocked(project = {}) {

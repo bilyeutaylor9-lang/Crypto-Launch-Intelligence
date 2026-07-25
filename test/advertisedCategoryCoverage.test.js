@@ -123,17 +123,33 @@ test("advertised categories backfill safe candidates when category-specific evid
 });
 
 test("advertised categories prefer strict results when available", () => {
+  const quoteTimestamp = new Date().toISOString();
   const report = summarizeAdvertisedCategoryCoverage([
     candidate({ symbol: "FALLBACK" }),
     candidate({
       symbol: "STRICT",
+      contractAddress: "0x1111111111111111111111111111111111111111",
+      tokenAddress: "0x1111111111111111111111111111111111111111",
+      poolAddress: "0x2222222222222222222222222222222222222222",
+      pairAddress: "0x2222222222222222222222222222222222222222",
+      liquidityUsd: 250000,
       opportunityRankingTier: "SNIPER_READY",
       sniperQualified: true,
-      executionStatus: "VERIFIED",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      executionProofState: "LIVE_EXECUTION_READY",
+      executionStatus: "LIVE_EXECUTION_READY",
       executionScore: 84,
       purchaseRouteConfirmed: true,
       finalSelectionState: "QUALIFIED",
       finalSelectionQualified: true,
+      exactIdentityVerified: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      orderBookDepthVerified: true,
+      orderBookDepthUsd: 250000,
+      estimatedRoundTripSlippagePct: 1.2,
+      quoteTimestamp,
+      quoteAgeSeconds: 60,
     }),
   ]);
   const sniper = report.categories.find((category) => category.key === "sniperReady");

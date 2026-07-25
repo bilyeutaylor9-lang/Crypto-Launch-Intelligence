@@ -27,6 +27,32 @@ function baseProject(overrides = {}) {
     contractSafetyPassed: true,
     purchaseRouteConfirmed: true,
     executionRouteAvailable: true,
+    executionProofState: "LIVE_EXECUTION_READY",
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    quoteAgeSeconds: 30,
+    executionSlippagePct: 0.4,
+    sellSimulationPassed: true,
+    buyTaxPct: 0,
+    sellTaxPct: 0,
+    orderBookDepthVerified: true,
+    executionProof: {
+      executionStatus: "VERIFIED",
+      executionProofState: "LIVE_EXECUTION_READY",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      liveExecutionReady: true,
+      exactIdentityVerified: true,
+      quoteFreshnessSeconds: 30,
+      liquidityUsd: 480_000,
+      estimatedRoundTripSlippagePct: 0.4,
+      slippageIsHeuristic: false,
+      orderBookDepthVerified: true,
+    },
     finalIdentityState: "VERIFIED_CONTRACT",
     finalSelectionState: "QUALIFIED",
     finalSelectionQualified: true,
@@ -247,7 +273,30 @@ test("missing contract blocks ARMED state", () => {
 });
 
 test("unverified purchase route blocks ARMED state", () => {
-  const result = analyzeSniperIntegrityGate(baseProject({ purchaseRouteConfirmed: false, purchaseRoute: { purchasable: false } }));
+  const result = analyzeSniperIntegrityGate(baseProject({
+    purchaseRouteConfirmed: false,
+    executionRouteAvailable: false,
+    liveExecutionReady: false,
+    executionProofState: "BUY_QUOTE_VERIFIED",
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+    executionProof: {
+      executionStatus: "PARTIALLY_VERIFIED",
+      executionProofState: "BUY_QUOTE_VERIFIED",
+      routeTruthStatus: "BUY_QUOTE_VERIFIED",
+      buyQuoteVerified: true,
+      sellQuoteVerified: false,
+      buyRouteAvailable: true,
+      sellRouteAvailable: false,
+      liveExecutionReady: false,
+      exactIdentityVerified: true,
+      quoteFreshnessSeconds: 30,
+      liquidityUsd: 480_000,
+      estimatedRoundTripSlippagePct: 0.4,
+      slippageIsHeuristic: false,
+    },
+    purchaseRoute: { purchasable: false },
+  }));
   assert.equal(result.sniperQualified, false);
   assert.ok(result.sniperBlockingReasons.some((reason) => /Purchase route/i.test(reason)));
 });

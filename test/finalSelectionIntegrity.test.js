@@ -62,6 +62,32 @@ function qualifiedFixture(overrides = {}) {
         blockers: [],
       },
     },
+    executionProofState: "LIVE_EXECUTION_READY",
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    quoteAgeSeconds: 30,
+    executionSlippagePct: 0.4,
+    sellSimulationPassed: true,
+    buyTaxPct: 0,
+    sellTaxPct: 0,
+    orderBookDepthVerified: true,
+    executionProof: {
+      executionStatus: "VERIFIED",
+      executionProofState: "LIVE_EXECUTION_READY",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      liveExecutionReady: true,
+      exactIdentityVerified: true,
+      quoteFreshnessSeconds: 30,
+      liquidityUsd: 250_000,
+      estimatedRoundTripSlippagePct: 0.4,
+      slippageIsHeuristic: false,
+      orderBookDepthVerified: true,
+    },
     ...overrides,
   };
 }
@@ -183,6 +209,60 @@ test("missing contract cannot become qualified", () => {
   assert.notEqual(result.finalSelectionState, "QUALIFIED");
   assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Contract address")));
 });
+
+test("verified source stack alone cannot establish contract verification", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      contractVerified: false,
+      contractVerificationStatus: "",
+      sourceCodeVerified: false,
+      explorerVerified: false,
+      sourcifyVerified: false,
+      identityState: "",
+      projectIdentityState: "",
+      canonicalIdentity: {},
+      sourceTruthVerdict: "Verified Source Stack",
+      projectIdentityVerdict: "Identity Resolved",
+    }),
+  ]);
+
+  assert.equal(result.finalSelectionQualified, false);
+  assert.notEqual(result.finalIdentityState, "VERIFIED_CONTRACT");
+  assert.ok(result.finalWarningReasons.some((reason) => reason.includes("Contract address")));
+});
+
+test("partially verified execution cannot pass final selection", () => {
+  const [result] = analyzeFinalSelectionIntegrityBatch([
+    qualifiedFixture({
+      executionRouteAvailable: false,
+      executionProofState: "BUY_QUOTE_VERIFIED",
+      routeTruthStatus: "BUY_QUOTE_VERIFIED",
+      sellQuoteVerified: false,
+      executionProof: {
+        executionStatus: "PARTIALLY_VERIFIED",
+        executionProofState: "BUY_QUOTE_VERIFIED",
+        routeTruthStatus: "BUY_QUOTE_VERIFIED",
+        buyQuoteVerified: true,
+        sellQuoteVerified: false,
+        buyRouteAvailable: true,
+        sellRouteAvailable: false,
+        liveExecutionReady: false,
+        exactIdentityVerified: true,
+        quoteFreshnessSeconds: 30,
+        liquidityUsd: 250_000,
+        estimatedRoundTripSlippagePct: 0.4,
+        slippageIsHeuristic: false,
+      },
+    }),
+  ]);
+
+  assert.equal(result.finalSelectionQualified, false);
+  assert.notEqual(result.finalSelectionState, "QUALIFIED");
+  assert.ok(
+    [...result.finalWarningReasons, ...result.finalBlockingReasons].some((reason) => reason.includes("Execution route"))
+  );
+});
+
 
 test("fake chain and address strings cannot qualify a high scoring candidate", () => {
   const [result] = analyzeFinalSelectionIntegrityBatch([

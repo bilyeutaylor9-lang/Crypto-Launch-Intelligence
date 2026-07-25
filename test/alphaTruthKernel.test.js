@@ -47,6 +47,13 @@ test("evidence lineage passes only with multiple independent proof families", ()
     githubProScore: 72,
     sourceTruthScore: 80,
     source: "dexscreener",
+    evidence: [
+      { source: "official-domain", family: "identity", signal: "official contract published", score: 86 },
+      { source: "goplus", family: "security", signal: "contract safety checked", score: 84 },
+      { source: "uniswap", family: "execution", signal: "fresh buy and sell quote", score: 82 },
+      { source: "dexscreener", family: "liquidity", signal: "dex pool liquidity observed", score: 80 },
+      { source: "chain-rpc", family: "organic buyers", signal: "independent buyer breadth", score: 78 },
+    ],
   });
 
   assert.equal(result.evidenceLineageQualified, true);
@@ -119,6 +126,7 @@ test("point-in-time outcome V2 leaves out-of-window snapshots missing", () => {
 });
 
 test("alpha truth receipt is immutable proof carrying metadata without forcing picks", () => {
+  const quoteTimestamp = new Date().toISOString();
   const evidenceLineage = {
     status: "QUORUM_PASSED",
     effectiveIndependentEvidenceCount: 4,
@@ -146,9 +154,31 @@ test("alpha truth receipt is immutable proof carrying metadata without forcing p
       contractVerified: true,
       contractSafetyVerified: true,
       liquidityControlSafetyScore: 86,
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      executionProofState: "LIVE_EXECUTION_READY",
+      executionStatus: "LIVE_EXECUTION_READY",
+      exactIdentityVerified: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      orderBookDepthVerified: true,
+      orderBookDepthUsd: 250000,
+      estimatedRoundTripSlippagePct: 1.1,
+      quoteTimestamp,
+      quoteAgeSeconds: 45,
       purchaseRouteConfirmed: true,
       executionRouteAvailable: true,
-      executionProof: { executionStatus: "VERIFIED" },
+      executionProof: {
+        executionStatus: "LIVE_EXECUTION_READY",
+        executionProofState: "LIVE_EXECUTION_READY",
+        routeTruthStatus: "LIVE_EXECUTION_READY",
+        buyQuoteVerified: true,
+        sellQuoteVerified: true,
+        orderBookDepthVerified: true,
+        observedSlippagePct: 1.1,
+        quoteTimestamp,
+        quoteAgeSeconds: 45,
+        exactIdentityVerified: true,
+      },
       pipelineScore: 84,
       liquidityUsd: 250000,
       priceUsd: 0.02,

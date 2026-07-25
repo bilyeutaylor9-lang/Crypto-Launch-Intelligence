@@ -1,4 +1,10 @@
 import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
+import {
+  hasVerifiedBuyQuote,
+  hasVerifiedSellQuote,
+  isLiveExecutionReady,
+  routeQuoteFresh,
+} from "../execution/routeTruthV2.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -120,29 +126,46 @@ function routeSources(project = {}) {
   const sources = [];
   const add = (source, route = {}, venue = "") => {
     if (!route || typeof route !== "object") return;
+    const buyQuoteVerified = hasVerifiedBuyQuote(route);
+    const sellQuoteVerified = hasVerifiedSellQuote(route);
     sources.push({
       source,
       venue: clean(venue || route.preferredRoute || route.venue || route.type || route.name || source),
       status: route.status || route.verdict || "",
-      buy: route.purchasable === true || route.buyRouteAvailable === true || route.detected === true,
-      sell: route.sellable === true || route.sellRouteAvailable === true || route.sellDetected === true,
+      buy: buyQuoteVerified,
+      sell: sellQuoteVerified,
+      buyQuoteVerified,
+      sellQuoteVerified,
       pairAddress: route.pairAddress,
       contract: route.contract || route.tokenAddress || route.address,
       quoteAsset: route.quoteAsset || route.quoteToken,
-      verified: route.verified === true || route.detected === true || route.purchasable === true,
+      quoteAgeSeconds: route.quoteAgeSeconds,
+      quoteTimestamp: route.quoteTimestamp || route.timestamp || route.updatedAt,
+      marketPair: route.marketPair || route.market || route.symbol,
+      routeType: route.routeType,
+      verified: route.routeTruthStatus === "LIVE_EXECUTION_READY" || (buyQuoteVerified && sellQuoteVerified && route.verified === true),
     });
   };
   if (project.canonicalExecutionRoute) {
+    const buyQuoteVerified = hasVerifiedBuyQuote(project.canonicalExecutionRoute);
+    const sellQuoteVerified = hasVerifiedSellQuote(project.canonicalExecutionRoute);
     sources.push({
       source: "canonical-execution-route",
       venue: project.canonicalExecutionRoute.venue || "Canonical Route",
       status: project.canonicalExecutionRoute.status,
-      buy: project.canonicalExecutionRoute.buyRouteAvailable === true,
-      sell: project.canonicalExecutionRoute.sellRouteAvailable === true,
+      buy: buyQuoteVerified,
+      sell: sellQuoteVerified,
+      buyQuoteVerified,
+      sellQuoteVerified,
       pairAddress: project.canonicalExecutionRoute.pairAddress,
       contract: project.canonicalExecutionRoute.contractAddress,
       quoteAsset: project.canonicalExecutionRoute.quoteAsset,
-      verified: ["VERIFIED", "PARTIALLY_VERIFIED"].includes(project.canonicalExecutionRoute.status),
+      quoteAgeSeconds: project.canonicalExecutionRoute.quoteAgeSeconds,
+      quoteTimestamp: project.canonicalExecutionRoute.quoteTimestamp,
+      marketPair: project.canonicalExecutionRoute.marketPair,
+      routeType: project.canonicalExecutionRoute.routeType,
+      verified: project.canonicalExecutionRoute.routeTruthStatus === "LIVE_EXECUTION_READY" ||
+        (buyQuoteVerified && sellQuoteVerified && project.canonicalExecutionRoute.status === "VERIFIED"),
     });
   }
 
@@ -159,12 +182,16 @@ function routeSources(project = {}) {
       source: project.source || project.dex || "dex-market-data",
       venue: project.dex || project.source || "DEX",
       status: "Market pair observed",
-      buy: Boolean(addressOf(project) && liquidityUsd(project) > 0),
-      sell: Boolean(addressOf(project) && liquidityUsd(project) > 0 && project.honeypotDetected !== true),
+      buy: false,
+      sell: false,
+      buyQuoteVerified: false,
+      sellQuoteVerified: false,
       pairAddress: pairOf(project),
       contract: addressOf(project),
       quoteAsset: project.quoteToken || project.quoteAsset || "unknown",
-      verified: Boolean(pairOf(project) || project.liquidityVerified),
+      routeType: "DEX",
+      verified: false,
+      marketObserved: true,
     });
   }
 
@@ -191,10 +218,15 @@ function routeSources(project = {}) {
       source: project.source || project.exchange || "cex-market-data",
       venue: project.exchange || project.source || "CEX",
       status: "Exchange market observed",
-      buy: Boolean(project.symbol && priceUsd(project) > 0),
-      sell: Boolean(project.symbol && priceUsd(project) > 0),
+      buy: false,
+      sell: false,
+      buyQuoteVerified: false,
+      sellQuoteVerified: false,
       quoteAsset: project.quoteToken || "USD",
-      verified: true,
+      marketPair: project.marketPair || project.symbol,
+      routeType: "CEX",
+      verified: false,
+      marketObserved: true,
     });
   }
 
@@ -262,11 +294,13 @@ function statusFor({
   poolVerified,
   quoteVerified,
   safetyVerified,
+  liveReady,
 }) {
   const canonicalStatus = project.canonicalExecutionRoute?.status;
   if (project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || sellRouteConfirmedUnavailable(project, routes)) return "HONEYPOT_RISK";
   if (project.chainMismatch === true || project.contractChainMismatch === true) return "CHAIN_MISMATCH";
   if (project.canonicalIdentityHardBlock === true || project.identityStatus === "CONTRACT_CONFLICT") return "CONTRACT_MISMATCH";
+  if (liveReady) return "VERIFIED";
   if (
     canonicalStatus === "VERIFIED" &&
     buyRouteAvailable &&
@@ -275,11 +309,11 @@ function statusFor({
     quoteVerified &&
     safetyVerified
   ) return "VERIFIED";
-  if (canonicalStatus === "PARTIALLY_VERIFIED" && (buyRouteAvailable || sellRouteAvailable) && liquidity > 0 && safetyVerified) return "PARTIALLY_VERIFIED";
+  if ((buyRouteAvailable || sellRouteAvailable) && safetyVerified) return "PARTIALLY_VERIFIED";
   if (!chainVerified || !contractVerified || !poolVerified || !quoteVerified || !safetyVerified) return outage ? "PROVIDER_UNAVAILABLE" : "UNKNOWN";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000 && quoteAge !== null && quoteAge > 21_600) return "STALE_QUOTE";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000) return "VERIFIED";
-  if ((buyRouteAvailable || sellRouteAvailable || routes.some((route) => route.verified)) && liquidity > 0) return "PARTIALLY_VERIFIED";
+  if ((buyRouteAvailable || sellRouteAvailable) && liquidity > 0) return "PARTIALLY_VERIFIED";
   if (liquidity > 0 && liquidity < 1_000) return "INSUFFICIENT_LIQUIDITY";
   if (outage) return "PROVIDER_UNAVAILABLE";
   if (routes.length && !buyRouteAvailable && !sellRouteAvailable) return "NO_ROUTE";
@@ -287,7 +321,8 @@ function statusFor({
 }
 
 function moneyStatusFor(status = "") {
-  if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(status)) return status;
+  if (status === "VERIFIED") return status;
+  if (status === "PARTIALLY_VERIFIED") return "UNKNOWN";
   if (["PROVIDER_UNAVAILABLE", "UNKNOWN", "STALE_QUOTE", "NO_ROUTE"].includes(status)) return "UNKNOWN";
   return "VERIFIED_NEGATIVE";
 }
@@ -344,6 +379,9 @@ function executionProofStateFor({
   poolVerified,
   quoteVerified,
   quoteAge,
+  liquidity,
+  estimatedSlippage100,
+  observedSlippageVerified,
 }) {
   if (["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(executionStatus)) return executionStatus;
   if (executionStatus === "PROVIDER_UNAVAILABLE") return "PROVIDER_UNAVAILABLE";
@@ -352,13 +390,13 @@ function executionProofStateFor({
   if (!marketObserved) return "NO_VERIFIED_ROUTE";
   if (!chainVerified || !contractVerified || !poolVerified) return "MARKET_OBSERVED";
   if (!buyRouteAvailable) return "PAIR_IDENTITY_VERIFIED";
-  if (!quoteVerified) return "PAIR_IDENTITY_VERIFIED";
   if (!sellRouteAvailable) return "BUY_QUOTE_VERIFIED";
+  if (!quoteVerified) return "BUY_QUOTE_VERIFIED";
 
   const taxVerified = verifiedTaxEvidence(project);
   const simulationPassed = sellSimulationPassed(project);
   const depthVerified = orderBookDepthVerified(project);
-  const freshEnough = quoteAge !== null && quoteAge <= 3600;
+  const freshEnough = quoteAge !== null && quoteAge <= 3600 && estimatedSlippage100 !== null && observedSlippageVerified;
 
   if (freshEnough && simulationPassed && taxVerified && depthVerified) return "LIVE_EXECUTION_READY";
   if (simulationPassed) return "SELL_SIMULATION_PASSED";
@@ -383,11 +421,35 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     project.smallCapHunter?.execution?.slippagePct,
   ]);
   const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
+  const observedSlippageVerified = observedSlippage !== null && observedSlippage !== undefined && Number.isFinite(Number(observedSlippage));
   const chainVerified = Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
   const contractVerified = Boolean(addressOf(project) && verifiedIdentity(project));
-  const poolVerified = Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
-  const quoteVerified = Boolean(price > 0 && liquidity > 0 && quoteAge !== null);
+  const routeType = project.canonicalExecutionRoute?.routeType || routes.find((route) => route.routeType)?.routeType || "";
+  const poolVerified = routeType === "CEX"
+    ? Boolean(routes.some((route) => route.marketPair) || project.marketPair || project.exchangeAssetId)
+    : Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
+  const quoteVerified = Boolean(buyRouteAvailable && sellRouteAvailable && price > 0 && liquidity > 0 && quoteAge !== null && routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600));
   const safetyVerified = safetyNonBlocked(project, routes);
+  const liveReadySubject = {
+    ...project,
+    executionProofState: "LIVE_EXECUTION_READY",
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    buyQuoteVerified: buyRouteAvailable,
+    sellQuoteVerified: sellRouteAvailable,
+    quoteAgeSeconds: quoteAge,
+    liquidityUsd: liquidity,
+    estimatedSlippagePct: observedSlippage,
+    slippageIsHeuristic: !observedSlippageVerified,
+    exactIdentityVerified: chainVerified && contractVerified && poolVerified,
+    routeType,
+  };
+  const liveReady = Boolean(
+    safetyVerified &&
+      sellSimulationPassed(project) &&
+      verifiedTaxEvidence(project) &&
+      orderBookDepthVerified(project) &&
+      isLiveExecutionReady(liveReadySubject)
+  );
   const executionStatus = statusFor({
     project,
     routes,
@@ -401,6 +463,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     poolVerified,
     quoteVerified,
     safetyVerified,
+    liveReady,
   });
   const failureReasons = [];
   if (executionStatus === "PROVIDER_UNAVAILABLE") failureReasons.push("Execution provider unavailable; no negative route conclusion made.");
@@ -415,6 +478,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (!contractVerified) failureReasons.push("Verified token contract is missing.");
   if (!poolVerified) failureReasons.push("Verified liquidity pool is missing.");
   if (!quoteVerified) failureReasons.push("Verified quote is missing or stale/unknown.");
+  if (!observedSlippageVerified) failureReasons.push("Live slippage quote is missing; heuristic slippage is research-only.");
   if (!safetyVerified) failureReasons.push("Execution safety is blocked or unresolved.");
 
   const executionProofState = executionProofStateFor({
@@ -430,6 +494,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     quoteAge,
     liquidity,
     estimatedSlippage100,
+    observedSlippageVerified,
   });
 
   const supportingSources = routes
@@ -450,6 +515,9 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     volume24hUsd: volume || null,
     estimatedSlippage25: slippageFor(liquidity, 25, null),
     estimatedSlippage100,
+    observedSlippagePct: observedSlippageVerified ? Number(observedSlippage) : null,
+    estimatedRoundTripSlippagePct: observedSlippageVerified ? Number(observedSlippage) : null,
+    slippageIsHeuristic: !observedSlippageVerified,
     estimatedSlippage500: slippageFor(liquidity, 500, null),
     estimatedSlippage1000: slippageFor(liquidity, 1000, null),
     executionProofState,
@@ -464,6 +532,10 @@ export function analyzeExecutionProof(project = {}, options = {}) {
             : "MARKET_OBSERVED_RESEARCH_ONLY",
     buyRouteAvailable,
     sellRouteAvailable,
+    buyQuoteVerified: buyRouteAvailable,
+    sellQuoteVerified: sellRouteAvailable,
+    routeTruthStatus: executionProofState,
+    exactIdentityVerified: chainVerified && contractVerified && poolVerified,
     chainVerified,
     contractVerified,
     poolVerified,
@@ -481,7 +553,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (!sellRouteAvailable) moneyMissingEvidence.push("sell route");
   if (quoteAge === null) moneyMissingEvidence.push("fresh quote timestamp");
   if (!liquidity) moneyMissingEvidence.push("liquidity depth");
-  if (executionProof.estimatedSlippage100 === null) moneyMissingEvidence.push("slippage estimate");
+  if (!observedSlippageVerified) moneyMissingEvidence.push("live slippage quote");
 
   const moneyEvidence = {
     buyRoute: buyRouteAvailable ? { value: true, status: "VERIFIED" } : { value: null, status: executionStatus === "PROVIDER_UNAVAILABLE" ? "UNKNOWN" : "UNKNOWN", reason: failureReasons[0] || "Buy route not verified" },
@@ -491,7 +563,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     pool: poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
     quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteAge <= 3600 ? "VERIFIED" : "STALE" },
     liquidity: liquidity ? { value: liquidity, status: liquidity >= 5_000 ? "VERIFIED" : "LOW" } : { value: null, status: "UNKNOWN", reason: "Liquidity provider unavailable or missing" },
-    slippage100: executionProof.estimatedSlippage100 === null ? { value: null, status: "UNKNOWN", reason: "Slippage quote unavailable" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
+    slippage100: !observedSlippageVerified ? { value: null, status: "UNKNOWN", reason: "Live slippage quote unavailable; heuristic estimate is not execution proof" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
   };
   const executionCoverage = calculateEvidenceCoverage([
     { label: "correct chain", status: chainVerified ? "VERIFIED" : "UNKNOWN" },
@@ -515,11 +587,11 @@ export function analyzeExecutionProof(project = {}, options = {}) {
 
   const moneyConfidence = Math.round(
     clamp(
-      (buyRouteAvailable ? 20 : 0) +
+    (buyRouteAvailable ? 20 : 0) +
         (sellRouteAvailable ? 20 : 0) +
         (liquidity >= 5_000 ? 20 : liquidity > 0 ? 8 : 0) +
         (quoteAge !== null ? 15 : 0) +
-        (executionProof.estimatedSlippage100 !== null ? 15 : 0) +
+        (observedSlippageVerified ? 15 : 0) +
         Math.min(10, executionProof.supportingSources.length * 5)
     )
   );
@@ -527,10 +599,10 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     ? 0
     : Math.round(
         clamp(
-          (buyRouteAvailable ? 20 : 8) +
-            (sellRouteAvailable ? 20 : 6) +
+          (buyRouteAvailable ? 20 : 0) +
+            (sellRouteAvailable ? 20 : 0) +
             (liquidity >= 250_000 ? 25 : liquidity >= 100_000 ? 20 : liquidity >= 25_000 ? 15 : liquidity >= 5_000 ? 10 : liquidity > 0 ? 4 : 6) +
-            (executionProof.estimatedSlippage100 === null ? 6 : executionProof.estimatedSlippage100 <= 1 ? 18 : executionProof.estimatedSlippage100 <= 3 ? 14 : executionProof.estimatedSlippage100 <= 5 ? 9 : 2) +
+            (!observedSlippageVerified ? 0 : executionProof.estimatedSlippage100 <= 1 ? 18 : executionProof.estimatedSlippage100 <= 3 ? 14 : executionProof.estimatedSlippage100 <= 5 ? 9 : 2) +
             (quoteAge === null ? 5 : quoteAge <= 3600 ? 12 : 4)
         )
       );
@@ -544,8 +616,8 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     executionProofVerified: executionStatus === "VERIFIED",
     executionProofPartiallyVerified: executionStatus === "PARTIALLY_VERIFIED",
     executionProviderUnavailable: executionStatus === "PROVIDER_UNAVAILABLE",
-    executionRouteAvailable: executionStatus === "VERIFIED" || executionStatus === "PARTIALLY_VERIFIED" ? true : project.executionRouteAvailable,
-    purchaseRouteConfirmed: buyRouteAvailable || project.purchaseRouteConfirmed === true,
+    executionRouteAvailable: executionProofState === "LIVE_EXECUTION_READY",
+    purchaseRouteConfirmed: buyRouteAvailable,
     moneyScore,
     moneyConfidence,
     moneyStatus: moneyStatusFor(executionStatus),

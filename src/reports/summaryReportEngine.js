@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { loadWatchtowerAlerts, loadWatchtowerBrief } from "../learning/watchtowerStore.js";
 import { loadWatchtowerPerformanceReport } from "../learning/watchtowerPerformanceEngine.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 export function writeSummaryReport(projects = []) {
   const reportsDir = path.resolve("reports");
@@ -120,7 +121,7 @@ export function writeSummaryReport(projects = []) {
       p.aiEcosystemVerdict === "AI Strong Buy" &&
       p.strongBuyEvidenceGate?.readyForTrueStrongBuy === true &&
       p.finalSelectionQualified === true &&
-      p.executionProofVerified === true
+      isLiveExecutionReady(p)
   );
   const aiResearchCandidates = ranked.filter(
     (p) => p.aiEcosystemVerdict === "Best Available Research Candidate"

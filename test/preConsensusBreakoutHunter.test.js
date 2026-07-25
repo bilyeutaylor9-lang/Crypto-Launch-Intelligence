@@ -15,6 +15,7 @@ import { runNativeDiscoveryMesh } from "../src/data/native/nativeDiscoveryMesh.j
 import { NATIVE_EVENT_TYPES } from "../src/data/native/NativePoolAdapter.js";
 
 function baseProject(overrides = {}) {
+  const quoteTimestamp = new Date().toISOString();
   return {
     name: "PreConsensus Alpha",
     symbol: "PCA",
@@ -25,6 +26,17 @@ function baseProject(overrides = {}) {
     contractVerified: true,
     chainVerified: true,
     liquidityVerified: true,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProofState: "LIVE_EXECUTION_READY",
+    executionStatus: "LIVE_EXECUTION_READY",
+    exactIdentityVerified: true,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    orderBookDepthVerified: true,
+    orderBookDepthUsd: 420_000,
+    estimatedRoundTripSlippagePct: 1.5,
+    quoteTimestamp,
+    quoteAgeSeconds: 60,
     purchaseRouteConfirmed: true,
     executionRouteAvailable: true,
     finalIdentityState: "VERIFIED_CONTRACT",
@@ -80,8 +92,20 @@ function baseProject(overrides = {}) {
     proofOfAlphaExecutionTwinVerdict: "Execution-Verified Alpha Candidate",
     proofOfAlphaExecutionTwin: {
       route: { detected: true, preferredRoute: "MetaMask", status: "Detected" },
-      quote: { liquidityUsd: 420_000 },
+      quote: { liquidityUsd: 420_000, estimatedSlippagePct: 1.5, timestamp: quoteTimestamp, ageSeconds: 60 },
       safety: { blockers: [] },
+    },
+    executionProof: {
+      executionStatus: "LIVE_EXECUTION_READY",
+      executionProofState: "LIVE_EXECUTION_READY",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      orderBookDepthVerified: true,
+      observedSlippagePct: 1.5,
+      quoteTimestamp,
+      quoteAgeSeconds: 60,
+      exactIdentityVerified: true,
     },
     liveCatalystEvents: [
       {
