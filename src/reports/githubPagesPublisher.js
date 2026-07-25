@@ -103,6 +103,7 @@ const PUBLIC_REPORTS = [
   "roadmap.json",
   "source-router.json",
   "engine-audit.json",
+  "engine-health-report.json",
   "engine-data-readiness.json",
   "route-universe.json",
   "alternative-execution-routes.json",
@@ -404,12 +405,27 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
                     <td>${escapeHtml(candidate.chain || "unknown")}</td>
                     <td>${escapeHtml(candidate.lane || candidate.scalpMicrostructureLane || "UNKNOWN")}</td>
-                    <td>${escapeHtml(candidate.hottestTenNowScore ?? candidate.highUpsideScalpScore ?? candidate.scalpMicrostructureScore ?? 0)}</td>
+                    <td>${escapeHtml(
+                      candidate.hottestTenNowScore ??
+                        candidate.highUpsideScalpScore ??
+                        candidate.scalpMicrostructureScore ??
+                        candidate.progressiveOpportunityScore ??
+                        candidate.moneyRankScore ??
+                        candidate.opportunityScore ??
+                        candidate.score ??
+                        0
+                    )}</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.priceUsd))}</td>
                     <td>${escapeHtml(candidate.priceChange24hPct ?? 0)}%</td>
                     <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd ?? candidate.scalpLiquidityUsd))}</td>
-                    <td>${candidate.liveExecutionReady ? "Live Ready" : candidate.routeReady || candidate.buySellRouteVerified ? "Route Research" : "Needs Route Proof"}</td>
+                    <td>${escapeHtml(
+                      candidate.liveExecutionReady
+                        ? "Live Ready"
+                        : candidate.routeReady || candidate.buySellRouteVerified
+                          ? "Route Research"
+                          : "Needs Route Proof"
+                    )}</td>
                     <td>${escapeHtml(needs || candidate.reasonNotQualified || "Current checks")}</td>
                   </tr>
                 `;
@@ -470,6 +486,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const integrityStack = readJsonReport("integrity-stack.json", reportsDir) || {};
   const institutionalProvenance = readJsonReport("institutional-data-provenance.json", reportsDir) || {};
   const progressiveOpportunities = readJsonReport("progressive-opportunities.json", reportsDir) || {};
+  const emergingRadarReport = readJsonReport("emerging-radar.json", reportsDir) || {};
   const debugStageHealth = readJsonReport("debug-stage-health.json", reportsDir) || {};
   const bestOpportunityNow = readJsonReport("best-opportunity-now.json", reportsDir) || {};
   const topFiveOpportunities = readJsonReport("top-five-opportunities.json", reportsDir) || {};
@@ -483,6 +500,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const autonomousResearch = readJsonReport("autonomous-research.json", reportsDir) || {};
   const sourceRouter = readJsonReport("source-router.json", reportsDir) || {};
   const audit = readJsonReport("engine-audit.json", reportsDir) || {};
+  const engineHealthReport = readJsonReport("engine-health-report.json", reportsDir) || {};
   const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
   const routeUniverse = readJsonReport("route-universe.json", reportsDir) || {};
   const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
@@ -518,6 +536,14 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     hottestTenNow.topTenCurrentResearchBoard ||
     hottestTenNow.topTenHighestRatedNow ||
     [];
+  const emergingRadarBoard =
+    progressiveOpportunities.emergingRadar ||
+    emergingRadarReport.emergingRadar ||
+    progressiveOpportunities.fourLaneReport?.emergingResearch ||
+    emergingRadarReport.emergingDiscoveryAILane ||
+    [];
+  const speculativeSignalBoard =
+    progressiveOpportunities.speculativeSignals || emergingRadarReport.speculativeSignals || [];
   const researchWorthyBoard = buildResearchWorthyBoard({
     hottestTenNow,
     highUpsideScalp,
@@ -717,6 +743,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Research Queue", researchOS.researchQueue?.length ?? 0],
     ["Engine Audit", audit.auditName || "REPORT NOT GENERATED"],
     ["Engines", audit.totalEngines ?? 0],
+    ["Full Engine Audit", engineHealthReport.status || "REPORT NOT GENERATED"],
+    ["Engines Executed", engineHealthReport.runtime?.executedEngines ?? 0],
+    ["Engine Failures", engineHealthReport.failures?.length ?? 0],
+    ["Engine Coverage", `${engineHealthReport.coverage?.executionCoveragePercent ?? 0}%`],
     ["Data Readiness", engineDataReadiness.averageCoverage ?? 0],
     ["Core Data Ready", engineDataReadiness.coreReady ?? 0],
     ["Core Data Starved", engineDataReadiness.coreDataStarved ?? 0],
@@ -746,6 +776,26 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Late-Chase Rejected", highUpsideScalp.lateChaseRejectedCount ?? 0],
     ["Meme-Only Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
     ["Microstructure Rejected", highUpsideScalp.microstructureRejectedCount ?? 0],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="metric compact">
+          <div class="metric-value">${escapeHtml(value)}</div>
+          <div class="metric-label">${escapeHtml(label)}</div>
+        </div>
+      `
+    )
+    .join("");
+
+  const emergingRadarCards = [
+    ["Emerging Radar", progressiveOpportunities.counts?.emergingRadar ?? emergingRadarBoard.length],
+    ["Speculative Signals", progressiveOpportunities.counts?.speculativeSignal ?? speculativeSignalBoard.length],
+    [
+      "Emerging AI Lane",
+      progressiveOpportunities.counts?.emergingDiscoveryAI ?? emergingRadarReport.emergingDiscoveryAILane?.length ?? 0,
+    ],
+    ["Best Available", progressiveOpportunities.counts?.bestAvailable ?? 0],
+    ["Missing Evidence", progressiveOpportunities.counts?.missingEvidence ?? 0],
   ]
     .map(
       ([label, value]) => `
@@ -1041,6 +1091,36 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   <main>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
     <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>High-Upside Scalp</h2>
+          <p>Short-horizon research lane for liquid, not-yet-late candidates with route and microstructure checks. Research output only, not trading advice.</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="./high-upside-scalp-research.json">Open Scalp Research</a>
+          <a class="button" href="./scalp-microstructure.json">Open Microstructure</a>
+        </div>
+      </div>
+      <div class="metrics">${scalpReadyCards}</div>
+      ${renderScalpCandidateTable(highUpsideScalp.topScalpResearchCandidates || [], "Scalp-Ready Research")}
+      ${renderScalpCandidateTable(highUpsideScalp.highUpsideWatchlist || [], "High-Upside Watchlist")}
+    </section>
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>Emerging Radar</h2>
+          <p>Earlier research lane for projects with developing evidence that should stay visible before they become obvious or overextended.</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="./emerging-radar.json">Open Emerging Radar</a>
+          <a class="button" href="./progressive-opportunities.json">Open Progressive Ranking</a>
+        </div>
+      </div>
+      <div class="metrics">${emergingRadarCards}</div>
+      ${renderScalpCandidateTable(emergingRadarBoard, "Emerging Radar")}
+      ${renderScalpCandidateTable(speculativeSignalBoard, "Speculative Signals")}
+    </section>
+    <section class="panel">
       <h2>Top 10 Current Research Board</h2>
       <p>${escapeHtml(
         hottestTenNow.disclaimer ||
@@ -1061,6 +1141,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(dataStarvation.pipelineOutputMissing ?? 0)}</div><div class="metric-label">Pipeline Missing</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(debugStageHealth.providerFailures ?? 0)}</div><div class="metric-label">Provider Failures</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(debugStageHealth.stageStatus || "REPORT NOT GENERATED")}</div><div class="metric-label">Stage Health</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(engineHealthReport.status || "REPORT NOT GENERATED")}</div><div class="metric-label">Full Engine Audit</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(engineHealthReport.runtime?.executedEngines ?? 0)}</div><div class="metric-label">Engines Executed</div></div>
       </div>
     </section>
     <div class="toolbar">
@@ -1109,6 +1191,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./source-router.json">Source Router</a>
         <a class="button" href="./roadmap.json">Roadmap</a>
         <a class="button" href="./engine-audit.json">Engine Audit</a>
+        <a class="button" href="./engine-health-report.json">Engine Health</a>
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
         <a class="button" href="./route-universe.json">View Route Universe</a>
         <a class="button" href="./alternative-execution-routes.json">View Alt Routes</a>

@@ -133,6 +133,9 @@ jobs:
             npm-debug.log*
           if-no-files-found: ignore
 
+      - name: Run Full Engine Health Audit
+        run: npm run engine:audit:full
+
       - name: Build Public Dashboard
         run: npm run publish:dashboard
 

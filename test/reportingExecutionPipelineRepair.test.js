@@ -584,6 +584,14 @@ test("public dashboard validates reports and contains no literal N/A", () => {
     "debug-stage-health.json": { stageStatus: "COMPLETE", executionChecksVerified: 0, providerFailures: 0 },
     "report.json": { totalProjects: 2, projects: [] },
     "engine-audit.json": { auditName: "Engine Implementation Completeness Audit", totalEngines: 144 },
+    "engine-health-report.json": {
+      status: "OK",
+      healthScore: 100,
+      coverage: { executionCoveragePercent: 100 },
+      runtime: { executedEngines: 169 },
+      failures: [],
+      warnings: [],
+    },
     "engine-data-readiness.json": {
       averageCoverage: 65,
       coreReady: 1,
@@ -672,6 +680,48 @@ test("public dashboard validates reports and contains no literal N/A", () => {
     "institutional-ranking.json": {
       counts: { moneyRanked: 0, executionReady: 0 },
       institutionalMoneyRank: [],
+    },
+    "progressive-opportunities.json": {
+      counts: {
+        emergingRadar: 1,
+        speculativeSignal: 1,
+        emergingDiscoveryAI: 0,
+        bestAvailable: 1,
+        missingEvidence: 1,
+      },
+      emergingRadar: [
+        {
+          rank: 1,
+          symbol: "EMRG",
+          chain: "base",
+          lane: "EMERGING_RESEARCH",
+          progressiveOpportunityScore: 61,
+          priceUsd: 0.0081,
+          priceChange24hPct: 5,
+          priceChange7dPct: 24,
+          liquidityUsd: 76000,
+          missingEvidence: ["sell quote"],
+        },
+      ],
+      speculativeSignals: [
+        {
+          rank: 1,
+          symbol: "SPEC",
+          chain: "solana",
+          lane: "SPECULATIVE_SIGNAL",
+          progressiveOpportunityScore: 52,
+          priceUsd: 0.0031,
+          priceChange24hPct: 4,
+          priceChange7dPct: 18,
+          liquidityUsd: 42000,
+          missingEvidence: ["identity confirmation"],
+        },
+      ],
+    },
+    "emerging-radar.json": {
+      emergingRadar: [],
+      speculativeSignals: [],
+      emergingDiscoveryAILane: [],
     },
     "high-upside-scalp-research.json": {
       status: "PASS",
@@ -791,8 +841,17 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Top 10 Current Research Board"));
   assert.ok(html.includes("Research Worthy Now"));
   assert.ok(html.indexOf("Research Worthy Now") < html.indexOf("Top 10 Current Research Board"));
+  assert.ok(html.includes("High-Upside Scalp"));
+  assert.ok(html.includes("Scalp-Ready Research"));
+  assert.ok(html.includes("High-Upside Watchlist"));
+  assert.ok(html.includes("Emerging Radar"));
+  assert.ok(html.includes("Speculative Signals"));
+  assert.ok(html.indexOf("High-Upside Scalp") < html.indexOf("Top 10 Current Research Board"));
+  assert.ok(html.indexOf("Emerging Radar") < html.indexOf("Top 10 Current Research Board"));
   assert.ok(html.includes("View Latest Route Analysis"));
   assert.ok(html.includes("Run Next GitHub Scan"));
+  assert.ok(html.includes("Engine Health"));
+  assert.ok(html.includes("Full Engine Audit"));
   assert.equal(html.includes("Run Unbiased Route"), false);
   assert.ok(html.includes("Top 10 Current Research"));
   assert.ok(html.includes("Scan Truth"));
@@ -802,7 +861,13 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(result.copiedFiles.includes("high-upside-scalp-research.json"));
   assert.ok(result.copiedFiles.includes("scalp-microstructure.json"));
   assert.ok(result.copiedFiles.includes("hottest-ten-now.json"));
+  assert.ok(result.copiedFiles.includes("emerging-radar.json"));
+  assert.ok(result.copiedFiles.includes("progressive-opportunities.json"));
+  assert.ok(result.copiedFiles.includes("engine-health-report.json"));
   assert.equal(fs.existsSync(path.join(docsDir, "high-upside-scalp-research.json")), true);
   assert.equal(fs.existsSync(path.join(docsDir, "scalp-microstructure.json")), true);
   assert.equal(fs.existsSync(path.join(docsDir, "hottest-ten-now.json")), true);
+  assert.equal(fs.existsSync(path.join(docsDir, "emerging-radar.json")), true);
+  assert.equal(fs.existsSync(path.join(docsDir, "progressive-opportunities.json")), true);
+  assert.equal(fs.existsSync(path.join(docsDir, "engine-health-report.json")), true);
 });
