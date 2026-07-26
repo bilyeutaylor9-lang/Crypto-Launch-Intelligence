@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import {
+  HIGH_UPSIDE_SCALP_LANES,
+  HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES,
+  classifyHighUpsideScalpProject,
+} from "../engines/highUpsideScalpClassificationEngine.js";
 
 const MAX_REPORT_ROWS = 50;
 
@@ -168,7 +173,7 @@ function lane(project = {}, score = 0) {
 }
 
 function compact(project = {}, rank = null) {
-  const score = project.highUpsideScalpScore ?? scoreProject(project);
+  const score = project.highUpsideScalpScore ?? 0;
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
@@ -177,7 +182,10 @@ function compact(project = {}, rank = null) {
     tokenAddress: project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
     poolAddress: project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
     highUpsideScalpScore: score,
-    lane: project.highUpsideScalpLane || lane(project, score),
+    lane: project.highUpsideScalpLane || "UNCLASSIFIED",
+    highUpsideScalpDataCoverage: project.highUpsideScalpDataCoverage ?? null,
+    highUpsideScalpMissingFields: project.highUpsideScalpMissingFields || [],
+    highUpsideScalpClassificationReason: project.highUpsideScalpClassificationReason || "No classification reason recorded.",
     priceUsd: priceUsd(project),
     subCent: priceUsd(project) > 0 && priceUsd(project) < 0.01,
     marketCapUsd: marketCap(project),
@@ -217,45 +225,188 @@ function compact(project = {}, rank = null) {
   };
 }
 
+function laneForReport(project = {}) {
+  const laneValue = String(project.highUpsideScalpLane || "");
+  if (HIGH_UPSIDE_SCALP_LANES.includes(laneValue) || laneValue.startsWith("SCALP_NO_TRADE")) {
+    return laneValue;
+  }
+  return "UNCLASSIFIED";
+}
+
+function classifyForReport(project = {}) {
+  if (Object.hasOwn(project, "highUpsideScalpLane")) return project;
+  return classifyHighUpsideScalpProject(project);
+}
+
+function countByLane(projects = []) {
+  return projects.reduce((counts, project) => {
+    const laneValue = laneForReport(project);
+    counts[laneValue] = (counts[laneValue] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function distributionTotal(distribution = {}) {
+  return Object.values(distribution).reduce((sum, count) => sum + num(count), 0);
+}
+
+function frequency(values = []) {
+  const counts = new Map();
+  for (const value of values.filter(Boolean)) {
+    counts.set(value, (counts.get(value) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 50)
+    .map(([field, count]) => ({ field, count }));
+}
+
+function scoreDistribution(projects = []) {
+  const scores = projects
+    .map((project) => num(project.highUpsideScalpScore))
+    .filter((score) => Number.isFinite(score))
+    .sort((a, b) => a - b);
+  if (!scores.length) {
+    return {
+      minimumScore: 0,
+      medianScore: 0,
+      maximumScore: 0,
+      scoreDistribution: { "0-19": 0, "20-39": 0, "40-57": 0, "58-71": 0, "72-100": 0 },
+    };
+  }
+
+  const buckets = { "0-19": 0, "20-39": 0, "40-57": 0, "58-71": 0, "72-100": 0 };
+  for (const score of scores) {
+    if (score < 20) buckets["0-19"] += 1;
+    else if (score < 40) buckets["20-39"] += 1;
+    else if (score < 58) buckets["40-57"] += 1;
+    else if (score < 72) buckets["58-71"] += 1;
+    else buckets["72-100"] += 1;
+  }
+
+  return {
+    minimumScore: scores[0],
+    medianScore: scores[Math.floor(scores.length / 2)],
+    maximumScore: scores[scores.length - 1],
+    scoreDistribution: buckets,
+  };
+}
+
+function componentCoverageSummary(projects = []) {
+  const families = {};
+  for (const project of projects) {
+    const coverage = project.highUpsideScalpComponentCoverage || {};
+    for (const [family, detail] of Object.entries(coverage)) {
+      if (!families[family]) families[family] = { available: 0, expected: 0, projectsWithAnyCoverage: 0 };
+      families[family].available += num(detail.available);
+      families[family].expected += num(detail.expected);
+      if (num(detail.available) > 0) families[family].projectsWithAnyCoverage += 1;
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(families).map(([family, detail]) => [
+      family,
+      {
+        ...detail,
+        coveragePct: detail.expected ? Math.round((detail.available / detail.expected) * 100) : 100,
+      },
+    ])
+  );
+}
+
+function reportStatus({ projectsAnalyzed = 0, top = [], watch = [], routeMissing = [], dataStarved = [], invariantPass = true, unclassified = [] } = {}) {
+  if (!projectsAnalyzed) return "NO_PROJECTS";
+  if (!invariantPass || unclassified.length > 0) return "CLASSIFICATION_INCOMPLETE";
+  if (top.length > 0) return "PASS_WITH_SCALP_READY";
+  if (watch.length + routeMissing.length > 0) return "PASS_WITH_WATCHLIST";
+  if (dataStarved.length === projectsAnalyzed) return "DATA_STARVED";
+  return "PASS_NO_ACTIONABLE_RESULTS";
+}
+
 export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const scored = (Array.isArray(projects) ? projects : [])
-    .map((project) => {
-      const score = scoreProject(project);
-      return {
-        ...project,
-        highUpsideScalpScore: score,
-        highUpsideScalpLane: lane(project, score),
-      };
-    })
+    .map(classifyForReport)
     .sort((a, b) => num(b.highUpsideScalpScore) - num(a.highUpsideScalpScore));
 
-  const top = scored.filter((project) => project.highUpsideScalpLane === "SCALP_READY_RESEARCH");
-  const watch = scored.filter((project) => project.highUpsideScalpLane === "HIGH_UPSIDE_WATCH" || project.highUpsideScalpLane === "RESEARCH_ONLY_ROUTE_MISSING");
-  const late = scored.filter((project) => project.highUpsideScalpLane === "LATE_CHASE_REJECTED");
-  const meme = scored.filter((project) => project.highUpsideScalpLane === "MEME_SPECULATION_EXCLUDED");
-  const microstructureRejected = scored.filter((project) => String(project.highUpsideScalpLane || "").startsWith("SCALP_NO_TRADE"));
+  const top = scored.filter((project) => laneForReport(project) === "SCALP_READY_RESEARCH");
+  const watch = scored.filter((project) => laneForReport(project) === "HIGH_UPSIDE_WATCH");
+  const routeMissing = scored.filter((project) => laneForReport(project) === "RESEARCH_ONLY_ROUTE_MISSING");
+  const late = scored.filter((project) => laneForReport(project) === "LATE_CHASE_REJECTED");
+  const meme = scored.filter((project) => laneForReport(project) === "MEME_SPECULATION_EXCLUDED");
+  const microstructureRejected = scored.filter((project) => laneForReport(project).startsWith("SCALP_NO_TRADE"));
+  const safetyBlocked = scored.filter((project) => laneForReport(project) === "SAFETY_BLOCKED");
+  const lowerPriority = scored.filter((project) => laneForReport(project) === "LOWER_PRIORITY");
+  const dataStarved = scored.filter((project) => laneForReport(project) === "DATA_STARVED");
+  const unclassified = scored.filter((project) => laneForReport(project) === "UNCLASSIFIED");
+  const laneDistribution = countByLane(scored);
+  const classifiedProjectCount = scored.length - unclassified.length;
+  const laneTotal = distributionTotal(laneDistribution);
+  const invariantPass = laneTotal === scored.length && unclassified.length === 0;
+  const compactionDetected = scored.some((project) => project.reportCompaction?.mode);
+  const allMissingFields = scored.flatMap((project) => project.highUpsideScalpMissingFields || []);
+  const omittedRequiredFields = compactionDetected
+    ? HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES.filter((field) => allMissingFields.includes(field))
+    : [];
+  const scoreStats = scoreDistribution(scored);
 
   return {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
-    status: scored.length ? "PASS" : "NO_PROJECTS",
+    status: reportStatus({
+      projectsAnalyzed: scored.length,
+      top,
+      watch,
+      routeMissing,
+      dataStarved,
+      invariantPass,
+      unclassified,
+    }),
     mode: "HIGH_UPSIDE_SCALP_RESEARCH",
     objective:
       "Surface pre-extension, real-utility, route-verified asymmetric candidates for manual scalping research.",
     disclaimer:
       "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
     projectsAnalyzed: scored.length,
+    inputProjectCount: scored.length,
+    classifiedProjectCount,
+    unclassifiedProjectCount: unclassified.length,
+    classificationCoveragePct: scored.length ? Math.round((classifiedProjectCount / scored.length) * 100) : 0,
+    laneDistribution,
+    classificationInvariant: {
+      status: invariantPass ? "PASS" : "FAIL",
+      laneTotal,
+      projectsAnalyzed: scored.length,
+      unexplainedCount: Math.max(0, scored.length - laneTotal) + unclassified.length,
+    },
     scalpReadyCount: top.length,
     highUpsideWatchCount: watch.length,
+    researchOnlyRouteMissingCount: routeMissing.length,
     lateChaseRejectedCount: late.length,
     memeSpeculationExcludedCount: meme.length,
     microstructureRejectedCount: microstructureRejected.length,
+    safetyBlockedCount: safetyBlocked.length,
+    lowerPriorityCount: lowerPriority.length,
+    dataStarvedCount: dataStarved.length,
+    unclassifiedCount: unclassified.length,
+    routeReadyCount: scored.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
+    routeMissingCount: routeMissing.length,
+    componentCoverageSummary: componentCoverageSummary(scored),
+    missingFieldFrequency: frequency(allMissingFields),
+    compactionDetected,
+    omittedRequiredFields,
+    ...scoreStats,
     topScalpResearchCandidates: top.slice(0, 10).map((project, index) => compact(project, index + 1)),
     highUpsideWatchlist: watch.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    researchOnlyRouteMissing: routeMissing.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     lateChaseRejected: late.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     memeSpeculationExcluded: meme.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     microstructureRejected: microstructureRejected.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    safetyBlocked: safetyBlocked.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    lowerPriority: lowerPriority.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    dataStarved: dataStarved.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    unclassified: unclassified.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     operatingRules: [
       "Do not chase assets that already completed a 10x-style move.",
       "Do not treat meme-only attention as real utility.",

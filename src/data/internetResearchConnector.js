@@ -105,6 +105,11 @@ function n(value = 0) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function positiveInteger(value, fallback = 1) {
+  const parsed = Math.floor(n(value));
+  return parsed > 0 ? parsed : fallback;
+}
+
 function cleanText(value = "") {
   return String(value || "")
     .replace(/<!\[CDATA\[/g, "")
@@ -255,6 +260,19 @@ function crawlRelevanceScore(page = {}, project = {}) {
 async function fetchText(url = "", options = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(options.timeoutMs || 10000));
+  const parentSignal = options.signal;
+  const abortFromParent = () => {
+    try {
+      controller.abort(parentSignal?.reason || "parent signal aborted");
+    } catch {
+      controller.abort();
+    }
+  };
+
+  if (parentSignal?.aborted) abortFromParent();
+  if (parentSignal && typeof parentSignal.addEventListener === "function") {
+    parentSignal.addEventListener("abort", abortFromParent, { once: true });
+  }
 
   try {
     const response = await fetch(url, {
@@ -270,6 +288,9 @@ async function fetchText(url = "", options = {}) {
     return response.text();
   } finally {
     clearTimeout(timer);
+    if (parentSignal && typeof parentSignal.removeEventListener === "function") {
+      parentSignal.removeEventListener("abort", abortFromParent);
+    }
   }
 }
 
@@ -323,21 +344,80 @@ function hits(text = "", dictionary = []) {
 }
 
 async function fetchFeedArticles(options = {}) {
-  const articles = [];
-  const status = {};
+  const feedResults = await Promise.all(
+    RSS_FEEDS.map(async (feed) => {
+      try {
+        const xml = await fetchText(feed.url, options);
+        return {
+          feed: feed.name,
+          status: "SUCCESS",
+          articles: parseRssItems(xml, feed.name),
+        };
+      } catch (error) {
+        return {
+          feed: feed.name,
+          status: `FAILED: ${error.message}`,
+          articles: [],
+        };
+      }
+    })
+  );
 
-  for (const feed of RSS_FEEDS) {
-    try {
-      const xml = await fetchText(feed.url, options);
-      const parsed = parseRssItems(xml, feed.name);
-      articles.push(...parsed);
-      status[feed.name] = "SUCCESS";
-    } catch (error) {
-      status[feed.name] = `FAILED: ${error.message}`;
-    }
-  }
+  return {
+    articles: feedResults.flatMap((result) => result.articles),
+    status: Object.fromEntries(feedResults.map((result) => [result.feed, result.status])),
+  };
+}
 
-  return { articles, status };
+async function mapWithConcurrency(items = [], concurrency = 4, worker = async () => null) {
+  const output = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(items.length, concurrency));
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        output[index] = await worker(items[index], index);
+      }
+    })
+  );
+
+  return output;
+}
+
+async function researchSingleProject(project = {}, feedResearch = {}, options = {}) {
+  const crawlResearch = await crawlProjectWeb(project, options);
+  const pageResearch = crawlResearch.pages.length
+    ? { status: "COVERED_BY_WEBCRAWL", pages: [] }
+    : await fetchProjectPage(project, options);
+  const googleNews = await fetchGoogleNewsForProject(project, options);
+  const scored = scoreResearch({
+    articles: [...(feedResearch.articles || []), ...googleNews.articles],
+    pages: [...pageResearch.pages, ...crawlResearch.pages],
+    project,
+  });
+
+  return {
+    key: projectKey(project),
+    research: {
+      source: "internet-research",
+      status: {
+        feeds: feedResearch.status || {},
+        projectPage: pageResearch.status,
+        webcrawl: crawlResearch.status,
+        googleNews: googleNews.status,
+      },
+      webcrawl: {
+        status: crawlResearch.status,
+        crawledUrls: crawlResearch.crawledUrls,
+        errors: crawlResearch.errors,
+        pageCount: crawlResearch.pages.length,
+      },
+      ...scored,
+    },
+  };
 }
 
 async function fetchGoogleNewsForProject(project = {}, options = {}) {
@@ -533,36 +613,19 @@ export async function getInternetProjectResearchBatch(projects = [], options = {
   const limit = Number(options.limit || process.env.INTERNET_RESEARCH_PROJECT_LIMIT || 20);
   const safeProjects = (Array.isArray(projects) ? projects : []).slice(0, limit);
   const feedResearch = await fetchFeedArticles(options);
+  const concurrency = positiveInteger(
+    options.concurrency || process.env.INTERNET_RESEARCH_CONCURRENCY,
+    4
+  );
+  const projectResults = await mapWithConcurrency(
+    safeProjects,
+    concurrency,
+    (project) => researchSingleProject(project, feedResearch, options)
+  );
   const results = new Map();
 
-  for (const project of safeProjects) {
-    const crawlResearch = await crawlProjectWeb(project, options);
-    const pageResearch = crawlResearch.pages.length
-      ? { status: "COVERED_BY_WEBCRAWL", pages: [] }
-      : await fetchProjectPage(project, options);
-    const googleNews = await fetchGoogleNewsForProject(project, options);
-    const scored = scoreResearch({
-      articles: [...feedResearch.articles, ...googleNews.articles],
-      pages: [...pageResearch.pages, ...crawlResearch.pages],
-      project,
-    });
-
-    results.set(projectKey(project), {
-      source: "internet-research",
-      status: {
-        feeds: feedResearch.status,
-        projectPage: pageResearch.status,
-        webcrawl: crawlResearch.status,
-        googleNews: googleNews.status,
-      },
-      webcrawl: {
-        status: crawlResearch.status,
-        crawledUrls: crawlResearch.crawledUrls,
-        errors: crawlResearch.errors,
-        pageCount: crawlResearch.pages.length,
-      },
-      ...scored,
-    });
+  for (const item of projectResults) {
+    if (item?.key) results.set(item.key, item.research);
   }
 
   return results;
@@ -577,6 +640,7 @@ export const __internetResearchTestHooks = {
   roadmapSeedUrls,
   parseSitemapLinks,
   scoreResearch,
+  mapWithConcurrency,
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {

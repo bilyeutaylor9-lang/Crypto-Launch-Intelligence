@@ -135,6 +135,8 @@ const PUBLIC_REPORTS = [
   "high-upside-scalp-research.json",
   "scalp-microstructure.json",
   "hottest-ten-now.json",
+  "decision-report-compaction-audit.json",
+  "decision-report-compaction-audit.md",
   "web-crawler-preimplementation-audit.json",
   "web-crawler-preimplementation-audit.md",
 ];
@@ -614,6 +616,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["High-Upside Mode", highUpsideScalp.mode || "REPORT NOT GENERATED"],
     ["Scalp Ready", highUpsideScalp.scalpReadyCount ?? 0],
     ["Scalp Watch", highUpsideScalp.highUpsideWatchCount ?? 0],
+    ["Route Missing", highUpsideScalp.researchOnlyRouteMissingCount ?? 0],
     ["Scalp Lead", scalpLead.symbol || "NO SCALP LEAD"],
     ["Late-Chase Kicked", highUpsideScalp.lateChaseRejectedCount ?? 0],
     ["Meme Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
@@ -773,6 +776,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const scalpReadyCards = [
     ["Scalp-Ready Research", highUpsideScalp.scalpReadyCount ?? 0],
     ["High-Upside Watchlist", highUpsideScalp.highUpsideWatchCount ?? 0],
+    ["Route-Missing Research", highUpsideScalp.researchOnlyRouteMissingCount ?? 0],
     ["Late-Chase Rejected", highUpsideScalp.lateChaseRejectedCount ?? 0],
     ["Meme-Only Excluded", highUpsideScalp.memeSpeculationExcludedCount ?? 0],
     ["Microstructure Rejected", highUpsideScalp.microstructureRejectedCount ?? 0],
@@ -1104,6 +1108,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       <div class="metrics">${scalpReadyCards}</div>
       ${renderScalpCandidateTable(highUpsideScalp.topScalpResearchCandidates || [], "Scalp-Ready Research")}
       ${renderScalpCandidateTable(highUpsideScalp.highUpsideWatchlist || [], "High-Upside Watchlist")}
+      ${renderScalpCandidateTable(highUpsideScalp.researchOnlyRouteMissing || [], "Research Only: Route Missing")}
     </section>
     <section class="panel">
       <div class="section-heading">

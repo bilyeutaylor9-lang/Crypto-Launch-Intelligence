@@ -26,6 +26,11 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function positiveInteger(value, fallback = 0) {
+  const parsed = Math.floor(num(value));
+  return parsed > 0 ? parsed : fallback;
+}
+
 function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
@@ -103,14 +108,32 @@ function buildResearchPlan(project = {}, priority = 0) {
   };
 }
 
+export function resolveWebResearchAgentLimit(projectCount = 0, options = {}, env = process.env) {
+  const fallbackLimit = env.WIDE_SCAN === "true" ? 100 : 25;
+  const requested = Math.floor(
+    num(options.limit ?? env.WEB_RESEARCH_AGENT_LIMIT ?? env.INTERNET_RESEARCH_PROJECT_LIMIT ?? fallbackLimit)
+  );
+  if (requested <= 0 || projectCount <= 0) return 0;
+
+  const timeoutMs = positiveInteger(
+    options.engineTimeoutMs ?? options.timeoutMs ?? env.WEB_RESEARCH_AGENT_TIMEOUT_MS,
+    0
+  );
+  const projectBudgetMs = positiveInteger(
+    options.projectBudgetMs ?? env.WEB_RESEARCH_AGENT_PROJECT_BUDGET_MS,
+    2_500
+  );
+  const maxProjectsPerRun = positiveInteger(
+    options.maxProjectsPerRun ?? env.WEB_RESEARCH_AGENT_MAX_PROJECTS_PER_RUN,
+    env.WIDE_SCAN === "true" ? 30 : 12
+  );
+  const timeoutCap = timeoutMs > 0 ? Math.max(1, Math.floor((timeoutMs * 0.75) / projectBudgetMs)) : requested;
+
+  return Math.max(0, Math.min(projectCount, requested, maxProjectsPerRun, timeoutCap));
+}
+
 export async function analyzeWebResearchAgentBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const limit = Number(
-    options.limit ??
-      process.env.WEB_RESEARCH_AGENT_LIMIT ??
-      process.env.INTERNET_RESEARCH_PROJECT_LIMIT ??
-      (process.env.WIDE_SCAN === "true" ? 100 : 25)
-  );
   const ranked = safeProjects
     .map((project) => {
       const priority = researchPriority(project);
@@ -121,10 +144,26 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
       };
     })
     .sort((a, b) => b.webResearchPriority - a.webResearchPriority);
-  const targets = ranked.slice(0, Math.max(0, limit));
+  const requestedLimit = Math.floor(
+    num(
+      options.limit ??
+        process.env.WEB_RESEARCH_AGENT_LIMIT ??
+        process.env.INTERNET_RESEARCH_PROJECT_LIMIT ??
+        (process.env.WIDE_SCAN === "true" ? 100 : 25)
+    )
+  );
+  const limit = resolveWebResearchAgentLimit(ranked.length, options);
+  const targets = ranked.slice(0, limit);
+  const targetKeys = new Set(targets.map(projectKey));
+  const deferredKeys = new Set(
+    ranked
+      .slice(limit, Math.max(limit, requestedLimit))
+      .map(projectKey)
+  );
   const researchMap = await getInternetProjectResearchBatch(targets, {
     ...options.internet,
     limit: targets.length,
+    signal: options.signal,
   });
 
   return ranked.map((project) => {
@@ -133,7 +172,16 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
     if (!research) {
       return {
         ...project,
-        webResearchStatus: "QUEUED_NOT_SEARCHED",
+        webResearchStatus: targetKeys.has(projectKey(project))
+          ? "SEARCH_ATTEMPTED_NO_RESULT"
+          : deferredKeys.has(projectKey(project))
+            ? "QUEUED_BUDGET_DEFERRED"
+            : "QUEUED_NOT_SEARCHED",
+        webResearchBudget: {
+          requestedLimit,
+          searchedLimit: limit,
+          engineTimeoutMs: options.engineTimeoutMs ?? null,
+        },
       };
     }
 
@@ -145,6 +193,11 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
     return {
       ...project,
       webResearchStatus: "SEARCHED",
+      webResearchBudget: {
+        requestedLimit,
+        searchedLimit: limit,
+        engineTimeoutMs: options.engineTimeoutMs ?? null,
+      },
       internetResearch: research,
       internetResearchScore,
       internetResearchRiskScore,

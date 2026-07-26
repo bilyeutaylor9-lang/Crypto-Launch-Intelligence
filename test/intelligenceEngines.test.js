@@ -6,7 +6,10 @@ import { analyzeNarrativeLaunchStaking } from "../src/engines/narrativeLaunchSta
 import { analyzeOpportunityProof } from "../src/engines/opportunityProofEngine.js";
 import { analyzeTrapRisk } from "../src/engines/trapRiskEngine.js";
 import { analyzeConfidenceAdjustedRankBatch } from "../src/engines/confidenceAdjustedRankEngine.js";
-import { analyzeWebResearchAgentBatch } from "../src/engines/webResearchAgentEngine.js";
+import {
+  analyzeWebResearchAgentBatch,
+  resolveWebResearchAgentLimit,
+} from "../src/engines/webResearchAgentEngine.js";
 import { analyzeAIEcosystemCouncilBatch } from "../src/engines/aiEcosystemCouncilEngine.js";
 import { analyzeResearchOperatingSystem } from "../src/engines/researchOperatingSystemEngine.js";
 import { analyzeAutonomousAlphaLab } from "../src/engines/autonomousAlphaLabEngine.js";
@@ -215,6 +218,26 @@ test("web research agent builds a priority queue without spending search budget"
   assert.ok(results[0].webResearchPriority > results[1].webResearchPriority);
   assert.equal(results[0].webResearchStatus, "QUEUED_NOT_SEARCHED");
   assert.ok(results[0].webResearchPlan.queries.length > 0);
+});
+
+test("web research agent caps live searches to the engine time budget", () => {
+  assert.equal(
+    resolveWebResearchAgentLimit(
+      20,
+      { limit: 20, engineTimeoutMs: 5_000, projectBudgetMs: 2_500, maxProjectsPerRun: 20 },
+      {}
+    ),
+    1
+  );
+  assert.equal(
+    resolveWebResearchAgentLimit(
+      20,
+      { limit: 20, engineTimeoutMs: 60_000, projectBudgetMs: 2_500, maxProjectsPerRun: 20 },
+      {}
+    ),
+    18
+  );
+  assert.equal(resolveWebResearchAgentLimit(20, { limit: 0, engineTimeoutMs: 60_000 }, {}), 0);
 });
 
 test("required pipeline engines fail closed and write a failure report", async () => {

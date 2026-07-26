@@ -73,6 +73,7 @@ import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
 import { writeHighUpsideScalpReport } from "./highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "./scalpMicrostructureReportEngine.js";
 import { writeHottestTenNowReport } from "./hottestTenNowReportEngine.js";
+import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -82,10 +83,11 @@ import {
 
 export function generateReports(projects = [], meta = {}) {
   const precomputedPipelineStageHealth = meta.pipelineStageHealth;
+  const fullProjects = Array.isArray(projects) ? projects : [];
   meta = { ...meta };
   delete meta.pipelineStageHealth;
 
-  projects = compactProjectsForReportWriters(projects);
+  projects = compactProjectsForReportWriters(fullProjects);
   meta = compactMetaForReportWriters(meta);
 
   const jsonPath = writeJsonReport(projects, meta);
@@ -323,13 +325,17 @@ export function generateReports(projects = [], meta = {}) {
   } = writeUtilityQualityReport(projects, meta);
   const {
     filePath: highUpsideScalpPath,
-  } = writeHighUpsideScalpReport(projects, meta);
+  } = writeHighUpsideScalpReport(fullProjects, meta);
   const {
     filePath: scalpMicrostructurePath,
   } = writeScalpMicrostructureReport(projects, meta);
   const {
     filePath: hottestTenNowPath,
   } = writeHottestTenNowReport(projects, meta);
+  const {
+    filePath: decisionReportCompactionAuditPath,
+    markdownPath: decisionReportCompactionAuditMarkdownPath,
+  } = writeDecisionReportCompactionAudit(fullProjects, meta);
   const {
     filePath: alphaTruthKernelPath,
   } = writeAlphaTruthKernelReport(projects, meta);
@@ -489,6 +495,8 @@ export function generateReports(projects = [], meta = {}) {
     highUpsideScalpPath,
     scalpMicrostructurePath,
     hottestTenNowPath,
+    decisionReportCompactionAuditPath,
+    decisionReportCompactionAuditMarkdownPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,

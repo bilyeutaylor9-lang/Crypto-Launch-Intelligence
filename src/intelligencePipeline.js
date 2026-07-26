@@ -158,6 +158,7 @@ import { analyzeIdentityRescueBatch } from "./engines/identityRescueEngine.js";
 import { analyzeResearchReadinessBatch } from "./engines/researchReadinessEngine.js";
 import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunityEngine.js";
 import { analyzeUtilityQualityBatch } from "./engines/utilityQualityEngine.js";
+import { analyzeHighUpsideScalpClassificationBatch } from "./engines/highUpsideScalpClassificationEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 import {
@@ -197,6 +198,15 @@ const DEFAULT_PROJECT_ENGINE_RESULT_LIMIT = 200;
 const ENGINE_HEALTH_FAILURE_LIMIT = 50;
 const ENGINE_RESULT_WARNING_LIMIT = 3;
 const DEFAULT_ENGINE_TIMEOUT_MS = 15_000;
+const ENGINE_TIMEOUT_DEFAULTS_MS = {
+  "External Intelligence": 30_000,
+  "Web Research Agent": 60_000,
+  "Roadmap Catalyst Profit": 30_000,
+  "Live Catalyst Radar": 30_000,
+  "Project Dossier Swarm": 30_000,
+  "AI Research Commander": 30_000,
+  "Autonomous Alpha Investigator": 30_000,
+};
 const PIPELINE_STAGE_ORDER = [
   "standard",
   "advanced",
@@ -298,6 +308,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "Market Opportunity Learning": "deep",
   "7-Day Asymmetric Research": "deep",
   "Scalp Microstructure": "deep",
+  "High-Upside Scalp Classification": "deep",
 
   "Research Operating System": "llama",
   "Autonomous Alpha Lab": "llama",
@@ -362,7 +373,13 @@ function engineTimeoutMs(name = "", options = {}) {
   const global = num(process.env.ENGINE_TIMEOUT_MS);
   if (global > 0) return global;
 
-  const fallback = num(process.env.DEFAULT_ENGINE_TIMEOUT_MS || DEFAULT_ENGINE_TIMEOUT_MS);
+  const configuredDefault = num(process.env.DEFAULT_ENGINE_TIMEOUT_MS);
+  if (configuredDefault > 0) return configuredDefault;
+
+  const engineSpecific = num(ENGINE_TIMEOUT_DEFAULTS_MS[name]);
+  if (engineSpecific > 0) return engineSpecific;
+
+  const fallback = num(DEFAULT_ENGINE_TIMEOUT_MS);
   return fallback > 0 ? fallback : DEFAULT_ENGINE_TIMEOUT_MS;
 }
 
@@ -600,6 +617,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Instant Safety Gate",
   "Contract Authority Risk",
   "Organic Demand Integrity",
+  "High-Upside Scalp Classification",
 ]);
 
 function engineCriticality(name = "", options = {}) {
@@ -931,7 +949,9 @@ export async function runEngine(name, engine, projects, options = {}) {
       timeoutMs > 0 && typeof AbortController !== "undefined"
         ? new AbortController()
         : null;
-    const engineOptions = controller ? { ...options, signal: controller.signal } : options;
+    const engineOptions = controller
+      ? { ...options, signal: controller.signal, engineTimeoutMs: timeoutMs }
+      : { ...options, engineTimeoutMs: timeoutMs };
     const output = await withEngineTimeout(engine(safeProjects, engineOptions), timeoutMs, name, controller);
     const normalized = normalizeEngineOutput(output, safeProjects);
     const status =
@@ -2534,6 +2554,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   });
   results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});
   results = await runEngine("Scalp Microstructure", analyzeScalpMicrostructureBatch, results, options.scalpMicrostructure || {});
+  results = await runEngine(
+    "High-Upside Scalp Classification",
+    analyzeHighUpsideScalpClassificationBatch,
+    results,
+    options.highUpsideScalpClassification || {}
+  );
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

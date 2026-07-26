@@ -47,6 +47,7 @@ import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEn
 import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "../src/reports/scalpMicrostructureReportEngine.js";
 import { writeHottestTenNowReport } from "../src/reports/hottestTenNowReportEngine.js";
+import { writeDecisionReportCompactionAudit } from "../src/reports/decisionReportCompactionAuditEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -447,6 +448,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeHighUpsideScalpReport(processed);
   writeScalpMicrostructureReport(processed);
   writeHottestTenNowReport(processed);
+  writeDecisionReportCompactionAudit(processed);
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -511,6 +513,33 @@ test("report contract validator rejects non-finite report values", () => {
   const failed = validateReportContracts({ reportsDir });
   assert.equal(failed.status, "FAIL");
   assert.ok(failed.errors.some((error) => error.includes("non-finite")));
+});
+
+test("report contract validator rejects incomplete high-upside lane accounting", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-high-upside-contract-"));
+
+  for (const fileName of REQUIRED_REPORT_FILES) {
+    fs.writeFileSync(path.join(reportsDir, fileName), JSON.stringify({ ok: true }));
+  }
+  fs.writeFileSync(
+    path.join(reportsDir, "high-upside-scalp-research.json"),
+    JSON.stringify({
+      mode: "HIGH_UPSIDE_SCALP_RESEARCH",
+      status: "PASS_WITH_SCALP_READY",
+      projectsAnalyzed: 4,
+      scalpReadyCount: 0,
+      laneDistribution: {
+        SCALP_READY_RESEARCH: 1,
+        LOWER_PRIORITY: 1,
+      },
+      classificationInvariant: { status: "FAIL" },
+    })
+  );
+
+  const failed = validateReportContracts({ reportsDir });
+  assert.equal(failed.status, "FAIL");
+  assert.ok(failed.errors.some((error) => error.includes("laneDistribution total 2")));
+  assert.ok(failed.errors.some((error) => error.includes("PASS_WITH_SCALP_READY")));
 });
 
 test("report sanitizer removes provider placeholder strings before public validation", () => {
@@ -724,14 +753,34 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       emergingDiscoveryAILane: [],
     },
     "high-upside-scalp-research.json": {
-      status: "PASS",
+      status: "PASS_WITH_SCALP_READY",
       mode: "HIGH_UPSIDE_SCALP_RESEARCH",
       disclaimer: "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
       projectsAnalyzed: 2,
+      inputProjectCount: 2,
+      classifiedProjectCount: 2,
+      unclassifiedProjectCount: 0,
+      classificationCoveragePct: 100,
+      laneDistribution: {
+        SCALP_READY_RESEARCH: 1,
+        HIGH_UPSIDE_WATCH: 1,
+      },
+      classificationInvariant: {
+        status: "PASS",
+        laneTotal: 2,
+        projectsAnalyzed: 2,
+        unexplainedCount: 0,
+      },
       scalpReadyCount: 1,
       highUpsideWatchCount: 1,
-      lateChaseRejectedCount: 1,
+      researchOnlyRouteMissingCount: 0,
+      lateChaseRejectedCount: 0,
       memeSpeculationExcludedCount: 0,
+      microstructureRejectedCount: 0,
+      safetyBlockedCount: 0,
+      lowerPriorityCount: 0,
+      dataStarvedCount: 0,
+      unclassifiedCount: 0,
       topScalpResearchCandidates: [
         {
           rank: 1,

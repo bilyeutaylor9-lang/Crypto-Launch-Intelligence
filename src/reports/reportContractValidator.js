@@ -48,6 +48,7 @@ export const REQUIRED_REPORT_FILES = [
   "high-upside-scalp-research.json",
   "scalp-microstructure.json",
   "hottest-ten-now.json",
+  "decision-report-compaction-audit.json",
   "institutional-ranking.json",
 ];
 
@@ -78,6 +79,46 @@ function invalidValueIssues(value, location = "root", issues = []) {
   return issues;
 }
 
+function highUpsideScalpIssues(report = {}, fileName = "high-upside-scalp-research.json") {
+  if (fileName !== "high-upside-scalp-research.json") return [];
+  if (!report || typeof report !== "object" || Array.isArray(report)) return [];
+  if (report.mode !== "HIGH_UPSIDE_SCALP_RESEARCH" && report.projectsAnalyzed === undefined) return [];
+
+  const issues = [];
+  const projectsAnalyzed = Number(report.projectsAnalyzed);
+  if (!Number.isFinite(projectsAnalyzed)) {
+    issues.push(`${fileName}: projectsAnalyzed must be numeric`);
+    return issues;
+  }
+
+  const laneDistribution = report.laneDistribution || {};
+  const laneTotal = Object.values(laneDistribution).reduce((sum, count) => {
+    const parsed = Number(count);
+    return sum + (Number.isFinite(parsed) ? parsed : 0);
+  }, 0);
+
+  if (laneTotal !== projectsAnalyzed) {
+    issues.push(`${fileName}: laneDistribution total ${laneTotal} does not equal projectsAnalyzed ${projectsAnalyzed}`);
+  }
+
+  if (report.classificationInvariant?.status === "FAIL") {
+    issues.push(`${fileName}: classification invariant failed`);
+  }
+
+  if (report.status === "PASS_WITH_SCALP_READY" && Number(report.scalpReadyCount || 0) <= 0) {
+    issues.push(`${fileName}: PASS_WITH_SCALP_READY requires at least one scalp-ready candidate`);
+  }
+
+  if (
+    report.status === "PASS_WITH_WATCHLIST" &&
+    Number(report.highUpsideWatchCount || 0) + Number(report.researchOnlyRouteMissingCount || 0) <= 0
+  ) {
+    issues.push(`${fileName}: PASS_WITH_WATCHLIST requires a watchlist or route-missing research candidate`);
+  }
+
+  return issues;
+}
+
 export function validateReportContracts(options = {}) {
   const reportsDir = path.resolve(options.reportsDir || "reports");
   const requiredFiles = options.requiredFiles || REQUIRED_REPORT_FILES;
@@ -98,6 +139,7 @@ export function validateReportContracts(options = {}) {
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
         valueIssues.push(`${fileName}: empty report object`);
       }
+      valueIssues.push(...highUpsideScalpIssues(parsed, fileName));
       if (valueIssues.length) {
         errors.push(...valueIssues);
         files.push({ fileName, status: "INVALID", issues: valueIssues });

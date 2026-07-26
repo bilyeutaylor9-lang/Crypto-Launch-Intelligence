@@ -66,6 +66,20 @@ test("timed engines receive an AbortSignal they can honor", async () => {
   assert.equal(projects[0].abortSignalSeen, true);
 });
 
+test("web research receives a larger bounded timeout budget than simple engines", async () => {
+  let seenTimeout = 0;
+  await runEngine(
+    "Web Research Agent",
+    (rows, options = {}) => {
+      seenTimeout = options.engineTimeoutMs;
+      return rows;
+    },
+    [{ symbol: "WEB" }]
+  );
+
+  assert.equal(seenTimeout, 60_000);
+});
+
 test("engine profile report documents the active high-upside mode", () => {
   const report = engineProfileReport("tenx", {});
 

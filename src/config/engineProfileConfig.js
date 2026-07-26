@@ -86,6 +86,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "Market Opportunity Learning",
   "7-Day Asymmetric Research",
   "Scalp Microstructure",
+  "High-Upside Scalp Classification",
 ]);
 
 const PROFILES = {
