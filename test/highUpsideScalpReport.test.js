@@ -269,6 +269,55 @@ test("missing scoring fields produce data-starved instead of silent zero scoring
   assert.ok(report.dataStarved[0].highUpsideScalpMissingFields.length > 0);
 });
 
+test("standard-stage projects not selected for deep high-upside research are deferred, not data-starved", () => {
+  const report = summarizeHighUpsideScalpResearch([
+    {
+      symbol: "BROAD",
+      chain: "base",
+      progressivePipelineStages: ["standard"],
+      standardSelectionRank: 1200,
+    },
+  ]);
+
+  assert.equal(report.status, "PASS_NO_ACTIONABLE_RESULTS");
+  assert.equal(report.highUpsideResearchDeferredCount, 1);
+  assert.equal(report.dataStarvedCount, 0);
+  assert.equal(report.classificationEligibleProjectCount, 0);
+  assert.equal(report.laneDistribution.HIGH_UPSIDE_RESEARCH_DEFERRED, 1);
+  assert.equal(report.highUpsideResearchDeferred[0].lane, "HIGH_UPSIDE_RESEARCH_DEFERRED");
+  assert.equal(report.missingFieldFrequency.length, 0);
+  assert.equal(report.deferredFunnelSummary.deferredCount, 1);
+});
+
+test("broad 4000-style queue does not mark non-deep funnel projects data-starved", () => {
+  const deepNoTrade = analyzeHighUpsideScalpClassificationBatch(
+    analyzed([
+      candidate({
+        symbol: "DEEPBAD",
+        progressivePipelineStages: ["standard", "advanced", "deep"],
+        spreadPct: 4,
+        estimatedRoundTripSlippagePct: 8,
+        estimatedGasUsd: 4,
+      }),
+    ])
+  )[0];
+  const broadDeferred = Array.from({ length: 7 }, (_, index) => ({
+    symbol: `BROAD${index}`,
+    chain: "base",
+    progressivePipelineStages: ["standard"],
+    standardSelectionRank: index + 501,
+  }));
+  const report = summarizeHighUpsideScalpResearch([deepNoTrade, ...broadDeferred]);
+
+  assert.equal(report.projectsAnalyzed, 8);
+  assert.equal(report.classificationEligibleProjectCount, 1);
+  assert.equal(report.highUpsideResearchDeferredCount, 7);
+  assert.equal(report.microstructureRejectedCount, 1);
+  assert.equal(report.dataStarvedCount, 0);
+  assert.equal(report.status, "PASS_NO_ACTIONABLE_RESULTS");
+  assert.equal(Object.values(report.laneDistribution).reduce((sum, count) => sum + count, 0), 8);
+});
+
 test("safety blocked, lower priority, and route-missing projects stay visible", () => {
   const safeLow = candidate({
     symbol: "LOW",

@@ -4,6 +4,7 @@ export const HIGH_UPSIDE_SCALP_LANES = [
   "SCALP_READY_RESEARCH",
   "HIGH_UPSIDE_WATCH",
   "RESEARCH_ONLY_ROUTE_MISSING",
+  "HIGH_UPSIDE_RESEARCH_DEFERRED",
   "LATE_CHASE_REJECTED",
   "MEME_SPECULATION_EXCLUDED",
   "SCALP_NO_TRADE_HIGH_COST",
@@ -129,6 +130,37 @@ function routeReady(project = {}) {
   return isLiveExecutionReady(project);
 }
 
+export function isHighUpsideDeepStageDeferred(project = {}) {
+  if (project.highUpsideScalpLane) return false;
+  if (!Array.isArray(project.progressivePipelineStages)) return false;
+  return !project.progressivePipelineStages.includes("deep");
+}
+
+export function markHighUpsideScalpResearchDeferred(project = {}) {
+  return {
+    ...project,
+    highUpsideScalpScore: 0,
+    highUpsideScalpLane: "HIGH_UPSIDE_RESEARCH_DEFERRED",
+    highUpsideScalpComponentScores: {},
+    highUpsideScalpComponentCoverage: {},
+    highUpsideScalpDataCoverage: null,
+    highUpsideScalpMissingFields: [],
+    highUpsideScalpClassificationReason:
+      "Project was not selected into the deep high-upside scalp evidence stage this scan; this is funnel deferral, not missing evidence.",
+    highUpsideScalpDiagnostics: {
+      routeReady: routeReady(project),
+      lateChase: lateChase(project),
+      utilityBlocked: utilityBlocked(project),
+      deterministicSafetyBlocked: deterministicSafetyBlocked(project),
+      deferredByFunnel: true,
+      selectedStages: project.progressivePipelineStages || [],
+      missingFieldCount: 0,
+      componentCoveragePct: null,
+      componentScoreMedian: 0,
+    },
+  };
+}
+
 function routeComponent(project = {}, paths = []) {
   if (!hasAnyPath(project, paths)) {
     return { available: false, field: paths[0] || "routeTruthStatus", value: null };
@@ -243,6 +275,9 @@ function classificationReason(lane = "", project = {}, score = 0, coveragePct = 
   if (lane === "LATE_CHASE_REJECTED") return "Price action is already extended for high-upside scalp mode.";
   if (lane === "MEME_SPECULATION_EXCLUDED") return "Meme-only speculation is excluded from the real-utility scalp lane.";
   if (String(lane).startsWith("SCALP_NO_TRADE")) return "Scalp microstructure engine rejected current trade conditions.";
+  if (lane === "HIGH_UPSIDE_RESEARCH_DEFERRED") {
+    return "Project was not selected into the deep high-upside scalp evidence stage this scan.";
+  }
   if (lane === "RESEARCH_ONLY_ROUTE_MISSING") return "Candidate stays visible for research, but fresh buy and sell route proof is missing.";
   if (lane === "DATA_STARVED") return `Only ${coveragePct}% of expected high-upside scalp evidence is available.`;
   if (lane === "SCALP_READY_RESEARCH") return "Full high-upside scalp evidence and route checks are strong enough for manual research.";
@@ -265,6 +300,10 @@ function primaryLane(project = {}, score = 0, dataCoveragePct = 0) {
 }
 
 export function classifyHighUpsideScalpProject(project = {}) {
+  if (isHighUpsideDeepStageDeferred(project)) {
+    return markHighUpsideScalpResearchDeferred(project);
+  }
+
   const componentScores = Object.fromEntries(
     Object.entries(HIGH_UPSIDE_SCALP_COMPONENTS).map(([family, specs]) => [
       family,

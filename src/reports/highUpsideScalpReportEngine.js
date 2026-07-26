@@ -5,6 +5,8 @@ import {
   HIGH_UPSIDE_SCALP_LANES,
   HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES,
   classifyHighUpsideScalpProject,
+  isHighUpsideDeepStageDeferred,
+  markHighUpsideScalpResearchDeferred,
 } from "../engines/highUpsideScalpClassificationEngine.js";
 
 const MAX_REPORT_ROWS = 50;
@@ -235,6 +237,7 @@ function laneForReport(project = {}) {
 
 function classifyForReport(project = {}) {
   if (Object.hasOwn(project, "highUpsideScalpLane")) return project;
+  if (isHighUpsideDeepStageDeferred(project)) return markHighUpsideScalpResearchDeferred(project);
   return classifyHighUpsideScalpProject(project);
 }
 
@@ -315,12 +318,21 @@ function componentCoverageSummary(projects = []) {
   );
 }
 
-function reportStatus({ projectsAnalyzed = 0, top = [], watch = [], routeMissing = [], dataStarved = [], invariantPass = true, unclassified = [] } = {}) {
+function reportStatus({
+  projectsAnalyzed = 0,
+  classificationEligibleCount = projectsAnalyzed,
+  top = [],
+  watch = [],
+  routeMissing = [],
+  dataStarved = [],
+  invariantPass = true,
+  unclassified = [],
+} = {}) {
   if (!projectsAnalyzed) return "NO_PROJECTS";
   if (!invariantPass || unclassified.length > 0) return "CLASSIFICATION_INCOMPLETE";
   if (top.length > 0) return "PASS_WITH_SCALP_READY";
   if (watch.length + routeMissing.length > 0) return "PASS_WITH_WATCHLIST";
-  if (dataStarved.length === projectsAnalyzed) return "DATA_STARVED";
+  if (classificationEligibleCount > 0 && dataStarved.length === classificationEligibleCount) return "DATA_STARVED";
   return "PASS_NO_ACTIONABLE_RESULTS";
 }
 
@@ -332,6 +344,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const top = scored.filter((project) => laneForReport(project) === "SCALP_READY_RESEARCH");
   const watch = scored.filter((project) => laneForReport(project) === "HIGH_UPSIDE_WATCH");
   const routeMissing = scored.filter((project) => laneForReport(project) === "RESEARCH_ONLY_ROUTE_MISSING");
+  const researchDeferred = scored.filter((project) => laneForReport(project) === "HIGH_UPSIDE_RESEARCH_DEFERRED");
   const late = scored.filter((project) => laneForReport(project) === "LATE_CHASE_REJECTED");
   const meme = scored.filter((project) => laneForReport(project) === "MEME_SPECULATION_EXCLUDED");
   const microstructureRejected = scored.filter((project) => laneForReport(project).startsWith("SCALP_NO_TRADE"));
@@ -344,11 +357,14 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const laneTotal = distributionTotal(laneDistribution);
   const invariantPass = laneTotal === scored.length && unclassified.length === 0;
   const compactionDetected = scored.some((project) => project.reportCompaction?.mode);
-  const allMissingFields = scored.flatMap((project) => project.highUpsideScalpMissingFields || []);
+  const classificationEligible = scored.filter(
+    (project) => laneForReport(project) !== "HIGH_UPSIDE_RESEARCH_DEFERRED"
+  );
+  const allMissingFields = classificationEligible.flatMap((project) => project.highUpsideScalpMissingFields || []);
   const omittedRequiredFields = compactionDetected
     ? HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES.filter((field) => allMissingFields.includes(field))
     : [];
-  const scoreStats = scoreDistribution(scored);
+  const scoreStats = scoreDistribution(classificationEligible);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -356,6 +372,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
     status: reportStatus({
       projectsAnalyzed: scored.length,
+      classificationEligibleCount: classificationEligible.length,
       top,
       watch,
       routeMissing,
@@ -371,6 +388,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     projectsAnalyzed: scored.length,
     inputProjectCount: scored.length,
     classifiedProjectCount,
+    classificationEligibleProjectCount: classificationEligible.length,
     unclassifiedProjectCount: unclassified.length,
     classificationCoveragePct: scored.length ? Math.round((classifiedProjectCount / scored.length) * 100) : 0,
     laneDistribution,
@@ -383,6 +401,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     scalpReadyCount: top.length,
     highUpsideWatchCount: watch.length,
     researchOnlyRouteMissingCount: routeMissing.length,
+    highUpsideResearchDeferredCount: researchDeferred.length,
     lateChaseRejectedCount: late.length,
     memeSpeculationExcludedCount: meme.length,
     microstructureRejectedCount: microstructureRejected.length,
@@ -390,9 +409,15 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     lowerPriorityCount: lowerPriority.length,
     dataStarvedCount: dataStarved.length,
     unclassifiedCount: unclassified.length,
-    routeReadyCount: scored.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
+    routeReadyCount: classificationEligible.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
     routeMissingCount: routeMissing.length,
-    componentCoverageSummary: componentCoverageSummary(scored),
+    componentCoverageSummary: componentCoverageSummary(classificationEligible),
+    deferredFunnelSummary: {
+      deferredCount: researchDeferred.length,
+      reason:
+        "These projects were part of the broad standard scan but were not selected into the deep high-upside scalp evidence stage. They are not counted as data-starved.",
+      selectedForDeepEvidence: classificationEligible.length,
+    },
     missingFieldFrequency: frequency(allMissingFields),
     compactionDetected,
     omittedRequiredFields,
@@ -400,6 +425,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     topScalpResearchCandidates: top.slice(0, 10).map((project, index) => compact(project, index + 1)),
     highUpsideWatchlist: watch.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     researchOnlyRouteMissing: routeMissing.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    highUpsideResearchDeferred: researchDeferred.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     lateChaseRejected: late.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     memeSpeculationExcluded: meme.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     microstructureRejected: microstructureRejected.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
