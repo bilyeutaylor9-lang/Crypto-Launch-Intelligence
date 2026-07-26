@@ -38,6 +38,53 @@ function upper(value = "") {
   return String(value || "").toUpperCase();
 }
 
+function normalizeDisplayText(value = "") {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(" ")
+    .filter(
+      (part) =>
+        part &&
+        ![
+          "coin",
+          "dao",
+          "dex",
+          "exchange",
+          "finance",
+          "network",
+          "official",
+          "protocol",
+          "swap",
+          "token",
+        ].includes(part)
+    )
+    .join(" ")
+    .trim();
+}
+
+function displayFamilyKey(project = {}) {
+  const symbol = upper(first([project.symbol, project.rawCandidate?.symbol, project.marketData?.symbol])).replace(/[^A-Z0-9]/g, "");
+  const name = normalizeDisplayText(first([project.name, project.projectName, project.rawCandidate?.name, project.marketData?.name]));
+  if (symbol && name) return `${symbol}:${name}`;
+  if (symbol) return `${symbol}:${normalizeDisplayText(first([project.chain, project.canonicalChain, project.chainId])) || "unknown-chain"}`;
+  if (name) return `name:${name}`;
+  return "";
+}
+
+function takeUniqueDisplayFamilies(projects = [], limit = TARGET_COUNT) {
+  const selected = [];
+  const seen = new Set();
+  for (const project of projects) {
+    const key = displayFamilyKey(project);
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    selected.push(project);
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
+
 function priceUsd(project = {}) {
   return num(first([project.priceUsd, project.price, project.marketData?.priceUsd, project.rawCandidate?.priceUsd]));
 }
@@ -523,8 +570,10 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
   );
   const researchBackfill = scored.filter(researchBoardBackfillEligible);
   const rejected = scored.filter((project) => project.hottestTenNowRejectionReason);
-  const topTen = qualified.slice(0, TARGET_COUNT);
-  const topTenBoard = [...qualified, ...watchlist, ...researchBackfill].slice(0, TARGET_COUNT);
+  const topTen = takeUniqueDisplayFamilies(qualified, TARGET_COUNT);
+  const topTenBoard = takeUniqueDisplayFamilies([...qualified, ...watchlist, ...researchBackfill], TARGET_COUNT);
+  const compactTopTenBoard = topTenBoard.map((project, index) => compactCandidate(project, index + 1));
+  const compactQualified = topTen.map((project, index) => compactCandidate(project, index + 1));
 
   return {
     generatedAt: new Date().toISOString(),
@@ -545,17 +594,23 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     projectsAnalyzed: scored.length,
     targetCount: TARGET_COUNT,
     qualifiedNowCount: qualified.length,
-    returnedCount: topTen.length,
+    qualifiedReturnedCount: topTen.length,
+    buyReadyReturnedCount: topTen.length,
+    researchReturnedCount: topTenBoard.length,
+    returnedCount: topTenBoard.length,
     currentResearchBoardCount: topTenBoard.length,
-    shortfallToTen: Math.max(0, TARGET_COUNT - topTen.length),
+    qualifiedShortfallToTen: Math.max(0, TARGET_COUNT - topTen.length),
+    shortfallToTen: Math.max(0, TARGET_COUNT - topTenBoard.length),
     researchBoardShortfallToTen: Math.max(0, TARGET_COUNT - topTenBoard.length),
     confirmationGapCount: topTenBoard.filter((project) =>
       ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO", "LOWER_PRIORITY"].includes(project.hottestTenNowLane)
     ).length,
     researchBoardMode: "STRICT_QUALIFIED_PLUS_MISSING_INFO_AND_BEST_AVAILABLE_RECOVERY",
     notForced: true,
-    topTenCurrentResearchBoard: topTenBoard.map((project, index) => compactCandidate(project, index + 1)),
-    topTenHighestRatedNow: topTen.map((project, index) => compactCandidate(project, index + 1)),
+    topTenResearchWorthy: compactTopTenBoard,
+    topTenCurrentResearchBoard: compactTopTenBoard,
+    topTenQualifiedNow: compactQualified,
+    topTenHighestRatedNow: compactQualified,
     watchlistNeedsMoreConfirmation: watchlist.slice(0, MAX_AUDIT_ROWS).map((project, index) => compactCandidate(project, index + 1)),
     rejectedOrNotCurrent: rejected.slice(0, MAX_AUDIT_ROWS).map((project, index) => ({
       ...compactCandidate(project, index + 1),

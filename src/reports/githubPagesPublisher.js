@@ -582,8 +582,13 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const scalpLead =
     highUpsideScalp.topScalpResearchCandidates?.[0] || highUpsideScalp.highUpsideWatchlist?.[0] || {};
   const hottestLead =
-    hottestTenNow.topTenHighestRatedNow?.[0] || hottestTenNow.watchlistNeedsMoreConfirmation?.[0] || {};
+    hottestTenNow.topTenResearchWorthy?.[0] ||
+    hottestTenNow.topTenCurrentResearchBoard?.[0] ||
+    hottestTenNow.topTenHighestRatedNow?.[0] ||
+    hottestTenNow.watchlistNeedsMoreConfirmation?.[0] ||
+    {};
   const topTenBoard =
+    hottestTenNow.topTenResearchWorthy ||
     hottestTenNow.topTenCurrentResearchBoard ||
     hottestTenNow.topTenHighestRatedNow ||
     [];
@@ -673,9 +678,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Microstructure Pass", scalpMicrostructure.actionableResearchCount ?? 0],
     ["Microstructure Watch", scalpMicrostructure.watchlistCount ?? 0],
     ["Microstructure No-Trade", scalpMicrostructure.noTradeCount ?? 0],
-    ["Hot Now", hottestTenNow.returnedCount ?? 0],
+    ["Top 10 Research", hottestTenNow.researchReturnedCount ?? hottestTenNow.currentResearchBoardCount ?? hottestTenNow.returnedCount ?? 0],
     ["Hot Lead", hottestLead.symbol || "NO HOT LEAD"],
-    ["Hot Shortfall", hottestTenNow.shortfallToTen ?? 10],
+    ["Qualified Now", hottestTenNow.qualifiedReturnedCount ?? hottestTenNow.qualifiedNowCount ?? 0],
+    ["Top 10 Shortfall", hottestTenNow.researchBoardShortfallToTen ?? hottestTenNow.shortfallToTen ?? 10],
     ["System Readiness", systemReadiness.status || "REPORT NOT GENERATED"],
     ["Daily Slate", dailyCapital.status || "REPORT NOT GENERATED"],
     ["Daily Candidate", dailyCapital.bestCandidate?.symbol || "NO VALID MOVE"],
@@ -1195,8 +1201,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
           "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee."
       )}</p>
       <div class="metrics">
-        <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.currentResearchBoardCount ?? topTenBoard.length ?? 0)}</div><div class="metric-label">Board Names</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.qualifiedNowCount ?? 0)}</div><div class="metric-label">Qualified Now</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.researchReturnedCount ?? hottestTenNow.currentResearchBoardCount ?? topTenBoard.length ?? 0)}</div><div class="metric-label">Research Names</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.qualifiedReturnedCount ?? hottestTenNow.qualifiedNowCount ?? 0)}</div><div class="metric-label">Qualified Now</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.confirmationGapCount ?? 0)}</div><div class="metric-label">Need Confirmation</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(hottestTenNow.researchBoardShortfallToTen ?? 10)}</div><div class="metric-label">Missing To Ten</div></div>
       </div>

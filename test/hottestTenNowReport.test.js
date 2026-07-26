@@ -84,8 +84,13 @@ test("hottest-ten-now ranks current high-upside utility candidates without finan
   ]);
 
   assert.equal(report.returnedCount, 2);
+  assert.equal(report.researchReturnedCount, 2);
+  assert.equal(report.qualifiedReturnedCount, 2);
   assert.equal(report.shortfallToTen, 8);
+  assert.equal(report.qualifiedShortfallToTen, 8);
   assert.equal(report.notForced, true);
+  assert.equal(report.topTenResearchWorthy[0].symbol, "ONE");
+  assert.equal(report.topTenQualifiedNow[0].symbol, "ONE");
   assert.equal(report.topTenHighestRatedNow[0].symbol, "ONE");
   assert.match(report.disclaimer, /not financial advice/i);
 });
@@ -120,12 +125,15 @@ test("hottest-ten-now excludes late-chase, meme-only, unsafe, and no-sell-route 
     }),
   ]);
 
-  assert.equal(report.returnedCount, 0);
+  assert.equal(report.returnedCount, 1);
+  assert.equal(report.researchReturnedCount, 1);
+  assert.equal(report.qualifiedReturnedCount, 0);
   assert.equal(report.rejectedOrNotCurrent.length, 3);
   assert.ok(report.countsByLane.ALREADY_EXTENDED_OR_LATE_CHASE >= 1);
   assert.ok(report.countsByLane.MEME_ONLY_OR_NO_VERIFIED_UTILITY >= 1);
   assert.ok(report.countsByLane.DETERMINISTIC_SAFETY_OR_SCALP_BLOCK >= 1);
   assert.ok(report.countsByLane.RESEARCH_BOARD_NEEDS_MISSING_INFO >= 1);
+  assert.equal(report.topTenResearchWorthy.some((project) => project.symbol === "NOSALE"), true);
   assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "NOSALE"), true);
   assert.equal(report.topTenHighestRatedNow.some((project) => project.symbol === "NOSALE"), false);
   assert.equal(report.topTenCurrentResearchBoard.find((project) => project.symbol === "NOSALE").reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
@@ -160,8 +168,11 @@ test("hottest-ten-now keeps non-danger final-selection blocks on the research bo
   ]);
 
   assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 0);
+  assert.equal(report.returnedCount, 1);
+  assert.equal(report.researchReturnedCount, 1);
+  assert.equal(report.qualifiedReturnedCount, 0);
   assert.equal(report.currentResearchBoardCount, 1);
+  assert.equal(report.topTenResearchWorthy[0].symbol, "PROOF");
   assert.equal(report.topTenCurrentResearchBoard[0].symbol, "PROOF");
   assert.equal(report.topTenCurrentResearchBoard[0].lane, "RESEARCH_BOARD_NEEDS_MISSING_INFO");
   assert.equal(report.topTenCurrentResearchBoard[0].reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
@@ -417,12 +428,60 @@ test("hottest-ten-now fills a top-ten research board without forcing buy-ready p
   const report = summarizeHottestTenNow(projects);
 
   assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 0);
+  assert.equal(report.returnedCount, 10);
+  assert.equal(report.researchReturnedCount, 10);
+  assert.equal(report.qualifiedReturnedCount, 0);
   assert.equal(report.currentResearchBoardCount, 10);
+  assert.equal(report.shortfallToTen, 0);
+  assert.equal(report.qualifiedShortfallToTen, 10);
+  assert.equal(report.topTenResearchWorthy.length, 10);
   assert.equal(report.topTenCurrentResearchBoard.length, 10);
   assert.equal(report.topTenHighestRatedNow.length, 0);
   assert.equal(report.notForced, true);
   assert.match(report.disclaimer, /not financial advice/i);
+});
+
+test("hottest-ten-now gives top-ten slots to unique display families", () => {
+  const routeMissing = {
+    liveExecutionReady: false,
+    executionProofState: "MARKET_OBSERVED",
+    routeTruthStatus: "MARKET_OBSERVED",
+    buyQuoteVerified: false,
+    sellQuoteVerified: false,
+    executionProof: {
+      buyRouteAvailable: false,
+      sellRouteAvailable: false,
+      buyQuoteVerified: false,
+      sellQuoteVerified: false,
+      liveExecutionReady: false,
+      executionProofState: "MARKET_OBSERVED",
+      routeTruthStatus: "MARKET_OBSERVED",
+      exactIdentityVerified: true,
+      liquidityUsd: 220_000,
+      slippageIsHeuristic: true,
+    },
+    purchaseRouteConfirmed: false,
+    sellRouteAvailable: false,
+  };
+  const projects = [
+    candidate({ ...routeMissing, symbol: "PERP", name: "Perpetual Protocol", chain: "solana", sevenDayTenXScore: 90 }),
+    candidate({ ...routeMissing, symbol: "PERP", name: "Perpetual", chain: "ethereum", sevenDayTenXScore: 89 }),
+    ...Array.from({ length: 9 }, (_, index) =>
+      candidate({
+        ...routeMissing,
+        symbol: `UTIL${index + 1}`,
+        name: `Utility Protocol ${index + 1}`,
+        sevenDayTenXScore: 80 - index,
+      })
+    ),
+  ];
+
+  const report = summarizeHottestTenNow(projects);
+  const symbols = report.topTenResearchWorthy.map((project) => project.symbol);
+
+  assert.equal(report.returnedCount, 10);
+  assert.equal(symbols.filter((symbol) => symbol === "PERP").length, 1);
+  assert.equal(symbols.includes("UTIL9"), true);
 });
 
 test("hottest-ten-now backfills first board with best non-danger lower-priority recovery leads", () => {
@@ -466,8 +525,13 @@ test("hottest-ten-now backfills first board with best non-danger lower-priority 
   const report = summarizeHottestTenNow(projects);
 
   assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 0);
+  assert.equal(report.returnedCount, 10);
+  assert.equal(report.researchReturnedCount, 10);
+  assert.equal(report.qualifiedReturnedCount, 0);
   assert.equal(report.currentResearchBoardCount, 10);
+  assert.equal(report.shortfallToTen, 0);
+  assert.equal(report.qualifiedShortfallToTen, 10);
+  assert.equal(report.topTenResearchWorthy.length, 10);
   assert.equal(report.topTenCurrentResearchBoard.length, 10);
   assert.equal(report.topTenCurrentResearchBoard[0].lane, "LOWER_PRIORITY");
   assert.equal(report.topTenCurrentResearchBoard[0].reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
