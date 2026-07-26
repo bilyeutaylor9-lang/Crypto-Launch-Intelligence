@@ -136,6 +136,10 @@ const PUBLIC_REPORTS = [
   "high-upside-scalp-research.json",
   "scalp-microstructure.json",
   "hottest-ten-now.json",
+  "daily-capital-move.json",
+  "daily-recovery-queue.json",
+  "daily-source-gaps.json",
+  "system-readiness.json",
   "decision-report-compaction-audit.json",
   "decision-report-compaction-audit.md",
   "web-crawler-preimplementation-audit.json",
@@ -295,7 +299,7 @@ function renderResearchWorthyBoard(candidates = []) {
       <section class="panel hero-panel">
         <div class="section-heading">
           <div>
-            <h2>Research Worthy Now</h2>
+            <h2>Top 10 Research-Worthy Utility Small Caps</h2>
             <p>No research-worthy candidates passed the latest display filters. Check source health and rescue queues before loosening safety gates.</p>
           </div>
           <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
@@ -309,7 +313,7 @@ function renderResearchWorthyBoard(candidates = []) {
     <section class="panel hero-panel">
       <div class="section-heading">
         <div>
-          <h2>Research Worthy Now</h2>
+          <h2>Top 10 Research-Worthy Utility Small Caps</h2>
           <p>First-look board for candidates worth manual research. Research output only, not financial advice or a profit guarantee.</p>
         </div>
         <div class="actions">
@@ -356,6 +360,45 @@ function renderResearchWorthyBoard(candidates = []) {
           </tbody>
         </table>
       </div>
+    </section>
+  `;
+}
+
+function renderDailyCapitalSlate(dailyCapital = {}, recovery = {}) {
+  const best = dailyCapital.bestCandidate;
+  const board = [
+    ...(best ? [best] : []),
+    ...(dailyCapital.backupCandidates || []),
+    ...(dailyCapital.watchlist || []),
+  ].slice(0, 10);
+  const status = dailyCapital.status || "REPORT NOT GENERATED";
+
+  return `
+    <section class="panel hero-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Daily Capital Move Status</h2>
+          <p>${escapeHtml(
+            best
+              ? "One candidate has the strongest current research profile. Refresh route and safety proof before any manual decision."
+              : dailyCapital.noMoveReason || "No valid capital move today. Use the recovery queue instead of forcing a pick."
+          )}</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="./daily-capital-move.json">Daily Capital Slate</a>
+          <a class="button" href="./daily-recovery-queue.json">Needs Missing Proof</a>
+          <a class="button" href="./system-readiness.json">System Readiness</a>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric compact"><div class="metric-value">${escapeHtml(status)}</div><div class="metric-label">Daily Status</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(best?.symbol || "NO VALID MOVE")}</div><div class="metric-label">Top Candidate</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(dailyCapital.countsByLane?.CAPITAL_MOVE_RESEARCH || 0)}</div><div class="metric-label">Capital Move Research</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(dailyCapital.countsByLane?.NEEDS_PROOF || 0)}</div><div class="metric-label">Needs Proof</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(recovery.recoveryCandidateCount ?? 0)}</div><div class="metric-label">Recovery Queue</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(best?.executionTruthState || "NO VERIFIED ROUTE")}</div><div class="metric-label">Execution Truth</div></div>
+      </div>
+      ${renderScalpCandidateTable(board, "Daily Capital Slate")}
     </section>
   `;
 }
@@ -524,6 +567,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const highUpsideScalp = readJsonReport("high-upside-scalp-research.json", reportsDir) || {};
   const scalpMicrostructure = readJsonReport("scalp-microstructure.json", reportsDir) || {};
   const hottestTenNow = readJsonReport("hottest-ten-now.json", reportsDir) || {};
+  const dailyCapital = readJsonReport("daily-capital-move.json", reportsDir) || {};
+  const dailyRecovery = readJsonReport("daily-recovery-queue.json", reportsDir) || {};
+  const dailySourceGaps = readJsonReport("daily-source-gaps.json", reportsDir) || {};
+  const systemReadiness = readJsonReport("system-readiness.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -629,6 +676,12 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Hot Now", hottestTenNow.returnedCount ?? 0],
     ["Hot Lead", hottestLead.symbol || "NO HOT LEAD"],
     ["Hot Shortfall", hottestTenNow.shortfallToTen ?? 10],
+    ["System Readiness", systemReadiness.status || "REPORT NOT GENERATED"],
+    ["Daily Slate", dailyCapital.status || "REPORT NOT GENERATED"],
+    ["Daily Candidate", dailyCapital.bestCandidate?.symbol || "NO VALID MOVE"],
+    ["Needs Proof", dailyCapital.countsByLane?.NEEDS_PROOF ?? 0],
+    ["Recovery Queue", dailyRecovery.recoveryCandidateCount ?? 0],
+    ["Source Gaps", dailySourceGaps.status || "REPORT NOT GENERATED"],
     [
       "Category Lead",
       advertisedCategoryCoverage.categories?.find((category) => category.displayedResults?.length)
@@ -1103,6 +1156,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   </header>
   <main>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
+    ${renderDailyCapitalSlate(dailyCapital, dailyRecovery)}
     <section class="panel">
       <div class="section-heading">
         <div>
@@ -1239,6 +1293,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button primary" href="./high-upside-scalp-research.json">High-Upside Scalp</a>
         <a class="button" href="./scalp-microstructure.json">Scalp Microstructure</a>
         <a class="button primary" href="./hottest-ten-now.json">Hottest Ten Now</a>
+        <a class="button primary" href="./daily-capital-move.json">Daily Capital</a>
+        <a class="button" href="./daily-recovery-queue.json">Recovery Queue</a>
+        <a class="button" href="./daily-source-gaps.json">Source Gaps</a>
+        <a class="button" href="./system-readiness.json">System Readiness</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>
         <a class="button" href="./emerging-radar.json">Emerging Radar</a>
         <a class="button" href="./blocked-projects.json">Blocked</a>

@@ -74,6 +74,10 @@ import { writeUtilityQualityReport } from "./utilityQualityReportEngine.js";
 import { writeHighUpsideScalpReport } from "./highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "./scalpMicrostructureReportEngine.js";
 import { writeHottestTenNowReport } from "./hottestTenNowReportEngine.js";
+import { writeDailyCapitalMoveReport } from "./dailyCapitalMoveReportEngine.js";
+import { writeDailyRecoveryQueueReport } from "./dailyRecoveryQueueReportEngine.js";
+import { writeDailySourceGapReport } from "./dailySourceGapReportEngine.js";
+import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
@@ -337,6 +341,12 @@ export function generateReports(projects = [], meta = {}) {
     filePath: hottestTenNowPath,
   } = writeHottestTenNowReport(projects, meta);
   const {
+    filePath: dailyCapitalMovePath,
+  } = writeDailyCapitalMoveReport(fullProjects, meta);
+  const {
+    filePath: dailyRecoveryQueuePath,
+  } = writeDailyRecoveryQueueReport(fullProjects, meta);
+  const {
     filePath: decisionReportCompactionAuditPath,
     markdownPath: decisionReportCompactionAuditMarkdownPath,
   } = writeDecisionReportCompactionAudit(fullProjects, meta);
@@ -356,7 +366,16 @@ export function generateReports(projects = [], meta = {}) {
   });
   const {
     filePath: sourceRouterPath,
+    report: sourceRouter,
   } = writeSourceRouterReport();
+  const {
+    filePath: dailySourceGapsPath,
+    report: dailySourceGaps,
+  } = writeDailySourceGapReport({
+    ...meta,
+    opModeReadiness,
+    sourceRouter,
+  });
   const {
     filePath: engineAuditPath,
   } = writeEngineAuditReport();
@@ -373,6 +392,14 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: localAIResearchPath,
   } = writeLocalAIResearchReport();
+  const {
+    filePath: systemReadinessPath,
+  } = writeSystemReadinessReport({
+    ...meta,
+    opModeReadiness,
+    sourceRouter,
+    dailySourceGaps,
+  });
 
   sanitizeReportJsonFiles(REQUIRED_REPORT_FILES);
 
@@ -500,17 +527,21 @@ export function generateReports(projects = [], meta = {}) {
     highUpsideScalpPath,
     scalpMicrostructurePath,
     hottestTenNowPath,
+    dailyCapitalMovePath,
+    dailyRecoveryQueuePath,
     decisionReportCompactionAuditPath,
     decisionReportCompactionAuditMarkdownPath,
     alphaTruthKernelPath,
     opModeReadinessPath,
     evidenceKernelPath,
     sourceRouterPath,
+    dailySourceGapsPath,
     engineAuditPath,
     alertsPath,
     briefPath,
     watchtowerPerformancePath,
     localAIResearchPath,
+    systemReadinessPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,

@@ -159,6 +159,7 @@ import { analyzeResearchReadinessBatch } from "./engines/researchReadinessEngine
 import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunityEngine.js";
 import { analyzeUtilityQualityBatch } from "./engines/utilityQualityEngine.js";
 import { analyzeHighUpsideScalpClassificationBatch } from "./engines/highUpsideScalpClassificationEngine.js";
+import { analyzeDailyCapitalMoveBatch } from "./engines/dailyCapitalMoveEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 import {
@@ -211,6 +212,7 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "Project Dossier Swarm": 30_000,
   "AI Research Commander": 30_000,
   "Autonomous Alpha Investigator": 30_000,
+  "Capital Flow Observation": 45_000,
 };
 const PIPELINE_STAGE_ORDER = [
   "standard",
@@ -314,6 +316,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "7-Day Asymmetric Research": "deep",
   "Scalp Microstructure": "deep",
   "High-Upside Scalp Classification": "deep",
+  "Daily Capital Move": "deep",
 
   "Research Operating System": "llama",
   "Autonomous Alpha Lab": "llama",
@@ -623,6 +626,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Contract Authority Risk",
   "Organic Demand Integrity",
   "High-Upside Scalp Classification",
+  "Daily Capital Move",
 ]);
 
 function engineCriticality(name = "", options = {}) {
@@ -2606,6 +2610,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     results,
     options.highUpsideScalpClassification || {}
   );
+  results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

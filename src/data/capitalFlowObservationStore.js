@@ -6,17 +6,43 @@ import { createStorageAdapter } from "../db/storageAdapter.js";
 
 const DATA_DIR = path.resolve("data");
 const OBSERVATION_FILE = path.join(DATA_DIR, "capital-flow-observations.jsonl");
+const DEFAULT_DEDUPE_READ_BYTES = 2_000_000;
+const DEFAULT_WAREHOUSE_TIMEOUT_MS = 5_000;
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function readExistingKeys() {
+function configuredPositiveNumber(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function readRecentFileText(filePath, maxBytes = DEFAULT_DEDUPE_READ_BYTES) {
+  const stat = fs.statSync(filePath);
+  const bytesToRead = Math.min(stat.size, maxBytes);
+  const start = Math.max(0, stat.size - bytesToRead);
+  const buffer = Buffer.alloc(bytesToRead);
+  const fd = fs.openSync(filePath, "r");
+  try {
+    fs.readSync(fd, buffer, 0, bytesToRead, start);
+  } finally {
+    fs.closeSync(fd);
+  }
+  const lines = buffer.toString("utf8").split("\n");
+  if (start > 0) lines.shift();
+  return lines.join("\n");
+}
+
+function readExistingKeys(options = {}) {
   ensureDataDir();
   if (!fs.existsSync(OBSERVATION_FILE)) return new Set();
+  const maxBytes = configuredPositiveNumber(
+    options.maxReadBytes || process.env.CAPITAL_FLOW_DEDUPE_READ_BYTES,
+    DEFAULT_DEDUPE_READ_BYTES
+  );
   return new Set(
-    fs
-      .readFileSync(OBSERVATION_FILE, "utf8")
+    readRecentFileText(OBSERVATION_FILE, maxBytes)
       .split("\n")
       .filter(Boolean)
       .flatMap((line) => {
@@ -32,7 +58,7 @@ function readExistingKeys() {
 
 export function appendCapitalFlowObservations(observations = [], options = {}) {
   ensureDataDir();
-  const existing = options.existingKeys || readExistingKeys();
+  const existing = options.existingKeys || readExistingKeys(options);
   const rows = [];
 
   for (const observation of Array.isArray(observations) ? observations : []) {
@@ -51,6 +77,51 @@ export function appendCapitalFlowObservations(observations = [], options = {}) {
     saved: rows.length,
     observations: rows,
   };
+}
+
+async function writeWarehouseBestEffort(observations = [], options = {}) {
+  if (options.writeWarehouse === false) {
+    return {
+      status: "SKIPPED",
+      reason: "Warehouse write disabled.",
+    };
+  }
+  if (options.signal?.aborted) {
+    return {
+      status: "SKIPPED",
+      reason: "Observation warehouse write skipped because engine was aborted.",
+    };
+  }
+
+  const timeoutMs = configuredPositiveNumber(
+    options.warehouseTimeoutMs || process.env.CAPITAL_FLOW_WAREHOUSE_TIMEOUT_MS,
+    DEFAULT_WAREHOUSE_TIMEOUT_MS
+  );
+  const adapter = createStorageAdapter(options);
+  let timer = null;
+  try {
+    return await Promise.race([
+      adapter.writeCapitalFlowObservations(observations),
+      new Promise((resolve) => {
+        timer = setTimeout(
+          () =>
+            resolve({
+              status: "SKIPPED",
+              reason: `Observation warehouse write exceeded ${timeoutMs}ms and was deferred.`,
+            }),
+          timeoutMs
+        );
+      }),
+    ]);
+  } catch (error) {
+    return {
+      status: "FAILED",
+      reason: error.message,
+    };
+  } finally {
+    if (timer) clearTimeout(timer);
+    adapter.close?.();
+  }
 }
 
 export function loadCapitalFlowObservations(options = {}) {
@@ -76,17 +147,8 @@ export function loadCapitalFlowObservations(options = {}) {
 
 export async function saveCapitalFlowObservations(projects = [], options = {}) {
   const observations = normalizeCapitalFlowObservations(projects, options);
-  const local = appendCapitalFlowObservations(observations);
-  let warehouse = {
-    status: "SKIPPED",
-    reason: "Warehouse write disabled.",
-  };
-
-  if (options.writeWarehouse !== false) {
-    const adapter = createStorageAdapter(options);
-    warehouse = await adapter.writeCapitalFlowObservations(local.observations);
-    adapter.close?.();
-  }
+  const local = appendCapitalFlowObservations(observations, options);
+  const warehouse = await writeWarehouseBestEffort(local.observations, options);
 
   return {
     ...local,
@@ -109,12 +171,8 @@ export async function analyzeCapitalFlowObservationBatch(projects = [], options 
   };
 
   if (options.persist !== false) {
-    local = appendCapitalFlowObservations(observations);
-    if (options.writeWarehouse !== false) {
-      const adapter = createStorageAdapter(options);
-      warehouse = await adapter.writeCapitalFlowObservations(local.observations);
-      adapter.close?.();
-    }
+    local = appendCapitalFlowObservations(observations, options);
+    warehouse = await writeWarehouseBestEffort(local.observations, options);
   }
 
   const storeStatus = {

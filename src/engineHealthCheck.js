@@ -5,6 +5,17 @@ import { getEngineContracts } from "./kernel/engineContractManifest.js";
 
 const ENGINE_DIR = path.resolve("src/engines");
 const PIPELINE_FILE = path.resolve("src/intelligencePipeline.js");
+const DEFAULT_AUDIT_TIMEOUT_MS = 7_000;
+const PIPELINE_STAGE_AUDIT_TIMEOUTS_MS = Object.freeze({
+  "External Intelligence": 30_000,
+  "Web Research Agent": 60_000,
+  "Roadmap Catalyst Profit": 30_000,
+  "Live Catalyst Radar": 30_000,
+  "Project Dossier Swarm": 30_000,
+  "AI Research Commander": 30_000,
+  "Autonomous Alpha Investigator": 30_000,
+  "Capital Flow Observation": 45_000,
+});
 
 const STANDALONE_ENGINE_AUDIT_SPECS = Object.freeze({
   "aiMonteCarloEngine.js": { exportName: "analyzeAIMonteCarloBatch", role: "optional-ai-adapter", args: "projects", options: { limit: 1, delayMs: 1 } },
@@ -96,6 +107,22 @@ function withTimeout(work, timeoutMs, label) {
   });
 
   return Promise.race([Promise.resolve().then(work), timeout]).finally(() => clearTimeout(timer));
+}
+
+function auditTimeoutMs({ options = {}, contract = {}, spec = {}, usage = {} } = {}) {
+  const explicit = num(options.timeoutMs);
+  if (explicit > 0) return Math.max(100, explicit);
+
+  const declared = num(contract.timeoutMs || spec.timeoutMs || usage.timeoutMs);
+  if (declared > 0) return Math.max(100, declared);
+
+  const stageSpecific = num(PIPELINE_STAGE_AUDIT_TIMEOUTS_MS[usage.stage] || PIPELINE_STAGE_AUDIT_TIMEOUTS_MS[spec.stage]);
+  if (stageSpecific > 0) return Math.max(100, stageSpecific);
+
+  const environmentDefault = num(process.env.ENGINE_AUDIT_TIMEOUT_MS || process.env.DEFAULT_ENGINE_TIMEOUT_MS);
+  if (environmentDefault > 0) return Math.max(100, environmentDefault);
+
+  return DEFAULT_AUDIT_TIMEOUT_MS;
 }
 
 function moduleFileFor(contract = {}) {
@@ -198,7 +225,7 @@ function standaloneIdentityPreserved(result = {}, sample = {}) {
 
 async function executeContract(contract = {}, module = {}, sample = {}, options = {}) {
   const engine = module[contract.exportName];
-  const timeoutMs = Math.max(100, num(options.timeoutMs || contract.timeoutMs || 7000));
+  const timeoutMs = auditTimeoutMs({ options, contract });
 
   if (typeof engine !== "function") {
     return {
@@ -214,7 +241,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
   const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
-      () => engine([{ ...sample }], { auditMode: true, saveMemory: false }),
+      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, engineTimeoutMs: timeoutMs }),
       timeoutMs,
       contract.id
     );
@@ -282,7 +309,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
 
 async function executePipelineUsage(usage = {}, module = {}, sample = {}, options = {}) {
   const engine = module[usage.exportName];
-  const timeoutMs = Math.max(100, num(options.timeoutMs || 7000));
+  const timeoutMs = auditTimeoutMs({ options, usage });
 
   if (typeof engine !== "function") {
     return {
@@ -298,7 +325,7 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
   const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
-      () => engine([{ ...sample }], { auditMode: true, saveMemory: false }),
+      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, engineTimeoutMs: timeoutMs }),
       timeoutMs,
       usage.stage
     );
@@ -401,7 +428,7 @@ function standaloneArguments(spec = {}, sample = {}) {
 
 async function executeStandaloneUsage(spec = {}, module = {}, sample = {}, options = {}) {
   const engine = module[spec.exportName];
-  const timeoutMs = Math.max(100, num(options.timeoutMs || spec.timeoutMs || 7000));
+  const timeoutMs = auditTimeoutMs({ options, spec });
 
   if (typeof engine !== "function") {
     return {

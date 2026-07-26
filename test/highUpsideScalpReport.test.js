@@ -359,6 +359,38 @@ test("safety blocked, lower priority, and route-missing projects stay visible", 
   assert.equal(report.researchOnlyRouteMissing[0].symbol, "NOROUTE");
 });
 
+test("high-upside scalp treats route-only microstructure blocks as research-only missing proof", () => {
+  const noRoute = candidate({
+    symbol: "ROUTEGAP",
+    sellRouteAvailable: false,
+    executionStatus: "MARKET_OBSERVED",
+    executionProofState: "MARKET_OBSERVED",
+    routeTruthStatus: "MARKET_OBSERVED",
+    buyQuoteVerified: false,
+    sellQuoteVerified: false,
+    executionProof: {
+      buyRouteAvailable: false,
+      sellRouteAvailable: false,
+      buyQuoteVerified: false,
+      sellQuoteVerified: false,
+      liveExecutionReady: false,
+      executionProofState: "MARKET_OBSERVED",
+      routeTruthStatus: "MARKET_OBSERVED",
+      exactIdentityVerified: true,
+      liquidityUsd: 180_000,
+      slippageIsHeuristic: true,
+    },
+    finalSelectionState: "BLOCKED",
+    finalSelectionBlockers: ["EXECUTION_EVIDENCE_MISSING", "SNIPER_EVIDENCE_FAMILY_QUORUM_MISSING"],
+  });
+  const report = summarizeHighUpsideScalpResearch(classified([noRoute]));
+
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.microstructureRejectedCount, 0);
+  assert.equal(report.safetyBlockedCount, 0);
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "ROUTEGAP");
+});
+
 test("every high-upside input project is counted exactly once", () => {
   const report = summarizeHighUpsideScalpResearch(
     classified([

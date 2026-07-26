@@ -134,6 +134,9 @@ jobs:
       - name: Run Full Engine Health Audit
         run: npm run engine:audit:full
 
+      - name: Validate Required Report Contracts
+        run: npm run results:health
+
       - name: Build Public Dashboard
         run: npm run publish:dashboard
 

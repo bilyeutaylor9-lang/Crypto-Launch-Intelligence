@@ -651,6 +651,37 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: true,
   },
   {
+    id: "dailyCapitalMove",
+    phase: "decision-reporting",
+    priority: 139.9,
+    module: "./engines/dailyCapitalMoveEngine.js",
+    exportName: "analyzeDailyCapitalMoveBatch",
+    dependsOn: ["highUpsideScalpClassification", "scalpMicrostructure", "routeAccessibility", "utilityQuality"],
+    inputContract: {
+      requiredAny: [
+        ["highUpsideScalpScore", "hottestTenNowScore", "sevenDayTenXScore", "earlyAsymmetryResearchPriorityScore"],
+        ["routeTruthStatus", "executionProofState", "executionProof", "canonicalExecutionRoute"],
+        ["utilityQualityScore", "realUtilityScore", "utilityClassification"],
+      ],
+      optional: ["capitalMigrationScore", "buyerBreadthAccelerationScore", "liquidityFormationScore", "sourceTruthScore"],
+    },
+    outputContract: {
+      requiredAny: [
+        ["dailyCapitalMoveScore"],
+        ["dailyCapitalMoveLane"],
+        ["dailyCapitalMoveReason"],
+        ["dailyCapitalMoveMissingProofCount", "dailyCapitalMoveMissingProof"],
+      ],
+      scoreFields: ["dailyCapitalMoveScore"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "degrade",
+    affectsFinalDecision: true,
+    canBlockCandidate: true,
+  },
+  {
     id: "alphaEvolutionGovernor",
     phase: "governor",
     priority: 140,

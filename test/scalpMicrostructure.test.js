@@ -93,6 +93,22 @@ test("scalp microstructure rejects routes without a verified sell path", () => {
   assert.ok(result.scalpMicrostructureBlockers.includes("SCALP_BUY_AND_SELL_ROUTE_NOT_VERIFIED"));
 });
 
+test("scalp microstructure treats non-danger final blocks as missing route proof", () => {
+  const result = analyzeScalpMicrostructure(
+    candidate({
+      symbol: "PROOF",
+      finalSelectionState: "BLOCKED",
+      finalSelectionBlockers: ["EXECUTION_EVIDENCE_MISSING", "SNIPER_EVIDENCE_FAMILY_QUORUM_MISSING"],
+      sellRouteAvailable: false,
+      executionStatus: "MARKET_OBSERVED",
+    })
+  );
+
+  assert.equal(result.scalpMicrostructureLane, "SCALP_NO_TRADE_ROUTE_BLOCK");
+  assert.ok(result.scalpMicrostructureBlockers.includes("SCALP_BUY_AND_SELL_ROUTE_NOT_VERIFIED"));
+  assert.equal(result.scalpMicrostructureBlockers.includes("SCALP_SAFETY_BLOCK"), false);
+});
+
 test("scalp microstructure rejects thin or expensive routes for the intended trade size", () => {
   const thin = analyzeScalpMicrostructure(candidate({ symbol: "THIN", liquidityUsd: 4_000, stableExitLiquidityUsd: 4_000 }));
   const costly = analyzeScalpMicrostructure(

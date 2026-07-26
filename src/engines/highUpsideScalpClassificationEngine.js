@@ -1,4 +1,5 @@
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { isLikelyAggregateCandidate } from "../identity/displayIdentityGuard.js";
 
 export const HIGH_UPSIDE_SCALP_LANES = [
   "SCALP_READY_RESEARCH",
@@ -15,6 +16,7 @@ export const HIGH_UPSIDE_SCALP_LANES = [
   "SAFETY_BLOCKED",
   "LOWER_PRIORITY",
   "DATA_STARVED",
+  "INVALID_OR_AGGREGATE_IDENTITY",
 ];
 
 const MAX_MISSING_FIELDS = 80;
@@ -251,6 +253,10 @@ function deterministicSafetyBlocked(project = {}) {
   );
 }
 
+function routeOnlyScalpBlock(project = {}) {
+  return /ROUTE|QUOTE|STALE/i.test(String(project.scalpMicrostructureLane || ""));
+}
+
 function scoreFromFamilies(componentScores = {}, dataCoveragePct = 0) {
   let weightedScore = 0;
   let activeWeight = 0;
@@ -271,6 +277,9 @@ function scoreFromFamilies(componentScores = {}, dataCoveragePct = 0) {
 }
 
 function classificationReason(lane = "", project = {}, score = 0, coveragePct = 0) {
+  if (lane === "INVALID_OR_AGGREGATE_IDENTITY") {
+    return "Provider row is malformed or appears to describe an aggregate market instead of a tradable token.";
+  }
   if (lane === "SAFETY_BLOCKED") return "Deterministic safety, identity, or manipulation blocker prevents scalp research.";
   if (lane === "LATE_CHASE_REJECTED") return "Price action is already extended for high-upside scalp mode.";
   if (lane === "MEME_SPECULATION_EXCLUDED") return "Meme-only speculation is excluded from the real-utility scalp lane.";
@@ -287,9 +296,13 @@ function classificationReason(lane = "", project = {}, score = 0, coveragePct = 
 }
 
 function primaryLane(project = {}, score = 0, dataCoveragePct = 0) {
+  if (isLikelyAggregateCandidate(project)) return "INVALID_OR_AGGREGATE_IDENTITY";
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
+  if (routeOnlyScalpBlock(project)) {
+    return dataCoveragePct >= MIN_DATA_COVERAGE_PCT ? "RESEARCH_ONLY_ROUTE_MISSING" : "DATA_STARVED";
+  }
   if (String(project.scalpMicrostructureLane || "").startsWith("SCALP_NO_TRADE")) return project.scalpMicrostructureLane;
   if (!routeReady(project) && dataCoveragePct >= MIN_DATA_COVERAGE_PCT) return "RESEARCH_ONLY_ROUTE_MISSING";
   if (dataCoveragePct < MIN_DATA_COVERAGE_PCT) return "DATA_STARVED";

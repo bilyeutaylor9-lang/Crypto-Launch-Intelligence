@@ -20,6 +20,18 @@ const CORE_SOURCE_NAMES = [
   "candidateRescue",
 ];
 
+const RECOVERABLE_NO_KEY_PROBE_SOURCES = new Set([
+  "dexscreener",
+  "geckoterminal",
+  "freeMarketData",
+  "expandedMarketData",
+  "googleNewsDiscovery",
+  "githubProjectDiscovery",
+  "nativeDiscoveryMesh",
+]);
+
+const NON_RECOVERABLE_COOLDOWN_TYPES = new Set(["RATE_LIMIT", "BLOCKED", "AUTH_REQUIRED"]);
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -114,6 +126,12 @@ function cooldownHoursFor(type = null, failures = 0) {
   return 0;
 }
 
+function canProbeRecoverableCooldown(source = "", state = {}) {
+  if (process.env.SOURCE_ROUTER_PROBE_RECOVERABLE_COOLDOWNS === "false") return false;
+  if (!RECOVERABLE_NO_KEY_PROBE_SOURCES.has(source)) return false;
+  return !NON_RECOVERABLE_COOLDOWN_TYPES.has(state.lastErrorType || errorType(state.lastError));
+}
+
 function trustScore(state = {}) {
   const runs = Math.max(1, num(state.runs));
   const successRate = (num(state.successes) / runs) * 100;
@@ -146,9 +164,11 @@ export function getSourceRoutingPlan(options = {}) {
     if (disabledByEnv) {
       decision = "SKIP";
       reasons.push("disabled by DISABLED_DISCOVERY_SOURCES");
-    } else if (coolingDown) {
+    } else if (coolingDown && !canProbeRecoverableCooldown(source, state)) {
       decision = "COOLDOWN";
       reasons.push(`cooling down until ${state.cooldownUntil}`);
+    } else if (coolingDown) {
+      reasons.push(`probing recoverable cooldown from ${state.lastErrorType || errorType(state.lastError) || "transient error"}`);
     } else if (state.runs >= 3 && score < 20 && state.failures >= state.successes + 2) {
       decision = "DEPRIORITIZE";
       reasons.push("low historical reliability");
@@ -199,12 +219,9 @@ function updateState(previous = {}, result = {}) {
   const type = errorType(result.error);
   const failures = failed ? num(previous.failures) + 1 : num(previous.failures);
   const cooldownHours = failed ? cooldownHoursFor(type, failures) : 0;
-  const cooldownUntil =
-    cooldownHours > 0
-      ? new Date(Date.now() + cooldownHours * 60 * 60 * 1000).toISOString()
-      : previous.cooldownUntil && new Date(previous.cooldownUntil).getTime() > Date.now()
-      ? previous.cooldownUntil
-      : null;
+  const cooldownUntil = failed && cooldownHours > 0
+    ? new Date(Date.now() + cooldownHours * 60 * 60 * 1000).toISOString()
+    : null;
 
   return {
     source: result.source,
@@ -307,6 +324,11 @@ export function writeSourceRouterReport() {
   fs.writeFileSync(filePath, JSON.stringify(report, null, 2));
   return { filePath, report };
 }
+
+export const __adaptiveSourceRouterTestHooks = {
+  canProbeRecoverableCooldown,
+  updateState,
+};
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { report } = writeSourceRouterReport();

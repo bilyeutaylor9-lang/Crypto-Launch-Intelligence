@@ -2,9 +2,16 @@ import fs from "fs";
 import path from "path";
 import { analyzeUtilityQuality } from "../engines/utilityQualityEngine.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import {
+  aggregateIdentityReason,
+  isGenericMarketIdentity,
+  isLikelyAggregateCandidate,
+  isLikelyMemeIdentity,
+} from "../identity/displayIdentityGuard.js";
 
 const TARGET_COUNT = 10;
 const MAX_AUDIT_ROWS = 50;
+const MAX_UTILITY_SMALL_CAP_USD = Number(process.env.HOTTEST_TEN_MAX_MARKET_CAP_USD || 75_000_000);
 const HARD_SAFETY_BLOCKER_PATTERN =
   /honeypot|verified scam|scam confirmed|identity conflict|contract mismatch|chain mismatch|cannot sell|sell restricted|sell blocked|blacklist|freeze authority|critical safety|malicious|trap token/i;
 const ROUTE_GAP_PATTERN = /route|quote|sell path|buy path|execution|slippage|order depth|market depth/i;
@@ -148,6 +155,8 @@ function lateChase(project = {}) {
     ].join(" ")
   );
   return Boolean(
+    project.highUpsideScalpLane === "LATE_CHASE_REJECTED" ||
+      project.scalpMicrostructureLane === "SCALP_NO_TRADE_LATE_CHASE" ||
     /ALREADY_10X|LATE_CHASE|ALREADY_PUMPED|EXTENDED|OVERHEATED/.test(stage) ||
       priceChange24hPct(project) >= 85 ||
       priceChange7dPct(project) >= 220
@@ -155,11 +164,31 @@ function lateChase(project = {}) {
 }
 
 function utilityBlocked(project = {}) {
+  const strongMemeUtilityOverride =
+    project.realUtilityQualified === true ||
+    project.utilityClassification === "REAL_UTILITY" ||
+    (num(project.utilityQualityScore) >= 65 &&
+      Array.isArray(project.utilityEvidenceFamilies) &&
+      project.utilityEvidenceFamilies.length >= 3);
+  const memeIdentityWithoutUtility = isLikelyMemeIdentity(project) && !strongMemeUtilityOverride;
   return Boolean(
     project.memeOnlySpeculative === true ||
       project.utilityClassification === "MEME_SPECULATION" ||
-      project.utilityQualityVerdict === "Meme-only speculation"
+      project.utilityQualityVerdict === "Meme-only speculation" ||
+      memeIdentityWithoutUtility
   );
+}
+
+function genericMarketLabelWithoutProjectProof(project = {}) {
+  if (!isGenericMarketIdentity(project)) return false;
+  const hasProjectProof =
+    utilityEvidenceStrong(project) ||
+    Boolean(first([project.website, project.docsUrl, project.githubRepo, project.roadmap, project.productEvidence]));
+  const hasSpecificTradableAnchor = Boolean(
+    first([project.tokenAddress, project.contractAddress, project.canonicalAddress]) &&
+      first([project.poolAddress, project.pairAddress, project.primaryTradablePool, project.marketPair])
+  );
+  return !(hasProjectProof && hasSpecificTradableAnchor);
 }
 
 function withUtilityAnalysis(project = {}) {
@@ -186,8 +215,11 @@ function utilityEvidenceStrong(project = {}) {
 
 function hardRejectionReason(project = {}) {
   if (deterministicSafetyBlocked(project)) return "DETERMINISTIC_SAFETY_OR_SCALP_BLOCK";
+  if (isLikelyAggregateCandidate(project)) return "MALFORMED_OR_AGGREGATE_IDENTITY";
   if (lateChase(project)) return "ALREADY_EXTENDED_OR_LATE_CHASE";
+  if (marketCapUsd(project) > MAX_UTILITY_SMALL_CAP_USD) return "TOO_LARGE_FOR_UTILITY_SMALL_CAP_BOARD";
   if (utilityBlocked(project)) return "MEME_ONLY_OR_NO_VERIFIED_UTILITY";
+  if (genericMarketLabelWithoutProjectProof(project)) return "GENERIC_MARKET_LABEL_NEEDS_PROJECT_PROOF";
   return "";
 }
 
@@ -319,6 +351,7 @@ function nextSourcesNeeded(project = {}) {
 
 function reasonNotQualified(project = {}, score = 0) {
   const hardReason = hardRejectionReason(project);
+  if (hardReason === "MALFORMED_OR_AGGREGATE_IDENTITY") return aggregateIdentityReason(project) || hardReason;
   if (hardReason) return hardReason;
   if (!buySellRouteVerified(project)) return "NEEDS_FRESH_BUY_AND_SELL_ROUTE";
   if (missingInfoNeeded(project).length) return "NEEDS_MISSING_INFO_CONFIRMATION";
@@ -403,6 +436,16 @@ function lane(project = {}, score = 0) {
   return "LOWER_PRIORITY";
 }
 
+function researchBoardBackfillEligible(project = {}) {
+  return Boolean(
+    project.hottestTenNowLane === "LOWER_PRIORITY" &&
+      project.hottestTenNowRejectionReason === "LOWER_PRIORITY" &&
+      hasIdentityHint(project) &&
+      missingInfoNeeded(project).length > 0 &&
+      num(project.hottestTenNowScore) > 0
+  );
+}
+
 function compactCandidate(project = {}, rank = null) {
   const score = project.hottestTenNowScore ?? scoreProject(project);
   return {
@@ -478,9 +521,10 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
   const watchlist = scored.filter((project) =>
     ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO"].includes(project.hottestTenNowLane)
   );
+  const researchBackfill = scored.filter(researchBoardBackfillEligible);
   const rejected = scored.filter((project) => project.hottestTenNowRejectionReason);
   const topTen = qualified.slice(0, TARGET_COUNT);
-  const topTenBoard = [...qualified, ...watchlist].slice(0, TARGET_COUNT);
+  const topTenBoard = [...qualified, ...watchlist, ...researchBackfill].slice(0, TARGET_COUNT);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -506,9 +550,9 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     shortfallToTen: Math.max(0, TARGET_COUNT - topTen.length),
     researchBoardShortfallToTen: Math.max(0, TARGET_COUNT - topTenBoard.length),
     confirmationGapCount: topTenBoard.filter((project) =>
-      ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO"].includes(project.hottestTenNowLane)
+      ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO", "LOWER_PRIORITY"].includes(project.hottestTenNowLane)
     ).length,
-    researchBoardMode: "STRICT_QUALIFIED_PLUS_MISSING_INFO_RESCUE",
+    researchBoardMode: "STRICT_QUALIFIED_PLUS_MISSING_INFO_AND_BEST_AVAILABLE_RECOVERY",
     notForced: true,
     topTenCurrentResearchBoard: topTenBoard.map((project, index) => compactCandidate(project, index + 1)),
     topTenHighestRatedNow: topTen.map((project, index) => compactCandidate(project, index + 1)),
@@ -523,7 +567,10 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     }, {}),
     operatingRules: [
       "Do not force ten candidates when fewer than ten have enough evidence.",
+      "Do not let aggregate chain, category, protocol TVL, or malformed provider rows fill the research board.",
+      "Do not let generic narrative or chain labels fill the research board without specific project proof.",
       "Do not chase coins already up hundreds of percent.",
+      `Do not put projects above ${MAX_UTILITY_SMALL_CAP_USD.toLocaleString("en-US")} market cap on the utility-small-cap board.`,
       "Do not rank meme-only hype above real-utility candidates.",
       "Do not call a route current-moment ready without buy and sell path evidence.",
     ],

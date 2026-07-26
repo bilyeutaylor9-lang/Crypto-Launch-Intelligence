@@ -6,6 +6,7 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import { normalizeProviderLinks } from "./providerLinkNormalizer.js";
 
 const HOT_SEARCH_TERMS = [
   "ai",
@@ -197,6 +198,10 @@ function candidate(base = {}) {
   const address = normalizeTokenAddress(base.address, chain);
   const pairAddress = normalizePoolAddress(base.pairAddress, chain);
   const providerAssetId = base.providerAssetId || base.id || null;
+  const providerLinks = normalizeProviderLinks(base, {
+    source: base.source || "expanded-market",
+    sourceUrl: base.url,
+  });
 
   return {
     name: base.name || "Unknown",
@@ -217,6 +222,7 @@ function candidate(base = {}) {
     pairAddress,
     dex: base.dex || "market",
     url: base.url || null,
+    ...providerLinks,
     priceUsd: nullableNumber(base.priceUsd),
     liquidityUsd: nullableNumber(base.liquidityUsd),
     volume24h: nullableNumber(base.volume24h),
@@ -530,6 +536,9 @@ export async function getDexScreenerCommunityTakeoverCandidates(options = {}) {
       pairAddress: null,
       dex: "community-takeover",
       url: takeover.url,
+      links: takeover.links,
+      websites: takeover.websites,
+      socials: takeover.socials,
       priceUsd: null,
       liquidityUsd: null,
       volume24h: null,
@@ -562,6 +571,9 @@ export async function getDexScreenerAdCandidates(options = {}) {
       pairAddress: null,
       dex: "token-ad",
       url: ad.url,
+      links: ad.links,
+      websites: ad.websites,
+      socials: ad.socials,
       priceUsd: null,
       liquidityUsd: null,
       volume24h: null,
@@ -612,6 +624,7 @@ export async function getDexScreenerSearchCandidates(options = {}) {
             pairAddress: pair.pairAddress,
             dex: pair.dexId,
             url: pair.url,
+            info: pair.info,
             priceUsd: pair.priceUsd,
             liquidityUsd: pair.liquidity?.usd,
             volume24h: pair.volume?.h24,
@@ -648,6 +661,9 @@ export async function getDexScreenerTokenProfileCandidates(options = {}) {
       pairAddress: null,
       dex: "token-profile",
       url: profile.url,
+      links: profile.links,
+      websites: profile.websites,
+      socials: profile.socials,
       priceUsd: null,
       liquidityUsd: null,
       volume24h: null,
@@ -685,6 +701,9 @@ export async function getDexScreenerBoostCandidates(options = {}) {
       pairAddress: null,
       dex: "token-boost",
       url: boost.url,
+      links: boost.links,
+      websites: boost.websites,
+      socials: boost.socials,
       priceUsd: null,
       liquidityUsd: null,
       volume24h: null,

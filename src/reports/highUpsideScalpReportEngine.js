@@ -351,6 +351,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const safetyBlocked = scored.filter((project) => laneForReport(project) === "SAFETY_BLOCKED");
   const lowerPriority = scored.filter((project) => laneForReport(project) === "LOWER_PRIORITY");
   const dataStarved = scored.filter((project) => laneForReport(project) === "DATA_STARVED");
+  const invalidIdentity = scored.filter((project) => laneForReport(project) === "INVALID_OR_AGGREGATE_IDENTITY");
   const unclassified = scored.filter((project) => laneForReport(project) === "UNCLASSIFIED");
   const laneDistribution = countByLane(scored);
   const classifiedProjectCount = scored.length - unclassified.length;
@@ -408,6 +409,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     safetyBlockedCount: safetyBlocked.length,
     lowerPriorityCount: lowerPriority.length,
     dataStarvedCount: dataStarved.length,
+    invalidOrAggregateIdentityCount: invalidIdentity.length,
     unclassifiedCount: unclassified.length,
     routeReadyCount: classificationEligible.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
     routeMissingCount: routeMissing.length,
@@ -432,6 +434,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     safetyBlocked: safetyBlocked.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     lowerPriority: lowerPriority.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     dataStarved: dataStarved.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    invalidOrAggregateIdentity: invalidIdentity.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     unclassified: unclassified.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     operatingRules: [
       "Do not chase assets that already completed a 10x-style move.",

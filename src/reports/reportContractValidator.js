@@ -49,6 +49,10 @@ export const REQUIRED_REPORT_FILES = [
   "high-upside-scalp-research.json",
   "scalp-microstructure.json",
   "hottest-ten-now.json",
+  "daily-capital-move.json",
+  "daily-recovery-queue.json",
+  "daily-source-gaps.json",
+  "system-readiness.json",
   "decision-report-compaction-audit.json",
   "institutional-ranking.json",
 ];

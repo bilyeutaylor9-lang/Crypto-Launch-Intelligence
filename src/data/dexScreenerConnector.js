@@ -5,6 +5,7 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import { normalizeProviderLinks } from "./providerLinkNormalizer.js";
 
 /**
  * DEX Screener Connector
@@ -56,6 +57,10 @@ export function normalizeDexPair(pair = {}) {
   const tokenAddress = normalizeTokenAddress(pair.baseToken?.address, chain);
   const quoteTokenAddress = normalizeTokenAddress(pair.quoteToken?.address, chain);
   const poolAddress = normalizePoolAddress(pair.pairAddress, chain);
+  const providerLinks = normalizeProviderLinks(pair, {
+    source: "dexscreener",
+    sourceUrl: pair.url,
+  });
 
   return {
     name: pair.baseToken?.name || "Unknown",
@@ -69,6 +74,7 @@ export function normalizeDexPair(pair = {}) {
     pairAddress: poolAddress,
     dex: pair.dexId || "unknown",
     url: pair.url || null,
+    ...providerLinks,
     source: "dexscreener",
     evidenceSourceFamily: "dexscreener",
     boostActivity: pair.boosts || null,

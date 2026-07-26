@@ -189,6 +189,10 @@ test("DexScreener catalyst feeds normalize identity and avoid fake executable li
             header: "Community Alpha",
             description: "community takeover",
             url: "https://dexscreener.com/base/community-alpha",
+            links: [
+              { type: "website", url: "https://community-alpha.example" },
+              { type: "docs", url: "https://docs.community-alpha.example" },
+            ],
             claimDate: "2026-07-18",
           },
         ],
@@ -204,6 +208,10 @@ test("DexScreener catalyst feeds normalize identity and avoid fake executable li
             header: "Boost Alpha",
             description: "boosted launch",
             url: "https://dexscreener.com/base/boost-alpha",
+            links: [
+              { type: "website", url: "https://boost-alpha.example" },
+              { type: "twitter", url: "https://x.com/boostalpha" },
+            ],
             amount: "1",
             totalAmount: "3",
           },
@@ -225,6 +233,9 @@ test("DexScreener catalyst feeds normalize identity and avoid fake executable li
     assert.equal(takeover.address, tokenAddress);
     assert.equal(takeover.pairAddress, null);
     assert.equal(takeover.claimDate, "2026-07-18");
+    assert.equal(takeover.website, "https://community-alpha.example/");
+    assert.equal(takeover.docsUrl, "https://docs.community-alpha.example/");
+    assert.equal(takeover.sourceUrl, "https://dexscreener.com/base/community-alpha");
 
     assert.equal(boost.source, "dexscreener-boosts");
     assert.equal(boost.chain, "base");
@@ -232,6 +243,8 @@ test("DexScreener catalyst feeds normalize identity and avoid fake executable li
     assert.equal(boost.liquidityUsd, null);
     assert.equal(boost.volume24h, null);
     assert.equal(boost.attentionSpendUsd, 3000);
+    assert.equal(boost.website, "https://boost-alpha.example/");
+    assert.equal(boost.twitterUrl, "https://x.com/boostalpha");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -255,6 +268,13 @@ test("direct DexScreener pair normalization validates chain and preserves missin
     volume: {},
     priceChange: {},
     txns: {},
+    info: {
+      websites: [{ label: "Website", url: "https://pair-alpha.example" }],
+      socials: [
+        { type: "twitter", url: "https://x.com/pairalpha" },
+        { type: "github", url: "https://github.com/pair-alpha/protocol" },
+      ],
+    },
   });
 
   assert.equal(normalized.chain, "base");
@@ -265,4 +285,9 @@ test("direct DexScreener pair normalization validates chain and preserves missin
   assert.equal(normalized.liquidityUsd, null);
   assert.equal(normalized.volume24h, null);
   assert.equal(normalized.buyTransactions24h, null);
+  assert.equal(normalized.url, null);
+  assert.equal(normalized.website, "https://pair-alpha.example/");
+  assert.equal(normalized.githubRepo, "https://github.com/pair-alpha/protocol");
+  assert.equal(normalized.twitterUrl, "https://x.com/pairalpha");
+  assert.equal(normalized.links.website, "https://pair-alpha.example/");
 });

@@ -234,6 +234,11 @@ function safetyBlocked(project = {}) {
   ]
     .join(" ")
     .toLowerCase();
+  const finalSelectionBlocked = project.finalSelectionState === "BLOCKED";
+  const hasSafetyBlockerText =
+    /honeypot|cannot sell|sell restricted|verified scam|identity conflict|contract mismatch|chain mismatch|blacklist|freeze authority|critical safety|malicious|trap token|owner can drain|liquidity removal/.test(
+      text
+    );
 
   return Boolean(
     project.honeypotDetected ||
@@ -241,12 +246,12 @@ function safetyBlocked(project = {}) {
       project.sellRestricted ||
       project.identityConflict ||
       project.canonicalIdentityHardBlock ||
-      project.finalSelectionState === "BLOCKED" ||
+      (finalSelectionBlocked && hasSafetyBlockerText) ||
       project.instantSafetyStatus === "CRITICAL" ||
       num(project.contractAuthorityRiskScore) >= 70 ||
       num(project.liquidityControlRiskScore) >= 75 ||
       num(project.washTradingRiskScore) >= 75 ||
-      /honeypot|cannot sell|sell restricted|verified scam|identity conflict|contract mismatch/.test(text)
+      hasSafetyBlockerText
   );
 }
 

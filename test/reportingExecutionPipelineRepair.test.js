@@ -48,6 +48,10 @@ import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEn
 import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "../src/reports/scalpMicrostructureReportEngine.js";
 import { writeHottestTenNowReport } from "../src/reports/hottestTenNowReportEngine.js";
+import { writeDailyCapitalMoveReport } from "../src/reports/dailyCapitalMoveReportEngine.js";
+import { writeDailyRecoveryQueueReport } from "../src/reports/dailyRecoveryQueueReportEngine.js";
+import { writeDailySourceGapReport } from "../src/reports/dailySourceGapReportEngine.js";
+import { writeSystemReadinessReport } from "../src/reports/systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "../src/reports/decisionReportCompactionAuditEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
@@ -450,7 +454,14 @@ test("mandatory report contracts are generated and validate", () => {
   writeHighUpsideScalpReport(processed);
   writeScalpMicrostructureReport(processed);
   writeHottestTenNowReport(processed);
+  writeDailyCapitalMoveReport(processed);
+  writeDailyRecoveryQueueReport(processed);
+  writeDailySourceGapReport({
+    sourceRouter: { sources: [] },
+    opModeReadiness: { keys: { groups: [] } },
+  });
   writeDecisionReportCompactionAudit(processed);
+  writeSystemReadinessReport({ scannedProjects: processed.length });
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -890,8 +901,9 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].name, "Unknown");
   assert.equal(quantumReasoning.topQuantumReasoningStates[0].symbol, "UNKNOWN");
   assert.ok(html.includes("Top 10 Current Research Board"));
-  assert.ok(html.includes("Research Worthy Now"));
-  assert.ok(html.indexOf("Research Worthy Now") < html.indexOf("Top 10 Current Research Board"));
+  assert.ok(html.includes("Top 10 Research-Worthy Utility Small Caps"));
+  assert.ok(html.indexOf("Top 10 Research-Worthy Utility Small Caps") < html.indexOf("Daily Capital Move Status"));
+  assert.ok(html.indexOf("Top 10 Research-Worthy Utility Small Caps") < html.indexOf("Top 10 Current Research Board"));
   assert.ok(html.includes("High-Upside Scalp"));
   assert.ok(html.includes("Scalp-Ready Research"));
   assert.ok(html.includes("High-Upside Watchlist"));

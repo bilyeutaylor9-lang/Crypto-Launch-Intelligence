@@ -103,6 +103,7 @@
     "alias:rejected": "cat reports/rejected-alias-candidates.json",
     "alias:recoveries": "cat reports/alias-starvation-recoveries.json",
     "results:verify": "npm run results:health && npm test",
+    "system:verify": "npm run typecheck && npm run lint && npm test && npm run test:providers && npm run test:load && npm run engine:audit:full && npm run scan:debug100 && npm run results:health && npm run publish:dashboard",
     "backtest": "node src/outcomeBacktest.js",
     "learn": "node src/outcomeBacktest.js",
     "calibrate": "node src/outcomeBacktest.js",

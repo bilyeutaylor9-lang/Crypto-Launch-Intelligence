@@ -21,7 +21,11 @@ import { analyzeAutonomousOutcomeJudgeBatch } from "../src/engines/autonomousOut
 import { analyzeLiveCatalystRadarBatch } from "../src/engines/liveCatalystRadarEngine.js";
 import { analyzeProjectDossierSwarmBatch } from "../src/engines/projectDossierSwarmEngine.js";
 import { buildCandidateRescueExpansion } from "../src/data/candidateRescueExpansionEngine.js";
-import { getSourceRoutingPlan, shouldRunSource } from "../src/data/adaptiveSourceRouter.js";
+import {
+  __adaptiveSourceRouterTestHooks,
+  getSourceRoutingPlan,
+  shouldRunSource,
+} from "../src/data/adaptiveSourceRouter.js";
 import { __internetResearchTestHooks } from "../src/data/internetResearchConnector.js";
 import { runAIDiscoverySwarm } from "../src/data/aiDiscoverySwarmEngine.js";
 import { analyzeRoadmapCatalystProfit } from "../src/engines/roadmapCatalystProfitEngine.js";
@@ -688,6 +692,77 @@ test("adaptive source router cools down unreliable free providers", () => {
   assert.equal(shouldRunSource(plan, "coingecko"), false);
   assert.ok(plan.skipped.some((source) => source.source === "coingecko"));
   assert.ok(plan.prioritized.includes("dexscreener"));
+});
+
+test("adaptive source router probes recoverable no-key provider cooldowns", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const plan = getSourceRoutingPlan({
+    memory: {
+      sources: {
+        dexscreener: {
+          source: "dexscreener",
+          runs: 4,
+          successes: 2,
+          failures: 2,
+          totalCandidates: 100,
+          totalDurationMs: 9000,
+          lastStatus: "FAILED",
+          lastError: "fetch failed",
+          lastErrorType: "ERROR",
+          cooldownUntil: future,
+        },
+        coingecko: {
+          source: "coingecko",
+          runs: 4,
+          successes: 2,
+          failures: 2,
+          totalCandidates: 100,
+          totalDurationMs: 9000,
+          lastStatus: "FAILED",
+          lastError: "429 rate limit",
+          lastErrorType: "RATE_LIMIT",
+          cooldownUntil: future,
+        },
+      },
+      runs: [],
+    },
+  });
+
+  const dex = plan.sources.find((source) => source.source === "dexscreener");
+  const coinGecko = plan.sources.find((source) => source.source === "coingecko");
+
+  assert.equal(dex.decision, "RUN");
+  assert.equal(shouldRunSource(plan, "dexscreener"), true);
+  assert.ok(dex.reasons.some((reason) => reason.includes("probing recoverable cooldown")));
+  assert.equal(coinGecko.decision, "COOLDOWN");
+  assert.equal(shouldRunSource(plan, "coingecko"), false);
+});
+
+test("adaptive source router clears stale cooldown after a successful probe", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const updated = __adaptiveSourceRouterTestHooks.updateState(
+    {
+      source: "dexscreener",
+      runs: 4,
+      successes: 2,
+      failures: 2,
+      totalCandidates: 100,
+      totalDurationMs: 9000,
+      cooldownUntil: future,
+      lastErrorType: "ERROR",
+      lastError: "fetch failed",
+    },
+    {
+      source: "dexscreener",
+      status: "SUCCESS",
+      candidates: 40,
+      durationMs: 500,
+    }
+  );
+
+  assert.equal(updated.cooldownUntil, null);
+  assert.equal(updated.lastStatus, "SUCCESS");
+  assert.equal(updated.successes, 3);
 });
 
 test("free web crawler extracts safe same-domain research links", () => {

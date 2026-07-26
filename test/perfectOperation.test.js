@@ -1,0 +1,238 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import {
+  analyzeDailyCapitalMove,
+  summarizeDailyCapitalMoves,
+} from "../src/engines/dailyCapitalMoveEngine.js";
+import { summarizeDailyRecoveryQueue } from "../src/reports/dailyRecoveryQueueReportEngine.js";
+import { summarizeDailySourceGaps } from "../src/reports/dailySourceGapReportEngine.js";
+
+const NOW = new Date().toISOString();
+const TOKEN = "0x1111111111111111111111111111111111111111";
+const POOL = "0x2222222222222222222222222222222222222222";
+
+function utilitySmallCap(overrides = {}) {
+  return {
+    name: "Utility Small Cap",
+    symbol: "USC",
+    chain: "base",
+    tokenAddress: TOKEN,
+    contractAddress: TOKEN,
+    poolAddress: POOL,
+    pairAddress: POOL,
+    priceUsd: 0.004,
+    marketCapUsd: 6_500_000,
+    liquidityUsd: 210_000,
+    priceChange24hPct: 18,
+    priceChange7dPct: 64,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    quoteTimestamp: NOW,
+    estimatedRoundTripSlippagePct: 1.4,
+    regionStatus: "CONFIRMED_AVAILABLE",
+    instantSafetyStatus: "PASS",
+    highUpsideScalpScore: 86,
+    hottestTenNowScore: 82,
+    sevenDayTenXScore: 80,
+    earlyAsymmetryResearchPriorityScore: 84,
+    capitalMigrationScore: 86,
+    capitalFlowScore: 84,
+    buyerBreadthAccelerationScore: 82,
+    buyPressureScore: 78,
+    liquidityFormationScore: 80,
+    organicDemandIntegrityScore: 79,
+    utilityQualityScore: 84,
+    realUtilityScore: 82,
+    developerAccelerationScore: 78,
+    developerActivityScore: 76,
+    githubProScore: 74,
+    ecosystemIntegrationScore: 75,
+    tokenomicsScore: 72,
+    sourceTruthScore: 86,
+    sourceReliabilityScore: 84,
+    institutionalDataProvenanceScore: 80,
+    evidenceCoverageScore: 78,
+    opportunityEvidenceCoverage: 76,
+    trapRiskScore: 4,
+    contractAuthorityRiskScore: 3,
+    liquidityControlRiskScore: 5,
+    washTradingRiskScore: 6,
+    walletClusterRiskScore: 8,
+    deployerRiskScore: 6,
+    sellPressureScore: 9,
+    ...overrides,
+  };
+}
+
+test("daily capital move selects only fully proven utility-small-cap research candidates", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap());
+
+  assert.equal(result.dailyCapitalMoveLane, "CAPITAL_MOVE_RESEARCH");
+  assert.equal(result.dailyCapitalMoveExecutionReady, true);
+  assert.equal(result.dailyCapitalMoveExecutionTruthState, "LIVE_EXECUTION_READY");
+  assert.deepEqual(result.dailyCapitalMoveMissingProof, []);
+});
+
+test("missing sell proof keeps a strong project research-only and creates recovery actions", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+  const summary = summarizeDailyCapitalMoves([result]);
+  const recovery = summarizeDailyRecoveryQueue([result]);
+
+  assert.equal(result.dailyCapitalMoveLane, "NEEDS_PROOF");
+  assert.equal(result.dailyCapitalMoveExecutionReady, false);
+  assert.ok(result.dailyCapitalMoveMissingProof.includes("fresh verified buy and sell route"));
+  assert.equal(summary.bestCandidate, null);
+  assert.equal(summary.status, "NO_VALID_MOVE_TODAY_RESEARCH_ONLY");
+  assert.equal(recovery.status, "RECOVERY_ACTIONS_READY");
+  assert.ok(recovery.topRecoveryCandidates[0].targetSources.includes("Jupiter"));
+});
+
+test("daily recovery queue excludes malformed aggregate provider rows", () => {
+  const aggregate = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGE",
+    name: "Bitcoin Ethereum Tether BNB USDC XRP Solana TRON Hyperliquid Dogecoin and unrelated catalog assets",
+    source: "defillama-yields",
+    tokenAddress: null,
+    contractAddress: null,
+    poolAddress: null,
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+  const real = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "REAL",
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+  const recovery = summarizeDailyRecoveryQueue([aggregate, real]);
+
+  assert.equal(recovery.recoveryCandidateCount, 1);
+  assert.equal(recovery.topRecoveryCandidates[0].symbol, "REAL");
+});
+
+test("daily recovery queue excludes blocked, late-chase, and meme-only lanes", () => {
+  const blocked = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "BLOCK",
+    honeypotDetected: true,
+  }));
+  const late = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "LATE",
+    priceChange24hPct: 160,
+  }));
+  const meme = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "MEME",
+    utilityClassification: "MEME_SPECULATION",
+  }));
+  const real = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "REAL",
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+  const recovery = summarizeDailyRecoveryQueue([blocked, late, meme, real]);
+
+  assert.equal(recovery.recoveryCandidateCount, 1);
+  assert.equal(recovery.topRecoveryCandidates[0].symbol, "REAL");
+});
+
+test("already-pumped projects cannot enter the daily capital slate", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    priceChange24hPct: 140,
+    priceChange7dPct: 460,
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "LATE_CHASE_DO_NOT_CHASE");
+  assert.equal(summarizeDailyCapitalMoves([result]).bestCandidate, null);
+});
+
+test("daily capital engine refuses meme-only speculation in utility mode", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    utilityClassification: "MEME_SPECULATION",
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "MEME_ONLY_EXCLUDED");
+});
+
+test("daily capital engine excludes meme-like identities without utility proof", () => {
+  for (const project of [
+    { symbol: "CAPOO", name: "Capoo Bugcat" },
+    { symbol: "RACCOOS", name: "RACCOOS" },
+  ]) {
+    const result = analyzeDailyCapitalMove(utilitySmallCap({
+      ...project,
+      description: "Viral culture token with no product docs.",
+      utilityClassification: "UNKNOWN_UTILITY",
+      realUtilityQualified: false,
+      utilityEvidenceFamilies: [],
+      utilityQualityScore: 0,
+      realUtilityScore: 0,
+      developerActivityScore: 0,
+      developerAccelerationScore: 0,
+      githubProScore: 0,
+      ecosystemIntegrationScore: 0,
+      tokenomicsScore: 0,
+    }));
+
+    assert.equal(result.dailyCapitalMoveLane, "MEME_ONLY_EXCLUDED");
+  }
+});
+
+test("daily capital engine rejects aggregate or malformed identity rows", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGE",
+    name: "Bitcoin Ethereum Tether BNB USDC XRP Solana TRON Hyperliquid Dogecoin Zcash Avalanche Ethereum Base Sonic and hundreds of unrelated catalog assets",
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "BLOCKED");
+  assert.match(result.dailyCapitalMoveReason, /Malformed|aggregate/i);
+});
+
+test("daily capital engine rejects generic market labels without project proof", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    symbol: "$DEPIN",
+    name: "DEPIN",
+    source: "defillama-yields",
+    tokenAddress: null,
+    contractAddress: null,
+    poolAddress: null,
+    pairAddress: null,
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "BLOCKED");
+  assert.match(result.dailyCapitalMoveReason, /aggregate/i);
+});
+
+test("daily capital engine honors upstream high-upside safety blocks", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    highUpsideScalpLane: "SCALP_NO_TRADE_SAFETY_BLOCK",
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "BLOCKED");
+  assert.equal(result.dailyCapitalMoveSafetyStatus, "BLOCKED");
+});
+
+test("daily source gaps classify missing keys, rate limits, failures, and regional blocks", () => {
+  const report = summarizeDailySourceGaps({
+    sourceRouter: {
+      sources: [
+        { source: "DexScreener", status: "success", lastCandidateCount: 12 },
+        { source: "CoinGecko", status: "429 rate limited" },
+        { source: "Binance", status: "451 region blocked" },
+        { source: "Birdeye", status: "missing BIRDEYE_API_KEY" },
+        { source: "CoinCap", status: "fetch failed" },
+      ],
+    },
+  });
+
+  assert.equal(report.status, "SOURCE_GAPS_FOUND");
+  assert.equal(report.availableCount, 1);
+  assert.equal(report.rateLimitedCount, 1);
+  assert.equal(report.regionBlockedCount, 1);
+  assert.equal(report.missingKeyCount, 1);
+  assert.equal(report.failedCount, 1);
+});
