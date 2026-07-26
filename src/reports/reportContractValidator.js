@@ -19,6 +19,7 @@ export const REQUIRED_REPORT_FILES = [
   "debug-execution-proof.json",
   "debug-stage-health.json",
   "engine-data-readiness.json",
+  "engine-data-contract-health.json",
   "route-universe.json",
   "alternative-execution-routes.json",
   "user-accessibility-ranking.json",

@@ -35,6 +35,7 @@ import { writeQuantumFieldReport } from "../src/reports/quantumFieldReportEngine
 import { writeQuantumSuiteHealthReport } from "../src/reports/quantumSuiteHealthReportEngine.js";
 import { writeProgressiveOpportunityReport } from "../src/reports/progressiveOpportunityReportEngine.js";
 import { writeEngineDataReadinessReport } from "../src/reports/engineDataReadinessReportEngine.js";
+import { writeEngineDataContractHealthReport } from "../src/reports/engineDataContractHealthReportEngine.js";
 import { writeCapitalMigrationReport } from "../src/reports/capitalMigrationReportEngine.js";
 import { writeCapitalRotationReports } from "../src/reports/capitalRotationReportEngine.js";
 import { writePipelineStageHealthReport } from "../src/reports/pipelineStageHealthReportEngine.js";
@@ -436,6 +437,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeQuantumSuiteHealthReport(processed);
   writeProgressiveOpportunityReport(processed);
   writeEngineDataReadinessReport(processed);
+  writeEngineDataContractHealthReport(processed);
   writeCapitalMigrationReport(processed);
   writeCapitalRotationReports(processed);
   writePipelineStageHealthReport(processed);

@@ -752,19 +752,20 @@ async function main() {
     reportMeta.alphaTruth = alphaTruth.report;
     reportMeta.alphaTruthPersistence = alphaTruth.persistence;
 
-    results = compactProjectsForReportWriters(results);
-    reportMeta = compactMetaForReportWriters(reportMeta);
     discoveredProjects = null;
     discoveredList = [];
     researchPlan = null;
     researchQueue = [];
-    runOptionalGarbageCollection("report compaction");
 
     const reportPaths = {
       ...generateReports(results, reportMeta),
       supabaseMemoryPath,
       ...selectionAuditPaths,
     };
+
+    results = compactProjectsForReportWriters(results);
+    reportMeta = compactMetaForReportWriters(reportMeta);
+    runOptionalGarbageCollection("report compaction");
 
     const supabaseSync = await syncScanToSupabase({
       projects: results,

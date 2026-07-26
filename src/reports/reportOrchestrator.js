@@ -54,6 +54,7 @@ import { writeSevenDayTenXResearchReport } from "./sevenDayTenXResearchReportEng
 import { writeScannerVNextReport } from "./scannerVNextReportEngine.js";
 import { writeAlphaTruthKernelReport } from "./alphaTruthKernelReportEngine.js";
 import { writeEngineDataReadinessReport } from "./engineDataReadinessReportEngine.js";
+import { writeEngineDataContractHealthReport } from "./engineDataContractHealthReportEngine.js";
 import { writeCapitalMigrationReport } from "./capitalMigrationReportEngine.js";
 import { writeCapitalRotationReports } from "./capitalRotationReportEngine.js";
 import { writePipelineStageHealthReport } from "./pipelineStageHealthReportEngine.js";
@@ -272,7 +273,10 @@ export function generateReports(projects = [], meta = {}) {
   } = writeMathematicalValidationReport(meta);
   const {
     filePath: engineDataReadinessPath,
-  } = writeEngineDataReadinessReport(projects);
+  } = writeEngineDataReadinessReport(fullProjects);
+  const {
+    filePath: engineDataContractHealthPath,
+  } = writeEngineDataContractHealthReport(fullProjects, meta);
   const {
     routeUniversePath,
     alternativeRoutesPath,
@@ -465,6 +469,7 @@ export function generateReports(projects = [], meta = {}) {
     exactOutcomeHorizonLabPath,
     mathematicalValidationPath,
     engineDataReadinessPath,
+    engineDataContractHealthPath,
     routeUniversePath,
     alternativeRoutesPath,
     userAccessibilityRankingPath,

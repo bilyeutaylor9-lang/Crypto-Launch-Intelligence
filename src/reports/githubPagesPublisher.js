@@ -105,6 +105,7 @@ const PUBLIC_REPORTS = [
   "engine-audit.json",
   "engine-health-report.json",
   "engine-data-readiness.json",
+  "engine-data-contract-health.json",
   "route-universe.json",
   "alternative-execution-routes.json",
   "user-accessibility-ranking.json",
@@ -504,6 +505,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const audit = readJsonReport("engine-audit.json", reportsDir) || {};
   const engineHealthReport = readJsonReport("engine-health-report.json", reportsDir) || {};
   const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
+  const engineDataContractHealth = readJsonReport("engine-data-contract-health.json", reportsDir) || {};
   const routeUniverse = readJsonReport("route-universe.json", reportsDir) || {};
   const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
   const userAccessibility = readJsonReport("user-accessibility-ranking.json", reportsDir) || {};
@@ -755,6 +757,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Core Data Ready", engineDataReadiness.coreReady ?? 0],
     ["Core Data Starved", engineDataReadiness.coreDataStarved ?? 0],
     ["Top Data Gap", engineDataReadiness.topMissingInputs?.[0]?.fields || "NO CORE DATA GAP"],
+    ["Contract Health", engineDataContractHealth.status || "REPORT NOT GENERATED"],
+    ["Contract Engines", engineDataContractHealth.enginesChecked ?? 0],
+    ["Input Gap Engines", engineDataContractHealth.enginesWithInputGaps ?? 0],
+    ["Output Gap Engines", engineDataContractHealth.enginesWithOutputGaps ?? 0],
     ["Route Universe", routeUniverse.routeCount ?? 0],
     ["Alternative Routes", alternativeRoutes.routes?.length ?? 0],
     ["User Accessible", userAccessibility.userAccessibleCount ?? 0],
@@ -1201,6 +1207,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./engine-audit.json">Engine Audit</a>
         <a class="button" href="./engine-health-report.json">Engine Health</a>
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
+        <a class="button" href="./engine-data-contract-health.json">Contract Health</a>
         <a class="button" href="./route-universe.json">View Route Universe</a>
         <a class="button" href="./alternative-execution-routes.json">View Alt Routes</a>
         <a class="button" href="./user-accessibility-ranking.json">View Latest Route Analysis</a>

@@ -162,6 +162,11 @@ import { analyzeHighUpsideScalpClassificationBatch } from "./engines/highUpsideS
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
 import {
+  attachEngineDataContractAudit,
+  postflightEngineDataContract,
+  preflightEngineDataContract,
+} from "./kernel/engineDataContractGovernor.js";
+import {
   resolveEngineProfile,
   shouldRunEngineForProfile,
 } from "./config/engineProfileConfig.js";
@@ -909,10 +914,26 @@ export async function runEngine(name, engine, projects, options = {}) {
     : normalizeEngineOutput(projects, []);
   const startedAt = Date.now();
   const criticality = engineCriticality(name, options);
+  const preflight = preflightEngineDataContract(name, safeProjects, {
+    ...options,
+    criticality,
+  });
   const profileDecision = shouldRunEngineForProfile(name, options.engineProfile);
 
   if (!profileDecision.run) {
     console.log(`Skipping ${name}: ${profileDecision.reason}`);
+    const postflight = {
+      engineName: name,
+      engineId: preflight.engineId,
+      phase: preflight.phase,
+      status: "SKIPPED",
+      contractFound: preflight.contractFound,
+      projectsAnalyzed: safeProjects.length,
+      outputReadyProjects: 0,
+      outputMissingProjects: 0,
+      invalidScoreProjects: 0,
+      topMissingOutputs: [],
+    };
     const record = buildStandardEngineResult({
       name,
       status: "SKIPPED",
@@ -921,12 +942,24 @@ export async function runEngine(name, engine, projects, options = {}) {
       durationMs: Date.now() - startedAt,
       criticality,
     });
-    return attachEngineResult(safeProjects, record);
+    return attachEngineResult(attachEngineDataContractAudit(safeProjects, preflight, postflight), record);
   }
 
   try {
     if (typeof engine !== "function") {
       console.log(`Skipping ${name}: engine not found`);
+      const postflight = {
+        engineName: name,
+        engineId: preflight.engineId,
+        phase: preflight.phase,
+        status: "ENGINE_NOT_FOUND",
+        contractFound: preflight.contractFound,
+        projectsAnalyzed: safeProjects.length,
+        outputReadyProjects: 0,
+        outputMissingProjects: safeProjects.length,
+        invalidScoreProjects: 0,
+        topMissingOutputs: [],
+      };
       const record = buildStandardEngineResult({
         name,
         status: "FAILED",
@@ -935,7 +968,7 @@ export async function runEngine(name, engine, projects, options = {}) {
         criticality,
       });
       const nextProjects = attachEngineResult(
-        safeProjects,
+        attachEngineDataContractAudit(safeProjects, preflight, postflight),
         record
       );
       maybeFailClosed(record, nextProjects);
@@ -954,6 +987,7 @@ export async function runEngine(name, engine, projects, options = {}) {
       : { ...options, engineTimeoutMs: timeoutMs };
     const output = await withEngineTimeout(engine(safeProjects, engineOptions), timeoutMs, name, controller);
     const normalized = normalizeEngineOutput(output, safeProjects);
+    const postflight = postflightEngineDataContract(name, normalized, options);
     const status =
       normalized.length === 0
         ? "NO_DATA"
@@ -968,13 +1002,25 @@ export async function runEngine(name, engine, projects, options = {}) {
       criticality,
     });
     const nextProjects = attachEngineResult(
-      normalized,
+      attachEngineDataContractAudit(normalized, preflight, postflight),
       record
     );
     return nextProjects;
   } catch (error) {
     if (error.engineResult?.criticality === "REQUIRED") throw error;
     console.log(`${name} failed: ${error.message}`);
+    const postflight = {
+      engineName: name,
+      engineId: preflight.engineId,
+      phase: preflight.phase,
+      status: "ENGINE_FAILED",
+      contractFound: preflight.contractFound,
+      projectsAnalyzed: safeProjects.length,
+      outputReadyProjects: 0,
+      outputMissingProjects: safeProjects.length,
+      invalidScoreProjects: 0,
+      topMissingOutputs: [],
+    };
     const record = buildStandardEngineResult({
       name,
       status: "FAILED",
@@ -984,7 +1030,7 @@ export async function runEngine(name, engine, projects, options = {}) {
       criticality,
     });
     const nextProjects = attachEngineResult(
-      safeProjects,
+      attachEngineDataContractAudit(safeProjects, preflight, postflight),
       record
     );
     maybeFailClosed(record, nextProjects);
