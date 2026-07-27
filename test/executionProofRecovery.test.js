@@ -154,11 +154,18 @@ test("missing optional 0x key creates an optional source gap, not a fatal candid
     now: () => NOW,
   });
   const recoveryReport = summarizeExecutionProofRecovery([recovered]);
-  const sourceGaps = summarizeDailySourceGaps({ executionProofRecovery: recoveryReport });
+  const sourceGaps = summarizeDailySourceGaps({
+    sourceProbes: {
+      dexscreener: { status: "success", lastCandidateCount: 8 },
+      geckoterminal: { status: "success", pools: 3 },
+    },
+    executionProofRecovery: recoveryReport,
+  });
 
   assert.equal(recovered.executionProofRecovery.status, "NO_ROUTE_RECOVERED");
   assert.ok(recovered.executionProofRecovery.optionalSourceGaps.some((gap) => gap.missingKey === "ZEROX_API_KEY"));
   assert.equal(sourceGaps.optionalMissingKeyCount, 1);
+  assert.equal(sourceGaps.availableCount >= 2, true);
   assert.equal(sourceGaps.status, "SOURCE_HEALTH_OK");
 });
 

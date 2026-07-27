@@ -236,3 +236,78 @@ test("daily source gaps classify missing keys, rate limits, failures, and region
   assert.equal(report.missingKeyCount, 1);
   assert.equal(report.failedCount, 1);
 });
+
+test("daily source gaps let no-key free sources become available with useful probe data", () => {
+  const report = summarizeDailySourceGaps({
+    sourceProbes: {
+      dexscreener: { status: "success", pairs: 8 },
+      geckoterminal: { status: "ok", pools: 4 },
+      coingecko: { status: "success", results: 2 },
+    },
+    opModeReadiness: {
+      keys: {
+        groups: [
+          {
+            label: "Paid market keys",
+            missingRequired: ["BIRDEYE_API_KEY"],
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(report.availableCount >= 3, true);
+  assert.equal(report.workingFreeSourceCount >= 3, true);
+  assert.equal(report.sources.find((source) => source.source === "dexscreener").available, true);
+  assert.equal(report.sources.find((source) => source.source === "coingecko").missingKey, null);
+  assert.notEqual(report.scannerBlindnessRisk, "CRITICAL");
+});
+
+test("daily source gaps do not let missing paid keys make the free-mode scanner blind", () => {
+  const report = summarizeDailySourceGaps({
+    sourceProbes: {
+      dexscreener: { status: "success", lastCandidateCount: 10 },
+      researchSeeds: { status: "success", seedCount: 5 },
+      nativeDiscoveryMesh: { status: "success", poolCount: 3 },
+    },
+    opModeReadiness: {
+      keys: {
+        groups: [
+          {
+            label: "Paid source keys",
+            missingRequired: ["BIRDEYE_API_KEY", "ETHERSCAN_API_KEY", "ZEROX_API_KEY"],
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(report.missingKeyCount, 3);
+  assert.equal(report.workingFreeSourceCount >= 3, true);
+  assert.notEqual(report.scannerBlindnessRisk, "CRITICAL");
+  assert.ok(report.paidKeyUpsideRank.some((item) => item.missingKey === "BIRDEYE_API_KEY"));
+});
+
+test("daily source gaps sanitize malformed env labels and require action for unavailable unknowns", () => {
+  const report = summarizeDailySourceGaps({
+    opModeReadiness: {
+      keys: {
+        groups: [
+          {
+            label: "Malformed labels",
+            missingRequired: ["OPENAI API KEY_API_KEY", "X/TWITTER SEARCH_API_KEY"],
+          },
+        ],
+      },
+    },
+  });
+  const malformedKeys = report.sources.map((source) => source.missingKey).filter(Boolean);
+  const unavailableUnknown = report.sources.find((source) => source.status === "UNKNOWN" && source.available === false);
+
+  assert.equal(malformedKeys.some((key) => /\s|\//.test(key)), false);
+  assert.ok(unavailableUnknown);
+  assert.notEqual(unavailableUnknown.nextAction, "No action needed.");
+  assert.equal(report.availableCount, 0);
+  assert.equal(report.scannerBlindnessRisk, "CRITICAL");
+  assert.match(report.criticalWarning, /no live source truth/i);
+});
