@@ -8,6 +8,7 @@ import { analyzeSevenDayTenXResearchBatch } from "../src/engines/sevenDayTenXRes
 import { analyzeUtilityQualityBatch } from "../src/engines/utilityQualityEngine.js";
 import { analyzeScalpMicrostructureBatch } from "../src/engines/scalpMicrostructureEngine.js";
 import { analyzeHighUpsideScalpClassificationBatch } from "../src/engines/highUpsideScalpClassificationEngine.js";
+import { analyzeBuyerBreadthAcceleration } from "../src/engines/buyerBreadthAccelerationEngine.js";
 import { summarizeHighUpsideScalpResearch } from "../src/reports/highUpsideScalpReportEngine.js";
 import { compactProjectsForReportWriters } from "../src/reports/reportPayloadCompactor.js";
 import { generateReports } from "../src/reports/reportOrchestrator.js";
@@ -389,6 +390,70 @@ test("high-upside scalp treats route-only microstructure blocks as research-only
   assert.equal(report.microstructureRejectedCount, 0);
   assert.equal(report.safetyBlockedCount, 0);
   assert.equal(report.researchOnlyRouteMissing[0].symbol, "ROUTEGAP");
+});
+
+test("promising low-coverage candidates missing route proof stay route-pending instead of data-starved", () => {
+  const report = summarizeHighUpsideScalpResearch(
+    analyzeHighUpsideScalpClassificationBatch([
+      {
+        symbol: "EARLYROUTE",
+        chain: "solana",
+        tokenAddress: "So11111111111111111111111111111111111111112",
+        poolAddress: "pool-earlyroute",
+        preBreakoutRadarScore: 81,
+        earlyAsymmetryResearchPriorityScore: 84,
+        capitalMigrationScore: 76,
+        liquidityFormationScore: 74,
+        routeTruthStatus: "MARKET_OBSERVED",
+        buyQuoteVerified: false,
+        sellQuoteVerified: false,
+      },
+    ])
+  );
+
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.dataStarvedCount, 0);
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "EARLYROUTE");
+  assert.equal(report.researchOnlyRouteMissing[0].readableLane, "ROUTE_PENDING");
+  assert.ok(report.researchOnlyRouteMissing[0].promotionDebug.nextSingleProofToPromote);
+});
+
+test("route-ready candidates with missing wallet flow enter manual review instead of false scalp-ready", () => {
+  const noWalletProof = candidate({
+    symbol: "NOWALLET",
+    walletFlowScore: undefined,
+    buyerBreadthAccelerationScore: undefined,
+    smartWalletArrivalScore: undefined,
+    rawUniqueBuyers: undefined,
+    uniqueBuyers24h: undefined,
+    buyers24h: undefined,
+  });
+  const report = summarizeHighUpsideScalpResearch(
+    analyzeHighUpsideScalpClassificationBatch([noWalletProof])
+  );
+
+  assert.equal(report.scalpReadyCount, 0);
+  assert.equal(report.manualReviewCount, 1);
+  assert.equal(report.manualReview[0].symbol, "NOWALLET");
+  assert.equal(report.manualReview[0].readableLane, "MANUAL_REVIEW");
+  assert.ok(report.manualReview[0].promotionDebug.missingProof.some((proof) => /buyer|wallet/i.test(proof)));
+});
+
+test("buyer breadth acceleration emits wallet-flow quality fields", () => {
+  const analyzedWalletFlow = analyzeBuyerBreadthAcceleration({
+    symbol: "FLOW",
+    uniqueBuyers24h: 120,
+    uniqueBuyersPrev24h: 30,
+    buyTransactions24h: 240,
+    sellTransactions24h: 60,
+    walletFlows: Array.from({ length: 80 }, () => ({ buyVolumeUsd: 100 })),
+    newBuyers24h: 72,
+  });
+
+  assert.ok(Number.isFinite(analyzedWalletFlow.walletFlowScore));
+  assert.equal(analyzedWalletFlow.walletFlowLane, "BROAD_ACCUMULATION_FLOW");
+  assert.equal(analyzedWalletFlow.freshBuyerCount, 72);
+  assert.equal(analyzedWalletFlow.buySellPressureTrend, "BUY_PRESSURE_EXPANDING");
 });
 
 test("every high-upside input project is counted exactly once", () => {

@@ -177,6 +177,11 @@ function lane(project = {}, score = 0) {
 function debugMissingProof(project = {}) {
   return [
     ...(project.dailyCapitalMoveMissingProof || []),
+    project.highUpsideScalpNextProofNeeded,
+    ...(project.highUpsideScalpMissingProof || []),
+    ...(project.highUpsideScalpRouteChecklist?.missing || []),
+    ...(project.walletFlowMissingProof || []),
+    ...(project.walletFlowWarnings || []),
     ...(project.highUpsideScalpMissingFields || []),
     ...(project.missingInfoNeeded || []),
     ...(project.missingRouteEvidence || []),
@@ -215,6 +220,7 @@ function plainLanguageLane(project = {}) {
   if (laneValue === "SCALP_READY_RESEARCH") return "SCALP_READY";
   if (laneValue === "HIGH_UPSIDE_WATCH") return "HIGH_UPSIDE_WATCHLIST";
   if (laneValue === "RESEARCH_ONLY_ROUTE_MISSING") return "ROUTE_PENDING";
+  if (laneValue === "MANUAL_REVIEW") return "MANUAL_REVIEW";
   if (laneValue === "DATA_STARVED" || laneValue === "HIGH_UPSIDE_RESEARCH_DEFERRED") return "DEEP_DEFERRED";
   if (/safety|manual|wallet|proof|unknown/i.test(debugMissingProof(project).join(" "))) return "MANUAL_REVIEW";
   if (laneValue.startsWith("SCALP_NO_TRADE") || ["SAFETY_BLOCKED", "LATE_CHASE_REJECTED", "MEME_SPECULATION_EXCLUDED"].includes(laneValue)) {
@@ -238,11 +244,15 @@ function compact(project = {}, rank = null) {
     readableLane: plainLanguageLane(project),
     highUpsideScalpDataCoverage: project.highUpsideScalpDataCoverage ?? null,
     highUpsideScalpMissingFields: project.highUpsideScalpMissingFields || [],
+    highUpsideScalpMissingProof: project.highUpsideScalpMissingProof || [],
+    highUpsideScalpNextProofNeeded: project.highUpsideScalpNextProofNeeded || missingProof[0] || null,
+    highUpsideScalpProofCategory: project.highUpsideScalpProofCategory || "unknown",
+    routeProofChecklist: project.highUpsideScalpRouteChecklist || null,
     highUpsideScalpClassificationReason: project.highUpsideScalpClassificationReason || "No classification reason recorded.",
     promotionDebug: {
       whyFailedPromotion: project.highUpsideScalpClassificationReason || project.dailyCapitalMoveReason || "Promotion requirements are not fully proven yet.",
       missingProof,
-      nextSingleProofToPromote: missingProof[0] || null,
+      nextSingleProofToPromote: project.highUpsideScalpNextProofNeeded || missingProof[0] || null,
       sourcesUsed: [...new Set(sourceList(project))].slice(0, 10),
       sourcesFailed: [...new Set(failedSourceList(project))].slice(0, 10),
     },
@@ -269,6 +279,10 @@ function compact(project = {}, rank = null) {
     preBreakoutRadarScore: project.preBreakoutRadarScore || 0,
     earlyAsymmetryResearchPriorityScore: project.earlyAsymmetryResearchPriorityScore || 0,
     buyerBreadthAccelerationScore: project.buyerBreadthAccelerationScore || 0,
+    walletFlowScore: project.walletFlowScore || 0,
+    walletFlowLane: project.walletFlowLane || "NOT_RUN",
+    walletFlowWarnings: project.walletFlowWarnings || [],
+    walletFlowMissingProof: project.walletFlowMissingProof || [],
     liquidityFormationScore: project.liquidityFormationScore || 0,
     utilityQualityScore: project.utilityQualityScore || 0,
     sourceTruthScore: project.sourceTruthScore || 0,
@@ -382,6 +396,7 @@ function reportStatus({
   top = [],
   watch = [],
   routeMissing = [],
+  manualReview = [],
   dataStarved = [],
   invariantPass = true,
   unclassified = [],
@@ -389,7 +404,7 @@ function reportStatus({
   if (!projectsAnalyzed) return "NO_PROJECTS";
   if (!invariantPass || unclassified.length > 0) return "CLASSIFICATION_INCOMPLETE";
   if (top.length > 0) return "PASS_WITH_SCALP_READY";
-  if (watch.length + routeMissing.length > 0) return "PASS_WITH_WATCHLIST";
+  if (watch.length + routeMissing.length + manualReview.length > 0) return "PASS_WITH_WATCHLIST";
   if (classificationEligibleCount > 0 && dataStarved.length === classificationEligibleCount) return "DATA_STARVED";
   return "PASS_NO_ACTIONABLE_RESULTS";
 }
@@ -402,6 +417,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const top = scored.filter((project) => laneForReport(project) === "SCALP_READY_RESEARCH");
   const watch = scored.filter((project) => laneForReport(project) === "HIGH_UPSIDE_WATCH");
   const routeMissing = scored.filter((project) => laneForReport(project) === "RESEARCH_ONLY_ROUTE_MISSING");
+  const manualReview = scored.filter((project) => laneForReport(project) === "MANUAL_REVIEW");
   const researchDeferred = scored.filter((project) => laneForReport(project) === "HIGH_UPSIDE_RESEARCH_DEFERRED");
   const late = scored.filter((project) => laneForReport(project) === "LATE_CHASE_REJECTED");
   const meme = scored.filter((project) => laneForReport(project) === "MEME_SPECULATION_EXCLUDED");
@@ -435,6 +451,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
       top,
       watch,
       routeMissing,
+      manualReview,
       dataStarved,
       invariantPass,
       unclassified,
@@ -460,6 +477,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     scalpReadyCount: top.length,
     highUpsideWatchCount: watch.length,
     researchOnlyRouteMissingCount: routeMissing.length,
+    manualReviewCount: manualReview.length,
     highUpsideResearchDeferredCount: researchDeferred.length,
     lateChaseRejectedCount: late.length,
     memeSpeculationExcludedCount: meme.length,
@@ -485,6 +503,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     topScalpResearchCandidates: top.slice(0, 10).map((project, index) => compact(project, index + 1)),
     highUpsideWatchlist: watch.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     researchOnlyRouteMissing: routeMissing.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    manualReview: manualReview.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     highUpsideResearchDeferred: researchDeferred.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     lateChaseRejected: late.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     memeSpeculationExcluded: meme.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),

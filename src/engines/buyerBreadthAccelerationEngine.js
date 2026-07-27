@@ -39,6 +39,7 @@ function participantFlows(project = {}) {
 
 export function analyzeBuyerBreadthAcceleration(project = {}) {
   const rawUniqueBuyers = num(project.rawUniqueBuyers ?? project.uniqueBuyers24h ?? project.buyers24h);
+  const freshBuyerCount = num(project.freshBuyerCount ?? project.newBuyers24h ?? project.newBuyerCount24h);
   const linkedWalletClusterCount = num(project.linkedWalletClusterCount ?? project.walletClusterCount);
   const largestClusterShare = num(project.largestClusterShare ?? project.walletClusterLargestSharePct);
   const clusterPenalty = Math.min(rawUniqueBuyers * 0.75, linkedWalletClusterCount * 2 + (largestClusterShare / 100) * rawUniqueBuyers);
@@ -56,6 +57,9 @@ export function analyzeBuyerBreadthAcceleration(project = {}) {
   const netBuyerGrowth = Math.round(rawUniqueBuyers - num(project.uniqueSellers24h ?? project.sellers24h));
   const distribution = walletDistributionStats(participantFlows(project));
   const effectiveCount = distribution.effectiveParticipantCount || clusterAdjustedUniqueBuyers;
+  const topHolderDumpRisk = clamp(project.topHolderDumpRisk ?? project.sellPressureScore ?? project.largestHolderSharePct);
+  const whaleConcentrationRisk = clamp(project.whaleConcentrationRisk ?? project.walletClusterRiskScore ?? distribution.largestBuyerShare);
+  const bundledLaunchRisk = clamp(project.bundledLaunchRisk ?? project.bundledLaunchScore ?? project.bundleRiskScore);
   const breadthScore = Math.round(clamp(
     clamp(clusterAdjustedUniqueBuyers, 0, 250) * 0.22 +
       clamp(effectiveCount, 0, 100) * 0.22 +
@@ -65,10 +69,32 @@ export function analyzeBuyerBreadthAcceleration(project = {}) {
       clamp((buyerSellerRatio || 0) * 25, 0, 100) * 0.1 -
       clamp(largestClusterShare) * 0.25
   ));
+  const walletFlowWarnings = [
+    ...(rawUniqueBuyers <= 0 ? ["BUYER_COUNT_MISSING"] : []),
+    ...(distribution.top5BuyerShare >= 70 ? ["TOP5_BUYER_CONCENTRATION_HIGH"] : []),
+    ...(largestClusterShare >= 45 ? ["LINKED_CLUSTER_SHARE_HIGH"] : []),
+    ...(topHolderDumpRisk >= 65 ? ["TOP_HOLDER_DUMP_RISK_HIGH"] : []),
+    ...(whaleConcentrationRisk >= 65 ? ["WHALE_CONCENTRATION_RISK_HIGH"] : []),
+    ...(bundledLaunchRisk >= 65 ? ["BUNDLED_LAUNCH_RISK_HIGH"] : []),
+  ];
+  const walletFlowMissingProof = [
+    ...(rawUniqueBuyers <= 0 ? ["unique buyer count"] : []),
+    ...(participantFlows(project).length < 3 ? ["wallet flow distribution"] : []),
+    ...(freshBuyerCount <= 0 && previousBuyers <= 0 ? ["fresh buyer count"] : []),
+  ];
+  const walletFlowScore = Math.round(clamp(
+    breadthScore * 0.55 +
+      clamp(effectiveCount, 0, 100) * 0.15 +
+      clamp(newBuyerRatio ?? 0) * 0.1 +
+      clamp((buyerSellerRatio || 0) * 25, 0, 100) * 0.1 -
+      whaleConcentrationRisk * 0.06 -
+      bundledLaunchRisk * 0.04
+  ));
 
   return {
     ...project,
     rawUniqueBuyers,
+    freshBuyerCount,
     clusterAdjustedUniqueBuyers,
     newBuyerRatio,
     repeatBuyerRatio,
@@ -82,6 +108,28 @@ export function analyzeBuyerBreadthAcceleration(project = {}) {
     largestClusterShare,
     ...distribution,
     buyerBreadthAccelerationScore: breadthScore,
+    walletFlowScore,
+    walletFlowLane:
+      walletFlowMissingProof.length >= 2
+        ? "WALLET_FLOW_PROOF_MISSING"
+        : walletFlowWarnings.length
+          ? "WALLET_FLOW_REVIEW"
+          : walletFlowScore >= 70
+            ? "BROAD_ACCUMULATION_FLOW"
+            : walletFlowScore >= 45
+              ? "DEVELOPING_WALLET_FLOW"
+              : "THIN_WALLET_FLOW",
+    walletFlowWarnings,
+    walletFlowMissingProof,
+    topHolderDumpRisk,
+    whaleConcentrationRisk,
+    bundledLaunchRisk,
+    buySellPressureTrend:
+      netBuyerGrowth > 0 && (buyerSellerRatio || 0) >= 1.2
+        ? "BUY_PRESSURE_EXPANDING"
+        : netBuyerGrowth < 0
+          ? "SELL_PRESSURE_EXPANDING"
+          : "BALANCED_OR_UNKNOWN",
     buyerBreadthStatus:
       largestClusterShare >= 45 || distribution.top5BuyerShare >= 70
         ? "CLUSTER_REVIEW"

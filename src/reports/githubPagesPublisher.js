@@ -673,6 +673,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Scalp Ready", highUpsideScalp.scalpReadyCount ?? 0],
     ["Scalp Watch", highUpsideScalp.highUpsideWatchCount ?? 0],
     ["Route Missing", highUpsideScalp.researchOnlyRouteMissingCount ?? 0],
+    ["Manual Review", highUpsideScalp.manualReviewCount ?? 0],
     ["Deep Deferred", highUpsideScalp.highUpsideResearchDeferredCount ?? 0],
     ["Scalp Lead", scalpLead.symbol || "NO SCALP LEAD"],
     ["Late-Chase Kicked", highUpsideScalp.lateChaseRejectedCount ?? 0],
@@ -845,6 +846,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Scalp-Ready Research", highUpsideScalp.scalpReadyCount ?? 0],
     ["High-Upside Watchlist", highUpsideScalp.highUpsideWatchCount ?? 0],
     ["Route-Missing Research", highUpsideScalp.researchOnlyRouteMissingCount ?? 0],
+    ["Manual Review", highUpsideScalp.manualReviewCount ?? 0],
     ["Deep Deferred", highUpsideScalp.highUpsideResearchDeferredCount ?? 0],
     ["True Data-Starved", highUpsideScalp.dataStarvedCount ?? 0],
     ["Late-Chase Rejected", highUpsideScalp.lateChaseRejectedCount ?? 0],
@@ -1180,6 +1182,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       ${renderScalpCandidateTable(highUpsideScalp.topScalpResearchCandidates || [], "Scalp-Ready Research")}
       ${renderScalpCandidateTable(highUpsideScalp.highUpsideWatchlist || [], "High-Upside Watchlist")}
       ${renderScalpCandidateTable(highUpsideScalp.researchOnlyRouteMissing || [], "Research Only: Route Missing")}
+      ${renderScalpCandidateTable(highUpsideScalp.manualReview || [], "Manual Review")}
     </section>
     <section class="panel">
       <div class="section-heading">

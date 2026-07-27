@@ -5,6 +5,7 @@ export const HIGH_UPSIDE_SCALP_LANES = [
   "SCALP_READY_RESEARCH",
   "HIGH_UPSIDE_WATCH",
   "RESEARCH_ONLY_ROUTE_MISSING",
+  "MANUAL_REVIEW",
   "HIGH_UPSIDE_RESEARCH_DEFERRED",
   "LATE_CHASE_REJECTED",
   "MEME_SPECULATION_EXCLUDED",
@@ -41,6 +42,7 @@ export const HIGH_UPSIDE_SCALP_COMPONENTS = {
   flow: [
     ["capitalMigrationScore"],
     ["capitalFlowScore"],
+    ["walletFlowScore"],
     ["buyerBreadthAccelerationScore"],
     ["buyPressureScore"],
     ["liquidityFormationScore"],
@@ -130,6 +132,75 @@ function hasAnyPath(project = {}, paths = []) {
 
 function routeReady(project = {}) {
   return isLiveExecutionReady(project);
+}
+
+function hasRouteIdentity(project = {}) {
+  const route = project.canonicalExecutionRoute || project.executionProofRecoveryRoute || {};
+  const routeType = String(route.routeType || project.routeType || "").toUpperCase();
+  if (project.exactIdentityVerified === true || route.exactIdentityVerified === true) return true;
+  if (routeType === "CEX") return Boolean((route.venue || project.exchange) && (route.marketPair || project.marketPair));
+  return Boolean(
+    (project.chain || project.canonicalChain || route.chain) &&
+      (project.tokenAddress || project.contractAddress || route.tokenAddress || route.contractAddress) &&
+      (project.poolAddress || project.pairAddress || route.poolAddress || route.pairAddress || routeType === "AGGREGATOR")
+  );
+}
+
+function routeProofChecklist(project = {}) {
+  const route = project.executionProofRecoveryRoute || project.canonicalExecutionRoute || {};
+  const proof = project.executionProof || {};
+  const quoteAge = first([
+    project.quoteAgeSeconds,
+    route.quoteAgeSeconds,
+    proof.quoteAgeSeconds,
+    proof.quoteFreshnessSeconds,
+  ]);
+  const slippage = first([
+    project.estimatedRoundTripSlippagePct,
+    route.estimatedRoundTripSlippagePct,
+    proof.estimatedRoundTripSlippagePct,
+    project.estimatedSlippagePct,
+    route.estimatedSlippagePct,
+    proof.estimatedSlippagePct,
+  ]);
+  const depth = first([
+    project.orderBookDepthUsd,
+    route.orderBookDepthUsd,
+    proof.orderBookDepthUsd,
+    project.stableExitLiquidityUsd,
+    project.dexLiquidityUsd,
+    project.liquidityUsd,
+    route.liquidityUsd,
+    proof.liquidityUsd,
+  ]);
+  const hasBuyQuote = project.buyQuoteVerified === true || route.buyQuoteVerified === true || proof.buyQuoteVerified === true;
+  const hasSellQuote = project.sellQuoteVerified === true || route.sellQuoteVerified === true || proof.sellQuoteVerified === true;
+  const quoteFresh = quoteAge !== null && Number.isFinite(Number(quoteAge)) && Number(quoteAge) <= 3600;
+  const hasSlippage = slippage !== null && Number.isFinite(Number(slippage)) && project.slippageIsHeuristic !== true && route.slippageIsHeuristic !== true && proof.slippageIsHeuristic !== true;
+  const hasDepth = Number.isFinite(Number(depth)) && Number(depth) > 0;
+  const region = first([project.regionStatus, route.regionStatus, project.routeAccessibility?.regionStatus]);
+  const regionAvailable = !region || String(region).toUpperCase() === "CONFIRMED_AVAILABLE";
+  const checks = [
+    { field: "exact route identity", passed: hasRouteIdentity(project) },
+    { field: "fresh buy quote", passed: hasBuyQuote && quoteFresh },
+    { field: "fresh sell quote", passed: hasSellQuote && quoteFresh },
+    { field: "liquidity or order-book depth", passed: hasDepth },
+    { field: "non-heuristic slippage", passed: hasSlippage },
+    { field: "region availability", passed: regionAvailable },
+    { field: "sellability safety", passed: !deterministicSafetyBlocked(project) && project.sellRestricted !== true && project.honeypotDetected !== true },
+  ];
+  const missing = checks.filter((check) => !check.passed).map((check) => check.field);
+  return {
+    checks,
+    missing,
+    nextSingleProofNeeded: missing[0] || null,
+    buyQuoteVerified: hasBuyQuote,
+    sellQuoteVerified: hasSellQuote,
+    quoteFresh,
+    depthVerified: hasDepth,
+    slippageVerified: hasSlippage,
+    regionAvailable,
+  };
 }
 
 export function isHighUpsideDeepStageDeferred(project = {}) {
@@ -257,6 +328,38 @@ function routeOnlyScalpBlock(project = {}) {
   return /ROUTE|QUOTE|STALE/i.test(String(project.scalpMicrostructureLane || ""));
 }
 
+function walletFlowMissing(project = {}) {
+  return ![
+    project.walletFlowScore,
+    project.buyerBreadthAccelerationScore,
+    project.smartWalletNoveltyScore,
+    project.smartWalletArrivalScore,
+    project.freshBuyerCount,
+    project.rawUniqueBuyers,
+    project.uniqueBuyers24h,
+    project.buyers24h,
+  ].some((value) => value !== undefined && value !== null && value !== "");
+}
+
+function hasPromisingEarlySignal(project = {}, score = 0, componentScores = {}) {
+  const familyScores = ["upside", "flow", "quality", "proof"]
+    .map((family) => componentScores[family]?.score)
+    .filter((value) => Number.isFinite(Number(value)));
+  return Boolean(
+    score >= 45 ||
+      familyScores.some((value) => Number(value) >= 62) ||
+      [
+        project.sevenDayTenXScore,
+        project.preBreakoutRadarScore,
+        project.preConsensusBreakoutScore,
+        project.earlyAsymmetryResearchPriorityScore,
+        project.capitalMigrationScore,
+        project.liquidityFormationScore,
+        project.utilityQualityScore,
+      ].some((value) => Number.isFinite(Number(value)) && Number(value) >= 62)
+  );
+}
+
 function scoreFromFamilies(componentScores = {}, dataCoveragePct = 0) {
   let weightedScore = 0;
   let activeWeight = 0;
@@ -276,7 +379,7 @@ function scoreFromFamilies(componentScores = {}, dataCoveragePct = 0) {
   return Math.round(clamp(baseScore - riskPenalty - coveragePenalty));
 }
 
-function classificationReason(lane = "", project = {}, score = 0, coveragePct = 0) {
+function classificationReason(lane = "", project = {}, score = 0, coveragePct = 0, routeChecklist = {}) {
   if (lane === "INVALID_OR_AGGREGATE_IDENTITY") {
     return "Provider row is malformed or appears to describe an aggregate market instead of a tradable token.";
   }
@@ -287,7 +390,10 @@ function classificationReason(lane = "", project = {}, score = 0, coveragePct = 
   if (lane === "HIGH_UPSIDE_RESEARCH_DEFERRED") {
     return "Project was not selected into the deep high-upside scalp evidence stage this scan.";
   }
-  if (lane === "RESEARCH_ONLY_ROUTE_MISSING") return "Candidate stays visible for research, but fresh buy and sell route proof is missing.";
+  if (lane === "RESEARCH_ONLY_ROUTE_MISSING") {
+    return `Candidate stays visible for research, but execution proof is incomplete: ${(routeChecklist.missing || []).slice(0, 3).join(", ") || "fresh route proof"}.`;
+  }
+  if (lane === "MANUAL_REVIEW") return "Candidate has enough early signal to stay visible, but wallet, buyer, or proof coverage needs manual review before promotion.";
   if (lane === "DATA_STARVED") return `Only ${coveragePct}% of expected high-upside scalp evidence is available.`;
   if (lane === "SCALP_READY_RESEARCH") return "Full high-upside scalp evidence and route checks are strong enough for manual research.";
   if (lane === "HIGH_UPSIDE_WATCH") return "Evidence is developing but remains below scalp-ready thresholds.";
@@ -295,16 +401,17 @@ function classificationReason(lane = "", project = {}, score = 0, coveragePct = 
   return "No primary high-upside scalp lane could be assigned.";
 }
 
-function primaryLane(project = {}, score = 0, dataCoveragePct = 0) {
+function primaryLane(project = {}, score = 0, dataCoveragePct = 0, componentScores = {}, routeChecklist = {}) {
   if (isLikelyAggregateCandidate(project)) return "INVALID_OR_AGGREGATE_IDENTITY";
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
   if (routeOnlyScalpBlock(project)) {
-    return dataCoveragePct >= MIN_DATA_COVERAGE_PCT ? "RESEARCH_ONLY_ROUTE_MISSING" : "DATA_STARVED";
+    return hasPromisingEarlySignal(project, score, componentScores) ? "RESEARCH_ONLY_ROUTE_MISSING" : "DATA_STARVED";
   }
   if (String(project.scalpMicrostructureLane || "").startsWith("SCALP_NO_TRADE")) return project.scalpMicrostructureLane;
-  if (!routeReady(project) && dataCoveragePct >= MIN_DATA_COVERAGE_PCT) return "RESEARCH_ONLY_ROUTE_MISSING";
+  if (!routeReady(project) && hasPromisingEarlySignal(project, score, componentScores)) return "RESEARCH_ONLY_ROUTE_MISSING";
+  if (walletFlowMissing(project) && hasPromisingEarlySignal(project, score, componentScores)) return "MANUAL_REVIEW";
   if (dataCoveragePct < MIN_DATA_COVERAGE_PCT) return "DATA_STARVED";
   if (project.scalpMicrostructureLane === "SCALP_WATCHLIST") return "HIGH_UPSIDE_WATCH";
   if (score >= 72) return "SCALP_READY_RESEARCH";
@@ -330,7 +437,14 @@ export function classifyHighUpsideScalpProject(project = {}) {
     .flatMap((family) => family.missingFields)
     .slice(0, MAX_MISSING_FIELDS);
   const score = scoreFromFamilies(componentScores, dataCoveragePct);
-  const lane = primaryLane(project, score, dataCoveragePct);
+  const routeChecklist = routeProofChecklist(project);
+  const lane = primaryLane(project, score, dataCoveragePct, componentScores, routeChecklist);
+  const walletMissing = walletFlowMissing(project);
+  const highUpsideScalpMissingProof = [
+    ...(routeReady(project) ? [] : routeChecklist.missing),
+    ...(walletMissing ? ["buyer breadth or wallet-flow proof"] : []),
+    ...missingFields,
+  ].filter(Boolean);
 
   return {
     ...project,
@@ -342,12 +456,20 @@ export function classifyHighUpsideScalpProject(project = {}) {
     highUpsideScalpComponentCoverage: componentScores,
     highUpsideScalpDataCoverage: dataCoveragePct,
     highUpsideScalpMissingFields: missingFields,
-    highUpsideScalpClassificationReason: classificationReason(lane, project, score, dataCoveragePct),
+    highUpsideScalpMissingProof: [...new Set(highUpsideScalpMissingProof)].slice(0, MAX_MISSING_FIELDS),
+    highUpsideScalpRouteChecklist: routeChecklist,
+    highUpsideScalpNextProofNeeded: highUpsideScalpMissingProof[0] || null,
+    highUpsideScalpProofCategory:
+      !routeReady(project) ? "route" : walletMissing ? "wallet_flow" : dataCoveragePct < MIN_DATA_COVERAGE_PCT ? "data_coverage" : "none",
+    highUpsideScalpClassificationReason: classificationReason(lane, project, score, dataCoveragePct, routeChecklist),
     highUpsideScalpDiagnostics: {
       routeReady: routeReady(project),
       lateChase: lateChase(project),
       utilityBlocked: utilityBlocked(project),
       deterministicSafetyBlocked: deterministicSafetyBlocked(project),
+      walletFlowMissing: walletMissing,
+      routeProofMissing: routeChecklist.missing,
+      nextSingleProofNeeded: highUpsideScalpMissingProof[0] || null,
       missingFieldCount: missingFields.length,
       componentCoveragePct: dataCoveragePct,
       componentScoreMedian: average(

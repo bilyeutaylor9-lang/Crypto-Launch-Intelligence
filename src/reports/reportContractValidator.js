@@ -117,9 +117,11 @@ function highUpsideScalpIssues(report = {}, fileName = "high-upside-scalp-resear
 
   if (
     report.status === "PASS_WITH_WATCHLIST" &&
-    Number(report.highUpsideWatchCount || 0) + Number(report.researchOnlyRouteMissingCount || 0) <= 0
+    Number(report.highUpsideWatchCount || 0) +
+      Number(report.researchOnlyRouteMissingCount || 0) +
+      Number(report.manualReviewCount || 0) <= 0
   ) {
-    issues.push(`${fileName}: PASS_WITH_WATCHLIST requires a watchlist or route-missing research candidate`);
+    issues.push(`${fileName}: PASS_WITH_WATCHLIST requires a watchlist, route-missing, or manual-review research candidate`);
   }
 
   return issues;
