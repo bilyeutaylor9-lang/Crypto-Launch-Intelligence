@@ -113,7 +113,9 @@ function routeObjects(project = {}) {
   return [
     project.purchaseRoute,
     project.executionRoute,
+    project.executionProofRecoveryRoute,
     ...array(project.executionRoutes),
+    ...array(project.executionProofRecoveryRoutes),
     project.smallCapHunter?.purchaseRoute,
     project.proofOfAlphaExecutionTwin?.route,
     ...array(project.purchaseRoute?.routes),

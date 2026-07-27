@@ -21,6 +21,7 @@ export const REQUIRED_REPORT_FILES = [
   "engine-data-readiness.json",
   "engine-data-contract-health.json",
   "route-universe.json",
+  "execution-proof-recovery.json",
   "alternative-execution-routes.json",
   "user-accessibility-ranking.json",
   "venue-coverage-health.json",

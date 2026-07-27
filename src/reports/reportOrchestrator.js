@@ -77,6 +77,7 @@ import { writeHottestTenNowReport } from "./hottestTenNowReportEngine.js";
 import { writeDailyCapitalMoveReport } from "./dailyCapitalMoveReportEngine.js";
 import { writeDailyRecoveryQueueReport } from "./dailyRecoveryQueueReportEngine.js";
 import { writeDailySourceGapReport } from "./dailySourceGapReportEngine.js";
+import { writeExecutionProofRecoveryReport } from "./executionProofRecoveryReportEngine.js";
 import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
@@ -288,6 +289,10 @@ export function generateReports(projects = [], meta = {}) {
     venueCoverageHealthPath,
   } = writeRouteAccessibilityReports(projects, meta);
   const {
+    filePath: executionProofRecoveryPath,
+    report: executionProofRecovery,
+  } = writeExecutionProofRecoveryReport(fullProjects, meta);
+  const {
     dataStarvationRootCausePath,
     dataStarvationByChainPath,
     dataStarvationByProviderPath,
@@ -375,6 +380,7 @@ export function generateReports(projects = [], meta = {}) {
     ...meta,
     opModeReadiness,
     sourceRouter,
+    executionProofRecovery,
   });
   const {
     filePath: engineAuditPath,
@@ -498,6 +504,7 @@ export function generateReports(projects = [], meta = {}) {
     engineDataReadinessPath,
     engineDataContractHealthPath,
     routeUniversePath,
+    executionProofRecoveryPath,
     alternativeRoutesPath,
     userAccessibilityRankingPath,
     venueCoverageHealthPath,

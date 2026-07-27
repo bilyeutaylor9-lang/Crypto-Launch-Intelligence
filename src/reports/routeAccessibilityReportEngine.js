@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { summarizeRouteAccessibility } from "../engines/routeAccessibilityEngine.js";
+import {
+  analyzeRouteAccessibilityBatch,
+  summarizeRouteAccessibility,
+} from "../engines/routeAccessibilityEngine.js";
 import { writeDataStarvationRootCauseReports } from "./dataStarvationRootCauseReportEngine.js";
 import { writeStarvationRescueQueueReport } from "./starvationRescueQueueReportEngine.js";
 import { writeRecoveredOpportunityWatchlistReport } from "./recoveredOpportunityWatchlistReportEngine.js";
@@ -23,7 +26,10 @@ function writeReport(fileName = "", payload = {}) {
 }
 
 export function writeRouteAccessibilityReports(projects = [], meta = {}) {
-  const report = summarizeRouteAccessibility(projects, meta.routeAccessibility || meta);
+  const routeProjects = Array.isArray(projects) && projects.some((project) => Array.isArray(project?.canonicalRoutes))
+    ? projects
+    : analyzeRouteAccessibilityBatch(projects, meta.routeAccessibility || meta);
+  const report = summarizeRouteAccessibility(routeProjects, meta.routeAccessibility || meta);
   const shared = {
     generatedAt: report.generatedAt,
     status: report.status,
@@ -64,25 +70,25 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
     dataStarvationByProviderPath,
     dataStarvationByEnginePath,
     dataStarvationByFieldPath,
-  } = writeDataStarvationRootCauseReports(projects, meta);
+  } = writeDataStarvationRootCauseReports(routeProjects, meta);
   const {
     filePath: starvationRescueQueuePath,
-  } = writeStarvationRescueQueueReport(projects, meta);
+  } = writeStarvationRescueQueueReport(routeProjects, meta);
   const {
     filePath: recoveredOpportunityWatchlistPath,
     recoveryPath: starvationRecoveryResultsPath,
-  } = writeRecoveredOpportunityWatchlistReport(projects, meta);
+  } = writeRecoveredOpportunityWatchlistReport(routeProjects, meta);
   const {
     filePath: firstSeenOpportunitiesPath,
-  } = writeFirstSeenOpportunityReport(projects, meta);
+  } = writeFirstSeenOpportunityReport(routeProjects, meta);
   const {
     filePath: missedWinnerReplayPath,
-  } = writeMissedWinnerReplayReport(projects, meta);
+  } = writeMissedWinnerReplayReport(routeProjects, meta);
   const {
     filePath: earlyAsymmetryRankingPath,
     preBreakoutSequencePath,
     earlyOpportunityOutcomesPath,
-  } = writeEarlyAsymmetryReport(projects, meta);
+  } = writeEarlyAsymmetryReport(routeProjects, meta);
   const {
     aliasResolutionSummaryPath,
     aliasResolutionConflictsPath,
@@ -90,7 +96,7 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
     unresolvedFieldVerbiagePath,
     rejectedAliasCandidatesPath,
     aliasStarvationRecoveriesPath,
-  } = writeAliasResolutionReports(projects, meta);
+  } = writeAliasResolutionReports(routeProjects, meta);
 
   return {
     routeUniversePath,

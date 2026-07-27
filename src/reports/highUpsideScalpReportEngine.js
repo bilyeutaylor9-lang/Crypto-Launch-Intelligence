@@ -174,8 +174,58 @@ function lane(project = {}, score = 0) {
   return "LOWER_PRIORITY";
 }
 
+function debugMissingProof(project = {}) {
+  return [
+    ...(project.dailyCapitalMoveMissingProof || []),
+    ...(project.highUpsideScalpMissingFields || []),
+    ...(project.missingInfoNeeded || []),
+    ...(project.missingRouteEvidence || []),
+    ...(project.sevenDayTenXMissingEvidence || []),
+    ...(project.scalpMicrostructureBlockers || []),
+  ].filter(Boolean);
+}
+
+function sourceList(project = {}) {
+  return [
+    project.executionRecoverySource,
+    project.executionProofRecovery?.executionRecoverySource,
+    project.executionProofRecoveryRoute?.source,
+    project.canonicalExecutionRoute?.supportingSources?.[0],
+    project.executionProof?.supportingSources?.[0],
+    ...(project.discoverySources || []),
+    project.source,
+    project.exchange,
+    project.dex,
+  ].filter(Boolean);
+}
+
+function failedSourceList(project = {}) {
+  return [
+    ...(project.executionRecoveryFailures || []),
+    ...(project.executionProofRecovery?.executionRecoveryFailures || []),
+    ...(project.providerFailures || []),
+    ...(project.discoveryProviderFailures || []),
+    ...(project.canonicalExecutionRoute?.failureReasons || []),
+    ...(project.executionProof?.failureReasons || []),
+  ].filter(Boolean);
+}
+
+function plainLanguageLane(project = {}) {
+  const laneValue = String(project.highUpsideScalpLane || "");
+  if (laneValue === "SCALP_READY_RESEARCH") return "SCALP_READY";
+  if (laneValue === "HIGH_UPSIDE_WATCH") return "HIGH_UPSIDE_WATCHLIST";
+  if (laneValue === "RESEARCH_ONLY_ROUTE_MISSING") return "ROUTE_PENDING";
+  if (laneValue === "DATA_STARVED" || laneValue === "HIGH_UPSIDE_RESEARCH_DEFERRED") return "DEEP_DEFERRED";
+  if (/safety|manual|wallet|proof|unknown/i.test(debugMissingProof(project).join(" "))) return "MANUAL_REVIEW";
+  if (laneValue.startsWith("SCALP_NO_TRADE") || ["SAFETY_BLOCKED", "LATE_CHASE_REJECTED", "MEME_SPECULATION_EXCLUDED"].includes(laneValue)) {
+    return "REJECTED";
+  }
+  return laneValue || "MANUAL_REVIEW";
+}
+
 function compact(project = {}, rank = null) {
   const score = project.highUpsideScalpScore ?? 0;
+  const missingProof = [...new Set(debugMissingProof(project))].slice(0, 12);
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
@@ -185,9 +235,17 @@ function compact(project = {}, rank = null) {
     poolAddress: project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
     highUpsideScalpScore: score,
     lane: project.highUpsideScalpLane || "UNCLASSIFIED",
+    readableLane: plainLanguageLane(project),
     highUpsideScalpDataCoverage: project.highUpsideScalpDataCoverage ?? null,
     highUpsideScalpMissingFields: project.highUpsideScalpMissingFields || [],
     highUpsideScalpClassificationReason: project.highUpsideScalpClassificationReason || "No classification reason recorded.",
+    promotionDebug: {
+      whyFailedPromotion: project.highUpsideScalpClassificationReason || project.dailyCapitalMoveReason || "Promotion requirements are not fully proven yet.",
+      missingProof,
+      nextSingleProofToPromote: missingProof[0] || null,
+      sourcesUsed: [...new Set(sourceList(project))].slice(0, 10),
+      sourcesFailed: [...new Set(failedSourceList(project))].slice(0, 10),
+    },
     priceUsd: priceUsd(project),
     subCent: priceUsd(project) > 0 && priceUsd(project) < 0.01,
     marketCapUsd: marketCap(project),

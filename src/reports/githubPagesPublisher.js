@@ -107,6 +107,7 @@ const PUBLIC_REPORTS = [
   "engine-data-readiness.json",
   "engine-data-contract-health.json",
   "route-universe.json",
+  "execution-proof-recovery.json",
   "alternative-execution-routes.json",
   "user-accessibility-ranking.json",
   "venue-coverage-health.json",
@@ -550,6 +551,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
   const engineDataContractHealth = readJsonReport("engine-data-contract-health.json", reportsDir) || {};
   const routeUniverse = readJsonReport("route-universe.json", reportsDir) || {};
+  const executionProofRecovery = readJsonReport("execution-proof-recovery.json", reportsDir) || {};
   const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
   const userAccessibility = readJsonReport("user-accessibility-ranking.json", reportsDir) || {};
   const venueCoverage = readJsonReport("venue-coverage-health.json", reportsDir) || {};
@@ -1269,6 +1271,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
         <a class="button" href="./engine-data-contract-health.json">Contract Health</a>
         <a class="button" href="./route-universe.json">View Route Universe</a>
+        <a class="button" href="./execution-proof-recovery.json">Execution Recovery</a>
         <a class="button" href="./alternative-execution-routes.json">View Alt Routes</a>
         <a class="button" href="./user-accessibility-ranking.json">View Latest Route Analysis</a>
         <a class="button" href="./venue-coverage-health.json">View Venue Health</a>

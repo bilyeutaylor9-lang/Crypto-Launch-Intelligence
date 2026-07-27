@@ -645,7 +645,9 @@ function routeComplexityScore({ routeType = "", bridgeStatus = "", region = "", 
 function routeObjects(project = {}) {
   const routes = [];
   if (project.canonicalExecutionRoute) routes.push({ ...project.canonicalExecutionRoute, __canonical: true, source: "canonical-execution-route" });
+  if (project.executionProofRecoveryRoute) routes.push({ ...project.executionProofRecoveryRoute, source: "execution-proof-recovery" });
   routes.push(project.purchaseRoute, project.executionRoute, ...array(project.executionRoutes));
+  routes.push(...array(project.executionProofRecoveryRoutes));
   routes.push(project.smallCapHunter?.purchaseRoute, project.proofOfAlphaExecutionTwin?.route);
   routes.push(...array(project.purchaseRoute?.routes));
   routes.push(...array(project.smallCapHunter?.purchaseRoute?.routes));

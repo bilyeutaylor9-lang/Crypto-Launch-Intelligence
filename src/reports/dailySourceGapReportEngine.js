@@ -14,6 +14,9 @@ const SOURCE_SETUP = {
   honeypot: { label: "Honeypot.is", key: null, improves: "sell restriction and honeypot checks" },
   github: { label: "GitHub", key: "GITHUB_TOKEN optional", improves: "developer velocity and repo identity" },
   supabase: { label: "Supabase", key: "SUPABASE_URL + SUPABASE_SECRET_KEY", improves: "remote memory, outcomes, prior scans" },
+  jupiter: { label: "Jupiter", key: "JUPITER_API_KEY optional", optional: true, improves: "Solana buy/sell quote recovery" },
+  zerox: { label: "0x Swap API", key: "ZEROX_API_KEY optional", optional: true, improves: "EVM buy/sell quote recovery" },
+  cexorderbook: { label: "CEX public order books", key: null, improves: "spot depth and spread checks" },
 };
 
 function num(value = 0) {
@@ -34,6 +37,9 @@ function normalizeSource(value = "") {
   if (key.includes("honeypot")) return "honeypot";
   if (key.includes("github")) return "github";
   if (key.includes("supabase")) return "supabase";
+  if (key.includes("jupiter")) return "jupiter";
+  if (key.includes("zerox") || key === "0x" || key.includes("0xswap")) return "zerox";
+  if (key.includes("orderbook") || key.includes("cex")) return "cexorderbook";
   return key || "unknown";
 }
 
@@ -85,17 +91,34 @@ export function summarizeDailySourceGaps(meta = {}) {
       });
     }
   }
+  for (const gap of meta.executionProofRecovery?.optionalSourceGaps || []) {
+    const key = normalizeSource(gap.source || gap.missingKey);
+    const setup = SOURCE_SETUP[key] || { label: gap.source || key, key: gap.missingKey, optional: true, improves: "execution proof recovery" };
+    sourceMap.set(key, {
+      ...(sourceMap.get(key) || {}),
+      source: key,
+      label: setup.label,
+      status: "MISSING_OPTIONAL_KEY",
+      missingKey: gap.missingKey || setup.key,
+      optional: true,
+      improves: setup.improves,
+      returnedUsefulData: false,
+      lastError: gap.reason || null,
+    });
+  }
 
   const sources = [...sourceMap.values()].map((item) => {
     const setup = SOURCE_SETUP[item.source] || {};
+    const optional = item.optional === true || setup.optional === true || item.status === "MISSING_OPTIONAL_KEY";
     return {
       source: item.source,
       label: item.label || setup.label || item.source,
       status: item.status || "UNKNOWN",
+      optional,
       trustScore: num(item.trustScore),
       available: item.status === "AVAILABLE",
       rateLimited: item.status === "RATE_LIMITED",
-      missingKey: item.status === "MISSING_KEY" ? item.missingKey || setup.key || null : null,
+      missingKey: ["MISSING_KEY", "MISSING_OPTIONAL_KEY"].includes(item.status) ? item.missingKey || setup.key || null : null,
       regionBlocked: item.status === "REGION_BLOCKED",
       failed: item.status === "FAILED",
       stale: item.status === "STALE",
@@ -104,29 +127,33 @@ export function summarizeDailySourceGaps(meta = {}) {
       lastError: item.lastError || item.error || null,
       improves: item.improves || setup.improves || "source coverage",
       nextAction:
-        item.status === "MISSING_KEY"
-          ? `Add ${item.missingKey || setup.key || "provider key"} if available.`
-          : item.status === "RATE_LIMITED"
-            ? "Lower request volume or retry after cooldown."
-            : item.status === "REGION_BLOCKED"
-              ? "Use an allowed regional endpoint or alternate provider."
-              : item.status === "FAILED"
-                ? "Keep cooldown and rely on alternate source until healthy."
-                : "No action needed.",
+        item.status === "MISSING_OPTIONAL_KEY"
+          ? `Optional: add ${item.missingKey || setup.key || "provider key"} to improve coverage.`
+          : item.status === "MISSING_KEY"
+            ? `Add ${item.missingKey || setup.key || "provider key"} if available.`
+            : item.status === "RATE_LIMITED"
+              ? "Lower request volume or retry after cooldown."
+              : item.status === "REGION_BLOCKED"
+                ? "Use an allowed regional endpoint or alternate provider."
+                : item.status === "FAILED"
+                  ? "Keep cooldown and rely on alternate source until healthy."
+                  : "No action needed.",
     };
   }).sort((a, b) => {
-    const priority = { MISSING_KEY: 5, FAILED: 4, RATE_LIMITED: 3, REGION_BLOCKED: 2, STALE: 1, UNKNOWN: 1, AVAILABLE: 0 };
+    const priority = { MISSING_KEY: 5, FAILED: 4, RATE_LIMITED: 3, REGION_BLOCKED: 2, MISSING_OPTIONAL_KEY: 1, STALE: 1, UNKNOWN: 1, AVAILABLE: 0 };
     return (priority[b.status] || 0) - (priority[a.status] || 0) || b.trustScore - a.trustScore;
   });
+  const fatalGapStatuses = new Set(["MISSING_KEY", "FAILED", "RATE_LIMITED", "REGION_BLOCKED"]);
 
   return {
     generatedAt: new Date().toISOString(),
-    status: sources.some((item) => ["MISSING_KEY", "FAILED", "RATE_LIMITED", "REGION_BLOCKED"].includes(item.status))
+    status: sources.some((item) => fatalGapStatuses.has(item.status))
       ? "SOURCE_GAPS_FOUND"
       : "SOURCE_HEALTH_OK",
     sourceCount: sources.length,
     availableCount: sources.filter((item) => item.status === "AVAILABLE").length,
     missingKeyCount: sources.filter((item) => item.status === "MISSING_KEY").length,
+    optionalMissingKeyCount: sources.filter((item) => item.status === "MISSING_OPTIONAL_KEY").length,
     failedCount: sources.filter((item) => item.status === "FAILED").length,
     rateLimitedCount: sources.filter((item) => item.status === "RATE_LIMITED").length,
     regionBlockedCount: sources.filter((item) => item.status === "REGION_BLOCKED").length,

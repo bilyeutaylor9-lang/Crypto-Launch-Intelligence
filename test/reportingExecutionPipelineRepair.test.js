@@ -51,6 +51,7 @@ import { writeHottestTenNowReport } from "../src/reports/hottestTenNowReportEngi
 import { writeDailyCapitalMoveReport } from "../src/reports/dailyCapitalMoveReportEngine.js";
 import { writeDailyRecoveryQueueReport } from "../src/reports/dailyRecoveryQueueReportEngine.js";
 import { writeDailySourceGapReport } from "../src/reports/dailySourceGapReportEngine.js";
+import { writeExecutionProofRecoveryReport } from "../src/reports/executionProofRecoveryReportEngine.js";
 import { writeSystemReadinessReport } from "../src/reports/systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "../src/reports/decisionReportCompactionAuditEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
@@ -448,6 +449,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeExactOutcomeLabReport(processed, { observations: [] });
   writeMathematicalValidationReport();
   writeRouteAccessibilityReports(processed);
+  writeExecutionProofRecoveryReport(processed);
   writeAdvertisedCategoryCoverageReport(processed);
   writeCrawlerReports(processed);
   writeUtilityQualityReport(processed);

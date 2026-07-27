@@ -69,7 +69,21 @@ function compact(project = {}, rank = 0) {
     blockingResearch: project.dailyCapitalMoveLane === "NEEDS_PROOF" || missing.length > 0,
     blockingExecution: missing.some((item) => /route|quote|sell|buy|slippage|depth|liquidity|safety|identity|contract/i.test(item)),
     missingProof: missing,
+    nextSingleProofToPromote: missing[0] || null,
     targetSources: sources,
+    sourcesUsed: [...new Set([
+      project.executionRecoverySource,
+      project.executionProofRecovery?.executionRecoverySource,
+      project.canonicalExecutionRoute?.supportingSources?.[0],
+      ...(project.discoverySources || []),
+      project.source,
+    ].filter(Boolean))].slice(0, 10),
+    sourcesFailed: [...new Set([
+      ...(project.executionRecoveryFailures || []),
+      ...(project.executionProofRecovery?.executionRecoveryFailures || []),
+      ...(project.providerFailures || []),
+      ...(project.discoveryProviderFailures || []),
+    ].filter(Boolean))].slice(0, 10),
     estimatedRequests: Math.max(1, Math.min(12, sources.length)),
     reason: project.dailyCapitalMoveReason || project.reasonNotQualified || "Recover missing evidence before promotion.",
   };

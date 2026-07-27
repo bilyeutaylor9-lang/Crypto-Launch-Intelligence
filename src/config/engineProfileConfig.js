@@ -55,6 +55,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "Contract Authority Risk",
   "Organic Demand Integrity",
   "Canonical Execution Route",
+  "Execution Proof Recovery",
   "Execution Proof",
   "Route Accessibility",
   "Capital Migration Core",

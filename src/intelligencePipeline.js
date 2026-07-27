@@ -111,6 +111,7 @@ import { analyzeAutonomousCausalAlphaNetworkBatch } from "./engines/autonomousCa
 import { analyzeAlphaEvolutionGovernorBatch } from "./engines/alphaEvolutionGovernorEngine.js";
 import { analyzeSmallCapHunterBatch } from "./engines/smallCapHunterEngine.js";
 import { analyzeCanonicalExecutionRouteBatch } from "./engines/canonicalExecutionRouteEngine.js";
+import { analyzeExecutionProofRecoveryBatch } from "./engines/executionProofRecoveryEngine.js";
 import { analyzeProofOfAlphaExecutionTwinBatch } from "./engines/proofOfAlphaExecutionTwinEngine.js";
 import { analyzeExecutionProofBatch } from "./engines/executionProofEngine.js";
 import { analyzeRouteAccessibilityBatch } from "./engines/routeAccessibilityEngine.js";
@@ -212,6 +213,7 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "Project Dossier Swarm": 30_000,
   "AI Research Commander": 30_000,
   "Autonomous Alpha Investigator": 30_000,
+  "Execution Proof Recovery": 300_000,
   "Capital Flow Observation": 45_000,
 };
 const PIPELINE_STAGE_ORDER = [
@@ -274,6 +276,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "Confidence-Adjusted Rank": "advanced",
 
   "Canonical Execution Route": "deep",
+  "Execution Proof Recovery": "deep",
   "Execution Proof": "deep",
   "Route Accessibility": "deep",
   "Capital Flow Observation": "deep",
@@ -608,6 +611,7 @@ async function runLocalAIResearchPipelineStage(projects = [], options = {}, cont
 const REQUIRED_ENGINE_NAMES = new Set([
   "Project Identity Graph",
   "Source Truth",
+  "Execution Proof Recovery",
   "Execution Proof",
   "Route Accessibility",
   "Data Starvation Root Cause",
@@ -2516,6 +2520,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Autonomous Alpha Investigator", analyzeAutonomousAlphaInvestigatorBatch, results);
 
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
+  results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
   const capitalFlowObservationOptions = {

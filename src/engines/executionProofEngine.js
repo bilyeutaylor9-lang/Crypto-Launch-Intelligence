@@ -170,8 +170,10 @@ function routeSources(project = {}) {
   }
 
   add("purchase-route", project.purchaseRoute, project.purchaseRoute?.preferredRoute);
+  add("execution-proof-recovery", project.executionProofRecoveryRoute, project.executionProofRecoveryRoute?.venue);
   add("small-cap-hunter", project.smallCapHunter?.purchaseRoute, project.smallCapHunter?.purchaseRoute?.preferredRoute);
   add("execution-twin", project.proofOfAlphaExecutionTwin?.route, project.proofOfAlphaExecutionTwin?.route?.preferredRoute);
+  for (const route of project.executionProofRecoveryRoutes || []) add("execution-proof-recovery-detail", route);
   for (const route of project.purchaseRoute?.routes || []) add("purchase-route-detail", route);
   for (const route of project.smallCapHunter?.purchaseRoute?.routes || []) add("small-cap-route-detail", route);
   for (const route of project.proofOfAlphaExecutionTwin?.route?.routes || []) add("execution-twin-route-detail", route);
@@ -415,7 +417,13 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const buyRouteAvailable = routes.some((route) => route.buy);
   const sellRouteAvailable = routes.some((route) => route.sell) && !sellRouteConfirmedUnavailable(project, routes);
   const observedSlippage = first([
+    project.estimatedRoundTripSlippagePct,
+    project.estimatedSlippagePct,
+    project.slippagePct,
     project.executionSlippagePct,
+    project.executionProofRecoveryRoute?.estimatedRoundTripSlippagePct,
+    project.executionProofRecoveryRoute?.estimatedSlippagePct,
+    project.executionProofRecoveryRoute?.slippagePct,
     project.proofOfAlphaExecutionTwinSlippagePct,
     project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
     project.smallCapHunter?.execution?.slippagePct,
