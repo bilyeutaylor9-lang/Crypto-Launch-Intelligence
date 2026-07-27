@@ -84,6 +84,7 @@ export function resolveAnalysisFunnelConfig(env = process.env, overrides = {}) {
       catalystDeveloperReserve: Math.round(standardIntelligenceLimit * 0.075),
       coverageReserve: Math.round(standardIntelligenceLimit * 0.05),
       starvationRescueReserve: Math.round(standardIntelligenceLimit * 0.075),
+      freshDiscoveryReserve: Math.max(1, Math.round(standardIntelligenceLimit * 0.05)),
       deferredRotation: Math.max(1, Math.round(standardIntelligenceLimit * 0.025)),
     },
     stageBudgets: {

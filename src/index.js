@@ -264,6 +264,7 @@ function printResearchCoverage(coverage = {}) {
   console.log(`Catalyst/Developer Reserve: ${allocation.catalystDeveloperReserve || 0}`);
   console.log(`Data-Starvation Rescue Reserve: ${allocation.starvationRescueReserve || 0}`);
   console.log(`Coverage Reserve: ${allocation.coverageReserve || 0}`);
+  console.log(`Fresh Discovery Reserve: ${allocation.freshDiscoveryReserve || 0}`);
   console.log(`Deferred Rotation: ${allocation.deferredRotation || 0}`);
   console.log(`Rescued Candidates: ${allocation.rescuedCandidates || 0}`);
   console.log(`Merit Fill: ${allocation.meritFill || 0}`);

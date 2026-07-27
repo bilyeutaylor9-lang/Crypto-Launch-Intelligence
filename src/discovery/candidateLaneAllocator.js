@@ -18,6 +18,11 @@ function stableHash(value = "") {
   return hash >>> 0;
 }
 
+function rotationScore(identityKey = "", runSequence = 1, salt = "rotation") {
+  return (stableHash(`${salt}:${runSequence}:${identityKey}`) ^
+    stableHash(`${identityKey}:${Math.imul(runSequence, 7919)}:${salt}`)) >>> 0;
+}
+
 function identityForCandidate(project = {}, index = 0) {
   const identity = identityKeyForProject(project);
   if (identity.endsWith(":alias:unknown")) {
@@ -66,6 +71,7 @@ function selectionReasonLabel(reason = "") {
     CATALYST_DEVELOPER_RESERVE: "Catalyst/Developer Reserve",
     COVERAGE_RESERVE: "Coverage Reserve",
     STARVATION_RESCUE_RESERVE: "Data Starvation Rescue",
+    FRESH_DISCOVERY_RESERVE: "Fresh Discovery Reserve",
     DEFERRED_ROTATION: "Deferred Rotation",
     MERIT_FILL: "Merit Fill",
   }[reason] || reason;
@@ -173,6 +179,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     CATALYST_DEVELOPER_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.catalystDeveloperReserve) || Math.round(target * 0.075))),
     COVERAGE_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.coverageReserve) || Math.round(target * 0.05))),
     STARVATION_RESCUE_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.starvationRescueReserve) || Math.round(target * 0.075))),
+    FRESH_DISCOVERY_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.freshDiscoveryReserve) || Math.round(target * 0.05))),
     DEFERRED_ROTATION: Math.max(0, Math.floor(num(config.laneBudgets?.deferredRotation) || Math.round(target * 0.025))),
   };
 
@@ -257,10 +264,34 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
   unique
     .filter((candidate) => !selectedIdentityKeys.has(candidate.identityKey))
     .sort((left, right) => {
+      const leftNeverQueued = num(left.history.queuedCount) === 0 ? 1 : 0;
+      const rightNeverQueued = num(right.history.queuedCount) === 0 ? 1 : 0;
+      if (leftNeverQueued !== rightNeverQueued) return rightNeverQueued - leftNeverQueued;
       const leftDeferred = num(left.history.deferredCount);
       const rightDeferred = num(right.history.deferredCount);
       if (leftDeferred !== rightDeferred) return rightDeferred - leftDeferred;
-      return stableHash(`${left.identityKey}:${runSequence}`) - stableHash(`${right.identityKey}:${runSequence}`);
+      return rotationScore(left.identityKey, runSequence, "fresh-discovery") -
+        rotationScore(right.identityKey, runSequence, "fresh-discovery");
+    })
+    .slice(0, budgets.FRESH_DISCOVERY_RESERVE)
+    .forEach((candidate) =>
+      select(
+        candidate,
+        "FRESH_DISCOVERY_RESERVE",
+        num(candidate.history.queuedCount) === 0
+          ? "never queued by prior standard scans"
+          : "long-deferred candidate rotated into standard scan"
+      )
+    );
+
+  unique
+    .filter((candidate) => !selectedIdentityKeys.has(candidate.identityKey))
+    .sort((left, right) => {
+      const leftDeferred = num(left.history.deferredCount);
+      const rightDeferred = num(right.history.deferredCount);
+      if (leftDeferred !== rightDeferred) return rightDeferred - leftDeferred;
+      return rotationScore(left.identityKey, runSequence, "deferred") -
+        rotationScore(right.identityKey, runSequence, "deferred");
     })
     .slice(0, budgets.DEFERRED_ROTATION)
     .forEach((candidate) => select(candidate, "DEFERRED_ROTATION"));
@@ -303,7 +334,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     selectionReasons: Object.fromEntries(selectedReasonByIdentity),
     budgets,
     report: {
-      policy: "Institutional multi-lane 4,000 selector: composite, acceleration, attention gap, catalyst/developer, data-starvation rescue, coverage, rotation, then merit fill. Missing data is not treated as zero; recoverable hidden candidates receive reserved capacity.",
+      policy: "Institutional multi-lane 4,000 selector: composite, acceleration, attention gap, catalyst/developer, data-starvation rescue, coverage, fresh discovery, rotation, then merit fill. Missing data is not treated as zero; recoverable hidden candidates and never-queued projects receive reserved capacity.",
       runSequence,
       configuredLimit: limit,
       candidateCount: candidates.length,
@@ -335,6 +366,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
         starvationRescueReserve: selectedByReason.STARVATION_RESCUE_RESERVE || 0,
         coverageReserve: selectedByReason.COVERAGE_RESERVE || 0,
         deferredRotation: selectedByReason.DEFERRED_ROTATION || 0,
+        freshDiscoveryReserve: selectedByReason.FRESH_DISCOVERY_RESERVE || 0,
         meritFill: selectedByReason.MERIT_FILL || 0,
         rescuedCandidates: rescued.length,
       },

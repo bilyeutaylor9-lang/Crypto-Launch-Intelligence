@@ -6,6 +6,7 @@ import { resolveAnalysisFunnelConfig } from "../src/config/analysisFunnelConfig.
 import { planResearchQueue } from "../src/index.js";
 import { planInstitutionalCandidateSelection } from "../src/discovery/institutionalCandidateSelector.js";
 import { calculatePreIntelligenceFeatures } from "../src/discovery/preIntelligenceFeatureEngine.js";
+import { identityKeyForProject } from "../src/discovery/projectIdentityGraph.js";
 
 function evmAddress(index = 0) {
   return `0x${String(index).padStart(40, "0")}`;
@@ -63,6 +64,7 @@ test("normal analysis funnel defaults to 4,000 standard intelligence candidates"
   assert.equal(config.localAITopProjectLimit, 100);
   assert.equal(config.finalistDebateLimit, 25);
   assert.equal(config.finalistComparisonLimit, 5);
+  assert.equal(config.laneBudgets.freshDiscoveryReserve, 200);
 });
 
 test("package scripts expose scan:4000 and free-max uses 4,000", () => {
@@ -282,6 +284,88 @@ test("deferred rotation is approximately 2.5 percent, not 20 percent", () => {
 
   assert.ok(plan.report.allocation.deferredRotation <= 110);
   assert.ok(plan.report.allocation.deferredRotation < 800);
+});
+
+test("fresh discovery reserve prevents never-queued projects from being permanently missed", () => {
+  const known = Array.from({ length: 90 }, (_, index) => candidate(index));
+  const hiddenUtility = candidate(999, {
+    symbol: "NEVERSEEN",
+    liquidityUsd: 12_000,
+    volume24h: 1_500,
+    marketCap: 900_000,
+    priceChange24h: 1,
+    priceChange7d: 1,
+    liquidityChange24hPct: 1,
+    buyersChange24hPct: 1,
+    volumeChange24hPct: 1,
+    sourceTruthScore: 30,
+    identityResolutionScore: 35,
+  });
+  const history = {
+    projects: Object.fromEntries(
+      known.map((project) => [
+        identityKeyForProject(project),
+        {
+          queuedCount: 3,
+          deferredCount: 2,
+          lastState: "SELECTED",
+        },
+      ])
+    ),
+  };
+
+  const plan = planInstitutionalCandidateSelection([...known, hiddenUtility], {
+    standardIntelligenceLimit: 40,
+    advancedIntelligenceLimit: 40,
+    deepIntelligenceLimit: 20,
+    crawlerResearchLimit: 20,
+    localAITopProjectLimit: 10,
+    finalistDebateLimit: 5,
+    finalistComparisonLimit: 5,
+    history,
+    runSequence: 7,
+  });
+  const selected = plan.selected.find((project) => project.symbol === "NEVERSEEN");
+
+  assert.ok(selected);
+  assert.equal(selected.standardSelectionReason, "FRESH_DISCOVERY_RESERVE");
+  assert.equal(selected.standardSelectionRescueReason, "never queued by prior standard scans");
+  assert.ok(plan.report.allocation.freshDiscoveryReserve >= 1);
+});
+
+test("fresh discovery reserve changes across run sequences", () => {
+  const projects = Array.from({ length: 140 }, (_, index) => candidate(index, {
+    liquidityUsd: 50_000,
+    volume24h: 20_000,
+    marketCap: 1_000_000,
+    discoveryPriorityScore: 1000,
+  }));
+  const options = {
+    standardIntelligenceLimit: 60,
+    advancedIntelligenceLimit: 30,
+    deepIntelligenceLimit: 20,
+    crawlerResearchLimit: 10,
+    localAITopProjectLimit: 5,
+    finalistDebateLimit: 5,
+    finalistComparisonLimit: 5,
+  };
+  const first = planInstitutionalCandidateSelection(projects, { ...options, runSequence: 11 });
+  const second = planInstitutionalCandidateSelection(projects, { ...options, runSequence: 12 });
+  const firstFresh = new Set(
+    first.selected
+      .filter((project) => project.standardSelectionReason === "FRESH_DISCOVERY_RESERVE")
+      .map((project) => project.standardSelectionIdentityKey)
+  );
+  const secondFresh = new Set(
+    second.selected
+      .filter((project) => project.standardSelectionReason === "FRESH_DISCOVERY_RESERVE")
+      .map((project) => project.standardSelectionIdentityKey)
+  );
+  const overlap = [...firstFresh].filter((key) => secondFresh.has(key)).length;
+
+  assert.ok(firstFresh.size > 0);
+  assert.ok(secondFresh.size > 0);
+  assert.ok(overlap < Math.max(firstFresh.size, secondFresh.size));
 });
 
 test("stage reranking can promote a candidate into deep and Llama receives only top 100", () => {
