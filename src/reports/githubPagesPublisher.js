@@ -106,6 +106,9 @@ const PUBLIC_REPORTS = [
   "engine-health-report.json",
   "engine-data-readiness.json",
   "engine-data-contract-health.json",
+  "whole-engine-audit.json",
+  "whole-engine-audit.md",
+  "engine-value-ledger.json",
   "route-universe.json",
   "execution-proof-recovery.json",
   "alternative-execution-routes.json",
@@ -550,6 +553,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const engineHealthReport = readJsonReport("engine-health-report.json", reportsDir) || {};
   const engineDataReadiness = readJsonReport("engine-data-readiness.json", reportsDir) || {};
   const engineDataContractHealth = readJsonReport("engine-data-contract-health.json", reportsDir) || {};
+  const wholeEngineAudit = readJsonReport("whole-engine-audit.json", reportsDir) || {};
+  const engineValueLedger = readJsonReport("engine-value-ledger.json", reportsDir) || {};
   const routeUniverse = readJsonReport("route-universe.json", reportsDir) || {};
   const executionProofRecovery = readJsonReport("execution-proof-recovery.json", reportsDir) || {};
   const alternativeRoutes = readJsonReport("alternative-execution-routes.json", reportsDir) || {};
@@ -815,6 +820,11 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     ["Engines Executed", engineHealthReport.runtime?.executedEngines ?? 0],
     ["Engine Failures", engineHealthReport.failures?.length ?? 0],
     ["Engine Coverage", `${engineHealthReport.coverage?.executionCoveragePercent ?? 0}%`],
+    ["Whole Engine Audit", wholeEngineAudit.status || "REPORT NOT GENERATED"],
+    ["Pipeline Stages", wholeEngineAudit.summary?.pipelineStageCount ?? 0],
+    ["Miswired Engines", wholeEngineAudit.summary?.miswiredEngineCount ?? 0],
+    ["Daily Core Engines", engineValueLedger.dailyCoreCount ?? wholeEngineAudit.summary?.dailyRequiredEngineCount ?? 0],
+    ["Repair Before Trust", engineValueLedger.repairBeforeTrustCount ?? 0],
     ["Data Readiness", engineDataReadiness.averageCoverage ?? 0],
     ["Core Data Ready", engineDataReadiness.coreReady ?? 0],
     ["Core Data Starved", engineDataReadiness.coreDataStarved ?? 0],
@@ -1273,6 +1283,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./engine-health-report.json">Engine Health</a>
         <a class="button" href="./engine-data-readiness.json">Data Readiness</a>
         <a class="button" href="./engine-data-contract-health.json">Contract Health</a>
+        <a class="button primary" href="./whole-engine-audit.json">Whole Engine Audit</a>
+        <a class="button" href="./engine-value-ledger.json">Engine Value Ledger</a>
         <a class="button" href="./route-universe.json">View Route Universe</a>
         <a class="button" href="./execution-proof-recovery.json">Execution Recovery</a>
         <a class="button" href="./alternative-execution-routes.json">View Alt Routes</a>

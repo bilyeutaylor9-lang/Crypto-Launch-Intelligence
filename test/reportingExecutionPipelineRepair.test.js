@@ -36,6 +36,7 @@ import { writeQuantumSuiteHealthReport } from "../src/reports/quantumSuiteHealth
 import { writeProgressiveOpportunityReport } from "../src/reports/progressiveOpportunityReportEngine.js";
 import { writeEngineDataReadinessReport } from "../src/reports/engineDataReadinessReportEngine.js";
 import { writeEngineDataContractHealthReport } from "../src/reports/engineDataContractHealthReportEngine.js";
+import { writeWholeEngineAuditReports } from "../src/reports/wholeEngineAuditReportEngine.js";
 import { writeCapitalMigrationReport } from "../src/reports/capitalMigrationReportEngine.js";
 import { writeCapitalRotationReports } from "../src/reports/capitalRotationReportEngine.js";
 import { writePipelineStageHealthReport } from "../src/reports/pipelineStageHealthReportEngine.js";
@@ -443,6 +444,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeProgressiveOpportunityReport(processed);
   writeEngineDataReadinessReport(processed);
   writeEngineDataContractHealthReport(processed);
+  writeWholeEngineAuditReports();
   writeCapitalMigrationReport(processed);
   writeCapitalRotationReports(processed);
   writePipelineStageHealthReport(processed);
@@ -635,6 +637,49 @@ test("public dashboard validates reports and contains no literal N/A", () => {
       runtime: { executedEngines: 169 },
       failures: [],
       warnings: [],
+    },
+    "whole-engine-audit.json": {
+      generatedAt: NOW,
+      status: "PASS",
+      auditName: "Whole Engine Audit",
+      objective: "Test fixture",
+      summary: {
+        engineFileCount: 2,
+        pipelineStageCount: 2,
+        contractedEngineCount: 2,
+        uncontractedLiveStageCount: 0,
+        standaloneOrDormantEngineCount: 0,
+        dailyRequiredEngineCount: 1,
+        dailyAllowedEngineCount: 1,
+        deepResearchOnlyEngineCount: 0,
+        outputMissingEngineCount: 0,
+        contractsWithoutFilesCount: 0,
+        dependencyGapCount: 0,
+        miswiredEngineCount: 0,
+        reportConsumerMappedEngines: 1,
+      },
+      recommendationSummary: { KEEP_DAILY_REQUIRED: 1, KEEP_DAILY_OPTIONAL: 1 },
+      profileSummary: { DAILY_TENX_REQUIRED: 1, DAILY_ALLOWED: 1 },
+      pipelineStages: [],
+      engineTruthTable: [],
+      contractsWithoutFiles: [],
+      unusedContracts: [],
+      dependencyGaps: [],
+      topRepairQueue: [],
+      limitations: ["Test fixture"],
+    },
+    "engine-value-ledger.json": {
+      generatedAt: NOW,
+      status: "PASS",
+      objective: "Test fixture",
+      engineCount: 2,
+      valueClasses: { CORE_REQUIRED: 1, DAILY_VALUE: 1 },
+      dailyCoreCount: 1,
+      repairBeforeTrustCount: 0,
+      candidateForArchiveCount: 0,
+      topCoreEngines: [],
+      archiveReviewQueue: [],
+      engines: [],
     },
     "engine-data-readiness.json": {
       averageCoverage: 65,
@@ -917,6 +962,8 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Run Next GitHub Scan"));
   assert.ok(html.includes("Engine Health"));
   assert.ok(html.includes("Full Engine Audit"));
+  assert.ok(html.includes("Whole Engine Audit"));
+  assert.ok(html.includes("Engine Value Ledger"));
   assert.equal(html.includes("Run Unbiased Route"), false);
   assert.ok(html.includes("Top 10 Current Research"));
   assert.ok(html.includes("Scan Truth"));
@@ -926,6 +973,8 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(result.copiedFiles.includes("high-upside-scalp-research.json"));
   assert.ok(result.copiedFiles.includes("scalp-microstructure.json"));
   assert.ok(result.copiedFiles.includes("hottest-ten-now.json"));
+  assert.ok(result.copiedFiles.includes("whole-engine-audit.json"));
+  assert.ok(result.copiedFiles.includes("engine-value-ledger.json"));
   assert.ok(result.copiedFiles.includes("emerging-radar.json"));
   assert.ok(result.copiedFiles.includes("progressive-opportunities.json"));
   assert.ok(result.copiedFiles.includes("engine-health-report.json"));

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { ENGINE_REGISTRY } from "./engines/engineRegistry.js";
 import { getEngineContracts } from "./kernel/engineContractManifest.js";
+import { writeWholeEngineAuditReports } from "./reports/wholeEngineAuditReportEngine.js";
 
 const ENGINE_DIR = path.resolve("src/engines");
 const PIPELINE_FILE = path.resolve("src/intelligencePipeline.js");
@@ -838,6 +839,11 @@ if (process.argv[1]?.includes("engineHealthCheck.js")) {
   fs.mkdirSync(reportsDir, { recursive: true });
   const healthPath = path.join(reportsDir, "engine-health-report.json");
   fs.writeFileSync(healthPath, JSON.stringify(report, null, 2));
+  const wholeEngineAudit = writeWholeEngineAuditReports({
+    reportsDir,
+    engineHealthReport: report,
+    engineResults: results,
+  });
   console.table(results.map((result) => ({
     engine: result.engine,
     contract: result.contractId || "",
@@ -854,6 +860,8 @@ if (process.argv[1]?.includes("engineHealthCheck.js")) {
   const dormant = results.filter((result) => result.status === "DORMANT");
   console.log(`\nExecuted ${executed.length + standalone.length} engines (${standalone.length} standalone). ${activeUncontracted.length} active pipeline engines need explicit contracts. ${dormant.length} modules are unclassified dormant.`);
   console.log(`Engine health report: ${healthPath}`);
+  console.log(`Whole engine audit: ${wholeEngineAudit.wholeEngineAuditPath}`);
+  console.log(`Engine value ledger: ${wholeEngineAudit.engineValueLedgerPath}`);
 
   if (failed.length > 0) {
     console.log(`\n${failed.length} engine checks failed.`);

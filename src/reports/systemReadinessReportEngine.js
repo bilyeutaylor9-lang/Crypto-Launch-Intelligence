@@ -31,6 +31,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   );
   const validation = validateReportContracts({ reportsDir, requiredFiles });
   const engineHealth = readJson("engine-health-report.json", reportsDir) || {};
+  const wholeEngineAudit = readJson("whole-engine-audit.json", reportsDir) || {};
   const contractHealth = readJson("engine-data-contract-health.json", reportsDir) || {};
   const sourceGaps = readJson("daily-source-gaps.json", reportsDir) || {};
   const dailyCapital = readJson("daily-capital-move.json", reportsDir) || {};
@@ -45,6 +46,11 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   }
   if (countFailures(engineHealth.failures || engineHealth.failedEngines || engineHealth.enginesFailed || 0) > 0) {
     failures.push({ area: "engines", severity: "FAIL", reason: "One or more engines failed.", nextAction: "Open engine-health-report.json and fix failed engines before trusting scan output." });
+  }
+  if (wholeEngineAudit.status === "FAIL") {
+    failures.push({ area: "whole-engine-audit", severity: "FAIL", reason: "Whole-engine audit found runtime or import failures.", nextAction: "Open whole-engine-audit.json and repair the topRepairQueue." });
+  } else if (wholeEngineAudit.status === "DEGRADED") {
+    failures.push({ area: "whole-engine-audit", severity: "WARN", reason: "Some live engines still need explicit input/output contracts or value classification cleanup.", nextAction: "Open whole-engine-audit.json and engine-value-ledger.json before adding more engines." });
   }
   if (contractHealth.status && contractHealth.status !== "PASS") {
     failures.push({ area: "engine-contracts", severity: "FAIL", reason: "Engine input/output contract gaps exist.", nextAction: "Open engine-data-contract-health.json and repair missing inputs/outputs." });
@@ -70,6 +76,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     objective: "One master readiness gate for scanner completion, engine contracts, reports, dashboard data, source coverage, routes, Supabase, and daily capital research.",
     scanStatus: meta.scannedProjects || meta.projectsAnalyzed || meta.discoveredProjects ? "SCAN_COMPLETED" : "SCAN_STATUS_UNKNOWN",
     engineStatus: engineHealth.status || engineHealth.pipelineStatus || "REPORT_NOT_GENERATED",
+    wholeEngineAuditStatus: wholeEngineAudit.status || "REPORT_NOT_GENERATED",
     engineContractStatus: contractHealth.status || "REPORT_NOT_GENERATED",
     providerStatus: sourceGaps.status || "REPORT_NOT_GENERATED",
     reportStatus: validation.status,
@@ -81,6 +88,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     recoveryStatus: recovery.status || "REPORT_NOT_GENERATED",
     requiredReportCount: requiredFiles.length,
     checkedReportCount: validation.checkedFiles,
+    wholeEngineAuditSummary: wholeEngineAudit.summary || {},
     failures,
     nextFixes: failures.map((item) => item.nextAction).slice(0, 12),
     policy: [
