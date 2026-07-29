@@ -8,6 +8,7 @@ import {
   hasVerifiedSellQuote,
   routeQuoteAgeSeconds,
 } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const CEX_VENUES = [
   ["Coinbase", ["coinbase", "coinbase.com"]],
@@ -394,7 +395,7 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     quoteAgeSeconds: first([project.quoteAgeSeconds, project.executionQuoteAgeSeconds, routes.find((route) => route.quoteAgeSeconds)?.quoteAgeSeconds]),
     quoteTimestamp: quoteTimestamp(project, routes),
   });
-  const quoteFresh = quoteAgeSeconds !== null && quoteAgeSeconds <= 21_600;
+  const quoteFresh = quoteAgeSeconds !== null && quoteAgeSeconds <= 3600;
   const buyQuoteVerified = [project, ...routes].some(hasVerifiedBuyQuote);
   const sellQuoteVerified = [project, ...routes].some(hasVerifiedSellQuote);
   const explicitBuy = boolFromRoutes(routes, ["buyRouteAvailable", "purchasable", "canBuy", "buyAvailable"]);
@@ -450,10 +451,22 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   const canonicalExecutionRoute = {
     status,
     venue: venue || "UNKNOWN",
+    dexName: routeType === "CEX" ? null : venue || null,
     routeType: routeType || "UNKNOWN",
     chain,
     contractAddress,
+    tokenAddress: contractAddress,
     pairAddress,
+    poolAddress: pairAddress,
+    baseTokenAddress: contractAddress,
+    quoteTokenAddress: first([
+      project.quoteTokenAddress,
+      project.quoteToken?.address,
+      project.marketData?.quoteTokenAddress,
+      project.rawCandidate?.quoteTokenAddress,
+      routes.find((route) => route.quoteTokenAddress || route.quoteToken?.address)?.quoteTokenAddress,
+      routes.find((route) => route.quoteTokenAddress || route.quoteToken?.address)?.quoteToken?.address,
+    ]) || null,
     quoteAsset: first([
       project.quoteAsset,
       project.quoteToken,
@@ -474,16 +487,45 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     priceUsd,
     quoteTimestamp: quoteTimestamp(project, routes) || null,
     quoteAgeSeconds,
+    lastVerifiedAt: quoteTimestamp(project, routes) || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
+    estimatedRoundTripSlippagePct: first([
+      project.estimatedRoundTripSlippagePct,
+      project.executionProof?.estimatedRoundTripSlippagePct,
+      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedRoundTripSlippagePct,
+      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedSlippagePct,
+    ]) || null,
+    slippageIsHeuristic: Boolean(
+      project.slippageIsHeuristic === true ||
+        project.executionProof?.slippageIsHeuristic === true ||
+        routes.some((route) => route.slippageIsHeuristic === true)
+    ),
+    regionStatus: first([project.regionStatus, routes.find((route) => route.regionStatus)?.regionStatus]) || null,
     marketPair: marketPair || null,
     supportingSources: supporting,
     confidence: confidenceFor(status, fields),
     missingEvidence: missingEvidenceFor(fields),
     failureReasons,
   };
+  const strictCandidateGate = resolveStrictCandidateGate({
+    ...project,
+    canonicalExecutionRoute,
+    routeTruthStatus,
+  });
+  if (strictCandidateGate.strictRouteVerified) {
+    canonicalExecutionRoute.routeTruthStatus = "LIVE_EXECUTION_READY";
+    canonicalExecutionRoute.routeVerificationStatus = "LIVE_EXECUTION_READY";
+  } else {
+    canonicalExecutionRoute.routeVerificationStatus = strictCandidateGate.routeVerificationStatus;
+  }
+  canonicalExecutionRoute.quarantineReason = strictCandidateGate.candidateQuarantineReason;
+  canonicalExecutionRoute.quarantineReasons = strictCandidateGate.candidateQuarantineReasons;
 
   return {
     ...project,
     canonicalExecutionRoute,
+    strictCandidateGate,
+    ...strictCandidateGate,
+    routeTruthStatus: strictCandidateGate.routeVerificationStatus,
     canonicalExecutionRouteStatus: status,
     canonicalExecutionRouteVenue: canonicalExecutionRoute.venue,
     canonicalExecutionRouteType: canonicalExecutionRoute.routeType,

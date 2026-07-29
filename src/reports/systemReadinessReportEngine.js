@@ -47,10 +47,10 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   if (countFailures(engineHealth.failures || engineHealth.failedEngines || engineHealth.enginesFailed || 0) > 0) {
     failures.push({ area: "engines", severity: "FAIL", reason: "One or more engines failed.", nextAction: "Open engine-health-report.json and fix failed engines before trusting scan output." });
   }
-  if (wholeEngineAudit.status === "FAIL") {
+  if (wholeEngineAudit.status === "FAIL" || wholeEngineAudit.runtimeDataStatus === "FAIL") {
     failures.push({ area: "whole-engine-audit", severity: "FAIL", reason: "Whole-engine audit found runtime or import failures.", nextAction: "Open whole-engine-audit.json and repair the topRepairQueue." });
-  } else if (wholeEngineAudit.status === "DEGRADED") {
-    failures.push({ area: "whole-engine-audit", severity: "WARN", reason: "Some live engines still need explicit input/output contracts or value classification cleanup.", nextAction: "Open whole-engine-audit.json and engine-value-ledger.json before adding more engines." });
+  } else if (Number(wholeEngineAudit.summary?.outputMissingEngineCount || 0) > 0) {
+    failures.push({ area: "whole-engine-audit", severity: "WARN", reason: "Some engines are missing runtime outputs.", nextAction: "Open whole-engine-audit.json and repair output-missing engines." });
   }
   if (contractHealth.status && contractHealth.status !== "PASS") {
     failures.push({ area: "engine-contracts", severity: "FAIL", reason: "Engine input/output contract gaps exist.", nextAction: "Open engine-data-contract-health.json and repair missing inputs/outputs." });
@@ -77,6 +77,8 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     scanStatus: meta.scannedProjects || meta.projectsAnalyzed || meta.discoveredProjects ? "SCAN_COMPLETED" : "SCAN_STATUS_UNKNOWN",
     engineStatus: engineHealth.status || engineHealth.pipelineStatus || "REPORT_NOT_GENERATED",
     wholeEngineAuditStatus: wholeEngineAudit.status || "REPORT_NOT_GENERATED",
+    wholeEngineRuntimeDataStatus: wholeEngineAudit.runtimeDataStatus || "REPORT_NOT_GENERATED",
+    wholeEngineContractCoverageStatus: wholeEngineAudit.contractCoverageStatus || wholeEngineAudit.status || "REPORT_NOT_GENERATED",
     engineContractStatus: contractHealth.status || "REPORT_NOT_GENERATED",
     providerStatus: sourceGaps.status || "REPORT_NOT_GENERATED",
     reportStatus: validation.status,

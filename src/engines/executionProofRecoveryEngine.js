@@ -187,6 +187,14 @@ function nameOf(project = {}) {
 }
 
 function opportunityScore(project = {}) {
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
   return Math.max(
     num(project.dailyCapitalMoveScore),
     num(project.highUpsideScalpScore),
@@ -194,7 +202,7 @@ function opportunityScore(project = {}) {
     num(project.earlyAsymmetryResearchPriorityScore),
     num(project.progressiveOpportunityScore),
     num(project.preBreakoutRadarScore),
-    num(project.preConsensusBreakoutScore),
+    num(preConsensusScore),
     num(project.capitalMigrationScore),
     num(project.marketOpportunityScore),
     num(project.pipelineScore)

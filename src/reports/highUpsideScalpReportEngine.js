@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import {
   HIGH_UPSIDE_SCALP_LANES,
   HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES,
@@ -62,7 +63,10 @@ function priceChange7d(project = {}) {
 }
 
 function routeReady(project = {}) {
-  return isLiveExecutionReady(project);
+  return resolveStrictCandidateGate(project).strictRankEligible === true && isLiveExecutionReady({
+    ...project,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+  });
 }
 
 function deterministicSafetyBlocked(project = {}) {
@@ -98,10 +102,26 @@ function utilityBlocked(project = {}) {
 }
 
 function scoreProject(project = {}) {
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
+  const sniperIntegrityScore = first([
+    project.sniperIntegrityScore,
+    project.confidenceAdjustedSniperScore,
+    project.sniperScore,
+    project.sniperIntegrityGate?.sniperIntegrityScore,
+    project.sniperIntegrityGate?.confidenceAdjustedSniperScore,
+    project.sniperIntegrityGate?.score,
+  ]);
   const upside = average([
     project.sevenDayTenXScore,
     project.preBreakoutRadarScore,
-    project.preConsensusBreakoutScore,
+    preConsensusScore,
     project.earlyAsymmetryResearchPriorityScore,
   ]);
   const flow = average([
@@ -131,7 +151,7 @@ function scoreProject(project = {}) {
     project.instantSafetyScore,
     project.contractAuthoritySafetyScore,
     project.liquidityControlSafetyScore,
-    project.sniperIntegrityScore,
+    sniperIntegrityScore,
     project.finalIntegrityScore,
   ]);
   const route = average([routeReady(project) ? 85 : 35, project.scalpMicrostructureScore]);
@@ -163,6 +183,9 @@ function scoreProject(project = {}) {
 }
 
 function lane(project = {}, score = 0) {
+  const strictGate = resolveStrictCandidateGate(project);
+  if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
+  if (!strictGate.strictRankEligible) return "QUARANTINED_IDENTITY_OR_ROUTE";
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
@@ -222,6 +245,8 @@ function plainLanguageLane(project = {}) {
   if (laneValue === "RESEARCH_ONLY_ROUTE_MISSING") return "ROUTE_PENDING";
   if (laneValue === "MANUAL_REVIEW") return "MANUAL_REVIEW";
   if (laneValue === "DATA_STARVED" || laneValue === "HIGH_UPSIDE_RESEARCH_DEFERRED") return "DEEP_DEFERRED";
+  if (laneValue === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
+  if (laneValue === "QUARANTINED_IDENTITY_OR_ROUTE") return "QUARANTINED";
   if (/safety|manual|wallet|proof|unknown/i.test(debugMissingProof(project).join(" "))) return "MANUAL_REVIEW";
   if (laneValue.startsWith("SCALP_NO_TRADE") || ["SAFETY_BLOCKED", "LATE_CHASE_REJECTED", "MEME_SPECULATION_EXCLUDED"].includes(laneValue)) {
     return "REJECTED";
@@ -232,13 +257,30 @@ function plainLanguageLane(project = {}) {
 function compact(project = {}, rank = null) {
   const score = project.highUpsideScalpScore ?? 0;
   const missingProof = [...new Set(debugMissingProof(project))].slice(0, 12);
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
     name: project.name || "Unknown",
-    chain: project.chain || project.canonicalChain || project.chainId || "unknown",
-    tokenAddress: project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
-    poolAddress: project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
+    tokenName: strictGate.tokenName || project.tokenName || project.name || "Unknown",
+    chain: strictGate.normalizedChain || project.chain || project.canonicalChain || project.chainId || "unknown",
+    chainId: strictGate.canonicalChainId ?? project.chainId ?? null,
+    canonicalId: strictGate.canonicalId || project.canonicalId || project.canonicalProjectId || null,
+    tokenAddress: strictGate.tokenAddress || project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
+    contractAddress: strictGate.contractAddress || project.contractAddress || project.tokenAddress || project.canonicalAddress || null,
+    poolAddress: strictGate.pairAddress || project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
+    pairAddress: strictGate.pairAddress || project.pairAddress || project.poolAddress || project.primaryTradablePool || null,
+    dexName: strictGate.dexName || project.dexName || project.dex || project.canonicalExecutionRoute?.dexName || project.canonicalExecutionRoute?.venue || null,
+    baseTokenAddress: strictGate.baseTokenAddress || project.baseTokenAddress || project.baseToken?.address || null,
+    quoteTokenAddress: strictGate.quoteTokenAddress || project.quoteTokenAddress || project.quoteToken?.address || null,
+    provenance: strictGate.provenance || project.discoverySources || [],
+    lastVerifiedAt: strictGate.lastVerifiedAt || project.lastVerifiedAt || project.quoteTimestamp || null,
+    routeVerificationStatus: strictGate.routeVerificationStatus || project.routeVerificationStatus || project.routeTruthStatus || "UNKNOWN",
+    quarantineReason: strictGate.candidateQuarantineReason || project.highUpsideScalpQuarantineReason || null,
+    quarantineReasons: strictGate.candidateQuarantineReasons || [],
+    strictIdentityVerified: strictGate.strictIdentityVerified === true,
+    strictRouteVerified: strictGate.strictRouteVerified === true,
+    strictRankEligible: strictGate.strictRankEligible === true,
     highUpsideScalpScore: score,
     lane: project.highUpsideScalpLane || "UNCLASSIFIED",
     readableLane: plainLanguageLane(project),
@@ -277,6 +319,14 @@ function compact(project = {}, rank = null) {
     lateChaseStatus: project.sevenDayTenXLateChaseStatus || "UNKNOWN",
     sevenDayTenXScore: project.sevenDayTenXScore || 0,
     preBreakoutRadarScore: project.preBreakoutRadarScore || 0,
+    preConsensusBreakoutScore: first([
+      project.preConsensusBreakoutScore,
+      project.preConsensusOpportunityScore,
+      project.regimeAdjustedOpportunityScore,
+      project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+      project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+      project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+    ]) || 0,
     earlyAsymmetryResearchPriorityScore: project.earlyAsymmetryResearchPriorityScore || 0,
     buyerBreadthAccelerationScore: project.buyerBreadthAccelerationScore || 0,
     walletFlowScore: project.walletFlowScore || 0,
@@ -286,7 +336,14 @@ function compact(project = {}, rank = null) {
     liquidityFormationScore: project.liquidityFormationScore || 0,
     utilityQualityScore: project.utilityQualityScore || 0,
     sourceTruthScore: project.sourceTruthScore || 0,
-    sniperIntegrityScore: project.sniperIntegrityScore || 0,
+    sniperIntegrityScore: first([
+      project.sniperIntegrityScore,
+      project.confidenceAdjustedSniperScore,
+      project.sniperScore,
+      project.sniperIntegrityGate?.sniperIntegrityScore,
+      project.sniperIntegrityGate?.confidenceAdjustedSniperScore,
+      project.sniperIntegrityGate?.score,
+    ]) || 0,
     blockers: project.sevenDayTenXBlockers || [],
     missingEvidence: project.sevenDayTenXMissingEvidence || [],
     reasons: project.sevenDayTenX?.reasons || project.moneyRankDrivers || [],
@@ -426,6 +483,8 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const lowerPriority = scored.filter((project) => laneForReport(project) === "LOWER_PRIORITY");
   const dataStarved = scored.filter((project) => laneForReport(project) === "DATA_STARVED");
   const invalidIdentity = scored.filter((project) => laneForReport(project) === "INVALID_OR_AGGREGATE_IDENTITY");
+  const quarantined = scored.filter((project) => laneForReport(project) === "QUARANTINED_IDENTITY_OR_ROUTE");
+  const marketBenchmarks = scored.filter((project) => laneForReport(project) === "MARKET_BENCHMARK");
   const unclassified = scored.filter((project) => laneForReport(project) === "UNCLASSIFIED");
   const laneDistribution = countByLane(scored);
   const classifiedProjectCount = scored.length - unclassified.length;
@@ -486,6 +545,8 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     lowerPriorityCount: lowerPriority.length,
     dataStarvedCount: dataStarved.length,
     invalidOrAggregateIdentityCount: invalidIdentity.length,
+    quarantinedIdentityOrRouteCount: quarantined.length,
+    marketBenchmarkCount: marketBenchmarks.length,
     unclassifiedCount: unclassified.length,
     routeReadyCount: classificationEligible.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
     routeMissingCount: routeMissing.length,
@@ -512,12 +573,14 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     lowerPriority: lowerPriority.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     dataStarved: dataStarved.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     invalidOrAggregateIdentity: invalidIdentity.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    quarantinedIdentityOrRoute: quarantined.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
+    marketBenchmarks: marketBenchmarks.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     unclassified: unclassified.slice(0, MAX_REPORT_ROWS).map((project, index) => compact(project, index + 1)),
     operatingRules: [
       "Do not chase assets that already completed a 10x-style move.",
       "Do not treat meme-only attention as real utility.",
       "Do not mark a coin scalp-ready without a verified sell route.",
-      "Keep incomplete but promising projects visible as research-only watchlist candidates.",
+      "Keep incomplete but promising projects visible as quarantined recovery candidates, not ranked opportunities.",
     ],
   };
 }

@@ -15,6 +15,7 @@ import { generateReports } from "../src/reports/reportOrchestrator.js";
 
 const TOKEN = "0x0000000000000000000000000000000000000abc";
 const POOL = "0x0000000000000000000000000000000000000def";
+const BASE_USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 
 function candidate(overrides = {}) {
   return {
@@ -25,6 +26,11 @@ function candidate(overrides = {}) {
     contractAddress: TOKEN,
     poolAddress: POOL,
     pairAddress: POOL,
+    dexName: "Aerodrome",
+    dex: "Aerodrome",
+    baseTokenAddress: TOKEN,
+    quoteTokenAddress: BASE_USDC,
+    quoteAsset: "USDC",
     category: "AI infrastructure",
     description:
       "AI infrastructure protocol with SDK, API, mainnet app, revenue fees, integrations, developer docs and active users.",
@@ -79,6 +85,7 @@ function candidate(overrides = {}) {
     dexLiquidityUsd: 180_000,
     stableExitLiquidityUsd: 90_000,
     volume24h: 320_000,
+    volume24hUsd: 320_000,
     accelerationScore: 82,
     earlyBreakoutScore: 80,
     preBreakoutRadarScore: 82,
@@ -248,11 +255,20 @@ test("strong project passed through generateReports remains scalp-ready", () => 
 test("missing scoring fields produce data-starved instead of silent zero scoring", () => {
   const report = summarizeHighUpsideScalpResearch([
     {
+      name: "Missing Score Utility",
       symbol: "MISS",
       chain: "base",
       tokenAddress: TOKEN,
       contractAddress: TOKEN,
       poolAddress: POOL,
+      pairAddress: POOL,
+      dexName: "Aerodrome",
+      dex: "Aerodrome",
+      baseTokenAddress: TOKEN,
+      quoteTokenAddress: BASE_USDC,
+      quoteAsset: "USDC",
+      discoverySources: ["dexscreener"],
+      source: "dexscreener",
       routeTruthStatus: "LIVE_EXECUTION_READY",
       executionProofState: "LIVE_EXECUTION_READY",
       buyQuoteVerified: true,
@@ -260,6 +276,8 @@ test("missing scoring fields produce data-starved instead of silent zero scoring
       exactIdentityVerified: true,
       quoteAgeSeconds: 30,
       liquidityUsd: 150_000,
+      volume24h: 120_000,
+      volume24hUsd: 120_000,
       estimatedRoundTripSlippagePct: 1.2,
       regionStatus: "CONFIRMED_AVAILABLE",
     },
@@ -268,6 +286,79 @@ test("missing scoring fields produce data-starved instead of silent zero scoring
   assert.equal(report.dataStarvedCount, 1);
   assert.equal(report.dataStarved[0].lane, "DATA_STARVED");
   assert.ok(report.dataStarved[0].highUpsideScalpMissingFields.length > 0);
+});
+
+test("pre-consensus and sniper alias outputs satisfy high-upside evidence contracts", () => {
+  const aliasOnly = candidate({
+    symbol: "ALIAS",
+    preConsensusBreakoutScore: undefined,
+    preConsensusOpportunityScore: 80,
+    regimeAdjustedOpportunityScore: 79,
+    preConsensusBreakoutHunter: {
+      preConsensusOpportunityScore: 80,
+      regimeAdjustedOpportunityScore: 79,
+    },
+    sniperIntegrityScore: undefined,
+    confidenceAdjustedSniperScore: 86,
+    sniperIntegrityGate: {
+      confidenceAdjustedSniperScore: 86,
+      score: 82,
+    },
+  });
+  const report = summarizeHighUpsideScalpResearch(
+    analyzeHighUpsideScalpClassificationBatch([aliasOnly])
+  );
+  const [project] = report.topScalpResearchCandidates;
+
+  assert.equal(report.scalpReadyCount, 1);
+  assert.equal(project.symbol, "ALIAS");
+  assert.equal(project.preConsensusBreakoutScore, 80);
+  assert.equal(project.sniperIntegrityScore, 86);
+  assert.ok(!project.highUpsideScalpMissingFields.includes("preConsensusBreakoutScore"));
+  assert.ok(!project.highUpsideScalpMissingFields.includes("sniperIntegrityScore"));
+});
+
+test("route-only no-trade with complete low evidence is lower priority, not data-starved", () => {
+  const lowRouteBlocked = candidate({
+    symbol: "LOWROUTE",
+    sevenDayTenXScore: 28,
+    preBreakoutRadarScore: 30,
+    preConsensusBreakoutScore: undefined,
+    preConsensusOpportunityScore: 32,
+    earlyAsymmetryResearchPriorityScore: 30,
+    capitalMigrationScore: 28,
+    capitalFlowScore: 30,
+    buyerBreadthAccelerationScore: 28,
+    buyPressureScore: 30,
+    liquidityFormationScore: 30,
+    liquidityExpansionScore: 28,
+    utilityQualityScore: 32,
+    realUtilityScore: 30,
+    developerAccelerationScore: 28,
+    developerActivityScore: 30,
+    ecosystemIntegrationScore: 30,
+    tokenomicsScore: 30,
+    sourceTruthScore: 36,
+    sourceReliabilityScore: 36,
+    institutionalDataProvenanceScore: 34,
+    evidenceCoverageScore: 36,
+    opportunityEvidenceCoverage: 34,
+    sniperIntegrityScore: undefined,
+    confidenceAdjustedSniperScore: 82,
+    scalpMicrostructureLane: "SCALP_NO_TRADE_ROUTE_UNVERIFIED",
+    routeTruthStatus: "MARKET_OBSERVED",
+    executionProofState: "MARKET_OBSERVED",
+    buyQuoteVerified: false,
+    sellQuoteVerified: false,
+  });
+  const report = summarizeHighUpsideScalpResearch(
+    analyzeHighUpsideScalpClassificationBatch([lowRouteBlocked])
+  );
+
+  assert.equal(report.dataStarvedCount, 0);
+  assert.equal(report.lowerPriorityCount, 1);
+  assert.equal(report.lowerPriority[0].symbol, "LOWROUTE");
+  assert.ok(report.lowerPriority[0].highUpsideScalpDataCoverage >= 90);
 });
 
 test("standard-stage projects not selected for deep high-upside research are deferred, not data-starved", () => {
@@ -354,13 +445,15 @@ test("safety blocked, lower priority, and route-missing projects stay visible", 
 
   assert.equal(report.safetyBlockedCount, 1);
   assert.equal(report.lowerPriorityCount, 1);
-  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 0);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
   assert.equal(report.safetyBlocked[0].symbol, "BAD");
   assert.equal(report.lowerPriority[0].symbol, "LOW");
-  assert.equal(report.researchOnlyRouteMissing[0].symbol, "NOROUTE");
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "NOROUTE");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
 });
 
-test("high-upside scalp treats route-only microstructure blocks as research-only missing proof", () => {
+test("high-upside scalp quarantines route-only microstructure blocks with exact missing proof", () => {
   const noRoute = candidate({
     symbol: "ROUTEGAP",
     sellRouteAvailable: false,
@@ -386,20 +479,30 @@ test("high-upside scalp treats route-only microstructure blocks as research-only
   });
   const report = summarizeHighUpsideScalpResearch(classified([noRoute]));
 
-  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 0);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
   assert.equal(report.microstructureRejectedCount, 0);
   assert.equal(report.safetyBlockedCount, 0);
-  assert.equal(report.researchOnlyRouteMissing[0].symbol, "ROUTEGAP");
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "ROUTEGAP");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "BUY_ROUTE_FAILED");
 });
 
-test("promising low-coverage candidates missing route proof stay route-pending instead of data-starved", () => {
+test("promising low-coverage candidates missing route proof stay quarantined instead of data-starved", () => {
   const report = summarizeHighUpsideScalpResearch(
     analyzeHighUpsideScalpClassificationBatch([
       {
         symbol: "EARLYROUTE",
         chain: "solana",
         tokenAddress: "So11111111111111111111111111111111111111112",
-        poolAddress: "pool-earlyroute",
+        poolAddress: "11111111111111111111111111111111",
+        dexName: "Jupiter",
+        dex: "Jupiter",
+        baseTokenAddress: "So11111111111111111111111111111111111111112",
+        quoteTokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        quoteAsset: "USDC",
+        liquidityUsd: 100_000,
+        volume24h: 60_000,
+        discoverySources: ["jupiter"],
         preBreakoutRadarScore: 81,
         earlyAsymmetryResearchPriorityScore: 84,
         capitalMigrationScore: 76,
@@ -411,11 +514,12 @@ test("promising low-coverage candidates missing route proof stay route-pending i
     ])
   );
 
-  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 0);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
   assert.equal(report.dataStarvedCount, 0);
-  assert.equal(report.researchOnlyRouteMissing[0].symbol, "EARLYROUTE");
-  assert.equal(report.researchOnlyRouteMissing[0].readableLane, "ROUTE_PENDING");
-  assert.ok(report.researchOnlyRouteMissing[0].promotionDebug.nextSingleProofToPromote);
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "EARLYROUTE");
+  assert.equal(report.quarantinedIdentityOrRoute[0].readableLane, "QUARANTINED");
+  assert.ok(report.quarantinedIdentityOrRoute[0].promotionDebug.nextSingleProofToPromote);
 });
 
 test("route-ready candidates with missing wallet flow enter manual review instead of false scalp-ready", () => {

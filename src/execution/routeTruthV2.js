@@ -125,9 +125,18 @@ export function hasVerifiedRouteSlippage(subject = {}) {
     subject.executionProof?.estimatedRoundTripSlippagePct,
     subject.executionProof?.estimatedSlippagePct,
     subject.executionProof?.observedSlippagePct,
+    subject.canonicalExecutionRoute?.estimatedRoundTripSlippagePct,
+    subject.canonicalExecutionRoute?.estimatedSlippagePct,
+    subject.canonicalExecutionRoute?.observedSlippagePct,
   ]);
   if (value === null || !Number.isFinite(Number(value))) return false;
-  if (subject.slippageIsHeuristic === true || subject.executionProof?.slippageIsHeuristic === true) return false;
+  if (
+    subject.slippageIsHeuristic === true ||
+    subject.executionProof?.slippageIsHeuristic === true ||
+    subject.canonicalExecutionRoute?.slippageIsHeuristic === true
+  ) {
+    return false;
+  }
   return true;
 }
 

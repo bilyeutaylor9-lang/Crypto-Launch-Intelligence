@@ -3,16 +3,46 @@ import assert from "node:assert/strict";
 
 import { summarizeHottestTenNow } from "../src/reports/hottestTenNowReportEngine.js";
 
+const BASE_USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+
+function hexAddress(seed = "") {
+  let hash = 0;
+  for (const char of String(seed)) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return `0x${String(hash.toString(16)).padStart(40, "0").slice(0, 40)}`;
+}
+
 function candidate(overrides = {}) {
+  const symbol = overrides.symbol || "CUR";
+  const chain = overrides.chain || "base";
+  const tokenOverridden = Object.hasOwn(overrides, "tokenAddress") || Object.hasOwn(overrides, "contractAddress");
+  const tokenAddress = tokenOverridden ? overrides.tokenAddress ?? overrides.contractAddress ?? null : hexAddress(`${chain}:${symbol}:token`);
+  const contractAddress = Object.hasOwn(overrides, "contractAddress") ? overrides.contractAddress : tokenAddress;
+  const poolOverridden = Object.hasOwn(overrides, "poolAddress") || Object.hasOwn(overrides, "pairAddress");
+  const poolAddress = poolOverridden ? overrides.poolAddress ?? overrides.pairAddress ?? null : hexAddress(`${chain}:${symbol}:pool`);
+  const pairAddress = Object.hasOwn(overrides, "pairAddress") ? overrides.pairAddress : poolAddress;
   return {
     name: "Current Utility Candidate",
-    symbol: "CUR",
-    chain: "base",
-    tokenAddress: "0x00000000000000000000000000000000000000c1",
-    poolAddress: "0x00000000000000000000000000000000000000c2",
+    symbol,
+    chain,
+    tokenAddress,
+    contractAddress,
+    poolAddress,
+    pairAddress,
+    dexName: "Aerodrome",
+    dex: "Aerodrome",
+    baseTokenAddress: contractAddress,
+    quoteTokenAddress: BASE_USDC,
+    quoteAsset: "USDC",
+    discoverySources: ["dexscreener", "geckoterminal"],
+    source: "dexscreener",
     priceUsd: 0.004,
     marketCap: 3_000_000,
     liquidityUsd: 220_000,
+    dexLiquidityUsd: 220_000,
+    volume24h: 160_000,
+    volume24hUsd: 160_000,
     priceChange24hPct: 18,
     priceChange7dPct: 62,
     liveExecutionReady: true,
@@ -125,21 +155,22 @@ test("hottest-ten-now excludes late-chase, meme-only, unsafe, and no-sell-route 
     }),
   ]);
 
-  assert.equal(report.returnedCount, 1);
-  assert.equal(report.researchReturnedCount, 1);
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.researchReturnedCount, 0);
   assert.equal(report.qualifiedReturnedCount, 0);
-  assert.equal(report.rejectedOrNotCurrent.length, 3);
+  assert.equal(report.rejectedOrNotCurrent.length, 4);
   assert.ok(report.countsByLane.ALREADY_EXTENDED_OR_LATE_CHASE >= 1);
   assert.ok(report.countsByLane.MEME_ONLY_OR_NO_VERIFIED_UTILITY >= 1);
   assert.ok(report.countsByLane.DETERMINISTIC_SAFETY_OR_SCALP_BLOCK >= 1);
-  assert.ok(report.countsByLane.RESEARCH_BOARD_NEEDS_MISSING_INFO >= 1);
-  assert.equal(report.topTenResearchWorthy.some((project) => project.symbol === "NOSALE"), true);
-  assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "NOSALE"), true);
+  assert.ok(report.countsByLane.QUARANTINED_IDENTITY_OR_ROUTE >= 1);
+  assert.equal(report.topTenResearchWorthy.some((project) => project.symbol === "NOSALE"), false);
+  assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "NOSALE"), false);
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "NOSALE");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
   assert.equal(report.topTenHighestRatedNow.some((project) => project.symbol === "NOSALE"), false);
-  assert.equal(report.topTenCurrentResearchBoard.find((project) => project.symbol === "NOSALE").reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
 });
 
-test("hottest-ten-now keeps non-danger final-selection blocks on the research board", () => {
+test("hottest-ten-now quarantines non-danger final-selection route gaps instead of ranking them", () => {
   const report = summarizeHottestTenNow([
     candidate({
       symbol: "PROOF",
@@ -167,17 +198,15 @@ test("hottest-ten-now keeps non-danger final-selection blocks on the research bo
     }),
   ]);
 
-  assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 1);
-  assert.equal(report.researchReturnedCount, 1);
+  assert.equal(report.status, "NO_RANKABLE_RESULTS_IDENTITY_ROUTE_QUARANTINE");
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.researchReturnedCount, 0);
   assert.equal(report.qualifiedReturnedCount, 0);
-  assert.equal(report.currentResearchBoardCount, 1);
-  assert.equal(report.topTenResearchWorthy[0].symbol, "PROOF");
-  assert.equal(report.topTenCurrentResearchBoard[0].symbol, "PROOF");
-  assert.equal(report.topTenCurrentResearchBoard[0].lane, "RESEARCH_BOARD_NEEDS_MISSING_INFO");
-  assert.equal(report.topTenCurrentResearchBoard[0].reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
-  assert.ok(report.topTenCurrentResearchBoard[0].missingInfoNeeded.includes("fresh buy quote and sell route"));
-  assert.ok(report.topTenCurrentResearchBoard[0].nextSourcesNeeded.length > 0);
+  assert.equal(report.currentResearchBoardCount, 0);
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "PROOF");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "BUY_ROUTE_FAILED");
+  assert.ok(report.quarantinedIdentityOrRoute[0].missingInfoNeeded.includes("BUY_ROUTE_FAILED"));
+  assert.ok(report.quarantinedIdentityOrRoute[0].nextSourcesNeeded.length > 0);
 });
 
 test("hottest-ten-now still excludes confirmed safety and identity hard blocks", () => {
@@ -229,7 +258,9 @@ test("hottest-ten-now excludes aggregate provider rows from the top-ten board", 
 
   assert.equal(report.countsByLane.MALFORMED_OR_AGGREGATE_IDENTITY, 1);
   assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGE"), false);
-  assert.equal(report.topTenCurrentResearchBoard[0].symbol, "REAL");
+  assert.equal(report.topTenCurrentResearchBoard.length, 0);
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "REAL");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
 });
 
 test("hottest-ten-now excludes obvious meme identities and oversized assets from utility-small-cap board", () => {
@@ -316,8 +347,8 @@ test("hottest-ten-now excludes obvious meme identities and oversized assets from
 
   assert.equal(report.countsByLane.MEME_ONLY_OR_NO_VERIFIED_UTILITY, 3);
   assert.equal(report.countsByLane.TOO_LARGE_FOR_UTILITY_SMALL_CAP_BOARD, 1);
-  assert.equal(report.topTenCurrentResearchBoard.length, 1);
-  assert.equal(report.topTenCurrentResearchBoard[0].symbol, "AKE");
+  assert.equal(report.topTenCurrentResearchBoard.length, 0);
+  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "AKE");
 });
 
 test("hottest-ten-now excludes generic narrative labels unless project proof exists", () => {
@@ -395,11 +426,11 @@ test("hottest-ten-now excludes generic narrative labels unless project proof exi
 
   assert.equal(report.countsByLane.GENERIC_MARKET_LABEL_NEEDS_PROJECT_PROOF, 2);
   assert.equal(report.countsByLane.MEME_ONLY_OR_NO_VERIFIED_UTILITY, 1);
-  assert.equal(report.topTenCurrentResearchBoard.length, 1);
-  assert.equal(report.topTenCurrentResearchBoard[0].symbol, "UTILX");
+  assert.equal(report.topTenCurrentResearchBoard.length, 0);
+  assert.ok(report.quarantinedIdentityOrRoute.some((project) => project.symbol === "UTILX"));
 });
 
-test("hottest-ten-now fills a top-ten research board without forcing buy-ready picks", () => {
+test("hottest-ten-now does not fill a top-ten board with route-missing picks", () => {
   const projects = Array.from({ length: 12 }, (_, index) =>
     candidate({
       symbol: `UTIL${index + 1}`,
@@ -427,21 +458,22 @@ test("hottest-ten-now fills a top-ten research board without forcing buy-ready p
   );
   const report = summarizeHottestTenNow(projects);
 
-  assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 10);
-  assert.equal(report.researchReturnedCount, 10);
+  assert.equal(report.status, "NO_RANKABLE_RESULTS_IDENTITY_ROUTE_QUARANTINE");
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.researchReturnedCount, 0);
   assert.equal(report.qualifiedReturnedCount, 0);
-  assert.equal(report.currentResearchBoardCount, 10);
-  assert.equal(report.shortfallToTen, 0);
+  assert.equal(report.currentResearchBoardCount, 0);
+  assert.equal(report.shortfallToTen, 10);
   assert.equal(report.qualifiedShortfallToTen, 10);
-  assert.equal(report.topTenResearchWorthy.length, 10);
-  assert.equal(report.topTenCurrentResearchBoard.length, 10);
+  assert.equal(report.topTenResearchWorthy.length, 0);
+  assert.equal(report.topTenCurrentResearchBoard.length, 0);
+  assert.equal(report.quarantinedIdentityOrRoute.length, 12);
   assert.equal(report.topTenHighestRatedNow.length, 0);
   assert.equal(report.notForced, true);
   assert.match(report.disclaimer, /not financial advice/i);
 });
 
-test("hottest-ten-now gives top-ten slots to unique display families", () => {
+test("hottest-ten-now keeps route-missing duplicate symbols out of top-ten slots", () => {
   const routeMissing = {
     liveExecutionReady: false,
     executionProofState: "MARKET_OBSERVED",
@@ -477,14 +509,12 @@ test("hottest-ten-now gives top-ten slots to unique display families", () => {
   ];
 
   const report = summarizeHottestTenNow(projects);
-  const symbols = report.topTenResearchWorthy.map((project) => project.symbol);
-
-  assert.equal(report.returnedCount, 10);
-  assert.equal(symbols.filter((symbol) => symbol === "PERP").length, 1);
-  assert.equal(symbols.includes("UTIL9"), true);
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.topTenResearchWorthy.length, 0);
+  assert.ok(report.quarantinedIdentityOrRoute.length >= 10);
 });
 
-test("hottest-ten-now backfills first board with best non-danger lower-priority recovery leads", () => {
+test("hottest-ten-now quarantines missing-contract recovery leads instead of backfilling the first board", () => {
   const projects = Array.from({ length: 12 }, (_, index) =>
     candidate({
       symbol: `REC${index + 1}`,
@@ -524,18 +554,19 @@ test("hottest-ten-now backfills first board with best non-danger lower-priority 
   );
   const report = summarizeHottestTenNow(projects);
 
-  assert.equal(report.status, "RESEARCH_BOARD_NEEDS_CONFIRMATION");
-  assert.equal(report.returnedCount, 10);
-  assert.equal(report.researchReturnedCount, 10);
+  assert.equal(report.status, "NO_RANKABLE_RESULTS_IDENTITY_ROUTE_QUARANTINE");
+  assert.equal(report.returnedCount, 0);
+  assert.equal(report.researchReturnedCount, 0);
   assert.equal(report.qualifiedReturnedCount, 0);
-  assert.equal(report.currentResearchBoardCount, 10);
-  assert.equal(report.shortfallToTen, 0);
+  assert.equal(report.currentResearchBoardCount, 0);
+  assert.equal(report.shortfallToTen, 10);
   assert.equal(report.qualifiedShortfallToTen, 10);
-  assert.equal(report.topTenResearchWorthy.length, 10);
-  assert.equal(report.topTenCurrentResearchBoard.length, 10);
-  assert.equal(report.topTenCurrentResearchBoard[0].lane, "LOWER_PRIORITY");
-  assert.equal(report.topTenCurrentResearchBoard[0].reasonNotQualified, "NEEDS_FRESH_BUY_AND_SELL_ROUTE");
-  assert.ok(report.topTenCurrentResearchBoard[0].missingInfoNeeded.includes("canonical token contract"));
+  assert.equal(report.topTenResearchWorthy.length, 0);
+  assert.equal(report.topTenCurrentResearchBoard.length, 0);
+  assert.equal(report.quarantinedIdentityOrRoute.length, 12);
+  assert.equal(report.quarantinedIdentityOrRoute[0].lane, "QUARANTINED_IDENTITY_OR_ROUTE");
+  assert.equal(report.quarantinedIdentityOrRoute[0].reasonNotQualified, "CONTRACT_MISSING");
+  assert.ok(report.quarantinedIdentityOrRoute[0].missingInfoNeeded.includes("CONTRACT_MISSING"));
   assert.equal(report.topTenHighestRatedNow.length, 0);
   assert.equal(report.notForced, true);
 });

@@ -16,6 +16,10 @@ const INTERNAL_FIELD_PRODUCERS = Object.freeze({
   opportunityTimingScore: "opportunityTiming",
   capitalMigrationScore: "capitalMigrationCore",
   preBreakoutRadarScore: "preBreakoutRadar",
+  preConsensusBreakoutScore: "preConsensusBreakoutHunter",
+  preConsensusOpportunityScore: "preConsensusBreakoutHunter",
+  sniperIntegrityScore: "sniperIntegrityGate",
+  confidenceAdjustedSniperScore: "sniperIntegrityGate",
   earlyAsymmetryResearchPriorityScore: "earlyAsymmetryTriage",
   researchReadinessScore: "researchReadiness",
 });

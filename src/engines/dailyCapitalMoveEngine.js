@@ -1,4 +1,5 @@
 import { isLiveExecutionReady, executionTruthState } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import {
   hasCleanDisplayIdentity,
   isLikelyAggregateCandidate,
@@ -81,16 +82,7 @@ function priceChange7dPct(project = {}) {
 }
 
 function hasIdentity(project = {}) {
-  return Boolean(
-    first([
-      project.tokenAddress,
-      project.contractAddress,
-      project.canonicalAddress,
-      project.finalContractAddress,
-      project.symbol,
-      project.name,
-    ])
-  );
+  return resolveStrictCandidateGate(project).strictIdentityVerified === true;
 }
 
 function hardSafetyBlocked(project = {}) {
@@ -161,13 +153,21 @@ function utilityScore(project = {}) {
 }
 
 function opportunityScore(project = {}) {
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
   return average([
     project.highUpsideScalpScore,
     project.hottestTenNowScore,
     project.sevenDayTenXScore,
     project.preBreakoutRadarScore,
     project.earlyAsymmetryResearchPriorityScore,
-    project.preConsensusBreakoutScore,
+    preConsensusScore,
     project.progressiveOpportunityScore,
     project.moneyRankScore,
   ]);
@@ -209,14 +209,18 @@ function riskPenalty(project = {}) {
 }
 
 function missingProof(project = {}) {
+  const strictGate = resolveStrictCandidateGate(project);
   const missing = [];
+  missing.push(...(strictGate.strictCandidateMissingProof || []));
   if (!hasIdentity(project)) missing.push("canonical identity");
   if (!first([project.chain, project.canonicalChain, project.chainId])) missing.push("canonical chain");
   if (!first([project.tokenAddress, project.contractAddress, project.canonicalAddress])) missing.push("token contract");
   if (!first([project.poolAddress, project.pairAddress, project.primaryTradablePool, project.marketPair])) missing.push("pool or market");
   if (liquidityUsd(project) < MIN_LIQUIDITY_USD) missing.push("executable liquidity");
   if (marketCapUsd(project) <= 0) missing.push("circulating market cap");
-  if (!isLiveExecutionReady(project)) missing.push("fresh verified buy and sell route");
+  if (!strictGate.strictRankEligible || !isLiveExecutionReady({ ...project, routeTruthStatus: "LIVE_EXECUTION_READY" })) {
+    missing.push("fresh verified buy and sell route");
+  }
   if (!proofScore(project)) missing.push("independent source provenance");
   if (!utilityScore(project)) missing.push("real utility, roadmap, or developer proof");
   if (!flowScore(project)) missing.push("capital flow, buyer breadth, or liquidity formation");
@@ -253,7 +257,11 @@ function invalidationTriggers(project = {}) {
 }
 
 export function analyzeDailyCapitalMove(project = {}) {
-  const liveReady = isLiveExecutionReady(project);
+  const strictGate = resolveStrictCandidateGate(project);
+  const liveReady = strictGate.strictRankEligible === true && isLiveExecutionReady({
+    ...project,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+  });
   const missing = missingProof(project);
   const score = Math.round(clamp(
     opportunityScore(project) * 0.3 +
@@ -274,6 +282,12 @@ export function analyzeDailyCapitalMove(project = {}) {
   } else if (!hasCleanDisplayIdentity(project) || isLikelyAggregateCandidate(project)) {
     lane = "BLOCKED";
     reason = "Malformed or aggregate project identity cannot be used for daily capital research.";
+  } else if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") {
+    lane = "MARKET_BENCHMARK";
+    reason = "Established native asset is market benchmark context, not an early utility-small-cap capital candidate.";
+  } else if (!strictGate.strictRankEligible) {
+    lane = "QUARANTINED_IDENTITY_OR_ROUTE";
+    reason = `Strict identity/route proof is incomplete: ${strictGate.candidateQuarantineReason || "missing proof"}.`;
   } else if (lateChase(project)) {
     lane = "LATE_CHASE_DO_NOT_CHASE";
     reason = "Move is already extended for the configured 1-7 day scalp window.";
@@ -312,8 +326,12 @@ export function analyzeDailyCapitalMove(project = {}) {
           ? "MEDIUM"
           : "LOW",
     dailyCapitalMoveExecutionReady: liveReady,
-    dailyCapitalMoveExecutionTruthState: executionTruthState(project),
+    dailyCapitalMoveExecutionTruthState: liveReady ? "LIVE_EXECUTION_READY" : strictGate.routeVerificationStatus || executionTruthState(project),
     dailyCapitalMoveSafetyStatus: hardSafetyBlocked(project) ? "BLOCKED" : "NO_DETERMINISTIC_BLOCK",
+    dailyCapitalMoveQuarantineReason: strictGate.candidateQuarantineReason,
+    routeVerificationStatus: strictGate.routeVerificationStatus,
+    strictCandidateGate: strictGate,
+    ...strictGate,
     dailyCapitalMoveOpportunityScore: opportunityScore(project),
     dailyCapitalMoveUtilityScore: utilityScore(project),
     dailyCapitalMoveFlowScore: flowScore(project),
@@ -332,8 +350,21 @@ function compact(project = {}, rank = null) {
     symbol: project.symbol || "UNKNOWN",
     name: project.name || project.projectName || "Unknown",
     chain: project.chain || project.canonicalChain || "unknown",
+    chainId: project.canonicalChainId ?? project.chainId ?? null,
+    canonicalId: project.canonicalId || project.canonicalProjectId || null,
+    tokenName: project.tokenName || project.name || project.projectName || "Unknown",
     tokenAddress: project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
+    contractAddress: project.contractAddress || project.tokenAddress || project.canonicalAddress || null,
     poolAddress: project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
+    pairAddress: project.pairAddress || project.poolAddress || project.primaryTradablePool || null,
+    dexName: project.dexName || project.dex || project.canonicalExecutionRoute?.dexName || project.canonicalExecutionRoute?.venue || null,
+    provenance: project.provenance || project.discoverySources || [],
+    lastVerifiedAt: project.lastVerifiedAt || project.quoteTimestamp || null,
+    routeVerificationStatus: project.routeVerificationStatus || project.routeTruthStatus || "UNKNOWN",
+    quarantineReason: project.candidateQuarantineReason || project.dailyCapitalMoveQuarantineReason || null,
+    strictIdentityVerified: project.strictIdentityVerified === true,
+    strictRouteVerified: project.strictRouteVerified === true,
+    strictRankEligible: project.strictRankEligible === true,
     priceUsd: priceUsd(project),
     marketCapUsd: marketCapUsd(project),
     liquidityUsd: liquidityUsd(project),
@@ -367,6 +398,8 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
   const ready = analyzed.filter((project) => project.dailyCapitalMoveLane === "CAPITAL_MOVE_RESEARCH");
   const needsProof = analyzed.filter((project) => project.dailyCapitalMoveLane === "NEEDS_PROOF");
   const watch = analyzed.filter((project) => project.dailyCapitalMoveLane === "WATCH");
+  const quarantined = analyzed.filter((project) => project.dailyCapitalMoveLane === "QUARANTINED_IDENTITY_OR_ROUTE");
+  const marketBenchmarks = analyzed.filter((project) => project.dailyCapitalMoveLane === "MARKET_BENCHMARK");
   const blocked = analyzed.filter((project) =>
     ["BLOCKED", "LATE_CHASE_DO_NOT_CHASE", "MEME_ONLY_EXCLUDED"].includes(project.dailyCapitalMoveLane)
   );
@@ -378,7 +411,7 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
-    status: best ? "CAPITAL_MOVE_RESEARCH_READY" : watchlist.length ? "NO_VALID_MOVE_TODAY_RESEARCH_ONLY" : analyzed.length ? "NO_VALID_MOVE_TODAY" : "NO_PROJECTS",
+    status: best ? "CAPITAL_MOVE_RESEARCH_READY" : (watchlist.length || quarantined.length) ? "NO_VALID_MOVE_TODAY_RESEARCH_ONLY" : analyzed.length ? "NO_VALID_MOVE_TODAY" : "NO_PROJECTS",
     mode: "AGGRESSIVE_1_TO_7_DAY_UTILITY_SMALL_CAP",
     objective: "Select one daily capital-move research candidate only when strict utility, safety, and execution proof exists.",
     disclaimer: "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
@@ -387,6 +420,8 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
     backupCandidates: backupPool.map((project, index) => compact(project, index + 2)),
     watchlist: watchlist.map((project, index) => compact(project, index + 1)),
     needsProof: needsProof.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
+    quarantinedIdentityOrRoute: quarantined.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
+    marketBenchmarks: marketBenchmarks.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     blockedOrRejected: blocked.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     countsByLane: analyzed.reduce((counts, project) => {
       counts[project.dailyCapitalMoveLane] = (counts[project.dailyCapitalMoveLane] || 0) + 1;

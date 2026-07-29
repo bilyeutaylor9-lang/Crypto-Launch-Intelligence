@@ -796,6 +796,14 @@ function routeDisplayName(route = null) {
 }
 
 function opportunityScore(project = {}) {
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
   return Math.round(clamp(Math.max(
     num(project.marketOpportunityScore),
     num(project.opportunityScore),
@@ -804,7 +812,7 @@ function opportunityScore(project = {}) {
     num(project.capitalMigrationScore),
     num(project.smallCapHunterScore),
     num(project.preBreakoutRadarScore),
-    num(project.preConsensusBreakoutScore)
+    num(preConsensusScore)
   )));
 }
 

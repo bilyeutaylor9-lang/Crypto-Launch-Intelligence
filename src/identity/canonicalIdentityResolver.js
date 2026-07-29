@@ -5,6 +5,8 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "./strictIdentityValidators.js";
+import { SUPPORTED_CHAIN_REGISTRY } from "../data/chainAliasRegistry.js";
+import { buildStrictCanonicalId } from "../execution/routeResolver.js";
 
 const BRIDGE_TERMS = ["bridged", "wormhole", "wrapped", "weth", "wbtc", "portal", "layerzero", "omnichain"];
 const CONTRACT_CONFLICT_TERMS = ["contract mismatch", "chain mismatch", "counterfeit", "impersonation", "incompatible contract"];
@@ -228,11 +230,13 @@ function identityInputWarnings(project = {}) {
   ].filter(Boolean);
 }
 
-function buildCanonicalId({ chain, address, pairAddress, domain, symbol, name }) {
-  if (chain && address) return `chain:${chain}:contract:${address}`;
-  if (chain && pairAddress) return `chain:${chain}:pair:${pairAddress}`;
-  if (domain) return `domain:${domain}`;
-  return `weak:${chain || "unknown"}:${symbol || normalizeName(name) || "unknown"}`;
+function canonicalChainId(chain = "") {
+  const normalized = normalizeChain(chain);
+  return normalized ? SUPPORTED_CHAIN_REGISTRY[normalized]?.chainId ?? null : null;
+}
+
+function buildCanonicalId({ chain, address }) {
+  return buildStrictCanonicalId(chain, address);
 }
 
 export function buildCanonicalIdentityContext(projects = []) {
@@ -312,13 +316,14 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
   );
 
   return {
+    canonicalId: buildCanonicalId({
+      chain: canonicalChain,
+      address: canonicalAddress,
+    }),
+    canonicalChainId: canonicalChainId(canonicalChain),
     canonicalProjectId: buildCanonicalId({
       chain: canonicalChain,
       address: canonicalAddress,
-      pairAddress,
-      domain,
-      symbol: canonicalSymbol,
-      name: canonicalName,
     }),
     canonicalName,
     canonicalSymbol,
@@ -338,6 +343,8 @@ export function attachCanonicalIdentity(project = {}, context) {
   return {
     ...project,
     canonicalIdentity,
+    canonicalId: canonicalIdentity.canonicalId,
+    canonicalChainId: canonicalIdentity.canonicalChainId,
     canonicalProjectId: canonicalIdentity.canonicalProjectId,
     canonicalName: canonicalIdentity.canonicalName,
     canonicalSymbol: canonicalIdentity.canonicalSymbol,

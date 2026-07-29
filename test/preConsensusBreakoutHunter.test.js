@@ -124,6 +124,11 @@ test("legitimate early-stage project with growing liquidity, developers, users, 
   const result = analyzePreConsensusBreakoutHunter(baseProject());
 
   assert.ok(result.preConsensusOpportunityScore >= 70);
+  assert.equal(result.preConsensusBreakoutScore, result.preConsensusOpportunityScore);
+  assert.equal(
+    result.preConsensusBreakoutHunter.preConsensusBreakoutScore,
+    result.preConsensusOpportunityScore
+  );
   assert.equal(result.preBreakoutMomentumStage !== "ALREADY_PUMPED", true);
   assert.equal(result.quietAccumulationDetected, true);
 });

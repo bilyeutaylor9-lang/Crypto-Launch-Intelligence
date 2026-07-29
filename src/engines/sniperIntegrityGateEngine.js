@@ -246,6 +246,8 @@ export function analyzeSniperIntegrityGate(project = {}, options = {}) {
     sniperScore,
     rawSniperScore: sniperScore,
     confidenceAdjustedSniperScore,
+    sniperIntegrityScore: confidenceAdjustedSniperScore,
+    rawSniperIntegrityScore: sniperScore,
   };
 
   const sniperBlockingReasons = hardBlockers(enriched, gates);
@@ -262,6 +264,8 @@ export function analyzeSniperIntegrityGate(project = {}, options = {}) {
     sniperQualified,
     sniperScore,
     confidenceAdjustedSniperScore,
+    sniperIntegrityScore: confidenceAdjustedSniperScore,
+    rawSniperIntegrityScore: sniperScore,
     sniperConfidence,
     sniperReasons,
     sniperBlockingReasons,
@@ -286,6 +290,8 @@ export function analyzeSniperIntegrityGate(project = {}, options = {}) {
       qualified: sniperQualified,
       score: sniperScore,
       confidenceAdjustedSniperScore,
+      sniperIntegrityScore: confidenceAdjustedSniperScore,
+      rawSniperIntegrityScore: sniperScore,
       confidence: sniperConfidence,
       gates,
       blockers: sniperBlockingReasons,

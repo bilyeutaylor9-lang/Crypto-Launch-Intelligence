@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { analyzeUtilityQuality } from "../engines/utilityQualityEngine.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import {
   aggregateIdentityReason,
   isGenericMarketIdentity,
@@ -64,6 +65,8 @@ function normalizeDisplayText(value = "") {
 }
 
 function displayFamilyKey(project = {}) {
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+  if (strictGate.canonicalId) return strictGate.canonicalId;
   const symbol = upper(first([project.symbol, project.rawCandidate?.symbol, project.marketData?.symbol])).replace(/[^A-Z0-9]/g, "");
   const name = normalizeDisplayText(first([project.name, project.projectName, project.rawCandidate?.name, project.marketData?.name]));
   if (symbol && name) return `${symbol}:${name}`;
@@ -160,7 +163,11 @@ function executionTier(project = {}) {
 }
 
 function buySellRouteVerified(project = {}) {
-  return isLiveExecutionReady(project);
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+  return strictGate.strictRankEligible === true && isLiveExecutionReady({
+    ...project,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+  });
 }
 
 function combinedBlockers(project = {}) {
@@ -267,6 +274,9 @@ function hardRejectionReason(project = {}) {
   if (marketCapUsd(project) > MAX_UTILITY_SMALL_CAP_USD) return "TOO_LARGE_FOR_UTILITY_SMALL_CAP_BOARD";
   if (utilityBlocked(project)) return "MEME_ONLY_OR_NO_VERIFIED_UTILITY";
   if (genericMarketLabelWithoutProjectProof(project)) return "GENERIC_MARKET_LABEL_NEEDS_PROJECT_PROOF";
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+  if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
+  if (!strictGate.strictRankEligible) return "QUARANTINED_IDENTITY_OR_ROUTE";
   return "";
 }
 
@@ -349,7 +359,9 @@ function hasBuyerOrWalletHint(project = {}) {
 }
 
 function missingInfoNeeded(project = {}) {
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
   const missing = [];
+  missing.push(...(strictGate.strictCandidateMissingProof || []));
   if (!first([project.chain, project.canonicalChain, project.chainId, project.marketData?.chain])) {
     missing.push("canonical chain");
   }
@@ -397,6 +409,9 @@ function nextSourcesNeeded(project = {}) {
 }
 
 function reasonNotQualified(project = {}, score = 0) {
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+  if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK_CONTEXT_NOT_EARLY_DISCOVERY";
+  if (!strictGate.strictRankEligible) return strictGate.candidateQuarantineReason || "STRICT_IDENTITY_OR_ROUTE_PROOF_MISSING";
   const hardReason = hardRejectionReason(project);
   if (hardReason === "MALFORMED_OR_AGGREGATE_IDENTITY") return aggregateIdentityReason(project) || hardReason;
   if (hardReason) return hardReason;
@@ -407,10 +422,18 @@ function reasonNotQualified(project = {}, score = 0) {
 }
 
 function scoreProject(project = {}) {
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
   const asymmetry = average([
     project.sevenDayTenXScore,
     project.preBreakoutRadarScore,
-    project.preConsensusBreakoutScore,
+    preConsensusScore,
     project.earlyAsymmetryResearchPriorityScore,
     project.progressiveOpportunityScore,
   ]);
@@ -476,6 +499,9 @@ function scoreProject(project = {}) {
 function lane(project = {}, score = 0) {
   const hardReason = hardRejectionReason(project);
   if (hardReason) return hardReason;
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+  if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
+  if (!strictGate.strictRankEligible) return "QUARANTINED_IDENTITY_OR_ROUTE";
   if (project.liveExecutionReady === true || project.executionProof?.liveExecutionReady === true) return "LIVE_EXECUTION_READY_RESEARCH";
   if (buySellRouteVerified(project) && score >= 72) return "CURRENT_HIGH_UPSIDE_RESEARCH";
   if (buySellRouteVerified(project) && score >= 58) return "WATCHLIST_NEEDS_MORE_CONFIRMATION";
@@ -485,6 +511,7 @@ function lane(project = {}, score = 0) {
 
 function researchBoardBackfillEligible(project = {}) {
   return Boolean(
+    project.strictRankEligible === true &&
     project.hottestTenNowLane === "LOWER_PRIORITY" &&
       project.hottestTenNowRejectionReason === "LOWER_PRIORITY" &&
       hasIdentityHint(project) &&
@@ -495,13 +522,30 @@ function researchBoardBackfillEligible(project = {}) {
 
 function compactCandidate(project = {}, rank = null) {
   const score = project.hottestTenNowScore ?? scoreProject(project);
+  const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
-    name: project.name || "Unknown",
-    chain: project.chain || project.canonicalChain || project.chainId || "unknown",
-    tokenAddress: project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
-    poolAddress: project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
+    name: project.name || strictGate.tokenName || "Unknown",
+    tokenName: strictGate.tokenName || project.tokenName || project.name || "Unknown",
+    chain: strictGate.normalizedChain || project.chain || project.canonicalChain || project.chainId || "unknown",
+    chainId: strictGate.canonicalChainId ?? project.chainId ?? null,
+    canonicalId: strictGate.canonicalId || project.canonicalId || project.canonicalProjectId || null,
+    tokenAddress: strictGate.tokenAddress || project.tokenAddress || project.contractAddress || project.canonicalAddress || null,
+    contractAddress: strictGate.contractAddress || project.contractAddress || project.tokenAddress || project.canonicalAddress || null,
+    poolAddress: strictGate.pairAddress || project.poolAddress || project.pairAddress || project.primaryTradablePool || null,
+    pairAddress: strictGate.pairAddress || project.pairAddress || project.poolAddress || project.primaryTradablePool || null,
+    dexName: strictGate.dexName || project.dexName || project.dex || project.canonicalExecutionRoute?.dexName || project.canonicalExecutionRoute?.venue || null,
+    baseTokenAddress: strictGate.baseTokenAddress || project.baseTokenAddress || project.baseToken?.address || null,
+    quoteTokenAddress: strictGate.quoteTokenAddress || project.quoteTokenAddress || project.quoteToken?.address || null,
+    provenance: strictGate.provenance || project.discoverySources || [],
+    lastVerifiedAt: strictGate.lastVerifiedAt || project.lastVerifiedAt || project.quoteTimestamp || null,
+    routeVerificationStatus: strictGate.routeVerificationStatus || project.routeVerificationStatus || project.routeTruthStatus || "UNKNOWN",
+    quarantineReason: strictGate.candidateQuarantineReason || null,
+    quarantineReasons: strictGate.candidateQuarantineReasons || [],
+    strictIdentityVerified: strictGate.strictIdentityVerified === true,
+    strictRouteVerified: strictGate.strictRouteVerified === true,
+    strictRankEligible: strictGate.strictRankEligible === true,
     priceUsd: priceUsd(project),
     subCent: priceUsd(project) > 0 && priceUsd(project) < 0.01,
     marketCapUsd: marketCapUsd(project),
@@ -533,6 +577,12 @@ function compactCandidate(project = {}, rank = null) {
       sellPressureScore: project.sellPressureScore || 0,
     },
     reasons: (project.sevenDayTenX?.reasons || project.moneyRankDrivers || project.preBreakoutRadarReasons || []).slice(0, 8),
+    analysisThesis: [
+      project.utilityClassification ? `Utility: ${project.utilityClassification}` : null,
+      project.preBreakoutRadarState ? `Timing: ${project.preBreakoutRadarState}` : null,
+      project.routeVerificationStatus || strictGate.routeVerificationStatus ? `Route: ${strictGate.routeVerificationStatus || project.routeVerificationStatus}` : null,
+      strictGate.candidateQuarantineReason ? `Quarantine: ${strictGate.candidateQuarantineReason}` : null,
+    ].filter(Boolean),
     missingEvidence: [
       ...(project.sevenDayTenXMissingEvidence || []),
       ...(project.moneyMissingEvidence || []),
@@ -551,13 +601,19 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
   const scored = (Array.isArray(projects) ? projects : [])
     .map((project) => {
       const utilityAnalyzed = withUtilityAnalysis(project);
-      const score = scoreProject(utilityAnalyzed);
-      return {
+      const strictGate = resolveStrictCandidateGate(utilityAnalyzed);
+      const strictAnalyzed = {
         ...utilityAnalyzed,
+        ...strictGate,
+        strictCandidateGate: strictGate,
+      };
+      const score = scoreProject(strictAnalyzed);
+      return {
+        ...strictAnalyzed,
         hottestTenNowScore: score,
-        hottestTenNowLane: lane(utilityAnalyzed, score),
-        hottestTenNowRejectionReason: hardRejectionReason(utilityAnalyzed) || (lane(utilityAnalyzed, score) === "LOWER_PRIORITY" ? "LOWER_PRIORITY" : ""),
-        hottestTenNowReasonNotQualified: reasonNotQualified(utilityAnalyzed, score),
+        hottestTenNowLane: lane(strictAnalyzed, score),
+        hottestTenNowRejectionReason: hardRejectionReason(strictAnalyzed) || (lane(strictAnalyzed, score) === "LOWER_PRIORITY" ? "LOWER_PRIORITY" : ""),
+        hottestTenNowReasonNotQualified: reasonNotQualified(strictAnalyzed, score),
       };
     })
     .sort((a, b) => num(b.hottestTenNowScore) - num(a.hottestTenNowScore));
@@ -566,9 +622,11 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     ["LIVE_EXECUTION_READY_RESEARCH", "CURRENT_HIGH_UPSIDE_RESEARCH"].includes(project.hottestTenNowLane)
   );
   const watchlist = scored.filter((project) =>
-    ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO"].includes(project.hottestTenNowLane)
+    ["WATCHLIST_NEEDS_MORE_CONFIRMATION"].includes(project.hottestTenNowLane)
   );
   const researchBackfill = scored.filter(researchBoardBackfillEligible);
+  const quarantinedIdentityOrRoute = scored.filter((project) => project.hottestTenNowLane === "QUARANTINED_IDENTITY_OR_ROUTE");
+  const marketBenchmarks = scored.filter((project) => project.hottestTenNowLane === "MARKET_BENCHMARK");
   const rejected = scored.filter((project) => project.hottestTenNowRejectionReason);
   const topTen = takeUniqueDisplayFamilies(qualified, TARGET_COUNT);
   const topTenBoard = takeUniqueDisplayFamilies([...qualified, ...watchlist, ...researchBackfill], TARGET_COUNT);
@@ -582,7 +640,9 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     status: topTen.length
       ? "PASS"
       : topTenBoard.length
-        ? "RESEARCH_BOARD_NEEDS_CONFIRMATION"
+        ? "RESEARCH_BOARD_VERIFIED_NEEDS_CONFIRMATION"
+        : quarantinedIdentityOrRoute.length
+          ? "NO_RANKABLE_RESULTS_IDENTITY_ROUTE_QUARANTINE"
         : scored.length
           ? "NO_CURRENT_BUY_READY_RESEARCH"
           : "NO_PROJECTS",
@@ -606,12 +666,15 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
       ["WATCHLIST_NEEDS_MORE_CONFIRMATION", "RESEARCH_BOARD_NEEDS_MISSING_INFO", "LOWER_PRIORITY"].includes(project.hottestTenNowLane)
     ).length,
     researchBoardMode: "STRICT_QUALIFIED_PLUS_MISSING_INFO_AND_BEST_AVAILABLE_RECOVERY",
+    strictRankEligibilityRequired: true,
     notForced: true,
     topTenResearchWorthy: compactTopTenBoard,
     topTenCurrentResearchBoard: compactTopTenBoard,
     topTenQualifiedNow: compactQualified,
     topTenHighestRatedNow: compactQualified,
     watchlistNeedsMoreConfirmation: watchlist.slice(0, MAX_AUDIT_ROWS).map((project, index) => compactCandidate(project, index + 1)),
+    quarantinedIdentityOrRoute: quarantinedIdentityOrRoute.slice(0, MAX_AUDIT_ROWS).map((project, index) => compactCandidate(project, index + 1)),
+    marketBenchmarks: marketBenchmarks.slice(0, MAX_AUDIT_ROWS).map((project, index) => compactCandidate(project, index + 1)),
     rejectedOrNotCurrent: rejected.slice(0, MAX_AUDIT_ROWS).map((project, index) => ({
       ...compactCandidate(project, index + 1),
       rejectionReason: project.hottestTenNowRejectionReason,
@@ -628,6 +691,7 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
       `Do not put projects above ${MAX_UTILITY_SMALL_CAP_USD.toLocaleString("en-US")} market cap on the utility-small-cap board.`,
       "Do not rank meme-only hype above real-utility candidates.",
       "Do not call a route current-moment ready without buy and sell path evidence.",
+      "Do not rank symbol-only, contract-missing, pair-missing, stale, wrapped-unverified, or native-asset mismatch candidates.",
     ],
     missingInfoRecoverySources: [
       "DexScreener and GeckoTerminal for live pools, liquidity, price, volume, and pair identity.",

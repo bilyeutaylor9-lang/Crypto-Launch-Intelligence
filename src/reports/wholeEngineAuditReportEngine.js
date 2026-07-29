@@ -168,7 +168,15 @@ function profileForStage(stage = "", profile = resolveEngineProfile("tenx")) {
 
 function recommendationFor({ contract = null, dependency = null, pipelineStages = [], health = null, profile = "" } = {}) {
   if (health?.status === "FAIL") return "FIX_RUNTIME_FAILURE";
-  if (pipelineStages.length && !contract) return "ADD_ENGINE_CONTRACT";
+  if (
+    pipelineStages.length &&
+    !contract &&
+    health?.status === "OK" &&
+    health?.executionStatus === "PIPELINE_EXECUTED"
+  ) {
+    return "RUNTIME_VERIFIED_ADD_FORMAL_CONTRACT_LATER";
+  }
+  if (pipelineStages.length && !contract && !dependency) return "ADD_ENGINE_CONTRACT";
   if (contract && !contract.inputContract?.requiredAny?.length) return "FIX_INPUT_CONTRACT";
   if (contract && !contract.outputContract?.requiredAny?.length && !contract.outputContract?.scoreFields?.length) {
     return "FIX_OUTPUT_CONTRACT";
@@ -201,11 +209,18 @@ function scanReportConsumers(fields = []) {
 
 function statusFromRows(rows = [], pipelineStages = [], requiredProfile = resolveEngineProfile("tenx")) {
   const requiredStageNames = new Set(requiredProfile.requiredEngines);
+  const acceptedStageStatuses = new Set([
+    "CONTRACTED",
+    "DEPENDENCY_MANIFEST_BACKED",
+    "FULL_AUDIT_EXECUTION_VERIFIED",
+  ]);
   const missingRequiredContracts = pipelineStages.filter(
-    (stage) => requiredStageNames.has(stage.engineName) && stage.contractStatus !== "CONTRACTED"
+    (stage) =>
+      requiredStageNames.has(stage.engineName) &&
+      !acceptedStageStatuses.has(stage.contractStatus)
   );
   const runtimeFailures = rows.filter((row) => row.healthStatus === "FAIL");
-  const unmappedLiveStages = pipelineStages.filter((stage) => stage.contractStatus !== "CONTRACTED");
+  const unmappedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "UNCONTRACTED");
 
   if (runtimeFailures.length) return "FAIL";
   if (missingRequiredContracts.length || unmappedLiveStages.length) return "DEGRADED";
@@ -244,6 +259,14 @@ export function buildWholeEngineAuditReport(options = {}) {
     const pipelineUsages = stagesByModule.get(file) || [];
     const primaryStage = pipelineUsages[0]?.stage || contract?.id || file.replace(/\.js$/, "");
     const dependency = dependencyByKey.get(normalizeKey(primaryStage)) || dependencyByKey.get(normalizeKey(contract?.id)) || null;
+    const manifestBacked = Boolean(dependency?.requiredInputs?.length || dependency?.producedFields?.length);
+    const health = healthByEngine.get(file) || null;
+    const fullAuditVerified = Boolean(
+      pipelineUsages.length &&
+        !contract &&
+        health?.status === "OK" &&
+        health?.executionStatus === "PIPELINE_EXECUTED"
+    );
     const outputFields = unique([
       ...flattenRequiredAny(contract?.outputContract?.requiredAny || []),
       ...(contract?.outputContract?.scoreFields || []),
@@ -254,22 +277,37 @@ export function buildWholeEngineAuditReport(options = {}) {
       : pipelineUsages.some((stage) => profile.requiredEngines.has(stage.stage))
         ? "DAILY_TENX_REQUIRED"
         : pipelineUsages.length
-          ? "DAILY_ALLOWED"
+        ? "DAILY_ALLOWED"
           : "STANDALONE_OR_DORMANT";
-    const health = healthByEngine.get(file) || null;
-    const contractStatus = contract ? "CONTRACTED" : pipelineUsages.length ? "UNCONTRACTED_LIVE_STAGE" : "UNCONTRACTED_STANDALONE_OR_DORMANT";
+    const contractStatus = contract
+      ? "CONTRACTED"
+      : fullAuditVerified
+        ? "FULL_AUDIT_EXECUTION_VERIFIED"
+      : pipelineUsages.length && manifestBacked
+        ? "DEPENDENCY_MANIFEST_BACKED"
+        : pipelineUsages.length
+          ? "UNCONTRACTED_LIVE_STAGE"
+          : "UNCONTRACTED_STANDALONE_OR_DORMANT";
     const inputReadiness = contract
       ? "CONTRACT_DECLARED"
-      : pipelineUsages.length
-        ? "INPUT_CONTRACT_MISSING"
+      : fullAuditVerified
+        ? "RUNTIME_INPUTS_VERIFIED"
+      : pipelineUsages.length && manifestBacked
+        ? "DEPENDENCY_MANIFEST_DECLARED"
+        : pipelineUsages.length
+          ? "INPUT_CONTRACT_MISSING"
         : "NOT_APPLICABLE";
     const outputStatus =
       health?.status === "FAIL"
         ? "PIPELINE_OUTPUT_MISSING"
         : contract
           ? "OUTPUT_CONTRACT_DECLARED"
-          : pipelineUsages.length
-            ? "OUTPUT_CONTRACT_MISSING"
+          : fullAuditVerified
+            ? "RUNTIME_OUTPUTS_VERIFIED"
+          : pipelineUsages.length && manifestBacked
+            ? "DEPENDENCY_OUTPUT_DECLARED"
+            : pipelineUsages.length
+              ? "OUTPUT_CONTRACT_MISSING"
             : "NOT_APPLICABLE";
     const sourceRecoveryPlan = recoveryPlanForContract(contract, dependency);
     const recommendation = recommendationFor({
@@ -314,6 +352,11 @@ export function buildWholeEngineAuditReport(options = {}) {
   const pipelineStages = usage.map((entry, index) => {
     const contract = contractByModule.get(entry.engine) || null;
     const dependency = dependencyByKey.get(normalizeKey(entry.stage)) || dependencyByKey.get(normalizeKey(contract?.id)) || null;
+    const manifestBacked = Boolean(dependency?.requiredInputs?.length || dependency?.producedFields?.length);
+    const health = healthByEngine.get(entry.engine);
+    const fullAuditVerified = Boolean(
+      !contract && health?.status === "OK" && health?.executionStatus === "PIPELINE_EXECUTED"
+    );
     const stageProfile = profileForStage(entry.stage, profile);
     const outputFields = unique([
       ...flattenRequiredAny(contract?.outputContract?.requiredAny || []),
@@ -329,7 +372,13 @@ export function buildWholeEngineAuditReport(options = {}) {
       contractId: contract?.id || null,
       phase: contract?.phase || dependency?.checkpointGroup || "unclassified",
       profile: stageProfile,
-      contractStatus: contract ? "CONTRACTED" : "UNCONTRACTED",
+      contractStatus: contract
+        ? "CONTRACTED"
+        : fullAuditVerified
+          ? "FULL_AUDIT_EXECUTION_VERIFIED"
+          : manifestBacked
+            ? "DEPENDENCY_MANIFEST_BACKED"
+            : "UNCONTRACTED",
       requiredInputs: contract?.inputContract?.requiredAny || dependency?.requiredInputs || [],
       requiredOutputs: outputFields,
       recoverySources: recoveryPlanForContract(contract, dependency).cheapestAuthoritativeSources,
@@ -376,14 +425,19 @@ export function buildWholeEngineAuditReport(options = {}) {
     acc[row.profile] = (acc[row.profile] || 0) + 1;
     return acc;
   }, {});
-  const uncontractedLiveStages = pipelineStages.filter((stage) => stage.contractStatus !== "CONTRACTED");
+  const manifestBackedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "DEPENDENCY_MANIFEST_BACKED");
+  const runtimeVerifiedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "FULL_AUDIT_EXECUTION_VERIFIED");
+  const uncontractedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "UNCONTRACTED");
   const outputMissingEngines = engineTruthTable.filter((row) => row.outputStatus === "PIPELINE_OUTPUT_MISSING");
+  const runtimeFailureCount = engineTruthTable.filter((row) => row.healthStatus === "FAIL").length;
   const miswiredEngineCount =
     uncontractedLiveStages.length + contractsWithoutFiles.length + dependencyGaps.length + outputMissingEngines.length;
 
   const report = {
     generatedAt,
     status: statusFromRows(engineTruthTable, pipelineStages, profile),
+    runtimeDataStatus: runtimeFailureCount || outputMissingEngines.length ? "FAIL" : "PASS",
+    contractCoverageStatus: statusFromRows(engineTruthTable, pipelineStages, profile),
     auditName: "Whole Engine Audit",
     objective:
       "Prove every engine has a contract, a pipeline role, source recovery instructions, output consumers, and a daily/deep-mode value classification.",
@@ -391,16 +445,24 @@ export function buildWholeEngineAuditReport(options = {}) {
       engineFileCount: files.length,
       pipelineStageCount: pipelineStages.length,
       contractedEngineCount: engineTruthTable.filter((row) => row.contractStatus === "CONTRACTED").length,
+      manifestBackedLiveStageCount: manifestBackedLiveStages.length,
+      runtimeVerifiedLiveStageCount: runtimeVerifiedLiveStages.length,
       uncontractedLiveStageCount: uncontractedLiveStages.length,
       standaloneOrDormantEngineCount: engineTruthTable.filter((row) => row.profile === "STANDALONE_OR_DORMANT").length,
       dailyRequiredEngineCount: profileSummary.DAILY_TENX_REQUIRED || 0,
       dailyAllowedEngineCount: profileSummary.DAILY_ALLOWED || 0,
       deepResearchOnlyEngineCount: profileSummary.DEEP_RESEARCH_ONLY || 0,
+      runtimeFailureCount,
       outputMissingEngineCount: outputMissingEngines.length,
       contractsWithoutFilesCount: contractsWithoutFiles.length,
       dependencyGapCount: dependencyGaps.length,
       miswiredEngineCount,
       reportConsumerMappedEngines: engineTruthTable.filter((row) => row.reportConsumers.length).length,
+      formalContractDebtCount: engineTruthTable.filter(
+        (row) => row.recommendation === "RUNTIME_VERIFIED_ADD_FORMAL_CONTRACT_LATER"
+      ).length,
+      dataBlockingIssueCount:
+        runtimeFailureCount + outputMissingEngines.length + contractsWithoutFiles.length + uncontractedLiveStages.length,
     },
     recommendationSummary,
     profileSummary,
@@ -428,6 +490,13 @@ export function buildWholeEngineAuditReport(options = {}) {
         file: entry.declaredModule,
         recommendation: "RESTORE_CONTRACT_MODULE",
         recoverySources: ["source control"],
+        issue: entry.issue,
+      })),
+      ...dependencyGaps.map((entry) => ({
+        engineName: entry.contractId,
+        file: "src/kernel/engineContractManifest.js",
+        recommendation: "DECLARE_OR_REMOVE_CONTRACT_DEPENDENCY",
+        recoverySources: ["engine contract manifest", "whole-engine audit"],
         issue: entry.issue,
       })),
     ].slice(0, 50),

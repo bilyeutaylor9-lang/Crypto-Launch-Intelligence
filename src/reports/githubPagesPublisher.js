@@ -214,6 +214,7 @@ function scoreForResearchWorthy(candidate = {}) {
 
 function researchKey(candidate = {}) {
   return [
+    candidate.canonicalId,
     candidate.tokenAddress,
     candidate.contractAddress,
     candidate.verifiedContractAddress,
@@ -227,13 +228,52 @@ function researchKey(candidate = {}) {
     .toLowerCase();
 }
 
+function shortAddress(value = "") {
+  const raw = String(value || "");
+  if (!raw) return "missing";
+  return raw.length > 14 ? `${raw.slice(0, 6)}...${raw.slice(-4)}` : raw;
+}
+
+function contractFor(candidate = {}) {
+  return first([candidate.contractAddress, candidate.tokenAddress, candidate.canonicalAddress]);
+}
+
+function pairFor(candidate = {}) {
+  return first([candidate.pairAddress, candidate.poolAddress, candidate.primaryTradablePool]);
+}
+
+function rankDisplayEligible(candidate = {}) {
+  if (candidate.strictRankEligible === true) return true;
+  if (Object.hasOwn(candidate, "strictRankEligible")) return false;
+  return Boolean(
+    (candidate.liveExecutionReady || candidate.executionReady || candidate.buySellRouteVerified) &&
+      contractFor(candidate) &&
+      pairFor(candidate)
+  );
+}
+
 function compactResearchWorthyCandidate(candidate = {}, source = "research") {
+  const contractAddress = contractFor(candidate);
+  const pairAddress = pairFor(candidate);
   return {
     ...candidate,
     source,
     symbol: candidate.symbol || "UNKNOWN",
     name: candidate.name || candidate.projectName || "Unknown",
+    tokenName: candidate.tokenName || candidate.name || candidate.projectName || "Unknown",
     chain: candidate.chain || candidate.requiredChain || "unknown",
+    chainId: candidate.chainId ?? candidate.canonicalChainId ?? null,
+    canonicalId: candidate.canonicalId || candidate.canonicalProjectId || null,
+    contractAddress,
+    tokenAddress: candidate.tokenAddress || contractAddress || null,
+    pairAddress,
+    poolAddress: candidate.poolAddress || pairAddress || null,
+    dexName: candidate.dexName || candidate.bestVerifiedVenue || candidate.bestGlobalRoute || candidate.venue || null,
+    provenance: candidate.provenance || candidate.sources || candidate.discoverySources || [],
+    lastVerifiedAt: candidate.lastVerifiedAt || candidate.routeLastVerifiedAt || candidate.quoteTimestamp || null,
+    routeVerificationStatus: candidate.routeVerificationStatus || candidate.routeTruthStatus || candidate.executionTruthState || "UNKNOWN",
+    quarantineReason: candidate.quarantineReason || candidate.candidateQuarantineReason || candidate.highUpsideScalpQuarantineReason || null,
+    strictRankEligible: candidate.strictRankEligible === true,
     lane: candidate.lane || candidate.scalpMicrostructureLane || candidate.accessibilityLane || candidate.qualificationState || "RESEARCH",
     score: scoreForResearchWorthy(candidate),
     priceUsd: first([candidate.priceUsd, candidate.currentPrice]),
@@ -291,7 +331,16 @@ function buildResearchWorthyBoard({
   }
 
   return [...byKey.values()]
-    .filter((candidate) => !["BLOCKED", "LATE_CHASE_REJECTED", "MEME_SPECULATION_EXCLUDED"].includes(candidate.lane))
+    .filter((candidate) =>
+      rankDisplayEligible(candidate) &&
+      ![
+        "BLOCKED",
+        "LATE_CHASE_REJECTED",
+        "MEME_SPECULATION_EXCLUDED",
+        "QUARANTINED_IDENTITY_OR_ROUTE",
+        "MARKET_BENCHMARK",
+      ].includes(candidate.lane)
+    )
     .sort((a, b) => scoreForResearchWorthy(b) - scoreForResearchWorthy(a))
     .slice(0, 10)
     .map((candidate, index) => ({ ...candidate, rank: index + 1 }));
@@ -306,7 +355,10 @@ function renderResearchWorthyBoard(candidates = []) {
             <h2>Top 10 Research-Worthy Utility Small Caps</h2>
             <p>No research-worthy candidates passed the latest display filters. Check source health and rescue queues before loosening safety gates.</p>
           </div>
-          <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+          <div class="actions">
+            <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+            <a class="button" href="https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/actions/workflows/pages-dashboard.yml">Run Next GitHub Scan</a>
+          </div>
         </div>
         <div class="empty">No current research board candidates in the latest published scan.</div>
       </section>
@@ -333,6 +385,8 @@ function renderResearchWorthyBoard(candidates = []) {
               <th>Rank</th>
               <th>Symbol</th>
               <th>Chain</th>
+              <th>Contract</th>
+              <th>Pair / DEX</th>
               <th>Why Shown</th>
               <th>Score</th>
               <th>Price</th>
@@ -350,13 +404,15 @@ function renderResearchWorthyBoard(candidates = []) {
                     <td>${escapeHtml(candidate.rank)}</td>
                     <td><strong>${escapeHtml(candidate.symbol)}</strong><br /><span class="muted">${escapeHtml(candidate.name)}</span></td>
                     <td>${escapeHtml(candidate.chain)}</td>
+                    <td>${escapeHtml(shortAddress(candidate.contractAddress))}<br /><span class="muted">${escapeHtml(candidate.canonicalId || "canonical pending")}</span></td>
+                    <td>${escapeHtml(shortAddress(candidate.pairAddress))}<br /><span class="muted">${escapeHtml(candidate.dexName || "venue pending")}</span></td>
                     <td>${escapeHtml(candidate.source)}<br /><span class="muted">${escapeHtml(candidate.lane)}</span></td>
                     <td><strong>${escapeHtml(candidate.score)}</strong></td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.priceUsd))}</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.marketCapUsd))}</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd))}</td>
-                    <td>${escapeHtml(candidate.routeStatus)}</td>
-                    <td>${escapeHtml(candidate.missing)}</td>
+                    <td>${escapeHtml(candidate.routeVerificationStatus || candidate.routeStatus)}</td>
+                    <td>${escapeHtml(candidate.quarantineReason || candidate.missing)}</td>
                   </tr>
                 `
               )
@@ -429,6 +485,8 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
               <th>Rank</th>
               <th>Symbol</th>
               <th>Chain</th>
+              <th>Contract</th>
+              <th>Pair / DEX</th>
               <th>Lane</th>
               <th>Score</th>
               <th>Price</th>
@@ -454,6 +512,8 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.rank ?? "")}</td>
                     <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
                     <td>${escapeHtml(candidate.chain || "unknown")}</td>
+                    <td>${escapeHtml(shortAddress(contractFor(candidate)))}<br /><span class="muted">${escapeHtml(candidate.canonicalId || "")}</span></td>
+                    <td>${escapeHtml(shortAddress(pairFor(candidate)))}<br /><span class="muted">${escapeHtml(candidate.dexName || candidate.bestVerifiedVenue || "")}</span></td>
                     <td>${escapeHtml(candidate.lane || candidate.scalpMicrostructureLane || "UNKNOWN")}</td>
                     <td>${escapeHtml(
                       candidate.hottestTenNowScore ??
@@ -469,14 +529,14 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                     <td>${escapeHtml(candidate.priceChange24hPct ?? 0)}%</td>
                     <td>${escapeHtml(candidate.priceChange7dPct ?? 0)}%</td>
                     <td>${escapeHtml(formatDashboardNumber(candidate.liquidityUsd ?? candidate.scalpLiquidityUsd))}</td>
-                    <td>${escapeHtml(
+                    <td>${escapeHtml(candidate.routeVerificationStatus || (
                       candidate.liveExecutionReady
                         ? "Live Ready"
                         : candidate.routeReady || candidate.buySellRouteVerified
                           ? "Route Research"
                           : "Needs Route Proof"
-                    )}</td>
-                    <td>${escapeHtml(needs || candidate.reasonNotQualified || "Current checks")}</td>
+                    ))}</td>
+                    <td>${escapeHtml(candidate.quarantineReason || needs || candidate.reasonNotQualified || "Current checks")}</td>
                   </tr>
                 `;
               })

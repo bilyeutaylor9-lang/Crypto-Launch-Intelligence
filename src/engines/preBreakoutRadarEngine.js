@@ -345,13 +345,21 @@ function maxRisk(project = {}) {
 }
 
 function safetyIntegrity(project = {}) {
+  const sniperIntegrityScore = first([
+    project.sniperIntegrityScore,
+    project.confidenceAdjustedSniperScore,
+    project.sniperScore,
+    project.sniperIntegrityGate?.sniperIntegrityScore,
+    project.sniperIntegrityGate?.confidenceAdjustedSniperScore,
+    project.sniperIntegrityGate?.score,
+  ]);
   const safetyScores = [
     project.instantSafetyScore,
     project.contractAuthoritySafetyScore,
     project.liquidityControlSafetyScore,
     project.organicEconomicIntegrityScore,
     project.organicDemandFirewallScore,
-    project.sniperIntegrityScore,
+    sniperIntegrityScore,
     project.finalIntegrityScore,
   ];
   const hasSafety = safetyScores.some(hasNumber);

@@ -11,6 +11,7 @@ import { summarizeDailySourceGaps } from "../src/reports/dailySourceGapReportEng
 const NOW = new Date().toISOString();
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
+const BASE_USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 
 function utilitySmallCap(overrides = {}) {
   return {
@@ -21,9 +22,19 @@ function utilitySmallCap(overrides = {}) {
     contractAddress: TOKEN,
     poolAddress: POOL,
     pairAddress: POOL,
+    dexName: "Aerodrome",
+    dex: "Aerodrome",
+    baseTokenAddress: TOKEN,
+    quoteTokenAddress: BASE_USDC,
+    quoteAsset: "USDC",
+    discoverySources: ["dexscreener", "geckoterminal"],
+    source: "dexscreener",
     priceUsd: 0.004,
     marketCapUsd: 6_500_000,
     liquidityUsd: 210_000,
+    dexLiquidityUsd: 210_000,
+    volume24h: 150_000,
+    volume24hUsd: 150_000,
     priceChange24hPct: 18,
     priceChange7dPct: 64,
     routeTruthStatus: "LIVE_EXECUTION_READY",
@@ -83,9 +94,10 @@ test("missing sell proof keeps a strong project research-only and creates recove
   const summary = summarizeDailyCapitalMoves([result]);
   const recovery = summarizeDailyRecoveryQueue([result]);
 
-  assert.equal(result.dailyCapitalMoveLane, "NEEDS_PROOF");
+  assert.equal(result.dailyCapitalMoveLane, "QUARANTINED_IDENTITY_OR_ROUTE");
   assert.equal(result.dailyCapitalMoveExecutionReady, false);
   assert.ok(result.dailyCapitalMoveMissingProof.includes("fresh verified buy and sell route"));
+  assert.equal(result.dailyCapitalMoveQuarantineReason, "SELL_ROUTE_FAILED");
   assert.equal(summary.bestCandidate, null);
   assert.equal(summary.status, "NO_VALID_MOVE_TODAY_RESEARCH_ONLY");
   assert.equal(recovery.status, "RECOVERY_ACTIONS_READY");

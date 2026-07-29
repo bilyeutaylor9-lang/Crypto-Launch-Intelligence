@@ -1,4 +1,5 @@
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyAggregateCandidate } from "../identity/displayIdentityGuard.js";
 
 export const HIGH_UPSIDE_SCALP_LANES = [
@@ -18,6 +19,8 @@ export const HIGH_UPSIDE_SCALP_LANES = [
   "LOWER_PRIORITY",
   "DATA_STARVED",
   "INVALID_OR_AGGREGATE_IDENTITY",
+  "QUARANTINED_IDENTITY_OR_ROUTE",
+  "MARKET_BENCHMARK",
 ];
 
 const MAX_MISSING_FIELDS = 80;
@@ -36,7 +39,14 @@ export const HIGH_UPSIDE_SCALP_COMPONENTS = {
   upside: [
     ["sevenDayTenXScore"],
     ["preBreakoutRadarScore"],
-    ["preConsensusBreakoutScore"],
+    [
+      "preConsensusBreakoutScore",
+      "preConsensusOpportunityScore",
+      "regimeAdjustedOpportunityScore",
+      "preConsensusBreakoutHunter.preConsensusBreakoutScore",
+      "preConsensusBreakoutHunter.preConsensusOpportunityScore",
+      "preConsensusBreakoutHunter.regimeAdjustedOpportunityScore",
+    ],
     ["earlyAsymmetryResearchPriorityScore"],
   ],
   flow: [
@@ -67,7 +77,14 @@ export const HIGH_UPSIDE_SCALP_COMPONENTS = {
     ["instantSafetyScore"],
     ["contractAuthoritySafetyScore"],
     ["liquidityControlSafetyScore"],
-    ["sniperIntegrityScore"],
+    [
+      "sniperIntegrityScore",
+      "confidenceAdjustedSniperScore",
+      "sniperScore",
+      "sniperIntegrityGate.sniperIntegrityScore",
+      "sniperIntegrityGate.confidenceAdjustedSniperScore",
+      "sniperIntegrityGate.score",
+    ],
     ["finalIntegrityScore"],
   ],
   route: [
@@ -131,7 +148,10 @@ function hasAnyPath(project = {}, paths = []) {
 }
 
 function routeReady(project = {}) {
-  return isLiveExecutionReady(project);
+  return resolveStrictCandidateGate(project).strictRankEligible === true && isLiveExecutionReady({
+    ...project,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+  });
 }
 
 function hasRouteIdentity(project = {}) {
@@ -149,6 +169,7 @@ function hasRouteIdentity(project = {}) {
 function routeProofChecklist(project = {}) {
   const route = project.executionProofRecoveryRoute || project.canonicalExecutionRoute || {};
   const proof = project.executionProof || {};
+  const strictGate = resolveStrictCandidateGate(project);
   const quoteAge = first([
     project.quoteAgeSeconds,
     route.quoteAgeSeconds,
@@ -189,10 +210,13 @@ function routeProofChecklist(project = {}) {
     { field: "region availability", passed: regionAvailable },
     { field: "sellability safety", passed: !deterministicSafetyBlocked(project) && project.sellRestricted !== true && project.honeypotDetected !== true },
   ];
-  const missing = checks.filter((check) => !check.passed).map((check) => check.field);
+  const missing = [
+    ...strictGate.candidateQuarantineReasons,
+    ...checks.filter((check) => !check.passed).map((check) => check.field),
+  ].filter(Boolean);
   return {
     checks,
-    missing,
+    missing: [...new Set(missing)],
     nextSingleProofNeeded: missing[0] || null,
     buyQuoteVerified: hasBuyQuote,
     sellQuoteVerified: hasSellQuote,
@@ -200,6 +224,9 @@ function routeProofChecklist(project = {}) {
     depthVerified: hasDepth,
     slippageVerified: hasSlippage,
     regionAvailable,
+    strictCandidateLane: strictGate.strictCandidateLane,
+    quarantineReason: strictGate.candidateQuarantineReason,
+    routeVerificationStatus: strictGate.routeVerificationStatus,
   };
 }
 
@@ -345,13 +372,21 @@ function hasPromisingEarlySignal(project = {}, score = 0, componentScores = {}) 
   const familyScores = ["upside", "flow", "quality", "proof"]
     .map((family) => componentScores[family]?.score)
     .filter((value) => Number.isFinite(Number(value)));
+  const preConsensusScore = first([
+    project.preConsensusBreakoutScore,
+    project.preConsensusOpportunityScore,
+    project.regimeAdjustedOpportunityScore,
+    project.preConsensusBreakoutHunter?.preConsensusBreakoutScore,
+    project.preConsensusBreakoutHunter?.preConsensusOpportunityScore,
+    project.preConsensusBreakoutHunter?.regimeAdjustedOpportunityScore,
+  ]);
   return Boolean(
     score >= 45 ||
       familyScores.some((value) => Number(value) >= 62) ||
       [
         project.sevenDayTenXScore,
         project.preBreakoutRadarScore,
-        project.preConsensusBreakoutScore,
+        preConsensusScore,
         project.earlyAsymmetryResearchPriorityScore,
         project.capitalMigrationScore,
         project.liquidityFormationScore,
@@ -380,6 +415,12 @@ function scoreFromFamilies(componentScores = {}, dataCoveragePct = 0) {
 }
 
 function classificationReason(lane = "", project = {}, score = 0, coveragePct = 0, routeChecklist = {}) {
+  if (lane === "MARKET_BENCHMARK") {
+    return "Established native asset is benchmark context, not an early-discovery scalp candidate.";
+  }
+  if (lane === "QUARANTINED_IDENTITY_OR_ROUTE") {
+    return `Candidate is quarantined until strict identity and route proof are complete: ${routeChecklist.quarantineReason || routeChecklist.missing?.[0] || "missing proof"}.`;
+  }
   if (lane === "INVALID_OR_AGGREGATE_IDENTITY") {
     return "Provider row is malformed or appears to describe an aggregate market instead of a tradable token.";
   }
@@ -402,12 +443,19 @@ function classificationReason(lane = "", project = {}, score = 0, coveragePct = 
 }
 
 function primaryLane(project = {}, score = 0, dataCoveragePct = 0, componentScores = {}, routeChecklist = {}) {
+  const strictGate = resolveStrictCandidateGate(project);
   if (isLikelyAggregateCandidate(project)) return "INVALID_OR_AGGREGATE_IDENTITY";
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
+  if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
+  if (!strictGate.strictRankEligible) return "QUARANTINED_IDENTITY_OR_ROUTE";
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
   if (routeOnlyScalpBlock(project)) {
-    return hasPromisingEarlySignal(project, score, componentScores) ? "RESEARCH_ONLY_ROUTE_MISSING" : "DATA_STARVED";
+    return hasPromisingEarlySignal(project, score, componentScores)
+      ? "RESEARCH_ONLY_ROUTE_MISSING"
+      : dataCoveragePct < MIN_DATA_COVERAGE_PCT
+      ? "DATA_STARVED"
+      : "LOWER_PRIORITY";
   }
   if (String(project.scalpMicrostructureLane || "").startsWith("SCALP_NO_TRADE")) return project.scalpMicrostructureLane;
   if (!routeReady(project) && hasPromisingEarlySignal(project, score, componentScores)) return "RESEARCH_ONLY_ROUTE_MISSING";
@@ -438,9 +486,11 @@ export function classifyHighUpsideScalpProject(project = {}) {
     .slice(0, MAX_MISSING_FIELDS);
   const score = scoreFromFamilies(componentScores, dataCoveragePct);
   const routeChecklist = routeProofChecklist(project);
+  const strictGate = resolveStrictCandidateGate(project);
   const lane = primaryLane(project, score, dataCoveragePct, componentScores, routeChecklist);
   const walletMissing = walletFlowMissing(project);
   const highUpsideScalpMissingProof = [
+    ...(strictGate.strictRankEligible ? [] : strictGate.candidateQuarantineReasons),
     ...(routeReady(project) ? [] : routeChecklist.missing),
     ...(walletMissing ? ["buyer breadth or wallet-flow proof"] : []),
     ...missingFields,
@@ -460,8 +510,12 @@ export function classifyHighUpsideScalpProject(project = {}) {
     highUpsideScalpRouteChecklist: routeChecklist,
     highUpsideScalpNextProofNeeded: highUpsideScalpMissingProof[0] || null,
     highUpsideScalpProofCategory:
-      !routeReady(project) ? "route" : walletMissing ? "wallet_flow" : dataCoveragePct < MIN_DATA_COVERAGE_PCT ? "data_coverage" : "none",
+      !strictGate.strictRankEligible ? "identity_route_quarantine" : !routeReady(project) ? "route" : walletMissing ? "wallet_flow" : dataCoveragePct < MIN_DATA_COVERAGE_PCT ? "data_coverage" : "none",
     highUpsideScalpClassificationReason: classificationReason(lane, project, score, dataCoveragePct, routeChecklist),
+    highUpsideScalpQuarantineReason: strictGate.candidateQuarantineReason,
+    highUpsideScalpRouteVerificationStatus: strictGate.routeVerificationStatus,
+    strictCandidateGate: strictGate,
+    ...strictGate,
     highUpsideScalpDiagnostics: {
       routeReady: routeReady(project),
       lateChase: lateChase(project),

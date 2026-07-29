@@ -374,6 +374,8 @@ test("candidate becoming ARMED requires final sniper gate", () => {
   const result = analyzeSniperIntegrityGate(baseProject());
   assert.equal(result.sniperQualified, true);
   assert.equal(result.sniperIntegrityGate.qualified, true);
+  assert.equal(result.sniperIntegrityScore, result.confidenceAdjustedSniperScore);
+  assert.equal(result.sniperIntegrityGate.sniperIntegrityScore, result.confidenceAdjustedSniperScore);
 });
 
 test("ARMED candidate becoming invalidated is deselected", () => {
