@@ -76,12 +76,63 @@ const QUOTE_TOKEN_ADDRESSES = Object.freeze({
   },
 });
 
+const SUPPORTED_ROUTE_VENUES = new Set([
+  "0x",
+  "aerodrome",
+  "aftermath",
+  "astroport",
+  "balancer",
+  "baseswap",
+  "binance",
+  "binance.us",
+  "bithumb",
+  "bitget",
+  "bybit",
+  "camelot",
+  "cetus",
+  "coinbase",
+  "crypto.com",
+  "curve",
+  "dedust",
+  "gate",
+  "gemini",
+  "geckoterminal",
+  "htx",
+  "jupiter",
+  "kraken",
+  "kucoin",
+  "mexc",
+  "meteora",
+  "okx",
+  "orca",
+  "osmosis",
+  "pancakeswap",
+  "paraswap",
+  "pumpswap",
+  "quickswap",
+  "raydium",
+  "sushiswap",
+  "ston.fi",
+  "stonfi",
+  "trader joe",
+  "trader_joe",
+  "turbos",
+  "uniswap",
+  "upbit",
+  "velodrome",
+  "zero_x",
+]);
+
 function clean(value = "") {
   return String(value ?? "").trim();
 }
 
 function upper(value = "") {
   return clean(value).toUpperCase();
+}
+
+function lower(value = "") {
+  return clean(value).toLowerCase();
 }
 
 function num(value = 0) {
@@ -242,6 +293,13 @@ function inferVenue(project = {}) {
   ]);
 }
 
+function venueSupported(value = "") {
+  const normalized = lower(value).replace(/\s+/g, " ");
+  if (!normalized) return false;
+  if (SUPPORTED_ROUTE_VENUES.has(normalized)) return true;
+  return [...SUPPORTED_ROUTE_VENUES].some((venue) => normalized.includes(venue));
+}
+
 function inferProvenance(project = {}) {
   return [
     project.source,
@@ -314,8 +372,28 @@ export function resolveStrictCandidateGate(project = {}) {
   const tokenName = clean(first([project.tokenName, project.name, project.projectName, project.baseToken?.name, project.marketData?.name, project.rawCandidate?.name]));
   const symbol = upper(first([project.symbol, project.ticker, project.baseToken?.symbol, project.marketData?.symbol, project.rawCandidate?.symbol]));
   const dexName = clean(inferVenue(project));
-  const liquidityUsd = num(first([project.stableExitLiquidityUsd, project.dexLiquidityUsd, project.liquidityUsd, project.marketData?.liquidityUsd, project.rawCandidate?.liquidityUsd, project.canonicalExecutionRoute?.liquidityUsd]));
-  const volume24hUsd = num(first([project.volume24hUsd, project.volume24h, project.volume, project.marketData?.volume24h, project.rawCandidate?.volume24h, project.canonicalExecutionRoute?.volume24hUsd]));
+  const liquidityUsd = num(
+    first([
+      project.stableExitLiquidityUsd,
+      project.dexLiquidityUsd,
+      project.liquidityUsd,
+      project.marketData?.liquidityUsd,
+      project.rawCandidate?.liquidityUsd,
+      project.canonicalExecutionRoute?.liquidityUsd,
+      firstRouteValue(project, ["liquidityUsd", "liquidity", "poolLiquidityUsd", "reserveUsd"]),
+    ])
+  );
+  const volume24hUsd = num(
+    first([
+      project.volume24hUsd,
+      project.volume24h,
+      project.volume,
+      project.marketData?.volume24h,
+      project.rawCandidate?.volume24h,
+      project.canonicalExecutionRoute?.volume24hUsd,
+      firstRouteValue(project, ["volume24hUsd", "volume24h", "volume", "quoteVolume24h"]),
+    ])
+  );
   const provenance = inferProvenance(project);
   const lastVerifiedAt = inferLastVerifiedAt(project);
   const quoteFresh = routeQuoteFresh(project, 3600);
@@ -366,12 +444,16 @@ export function resolveStrictCandidateGate(project = {}) {
   if (!normalizedChain || chainId === null) reasons.push(ROUTE_QUARANTINE_REASONS.UNSUPPORTED_CHAIN);
   if (nativeVariant.quarantineReason) reasons.push(nativeVariant.quarantineReason);
   if (!tokenAddress) reasons.push(ROUTE_QUARANTINE_REASONS.CONTRACT_MISSING);
-  if (symbolAmbiguous) reasons.push(ROUTE_QUARANTINE_REASONS.SYMBOL_AMBIGUOUS);
-  if (!pairAddress) reasons.push(ROUTE_QUARANTINE_REASONS.PAIR_NOT_FOUND);
+  if (!tokenName || !symbol || symbolAmbiguous) reasons.push(ROUTE_QUARANTINE_REASONS.SYMBOL_AMBIGUOUS);
+  if (!pairAddress || !dexName || !venueSupported(dexName) || !baseTokenAddress || !quoteTokenAddress) {
+    reasons.push(ROUTE_QUARANTINE_REASONS.PAIR_NOT_FOUND);
+  }
   if (liquidityUsd <= 0 || volume24hUsd <= 0) reasons.push(ROUTE_QUARANTINE_REASONS.NO_ACTIVE_LIQUIDITY);
   if (!buyQuoteVerified) reasons.push(ROUTE_QUARANTINE_REASONS.BUY_ROUTE_FAILED);
-  if (!sellQuoteVerified) reasons.push(ROUTE_QUARANTINE_REASONS.SELL_ROUTE_FAILED);
-  if (!quoteFresh) reasons.push(ROUTE_QUARANTINE_REASONS.STALE_MARKET_DATA);
+  if (!sellQuoteVerified || !depthVerified || !slippageVerified || !safetyClean) {
+    reasons.push(ROUTE_QUARANTINE_REASONS.SELL_ROUTE_FAILED);
+  }
+  if (!quoteFresh || !lastVerifiedAt || provenance.length === 0) reasons.push(ROUTE_QUARANTINE_REASONS.STALE_MARKET_DATA);
 
   const strictIdentityVerified = Boolean(
     canonicalId &&
@@ -382,6 +464,7 @@ export function resolveStrictCandidateGate(project = {}) {
       symbol &&
       pairAddress &&
       dexName &&
+      venueSupported(dexName) &&
       baseTokenAddress &&
       quoteTokenAddress &&
       liquidityUsd > 0 &&

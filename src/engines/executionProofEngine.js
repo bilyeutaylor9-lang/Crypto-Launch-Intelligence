@@ -366,7 +366,9 @@ function orderBookDepthVerified(project = {}) {
       project.executionProof?.orderBookDepthVerified === true ||
       num(project.orderBookDepthUsd) > 0 ||
       num(project.bidDepthUsd) > 0 ||
-      num(project.askDepthUsd) > 0
+      num(project.askDepthUsd) > 0 ||
+      num(project.canonicalExecutionRoute?.liquidityUsd) > 0 ||
+      num(project.executionProofRecoveryRoute?.liquidityUsd) > 0
   );
 }
 
@@ -421,6 +423,9 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     project.estimatedSlippagePct,
     project.slippagePct,
     project.executionSlippagePct,
+    project.canonicalExecutionRoute?.estimatedRoundTripSlippagePct,
+    project.canonicalExecutionRoute?.estimatedSlippagePct,
+    project.canonicalExecutionRoute?.observedSlippagePct,
     project.executionProofRecoveryRoute?.estimatedRoundTripSlippagePct,
     project.executionProofRecoveryRoute?.estimatedSlippagePct,
     project.executionProofRecoveryRoute?.slippagePct,

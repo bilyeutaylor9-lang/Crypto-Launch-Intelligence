@@ -4,10 +4,8 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
-import {
-  hasVerifiedBuyQuote,
-  isLiveExecutionReady,
-} from "../execution/routeTruthV2.js";
+import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 export const FINAL_SELECTION_STATES = {
   QUALIFIED: "QUALIFIED",
@@ -299,11 +297,12 @@ function listingVerified(project = {}) {
 }
 
 function routeFrom(project = {}) {
+  const strict = resolveStrictCandidateGate(project);
   const purchaseRoute = project.purchaseRoute || project.smallCapHunter?.purchaseRoute || {};
   const twinRoute = project.proofOfAlphaExecutionTwin?.route || {};
   const executionProof = project.executionProof || {};
-  const purchasable = hasVerifiedBuyQuote(project) || hasVerifiedBuyQuote(purchaseRoute) || executionProof.buyQuoteVerified === true;
-  const executionDetected = isLiveExecutionReady(project);
+  const purchasable = strict.strictRankEligible === true;
+  const executionDetected = strict.strictRankEligible === true && isLiveExecutionReady({ ...project, ...strict });
   const routeStatus = firstString([
     executionProof.executionStatus,
     purchaseRoute.status,
@@ -325,6 +324,7 @@ function routeFrom(project = {}) {
     status: routeStatus,
     preferredRoute,
     confirmed: purchasable,
+    strictCandidateGate: strict,
   };
 }
 
@@ -341,6 +341,8 @@ function executionProofHardBlock(project = {}) {
 }
 
 function executionRouteAvailable(project = {}) {
+  const strict = resolveStrictCandidateGate(project);
+  if (!strict.strictRankEligible) return false;
   const status = executionProofStatus(project);
   if (isLiveExecutionReady(project)) return true;
   if (["VERIFIED", "PARTIALLY_VERIFIED"].includes(status)) return false;
@@ -359,6 +361,8 @@ function executionRouteAvailable(project = {}) {
 
 function liquidityUsd(project = {}) {
   return Math.max(
+    num(project.canonicalExecutionRoute?.liquidityUsd),
+    num(project.executionRoute?.liquidityUsd),
     num(project.liquidityUsd),
     num(project.liquidity),
     num(project.marketData?.liquidityUsd),
@@ -675,6 +679,7 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   });
   const identity = resolveFinalIdentity(project, collisionContext);
   const route = routeFrom(project);
+  const strictGate = route.strictCandidateGate || resolveStrictCandidateGate(project);
   const executionAvailable = executionRouteAvailable(project);
   const pipelineScore = num(project.pipelineScore ?? project.opportunityScore ?? project.score);
   const riskScore = maxRiskScore(project);
@@ -704,11 +709,21 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
   blockingReasons.push(...identity.blockers);
   warningReasons.push(...identity.warnings);
 
+  if (strictGate.marketBenchmarkLane === "MARKET_BENCHMARK") {
+    missingDataReasons.push("Established native asset is market context, not an early-discovery candidate.");
+  } else if (!strictGate.strictRankEligible) {
+    missingDataReasons.push(
+      ...(strictGate.candidateQuarantineReasons?.length
+        ? strictGate.candidateQuarantineReasons.map((reason) => `Strict identity/route proof missing: ${reason}.`)
+        : ["Strict identity and execution route proof is incomplete."])
+    );
+  }
+
   if (!route.confirmed) {
     const reason = "Purchase route is not confirmed as purchasable.";
     if (executionProviderUnavailable(project)) {
       missingDataReasons.push("Execution provider unavailable; purchase route remains unknown.");
-    } else if (executionProofHardBlock(project) || wasSelectedEarlier || normalizeDecisionText(route.status).includes("unavailable") || normalizeDecisionText(route.status).includes("no ")) {
+    } else if (executionProofHardBlock(project) || normalizeDecisionText(route.status).includes("unavailable") || normalizeDecisionText(route.status).includes("no ")) {
       blockingReasons.push(reason);
     } else {
       missingDataReasons.push(reason);
@@ -719,7 +734,7 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
     const reason = "Execution route is not verified as available.";
     if (executionProviderUnavailable(project)) {
       missingDataReasons.push("Execution provider unavailable; route cannot be verified yet.");
-    } else if (executionProofHardBlock(project) || wasSelectedEarlier || normalizeDecisionText(project.proofOfAlphaExecutionTwinVerdict).includes("block")) {
+    } else if (executionProofHardBlock(project) || normalizeDecisionText(project.proofOfAlphaExecutionTwinVerdict).includes("block")) {
       blockingReasons.push(reason);
     } else {
       missingDataReasons.push(reason);

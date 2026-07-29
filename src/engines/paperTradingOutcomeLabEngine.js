@@ -1,4 +1,5 @@
 import { summarizePaperTradingOutcomes } from "../learning/paperTradingOutcomeStore.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -54,13 +55,16 @@ function verdict(score = 0, stats = null) {
 }
 
 export function analyzePaperTradingOutcomeLab(project = {}, context = {}) {
+  const gate = resolveStrictCandidateGate(project);
   const summary = context.summary || summarizePaperTradingOutcomes();
   const stats = findStrategyStats(summary, project);
-  const score = scoreFromStats(project, stats);
-  const labVerdict = verdict(score, stats);
+  const score = gate.strictRankEligible ? scoreFromStats(project, stats) : 0;
+  const labVerdict = gate.strictRankEligible ? verdict(score, stats) : "Strict Route Proof Required";
 
   return {
     ...project,
+    ...gate,
+    strictCandidateGate: gate,
     paperOutcomeLabScore: score,
     paperOutcomeLabVerdict: labVerdict,
     paperStrategyWinRate: stats?.winRate || 0,
@@ -88,7 +92,9 @@ export function analyzePaperTradingOutcomeLab(project = {}, context = {}) {
         averageReturnPct: summary.averageReturnPct || 0,
       },
       summary:
-        stats && stats.evaluated > 0
+        !gate.strictRankEligible
+          ? "Strict identity and route proof must pass before this project can enter paper outcome promotion."
+          : stats && stats.evaluated > 0
           ? `${stats.name} has ${stats.winRate}% paper win rate over ${stats.evaluated} evaluated calls.`
           : "Strategy is still collecting paper outcome samples.",
     },
@@ -103,7 +109,9 @@ export function analyzePaperTradingOutcomeLab(project = {}, context = {}) {
         reasons: [
           stats
             ? `Strategy ${stats.name} win rate ${stats.winRate}% across ${stats.evaluated} evaluated calls.`
-            : "No evaluated strategy outcomes yet.",
+            : !gate.strictRankEligible
+              ? `Strict identity/route quarantine: ${(gate.candidateQuarantineReasons || []).join(", ") || "route proof incomplete"}.`
+              : "No evaluated strategy outcomes yet.",
         ],
       },
     ],
@@ -124,9 +132,10 @@ export function summarizePaperTradingOutcomeLab(projects = []) {
     generatedAt: new Date().toISOString(),
     memory: summary,
     totalProjects: projects.length,
-    promoteStrategyCount: projects.filter((project) => project.paperOutcomeLabVerdict === "Promote Strategy Weight").length,
+    promoteStrategyCount: projects.filter((project) => project.strictRankEligible === true && project.paperOutcomeLabVerdict === "Promote Strategy Weight").length,
     downgradeStrategyCount: projects.filter((project) => project.paperOutcomeLabVerdict === "Strategy Needs Downgrade").length,
     topPaperCandidates: [...projects]
+      .filter((project) => project.strictRankEligible === true)
       .sort((a, b) => num(b.paperOutcomeLabScore) - num(a.paperOutcomeLabScore))
       .slice(0, 50)
       .map((project) => ({

@@ -77,7 +77,7 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   };
 }
 
-test("Solana buy and sell Jupiter quotes promote a candidate to sell-quote verified route state", async () => {
+test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified route state", async () => {
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
     fetchJson: jupiterMock(),
     now: () => NOW,
@@ -91,7 +91,7 @@ test("Solana buy and sell Jupiter quotes promote a candidate to sell-quote verif
   assert.equal(recovered.executionProofRecoveryRoute.venue, "Jupiter");
 
   const [proof] = analyzeExecutionProofBatch([recovered]);
-  assert.equal(proof.executionProofState, "SELL_QUOTE_VERIFIED");
+  assert.equal(proof.executionProofState, "ORDER_BOOK_DEPTH_VERIFIED");
 
   const routeSummary = summarizeRouteAccessibility(analyzeRouteAccessibilityBatch([recovered]));
   assert.ok(routeSummary.routeCount > 0);

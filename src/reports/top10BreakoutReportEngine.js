@@ -3,6 +3,7 @@ import path from "path";
 import { attachCanonicalIdentityBatch } from "../identity/canonicalIdentityResolver.js";
 import { normalizeMetricTruthBatch, sourceFamiliesForProject } from "../data/metricTruthNormalizer.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const BREAKOUT_WEIGHTS = [
   ["earlyAcceleration", 18],
@@ -80,7 +81,8 @@ function chain(project = {}) {
 }
 
 function routeVerified(project = {}) {
-  return isLiveExecutionReady(project);
+  const gate = resolveStrictCandidateGate(project);
+  return Boolean(gate.strictRankEligible && isLiveExecutionReady({ ...project, ...gate }));
 }
 
 function sourceList(project = {}) {
@@ -328,6 +330,7 @@ function reasons(project = {}, components = {}) {
 }
 
 function candidateRecord(project = {}, rank = null) {
+  const gate = resolveStrictCandidateGate(project);
   const components = componentScores(project);
   const trace = contributionTrace(components);
   const rawScore = Number(trace.reduce((sum, item) => sum + item.contribution, 0).toFixed(2));
@@ -347,6 +350,7 @@ function candidateRecord(project = {}, rank = null) {
     Boolean(poolAddress(project)) &&
     Boolean(chain(project)) &&
     Boolean(dexLiquidity(project)) &&
+    gate.strictRankEligible &&
     routeVerified(project);
 
   return {
@@ -355,6 +359,18 @@ function candidateRecord(project = {}, rank = null) {
     projectName: project.name || project.canonicalName || "Unknown",
     symbol: project.symbol || project.canonicalSymbol || "UNKNOWN",
     chain: chain(project) || null,
+    canonicalId: gate.canonicalId,
+    canonicalChainId: gate.canonicalChainId,
+    tokenName: gate.tokenName || project.name || project.canonicalName || "Unknown",
+    contractAddress: gate.contractAddress,
+    pairAddress: gate.pairAddress,
+    dexName: gate.dexName,
+    routeVerificationStatus: gate.routeVerificationStatus,
+    strictIdentityVerified: gate.strictIdentityVerified,
+    strictRouteVerified: gate.strictRouteVerified,
+    strictRankEligible: gate.strictRankEligible,
+    candidateQuarantineReason: gate.candidateQuarantineReason,
+    candidateQuarantineReasons: gate.candidateQuarantineReasons,
     verifiedContractAddress: tokenAddress(project) || null,
     primaryTradablePool: poolAddress(project) || null,
     currentPrice: first([project.priceUsd, project.price]) ?? null,
@@ -369,7 +385,17 @@ function candidateRecord(project = {}, rank = null) {
     evidenceCompleteness: completeness,
     independentEvidenceFamilies: families,
     qualified,
-    qualificationState: blockers.length ? "BLOCKED" : qualified ? "QUALIFIED" : readinessScore >= 55 ? "CONDITIONAL_WATCH" : "RESEARCH_ONLY",
+    qualificationState: blockers.length
+      ? "BLOCKED"
+      : gate.marketBenchmarkLane === "MARKET_BENCHMARK"
+        ? "MARKET_BENCHMARK"
+        : !gate.strictRankEligible
+          ? "QUARANTINED_IDENTITY_OR_ROUTE"
+          : qualified
+            ? "QUALIFIED"
+            : readinessScore >= 55
+              ? "CONDITIONAL_WATCH"
+              : "RESEARCH_ONLY",
     scoreContributionTrace: trace,
     rawScore,
     penalties,
@@ -423,7 +449,9 @@ function candidateRecord(project = {}, rank = null) {
       "Invalidate if identity, route, liquidity, organic buyer, or safety evidence deteriorates.",
     lateChaseThreshold: project.lateChaseThreshold || "Do not chase if price expansion outruns liquidity and buyer-quality confirmation.",
     maximumAcceptableSlippage: project.maximumAcceptableSlippage || (project.executableTradeSizeUsd >= 100 ? "Under 5% on a fresh route quote" : "Unknown until live route quote"),
-    missingEvidence: missing,
+    missingEvidence: gate.strictRankEligible
+      ? missing
+      : [...new Set([...(gate.candidateQuarantineReasons || []).map((reason) => `Strict identity/route proof missing: ${reason}.`), ...missing])],
     hardBlocks: blockers,
     sourceList: sourceList(project),
     observationTimestamps: {

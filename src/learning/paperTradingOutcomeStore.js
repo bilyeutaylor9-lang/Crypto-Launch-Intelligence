@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "paper-trading-outcomes.json");
@@ -61,6 +62,8 @@ function writeMemory(memory = {}) {
 }
 
 function projectId(project = {}) {
+  const gate = resolveStrictCandidateGate(project);
+  if (gate.canonicalId) return gate.canonicalId;
   return String(
     project.address ||
       project.tokenAddress ||
@@ -83,6 +86,8 @@ function priceOf(project = {}) {
 }
 
 function openSignal(project = {}) {
+  const gate = resolveStrictCandidateGate(project);
+  if (!gate.strictRankEligible) return false;
   return [
     "OS Strong Buy Research Candidate",
     "OS Best Available Candidate",
@@ -122,12 +127,19 @@ function outcomeLabel(record = {}) {
 
 function createRecord(project = {}, now = new Date().toISOString()) {
   const price = priceOf(project);
+  const gate = resolveStrictCandidateGate(project);
 
   return {
     id: projectId(project),
+    canonicalId: gate.canonicalId,
     name: project.name || "Unknown",
     symbol: project.symbol || "UNKNOWN",
-    chain: project.chain || "unknown",
+    chain: gate.normalizedChain || project.chain || "unknown",
+    chainId: gate.canonicalChainId,
+    contractAddress: gate.contractAddress,
+    pairAddress: gate.pairAddress,
+    routeVerificationStatus: gate.routeVerificationStatus,
+    routeLastVerifiedAt: gate.lastVerifiedAt,
     strategyId: strategyId(project),
     strategyName:
       project.bestAutonomousStrategy?.name ||

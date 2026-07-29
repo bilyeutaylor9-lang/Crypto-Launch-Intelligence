@@ -7,9 +7,22 @@ import {
 } from "../src/engines/progressiveOpportunityRankingEngine.js";
 import { buildAlphaDashboardV2 } from "../src/reports/alphaDashboardV2ReportEngine.js";
 
+const STRICT_CONTRACT = "0x1111111111111111111111111111111111111111";
+const STRICT_PAIR = "0x2222222222222222222222222222222222222222";
+
 function liveRouteProof() {
   const quoteTimestamp = new Date().toISOString();
   return {
+    contractAddress: STRICT_CONTRACT,
+    tokenAddress: STRICT_CONTRACT,
+    address: STRICT_CONTRACT,
+    pairAddress: STRICT_PAIR,
+    poolAddress: STRICT_PAIR,
+    dex: "Uniswap",
+    dexName: "Uniswap",
+    quoteAsset: "USDC",
+    routeUrl: `https://dexscreener.com/base/${STRICT_PAIR}`,
+    volume24h: 84_000,
     routeTruthStatus: "LIVE_EXECUTION_READY",
     executionProofState: "LIVE_EXECUTION_READY",
     executionStatus: "LIVE_EXECUTION_READY",
@@ -21,6 +34,27 @@ function liveRouteProof() {
     estimatedRoundTripSlippagePct: 2.4,
     quoteTimestamp,
     quoteAgeSeconds: 60,
+    executionRoute: {
+      venue: "Uniswap",
+      routeType: "DEX",
+      chain: "base",
+      tokenAddress: STRICT_CONTRACT,
+      contract: STRICT_CONTRACT,
+      poolAddress: STRICT_PAIR,
+      pairAddress: STRICT_PAIR,
+      quoteAsset: "USDC",
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteTimestamp,
+      quoteAgeSeconds: 60,
+      liquidityUsd: 42_000,
+      volume24hUsd: 84_000,
+      estimatedRoundTripSlippagePct: 2.4,
+      slippageIsHeuristic: false,
+      regionStatus: "CONFIRMED_AVAILABLE",
+    },
     executionProof: {
       executionStatus: "LIVE_EXECUTION_READY",
       executionProofState: "LIVE_EXECUTION_READY",
@@ -291,8 +325,15 @@ test("final-qualified and research-only candidates are separated by the progress
   );
 
   assert.equal(report.sniperReady[0].symbol, "READY");
-  assert.ok(report.bestAvailableOpportunities.some((project) => project.symbol === "EARLY"));
-  assert.notEqual(report.bestAvailableOpportunities.find((project) => project.symbol === "EARLY").tier, "SNIPER_READY");
+  assert.equal(report.bestAvailableOpportunities.some((project) => project.symbol === "EARLY"), false);
+  const earlyResearch =
+    report.fourLaneReport.emergingResearch.find((project) => project.symbol === "EARLY") ||
+    report.fourLaneReport.bestAvailable.find((project) => project.symbol === "EARLY");
+  assert.ok(earlyResearch);
+  assert.equal(earlyResearch.bestAvailableEligible, false);
+  assert.equal(earlyResearch.moneyRankEligible, false);
+  assert.equal(earlyResearch.tier, "MONITOR_ONLY");
+  assert.ok(earlyResearch.missingEvidence.some((item) => item.includes("Strict identity/route proof missing")));
 });
 
 test("dashboard top candidates come from the authoritative progressive ranking", () => {

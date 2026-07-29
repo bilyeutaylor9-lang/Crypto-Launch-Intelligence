@@ -85,6 +85,78 @@ import {
 } from "../src/data/coinGeckoConnector.js";
 import { __birdeyeTestHooks } from "../src/data/birdeyeConnector.js";
 
+const STRICT_ROUTE_NOW = new Date().toISOString();
+const STRICT_CONTRACT_A = "0x000000000000000000000000000000000000b1d2";
+const STRICT_PAIR_A = "0x000000000000000000000000000000000000b1d3";
+const STRICT_CONTRACT_B = "0x000000000000000000000000000000000000b2d2";
+const STRICT_PAIR_B = "0x000000000000000000000000000000000000b2d3";
+const STRICT_CONTRACT_C = "0x000000000000000000000000000000000000c3d2";
+const STRICT_PAIR_C = "0x000000000000000000000000000000000000c3d3";
+
+function strictRouteProof({
+  contractAddress = STRICT_CONTRACT_A,
+  pairAddress = STRICT_PAIR_A,
+  chain = "base",
+  dex = "Uniswap",
+  liquidityUsd = 260_000,
+  volume24h = 410_000,
+  priceUsd = 0.25,
+  slippagePct = 1.1,
+} = {}) {
+  return {
+    chain,
+    source: "dexscreener",
+    dex,
+    discoverySources: ["dexscreener", "geckoterminal", "github"],
+    contractAddress,
+    tokenAddress: contractAddress,
+    address: contractAddress,
+    pairAddress,
+    poolAddress: pairAddress,
+    quoteAsset: "USDC",
+    quoteTimestamp: STRICT_ROUTE_NOW,
+    quoteAgeSeconds: 60,
+    buyQuoteVerified: true,
+    sellQuoteVerified: true,
+    orderBookDepthVerified: true,
+    orderBookDepthUsd: liquidityUsd,
+    estimatedRoundTripSlippagePct: slippagePct,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProofState: "LIVE_EXECUTION_READY",
+    executionStatus: "LIVE_EXECUTION_READY",
+    exactIdentityVerified: true,
+    contractVerified: true,
+    identityVerified: true,
+    projectIdentityVerdict: "Identity Resolved",
+    finalIdentityState: "VERIFIED_CONTRACT",
+    instantSafetyStatus: "PASS",
+    liquidityUsd,
+    volume24h,
+    priceUsd,
+    executionRoute: {
+      venue: dex,
+      routeType: "DEX",
+      chain,
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      tokenAddress: contractAddress,
+      contract: contractAddress,
+      poolAddress: pairAddress,
+      pairAddress,
+      quoteAsset: "USDC",
+      quoteTimestamp: STRICT_ROUTE_NOW,
+      quoteAgeSeconds: 60,
+      liquidityUsd,
+      volume24hUsd: volume24h,
+      estimatedRoundTripSlippagePct: slippagePct,
+      slippageIsHeuristic: false,
+      regionStatus: "CONFIRMED_AVAILABLE",
+    },
+  };
+}
+
 test("narrative launch staking engine detects hot launch and staking setup", () => {
   const result = analyzeNarrativeLaunchStaking({
     name: "AgentPay",
@@ -1280,6 +1352,7 @@ test("paper trading outcome lab promotes strategies with confirmed paper outcome
     {
       name: "PaperCoin",
       symbol: "PAPER",
+      ...strictRouteProof(),
       bestAutonomousStrategy: {
         id: "roadmap_catalyst_confirmation",
         name: "Roadmap Catalyst Confirmation",
@@ -1726,6 +1799,7 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
       {
         name: "BuilderMicro",
         symbol: "BLDR",
+        ...strictRouteProof({ liquidityUsd: 240_000, volume24h: 420_000 }),
         chain: "base",
         address: "0x000000000000000000000000000000000000b1d2",
         pairAddress: "0x000000000000000000000000000000000000b1d3",
@@ -1759,10 +1833,17 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
       {
         name: "StructureSmall",
         symbol: "STRC",
-        chain: "coinbase",
-        source: "coinbase",
-        exchange: "Coinbase",
-        url: "https://www.coinbase.com/price/strc",
+        ...strictRouteProof({
+          contractAddress: STRICT_CONTRACT_B,
+          pairAddress: STRICT_PAIR_B,
+          liquidityUsd: 115_000,
+          volume24h: 180_000,
+          priceUsd: 1.5,
+        }),
+        chain: "base",
+        source: "dexscreener",
+        dex: "Uniswap",
+        url: `https://dexscreener.com/base/${STRICT_PAIR_B}`,
         marketCap: 54_000_000,
         liquidityUsd: 115_000,
         volume24h: 180_000,
@@ -1843,16 +1924,16 @@ test("small cap hunter selects two research candidates and blocks the obvious ri
     selected.map((project) => project.smallCapHunterSelectionRank).sort((a, b) => a - b),
     [1, 2]
   );
-  assert.equal(noRoute.smallCapHunterVerdict, "Top-2 Small-Cap Research Candidate");
-  assert.equal(noRoute.smallCapHunterSelected, true);
+  assert.equal(noRoute.smallCapHunterVerdict, "Small-Cap Route Quarantined");
+  assert.equal(noRoute.smallCapHunterSelected, false);
   assert.equal(noRoute.smallCapHunter.executionReady, false);
   assert.equal(noRoute.smallCapHunter.researchOnly, true);
-  assert.equal(noRoute.smallCapHunter.routeStatus, "NO_ROUTE");
+  assert.equal(noRoute.smallCapHunter.routeStatus, "QUARANTINED_IDENTITY_OR_ROUTE");
   assert.equal(trap.smallCapHunterVerdict, "Small-Cap Risk Block");
   assert.equal(trap.smallCapHunterSelected, false);
   assert.equal(selected[0].smallCapHunter.paperPlan.totalPaperBudgetUsd, 100);
   assert.ok(selected.some((project) => project.smallCapHunter.purchaseRoute.preferredRoute !== "Unavailable"));
-  assert.ok(selected[0].smallCapHunter.warnings.some((warning) => warning.includes("Research only")));
+  assert.ok(selected[0].smallCapHunter.reasons.some((reason) => reason.includes("strict route proof")));
   assert.ok(selected.every((project) => project.alphaTags.includes("Top-2 Small-Cap Research Candidate")));
   assert.ok(selected.every((project) => project.smallCapPreHitPressureScore > 0));
   assert.ok(selected.every((project) => project.smallCapHunter.preHitPressure));
@@ -1883,6 +1964,13 @@ test("proof of alpha execution twin selects route-verified paper executions and 
       {
         name: "MetaRoute",
         symbol: "META",
+        ...strictRouteProof({
+          contractAddress: "0x0000000000000000000000000000000000000aaa",
+          pairAddress: "0x0000000000000000000000000000000000000aab",
+          liquidityUsd: 260_000,
+          volume24h: 410_000,
+          priceUsd: 0.25,
+        }),
         chain: "base",
         address: "0x0000000000000000000000000000000000000aaa",
         pairAddress: "0x0000000000000000000000000000000000000aab",
@@ -1916,7 +2004,17 @@ test("proof of alpha execution twin selects route-verified paper executions and 
       {
         name: "CoinRoute",
         symbol: "COIN",
-        chain: "coinbase",
+        ...strictRouteProof({
+          contractAddress: STRICT_CONTRACT_C,
+          pairAddress: STRICT_PAIR_C,
+          dex: "Aerodrome",
+          liquidityUsd: 500_000,
+          volume24h: 700_000,
+          priceUsd: 1.5,
+        }),
+        chain: "base",
+        source: "dexscreener",
+        dex: "Aerodrome",
         liquidityUsd: 500_000,
         volume24h: 700_000,
         priceUsd: 1.5,
@@ -1991,7 +2089,7 @@ test("proof of alpha execution twin selects route-verified paper executions and 
   assert.ok(selected.every((project) => project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate"));
   assert.deepEqual(
     selected.map((project) => project.proofOfAlphaExecutionTwinRoute).sort(),
-    ["Coinbase", "MetaMask"]
+    ["Aerodrome", "Uniswap"]
   );
   assert.equal(noRoute.proofOfAlphaExecutionTwinVerdict, "RESEARCH_ONLY_ROUTE_UNVERIFIED");
   assert.equal(unsafe.proofOfAlphaExecutionTwinVerdict, "Execution Safety Block");

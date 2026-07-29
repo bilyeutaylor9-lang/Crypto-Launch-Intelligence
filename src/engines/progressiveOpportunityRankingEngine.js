@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const TIERS = {
   SNIPER_READY: "SNIPER_READY",
@@ -112,7 +113,12 @@ function sourceCount(project = {}) {
 }
 
 function routeVerified(project = {}) {
-  return isLiveExecutionReady(project);
+  const gate = resolveStrictCandidateGate(project);
+  return Boolean(gate.strictRankEligible && isLiveExecutionReady({ ...project, ...gate }));
+}
+
+function strictGate(project = {}) {
+  return project.strictCandidateGate || resolveStrictCandidateGate(project);
 }
 
 function executionStatus(project = {}) {
@@ -801,7 +807,44 @@ function resultForScore(score = 0, pass = 70, conditional = 45) {
   return "REVIEW";
 }
 
+const IDENTITY_QUARANTINE_REASONS = new Set([
+  "CONTRACT_MISSING",
+  "SYMBOL_AMBIGUOUS",
+  "UNSUPPORTED_CHAIN",
+  "NATIVE_ASSET_MISMATCH",
+  "WRAPPED_ASSET_UNVERIFIED",
+]);
+
 function identityGate(project = {}) {
+  const gate = strictGate(project);
+  if (gate.marketBenchmarkLane === "MARKET_BENCHMARK") {
+    return {
+      gate: "IDENTITY",
+      result: "REVIEW",
+      evidence: ["MARKET_BENCHMARK"],
+      reasons: ["Established native asset is market context, not early-discovery alpha."],
+    };
+  }
+  const identityReasons = (gate.candidateQuarantineReasons || []).filter((reason) =>
+    IDENTITY_QUARANTINE_REASONS.has(reason)
+  );
+  const hasCanonicalTokenIdentity = Boolean(
+    gate.canonicalId &&
+      gate.normalizedChain &&
+      gate.tokenAddress &&
+      gate.tokenName &&
+      gate.symbol
+  );
+  if (identityReasons.length || !hasCanonicalTokenIdentity) {
+    return {
+      gate: "IDENTITY",
+      result: "REVIEW",
+      evidence: gate.canonicalId ? [`canonicalId:${gate.canonicalId}`] : [],
+      reasons: identityReasons.length
+        ? identityReasons.map((reason) => `Strict identity proof missing: ${reason}.`)
+        : ["Strict chain, contract, token, pair, venue, provenance, and timestamp proof is incomplete."],
+    };
+  }
   const status = project.canonicalIdentity?.identityStatus || project.identityStatus || project.finalIdentityState || "UNRESOLVED";
   const evidence = [
     project.canonicalProjectId ? `canonicalProjectId:${project.canonicalProjectId}` : "",
@@ -831,6 +874,17 @@ function trustGate(project = {}, trustScore = 0, hardBlockers = []) {
 }
 
 function executionGate(project = {}, executionScore = 0) {
+  const gate = strictGate(project);
+  if (!gate.strictRankEligible) {
+    return {
+      gate: "EXECUTION",
+      result: "REVIEW",
+      evidence: [`routeVerificationStatus:${gate.routeVerificationStatus || "UNKNOWN"}`],
+      reasons: gate.candidateQuarantineReasons?.length
+        ? gate.candidateQuarantineReasons.map((reason) => `Strict route proof missing: ${reason}.`)
+        : ["Strict live buy/sell route proof is incomplete."],
+    };
+  }
   const status = executionStatus(project);
   const proof = project.executionProof || {};
   if (executionHardBlock(project)) {
@@ -939,6 +993,7 @@ function laneFor({ tier, gateTrace, opportunityScore, trustScore, executionScore
 
 function tierFor({ opportunityScore, trustScore, executionScore, hardBlockers, routeVerified: hasRoute, finalQualified = false, memeOnlySpeculative = false }) {
   if (hardBlockers.length) return TIERS.BLOCKED;
+  if (!hasRoute) return TIERS.MONITOR_ONLY;
   if (memeOnlySpeculative && opportunityScore >= 62) return TIERS.SPECULATIVE_SIGNAL;
   if (finalQualified && opportunityScore >= 80 && trustScore >= 75 && executionScore >= 70 && hasRoute) return TIERS.SNIPER_READY;
   if (opportunityScore >= 77 && trustScore >= 60 && executionScore >= 45) return TIERS.EARLY_HIGH_CONVICTION;
@@ -957,6 +1012,7 @@ function confidenceFor(opportunityScore = 0, trustScore = 0, executionScore = 0,
 }
 
 export function analyzeProgressiveOpportunity(project = {}, options = {}) {
+  const gate = strictGate(project);
   const opp = opportunityComponents(project);
   const trust = trustComponents(project);
   const opportunityScore = weightedScoreFromComponents(
@@ -1004,7 +1060,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     0
   );
   const executableSize = executableTradeSizeUsd(tradeSizeChecks);
-  const hasRoute = routeVerified(project);
+  const hasRoute = Boolean(gate.strictRankEligible && routeVerified(project));
   const tier = tierFor({
     opportunityScore,
     trustScore,
@@ -1019,6 +1075,9 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
   const executionCoverage = scoreCoverage(execution);
   const evidenceCoverage = Math.round(clamp((opportunityCoverage + trustCoverage + executionCoverage) / 3));
   const missingEvidence = [
+    ...(gate.strictRankEligible
+      ? []
+      : (gate.candidateQuarantineReasons || []).map((reason) => `Strict identity/route proof missing: ${reason}.`)),
     ...buildMissingEvidence(project, trust, hardBlockers),
     ...buildExecutionMissingEvidence(project, execution, tradeSizeChecks),
   ]
@@ -1073,6 +1132,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
   });
   const emergingDiscoveryAIEligible =
     hardBlockers.length === 0 &&
+    gate.strictRankEligible === true &&
     liquidityUsd(project) >= num(options.emergingMinimumLiquidityUsd ?? 1_000) &&
     sourceCount(project) >= num(options.emergingMinimumSources ?? 1) &&
     opportunityScore >= num(options.emergingMinimumOpportunityScore ?? 55) &&
@@ -1081,6 +1141,8 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
 
   return {
     ...project,
+    ...gate,
+    strictCandidateGate: gate,
     progressiveOpportunityScore: opportunityScore,
     opportunityScoreV2: opportunityScore,
     trustScore,
@@ -1096,7 +1158,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     moneyEvidence: project.moneyEvidence || {},
     moneyMissingEvidence: project.moneyMissingEvidence || [],
     moneyRankScore,
-    moneyRankEligible: hardBlockers.length === 0,
+    moneyRankEligible: hardBlockers.length === 0 && gate.strictRankEligible === true,
     moneyRankDrivers: buildMoneyRankDrivers({
       opportunityScore,
       trustScore,
@@ -1136,7 +1198,7 @@ export function analyzeProgressiveOpportunity(project = {}, options = {}) {
     predictionHorizon: project.predictionHorizon || (tier === TIERS.SNIPER_READY ? "24h-7d verification window" : "7d-30d research watch window"),
     invalidationConditions: buildInvalidations(project),
     nextVerificationActions: buildNextActions(project, tier, missingEvidence),
-    bestAvailableEligible: hardBlockers.length === 0,
+    bestAvailableEligible: hardBlockers.length === 0 && gate.strictRankEligible === true,
     localAIVerdict: project.localAIVerdict || project.aiDecision || "Pending",
     localAITrustAdjustment: localAIAdjustment,
     emergingDiscoveryAIEligible,
@@ -1204,8 +1266,21 @@ function compactProject(project = {}) {
     name: project.name || "Unknown",
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || project.finalChain || "unknown",
+    canonicalId: project.canonicalId || null,
+    canonicalChainId: project.canonicalChainId || null,
+    tokenName: project.tokenName || project.name || "Unknown",
+    contractAddress: project.contractAddress || project.tokenAddress || null,
+    pairAddress: project.pairAddress || project.poolAddress || null,
+    dexName: project.dexName || project.dex || null,
+    routeVerificationStatus: project.routeVerificationStatus || "UNKNOWN",
+    strictIdentityVerified: Boolean(project.strictIdentityVerified),
+    strictRouteVerified: Boolean(project.strictRouteVerified),
+    strictRankEligible: Boolean(project.strictRankEligible),
+    candidateQuarantineReason: project.candidateQuarantineReason || null,
+    candidateQuarantineReasons: project.candidateQuarantineReasons || [],
     tier: project.opportunityRankingTier || "UNKNOWN",
     lane: project.progressiveLane || project.fourLaneStatus || "UNKNOWN",
+    bestAvailableEligible: Boolean(project.bestAvailableEligible),
     opportunityScore: project.progressiveOpportunityScore || 0,
     trustScore: project.trustScore || 0,
     executionScore: project.executionScore || 0,

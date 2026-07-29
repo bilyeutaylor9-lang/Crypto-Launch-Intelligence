@@ -1,3 +1,5 @@
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+
 function positiveNumber(value, fallback) {
   const numeric = Number(value);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
@@ -87,6 +89,40 @@ function legacyRouteLooksCex(route = {}) {
 }
 
 function routeProof(project = {}) {
+  const gate = resolveStrictCandidateGate(project);
+  if (!gate.strictRankEligible) {
+    return {
+      detected: false,
+      preferredRoute: gate.marketBenchmarkLane === "MARKET_BENCHMARK" ? "Market Benchmark" : "Strict Route Proof Required",
+      status: gate.strictCandidateLane || "QUARANTINED_IDENTITY_OR_ROUTE",
+      confidence: 0,
+      routes: [],
+      strictCandidateGate: gate,
+      blockers: gate.strictCandidateMissingProof?.length
+        ? gate.strictCandidateMissingProof.map((item) => `Strict route proof missing: ${item}.`)
+        : ["Strict chain, contract, token, pair, venue, liquidity, volume, provenance, timestamp, buy quote, and sell quote proof is missing."],
+    };
+  }
+
+  return {
+    detected: true,
+    preferredRoute: normalizeRouteName(gate.dexName || project.bestVerifiedVenue || "Verified Route"),
+    status: "LIVE_EXECUTION_READY",
+    confidence: 95,
+    routes: [
+      {
+        type: gate.dexName || "Verified Route",
+        status: "LIVE_EXECUTION_READY",
+        confidence: 95,
+        contract: gate.contractAddress,
+        pairAddress: gate.pairAddress,
+        routeType: project.canonicalExecutionRoute?.routeType || "STRICT_VERIFIED_ROUTE",
+      },
+    ],
+    strictCandidateGate: gate,
+    blockers: [],
+  };
+
   if (project.routeAccessibility) {
     const best =
       project.bestVerifiedRoute ||
@@ -234,10 +270,7 @@ function safetyScan(project = {}) {
   const blockers = [];
 
   const routeIsCex = legacyRouteLooksCex(route);
-  if (!route.detected) blockers.push("No verified fresh buy/sell execution route.");
   if (risk >= 78) blockers.push("Risk stack is too high for execution verification.");
-  if (!contractKnown && !routeIsCex) blockers.push("Wallet or DEX route needs exact token contract proof.");
-  if (!pairKnown && !routeIsCex) blockers.push("Wallet or DEX route needs exact pair/liquidity proof.");
   if (sourceProof > 0 && sourceProof < 45) blockers.push("Source/proof stack is too weak.");
   if (project.redTeamReview?.status === "Block") blockers.push("Red-team block is active.");
 
@@ -283,9 +316,9 @@ function outcomeMemoryScore(project = {}) {
 }
 
 function verdictFor({ score = 0, route = {}, quote = {}, safety = {}, thesis = 0 } = {}) {
+  if (safety.blockers.length) return "Execution Safety Block";
   if (!route.detected) return "RESEARCH_ONLY_ROUTE_UNVERIFIED";
   if (quote.blocker) return "Execution Liquidity Block";
-  if (safety.blockers.length) return "Execution Safety Block";
   if (score >= 70 && thesis >= 58) return "Execution-Verified Alpha Candidate";
   if (score >= 58) return "Execution Watch";
   return "Execution Thin Data";
@@ -335,8 +368,8 @@ function buildTwin(project = {}, options = {}) {
     thesisScore: thesis,
     outcomeMemoryScore: memory,
     paperExecution: {
-      mode: "Paper execution simulation only",
-      budgetUsd,
+      mode: route.detected ? "Paper execution simulation only" : "No paper execution until strict route proof passes",
+      budgetUsd: route.detected ? budgetUsd : 0,
       preferredRoute: route.preferredRoute,
       estimatedTokens: quote.estimatedTokens,
       estimatedSlippagePct: quote.estimatedSlippagePct,
@@ -393,6 +426,7 @@ function selectable(project = {}) {
   return (
     project.proofOfAlphaExecutionTwin &&
     project.proofOfAlphaExecutionTwinVerdict === "Execution-Verified Alpha Candidate" &&
+    project.proofOfAlphaExecutionTwin.route?.strictCandidateGate?.strictRankEligible === true &&
     !project.proofOfAlphaExecutionTwin.safety.blockers.length &&
     !project.proofOfAlphaExecutionTwin.quote.blocker
   );
@@ -449,6 +483,13 @@ function compact(project = {}) {
     confidence: project.proofOfAlphaExecutionTwinConfidence || "Unknown",
     route: project.proofOfAlphaExecutionTwinRoute || "Unavailable",
     routeStatus: project.proofOfAlphaExecutionTwin?.route?.status || project.executionStatus || project.canonicalExecutionRoute?.status || "NO_ROUTE",
+    canonicalId: project.canonicalId || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.canonicalId || null,
+    contractAddress: project.contractAddress || project.tokenAddress || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.contractAddress || null,
+    pairAddress: project.pairAddress || project.poolAddress || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.pairAddress || null,
+    routeVerificationStatus: project.routeVerificationStatus || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.routeVerificationStatus || "UNKNOWN",
+    strictRankEligible: Boolean(project.strictRankEligible || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.strictRankEligible),
+    candidateQuarantineReason: project.candidateQuarantineReason || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.candidateQuarantineReason || null,
+    candidateQuarantineReasons: project.candidateQuarantineReasons || project.proofOfAlphaExecutionTwin?.route?.strictCandidateGate?.candidateQuarantineReasons || [],
     slippagePct: project.proofOfAlphaExecutionTwinSlippagePct ?? null,
     quote: project.proofOfAlphaExecutionTwin?.quote || {},
     safety: project.proofOfAlphaExecutionTwin?.safety || {},

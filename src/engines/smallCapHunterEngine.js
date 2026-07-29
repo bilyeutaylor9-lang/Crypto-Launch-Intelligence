@@ -1,3 +1,5 @@
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+
 const DEFAULT_TARGET_COUNT = Number(process.env.SMALL_CAP_TARGET_COUNT || 2);
 const DEFAULT_BUDGET_USD = Number(process.env.SMALL_CAP_PAPER_BUDGET_USD || 100);
 const DEFAULT_MAX_CAP = Number(process.env.SMALL_CAP_MAX_MARKET_CAP || 300_000_000);
@@ -131,6 +133,57 @@ function isDexRoute(project = {}) {
 }
 
 function purchaseRoute(project = {}) {
+  const gate = resolveStrictCandidateGate(project);
+  if (!gate.strictRankEligible) {
+    return {
+      status: gate.strictCandidateLane || "QUARANTINED_IDENTITY_OR_ROUTE",
+      purchasable: false,
+      preferredRoute: gate.marketBenchmarkLane === "MARKET_BENCHMARK" ? "Market Benchmark" : "Strict Route Proof Required",
+      score: 0,
+      buyRouteAvailable: false,
+      sellRouteAvailable: false,
+      routeType: "STRICT_ROUTE_GATE",
+      chain: gate.normalizedChain,
+      contract: gate.contractAddress,
+      pairAddress: gate.pairAddress,
+      liquidityUsd: gate.liquidityUsd,
+      volume24hUsd: gate.volume24hUsd,
+      routes: [],
+      strictCandidateGate: gate,
+      mustVerify: gate.strictCandidateMissingProof?.length
+        ? gate.strictCandidateMissingProof.map((item) => `Resolve strict route proof: ${item}.`)
+        : ["Resolve strict chain, contract, pool, venue, buy quote, sell quote, slippage, provenance, and timestamp proof."],
+    };
+  }
+
+  return {
+    status: "LIVE_EXECUTION_READY",
+    purchasable: true,
+    preferredRoute: gate.dexName || project.bestVerifiedVenue || "Verified Route",
+    score: 95,
+    buyRouteAvailable: true,
+    sellRouteAvailable: true,
+    routeType: project.canonicalExecutionRoute?.routeType || "STRICT_VERIFIED_ROUTE",
+    chain: gate.normalizedChain,
+    contract: gate.contractAddress,
+    pairAddress: gate.pairAddress,
+    liquidityUsd: gate.liquidityUsd,
+    volume24hUsd: gate.volume24hUsd,
+    routes: [
+      {
+        type: gate.dexName || "Verified Route",
+        status: "LIVE_EXECUTION_READY",
+        confidence: 95,
+        routeType: project.canonicalExecutionRoute?.routeType || "STRICT_VERIFIED_ROUTE",
+        chain: gate.normalizedChain,
+        contract: gate.contractAddress,
+        pairAddress: gate.pairAddress,
+      },
+    ],
+    strictCandidateGate: gate,
+    mustVerify: [],
+  };
+
   if (project.routeAccessibility && Array.isArray(project.canonicalRoutes)) {
     const best =
       project.bestVerifiedRoute ||
@@ -328,6 +381,17 @@ function routeStatus(project = {}, metrics = {}) {
 }
 
 function executionReady(project = {}, metrics = {}, minLiquidity = DEFAULT_MIN_LIQUIDITY) {
+  const gate = metrics.purchaseRoute?.strictCandidateGate || resolveStrictCandidateGate(project);
+  if (!gate.strictRankEligible) return false;
+  if (
+    gate.strictRankEligible &&
+    num(gate.liquidityUsd) >= minLiquidity &&
+    metrics.risk < 78 &&
+    project.honeypotDetected !== true &&
+    project.verifiedScam !== true
+  ) {
+    return true;
+  }
   if (project.routeAccessibility) {
     return Boolean(
       project.executionReady === true &&
@@ -369,9 +433,14 @@ function hardBlocked(project = {}, metrics = {}) {
 
 function missingEvidence(project = {}, metrics = {}) {
   const route = project.canonicalExecutionRoute || {};
+  const gate = metrics.purchaseRoute?.strictCandidateGate || resolveStrictCandidateGate(project);
+  const strictReady = gate.strictRankEligible === true;
   return [
+    ...(gate.strictRankEligible
+      ? []
+      : (gate.strictCandidateMissingProof || gate.candidateQuarantineReasons || []).map((item) => `strict route proof: ${item}`)),
     ...(metrics.cap ? [] : ["market cap/FDV proof"]),
-    ...(project.executionReady === true || route.status === "VERIFIED" ? [] : ["verified fresh buy and sell route"]),
+    ...(strictReady || project.executionReady === true || route.status === "VERIFIED" ? [] : ["verified fresh buy and sell route"]),
     ...(project.missingRouteEvidence || []),
     ...(route.contractAddress || project.contractAddress || project.tokenAddress || project.address ? [] : ["verified token contract"]),
     ...(route.pairAddress || route.routeType === "CEX" || project.pairAddress || project.poolAddress ? [] : ["verified pool/pair"]),
@@ -571,6 +640,8 @@ function verdictFor(metrics = {}, options = {}) {
 
   if (metrics.risk >= 78) return "Small-Cap Risk Block";
   if (!metrics.band.eligible) return "Too Large For Small-Cap Hunt";
+  if (metrics.purchaseRoute?.strictCandidateGate?.marketBenchmarkLane === "MARKET_BENCHMARK") return "Small-Cap Market Benchmark";
+  if (!metrics.purchaseRoute?.strictCandidateGate?.strictRankEligible) return "Small-Cap Route Quarantined";
   if (metrics.execution.liquidityUsd > 0 && metrics.execution.liquidityUsd < minLiquidity) {
     return "Small-Cap Liquidity Block";
   }
@@ -595,7 +666,7 @@ function reasons(project = {}, metrics = {}) {
   if (metrics.structure >= 55) output.push("Structure stack has usable source, proof, GitHub, graph, or roadmap confirmation.");
   if (metrics.consensus >= 55) output.push("AI/OS/governor consensus is stronger than the scan baseline.");
   if (metrics.preHit?.score >= 58) output.push(`${metrics.preHit.verdict}: smart money, catalyst, timing, and organic-demand pressure are lining up.`);
-  if (metrics.execution.score >= 55) output.push("$100 paper-size execution looks structurally reasonable from visible liquidity/volume.");
+  if (metrics.executionReady && metrics.execution.score >= 55) output.push("$100 paper-size execution is backed by strict route proof.");
   if (metrics.purchaseRoute.purchasable) output.push(`${metrics.purchaseRoute.preferredRoute} purchase route detected; verify availability before acting.`);
   if (project.alphaEvolutionGovernorVerdict === "Governor Priority Research") output.push("Alpha Governor marked it as priority research.");
   if (project.breakoutBrainSelected) output.push("Breakout Brain selected it as a best-available breakout setup.");
@@ -623,6 +694,23 @@ function warnings(project = {}, metrics = {}) {
 
 function paperPlan(project = {}, metrics = {}, options = {}) {
   const budgetUsd = num(options.budgetUsd || DEFAULT_BUDGET_USD);
+  if (!metrics.executionReady) {
+    return {
+      label: "$100 Paper Plan",
+      mode: "No paper execution until strict route proof passes",
+      totalPaperBudgetUsd: 0,
+      maxPaperBudgetForThisCandidateUsd: 0,
+      starterTrancheUsd: 0,
+      confirmationTrancheUsd: 0,
+      finalValidationTrancheUsd: 0,
+      estimatedLiquidityImpactPct: metrics.execution.estimatedLiquidityImpactPct,
+      confirmationTriggers: [
+        "Resolve strict chain, contract, pair, venue, buy quote, sell quote, slippage, provenance, and timestamp proof.",
+        "Reject if trap risk, sell pressure, unlock risk, or red-team block rises.",
+      ],
+      note: "Paper execution is disabled for unverified identity or route data.",
+    };
+  }
   const perCandidateUsd = Number((budgetUsd / Math.max(1, num(options.targetCount || DEFAULT_TARGET_COUNT))).toFixed(2));
 
   return {
@@ -684,6 +772,7 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
       hardBlocked: metrics.hardBlocked,
       researchOnly: !metrics.executionReady,
       executionReady: metrics.executionReady,
+      strictCandidateGate: metrics.purchaseRoute.strictCandidateGate || null,
       reasons: reasons(project, metrics),
       warnings: warnings(project, metrics),
       paperPlan: paperPlan(project, metrics, options),
@@ -717,6 +806,7 @@ export function analyzeSmallCapHunter(project = {}, options = {}) {
 function eligibleForSelection(project = {}) {
   return (
     project.smallCapHunter &&
+    project.smallCapHunter.executionReady === true &&
     !["Small-Cap Risk Block", "Too Large For Small-Cap Hunt"].includes(project.smallCapHunterVerdict) &&
     !project.smallCapHunter.hardBlocked &&
     !project.smallCapHunter.blockers?.length &&
@@ -779,7 +869,7 @@ export function summarizeSmallCapHunter(projects = []) {
     .filter((project) => project.smallCapHunterSelected)
     .sort((a, b) => num(a.smallCapHunterSelectionRank) - num(b.smallCapHunterSelectionRank));
   const research = hunted
-    .filter((project) => !project.smallCapHunter?.blockers?.length && !project.smallCapHunter?.hardBlocked)
+    .filter((project) => project.smallCapHunter?.executionReady === true && !project.smallCapHunter?.blockers?.length && !project.smallCapHunter?.hardBlocked)
     .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
     .slice(0, DEFAULT_TARGET_COUNT);
   const executionReadyProjects = hunted
@@ -805,6 +895,7 @@ export function summarizeSmallCapHunter(projects = []) {
     watchCount: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Watch").length,
     riskBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Risk Block").length,
     purchaseRouteBlocks: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Research Candidate - Route Unverified").length,
+    routeQuarantineCount: hunted.filter((project) => project.smallCapHunterVerdict === "Small-Cap Route Quarantined").length,
     topProjects: [...hunted]
       .sort((a, b) => num(b.smallCapHunterScore) - num(a.smallCapHunterScore))
       .slice(0, 50)
@@ -823,6 +914,13 @@ function compact(project = {}, fallbackRank = null) {
     score: project.smallCapHunterScore || 0,
     verdict: project.smallCapHunterVerdict || "Unknown",
     routeStatus: project.smallCapHunter?.routeStatus || project.canonicalExecutionRoute?.status || "NO_ROUTE",
+    canonicalId: project.canonicalId || project.smallCapHunter?.strictCandidateGate?.canonicalId || null,
+    contractAddress: project.contractAddress || project.tokenAddress || project.smallCapHunter?.strictCandidateGate?.contractAddress || null,
+    pairAddress: project.pairAddress || project.poolAddress || project.smallCapHunter?.strictCandidateGate?.pairAddress || null,
+    routeVerificationStatus: project.routeVerificationStatus || project.smallCapHunter?.strictCandidateGate?.routeVerificationStatus || "UNKNOWN",
+    strictRankEligible: Boolean(project.strictRankEligible || project.smallCapHunter?.strictCandidateGate?.strictRankEligible),
+    candidateQuarantineReason: project.candidateQuarantineReason || project.smallCapHunter?.strictCandidateGate?.candidateQuarantineReason || null,
+    candidateQuarantineReasons: project.candidateQuarantineReasons || project.smallCapHunter?.strictCandidateGate?.candidateQuarantineReasons || [],
     missingEvidence: project.smallCapHunter?.missingEvidence || [],
     blockers: project.smallCapHunter?.blockers || [],
     researchOnly: project.smallCapHunter?.researchOnly !== false,

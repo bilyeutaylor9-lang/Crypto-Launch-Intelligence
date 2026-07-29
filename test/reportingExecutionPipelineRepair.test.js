@@ -255,7 +255,7 @@ test("canonical execution route refuses research-seed pair IDs and token/pool co
   assert.ok(collision.canonicalExecutionRoute.failureReasons.some((reason) => reason.includes("identical")));
 });
 
-test("small-cap report returns top two research candidates without pretending routes are verified", () => {
+test("small-cap report quarantines unverified research candidates without pretending routes are verified", () => {
   const routed = routePipeline([
     project({
       symbol: "R1",
@@ -283,12 +283,13 @@ test("small-cap report returns top two research candidates without pretending ro
   ]);
   const report = summarizeSmallCapHunter(routed);
 
-  assert.equal(report.topTwoResearch.length, 2);
-  assert.equal(report.topTwo.length, 2);
+  assert.equal(report.topTwoResearch.length, 0);
+  assert.equal(report.topTwo.length, 0);
   assert.equal(report.topTwoExecutionReady.length, 0);
-  assert.deepEqual(report.topTwoResearch.map((item) => item.executionReady), [false, false]);
-  assert.ok(report.topTwoResearch.every((item) => item.researchOnly));
-  assert.ok(report.topTwoResearch.every((item) => item.routeStatus !== "VERIFIED"));
+  assert.equal(report.routeQuarantineCount, 2);
+  assert.ok(report.topProjects.every((item) => item.executionReady === false));
+  assert.ok(report.topProjects.every((item) => item.strictRankEligible === false));
+  assert.ok(report.topProjects.every((item) => item.routeStatus !== "VERIFIED"));
 });
 
 test("verified small-cap candidates appear in execution-ready output", () => {
