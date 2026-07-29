@@ -89,6 +89,11 @@ test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified r
   assert.equal(recovered.sellQuoteVerified, true);
   assert.equal(recovered.routeTruthStatus, "SELL_QUOTE_VERIFIED");
   assert.equal(recovered.executionProofRecoveryRoute.venue, "Jupiter");
+  assert.equal(recovered.executionProofRecoveryRoute.executableDepthUsd, 25);
+  assert.equal(recovered.executionProofRecoveryRoute.verifiedTradeSizeUsd, 25);
+  assert.equal(recovered.canonicalExecutionRoute.executableDepthUsd, 25);
+  assert.equal(recovered.canonicalExecutionRoute.quoteTokenAddress, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+  assert.equal(recovered.canonicalExecutionRoute.slippageIsHeuristic, false);
 
   const [proof] = analyzeExecutionProofBatch([recovered]);
   assert.equal(proof.executionProofState, "ORDER_BOOK_DEPTH_VERIFIED");

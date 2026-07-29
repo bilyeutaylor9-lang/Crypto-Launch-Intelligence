@@ -294,6 +294,21 @@ function inferVenue(project = {}) {
   ]);
 }
 
+function inferRouteType(project = {}) {
+  const raw = upper(firstRouteValue(project, ["routeType", "type", "canonicalExecutionRoute.routeType"]));
+  if (raw === "DEX_AGGREGATOR" || raw === "AGGREGATOR") return "AGGREGATOR";
+  if (raw === "CEX") return "CEX";
+  if (raw === "DEX") return "DEX";
+  const venue = lower(inferVenue(project));
+  if (["coinbase", "kraken", "binance", "binance.us", "gemini", "okx", "bybit", "kucoin", "gate", "mexc", "bitget", "crypto.com", "htx", "upbit", "bithumb"].some((item) => venue.includes(item))) {
+    return "CEX";
+  }
+  if (["jupiter", "1inch", "paraswap", "matcha", "0x", "zero_x"].some((item) => venue.includes(item))) {
+    return "AGGREGATOR";
+  }
+  return raw || "DEX";
+}
+
 function venueSupported(value = "") {
   const normalized = lower(value).replace(/\s+/g, " ");
   if (!normalized) return false;
@@ -356,9 +371,25 @@ function routeSlippageVerified(project = {}) {
   return hasVerifiedRouteSlippage(project) && project.slippageIsHeuristic !== true && project.canonicalExecutionRoute?.slippageIsHeuristic !== true;
 }
 
-function routeRegionVerified(project = {}) {
+function hasVerifiedDepthSource(project = {}) {
+  const source = upper(first([
+    project.verifiedDepthSource,
+    project.depthVerificationSource,
+    project.canonicalExecutionRoute?.verifiedDepthSource,
+    project.canonicalExecutionRoute?.depthVerificationSource,
+    project.executionProofRecoveryRoute?.verifiedDepthSource,
+    project.executionProofRecoveryRoute?.depthVerificationSource,
+  ])).replace(/_/g, "-");
+  return ["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"].includes(source) ||
+    project.executionProofRecovery?.status === "ROUTE_RECOVERED";
+}
+
+function routeRegionVerified(project = {}, routeType = null) {
   const region = first([project.regionStatus, project.canonicalExecutionRoute?.regionStatus, project.routeAccessibility?.regionStatus]);
-  return !region || upper(region) === "CONFIRMED_AVAILABLE";
+  const status = upper(region);
+  if (["CONFIRMED_RESTRICTED", "REGION_RESTRICTED", "RESTRICTED", "UNAVAILABLE"].includes(status)) return false;
+  if (routeType === "CEX") return status === "CONFIRMED_AVAILABLE";
+  return true;
 }
 
 export function resolveStrictCandidateGate(project = {}) {
@@ -373,36 +404,58 @@ export function resolveStrictCandidateGate(project = {}) {
   const tokenName = clean(first([project.tokenName, project.name, project.projectName, project.baseToken?.name, project.marketData?.name, project.rawCandidate?.name]));
   const symbol = upper(first([project.symbol, project.ticker, project.baseToken?.symbol, project.marketData?.symbol, project.rawCandidate?.symbol]));
   const dexName = clean(inferVenue(project));
-  const liquidityUsd = num(
-    first([
-      project.stableExitLiquidityUsd,
-      project.dexLiquidityUsd,
-      project.liquidityUsd,
-      project.marketData?.liquidityUsd,
-      project.rawCandidate?.liquidityUsd,
-      project.canonicalExecutionRoute?.liquidityUsd,
-      firstRouteValue(project, ["liquidityUsd", "liquidity", "poolLiquidityUsd", "reserveUsd"]),
-    ])
+  const routeType = inferRouteType(project);
+  const liquidityUsd = Math.max(
+    num(project.stableExitLiquidityUsd),
+    num(project.dexLiquidityUsd),
+    num(project.liquidityUsd),
+    num(project.marketData?.liquidityUsd),
+    num(project.rawCandidate?.liquidityUsd),
+    num(project.canonicalExecutionRoute?.liquidityUsd),
+    num(project.executionProofRecoveryRoute?.liquidityUsd),
+    num(firstRouteValue(project, ["liquidityUsd", "liquidity", "poolLiquidityUsd", "reserveUsd"]))
   );
-  const volume24hUsd = num(
-    first([
-      project.volume24hUsd,
-      project.volume24h,
-      project.volume,
-      project.marketData?.volume24h,
-      project.rawCandidate?.volume24h,
-      project.canonicalExecutionRoute?.volume24hUsd,
-      firstRouteValue(project, ["volume24hUsd", "volume24h", "volume", "quoteVolume24h"]),
-    ])
+  const volume24hUsd = Math.max(
+    num(project.volume24hUsd),
+    num(project.volume24h),
+    num(project.volume),
+    num(project.marketData?.volume24h),
+    num(project.rawCandidate?.volume24h),
+    num(project.canonicalExecutionRoute?.volume24hUsd),
+    num(project.executionProofRecoveryRoute?.volume24hUsd),
+    num(firstRouteValue(project, ["volume24hUsd", "volume24h", "volume", "quoteVolume24h"]))
   );
+  const rawRouteDepthUsd = Math.max(
+    liquidityUsd,
+    num(project.orderBookDepthUsd),
+    num(project.executableDepthUsd),
+    num(project.verifiedTradeSizeUsd),
+    num(project.canonicalExecutionRoute?.orderBookDepthUsd),
+    num(project.canonicalExecutionRoute?.executableDepthUsd),
+    num(project.canonicalExecutionRoute?.verifiedTradeSizeUsd),
+    num(project.executionProofRecoveryRoute?.orderBookDepthUsd),
+    num(project.executionProofRecoveryRoute?.executableDepthUsd),
+    num(project.executionProofRecoveryRoute?.verifiedTradeSizeUsd)
+  );
+  const routeDepthUsd = project.liquidityVerified === false && !hasVerifiedDepthSource(project) ? 0 : rawRouteDepthUsd;
   const provenance = inferProvenance(project);
   const lastVerifiedAt = inferLastVerifiedAt(project);
   const quoteFresh = routeQuoteFresh(project, 3600);
   const buyQuoteVerified = hasVerifiedBuyQuote(project);
   const sellQuoteVerified = hasVerifiedSellQuote(project);
-  const depthVerified = hasVerifiedRouteDepth(project) && liquidityUsd > 0;
+  const depthVerified = hasVerifiedRouteDepth(project) && routeDepthUsd > 0;
   const slippageVerified = routeSlippageVerified(project);
   const safetyClean = noDeterministicSafetyBlock(project);
+  const cexRoute = routeType === "CEX";
+  const aggregatorRoute = routeType === "AGGREGATOR";
+  const marketPair = firstRouteValue(project, ["marketPair", "market", "symbol"]);
+  const routeMarketProof = cexRoute
+    ? Boolean(marketPair)
+    : aggregatorRoute
+      ? Boolean(pairAddress || (buyQuoteVerified && sellQuoteVerified && quoteFresh))
+      : Boolean(pairAddress);
+  const regionVerified = routeRegionVerified(project, routeType);
+  const activeMarketObserved = routeDepthUsd > 0 && (volume24hUsd > 0 || buyQuoteVerified || sellQuoteVerified);
   const identityStatus = upper(project.identityStatus || project.canonicalIdentity?.identityStatus);
   const symbolAmbiguous = Boolean(
     project.symbolAmbiguous === true ||
@@ -422,9 +475,11 @@ export function resolveStrictCandidateGate(project = {}) {
       contractAddress: tokenAddress,
       pairAddress,
       dexName,
+      routeType,
       baseTokenAddress,
       quoteTokenAddress,
       liquidityUsd,
+      routeDepthUsd,
       volume24hUsd,
       provenance,
       lastVerifiedAt,
@@ -446,15 +501,15 @@ export function resolveStrictCandidateGate(project = {}) {
   if (nativeVariant.quarantineReason) reasons.push(nativeVariant.quarantineReason);
   if (!tokenAddress) reasons.push(ROUTE_QUARANTINE_REASONS.CONTRACT_MISSING);
   if (!tokenName || !symbol || symbolAmbiguous) reasons.push(ROUTE_QUARANTINE_REASONS.SYMBOL_AMBIGUOUS);
-  if (!pairAddress || !dexName || !venueSupported(dexName) || !baseTokenAddress || !quoteTokenAddress) {
+  if (!routeMarketProof || !dexName || !venueSupported(dexName) || !baseTokenAddress || (!cexRoute && !quoteTokenAddress)) {
     reasons.push(ROUTE_QUARANTINE_REASONS.PAIR_NOT_FOUND);
   }
-  if (liquidityUsd <= 0 || volume24hUsd <= 0) reasons.push(ROUTE_QUARANTINE_REASONS.NO_ACTIVE_LIQUIDITY);
+  if (routeDepthUsd <= 0 || !activeMarketObserved) reasons.push(ROUTE_QUARANTINE_REASONS.NO_ACTIVE_LIQUIDITY);
   if (!buyQuoteVerified) reasons.push(ROUTE_QUARANTINE_REASONS.BUY_ROUTE_FAILED);
   if (!sellQuoteVerified || !depthVerified || !slippageVerified || !safetyClean) {
     reasons.push(ROUTE_QUARANTINE_REASONS.SELL_ROUTE_FAILED);
   }
-  if (!routeRegionVerified(project)) reasons.push(ROUTE_QUARANTINE_REASONS.REGION_UNVERIFIED);
+  if (!regionVerified) reasons.push(ROUTE_QUARANTINE_REASONS.REGION_UNVERIFIED);
   if (!quoteFresh || !lastVerifiedAt || provenance.length === 0) reasons.push(ROUTE_QUARANTINE_REASONS.STALE_MARKET_DATA);
 
   const strictIdentityVerified = Boolean(
@@ -464,13 +519,13 @@ export function resolveStrictCandidateGate(project = {}) {
       tokenAddress &&
       tokenName &&
       symbol &&
-      pairAddress &&
+      routeMarketProof &&
       dexName &&
       venueSupported(dexName) &&
       baseTokenAddress &&
-      quoteTokenAddress &&
-      liquidityUsd > 0 &&
-      volume24hUsd > 0 &&
+      (cexRoute || quoteTokenAddress) &&
+      routeDepthUsd > 0 &&
+      activeMarketObserved &&
       provenance.length > 0 &&
       lastVerifiedAt
   );
@@ -481,7 +536,7 @@ export function resolveStrictCandidateGate(project = {}) {
       quoteFresh &&
       depthVerified &&
       slippageVerified &&
-      routeRegionVerified(project) &&
+      regionVerified &&
       safetyClean
   );
   const strictRankEligible = Boolean(strictIdentityVerified && strictRouteVerified && reasons.length === 0);
@@ -491,7 +546,7 @@ export function resolveStrictCandidateGate(project = {}) {
       ? "SELL_QUOTE_VERIFIED"
       : buyQuoteVerified
         ? "BUY_QUOTE_VERIFIED"
-        : pairAddress && tokenAddress
+        : routeMarketProof && tokenAddress
           ? "PAIR_IDENTITY_VERIFIED"
           : "MARKET_OBSERVED";
 
@@ -505,9 +560,11 @@ export function resolveStrictCandidateGate(project = {}) {
     contractAddress: tokenAddress,
     pairAddress,
     dexName,
+    routeType,
     baseTokenAddress,
     quoteTokenAddress,
     liquidityUsd,
+    routeDepthUsd,
     volume24hUsd,
     provenance,
     lastVerifiedAt,

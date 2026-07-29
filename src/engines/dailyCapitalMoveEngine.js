@@ -52,15 +52,26 @@ function marketCapUsd(project = {}) {
 }
 
 function liquidityUsd(project = {}) {
-  return num(first([
-    project.stableExitLiquidityUsd,
-    project.dexLiquidityUsd,
-    project.liquidityUsd,
-    project.activeLiquidityUsd,
-    project.sevenDayTenXLiquidityUsd,
-    project.marketData?.liquidityUsd,
-    project.rawCandidate?.liquidityUsd,
-  ]));
+  return Math.max(
+    num(project.canonicalExecutionRoute?.liquidityUsd),
+    num(project.canonicalExecutionRoute?.orderBookDepthUsd),
+    num(project.canonicalExecutionRoute?.executableDepthUsd),
+    num(project.canonicalExecutionRoute?.verifiedTradeSizeUsd),
+    num(project.executionProofRecoveryRoute?.liquidityUsd),
+    num(project.executionProofRecoveryRoute?.orderBookDepthUsd),
+    num(project.executionProofRecoveryRoute?.executableDepthUsd),
+    num(project.executionProofRecoveryRoute?.verifiedTradeSizeUsd),
+    num(project.executableDepthUsd),
+    num(project.verifiedTradeSizeUsd),
+    num(project.orderBookDepthUsd),
+    num(project.stableExitLiquidityUsd),
+    num(project.dexLiquidityUsd),
+    num(project.liquidityUsd),
+    num(project.activeLiquidityUsd),
+    num(project.sevenDayTenXLiquidityUsd),
+    num(project.marketData?.liquidityUsd),
+    num(project.rawCandidate?.liquidityUsd)
+  );
 }
 
 function priceChange24hPct(project = {}) {
@@ -215,7 +226,22 @@ function missingProof(project = {}) {
   if (!hasIdentity(project)) missing.push("canonical identity");
   if (!first([project.chain, project.canonicalChain, project.chainId])) missing.push("canonical chain");
   if (!first([project.tokenAddress, project.contractAddress, project.canonicalAddress])) missing.push("token contract");
-  if (!first([project.poolAddress, project.pairAddress, project.primaryTradablePool, project.marketPair])) missing.push("pool or market");
+  if (!first([
+    project.poolAddress,
+    project.pairAddress,
+    project.primaryTradablePool,
+    project.marketPair,
+    project.canonicalExecutionRoute?.pairAddress,
+    project.canonicalExecutionRoute?.poolAddress,
+    project.canonicalExecutionRoute?.marketPair,
+    project.executionProofRecoveryRoute?.poolAddress,
+    project.executionProofRecoveryRoute?.marketPair,
+    ["AGGREGATOR", "DEX_AGGREGATOR"].includes(String(project.canonicalExecutionRoute?.routeType || project.executionProofRecoveryRoute?.routeType || "").toUpperCase()) &&
+      project.buyQuoteVerified === true &&
+      project.sellQuoteVerified === true
+      ? "quote-backed aggregator route"
+      : null,
+  ])) missing.push("pool or market");
   if (liquidityUsd(project) < MIN_LIQUIDITY_USD) missing.push("executable liquidity");
   if (marketCapUsd(project) <= 0) missing.push("circulating market cap");
   if (!strictGate.strictRankEligible || !isLiveExecutionReady({ ...project, routeTruthStatus: "LIVE_EXECUTION_READY" })) {

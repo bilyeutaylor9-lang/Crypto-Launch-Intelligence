@@ -359,9 +359,33 @@ function executionRouteAvailable(project = {}) {
   return routeFrom(project).executionDetected;
 }
 
+function hasVerifiedDepthSource(project = {}) {
+  const source = firstString([
+    project.verifiedDepthSource,
+    project.depthVerificationSource,
+    project.canonicalExecutionRoute?.verifiedDepthSource,
+    project.canonicalExecutionRoute?.depthVerificationSource,
+    project.executionProofRecoveryRoute?.verifiedDepthSource,
+    project.executionProofRecoveryRoute?.depthVerificationSource,
+  ]).toUpperCase().replace(/_/g, "-");
+  return ["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"].includes(source) ||
+    project.executionProofRecovery?.status === "ROUTE_RECOVERED";
+}
+
 function liquidityUsd(project = {}) {
+  if (project.liquidityVerified === false && !hasVerifiedDepthSource(project)) return 0;
   return Math.max(
     num(project.canonicalExecutionRoute?.liquidityUsd),
+    num(project.canonicalExecutionRoute?.orderBookDepthUsd),
+    num(project.canonicalExecutionRoute?.executableDepthUsd),
+    num(project.canonicalExecutionRoute?.verifiedTradeSizeUsd),
+    num(project.executionProofRecoveryRoute?.liquidityUsd),
+    num(project.executionProofRecoveryRoute?.orderBookDepthUsd),
+    num(project.executionProofRecoveryRoute?.executableDepthUsd),
+    num(project.executionProofRecoveryRoute?.verifiedTradeSizeUsd),
+    num(project.executableDepthUsd),
+    num(project.verifiedTradeSizeUsd),
+    num(project.orderBookDepthUsd),
     num(project.executionRoute?.liquidityUsd),
     num(project.liquidityUsd),
     num(project.liquidity),

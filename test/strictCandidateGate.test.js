@@ -147,14 +147,51 @@ test("missing sell route blocks promotion even when the project has strong oppor
   assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
 });
 
-test("unknown region produces an explicit quarantine reason", () => {
+test("unknown CEX region produces an explicit quarantine reason", () => {
   const gate = resolveStrictCandidateGate(verifiedCandidate({
+    dexName: "Kraken",
+    dex: "Kraken",
+    venue: "Kraken",
+    routeType: "CEX",
+    marketPair: "AGENT-USDT",
+    poolAddress: null,
+    pairAddress: null,
     regionStatus: "UNKNOWN",
   }));
 
   assert.equal(gate.strictRankEligible, false);
   assert.equal(gate.candidateQuarantineReason, "REGION_UNVERIFIED");
   assert.ok(gate.candidateQuarantineReasons.includes("REGION_UNVERIFIED"));
+});
+
+test("quote-backed DEX aggregator can pass without a pool address", () => {
+  const gate = resolveStrictCandidateGate(verifiedCandidate({
+    dexName: "Jupiter",
+    dex: "Jupiter",
+    venue: "Jupiter",
+    routeType: "DEX_AGGREGATOR",
+    chain: "solana",
+    chainId: "solana",
+    tokenAddress: "So11111111111111111111111111111111111111112",
+    contractAddress: "So11111111111111111111111111111111111111112",
+    poolAddress: null,
+    pairAddress: null,
+    baseTokenAddress: "So11111111111111111111111111111111111111112",
+    quoteTokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    quoteAsset: "USDC",
+    liquidityUsd: 0,
+    dexLiquidityUsd: 0,
+    executableDepthUsd: 25,
+    verifiedTradeSizeUsd: 25,
+    volume24hUsd: 0,
+    volume24h: 0,
+    quoteAgeSeconds: 30,
+    regionStatus: "UNKNOWN",
+  }));
+
+  assert.equal(gate.strictRankEligible, true);
+  assert.equal(gate.strictRouteVerified, true);
+  assert.equal(gate.candidateQuarantineReason, null);
 });
 
 test("established native assets stay in market benchmark lane", () => {

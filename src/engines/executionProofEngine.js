@@ -57,9 +57,37 @@ function pairOf(project = {}) {
   ]) || null;
 }
 
+function hasVerifiedDepthSource(project = {}) {
+  const source = String(
+    first([
+      project.verifiedDepthSource,
+      project.depthVerificationSource,
+      project.canonicalExecutionRoute?.verifiedDepthSource,
+      project.canonicalExecutionRoute?.depthVerificationSource,
+      project.executionProofRecoveryRoute?.verifiedDepthSource,
+      project.executionProofRecoveryRoute?.depthVerificationSource,
+    ]) || ""
+  )
+    .toUpperCase()
+    .replace(/_/g, "-");
+  return ["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"].includes(source) ||
+    project.executionProofRecovery?.status === "ROUTE_RECOVERED";
+}
+
 function liquidityUsd(project = {}) {
+  if (project.liquidityVerified === false && !hasVerifiedDepthSource(project)) return 0;
   return Math.max(
     num(project.canonicalExecutionRoute?.liquidityUsd),
+    num(project.canonicalExecutionRoute?.orderBookDepthUsd),
+    num(project.canonicalExecutionRoute?.executableDepthUsd),
+    num(project.canonicalExecutionRoute?.verifiedTradeSizeUsd),
+    num(project.executionProofRecoveryRoute?.liquidityUsd),
+    num(project.executionProofRecoveryRoute?.orderBookDepthUsd),
+    num(project.executionProofRecoveryRoute?.executableDepthUsd),
+    num(project.executionProofRecoveryRoute?.verifiedTradeSizeUsd),
+    num(project.executableDepthUsd),
+    num(project.verifiedTradeSizeUsd),
+    num(project.orderBookDepthUsd),
     num(project.liquidityUsd),
     num(project.liquidity),
     num(project.finalLiquidityUsd),
@@ -361,13 +389,22 @@ function sellSimulationPassed(project = {}) {
 }
 
 function orderBookDepthVerified(project = {}) {
+  if (project.liquidityVerified === false && !hasVerifiedDepthSource(project)) return false;
   return Boolean(
     project.orderBookDepthVerified === true ||
       project.executionProof?.orderBookDepthVerified === true ||
       num(project.orderBookDepthUsd) > 0 ||
+      num(project.executableDepthUsd) > 0 ||
+      num(project.verifiedTradeSizeUsd) > 0 ||
       num(project.bidDepthUsd) > 0 ||
       num(project.askDepthUsd) > 0 ||
+      num(project.canonicalExecutionRoute?.orderBookDepthUsd) > 0 ||
+      num(project.canonicalExecutionRoute?.executableDepthUsd) > 0 ||
+      num(project.canonicalExecutionRoute?.verifiedTradeSizeUsd) > 0 ||
       num(project.canonicalExecutionRoute?.liquidityUsd) > 0 ||
+      num(project.executionProofRecoveryRoute?.orderBookDepthUsd) > 0 ||
+      num(project.executionProofRecoveryRoute?.executableDepthUsd) > 0 ||
+      num(project.executionProofRecoveryRoute?.verifiedTradeSizeUsd) > 0 ||
       num(project.executionProofRecoveryRoute?.liquidityUsd) > 0
   );
 }
@@ -440,8 +477,17 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const routeType = project.canonicalExecutionRoute?.routeType || routes.find((route) => route.routeType)?.routeType || "";
   const poolVerified = routeType === "CEX"
     ? Boolean(routes.some((route) => route.marketPair) || project.marketPair || project.exchangeAssetId)
-    : Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
-  const quoteVerified = Boolean(buyRouteAvailable && sellRouteAvailable && price > 0 && liquidity > 0 && quoteAge !== null && routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600));
+    : ["AGGREGATOR", "DEX_AGGREGATOR"].includes(String(routeType).toUpperCase())
+      ? Boolean(chainVerified && contractVerified && buyRouteAvailable && sellRouteAvailable)
+      : Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
+  const quoteVerified = Boolean(
+    buyRouteAvailable &&
+      sellRouteAvailable &&
+      liquidity > 0 &&
+      quoteAge !== null &&
+      observedSlippageVerified &&
+      routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600)
+  );
   const safetyVerified = safetyNonBlocked(project, routes);
   const liveReadySubject = {
     ...project,
@@ -451,6 +497,16 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     sellQuoteVerified: sellRouteAvailable,
     quoteAgeSeconds: quoteAge,
     liquidityUsd: liquidity,
+    executableDepthUsd: first([
+      project.executableDepthUsd,
+      project.canonicalExecutionRoute?.executableDepthUsd,
+      project.executionProofRecoveryRoute?.executableDepthUsd,
+    ]),
+    verifiedTradeSizeUsd: first([
+      project.verifiedTradeSizeUsd,
+      project.canonicalExecutionRoute?.verifiedTradeSizeUsd,
+      project.executionProofRecoveryRoute?.verifiedTradeSizeUsd,
+    ]),
     estimatedSlippagePct: observedSlippage,
     slippageIsHeuristic: !observedSlippageVerified,
     exactIdentityVerified: chainVerified && contractVerified && poolVerified,

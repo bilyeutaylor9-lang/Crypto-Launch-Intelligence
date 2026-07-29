@@ -171,12 +171,13 @@ function routeReady(project = {}) {
 function hasRouteIdentity(project = {}) {
   const route = project.canonicalExecutionRoute || project.executionProofRecoveryRoute || {};
   const routeType = String(route.routeType || project.routeType || "").toUpperCase();
+  const aggregatorRoute = routeType === "AGGREGATOR" || routeType === "DEX_AGGREGATOR";
   if (project.exactIdentityVerified === true || route.exactIdentityVerified === true) return true;
   if (routeType === "CEX") return Boolean((route.venue || project.exchange) && (route.marketPair || project.marketPair));
   return Boolean(
     (project.chain || project.canonicalChain || route.chain) &&
       (project.tokenAddress || project.contractAddress || route.tokenAddress || route.contractAddress) &&
-      (project.poolAddress || project.pairAddress || route.poolAddress || route.pairAddress || routeType === "AGGREGATOR")
+      (project.poolAddress || project.pairAddress || route.poolAddress || route.pairAddress || aggregatorRoute)
   );
 }
 
@@ -200,8 +201,14 @@ function routeProofChecklist(project = {}) {
   ]);
   const depth = first([
     project.orderBookDepthUsd,
+    project.executableDepthUsd,
+    project.verifiedTradeSizeUsd,
     route.orderBookDepthUsd,
+    route.executableDepthUsd,
+    route.verifiedTradeSizeUsd,
     proof.orderBookDepthUsd,
+    proof.executableDepthUsd,
+    proof.verifiedTradeSizeUsd,
     project.stableExitLiquidityUsd,
     project.dexLiquidityUsd,
     project.liquidityUsd,
@@ -214,7 +221,12 @@ function routeProofChecklist(project = {}) {
   const hasSlippage = slippage !== null && Number.isFinite(Number(slippage)) && project.slippageIsHeuristic !== true && route.slippageIsHeuristic !== true && proof.slippageIsHeuristic !== true;
   const hasDepth = Number.isFinite(Number(depth)) && Number(depth) > 0;
   const region = first([project.regionStatus, route.regionStatus, project.routeAccessibility?.regionStatus]);
-  const regionAvailable = !region || String(region).toUpperCase() === "CONFIRMED_AVAILABLE";
+  const routeType = String(route.routeType || project.routeType || "").toUpperCase();
+  const cexRoute = routeType === "CEX";
+  const regionStatus = String(region || "").toUpperCase();
+  const regionAvailable = cexRoute
+    ? regionStatus === "CONFIRMED_AVAILABLE"
+    : !["CONFIRMED_RESTRICTED", "REGION_RESTRICTED", "RESTRICTED", "UNAVAILABLE"].includes(regionStatus);
   const checks = [
     { field: "exact route identity", passed: hasRouteIdentity(project) },
     { field: "fresh buy quote", passed: hasBuyQuote && quoteFresh },

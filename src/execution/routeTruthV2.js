@@ -1,6 +1,7 @@
 const LIVE_READY_STATUS = "LIVE_EXECUTION_READY";
 const STALE_STATUSES = new Set(["STALE", "STALE_QUOTE"]);
 const HARD_BLOCK_STATUSES = new Set(["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH", "REJECTED"]);
+const VERIFIED_DEPTH_SOURCES = new Set(["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -14,8 +15,28 @@ function upper(value = "") {
   return clean(value).toUpperCase();
 }
 
+function normalizedRouteType(subject = {}) {
+  const value = upper(subject.routeType || subject.canonicalExecutionRoute?.routeType || subject.executionProofRecoveryRoute?.routeType);
+  if (value === "DEX_AGGREGATOR" || value === "AGGREGATOR") return "AGGREGATOR";
+  return value;
+}
+
 function first(values = []) {
   return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
+}
+
+function hasVerifiedDepthSource(subject = {}) {
+  const source = upper(first([
+    subject.verifiedDepthSource,
+    subject.depthVerificationSource,
+    subject.executionProof?.verifiedDepthSource,
+    subject.executionProof?.depthVerificationSource,
+    subject.executionProofRecoveryRoute?.verifiedDepthSource,
+    subject.executionProofRecoveryRoute?.depthVerificationSource,
+    subject.canonicalExecutionRoute?.verifiedDepthSource,
+    subject.canonicalExecutionRoute?.depthVerificationSource,
+  ])).replace(/_/g, "-");
+  return VERIFIED_DEPTH_SOURCES.has(source) || subject.executionProofRecovery?.status === "ROUTE_RECOVERED";
 }
 
 function verifiedStatus(value = "") {
@@ -99,6 +120,7 @@ export function hasVerifiedSellQuote(subject = {}) {
 }
 
 export function hasVerifiedRouteDepth(subject = {}) {
+  if (subject.liquidityVerified === false && !hasVerifiedDepthSource(subject)) return false;
   return Boolean(
     subject.orderBookDepthVerified === true ||
       subject.executionProof?.orderBookDepthVerified === true ||
@@ -106,11 +128,22 @@ export function hasVerifiedRouteDepth(subject = {}) {
         num(subject.orderBookDepthUsd),
         num(subject.bidDepthUsd),
         num(subject.askDepthUsd),
+        num(subject.executableDepthUsd),
+        num(subject.verifiedTradeSizeUsd),
         num(subject.liquidityUsd),
         num(subject.dexLiquidityUsd),
         num(subject.stableExitLiquidityUsd),
         num(subject.executionProof?.orderBookDepthUsd),
+        num(subject.executionProof?.executableDepthUsd),
+        num(subject.executionProof?.verifiedTradeSizeUsd),
         num(subject.executionProof?.liquidityUsd),
+        num(subject.executionProofRecoveryRoute?.orderBookDepthUsd),
+        num(subject.executionProofRecoveryRoute?.executableDepthUsd),
+        num(subject.executionProofRecoveryRoute?.verifiedTradeSizeUsd),
+        num(subject.executionProofRecoveryRoute?.liquidityUsd),
+        num(subject.canonicalExecutionRoute?.orderBookDepthUsd),
+        num(subject.canonicalExecutionRoute?.executableDepthUsd),
+        num(subject.canonicalExecutionRoute?.verifiedTradeSizeUsd),
         num(subject.canonicalExecutionRoute?.liquidityUsd)
       ) > 0
   );
@@ -141,7 +174,7 @@ export function hasVerifiedRouteSlippage(subject = {}) {
 }
 
 export function hasExactRouteIdentity(subject = {}) {
-  const routeType = upper(subject.routeType || subject.canonicalExecutionRoute?.routeType);
+  const routeType = normalizedRouteType(subject);
   if (subject.exactIdentityVerified === true || subject.executionProof?.exactIdentityVerified === true) return true;
   if (routeType === "CEX") {
     return Boolean(
@@ -154,6 +187,21 @@ export function hasExactRouteIdentity(subject = {}) {
       (subject.contractAddress || subject.tokenAddress || subject.canonicalExecutionRoute?.contractAddress) &&
       (subject.poolAddress || subject.pairAddress || subject.canonicalExecutionRoute?.pairAddress || routeType === "AGGREGATOR")
   );
+}
+
+function routeRegionAllowsExecution(subject = {}) {
+  const routeType = normalizedRouteType(subject);
+  const status = upper(first([
+    subject.regionStatus,
+    subject.regionAvailability,
+    subject.canonicalExecutionRoute?.regionStatus,
+    subject.canonicalExecutionRoute?.regionAvailability,
+    subject.executionProofRecoveryRoute?.regionStatus,
+    subject.executionProofRecoveryRoute?.regionAvailability,
+  ]));
+  if (["CONFIRMED_RESTRICTED", "REGION_RESTRICTED", "RESTRICTED", "UNAVAILABLE"].includes(status)) return false;
+  if (routeType === "CEX") return status === "CONFIRMED_AVAILABLE";
+  return true;
 }
 
 export function isLiveExecutionReady(subject = {}, options = {}) {
@@ -171,7 +219,7 @@ export function isLiveExecutionReady(subject = {}, options = {}) {
       routeQuoteFresh(subject, maxAgeSeconds) &&
       hasVerifiedRouteDepth(subject) &&
       hasVerifiedRouteSlippage(subject) &&
-      (subject.regionStatus ? upper(subject.regionStatus) === "CONFIRMED_AVAILABLE" : true)
+      routeRegionAllowsExecution(subject)
   );
 }
 

@@ -197,6 +197,13 @@ test("route/accessibility-only proof gaps stay visible as route-missing research
     classified([
       candidate({
         symbol: "REGION",
+        dexName: "Kraken",
+        dex: "Kraken",
+        venue: "Kraken",
+        routeType: "CEX",
+        marketPair: "REGION-USDT",
+        poolAddress: null,
+        pairAddress: null,
         regionStatus: "UNKNOWN",
       }),
     ])
