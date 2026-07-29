@@ -35,6 +35,20 @@ const COMPONENT_WEIGHTS = {
   route: 0.1,
 };
 
+const HARD_IDENTITY_QUARANTINE_REASONS = new Set([
+  "CONTRACT_MISSING",
+  "SYMBOL_AMBIGUOUS",
+  "UNSUPPORTED_CHAIN",
+  "NATIVE_ASSET_MISMATCH",
+  "WRAPPED_ASSET_UNVERIFIED",
+]);
+
+function hasHardIdentityQuarantine(strictGate = {}) {
+  return (strictGate.candidateQuarantineReasons || []).some((reason) =>
+    HARD_IDENTITY_QUARANTINE_REASONS.has(reason)
+  );
+}
+
 export const HIGH_UPSIDE_SCALP_COMPONENTS = {
   upside: [
     ["sevenDayTenXScore"],
@@ -447,7 +461,11 @@ function primaryLane(project = {}, score = 0, dataCoveragePct = 0, componentScor
   if (isLikelyAggregateCandidate(project)) return "INVALID_OR_AGGREGATE_IDENTITY";
   if (deterministicSafetyBlocked(project)) return "SAFETY_BLOCKED";
   if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") return "MARKET_BENCHMARK";
-  if (!strictGate.strictRankEligible) return "QUARANTINED_IDENTITY_OR_ROUTE";
+  if (!strictGate.strictRankEligible) {
+    return hasHardIdentityQuarantine(strictGate)
+      ? "QUARANTINED_IDENTITY_OR_ROUTE"
+      : "RESEARCH_ONLY_ROUTE_MISSING";
+  }
   if (lateChase(project)) return "LATE_CHASE_REJECTED";
   if (utilityBlocked(project)) return "MEME_SPECULATION_EXCLUDED";
   if (routeOnlyScalpBlock(project)) {

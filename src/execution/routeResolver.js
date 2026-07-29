@@ -25,6 +25,7 @@ export const ROUTE_QUARANTINE_REASONS = Object.freeze({
   WRAPPED_ASSET_UNVERIFIED: "WRAPPED_ASSET_UNVERIFIED",
   STALE_MARKET_DATA: "STALE_MARKET_DATA",
   NATIVE_ASSET_MISMATCH: "NATIVE_ASSET_MISMATCH",
+  REGION_UNVERIFIED: "REGION_UNVERIFIED",
 });
 
 const QUOTE_TOKEN_ADDRESSES = Object.freeze({
@@ -453,6 +454,7 @@ export function resolveStrictCandidateGate(project = {}) {
   if (!sellQuoteVerified || !depthVerified || !slippageVerified || !safetyClean) {
     reasons.push(ROUTE_QUARANTINE_REASONS.SELL_ROUTE_FAILED);
   }
+  if (!routeRegionVerified(project)) reasons.push(ROUTE_QUARANTINE_REASONS.REGION_UNVERIFIED);
   if (!quoteFresh || !lastVerifiedAt || provenance.length === 0) reasons.push(ROUTE_QUARANTINE_REASONS.STALE_MARKET_DATA);
 
   const strictIdentityVerified = Boolean(

@@ -393,6 +393,68 @@ function frequency(values = []) {
     .map(([field, count]) => ({ field, count }));
 }
 
+function promotionBlockerSummary({
+  scored = [],
+  top = [],
+  watch = [],
+  routeMissing = [],
+  quarantined = [],
+  invalidIdentity = [],
+  dataStarved = [],
+} = {}) {
+  const quarantineReasons = frequency(
+    quarantined.flatMap((project) => {
+      const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
+      return strictGate.candidateQuarantineReasons || [];
+    })
+  );
+  const nextProofNeeded = frequency(
+    scored.flatMap((project) => [
+      project.highUpsideScalpNextProofNeeded,
+      project.dailyCapitalMoveMissingProof?.[0],
+      project.strictCandidateGate?.candidateQuarantineReason,
+      resolveStrictCandidateGate(project).candidateQuarantineReason,
+    ])
+  );
+  const failedSources = frequency(scored.flatMap(failedSourceList));
+  const promoted = top.length + watch.length + routeMissing.length;
+  const primaryFailureMode =
+    promoted > 0
+      ? "SOME_RESEARCH_CANDIDATES_PROMOTING"
+      : quarantined.length
+        ? "STRICT_IDENTITY_OR_ROUTE_PROOF_MISSING"
+        : dataStarved.length
+          ? "DATA_STARVED"
+          : invalidIdentity.length
+            ? "INVALID_OR_AGGREGATE_IDENTITY"
+            : "NO_ACTIONABLE_PROMOTION";
+
+  return {
+    primaryFailureMode,
+    explanation:
+      primaryFailureMode === "STRICT_IDENTITY_OR_ROUTE_PROOF_MISSING"
+        ? "Candidates have research signals, but they are not allowed into scalp-ready/watch lanes until contract, pool/market, liquidity, fresh buy quote, fresh sell quote, and route freshness are proven."
+        : primaryFailureMode === "DATA_STARVED"
+          ? "Candidates are missing required evidence families before classification can be trusted."
+          : primaryFailureMode === "SOME_RESEARCH_CANDIDATES_PROMOTING"
+            ? "At least one candidate reached a visible research lane; remaining candidates are still gated by proof."
+            : "No promotion-ready candidate exists under the current safety and proof rules.",
+    promotedCount: promoted,
+    quarantinedCount: quarantined.length,
+    invalidIdentityCount: invalidIdentity.length,
+    dataStarvedCount: dataStarved.length,
+    topQuarantineReasons: quarantineReasons.slice(0, 12),
+    topNextProofNeeded: nextProofNeeded.slice(0, 12),
+    topFailedSources: failedSources.slice(0, 12),
+    recommendedFixOrder: [
+      "Restore route-identity sources: DexScreener and GeckoTerminal first.",
+      "Resolve token contract and pool/pair address before quote recovery.",
+      "Recover fresh buy and sell quotes with Jupiter for Solana and 0x or DEX adapters for EVM.",
+      "Only then evaluate wallet flow, buyer breadth, utility proof, and final capital-move eligibility.",
+    ],
+  };
+}
+
 function scoreDistribution(projects = []) {
   const scores = projects
     .map((project) => num(project.highUpsideScalpScore))
@@ -499,6 +561,15 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     ? HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES.filter((field) => allMissingFields.includes(field))
     : [];
   const scoreStats = scoreDistribution(classificationEligible);
+  const blockers = promotionBlockerSummary({
+    scored,
+    top,
+    watch,
+    routeMissing,
+    quarantined,
+    invalidIdentity,
+    dataStarved,
+  });
 
   return {
     generatedAt: new Date().toISOString(),
@@ -551,6 +622,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     routeReadyCount: classificationEligible.filter((project) => project.highUpsideScalpDiagnostics?.routeReady === true || routeReady(project)).length,
     routeMissingCount: routeMissing.length,
     componentCoverageSummary: componentCoverageSummary(classificationEligible),
+    promotionBlockerSummary: blockers,
     deferredFunnelSummary: {
       deferredCount: researchDeferred.length,
       reason:

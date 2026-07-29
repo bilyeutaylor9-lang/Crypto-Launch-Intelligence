@@ -237,6 +237,7 @@ function nextSources(missing = []) {
     "executable liquidity": ["DexScreener", "GeckoTerminal", "Jupiter", "DEX quote adapter"],
     "circulating market cap": ["CoinGecko", "CoinPaprika", "CoinLore", "supply explorer"],
     "fresh verified buy and sell route": ["Jupiter", "0x", "1inch", "chain-native DEX quote", "CEX order book"],
+    "REGION_UNVERIFIED": ["CEX region check", "wallet/chain accessibility settings", "route-accessibility engine"],
     "independent source provenance": ["source truth router", "official links", "independent market provider"],
     "real utility, roadmap, or developer proof": ["GitHub", "official docs", "project website", "package registry"],
     "capital flow, buyer breadth, or liquidity formation": ["GeckoTerminal trades", "native RPC", "block explorer"],

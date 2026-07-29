@@ -48,6 +48,23 @@ const PAID_KEY_UPSIDE_RANK = [
   { source: "zerox", missingKey: "ZEROX_API_KEY", priority: 4, reason: "Best EVM live buy/sell route quote upgrade." },
 ];
 
+const ROUTE_IDENTITY_SOURCES = new Set([
+  "dexscreener",
+  "geckoterminal",
+  "coingecko",
+  "etherscan",
+  "solscan",
+  "goplus",
+  "honeypot",
+  "nativediscoverymesh",
+]);
+
+const EXECUTION_QUOTE_SOURCES = new Set([
+  "jupiter",
+  "zerox",
+  "cexorderbook",
+]);
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -117,6 +134,8 @@ function usefulCount(item = {}) {
     num(item.pairs),
     num(item.poolCount),
     num(item.pools),
+    num(item.usefulRecordCount),
+    num(item.recovered),
     num(item.seedCount),
     num(item.seeds),
     num(item.seedUrlsDiscovered),
@@ -150,6 +169,17 @@ function blindnessRisk({ availableCount = 0, workingFreeSourceCount = 0, critica
   if (availableCount === 0) return "CRITICAL";
   if (workingFreeSourceCount < 3 || criticalSourceAvailableCount < 2) return "HIGH";
   if (workingFreeSourceCount < 5 || criticalSourceAvailableCount < 4) return "MEDIUM";
+  return "LOW";
+}
+
+function routePromotionRisk({
+  routeIdentitySourceAvailableCount = 0,
+  routeIdentityUsefulSourceCount = 0,
+  executionQuoteSourceAvailableCount = 0,
+} = {}) {
+  if (routeIdentityUsefulSourceCount === 0) return "CRITICAL";
+  if (routeIdentitySourceAvailableCount < 2 || executionQuoteSourceAvailableCount === 0) return "HIGH";
+  if (routeIdentitySourceAvailableCount < 3 || executionQuoteSourceAvailableCount < 2) return "MEDIUM";
   return "LOW";
 }
 
@@ -246,6 +276,39 @@ export function summarizeDailySourceGaps(meta = {}) {
       lastError: gap.reason || null,
     });
   }
+  for (const adapter of meta.executionProofRecovery?.adapterHealth || []) {
+    const key = normalizeSource(adapter.adapter);
+    const setup = setupForSource(key);
+    const recovered = num(adapter.recovered);
+    const providerFailures = num(adapter.providerFailures);
+    const optionalKeyMissing = num(adapter.optionalKeyMissing);
+    const attempts = num(adapter.attempts);
+    mergeSource(sourceMap, key, {
+      source: key,
+      label: setup.label,
+      status:
+        recovered > 0
+          ? "AVAILABLE"
+          : optionalKeyMissing > 0
+            ? "MISSING_OPTIONAL_KEY"
+            : providerFailures > 0
+              ? "FAILED"
+              : attempts > 0
+                ? "UNKNOWN"
+                : "UNKNOWN",
+      missingKey: optionalKeyMissing > 0 ? setup.envKey : null,
+      optional: setup.optional === true || optionalKeyMissing > 0 || EXECUTION_QUOTE_SOURCES.has(key),
+      improves: setup.improves,
+      returnedUsefulData: recovered > 0,
+      usefulRecordCount: recovered,
+      lastError:
+        providerFailures > 0
+          ? `${providerFailures} provider recovery attempts failed.`
+          : optionalKeyMissing > 0
+            ? `${setup.envKey || "provider key"} missing for optional quote recovery.`
+            : null,
+    });
+  }
 
   const sources = [...sourceMap.values()].map((item) => {
     const setup = setupForSource(item.source);
@@ -285,10 +348,20 @@ export function summarizeDailySourceGaps(meta = {}) {
   const criticalSourceCount = sources.filter((item) => item.critical).length;
   const criticalSourceAvailableCount = sources.filter((item) => item.critical && item.status === "AVAILABLE").length;
   const scannerBlindnessRisk = blindnessRisk({ availableCount, workingFreeSourceCount, criticalSourceAvailableCount });
+  const routeIdentitySources = sources.filter((item) => ROUTE_IDENTITY_SOURCES.has(item.source));
+  const executionQuoteSources = sources.filter((item) => EXECUTION_QUOTE_SOURCES.has(item.source));
+  const routeIdentitySourceAvailableCount = routeIdentitySources.filter((item) => item.status === "AVAILABLE").length;
+  const routeIdentityUsefulSourceCount = routeIdentitySources.filter((item) => item.status === "AVAILABLE" && item.returnedUsefulData).length;
+  const executionQuoteSourceAvailableCount = executionQuoteSources.filter((item) => item.status === "AVAILABLE").length;
+  const routePromotionBlindnessRisk = routePromotionRisk({
+    routeIdentitySourceAvailableCount,
+    routeIdentityUsefulSourceCount,
+    executionQuoteSourceAvailableCount,
+  });
 
   return {
     generatedAt: new Date().toISOString(),
-    status: availableCount === 0 || sources.some((item) => fatalGapStatuses.has(item.status))
+    status: availableCount === 0 || sources.some((item) => !item.optional && fatalGapStatuses.has(item.status))
       ? "SOURCE_GAPS_FOUND"
       : "SOURCE_HEALTH_OK",
     sourceCount: sources.length,
@@ -298,6 +371,18 @@ export function summarizeDailySourceGaps(meta = {}) {
     criticalSourceCount,
     criticalSourceAvailableCount,
     scannerBlindnessRisk,
+    routeIdentitySourceCount: routeIdentitySources.length,
+    routeIdentitySourceAvailableCount,
+    routeIdentityUsefulSourceCount,
+    executionQuoteSourceCount: executionQuoteSources.length,
+    executionQuoteSourceAvailableCount,
+    routePromotionBlindnessRisk,
+    routePromotionWarning:
+      routePromotionBlindnessRisk === "CRITICAL"
+        ? "CRITICAL: candidates cannot promote because no useful route-identity source produced contract/pool/liquidity evidence."
+        : routePromotionBlindnessRisk === "HIGH"
+          ? "HIGH: candidates may remain quarantined because route-identity or quote-recovery coverage is thin."
+          : null,
     criticalWarning:
       availableCount === 0
         ? "CRITICAL: scanner has no live source truth. Rankings are research-only and should not be trusted until source coverage is restored."
@@ -311,6 +396,16 @@ export function summarizeDailySourceGaps(meta = {}) {
       .filter((item) => item.free && item.status !== "AVAILABLE")
       .slice(0, 12)
       .map((item) => ({ source: item.label, status: item.status, nextAction: item.nextAction, improves: item.improves })),
+    topRoutePromotionSourceFailures: [...routeIdentitySources, ...executionQuoteSources]
+      .filter((item) => item.status !== "AVAILABLE" || !item.returnedUsefulData)
+      .slice(0, 12)
+      .map((item) => ({
+        source: item.label,
+        status: item.status,
+        returnedUsefulData: item.returnedUsefulData,
+        nextAction: item.nextAction,
+        improves: item.improves,
+      })),
     paidKeyUpsideRank: PAID_KEY_UPSIDE_RANK.map((item) => {
       const source = sources.find((sourceItem) => sourceItem.source === item.source);
       return {

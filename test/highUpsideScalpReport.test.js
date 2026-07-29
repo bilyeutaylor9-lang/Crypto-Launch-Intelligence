@@ -162,6 +162,54 @@ test("high-upside scalp report promotes pre-extension real-utility route-ready c
   assert.equal(report.topScalpResearchCandidates[0].subCent, true);
 });
 
+test("high-upside scalp report explains why candidates are not promoting", () => {
+  const report = summarizeHighUpsideScalpResearch(
+    classified([
+      candidate({
+        symbol: "NOPROOF",
+        tokenAddress: null,
+        contractAddress: null,
+        poolAddress: null,
+        pairAddress: null,
+        liquidityUsd: 0,
+        dexLiquidityUsd: 0,
+        volume24h: 0,
+        volume24hUsd: 0,
+        buyQuoteVerified: false,
+        sellQuoteVerified: false,
+        quoteTimestamp: null,
+        routeTruthStatus: "MARKET_OBSERVED",
+        discoverySources: ["research-seed"],
+        source: "research-seed",
+      }),
+    ])
+  );
+
+  assert.equal(report.scalpReadyCount, 0);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
+  assert.equal(report.promotionBlockerSummary.primaryFailureMode, "STRICT_IDENTITY_OR_ROUTE_PROOF_MISSING");
+  assert.ok(report.promotionBlockerSummary.topQuarantineReasons.some((item) => item.field === "CONTRACT_MISSING"));
+  assert.match(report.promotionBlockerSummary.explanation, /contract, pool\/market, liquidity/i);
+});
+
+test("route/accessibility-only proof gaps stay visible as route-missing research", () => {
+  const report = summarizeHighUpsideScalpResearch(
+    classified([
+      candidate({
+        symbol: "REGION",
+        regionStatus: "UNKNOWN",
+      }),
+    ])
+  );
+
+  assert.equal(report.scalpReadyCount, 0);
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 0);
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "REGION");
+  assert.equal(report.researchOnlyRouteMissing[0].lane, "RESEARCH_ONLY_ROUTE_MISSING");
+  assert.ok(report.researchOnlyRouteMissing[0].highUpsideScalpMissingProof.includes("REGION_UNVERIFIED"));
+});
+
 test("already-10x or late-chase candidates are rejected from scalp-ready lane", () => {
   const report = summarizeHighUpsideScalpResearch(
     classified([
@@ -445,15 +493,15 @@ test("safety blocked, lower priority, and route-missing projects stay visible", 
 
   assert.equal(report.safetyBlockedCount, 1);
   assert.equal(report.lowerPriorityCount, 1);
-  assert.equal(report.researchOnlyRouteMissingCount, 0);
-  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 0);
   assert.equal(report.safetyBlocked[0].symbol, "BAD");
   assert.equal(report.lowerPriority[0].symbol, "LOW");
-  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "NOROUTE");
-  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "NOROUTE");
+  assert.equal(report.researchOnlyRouteMissing[0].quarantineReason, "SELL_ROUTE_FAILED");
 });
 
-test("high-upside scalp quarantines route-only microstructure blocks with exact missing proof", () => {
+test("high-upside scalp keeps route-only microstructure blocks visible with exact missing proof", () => {
   const noRoute = candidate({
     symbol: "ROUTEGAP",
     sellRouteAvailable: false,
@@ -479,18 +527,20 @@ test("high-upside scalp quarantines route-only microstructure blocks with exact 
   });
   const report = summarizeHighUpsideScalpResearch(classified([noRoute]));
 
-  assert.equal(report.researchOnlyRouteMissingCount, 0);
-  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 0);
   assert.equal(report.microstructureRejectedCount, 0);
   assert.equal(report.safetyBlockedCount, 0);
-  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "ROUTEGAP");
-  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "BUY_ROUTE_FAILED");
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "ROUTEGAP");
+  assert.equal(report.researchOnlyRouteMissing[0].quarantineReason, "BUY_ROUTE_FAILED");
 });
 
-test("promising low-coverage candidates missing route proof stay quarantined instead of data-starved", () => {
+test("promising low-coverage candidates missing route proof stay route-pending instead of data-starved", () => {
   const report = summarizeHighUpsideScalpResearch(
     analyzeHighUpsideScalpClassificationBatch([
       {
+        name: "Early Route Protocol",
+        tokenName: "Early Route Protocol",
         symbol: "EARLYROUTE",
         chain: "solana",
         tokenAddress: "So11111111111111111111111111111111111111112",
@@ -514,12 +564,12 @@ test("promising low-coverage candidates missing route proof stay quarantined ins
     ])
   );
 
-  assert.equal(report.researchOnlyRouteMissingCount, 0);
-  assert.equal(report.quarantinedIdentityOrRouteCount, 1);
+  assert.equal(report.researchOnlyRouteMissingCount, 1);
+  assert.equal(report.quarantinedIdentityOrRouteCount, 0);
   assert.equal(report.dataStarvedCount, 0);
-  assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "EARLYROUTE");
-  assert.equal(report.quarantinedIdentityOrRoute[0].readableLane, "QUARANTINED");
-  assert.ok(report.quarantinedIdentityOrRoute[0].promotionDebug.nextSingleProofToPromote);
+  assert.equal(report.researchOnlyRouteMissing[0].symbol, "EARLYROUTE");
+  assert.equal(report.researchOnlyRouteMissing[0].readableLane, "ROUTE_PENDING");
+  assert.ok(report.researchOnlyRouteMissing[0].promotionDebug.nextSingleProofToPromote);
 });
 
 test("route-ready candidates with missing wallet flow enter manual review instead of false scalp-ready", () => {

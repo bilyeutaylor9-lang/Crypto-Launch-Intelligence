@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   analyzeDailyCapitalMove,
@@ -7,6 +10,7 @@ import {
 } from "../src/engines/dailyCapitalMoveEngine.js";
 import { summarizeDailyRecoveryQueue } from "../src/reports/dailyRecoveryQueueReportEngine.js";
 import { summarizeDailySourceGaps } from "../src/reports/dailySourceGapReportEngine.js";
+import { summarizeSystemReadiness } from "../src/reports/systemReadinessReportEngine.js";
 
 const NOW = new Date().toISOString();
 const TOKEN = "0x1111111111111111111111111111111111111111";
@@ -298,6 +302,94 @@ test("daily source gaps do not let missing paid keys make the free-mode scanner 
   assert.equal(report.workingFreeSourceCount >= 3, true);
   assert.notEqual(report.scannerBlindnessRisk, "CRITICAL");
   assert.ok(report.paidKeyUpsideRank.some((item) => item.missingKey === "BIRDEYE_API_KEY"));
+});
+
+test("daily source gaps distinguish seed coverage from route-promotion coverage", () => {
+  const report = summarizeDailySourceGaps({
+    sourceProbes: {
+      researchSeeds: { status: "success", seedCount: 30 },
+      candidateRescue: { status: "success", candidates: 10 },
+      dexscreener: { status: "fetch failed" },
+      geckoterminal: { status: "fetch failed" },
+      coingecko: { status: "timeout" },
+    },
+    executionProofRecovery: {
+      adapterHealth: [
+        { adapter: "jupiter", attempts: 8, recovered: 0, providerFailures: 0 },
+        { adapter: "cex-order-book", attempts: 8, recovered: 0, providerFailures: 8 },
+      ],
+    },
+  });
+
+  assert.equal(report.workingFreeSourceCount >= 2, true);
+  assert.equal(report.routeIdentityUsefulSourceCount, 0);
+  assert.equal(report.executionQuoteSourceAvailableCount, 0);
+  assert.equal(report.routePromotionBlindnessRisk, "CRITICAL");
+  assert.match(report.routePromotionWarning, /contract\/pool\/liquidity/i);
+  assert.ok(report.topRoutePromotionSourceFailures.some((item) => item.source === "DexScreener"));
+});
+
+test("system readiness names strict route proof as the candidate-promotion blocker", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-system-readiness-promotion-"));
+  fs.writeFileSync(path.join(reportsDir, "daily-source-gaps.json"), JSON.stringify({
+    status: "SOURCE_GAPS_FOUND",
+    routePromotionBlindnessRisk: "CRITICAL",
+    routeIdentitySourceAvailableCount: 0,
+    routeIdentityUsefulSourceCount: 0,
+    executionQuoteSourceAvailableCount: 0,
+    failedCount: 3,
+  }));
+  fs.writeFileSync(path.join(reportsDir, "high-upside-scalp-research.json"), JSON.stringify({
+    status: "PASS_NO_ACTIONABLE_RESULTS",
+    laneDistribution: { QUARANTINED_IDENTITY_OR_ROUTE: 10 },
+    scalpReadyCount: 0,
+    highUpsideWatchCount: 0,
+    quarantinedIdentityOrRouteCount: 10,
+  }));
+  fs.writeFileSync(path.join(reportsDir, "execution-proof-recovery.json"), JSON.stringify({
+    status: "PROVIDERS_FAILED_OR_UNAVAILABLE",
+    candidatesAttempted: 10,
+    routesRecovered: 0,
+  }));
+
+  const report = summarizeSystemReadiness({}, { reportsDir, requiredFiles: [] });
+
+  assert.equal(report.candidatePromotionStatus, "IDENTITY_ROUTE_PROOF_BLOCKED");
+  assert.equal(report.candidatePromotionDiagnosis.executionProofRoutesRecovered, 0);
+  assert.match(report.candidatePromotionDiagnosis.dominantReason, /strict contract, pool, liquidity/i);
+  assert.ok(report.failures.some((failure) => failure.area === "candidate-promotion"));
+  assert.ok(report.failures.some((failure) => failure.area === "candidate-lanes"));
+});
+
+test("system readiness distinguishes route-pending research from total promotion blockage", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-system-readiness-route-pending-"));
+  fs.writeFileSync(path.join(reportsDir, "daily-source-gaps.json"), JSON.stringify({
+    status: "SOURCE_GAPS_FOUND",
+    routePromotionBlindnessRisk: "LOW",
+    routeIdentitySourceAvailableCount: 3,
+    routeIdentityUsefulSourceCount: 2,
+    executionQuoteSourceAvailableCount: 2,
+    failedCount: 1,
+  }));
+  fs.writeFileSync(path.join(reportsDir, "high-upside-scalp-research.json"), JSON.stringify({
+    status: "PASS_WITH_WATCHLIST",
+    laneDistribution: { RESEARCH_ONLY_ROUTE_MISSING: 12, QUARANTINED_IDENTITY_OR_ROUTE: 4 },
+    scalpReadyCount: 0,
+    highUpsideWatchCount: 0,
+    researchOnlyRouteMissingCount: 12,
+    quarantinedIdentityOrRouteCount: 4,
+  }));
+  fs.writeFileSync(path.join(reportsDir, "execution-proof-recovery.json"), JSON.stringify({
+    status: "ROUTES_RECOVERED",
+    candidatesAttempted: 25,
+    routesRecovered: 6,
+  }));
+
+  const report = summarizeSystemReadiness({}, { reportsDir, requiredFiles: [] });
+
+  assert.equal(report.candidatePromotionStatus, "ROUTE_PENDING_RESEARCH_AVAILABLE");
+  assert.equal(report.candidatePromotionDiagnosis.researchOnlyRouteMissingCount, 12);
+  assert.match(report.candidatePromotionDiagnosis.dominantReason, /Route-pending research candidates are visible/i);
 });
 
 test("daily source gaps sanitize malformed env labels and require action for unavailable unknowns", () => {

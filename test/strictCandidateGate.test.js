@@ -147,6 +147,16 @@ test("missing sell route blocks promotion even when the project has strong oppor
   assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
 });
 
+test("unknown region produces an explicit quarantine reason", () => {
+  const gate = resolveStrictCandidateGate(verifiedCandidate({
+    regionStatus: "UNKNOWN",
+  }));
+
+  assert.equal(gate.strictRankEligible, false);
+  assert.equal(gate.candidateQuarantineReason, "REGION_UNVERIFIED");
+  assert.ok(gate.candidateQuarantineReasons.includes("REGION_UNVERIFIED"));
+});
+
 test("established native assets stay in market benchmark lane", () => {
   for (const asset of [
     { symbol: "ETH", chain: "ethereum" },

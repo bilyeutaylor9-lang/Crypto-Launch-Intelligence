@@ -39,6 +39,12 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   const dataStarvation = readJson("data-starvation-root-cause.json", reportsDir) || {};
   const routeHealth = readJson("venue-coverage-health.json", reportsDir) || {};
   const opMode = readJson("op-mode-readiness.json", reportsDir) || {};
+  const highUpsideScalp = readJson("high-upside-scalp-research.json", reportsDir) || {};
+  const executionRecovery = readJson("execution-proof-recovery.json", reportsDir) || {};
+  const scalpReadyCount = Number(highUpsideScalp.scalpReadyCount || 0);
+  const highUpsideWatchCount = Number(highUpsideScalp.highUpsideWatchCount || 0);
+  const routePendingCount = Number(highUpsideScalp.researchOnlyRouteMissingCount || 0);
+  const quarantinedIdentityOrRouteCount = Number(highUpsideScalp.quarantinedIdentityOrRouteCount || 0);
 
   const failures = [];
   if (validation.status !== "PASS") {
@@ -64,6 +70,26 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   if (Number(sourceGaps.failedCount || 0) + Number(sourceGaps.missingKeyCount || 0) + Number(sourceGaps.rateLimitedCount || 0) > 0) {
     failures.push({ area: "sources", severity: "WARN", reason: "Provider/source gaps reduce coverage.", nextAction: "Open daily-source-gaps.json and add keys or wait for cooldowns." });
   }
+  if (["CRITICAL", "HIGH"].includes(sourceGaps.routePromotionBlindnessRisk)) {
+    failures.push({
+      area: "candidate-promotion",
+      severity: "WARN",
+      reason: `Candidate promotion is blocked by ${sourceGaps.routePromotionBlindnessRisk.toLowerCase()} route-identity/quote source coverage.`,
+      nextAction: "Restore DexScreener/GeckoTerminal/CoinGecko pool identity coverage first, then recover Jupiter/0x/CEX buy-sell proof.",
+    });
+  }
+  if (
+    Number(highUpsideScalp.quarantinedIdentityOrRouteCount || 0) > 0 &&
+    Number(highUpsideScalp.scalpReadyCount || 0) === 0 &&
+    Number(highUpsideScalp.highUpsideWatchCount || 0) === 0
+  ) {
+    failures.push({
+      area: "candidate-lanes",
+      severity: "WARN",
+      reason: "Research candidates exist, but none reached scalp-ready or high-upside watch because strict identity/route proof is incomplete.",
+      nextAction: "Open high-upside-scalp-research.json and execution-proof-recovery.json; prioritize CONTRACT_MISSING, PAIR_NOT_FOUND, liquidity, and fresh buy/sell quotes.",
+    });
+  }
   if (opMode.status && !["READY", "PASS"].includes(opMode.status)) {
     failures.push({ area: "op-mode", severity: "WARN", reason: `OP Mode status is ${opMode.status}.`, nextAction: "Open op-mode-readiness.json for exact setup gaps." });
   }
@@ -88,6 +114,36 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     routeStatus: routeHealth.status || "REPORT_NOT_GENERATED",
     dailyCapitalStatus: dailyCapital.status || "REPORT_NOT_GENERATED",
     recoveryStatus: recovery.status || "REPORT_NOT_GENERATED",
+    candidatePromotionStatus:
+      scalpReadyCount > 0 || highUpsideWatchCount > 0
+        ? "CANDIDATES_PROMOTING"
+        : routePendingCount > 0
+          ? "ROUTE_PENDING_RESEARCH_AVAILABLE"
+        : quarantinedIdentityOrRouteCount > 0
+          ? "IDENTITY_ROUTE_PROOF_BLOCKED"
+          : highUpsideScalp.status || "REPORT_NOT_GENERATED",
+    candidatePromotionDiagnosis: {
+      highUpsideStatus: highUpsideScalp.status || "REPORT_NOT_GENERATED",
+      laneDistribution: highUpsideScalp.laneDistribution || {},
+      scalpReadyCount,
+      highUpsideWatchCount,
+      researchOnlyRouteMissingCount: routePendingCount,
+      quarantinedIdentityOrRouteCount,
+      invalidOrAggregateIdentityCount: Number(highUpsideScalp.invalidOrAggregateIdentityCount || 0),
+      routeIdentitySourceAvailableCount: Number(sourceGaps.routeIdentitySourceAvailableCount || 0),
+      routeIdentityUsefulSourceCount: Number(sourceGaps.routeIdentityUsefulSourceCount || 0),
+      executionQuoteSourceAvailableCount: Number(sourceGaps.executionQuoteSourceAvailableCount || 0),
+      routePromotionBlindnessRisk: sourceGaps.routePromotionBlindnessRisk || "UNKNOWN",
+      executionProofRecoveryStatus: executionRecovery.status || "REPORT_NOT_GENERATED",
+      executionProofCandidatesAttempted: Number(executionRecovery.candidatesAttempted || 0),
+      executionProofRoutesRecovered: Number(executionRecovery.routesRecovered || 0),
+      dominantReason:
+        routePendingCount > 0 && scalpReadyCount === 0 && highUpsideWatchCount === 0
+          ? "Route-pending research candidates are visible, but no candidate has full execution-ready proof yet."
+          : quarantinedIdentityOrRouteCount > 0
+          ? "Candidates are stuck before rank eligibility because strict contract, pool, liquidity, and fresh buy/sell route proof is missing."
+          : "No dominant candidate-promotion blocker detected from current reports.",
+    },
     requiredReportCount: requiredFiles.length,
     checkedReportCount: validation.checkedFiles,
     wholeEngineAuditSummary: wholeEngineAudit.summary || {},
