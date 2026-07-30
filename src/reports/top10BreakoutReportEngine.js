@@ -18,6 +18,214 @@ const BREAKOUT_WEIGHTS = [
   ["valuationOpportunity", 5],
 ];
 
+const IDENTITY_ROUTE_REASONS = new Set([
+  "CONTRACT_MISSING",
+  "SYMBOL_AMBIGUOUS",
+  "UNSUPPORTED_CHAIN",
+  "WRAPPED_ASSET_UNVERIFIED",
+  "NATIVE_ASSET_MISMATCH",
+]);
+
+const ROUTE_ONLY_REASONS = new Set([
+  "PAIR_NOT_FOUND",
+  "NO_ACTIVE_LIQUIDITY",
+  "BUY_ROUTE_FAILED",
+  "SELL_ROUTE_FAILED",
+  "STALE_MARKET_DATA",
+  "REGION_UNVERIFIED",
+]);
+
+const TOP10_CANDIDATE_INPUT_FIELDS = [
+  "canonicalProjectId",
+  "projectId",
+  "permanentProjectKey",
+  "name",
+  "canonicalName",
+  "symbol",
+  "canonicalSymbol",
+  "canonicalChain",
+  "chainId",
+  "finalChain",
+  "chain",
+  "network",
+  "finalContractAddress",
+  "canonicalAddress",
+  "tokenAddress",
+  "contractAddress",
+  "address",
+  "verifiedContractAddress",
+  "primaryTradablePool",
+  "poolAddress",
+  "pairAddress",
+  "finalPairAddress",
+  "verifiedPairAddress",
+  "dex",
+  "dexName",
+  "exchange",
+  "quoteAsset",
+  "quoteTokenAddress",
+  "source",
+  "sources",
+  "discoverySources",
+  "evidenceSources",
+  "evidence",
+  "baseToken",
+  "quoteToken",
+  "marketData",
+  "rawCandidate",
+  "priceUsd",
+  "price",
+  "priceChange24h",
+  "liquidityUsd",
+  "dexLiquidityUsd",
+  "finalLiquidityUsd",
+  "activeLiquidityUsd",
+  "stableExitLiquidityUsd",
+  "hardExitLiquidityUsd",
+  "exitLiquidityUsd",
+  "circulatingMarketCapUsd",
+  "marketCap",
+  "estimatedMarketCapUsd",
+  "fullyDilutedValueUsd",
+  "fdv",
+  "fullyDilutedValue",
+  "poolAge",
+  "poolAgeHours",
+  "pairCreatedAt",
+  "poolCreatedAt",
+  "earlyAccelerationScore",
+  "accelerationScore",
+  "preBreakoutMomentumScore",
+  "momentumShiftScore",
+  "velocityScore",
+  "projectChangeScore",
+  "liquidityFormationScore",
+  "liquidityExpansionScore",
+  "activeLiquidityTruthScore",
+  "liquidityPersistenceScore",
+  "organicBuyerScore",
+  "buyerRetentionScore",
+  "buyPressureScore",
+  "unrelatedBuyerClusters",
+  "independentBuyers24h",
+  "uniqueBuyers24h",
+  "sameFunderBuyers24h",
+  "smartWalletArrivalScore",
+  "smartWalletPerformanceScore",
+  "smartMoneyAccumulationScore",
+  "smartWalletDiversityScore",
+  "unrelatedSmartWalletCount",
+  "liveCatalystRadarScore",
+  "catalystCalendarScore",
+  "catalystScore",
+  "roadmapCatalystProfitScore",
+  "exchangeProbabilityScore",
+  "liveCatalystEvents",
+  "catalystWindow",
+  "developerActivityScore",
+  "githubProScore",
+  "githubVelocityScore",
+  "releaseAcceleration",
+  "commitQualityScore",
+  "github",
+  "githubUrl",
+  "githubPushedAt",
+  "githubStars",
+  "relativeStrengthScore",
+  "marketRankScore",
+  "preConsensusOpportunityScore",
+  "prePumpPatternScore",
+  "executionScore",
+  "executableTradeSizeUsd",
+  "proofOfAlphaExecutionTwinScore",
+  "smallCapPurchaseRouteScore",
+  "sourceTruthScore",
+  "sourceReliabilityScore",
+  "opportunityEvidenceCoverage",
+  "evidenceConfidence",
+  "sniperEvidenceFamilyList",
+  "valuationOpportunityScore",
+  "smallCapHunterScore",
+  "attentionGapScore",
+  "contractRiskScore",
+  "honeypotRiskScore",
+  "manipulationRiskScore",
+  "washTradingRiskScore",
+  "activityAuthenticityRiskScore",
+  "deployerRiskScore",
+  "holderConcentrationRiskScore",
+  "walletClusterRiskScore",
+  "insiderDistributionRisk",
+  "liquidityRemovalRiskScore",
+  "liquidityControlRisk",
+  "liquidityManipulationRisk",
+  "identityConfidence",
+  "identityResolutionScore",
+  "lateChaseRiskScore",
+  "alreadyPumpedRiskScore",
+  "sourceDisagreementRiskScore",
+  "opportunityHardBlockers",
+  "hardBlockers",
+  "finalBlockingReasons",
+  "sniperBlockingReasons",
+  "preConsensusHardBlockers",
+  "economicIntegrityBlockers",
+  "canonicalIdentityHardBlock",
+  "honeypotDetected",
+  "verifiedScam",
+  "scamDetected",
+  "deployerSelling",
+  "deployerNetFlow",
+  "lpRemovalUsd",
+  "contractVerified",
+  "contractSafetyVerified",
+  "instantSafetyStatus",
+  "researchOnly",
+  "tradableCandidate",
+  "missingEvidence",
+  "nextVerificationActions",
+  "moneyRankDrivers",
+  "opportunityWhyNowSignals",
+  "entryCondition",
+  "invalidationConditions",
+  "lateChaseThreshold",
+  "maximumAcceptableSlippage",
+  "observationTimestamp",
+  "discoveredAt",
+  "sourceTimestamp",
+  "updatedAt",
+  "lastUpdatedAt",
+  "finalSelectionQualified",
+  "finalSelectionState",
+  "routeTruthStatus",
+  "executionProofState",
+  "executionStatus",
+  "exactIdentityVerified",
+  "buyQuoteVerified",
+  "sellQuoteVerified",
+  "orderBookDepthVerified",
+  "orderBookDepthUsd",
+  "estimatedRoundTripSlippagePct",
+  "quoteTimestamp",
+  "quoteAgeSeconds",
+  "purchaseRouteConfirmed",
+  "executionRouteAvailable",
+  "executionRoute",
+  "executionRoutes",
+  "purchaseRoute",
+  "canonicalExecutionRoute",
+  "executionProofRecoveryRoute",
+  "executionProofRecoveryRoutes",
+  "executionProof",
+  "smallCapHunter",
+  "proofOfAlphaExecutionTwin",
+  "institutionalDataProvenance",
+  "prePump",
+  "opportunityRankingTier",
+  "sniperState",
+  "progressiveLane",
+];
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -471,6 +679,83 @@ function rankRecords(records = []) {
   );
 }
 
+function hasOnlyRouteQuarantine(record = {}) {
+  const reasons = array(record.candidateQuarantineReasons);
+  return reasons.length > 0 && reasons.every((reason) => ROUTE_ONLY_REASONS.has(reason));
+}
+
+function hasIdentityQuarantine(record = {}) {
+  return array(record.candidateQuarantineReasons).some((reason) => IDENTITY_ROUTE_REASONS.has(reason));
+}
+
+function researchEligible(record = {}) {
+  if (record.qualificationState === "BLOCKED" || record.qualificationState === "MARKET_BENCHMARK") return false;
+  if (record.hardBlocks?.length) return false;
+  if (hasIdentityQuarantine(record)) return false;
+  if (!record.chain || !record.verifiedContractAddress) return false;
+  if (record.breakoutReadinessScore < 45 && record.evidenceCompleteness < 40) return false;
+  return true;
+}
+
+function countWhere(records = [], predicate = () => false) {
+  return records.filter(predicate).length;
+}
+
+function reasonFrequency(records = []) {
+  const counts = new Map();
+  const add = (reason) => {
+    if (!reason) return;
+    const normalized = String(reason);
+    counts.set(normalized, (counts.get(normalized) || 0) + 1);
+  };
+  for (const record of records) {
+    array(record.candidateQuarantineReasons).forEach(add);
+    array(record.hardBlocks).forEach(add);
+    array(record.missingEvidence).forEach(add);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 25)
+    .map(([reason, count]) => ({ reason, count }));
+}
+
+function buildFailureWaterfall(records = [], qualified = []) {
+  const passedIdentity = (record = {}) =>
+    Boolean(record.strictIdentityVerified || (record.chain && record.verifiedContractAddress && !hasIdentityQuarantine(record)));
+  const passedPoolOrMarket = (record = {}) =>
+    passedIdentity(record) &&
+    Boolean(record.primaryTradablePool || record.dexName || !array(record.candidateQuarantineReasons).includes("PAIR_NOT_FOUND"));
+  const passedLiquidity = (record = {}) =>
+    passedPoolOrMarket(record) &&
+    (num(record.dexLiquidity) > 0 || num(record.stableExitLiquidity) > 0) &&
+    !array(record.candidateQuarantineReasons).includes("NO_ACTIVE_LIQUIDITY");
+  const passedSafety = (record = {}) =>
+    passedLiquidity(record) &&
+    !record.hardBlocks?.length &&
+    !array(record.missingEvidence).some((item) => /safety|honeypot|scam|rug/i.test(String(item)));
+  const passedBuy = (record = {}) =>
+    passedSafety(record) && !array(record.candidateQuarantineReasons).includes("BUY_ROUTE_FAILED");
+  const passedSell = (record = {}) =>
+    passedBuy(record) && !array(record.candidateQuarantineReasons).includes("SELL_ROUTE_FAILED");
+  const passedEvidence = (record = {}) =>
+    passedSell(record) && record.evidenceCompleteness >= 60 && record.independentEvidenceFamilies.length >= 2;
+  const passedReadiness = (record = {}) => passedEvidence(record) && record.breakoutReadinessScore >= 70;
+
+  return {
+    projectsAnalyzed: records.length,
+    passedIdentity: countWhere(records, passedIdentity),
+    passedPoolOrMarketIdentity: countWhere(records, passedPoolOrMarket),
+    passedActiveLiquidity: countWhere(records, passedLiquidity),
+    passedContractSafety: countWhere(records, passedSafety),
+    passedBuyRouteVerification: countWhere(records, passedBuy),
+    passedSellRouteVerification: countWhere(records, passedSell),
+    passedEvidenceCompleteness: countWhere(records, passedEvidence),
+    readinessScoreAtLeast70: countWhere(records, passedReadiness),
+    fullyExecutableTop10: qualified.length,
+    topRejectionReasons: reasonFrequency(records),
+  };
+}
+
 function emptySlots(count = 0, reason = "") {
   return Array.from({ length: Math.max(0, count) }, (_, index) => ({
     slot: index + 1,
@@ -479,7 +764,7 @@ function emptySlots(count = 0, reason = "") {
   }));
 }
 
-function buildStageSummary(projects = [], finalists = [], qualified = [], conditional = [], blocked = []) {
+function buildStageSummary(projects = [], finalists = [], qualified = [], conditional = [], blocked = [], research = []) {
   return {
     discoveryUniverseObserved: projects.length,
     targetCapacityIsNotCoverage: true,
@@ -488,9 +773,34 @@ function buildStageSummary(projects = [], finalists = [], qualified = [], condit
     deepResearchFinalists: finalists.length,
     breakoutFinalists: finalists.length,
     qualifiedTop10Picks: qualified.length,
+    researchOpportunityCandidates: research.length,
     conditionalWatchCandidates: conditional.length,
     blockedFinalists: blocked.length,
     note: "Counts report actual observed candidates passed into the Top 10 funnel, not configured target capacity.",
+  };
+}
+
+function copyCandidateInputProject(project = {}) {
+  const copy = {};
+  for (const field of TOP10_CANDIDATE_INPUT_FIELDS) {
+    const value = project[field];
+    if (value !== undefined) copy[field] = value;
+  }
+  return copy;
+}
+
+export function buildTop10CandidateInput(projects = [], meta = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  return {
+    generatedAt: new Date().toISOString(),
+    schemaVersion: "top10-candidate-input-v1",
+    source: "full-fidelity-analyzed-projects",
+    description:
+      "Curated project records preserving every field consumed by the Top 10 breakout scanner before generic report compaction.",
+    meta,
+    projectCount: safeProjects.length,
+    fieldsPreserved: TOP10_CANDIDATE_INPUT_FIELDS,
+    projects: safeProjects.map(copyCandidateInputProject),
   };
 }
 
@@ -500,6 +810,19 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
   const ranked = rankRecords(records);
   const finalists = ranked.slice(0, 25);
   const qualified = finalists.filter((record) => record.qualified).slice(0, 10);
+  const researchOpportunities = ranked
+    .filter(researchEligible)
+    .slice(0, 10)
+    .map((record, index) => ({
+      ...record,
+      opportunityRank: index + 1,
+      researchStatus: record.qualified
+        ? "EXECUTABLE_RESEARCH_READY"
+        : hasOnlyRouteQuarantine(record)
+          ? "RESEARCH_WORTHY_ROUTE_PENDING"
+          : "RESEARCH_WORTHY_PROOF_PENDING",
+      executionReady: record.qualified,
+    }));
   const conditional = finalists
     .filter((record) => !record.qualified && record.qualificationState === "CONDITIONAL_WATCH")
     .slice(0, 25);
@@ -514,9 +837,17 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
+    status: rankedQualified.length
+      ? "PASS_WITH_EXECUTABLE_BUYS"
+      : researchOpportunities.length
+        ? "PASS_WITH_RESEARCH_OPPORTUNITIES"
+        : records.length
+          ? "PASS_NO_QUALIFIED_RESULTS"
+          : "NO_PROJECTS",
     mode: "PRIVATE_EVIDENCE_DRIVEN_TOP_10_BREAKOUT_FUNNEL",
     meta,
-    stageSummary: buildStageSummary(projects, finalists, rankedQualified, conditional, blocked),
+    stageSummary: buildStageSummary(projects, finalists, rankedQualified, conditional, blocked, researchOpportunities),
+    failureWaterfall: buildFailureWaterfall(records, rankedQualified),
     scoringDesign: {
       weights: Object.fromEntries(BREAKOUT_WEIGHTS.map(([name, weight]) => [name, weight])),
       penalties: [
@@ -533,6 +864,17 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
       ],
       noDoubleCounting: "Source confidence uses unique evidence families, so repeated DexScreener, CoinGecko, news, or AI-derived copies cannot multiply independent confirmation.",
     },
+    top10ResearchOpportunities: researchOpportunities,
+    researchOpportunitySlots: [
+      ...researchOpportunities,
+      ...emptySlots(
+        10 - researchOpportunities.length,
+        researchOpportunities.length
+          ? "Remaining research slots require stronger identity, safety, or evidence coverage."
+          : "No research candidate passed minimum identity and evidence gates."
+      ),
+    ],
+    qualifiedExecutableBuys: rankedQualified,
     qualifiedPicks: rankedQualified,
     top10Slots: [...rankedQualified, ...empty],
     conditionalWatchCandidates: conditional,
@@ -551,6 +893,7 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
       rankedQualified[0] && rankedQualified[0].breakoutReadinessScore >= 75
         ? rankedQualified[0]
         : null,
+    bestResearchOpportunityNow: researchOpportunities[0] || null,
     emptySlots: empty,
     disclaimer: "Research signal only. Scores are not financial advice, not a buy recommendation, and not a profit guarantee.",
   };
@@ -589,6 +932,15 @@ function csvFor(records = []) {
 }
 
 function htmlFor(report = {}) {
+  const researchRows = (report.researchOpportunitySlots || [])
+    .map((record) => {
+      if (record.status === "EMPTY") {
+        return `<tr><td>${record.slot}</td><td colspan="8">${record.reason}</td></tr>`;
+      }
+      return `<tr><td>${record.opportunityRank}</td><td>${record.projectName}</td><td>${record.symbol}</td><td>${record.chain || ""}</td><td>${record.breakoutReadinessScore}</td><td>${record.confidence}</td><td>${record.researchStatus}</td><td>${record.executionReady ? "yes" : "no"}</td><td>${record.missingEvidence.slice(0, 2).join("; ")}</td></tr>`;
+    })
+    .join("\n");
+
   const rows = (report.top10Slots || [])
     .map((record) => {
       if (record.status === "EMPTY") {
@@ -602,10 +954,11 @@ function htmlFor(report = {}) {
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Private Top 10 Breakout Picks</title>
+  <title>Private Top 10 Breakout Research</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; color: #172026; background: #f7f8fa; }
     h1 { font-size: 24px; margin-bottom: 4px; }
+    h2 { font-size: 18px; margin: 24px 0 8px; }
     .meta { color: #5d6875; margin-bottom: 18px; }
     table { border-collapse: collapse; width: 100%; background: white; }
     th, td { border: 1px solid #d9dee7; padding: 8px; text-align: left; vertical-align: top; }
@@ -614,8 +967,14 @@ function htmlFor(report = {}) {
   </style>
 </head>
 <body>
-  <h1>Private Top 10 Breakout Picks</h1>
+  <h1>Private Top 10 Breakout Research</h1>
   <div class="meta">Generated ${report.generatedAt}. Research signals only.</div>
+  <h2>Top 10 Research Opportunities</h2>
+  <table>
+    <thead><tr><th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Confidence</th><th>Status</th><th>Executable</th><th>Missing Evidence</th></tr></thead>
+    <tbody>${researchRows}</tbody>
+  </table>
+  <h2>Qualified Executable Buys</h2>
   <table>
     <thead><tr><th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Confidence</th><th>State</th><th>Missing Evidence</th></tr></thead>
     <tbody>${rows}</tbody>
@@ -629,8 +988,10 @@ export function writeTop10BreakoutReports(projects = [], meta = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
   const report = buildTop10BreakoutReport(projects, meta);
+  const candidateInput = buildTop10CandidateInput(projects, meta);
 
   const top10Path = path.join(reportsDir, "top-10-breakout-picks.json");
+  const candidateInputPath = path.join(reportsDir, "top10-candidate-input.json");
   const htmlPath = path.join(reportsDir, "top-10-breakout-picks.html");
   const csvPath = path.join(reportsDir, "top-10-breakout-picks.csv");
   const explanationsPath = path.join(reportsDir, "top-10-breakout-explanations.json");
@@ -638,6 +999,7 @@ export function writeTop10BreakoutReports(projects = [], meta = {}) {
   const bestNowPath = path.join(reportsDir, "best-opportunity-now.json");
 
   writeJson(top10Path, report);
+  writeJson(candidateInputPath, candidateInput);
   fs.writeFileSync(htmlPath, htmlFor(report));
   fs.writeFileSync(csvPath, csvFor(report.qualifiedPicks));
   writeJson(explanationsPath, {
@@ -674,6 +1036,7 @@ export function writeTop10BreakoutReports(projects = [], meta = {}) {
 
   return {
     top10Path,
+    candidateInputPath,
     htmlPath,
     csvPath,
     explanationsPath,

@@ -237,14 +237,67 @@ export function analyzeAutonomousAlphaOSBatch(projects = []) {
   }));
 }
 
-export function summarizeAutonomousAlphaOS(projects = []) {
+function alphaOSOutputPresent(project = {}) {
+  return Boolean(
+    project.autonomousAlphaOSVerdict ||
+    project.autonomousAlphaOSMode ||
+    project.autonomousAlphaOSCouncil ||
+    project.autonomousAlphaOS ||
+    (Object.prototype.hasOwnProperty.call(project, "autonomousAlphaOSScore") &&
+      project.autonomousAlphaOSScore !== null &&
+      Number.isFinite(Number(project.autonomousAlphaOSScore)))
+  );
+}
+
+function activeProfileName(options = {}) {
+  return (
+    options.engineProfile?.id ||
+    options.engineProfile?.name ||
+    options.engineProfileId ||
+    options.pipelineEngineProfile ||
+    process.env.PIPELINE_ENGINE_PROFILE ||
+    "unknown"
+  );
+}
+
+export function summarizeAutonomousAlphaOS(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const rankedProjects = [...safeProjects].sort(
+  const alphaOutputProjects = safeProjects.filter(alphaOSOutputPresent);
+  if (!alphaOutputProjects.length) {
+    const profile = activeProfileName(options);
+    return {
+      generatedAt: new Date().toISOString(),
+      status: profile === "tenx" ? "SKIPPED_BY_ENGINE_PROFILE" : "PIPELINE_STAGE_NOT_RUN",
+      activeProfile: profile,
+      totalProjects: safeProjects.length,
+      counts: {
+        strongBuyResearch: 0,
+        bestAvailable: 0,
+        priorityResearch: 0,
+        paperTrade: 0,
+        blocked: 0,
+      },
+      commanderBrief:
+        profile === "tenx"
+          ? "Autonomous Alpha OS is skipped by the tenx profile. Use Progressive Opportunity, High-Upside Scalp, Early Asymmetry, and Daily Capital reports for this run."
+          : "Autonomous Alpha OS did not produce output in this scan. Do not interpret absent Alpha OS fields as zero scores.",
+      topCandidates: [],
+      fallbackReports: [
+        "progressive-opportunities.json",
+        "high-upside-scalp-research.json",
+        "early-asymmetry-ranking.json",
+        "daily-capital-move.json",
+      ],
+    };
+  }
+  const rankedProjects = [...alphaOutputProjects].sort(
     (a, b) => num(b.autonomousAlphaOSScore) - num(a.autonomousAlphaOSScore)
   );
 
   return {
     generatedAt: new Date().toISOString(),
+    status: "PASS",
+    activeProfile: activeProfileName(options),
     totalProjects: safeProjects.length,
     counts: {
       strongBuyResearch: safeProjects.filter((project) => project.autonomousAlphaOSVerdict === "OS Strong Buy Research Candidate").length,

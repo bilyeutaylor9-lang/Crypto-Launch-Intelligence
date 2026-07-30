@@ -107,9 +107,9 @@ function compact(project = {}) {
   };
 }
 
-export function buildAlphaDashboardV2(projects = []) {
+export function buildAlphaDashboardV2(projects = [], meta = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const alphaOS = summarizeAutonomousAlphaOS(safeProjects);
+  const alphaOS = summarizeAutonomousAlphaOS(safeProjects, meta);
   const paperLab = summarizePaperTradingOutcomeLab(safeProjects);
   const optimizer = summarizeAutoLearningWeightOptimizer(safeProjects);
   const sourceTruth = summarizeSourceTruth(safeProjects);
@@ -252,11 +252,11 @@ export function buildAlphaDashboardV2(projects = []) {
   };
 }
 
-export function writeAlphaDashboardV2Report(projects = []) {
+export function writeAlphaDashboardV2Report(projects = [], meta = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
-  const report = buildAlphaDashboardV2(projects);
+  const report = buildAlphaDashboardV2(projects, meta);
   const filePath = path.join(reportsDir, "alpha-dashboard-v2.json");
   const paperLabPath = path.join(reportsDir, "paper-trading-lab.json");
   const weightOptimizerPath = path.join(reportsDir, "weight-optimizer.json");

@@ -603,6 +603,7 @@ function printReportPaths(paths) {
   if (paths.debugBlockReasonsPath) console.log(`Debug Blocks:   ${paths.debugBlockReasonsPath}`);
   if (paths.debugStageHealthPath) console.log(`Debug Health:   ${paths.debugStageHealthPath}`);
   if (paths.top10BreakoutPath) console.log(`Top 10 JSON:    ${paths.top10BreakoutPath}`);
+  if (paths.top10CandidateInputPath) console.log(`Top 10 Input:   ${paths.top10CandidateInputPath}`);
   if (paths.top10BreakoutHtmlPath) console.log(`Top 10 HTML:    ${paths.top10BreakoutHtmlPath}`);
   if (paths.top10BreakoutCsvPath) console.log(`Top 10 CSV:     ${paths.top10BreakoutCsvPath}`);
   if (paths.top10BreakoutExplanationsPath) console.log(`Top 10 Explain: ${paths.top10BreakoutExplanationsPath}`);

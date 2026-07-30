@@ -52,15 +52,16 @@ function compact(project = {}) {
   };
 }
 
-export function writeAlphaOSReports(projects = []) {
+export function writeAlphaOSReports(projects = [], meta = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const safeProjects = Array.isArray(projects) ? projects : [];
   const strategyLab = summarizeAutonomousStrategyLab(safeProjects);
   const causalBrain = summarizeCausalAlphaBrain(safeProjects);
+  const alphaOSSummary = summarizeAutonomousAlphaOS(safeProjects, meta);
   const alphaOS = {
-    ...summarizeAutonomousAlphaOS(safeProjects),
+    ...alphaOSSummary,
     topStrategyCandidates: [...safeProjects]
       .sort((a, b) => num(b.strategyLabScore) - num(a.strategyLabScore))
       .slice(0, 30)
@@ -69,10 +70,18 @@ export function writeAlphaOSReports(projects = []) {
       .sort((a, b) => num(b.causalAlphaScore) - num(a.causalAlphaScore))
       .slice(0, 30)
       .map(compact),
-    topOSCandidates: [...safeProjects]
-      .sort((a, b) => num(b.autonomousAlphaOSScore) - num(a.autonomousAlphaOSScore))
-      .slice(0, 50)
-      .map(compact),
+    topOSCandidates: alphaOSSummary.status === "PASS"
+      ? [...safeProjects]
+        .filter((project) =>
+          project.autonomousAlphaOSVerdict ||
+          (Object.prototype.hasOwnProperty.call(project, "autonomousAlphaOSScore") &&
+            project.autonomousAlphaOSScore !== null &&
+            Number.isFinite(Number(project.autonomousAlphaOSScore)))
+        )
+        .sort((a, b) => num(b.autonomousAlphaOSScore) - num(a.autonomousAlphaOSScore))
+        .slice(0, 50)
+        .map(compact)
+      : [],
   };
   const strategyLabPath = path.join(reportsDir, "strategy-lab.json");
   const causalBrainPath = path.join(reportsDir, "causal-alpha-brain.json");

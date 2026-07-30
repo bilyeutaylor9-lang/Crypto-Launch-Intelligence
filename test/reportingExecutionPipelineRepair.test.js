@@ -49,6 +49,7 @@ import { writeUtilityQualityReport } from "../src/reports/utilityQualityReportEn
 import { writeHighUpsideScalpReport } from "../src/reports/highUpsideScalpReportEngine.js";
 import { writeScalpMicrostructureReport } from "../src/reports/scalpMicrostructureReportEngine.js";
 import { writeHottestTenNowReport } from "../src/reports/hottestTenNowReportEngine.js";
+import { writeTop10BreakoutReports } from "../src/reports/top10BreakoutReportEngine.js";
 import { writeDailyCapitalMoveReport } from "../src/reports/dailyCapitalMoveReportEngine.js";
 import { writeDailyRecoveryQueueReport } from "../src/reports/dailyRecoveryQueueReportEngine.js";
 import { writeDailySourceGapReport } from "../src/reports/dailySourceGapReportEngine.js";
@@ -459,6 +460,7 @@ test("mandatory report contracts are generated and validate", () => {
   writeHighUpsideScalpReport(processed);
   writeScalpMicrostructureReport(processed);
   writeHottestTenNowReport(processed);
+  writeTop10BreakoutReports(processed);
   writeDailyCapitalMoveReport(processed);
   writeDailyRecoveryQueueReport(processed);
   writeDailySourceGapReport({

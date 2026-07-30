@@ -78,6 +78,11 @@ const PUBLIC_REPORTS = [
   "debug-block-reasons.json",
   "debug-stage-health.json",
   "best-opportunity-now.json",
+  "top-10-breakout-picks.json",
+  "top-10-breakout-picks.html",
+  "top-10-breakout-picks.csv",
+  "top-10-breakout-explanations.json",
+  "top-10-excluded-finalists.json",
   "top-five-opportunities.json",
   "time-horizon-leaders.json",
   "opportunity-lane-leaders.json",
@@ -94,6 +99,7 @@ const PUBLIC_REPORTS = [
   "best-available.json",
   "emerging-radar.json",
   "execution-ready.json",
+  "top10-candidate-input.json",
   "blocked-projects.json",
   "op-mode-readiness.json",
   "evidence-kernel.json",
@@ -243,6 +249,17 @@ function pairFor(candidate = {}) {
 }
 
 function rankDisplayEligible(candidate = {}) {
+  const researchLane = [
+    "RESEARCH_WORTHY_ROUTE_PENDING",
+    "RESEARCH_WORTHY_PROOF_PENDING",
+    "HIGH_UPSIDE_WATCH",
+    "HIGH_UPSIDE_WATCHLIST",
+    "RESEARCH_ONLY_ROUTE_MISSING",
+    "MANUAL_REVIEW",
+    "CONDITIONAL_WATCH",
+    "RESEARCH_ONLY",
+  ].includes(candidate.researchStatus || candidate.lane);
+  if (researchLane) return Boolean(contractFor(candidate) && (candidate.chain || candidate.requiredChain));
   if (candidate.strictRankEligible === true) return true;
   if (Object.hasOwn(candidate, "strictRankEligible")) return false;
   return Boolean(
@@ -306,8 +323,11 @@ function buildResearchWorthyBoard({
   earlyAsymmetry = {},
   institutionalRanking = {},
   userAccessibility = {},
+  top10Breakout = {},
 } = {}) {
   const sources = [
+    ...(top10Breakout.top10ResearchOpportunities || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Top 10 Research")),
+    ...(top10Breakout.qualifiedExecutableBuys || top10Breakout.qualifiedPicks || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Top 10 Executable")),
     ...(hottestTenNow.topTenCurrentResearchBoard || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Hottest Ten")),
     ...(hottestTenNow.topTenHighestRatedNow || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Qualified Now")),
     ...(hottestTenNow.watchlistNeedsMoreConfirmation || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Needs Confirmation")),
@@ -333,13 +353,14 @@ function buildResearchWorthyBoard({
   return [...byKey.values()]
     .filter((candidate) =>
       rankDisplayEligible(candidate) &&
-      ![
+      (![
         "BLOCKED",
         "LATE_CHASE_REJECTED",
         "MEME_SPECULATION_EXCLUDED",
         "QUARANTINED_IDENTITY_OR_ROUTE",
         "MARKET_BENCHMARK",
-      ].includes(candidate.lane)
+      ].includes(candidate.lane) ||
+        String(candidate.researchStatus || "").startsWith("RESEARCH_WORTHY"))
     )
     .sort((a, b) => scoreForResearchWorthy(b) - scoreForResearchWorthy(a))
     .slice(0, 10)
@@ -356,7 +377,8 @@ function renderResearchWorthyBoard(candidates = []) {
             <p>No research-worthy candidates passed the latest display filters. Check source health and rescue queues before loosening safety gates.</p>
           </div>
           <div class="actions">
-            <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+            <a class="button primary" href="./top-10-breakout-picks.json">View Top 10 Research</a>
+            <a class="button" href="./hottest-ten-now.json">View Latest Research</a>
             <a class="button" href="https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/actions/workflows/pages-dashboard.yml">Run Next GitHub Scan</a>
           </div>
         </div>
@@ -373,7 +395,8 @@ function renderResearchWorthyBoard(candidates = []) {
           <p>First-look board for candidates worth manual research. Research output only, not financial advice or a profit guarantee.</p>
         </div>
         <div class="actions">
-          <a class="button primary" href="./hottest-ten-now.json">View Latest Research</a>
+          <a class="button primary" href="./top-10-breakout-picks.json">View Top 10 Research</a>
+          <a class="button" href="./hottest-ten-now.json">View Latest Research</a>
           <a class="button" href="./user-accessibility-ranking.json">View Latest Route Analysis</a>
           <a class="button" href="https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/actions/workflows/pages-dashboard.yml">Run Next GitHub Scan</a>
         </div>
@@ -634,6 +657,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const highUpsideScalp = readJsonReport("high-upside-scalp-research.json", reportsDir) || {};
   const scalpMicrostructure = readJsonReport("scalp-microstructure.json", reportsDir) || {};
   const hottestTenNow = readJsonReport("hottest-ten-now.json", reportsDir) || {};
+  const top10Breakout = readJsonReport("top-10-breakout-picks.json", reportsDir) || {};
   const dailyCapital = readJsonReport("daily-capital-move.json", reportsDir) || {};
   const dailyRecovery = readJsonReport("daily-recovery-queue.json", reportsDir) || {};
   const dailySourceGaps = readJsonReport("daily-source-gaps.json", reportsDir) || {};
@@ -676,6 +700,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     earlyAsymmetry,
     institutionalRanking,
     userAccessibility,
+    top10Breakout,
   });
   const bestNowText =
     bestOpportunityNow.verdict === "CLEAR_MARKET_LEADER"

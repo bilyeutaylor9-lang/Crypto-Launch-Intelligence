@@ -22,19 +22,27 @@ function normalizeOutput(output, fallback = []) {
   return fallback;
 }
 
-function readProjectsFromReport(filePath = path.resolve("reports/report.json")) {
+function defaultReportPath() {
+  const candidateInputPath = path.resolve("reports/top10-candidate-input.json");
+  return fs.existsSync(candidateInputPath) ? candidateInputPath : path.resolve("reports/report.json");
+}
+
+function readProjectsFromReport(filePath = defaultReportPath()) {
   const resolved = path.resolve(filePath);
   if (!fs.existsSync(resolved)) {
     throw new Error(`Report not found: ${resolved}. Run npm run scan first, or run npm run scan:private-top10.`);
   }
 
   const parsed = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  const projects = normalizeOutput(parsed, []);
+  const source = parsed.schemaVersion === "top10-candidate-input-v1" ? "top10-candidate-input" : "existing-report";
   return {
-    projects: normalizeOutput(parsed, []),
+    projects,
     meta: {
-      source: "existing-report",
+      ...(parsed.meta && typeof parsed.meta === "object" ? parsed.meta : {}),
+      source,
       reportPath: resolved,
-      observedProjectCount: normalizeOutput(parsed, []).length,
+      observedProjectCount: projects.length,
       targetCapacityIsCoverage: false,
     },
   };
@@ -79,9 +87,11 @@ function printSummary(paths = {}) {
   console.log("");
   console.log("Private Top 10 Breakout Funnel Complete");
   console.log(`Observed candidates: ${report.stageSummary?.discoveryUniverseObserved || 0}`);
+  console.log(`Research opportunities: ${report.top10ResearchOpportunities?.length || 0}`);
   console.log(`Qualified picks: ${report.qualifiedPicks?.length || 0}`);
   console.log(`Conditional watch: ${report.conditionalWatchCandidates?.length || 0}`);
   console.log(`Top 10 JSON: ${paths.top10Path}`);
+  console.log(`Top 10 Input: ${paths.candidateInputPath}`);
   console.log(`Top 10 HTML: ${paths.htmlPath}`);
   console.log(`Top 10 CSV: ${paths.csvPath}`);
   console.log(`Best Now: ${paths.bestNowPath}`);

@@ -6,7 +6,8 @@ import { normalizeGeckoPool } from "../src/data/geckoTerminalConnector.js";
 import { candidateFromArticle, symbolFromTitle } from "../src/data/googleNewsDiscoveryConnector.js";
 import { normalizeRepo } from "../src/data/githubProjectDiscoveryConnector.js";
 import { normalizeMetricTruth, sourceFamiliesForProject } from "../src/data/metricTruthNormalizer.js";
-import { buildTop10BreakoutReport } from "../src/reports/top10BreakoutReportEngine.js";
+import { summarizeAutonomousAlphaOS } from "../src/engines/autonomousAlphaOSEngine.js";
+import { buildTop10BreakoutReport, buildTop10CandidateInput } from "../src/reports/top10BreakoutReportEngine.js";
 import { createProjectObservation } from "../src/learning/projectObservationStore.js";
 
 const TOKEN = "0x0000000000000000000000000000000000000a11";
@@ -274,11 +275,73 @@ test("Top 10 funnel qualifies only evidence-backed projects and includes score t
   ]);
 
   assert.equal(report.qualifiedPicks.length, 1);
+  assert.equal(report.qualifiedExecutableBuys.length, 1);
+  assert.equal(report.top10ResearchOpportunities.length, 1);
   assert.equal(report.top10Slots.length, 10);
   assert.equal(report.top10Slots.filter((slot) => slot.status === "EMPTY").length, 9);
   assert.equal(report.qualifiedPicks[0].symbol, "AKE");
   assert.equal(report.qualifiedPicks[0].scoreContributionTrace.length, 10);
   assert.ok(report.excludedFinalists.some((item) => item.symbol === "NEWS"));
+  assert.equal(report.failureWaterfall.projectsAnalyzed, 2);
+  assert.equal(report.failureWaterfall.fullyExecutableTop10, 1);
+});
+
+test("Top 10 research opportunities stay visible when only live sell-route proof is missing", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "ROUTE",
+      sellQuoteVerified: false,
+      routeTruthStatus: "SELL_QUOTE_VERIFIED_PENDING",
+      executionProofState: "SELL_QUOTE_VERIFIED_PENDING",
+      executionStatus: "PARTIALLY_VERIFIED",
+      executionRoute: {
+        ...strongProject().executionRoute,
+        sellRouteAvailable: false,
+        sellQuoteVerified: false,
+      },
+      executionProof: {
+        ...strongProject().executionProof,
+        sellQuoteVerified: false,
+        executionProofState: "SELL_QUOTE_VERIFIED_PENDING",
+        routeTruthStatus: "SELL_QUOTE_VERIFIED_PENDING",
+      },
+    }),
+  ]);
+
+  assert.equal(report.qualifiedPicks.length, 0);
+  assert.equal(report.top10ResearchOpportunities.length, 1);
+  assert.equal(report.top10ResearchOpportunities[0].symbol, "ROUTE");
+  assert.equal(report.top10ResearchOpportunities[0].researchStatus, "RESEARCH_WORTHY_ROUTE_PENDING");
+  assert.equal(report.top10ResearchOpportunities[0].executionReady, false);
+  assert.ok(report.failureWaterfall.topRejectionReasons.some((item) => item.reason === "SELL_ROUTE_FAILED"));
+});
+
+test("Top 10 candidate input preserves scoring fields before generic report compaction", () => {
+  const noisy = {
+    ...strongProject(),
+    ignoredLargeBlob: "x".repeat(10_000),
+  };
+  for (let index = 0; index < 120; index += 1) noisy[`extra_${index}`] = index;
+
+  const input = buildTop10CandidateInput([noisy], { scanRunId: "test" });
+
+  assert.equal(input.schemaVersion, "top10-candidate-input-v1");
+  assert.equal(input.projectCount, 1);
+  assert.equal(input.projects[0].symbol, "AKE");
+  assert.equal(input.projects[0].liquidityFormationScore, 82);
+  assert.equal(input.projects[0].executionRoute.buyQuoteVerified, true);
+  assert.equal(input.projects[0].ignoredLargeBlob, undefined);
+});
+
+test("Alpha OS summary reports skipped profile instead of fake zero candidates", () => {
+  const summary = summarizeAutonomousAlphaOS([{ name: "Route Candidate", symbol: "ROUTE" }], {
+    engineProfile: { id: "tenx" },
+  });
+
+  assert.equal(summary.status, "SKIPPED_BY_ENGINE_PROFILE");
+  assert.equal(summary.totalProjects, 1);
+  assert.equal(summary.topCandidates.length, 0);
+  assert.match(summary.commanderBrief, /skipped by the tenx profile/i);
 });
 
 test("duplicate provider variants do not multiply independent evidence confidence", () => {

@@ -143,14 +143,14 @@ export function generateReports(projects = [], meta = {}) {
     strategyLabPath,
     causalBrainPath,
     alphaOSPath,
-  } = writeAlphaOSReports(projects);
+  } = writeAlphaOSReports(projects, meta);
   const {
     filePath: alphaDashboardV2Path,
     paperLabPath,
     weightOptimizerPath,
     sourceTruthPath,
     githubProPath,
-  } = writeAlphaDashboardV2Report(projects);
+  } = writeAlphaDashboardV2Report(projects, meta);
   const {
     filePath: autonomousResearchPath,
   } = writeAutonomousResearchReport(projects);
@@ -241,12 +241,13 @@ export function generateReports(projects = [], meta = {}) {
   } = writeMarketOpportunityReports(projects);
   const {
     top10Path: top10BreakoutPath,
+    candidateInputPath: top10CandidateInputPath,
     htmlPath: top10BreakoutHtmlPath,
     csvPath: top10BreakoutCsvPath,
     explanationsPath: top10BreakoutExplanationsPath,
     excludedPath: top10ExcludedFinalistsPath,
     bestNowPath: top10BestOpportunityNowPath,
-  } = writeTop10BreakoutReports(projects, meta);
+  } = writeTop10BreakoutReports(fullProjects, meta);
   const {
     filePath: marketOpportunityLearningPath,
   } = writeMarketOpportunityLearningReport(projects, meta);
@@ -481,6 +482,7 @@ export function generateReports(projects = [], meta = {}) {
     top10BestOpportunityNowPath,
     topFiveOpportunitiesPath,
     top10BreakoutPath,
+    top10CandidateInputPath,
     top10BreakoutHtmlPath,
     top10BreakoutCsvPath,
     top10BreakoutExplanationsPath,
