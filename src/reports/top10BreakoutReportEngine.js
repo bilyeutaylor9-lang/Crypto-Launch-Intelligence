@@ -2,7 +2,15 @@ import fs from "fs";
 import path from "path";
 import { attachCanonicalIdentityBatch } from "../identity/canonicalIdentityResolver.js";
 import { normalizeMetricTruthBatch, sourceFamiliesForProject } from "../data/metricTruthNormalizer.js";
-import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import {
+  hasExactRouteIdentity,
+  hasVerifiedBuyQuote,
+  hasVerifiedRouteDepth,
+  hasVerifiedRouteSlippage,
+  hasVerifiedSellQuote,
+  isLiveExecutionReady,
+  routeQuoteFresh,
+} from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const BREAKOUT_WEIGHTS = [
@@ -16,6 +24,29 @@ const BREAKOUT_WEIGHTS = [
   ["executionQuality", 8],
   ["independentEvidenceQuality", 7],
   ["valuationOpportunity", 5],
+];
+
+const RESEARCH_OPPORTUNITY_WEIGHTS = [
+  ["earlyAcceleration", 20],
+  ["liquidityFormation", 16],
+  ["organicBuyerQuality", 14],
+  ["smartWalletArrival", 12],
+  ["verifiedCatalystStrength", 11],
+  ["developerAcceleration", 10],
+  ["relativeMarketStrength", 8],
+  ["valuationOpportunity", 6],
+  ["independentEvidenceQuality", 3],
+];
+
+const EXECUTION_READINESS_WEIGHTS = [
+  ["exactRouteIdentity", 16],
+  ["verifiedContract", 13],
+  ["verifiedSafety", 14],
+  ["verifiedLiquidityDepth", 14],
+  ["freshBuyQuote", 12],
+  ["freshSellQuote", 14],
+  ["verifiedSlippage", 9],
+  ["routeFreshness", 8],
 ];
 
 const IDENTITY_ROUTE_REASONS = new Set([
@@ -35,6 +66,40 @@ const ROUTE_ONLY_REASONS = new Set([
   "REGION_UNVERIFIED",
 ]);
 
+const DETERMINISTIC_BLOCK_PATTERNS = [
+  /honeypot/i,
+  /scam/i,
+  /rug/i,
+  /contract (conflict|mismatch)/i,
+  /identity conflict/i,
+  /chain mismatch/i,
+  /sell (restricted|blocked|failure)/i,
+  /cannot sell/i,
+  /liquidity (removal|rug|drain)/i,
+  /lp (removal|withdraw)/i,
+  /blacklist/i,
+  /freeze authority/i,
+  /mint authority/i,
+  /deployer selling/i,
+  /wash[-\s]?trading/i,
+  /manipulation/i,
+  /malicious/i,
+];
+
+const NON_DETERMINISTIC_BLOCK_PATTERNS = [
+  /missing/i,
+  /insufficient/i,
+  /unknown/i,
+  /unverified/i,
+  /route/i,
+  /low score/i,
+  /research/i,
+  /model/i,
+  /ai rejection/i,
+  /uncertain/i,
+  /watch/i,
+];
+
 const TOP10_CANDIDATE_INPUT_FIELDS = [
   "canonicalProjectId",
   "projectId",
@@ -48,6 +113,16 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "finalChain",
   "chain",
   "network",
+  "targetChain",
+  "declaredChain",
+  "expectedChain",
+  "lifecycleStage",
+  "projectLifecycleStage",
+  "launchStatus",
+  "launchDate",
+  "tokenLaunchDate",
+  "testnetActivity",
+  "mainnetActivity",
   "finalContractAddress",
   "canonicalAddress",
   "tokenAddress",
@@ -129,6 +204,11 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "commitQualityScore",
   "github",
   "githubUrl",
+  "website",
+  "websiteUrl",
+  "docsUrl",
+  "roadmap",
+  "description",
   "githubPushedAt",
   "githubStars",
   "relativeStrengthScore",
@@ -269,6 +349,12 @@ function money(value) {
   return number > 0 ? Math.round(number) : null;
 }
 
+function measuredNumber(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value))
+    ? Number(value)
+    : null;
+}
+
 function tokenAddress(project = {}) {
   return first([
     project.finalContractAddress,
@@ -291,6 +377,19 @@ function chain(project = {}) {
 function routeVerified(project = {}) {
   const gate = resolveStrictCandidateGate(project);
   return Boolean(gate.strictRankEligible && isLiveExecutionReady({ ...project, ...gate }));
+}
+
+function routeTruth(project = {}, gate = resolveStrictCandidateGate(project)) {
+  const subject = { ...project, ...gate };
+  return {
+    exactRouteIdentityVerified: hasExactRouteIdentity(subject),
+    buyQuoteVerified: hasVerifiedBuyQuote(subject),
+    sellQuoteVerified: hasVerifiedSellQuote(subject),
+    routeDepthVerified: hasVerifiedRouteDepth(subject),
+    routeSlippageVerified: hasVerifiedRouteSlippage(subject),
+    routeQuoteFresh: routeQuoteFresh(subject),
+    liveExecutionReady: Boolean(gate.strictRankEligible && isLiveExecutionReady(subject)),
+  };
 }
 
 function sourceList(project = {}) {
@@ -422,8 +521,8 @@ function marketCapOpportunity(project = {}) {
   return 28;
 }
 
-function contributionTrace(components = {}) {
-  return BREAKOUT_WEIGHTS.map(([component, weightPct]) => {
+function contributionTrace(components = {}, weights = BREAKOUT_WEIGHTS) {
+  return weights.map(([component, weightPct]) => {
     const componentScore = clamp(components[component]);
     return {
       component,
@@ -434,9 +533,43 @@ function contributionTrace(components = {}) {
   });
 }
 
-function riskPenalties(project = {}) {
+function scoreFromTrace(trace = []) {
+  return Number(trace.reduce((sum, item) => sum + num(item.contribution), 0).toFixed(2));
+}
+
+function executionReadinessTrace(project = {}, gate = resolveStrictCandidateGate(project)) {
+  const truth = routeTruth(project, gate);
+  const deterministicBlocks = deterministicHardBlocks(project);
+  const safetyPass = deterministicBlocks.length === 0 &&
+    (project.instantSafetyStatus === "PASS" || project.contractVerified || project.contractSafetyVerified);
+  const liquidityUsd = Math.max(num(dexLiquidity(project)), num(stableExitLiquidity(project)), num(gate.routeDepthUsd));
+  const components = {
+    exactRouteIdentity: truth.exactRouteIdentityVerified && gate.strictIdentityVerified ? 100 : 0,
+    verifiedContract: tokenAddress(project) ? 100 : 0,
+    verifiedSafety: safetyPass ? 100 : 0,
+    verifiedLiquidityDepth: truth.routeDepthVerified && liquidityUsd > 0 ? 100 : liquidityUsd > 0 ? 55 : 0,
+    freshBuyQuote: truth.buyQuoteVerified ? 100 : 0,
+    freshSellQuote: truth.sellQuoteVerified ? 100 : 0,
+    verifiedSlippage: truth.routeSlippageVerified ? 100 : 0,
+    routeFreshness: truth.routeQuoteFresh ? 100 : 0,
+  };
+  return contributionTrace(components, EXECUTION_READINESS_WEIGHTS);
+}
+
+function identityUncertaintyRisk(project = {}, gate = resolveStrictCandidateGate(project)) {
+  if (project.canonicalIdentityHardBlock) return 100;
+  if (array(project.identityConflicts).length || array(project.canonicalIdentityConflicts).length) return 90;
+  const explicit = measuredNumber(first([project.identityConfidence, project.identityResolutionScore]));
+  if (explicit !== null) return 100 - clamp(explicit);
+  if (gate.strictIdentityVerified || (chain(project) && tokenAddress(project))) return null;
+  return null;
+}
+
+function riskPenalties(project = {}, options = {}) {
+  const gate = options.gate || resolveStrictCandidateGate(project);
   const penalties = [];
   const add = (label, score, maxPenalty, reason) => {
+    if (score === null || score === undefined || score === "") return;
     const value = clamp(score);
     if (value < 45) return;
     penalties.push({
@@ -452,8 +585,10 @@ function riskPenalties(project = {}) {
   add("Deployer risk", project.deployerRiskScore, 14, "Deployer history or active deployer flow is unfavorable.");
   add("Holder concentration risk", project.holderConcentrationRiskScore ?? project.walletClusterRiskScore ?? project.insiderDistributionRisk, 14, "Holder or wallet cluster concentration is elevated.");
   add("Liquidity-removal risk", project.liquidityRemovalRiskScore ?? project.liquidityControlRisk ?? project.liquidityManipulationRisk, 16, "Liquidity may be removable, thin, or manipulated.");
-  add("Identity uncertainty", 100 - clamp(project.identityConfidence ?? project.identityResolutionScore ?? 0), 12, "Identity evidence is weak or conflicting.");
-  add("Missing critical evidence", 100 - evidenceCompleteness(project), 10, "Critical proof is incomplete.");
+  add("Identity uncertainty", identityUncertaintyRisk(project, gate), 12, "Identity evidence is weak or conflicting.");
+  if (options.includeMissingCriticalEvidence !== false) {
+    add("Missing critical evidence", 100 - evidenceCompleteness(project), 10, "Critical proof is incomplete.");
+  }
   add("Late chase risk", project.lateChaseRiskScore ?? (project.prePump?.status === "LATE_CHASE" ? 85 : 0), 14, "Move may be too mature for early-breakout ranking.");
   add("Already-pumped risk", project.alreadyPumpedRiskScore ?? (project.prePump?.status === "ALREADY_PUMPED" ? 92 : 0), 20, "Price has already expanded beyond the early setup.");
   add("Source disagreement", project.sourceDisagreementRiskScore ?? project.institutionalDataProvenance?.components?.contradictionRisk, 12, "Sources disagree or evidence contradicts itself.");
@@ -461,7 +596,7 @@ function riskPenalties(project = {}) {
   return penalties;
 }
 
-function hardBlocks(project = {}) {
+function importedBlockers(project = {}) {
   return unique([
     ...array(project.opportunityHardBlockers),
     ...array(project.hardBlockers),
@@ -469,11 +604,33 @@ function hardBlocks(project = {}) {
     ...array(project.sniperBlockingReasons),
     ...array(project.preConsensusHardBlockers),
     ...array(project.economicIntegrityBlockers),
+  ]);
+}
+
+function deterministicBlocker(reason = "") {
+  const text = String(reason);
+  if (NON_DETERMINISTIC_BLOCK_PATTERNS.some((pattern) => pattern.test(text)) &&
+      !DETERMINISTIC_BLOCK_PATTERNS.some((pattern) => pattern.test(text))) {
+    return false;
+  }
+  return DETERMINISTIC_BLOCK_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function deterministicHardBlocks(project = {}) {
+  return unique([
+    ...importedBlockers(project).filter(deterministicBlocker),
     ...(project.canonicalIdentityHardBlock ? ["Canonical identity conflict."] : []),
     ...(project.honeypotDetected || project.verifiedScam || project.scamDetected ? ["Verified scam, honeypot, or rug-risk evidence."] : []),
     ...(project.deployerSelling === true || num(project.deployerNetFlow) < -10_000 ? ["Deployer selling into demand."] : []),
     ...(num(project.liquidityRemovalRiskScore) >= 80 || num(project.lpRemovalUsd) > 0 ? ["Liquidity removal risk is active."] : []),
+    ...(num(project.contractRiskScore ?? project.honeypotRiskScore) >= 90 ? ["Severe contract or honeypot risk."] : []),
+    ...(num(project.manipulationRiskScore ?? project.washTradingRiskScore) >= 90 ? ["Severe wash-trading or manipulation risk."] : []),
   ]);
+}
+
+function nonDeterministicBlockWarnings(project = {}) {
+  const deterministic = new Set(deterministicHardBlocks(project));
+  return importedBlockers(project).filter((blocker) => !deterministic.has(blocker));
 }
 
 function evidenceCompleteness(project = {}) {
@@ -492,6 +649,40 @@ function evidenceCompleteness(project = {}) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
+function researchEvidenceCompleteness(project = {}, components = componentScores(project), families = independentEvidenceFamilies(project)) {
+  const sources = sourceList(project);
+  const checks = [
+    Boolean(project.name || project.canonicalName || project.symbol || project.canonicalSymbol),
+    Boolean(chain(project) || project.targetChain || project.declaredChain || project.expectedChain),
+    sources.length > 0,
+    families.length >= 1 || sources.length >= 2,
+    components.earlyAcceleration > 0 || components.relativeMarketStrength > 0 || components.verifiedCatalystStrength > 0,
+    components.liquidityFormation > 0 || components.developerAcceleration > 0 || project.researchOnly || project.tradableCandidate === false,
+    components.organicBuyerQuality > 0 || components.smartWalletArrival > 0 || components.developerAcceleration > 0,
+    components.verifiedCatalystStrength > 0 || components.developerAcceleration > 0 || components.independentEvidenceQuality > 0,
+    deterministicHardBlocks(project).length === 0,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function prelaunchCandidate(project = {}) {
+  const lifecycle = String(first([
+    project.lifecycleStage,
+    project.projectLifecycleStage,
+    project.launchStatus,
+    project.stage,
+  ]) || "").toUpperCase();
+  const sources = sourceList(project).map((source) => String(source).toLowerCase());
+  return Boolean(
+    project.researchOnly === true ||
+    project.tradableCandidate === false ||
+    /PRELAUNCH|PRE_LAUNCH|COMING_SOON|TGE_PENDING|TESTNET|MAINNET_PENDING/.test(lifecycle) ||
+    (!tokenAddress(project) &&
+      (project.github || project.githubUrl || project.website || project.websiteUrl || project.docsUrl || project.roadmap ||
+        sources.some((source) => /github|google|news|official|roadmap|docs/.test(source))))
+  );
+}
+
 function missingEvidence(project = {}) {
   const missing = [];
   if (!chain(project)) missing.push("Verified chain is missing.");
@@ -505,6 +696,9 @@ function missingEvidence(project = {}) {
   }
   if (project.researchOnly || project.tradableCandidate === false) {
     missing.push("Research-only source must be resolved to a tradable token identity.");
+  }
+  if (prelaunchCandidate(project)) {
+    missing.push("Prelaunch research requires token launch, contract, pool, and execution proof before tradable ranking.");
   }
   return unique([...missing, ...array(project.missingEvidence), ...array(project.nextVerificationActions)]).slice(0, 12);
 }
@@ -540,18 +734,30 @@ function reasons(project = {}, components = {}) {
 function candidateRecord(project = {}, rank = null) {
   const gate = resolveStrictCandidateGate(project);
   const components = componentScores(project);
-  const trace = contributionTrace(components);
-  const rawScore = Number(trace.reduce((sum, item) => sum + item.contribution, 0).toFixed(2));
-  const penalties = riskPenalties(project);
+  const legacyTrace = contributionTrace(components);
+  const researchTrace = contributionTrace(components, RESEARCH_OPPORTUNITY_WEIGHTS);
+  const executionTrace = executionReadinessTrace(project, gate);
+  const rawScore = scoreFromTrace(legacyTrace);
+  const rawResearchScore = scoreFromTrace(researchTrace);
+  const rawExecutionScore = scoreFromTrace(executionTrace);
+  const penalties = riskPenalties(project, { gate });
+  const researchPenalties = riskPenalties(project, { gate, includeMissingCriticalEvidence: false });
   const totalPenalty = Number(penalties.reduce((sum, item) => sum + item.penalty, 0).toFixed(2));
-  const readinessScore = Math.round(clamp(rawScore - totalPenalty));
-  const blockers = hardBlocks(project);
+  const researchPenalty = Number(researchPenalties.reduce((sum, item) => sum + item.penalty, 0).toFixed(2));
+  const legacyReadinessScore = Math.round(clamp(rawScore - totalPenalty));
+  const researchOpportunityScore = Math.round(clamp(rawResearchScore - researchPenalty));
+  const executionReadinessScore = Math.round(clamp(rawExecutionScore - totalPenalty));
+  const route = routeTruth(project, gate);
+  const blockers = deterministicHardBlocks(project);
+  const warningBlocks = nonDeterministicBlockWarnings(project);
   const missing = missingEvidence(project);
   const completeness = evidenceCompleteness(project);
   const families = independentEvidenceFamilies(project);
+  const researchCompleteness = researchEvidenceCompleteness(project, components, families);
   const qualified =
     blockers.length === 0 &&
-    readinessScore >= 70 &&
+    executionReadinessScore >= 70 &&
+    researchOpportunityScore >= 55 &&
     completeness >= 60 &&
     families.length >= 2 &&
     Boolean(tokenAddress(project)) &&
@@ -559,7 +765,8 @@ function candidateRecord(project = {}, rank = null) {
     Boolean(chain(project)) &&
     Boolean(dexLiquidity(project)) &&
     gate.strictRankEligible &&
-    routeVerified(project);
+    route.liveExecutionReady;
+  const isPrelaunch = prelaunchCandidate(project);
 
   return {
     rank,
@@ -574,6 +781,13 @@ function candidateRecord(project = {}, rank = null) {
     pairAddress: gate.pairAddress,
     dexName: gate.dexName,
     routeVerificationStatus: gate.routeVerificationStatus,
+    routeTruth: route,
+    buyQuoteVerified: route.buyQuoteVerified,
+    sellQuoteVerified: route.sellQuoteVerified,
+    routeDepthVerified: route.routeDepthVerified,
+    routeSlippageVerified: route.routeSlippageVerified,
+    routeQuoteFresh: route.routeQuoteFresh,
+    liveExecutionReady: route.liveExecutionReady,
     strictIdentityVerified: gate.strictIdentityVerified,
     strictRouteVerified: gate.strictRouteVerified,
     strictRankEligible: gate.strictRankEligible,
@@ -587,27 +801,40 @@ function candidateRecord(project = {}, rank = null) {
     marketCap: money(first([project.circulatingMarketCapUsd, project.marketCap, project.estimatedMarketCapUsd])),
     fdv: money(first([project.fullyDilutedValueUsd, project.fdv, project.fullyDilutedValue])),
     poolAge: first([project.poolAge, project.poolAgeHours, project.pairCreatedAt, project.poolCreatedAt]) ?? null,
-    breakoutStage: breakoutStage(project, readinessScore),
-    breakoutReadinessScore: readinessScore,
-    confidence: confidence(readinessScore, completeness, families.length, blockers),
+    breakoutStage: isPrelaunch ? "PRELAUNCH_RESEARCH" : breakoutStage(project, researchOpportunityScore),
+    breakoutReadinessScore: researchOpportunityScore,
+    legacyBreakoutReadinessScore: legacyReadinessScore,
+    researchOpportunityScore,
+    executionReadinessScore,
+    confidence: confidence(researchOpportunityScore, researchCompleteness, families.length, blockers),
     evidenceCompleteness: completeness,
+    researchEvidenceCompleteness: researchCompleteness,
     independentEvidenceFamilies: families,
     qualified,
     qualificationState: blockers.length
       ? "BLOCKED"
       : gate.marketBenchmarkLane === "MARKET_BENCHMARK"
         ? "MARKET_BENCHMARK"
+        : isPrelaunch
+          ? "PRELAUNCH_RESEARCH"
         : !gate.strictRankEligible
           ? "QUARANTINED_IDENTITY_OR_ROUTE"
           : qualified
             ? "QUALIFIED"
-            : readinessScore >= 55
+            : researchOpportunityScore >= 55
               ? "CONDITIONAL_WATCH"
               : "RESEARCH_ONLY",
-    scoreContributionTrace: trace,
+    scoreContributionTrace: legacyTrace,
+    researchScoreContributionTrace: researchTrace,
+    legacyScoreContributionTrace: legacyTrace,
+    executionScoreContributionTrace: executionTrace,
     rawScore,
+    rawResearchScore,
+    rawExecutionScore,
     penalties,
+    researchPenalties,
     totalPenalty,
+    researchPenalty,
     whyItMayBreakOut: reasons(project, components),
     recentAcceleration: {
       score: components.earlyAcceleration,
@@ -661,6 +888,8 @@ function candidateRecord(project = {}, rank = null) {
       ? missing
       : [...new Set([...(gate.candidateQuarantineReasons || []).map((reason) => `Strict identity/route proof missing: ${reason}.`), ...missing])],
     hardBlocks: blockers,
+    nonDeterministicBlockWarnings: warningBlocks,
+    prelaunchResearch: isPrelaunch,
     sourceList: sourceList(project),
     observationTimestamps: {
       observationTimestamp: project.observationTimestamp || project.discoveredAt || null,
@@ -673,7 +902,17 @@ function candidateRecord(project = {}, rank = null) {
 function rankRecords(records = []) {
   return [...records].sort(
     (a, b) =>
-      num(b.breakoutReadinessScore) - num(a.breakoutReadinessScore) ||
+      num(b.researchOpportunityScore) - num(a.researchOpportunityScore) ||
+      num(b.researchEvidenceCompleteness) - num(a.researchEvidenceCompleteness) ||
+      num(b.dexLiquidity) - num(a.dexLiquidity)
+  );
+}
+
+function rankExecutableRecords(records = []) {
+  return [...records].sort(
+    (a, b) =>
+      num(b.executionReadinessScore) - num(a.executionReadinessScore) ||
+      num(b.researchOpportunityScore) - num(a.researchOpportunityScore) ||
       num(b.evidenceCompleteness) - num(a.evidenceCompleteness) ||
       num(b.dexLiquidity) - num(a.dexLiquidity)
   );
@@ -690,10 +929,20 @@ function hasIdentityQuarantine(record = {}) {
 
 function researchEligible(record = {}) {
   if (record.qualificationState === "BLOCKED" || record.qualificationState === "MARKET_BENCHMARK") return false;
+  if (record.prelaunchResearch) return false;
   if (record.hardBlocks?.length) return false;
   if (hasIdentityQuarantine(record)) return false;
   if (!record.chain || !record.verifiedContractAddress) return false;
-  if (record.breakoutReadinessScore < 45 && record.evidenceCompleteness < 40) return false;
+  if (record.researchOpportunityScore < 45 && record.researchEvidenceCompleteness < 40) return false;
+  return true;
+}
+
+function prelaunchEligible(record = {}) {
+  if (!record.prelaunchResearch) return false;
+  if (record.qualificationState === "BLOCKED" || record.qualificationState === "MARKET_BENCHMARK") return false;
+  if (record.hardBlocks?.length) return false;
+  if (record.verifiedContractAddress && record.primaryTradablePool) return false;
+  if (record.researchOpportunityScore < 35 && record.researchEvidenceCompleteness < 45) return false;
   return true;
 }
 
@@ -724,22 +973,20 @@ function buildFailureWaterfall(records = [], qualified = []) {
     Boolean(record.strictIdentityVerified || (record.chain && record.verifiedContractAddress && !hasIdentityQuarantine(record)));
   const passedPoolOrMarket = (record = {}) =>
     passedIdentity(record) &&
-    Boolean(record.primaryTradablePool || record.dexName || !array(record.candidateQuarantineReasons).includes("PAIR_NOT_FOUND"));
+    Boolean(record.primaryTradablePool || record.dexName || record.routeTruth?.exactRouteIdentityVerified === true);
   const passedLiquidity = (record = {}) =>
     passedPoolOrMarket(record) &&
     (num(record.dexLiquidity) > 0 || num(record.stableExitLiquidity) > 0) &&
-    !array(record.candidateQuarantineReasons).includes("NO_ACTIVE_LIQUIDITY");
+    record.routeTruth?.routeDepthVerified === true;
   const passedSafety = (record = {}) =>
     passedLiquidity(record) &&
     !record.hardBlocks?.length &&
     !array(record.missingEvidence).some((item) => /safety|honeypot|scam|rug/i.test(String(item)));
-  const passedBuy = (record = {}) =>
-    passedSafety(record) && !array(record.candidateQuarantineReasons).includes("BUY_ROUTE_FAILED");
-  const passedSell = (record = {}) =>
-    passedBuy(record) && !array(record.candidateQuarantineReasons).includes("SELL_ROUTE_FAILED");
+  const passedBuy = (record = {}) => passedSafety(record) && record.buyQuoteVerified === true;
+  const passedSell = (record = {}) => passedBuy(record) && record.sellQuoteVerified === true;
   const passedEvidence = (record = {}) =>
     passedSell(record) && record.evidenceCompleteness >= 60 && record.independentEvidenceFamilies.length >= 2;
-  const passedReadiness = (record = {}) => passedEvidence(record) && record.breakoutReadinessScore >= 70;
+  const passedReadiness = (record = {}) => passedEvidence(record) && record.executionReadinessScore >= 70;
 
   return {
     projectsAnalyzed: records.length,
@@ -808,8 +1055,9 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
   const normalized = attachCanonicalIdentityBatch(normalizeMetricTruthBatch(projects));
   const records = normalized.map((project) => candidateRecord(project));
   const ranked = rankRecords(records);
+  const executableRanked = rankExecutableRecords(records);
   const finalists = ranked.slice(0, 25);
-  const qualified = finalists.filter((record) => record.qualified).slice(0, 10);
+  const qualified = executableRanked.filter((record) => record.qualified).slice(0, 10);
   const researchOpportunities = ranked
     .filter(researchEligible)
     .slice(0, 10)
@@ -822,6 +1070,19 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
           ? "RESEARCH_WORTHY_ROUTE_PENDING"
           : "RESEARCH_WORTHY_PROOF_PENDING",
       executionReady: record.qualified,
+    }));
+  const prelaunchResearchCandidates = ranked
+    .filter(prelaunchEligible)
+    .slice(0, 10)
+    .map((record, index) => ({
+      ...record,
+      prelaunchRank: index + 1,
+      researchStatus: "PRELAUNCH_RESEARCH",
+      executionReady: false,
+      missingEvidence: unique([
+        ...array(record.missingEvidence),
+        "Prelaunch candidate is not tradable until token contract, pool, safety, and route proof exist.",
+      ]),
     }));
   const conditional = finalists
     .filter((record) => !record.qualified && record.qualificationState === "CONDITIONAL_WATCH")
@@ -846,10 +1107,15 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
           : "NO_PROJECTS",
     mode: "PRIVATE_EVIDENCE_DRIVEN_TOP_10_BREAKOUT_FUNNEL",
     meta,
-    stageSummary: buildStageSummary(projects, finalists, rankedQualified, conditional, blocked, researchOpportunities),
+    stageSummary: {
+      ...buildStageSummary(projects, finalists, rankedQualified, conditional, blocked, researchOpportunities),
+      prelaunchResearchCandidates: prelaunchResearchCandidates.length,
+    },
     failureWaterfall: buildFailureWaterfall(records, rankedQualified),
     scoringDesign: {
       weights: Object.fromEntries(BREAKOUT_WEIGHTS.map(([name, weight]) => [name, weight])),
+      researchOpportunityWeights: Object.fromEntries(RESEARCH_OPPORTUNITY_WEIGHTS.map(([name, weight]) => [name, weight])),
+      executionReadinessWeights: Object.fromEntries(EXECUTION_READINESS_WEIGHTS.map(([name, weight]) => [name, weight])),
       penalties: [
         "contract risk",
         "manipulation risk",
@@ -865,6 +1131,7 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
       noDoubleCounting: "Source confidence uses unique evidence families, so repeated DexScreener, CoinGecko, news, or AI-derived copies cannot multiply independent confirmation.",
     },
     top10ResearchOpportunities: researchOpportunities,
+    prelaunchResearchCandidates,
     researchOpportunitySlots: [
       ...researchOpportunities,
       ...emptySlots(
@@ -885,8 +1152,11 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
         symbol: record.symbol,
         chain: record.chain,
         breakoutReadinessScore: record.breakoutReadinessScore,
+        researchOpportunityScore: record.researchOpportunityScore,
+        executionReadinessScore: record.executionReadinessScore,
         qualificationState: record.qualificationState,
         hardBlocks: record.hardBlocks,
+        nonDeterministicBlockWarnings: record.nonDeterministicBlockWarnings,
         missingEvidence: record.missingEvidence,
       })),
     bestOpportunityNow:
@@ -949,6 +1219,12 @@ function htmlFor(report = {}) {
       return `<tr><td>${record.rank}</td><td>${record.projectName}</td><td>${record.symbol}</td><td>${record.chain || ""}</td><td>${record.breakoutReadinessScore}</td><td>${record.confidence}</td><td>${record.qualificationState}</td><td>${record.missingEvidence.slice(0, 2).join("; ")}</td></tr>`;
     })
     .join("\n");
+  const prelaunchRows = (report.prelaunchResearchCandidates || [])
+    .map(
+      (record) =>
+        `<tr><td>${record.prelaunchRank}</td><td>${record.projectName}</td><td>${record.symbol}</td><td>${record.chain || ""}</td><td>${record.researchOpportunityScore}</td><td>${record.confidence}</td><td>${record.missingEvidence.slice(0, 2).join("; ")}</td></tr>`
+    )
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -978,6 +1254,11 @@ function htmlFor(report = {}) {
   <table>
     <thead><tr><th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Score</th><th>Confidence</th><th>State</th><th>Missing Evidence</th></tr></thead>
     <tbody>${rows}</tbody>
+  </table>
+  <h2>Prelaunch Research</h2>
+  <table>
+    <thead><tr><th>Rank</th><th>Project</th><th>Symbol</th><th>Chain</th><th>Research Score</th><th>Confidence</th><th>Missing Evidence</th></tr></thead>
+    <tbody>${prelaunchRows || '<tr><td colspan="7">No prelaunch research candidates passed the latest evidence checks.</td></tr>'}</tbody>
   </table>
   <div class="note">${report.disclaimer}</div>
 </body>

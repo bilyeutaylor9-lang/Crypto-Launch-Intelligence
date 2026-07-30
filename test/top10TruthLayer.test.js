@@ -316,6 +316,114 @@ test("Top 10 research opportunities stay visible when only live sell-route proof
   assert.ok(report.failureWaterfall.topRejectionReasons.some((item) => item.reason === "SELL_ROUTE_FAILED"));
 });
 
+test("missing identity confidence score does not become maximum identity risk", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "NOID",
+      identityConfidence: undefined,
+      identityResolutionScore: undefined,
+    }),
+  ]);
+
+  assert.equal(report.qualifiedPicks.length, 1);
+  assert.equal(
+    report.qualifiedPicks[0].penalties.some((penalty) => penalty.label === "Identity uncertainty"),
+    false
+  );
+});
+
+test("generic upstream uncertainty is a warning, not a research hard block", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "WARN",
+      sellQuoteVerified: false,
+      finalBlockingReasons: ["Insufficient evidence from optional AI model.", "Missing route confirmation."],
+      executionRoute: {
+        ...strongProject().executionRoute,
+        sellRouteAvailable: false,
+        sellQuoteVerified: false,
+      },
+      executionProof: {
+        ...strongProject().executionProof,
+        sellQuoteVerified: false,
+      },
+    }),
+  ]);
+
+  assert.equal(report.qualifiedPicks.length, 0);
+  assert.equal(report.top10ResearchOpportunities[0].symbol, "WARN");
+  assert.equal(report.top10ResearchOpportunities[0].hardBlocks.length, 0);
+  assert.ok(report.top10ResearchOpportunities[0].nonDeterministicBlockWarnings.length >= 1);
+});
+
+test("deterministic safety blockers still remove candidates from research", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "RUG",
+      hardBlockers: ["Verified honeypot evidence."],
+    }),
+  ]);
+
+  assert.equal(report.qualifiedPicks.length, 0);
+  assert.equal(report.top10ResearchOpportunities.length, 0);
+  assert.equal(report.excludedFinalists[0].qualificationState, "BLOCKED");
+});
+
+test("failure waterfall requires positive buy and sell quote proof", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "NOQUOTE",
+      buyQuoteVerified: false,
+      sellQuoteVerified: false,
+      executionRoute: {
+        ...strongProject().executionRoute,
+        buyQuoteVerified: false,
+        sellQuoteVerified: false,
+      },
+      executionProof: {
+        ...strongProject().executionProof,
+        buyQuoteVerified: false,
+        sellQuoteVerified: false,
+      },
+    }),
+  ]);
+
+  assert.equal(report.failureWaterfall.passedBuyRouteVerification, 0);
+  assert.equal(report.failureWaterfall.passedSellRouteVerification, 0);
+  assert.equal(report.qualifiedPicks.length, 0);
+});
+
+test("prelaunch projects without contracts enter a separate research lane", () => {
+  const report = buildTop10BreakoutReport([
+    {
+      name: "Builder Protocol",
+      symbol: "BUILD",
+      chain: "base",
+      source: "github",
+      discoverySources: ["github-project-discovery", "google-news"],
+      researchOnly: true,
+      tradableCandidate: false,
+      lifecycleStage: "PRELAUNCH",
+      github: "https://github.com/builder/protocol",
+      website: "https://builder.example",
+      developerActivityScore: 86,
+      githubProScore: 84,
+      githubVelocityScore: 80,
+      liveCatalystRadarScore: 82,
+      catalystCalendarScore: 78,
+      sourceTruthScore: 72,
+      sourceReliabilityScore: 70,
+      earlyAccelerationScore: 66,
+      relativeStrengthScore: 58,
+    },
+  ]);
+
+  assert.equal(report.top10ResearchOpportunities.length, 0);
+  assert.equal(report.prelaunchResearchCandidates.length, 1);
+  assert.equal(report.prelaunchResearchCandidates[0].symbol, "BUILD");
+  assert.equal(report.prelaunchResearchCandidates[0].executionReady, false);
+});
+
 test("Top 10 candidate input preserves scoring fields before generic report compaction", () => {
   const noisy = {
     ...strongProject(),
