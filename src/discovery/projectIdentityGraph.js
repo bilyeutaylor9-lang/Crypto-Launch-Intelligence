@@ -40,6 +40,28 @@ function normalizeSymbol(value = "") {
   return symbol || "UNKNOWN";
 }
 
+function namespaceId(source = "unknown", value = "") {
+  const cleanSource = clean(source || "unknown").replace(/[^a-z0-9._-]+/g, "-") || "unknown";
+  const cleanValue = clean(value);
+  return cleanValue ? `${cleanSource}:${cleanValue}` : "";
+}
+
+function flattenMarket(value) {
+  if (!value) return "";
+  if (typeof value === "string") return clean(value);
+  if (typeof value !== "object") return clean(value);
+  return clean(
+    value.marketKey ||
+      value.marketPair ||
+      value.pair ||
+      value.symbol ||
+      value.id ||
+      [value.exchange || value.venue, value.base || value.baseAsset || value.baseSymbol, value.quote || value.quoteAsset || value.quoteSymbol]
+        .filter(Boolean)
+        .join(":")
+  );
+}
+
 export function symbolIdentityForProject(project = {}) {
   const signals = projectIdentitySignals(project);
   const canonicalSymbol = normalizeSymbol(project.symbol || project.ticker || signals.aliases[0]);
@@ -48,6 +70,7 @@ export function symbolIdentityForProject(project = {}) {
     signals.tokenContracts[0] ||
     signals.poolAddresses[0] ||
     signals.exchangeAssetIds[0] ||
+    signals.marketKeys[0] ||
     signals.externalAssetIds[0] ||
     signals.domains[0] ||
     signals.repositories[0] ||
@@ -102,16 +125,30 @@ export function projectIdentitySignals(project = {}) {
     project.binanceAssetId,
     project.krakenAssetId,
     project.listingAssetId,
+    project.assetKey,
+    project.providerExchangeAssetId,
+    ...(Array.isArray(project.exchangeAssetIds) ? project.exchangeAssetIds : []),
   ].map(clean).filter(Boolean);
   const externalAssetIds = [
-    project.verifiedCoinGeckoId,
-    project.coinGeckoId,
-    project.coingeckoId,
-    project.verifiedCoinMarketCapId,
-    project.coinMarketCapId,
-    project.cmcId,
+    project.verifiedCoinGeckoId ? namespaceId("coingecko", project.verifiedCoinGeckoId) : null,
+    project.coinGeckoId ? namespaceId("coingecko", project.coinGeckoId) : null,
+    project.coingeckoId ? namespaceId("coingecko", project.coingeckoId) : null,
+    project.verifiedCoinMarketCapId ? namespaceId("coinmarketcap", project.verifiedCoinMarketCapId) : null,
+    project.coinMarketCapId ? namespaceId("coinmarketcap", project.coinMarketCapId) : null,
+    project.cmcId ? namespaceId("coinmarketcap", project.cmcId) : null,
+    project.coinPaprikaId ? namespaceId("coinpaprika", project.coinPaprikaId) : null,
     project.assetId,
+    project.providerProjectId,
+    project.providerAssetId ? namespaceId(project.source || project.provider || project.exchange, project.providerAssetId) : null,
   ].map(clean).filter(Boolean);
+  const marketKeys = [
+    project.marketKey,
+    project.marketPair && project.exchange ? namespaceId(project.exchange, project.marketPair) : null,
+    ...(Array.isArray(project.exchangeMarkets) ? project.exchangeMarkets.map(flattenMarket) : []),
+  ].map((value) => {
+    const text = clean(value);
+    return text && text.includes(":") ? text : namespaceId(project.source || project.exchange || "market", text);
+  }).filter(Boolean);
   const socialAccounts = [
     project.x,
     project.twitter,
@@ -137,6 +174,7 @@ export function projectIdentitySignals(project = {}) {
     repositories: [...new Set(repositories)],
     exchangeAssetIds: [...new Set(exchangeAssetIds)],
     externalAssetIds: [...new Set(externalAssetIds)],
+    marketKeys: [...new Set(marketKeys)],
     socialAccounts: [...new Set(socialAccounts)],
     tokenContracts: [...new Set(tokenContracts)],
     poolAddresses: [...new Set(poolAddresses)],
@@ -150,6 +188,7 @@ export function identityKeyForProject(project = {}) {
   if (signals.tokenContracts[0]) return `${signals.chain}:token:${signals.tokenContracts[0]}`;
   if (signals.poolAddresses[0]) return `${signals.chain}:pool:${signals.poolAddresses[0]}`;
   if (signals.exchangeAssetIds[0]) return `exchange:${signals.exchangeAssetIds[0]}`;
+  if (signals.marketKeys[0]) return `market:${signals.marketKeys[0]}`;
   if (signals.externalAssetIds[0]) return `asset:${signals.externalAssetIds[0]}`;
   if (signals.domains[0]) return `${signals.chain}:domain:${signals.domains[0]}`;
   if (signals.repositories[0]) return `repo:${signals.repositories[0]}`;
@@ -165,6 +204,7 @@ export function attachProjectIdentity(project = {}) {
     signals.tokenContracts[0],
     signals.poolAddresses[0],
     signals.exchangeAssetIds[0],
+    signals.marketKeys[0],
     signals.externalAssetIds[0],
     signals.domains[0],
     signals.repositories[0],
@@ -193,6 +233,7 @@ export function attachProjectIdentity(project = {}) {
         ...(signals.tokenContracts.length ? ["contract"] : []),
         ...(signals.poolAddresses.length ? ["pool"] : []),
         ...(signals.exchangeAssetIds.length ? ["exchangeAssetId"] : []),
+        ...(signals.marketKeys.length ? ["marketKey"] : []),
         ...(signals.externalAssetIds.length ? ["externalAssetId"] : []),
         ...(signals.domains.length ? ["domain"] : []),
         ...(signals.repositories.length ? ["repository"] : []),
@@ -253,6 +294,9 @@ export function buildProjectIdentityGraph(projects = []) {
     }
     for (const assetId of enriched.projectIdentity.exchangeAssetIds || []) {
       edges.push({ projectId: enriched.projectId, type: "exchangeAssetId", value: assetId, confidence: 0.9 });
+    }
+    for (const marketKey of enriched.projectIdentity.marketKeys || []) {
+      edges.push({ projectId: enriched.projectId, type: "marketKey", value: marketKey, confidence: 0.88 });
     }
     for (const assetId of enriched.projectIdentity.externalAssetIds || []) {
       edges.push({ projectId: enriched.projectId, type: "externalAssetId", value: assetId, confidence: 0.86 });

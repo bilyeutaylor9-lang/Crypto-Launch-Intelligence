@@ -29,6 +29,7 @@ function missingItems(project = {}) {
     ...(project.dailyCapitalMoveMissingProof || []),
     ...(project.highUpsideScalpMissingFields || []),
     ...(project.missingInfoNeeded || []),
+    ...(project.missingDataCompletion?.missing || []),
     ...(project.missingEvidence || []),
     ...(project.missingRouteEvidence || []),
     ...(project.engineDataContractHealth?.nextSourcesNeeded || []).map((item) => item.source || item),
@@ -57,6 +58,10 @@ function compact(project = {}, rank = 0) {
     ...(project.dailyCapitalMoveNextSources || []),
     ...missing.flatMap(sourcePlan),
   ])].slice(0, 12);
+  const nextResolvers = [...new Set([
+    ...(project.nextResolvers || []),
+    ...(project.missingDataCompletion?.nextResolvers || []),
+  ])].slice(0, 12);
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
@@ -65,11 +70,14 @@ function compact(project = {}, rank = 0) {
     tokenAddress: first([project.tokenAddress, project.contractAddress, project.canonicalAddress]) || null,
     poolAddress: first([project.poolAddress, project.pairAddress, project.primaryTradablePool]) || null,
     researchScore: score(project),
+    completionScore: project.completionScore ?? project.missingDataCompletion?.completionScore ?? null,
     lane: project.dailyCapitalMoveLane || project.highUpsideScalpLane || project.hottestTenNowLane || "RESEARCH",
     blockingResearch: project.dailyCapitalMoveLane === "NEEDS_PROOF" || missing.length > 0,
     blockingExecution: missing.some((item) => /route|quote|sell|buy|slippage|depth|liquidity|safety|identity|contract/i.test(item)),
     missingProof: missing,
     nextSingleProofToPromote: missing[0] || null,
+    nextSingleResolver: project.nextSingleResolver || project.missingDataCompletion?.nextSingleResolver || nextResolvers[0] || null,
+    nextResolvers,
     targetSources: sources,
     sourcesUsed: [...new Set([
       project.executionRecoverySource,

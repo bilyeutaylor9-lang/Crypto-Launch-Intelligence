@@ -14,6 +14,7 @@ test("wide discovery profile targets 39,000 candidates", () => {
   assert.equal(limits.targetCandidates, 39_000);
   assert.equal(limits.wideLimit, 39_000);
   assert.equal(limits.scanLimit, 39_000);
+  assert.equal(limits.maxTokens, 10_000);
   assert.equal(limits.freeLimit, 39_000);
   assert.equal(limits.expandedLimit, 39_000);
   assert.ok(limits.googleNewsLimit >= 1_000);
@@ -55,6 +56,35 @@ test("project identity creates stable symbol identities without merging ticker c
   assert.notEqual(basePerp.symbolInstanceId, basePerpPool.symbolInstanceId);
   assert.notEqual(identityKeyForProject(basePerp), identityKeyForProject(ethereumPerp));
   assert.ok(basePerp.projectIdentity.evidence.includes("symbol"));
+});
+
+test("project identity uses provider-scoped ids and market keys before symbol aliases", () => {
+  const coinLoreAsset = attachProjectIdentity({
+    name: "Provider Alpha",
+    symbol: "ALPHA",
+    source: "coinlore-assets",
+    providerAssetId: "77",
+    marketKey: "coinlore-assets:77",
+  });
+  const coinLoreMover = attachProjectIdentity({
+    name: "Provider Alpha",
+    symbol: "ALPHA",
+    source: "coinlore-movers",
+    providerAssetId: "77",
+    marketKey: "coinlore-assets:77",
+  });
+  const sameSymbolOtherProvider = attachProjectIdentity({
+    name: "Provider Alpha",
+    symbol: "ALPHA",
+    source: "coingecko",
+    providerAssetId: "77",
+    marketKey: "coingecko:77",
+  });
+
+  assert.equal(identityKeyForProject(coinLoreAsset), "market:coinlore-assets:77");
+  assert.equal(identityKeyForProject(coinLoreAsset), identityKeyForProject(coinLoreMover));
+  assert.notEqual(identityKeyForProject(coinLoreAsset), identityKeyForProject(sameSymbolOtherProvider));
+  assert.ok(coinLoreAsset.projectIdentity.evidence.includes("marketKey"));
 });
 
 test("project identity graph exposes symbol identity edges", () => {

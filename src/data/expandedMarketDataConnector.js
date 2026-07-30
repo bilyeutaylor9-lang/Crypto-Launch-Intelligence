@@ -148,7 +148,12 @@ async function runProvider(source = "", fn, options = {}) {
       label: source,
       timeoutMs: Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000),
     });
-    return providerEnvelope({ source, startedAt, candidates });
+    return providerEnvelope({
+      source,
+      status: candidates.length ? "healthy" : "success_empty",
+      startedAt,
+      candidates,
+    });
   } catch (error) {
     const status = classifyProviderStatus(error);
     return providerEnvelope({
@@ -304,7 +309,7 @@ export async function getCoinCapProviderResult(options = {}) {
     const candidates = await getCoinCapCandidates(options);
     return {
       source: "coincap",
-      status: "healthy",
+      status: candidates.length ? "healthy" : "success_empty",
       attempted: true,
       candidates,
       durationMs: Date.now() - startedAt,
@@ -809,7 +814,7 @@ export async function getBybitProviderResult(options = {}) {
     const candidates = await getBybitTickerCandidates(options);
     return {
       source: "bybit",
-      status: "healthy",
+      status: candidates.length ? "healthy" : "success_empty",
       attempted: true,
       candidates,
       durationMs: Date.now() - startedAt,

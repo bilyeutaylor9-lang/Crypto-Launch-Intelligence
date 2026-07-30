@@ -118,7 +118,12 @@ async function runProvider(source = "", fn, options = {}) {
       label: source,
       timeoutMs: Number(options.timeoutMs || process.env.MARKET_PROVIDER_TIMEOUT_MS || 12_000),
     });
-    return providerEnvelope({ source, startedAt, candidates });
+    return providerEnvelope({
+      source,
+      status: candidates.length ? "healthy" : "success_empty",
+      startedAt,
+      candidates,
+    });
   } catch (error) {
     const status = classifyProviderStatus(error);
     return providerEnvelope({

@@ -318,6 +318,28 @@ export const SOURCE_MANIFEST = [
     chains: ["exchange-market"],
   },
   {
+    id: "coincap",
+    label: "CoinCap",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: true,
+    chains: ["multi-chain"],
+  },
+  {
+    id: "cryptocompare",
+    label: "CryptoCompare",
+    category: "market",
+    evidenceFamily: EVIDENCE_FAMILIES.market,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: true,
+    enrichmentProvider: true,
+    requiresKey: false,
+    chains: ["multi-chain"],
+  },
+  {
     id: "expandedMarketData",
     label: "Expanded Free Market Providers",
     category: "market",
@@ -530,6 +552,10 @@ const SOURCE_ALIASES = new Map([
   ["dexscreener-ad", "dexscreener-ads"],
   ["dexscreener-ads", "dexscreener-ads"],
   ["coin-gecko", "coingecko"],
+  ["coincap", "coincap"],
+  ["coin-cap", "coincap"],
+  ["cryptocompare", "cryptocompare"],
+  ["crypto-compare", "cryptocompare"],
   ["coinlore", "coinlore"],
   ["coinpaprika-market", "coinpaprika"],
   ["coinlore-assets", "coinlore-assets"],
@@ -574,6 +600,45 @@ const SOURCE_ALIASES = new Map([
   ["huobi", "htx"],
 ]);
 
+const SOURCE_TRUTH_KINDS = {
+  dexscreener: "dex",
+  geckoterminal: "dex",
+  nativeDiscoveryMesh: "dex",
+  "dexscreener-community-takeovers": "dex",
+  "dexscreener-ads": "dex",
+  coingecko: "aggregate-market",
+  "coingecko-trending": "aggregate-market",
+  coinpaprika: "aggregate-market",
+  coinlore: "aggregate-market",
+  "coinlore-assets": "aggregate-market",
+  "coinlore-movers": "aggregate-market",
+  coincap: "aggregate-market",
+  cryptocompare: "aggregate-market",
+  "defillama-stablecoins": "aggregate-market",
+  binance: "cex",
+  "binance-us": "cex",
+  coinbase: "cex",
+  kraken: "cex",
+  kucoin: "cex",
+  okx: "cex",
+  bybit: "cex",
+  gate: "cex",
+  mexc: "cex",
+  bitget: "cex",
+  htx: "cex",
+  bitfinex: "cex",
+  bitstamp: "cex",
+  gemini: "cex",
+  defillama: "protocol-tvl",
+  "defillama-chain": "protocol-tvl",
+  "defillama-yields": "protocol-tvl",
+  googleNewsDiscovery: "unresolved-news",
+  githubProjectDiscovery: "unresolved-repository",
+  researchSeeds: "research-seed",
+  aiDiscoverySwarm: "research-seed",
+  candidateRescue: "research-seed",
+};
+
 export function canonicalSourceId(source = "") {
   const raw = String(source || "").trim();
   if (!raw) return "unknown";
@@ -617,6 +682,11 @@ export function getSourceById(source = "") {
 
 export function evidenceFamilyForSource(source = "") {
   return getSourceById(source).evidenceFamily || "unknown";
+}
+
+export function truthKindForSource(source = "") {
+  const id = canonicalSourceId(source);
+  return SOURCE_TRUTH_KINDS[id] || "unknown";
 }
 
 export function groupSourcesByCategory() {

@@ -279,6 +279,19 @@ test("daily source gaps let no-key free sources become available with useful pro
   assert.notEqual(report.scannerBlindnessRisk, "CRITICAL");
 });
 
+test("daily source gaps do not mark successful empty probes as available", () => {
+  const report = summarizeDailySourceGaps({
+    sourceProbes: {
+      dexscreener: { status: "SUCCESS_EMPTY", lastCandidateCount: 0 },
+    },
+  });
+  const dex = report.sources.find((source) => source.source === "dexscreener");
+
+  assert.equal(dex.status, "EMPTY");
+  assert.equal(dex.available, false);
+  assert.match(dex.nextAction, /returned no usable records/i);
+});
+
 test("daily source gaps do not let missing paid keys make the free-mode scanner blind", () => {
   const report = summarizeDailySourceGaps({
     sourceProbes: {

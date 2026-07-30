@@ -130,6 +130,43 @@ test("CEX volume and DeFiLlama TVL do not become token DEX liquidity", () => {
   assert.equal(tvl.protocolTvlUsd, 22_000_000);
 });
 
+test("expanded aggregate providers preserve market cap through manifest-backed normalization", () => {
+  const coinLore = normalizeMetricTruth({
+    name: "CoinLore Alpha",
+    symbol: "CLA",
+    source: "coinlore-assets",
+    providerAssetId: "77",
+    marketKey: "coinlore-assets:77",
+    dex: "market",
+    priceUsd: 0.018,
+    marketCap: 8_400_000,
+    volume24h: 2_100_000,
+  });
+
+  assert.equal(coinLore.sourceType, "aggregate-market");
+  assert.equal(coinLore.circulatingMarketCapUsd, 8_400_000);
+  assert.equal(coinLore.marketCap, 8_400_000);
+  assert.equal(coinLore.liquidityUsd, null);
+  assert.ok(coinLore.metricTruth.measurementWarnings.some((warning) => /Aggregate market cap/i.test(warning)));
+});
+
+test("unknown provider market cap is preserved as estimated evidence instead of erased", () => {
+  const unknown = normalizeMetricTruth({
+    name: "Unknown Provider Alpha",
+    symbol: "UPA",
+    source: "new-provider-beta",
+    priceUsd: 0.02,
+    marketCap: 4_200_000,
+    volume24h: 900_000,
+  });
+
+  assert.equal(unknown.sourceType, "unknown");
+  assert.equal(unknown.estimatedMarketCapUsd, 4_200_000);
+  assert.equal(unknown.marketCap, 4_200_000);
+  assert.equal(unknown.volume24h, 900_000);
+  assert.ok(unknown.metricTruth.measurementWarnings.some((warning) => /preserved as estimated/i.test(warning)));
+});
+
 test("news and repository discovery remain unresolved research until identity is matched", () => {
   const article = candidateFromArticle(
     { title: "New chain project launches mainnet - Example News", url: "https://example.com/a" },

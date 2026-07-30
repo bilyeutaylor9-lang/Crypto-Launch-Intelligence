@@ -12,9 +12,13 @@ function runtimeStatus(source = {}, report = {}) {
   const scanned = num(report.scannedTokens || report.discoveredTokens || report.acceptedTokens);
   const status = String(report.status || "").toUpperCase();
 
-  if (status === "SUCCESS" && scanned > 0) return SOURCE_STATUS.ENABLED;
-  if (["FAILED", "ERROR"].includes(status)) return SOURCE_STATUS.DEGRADED;
-  if (status === "SUCCESS" || status === "USED") return SOURCE_STATUS.IMPLEMENTED;
+  if ((status === "SUCCESS_WITH_DATA" || status === "SUCCESS" || status === "USED" || status === "HEALTHY") && scanned > 0) {
+    return SOURCE_STATUS.ENABLED;
+  }
+  if (["FAILED", "ERROR", "TIMEOUT", "RATE_LIMITED", "REGION_BLOCKED", "AUTH_REQUIRED"].includes(status)) {
+    return SOURCE_STATUS.DEGRADED;
+  }
+  if (status === "SUCCESS_EMPTY" || status === "SUCCESS" || status === "USED" || status === "HEALTHY") return SOURCE_STATUS.IMPLEMENTED;
   if (source.status !== SOURCE_STATUS.PLANNED) return source.status;
   return SOURCE_STATUS.PLANNED;
 }

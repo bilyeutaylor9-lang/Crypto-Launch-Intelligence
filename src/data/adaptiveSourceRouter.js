@@ -91,6 +91,8 @@ function sourceState(memory = {}, sourceName = "") {
     source: sourceName,
     runs: 0,
     successes: 0,
+    usefulSuccesses: 0,
+    emptyResponses: 0,
     failures: 0,
     totalCandidates: 0,
     totalDurationMs: 0,
@@ -117,6 +119,16 @@ function errorType(error = "") {
   return "ERROR";
 }
 
+function statusErrorType(status = "") {
+  const normalized = String(status || "").toUpperCase();
+  if (normalized === "RATE_LIMITED") return "RATE_LIMIT";
+  if (normalized === "REGION_BLOCKED") return "BLOCKED";
+  if (normalized === "AUTH_REQUIRED") return "AUTH_REQUIRED";
+  if (normalized === "TIMEOUT") return "TIMEOUT";
+  if (normalized === "FAILED") return "ERROR";
+  return null;
+}
+
 function cooldownHoursFor(type = null, failures = 0) {
   if (type === "RATE_LIMIT") return Math.min(12, 2 + failures);
   if (type === "BLOCKED") return 24;
@@ -134,14 +146,16 @@ function canProbeRecoverableCooldown(source = "", state = {}) {
 
 function trustScore(state = {}) {
   const runs = Math.max(1, num(state.runs));
-  const successRate = (num(state.successes) / runs) * 100;
+  const usefulSuccesses = num(state.usefulSuccesses || state.successes);
+  const successRate = (usefulSuccesses / runs) * 100;
   const avgCandidates = num(state.totalCandidates) / runs;
   const avgDuration = num(state.totalDurationMs) / runs;
   const volumeScore = Math.min(35, Math.log10(Math.max(1, avgCandidates)) * 15);
   const speedPenalty = avgDuration > 15000 ? 12 : avgDuration > 8000 ? 6 : 0;
   const failurePenalty = Math.min(25, num(state.failures) * 4);
+  const emptyPenalty = Math.min(25, num(state.emptyResponses) * 3);
 
-  return Math.round(Math.max(0, Math.min(100, successRate * 0.55 + volumeScore + 15 - speedPenalty - failurePenalty)));
+  return Math.round(Math.max(0, Math.min(100, successRate * 0.55 + volumeScore + 15 - speedPenalty - failurePenalty - emptyPenalty)));
 }
 
 export function getSourceRoutingPlan(options = {}) {
@@ -169,7 +183,7 @@ export function getSourceRoutingPlan(options = {}) {
       reasons.push(`cooling down until ${state.cooldownUntil}`);
     } else if (coolingDown) {
       reasons.push(`probing recoverable cooldown from ${state.lastErrorType || errorType(state.lastError) || "transient error"}`);
-    } else if (state.runs >= 3 && score < 20 && state.failures >= state.successes + 2) {
+    } else if (state.runs >= 3 && score < 20 && state.failures + num(state.emptyResponses) >= num(state.usefulSuccesses || state.successes) + 2) {
       decision = "DEPRIORITIZE";
       reasons.push("low historical reliability");
     } else if (state.runs === 0) {
@@ -187,6 +201,8 @@ export function getSourceRoutingPlan(options = {}) {
       lastError: state.lastError || null,
       runs: state.runs || 0,
       successes: state.successes || 0,
+      usefulSuccesses: state.usefulSuccesses || 0,
+      emptyResponses: state.emptyResponses || 0,
       failures: state.failures || 0,
       reasons,
     };
@@ -213,10 +229,19 @@ export function shouldRunSource(plan = {}, sourceName = "") {
 
 function updateState(previous = {}, result = {}) {
   const status = result.status || "UNKNOWN";
-  const failed = status === "FAILED";
+  const normalizedStatus = String(status || "UNKNOWN").toUpperCase();
   const candidates = num(result.candidates);
   const durationMs = num(result.durationMs);
-  const type = errorType(result.error);
+  const usefulSuccess =
+    normalizedStatus === "SUCCESS_WITH_DATA" ||
+    normalizedStatus === "USED" && candidates > 0 ||
+    normalizedStatus === "HEALTHY" && candidates > 0 ||
+    normalizedStatus === "SUCCESS" && candidates > 0;
+  const emptySuccess =
+    normalizedStatus === "SUCCESS_EMPTY" ||
+    (["SUCCESS", "HEALTHY", "OK"].includes(normalizedStatus) && candidates === 0);
+  const type = statusErrorType(normalizedStatus) || errorType(result.error);
+  const failed = Boolean(type) && !emptySuccess;
   const failures = failed ? num(previous.failures) + 1 : num(previous.failures);
   const cooldownHours = failed ? cooldownHoursFor(type, failures) : 0;
   const cooldownUntil = failed && cooldownHours > 0
@@ -226,12 +251,14 @@ function updateState(previous = {}, result = {}) {
   return {
     source: result.source,
     runs: num(previous.runs) + 1,
-    successes: num(previous.successes) + (failed ? 0 : 1),
+    successes: num(previous.successes) + (usefulSuccess || emptySuccess ? 1 : 0),
+    usefulSuccesses: num(previous.usefulSuccesses || previous.successes) + (usefulSuccess ? 1 : 0),
+    emptyResponses: num(previous.emptyResponses) + (emptySuccess ? 1 : 0),
     failures,
     totalCandidates: num(previous.totalCandidates) + candidates,
     totalDurationMs: num(previous.totalDurationMs) + durationMs,
     lastStatus: status,
-    lastError: result.error || null,
+    lastError: failed ? result.error || status : null,
     lastErrorType: type,
     lastCandidateCount: candidates,
     lastDurationMs: durationMs,

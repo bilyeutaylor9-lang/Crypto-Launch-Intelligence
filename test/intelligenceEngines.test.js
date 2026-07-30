@@ -837,6 +837,34 @@ test("adaptive source router clears stale cooldown after a successful probe", ()
   assert.equal(updated.successes, 3);
 });
 
+test("adaptive source router records empty provider responses separately from useful success", () => {
+  const updated = __adaptiveSourceRouterTestHooks.updateState(
+    {
+      source: "dexscreener",
+      runs: 2,
+      successes: 2,
+      usefulSuccesses: 2,
+      emptyResponses: 0,
+      failures: 0,
+      totalCandidates: 40,
+      totalDurationMs: 900,
+    },
+    {
+      source: "dexscreener",
+      status: "SUCCESS_EMPTY",
+      candidates: 0,
+      durationMs: 300,
+    }
+  );
+
+  assert.equal(updated.lastStatus, "SUCCESS_EMPTY");
+  assert.equal(updated.successes, 3);
+  assert.equal(updated.usefulSuccesses, 2);
+  assert.equal(updated.emptyResponses, 1);
+  assert.equal(updated.failures, 0);
+  assert.equal(updated.lastError, null);
+});
+
 test("free web crawler extracts safe same-domain research links", () => {
   const html = `
     <html>

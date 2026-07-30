@@ -41,6 +41,8 @@ import { normalizeMetricTruth } from "./data/metricTruthNormalizer.js";
 const DEFAULT_WIDE_SCAN_TARGET = 39000;
 const FREE_MAX_COIN_GECKO_PAGES = 10;
 const FREE_MAX_COIN_GECKO_CATEGORIES = 11;
+const SUCCESS_WITH_DATA = "SUCCESS_WITH_DATA";
+const SUCCESS_EMPTY = "SUCCESS_EMPTY";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -85,7 +87,12 @@ export function resolveDiscoveryLimits(options = {}) {
     targetCandidates,
     wideLimit,
     scanLimit,
-    maxTokens: num(options.maxTokens || process.env.MAX_TOKENS || (wideScan ? 750 : 200)),
+    maxTokens: num(
+      options.maxTokens ||
+        process.env.MAX_TOKENS ||
+        process.env.DEXSCREENER_TOKEN_LIMIT ||
+        (wideScan ? Math.min(wideLimit, 10_000) : 200)
+    ),
     freeLimit: num(options.freeLimit || process.env.FREE_SOURCE_LIMIT || (wideScan ? wideLimit : 100)),
     expandedLimit: num(options.expandedLimit || process.env.EXPANDED_SOURCE_LIMIT || (wideScan ? wideLimit : 100)),
     googleNewsLimit: num(
@@ -111,6 +118,16 @@ export function resolveDiscoveryLimits(options = {}) {
   };
 }
 
+function discoveryFailureType(error = {}) {
+  const text = String(error.message || error.error || "").toLowerCase();
+  const status = Number(error.status || error.httpStatus || 0);
+  if (error.code === "DISCOVERY_SOURCE_TIMEOUT" || text.includes("timeout") || text.includes("time budget")) return "TIMEOUT";
+  if (status === 429 || text.includes("rate limit") || text.includes("too many requests")) return "RATE_LIMITED";
+  if (status === 401 || status === 402 || text.includes("unauthorized") || text.includes("api key") || text.includes("auth")) return "AUTH_REQUIRED";
+  if (status === 403 || status === 451 || text.includes("region") || text.includes("blocked") || text.includes("forbidden")) return "REGION_BLOCKED";
+  return "FAILED";
+}
+
 function keyForProject(project = {}) {
   return identityKeyForProject(project);
 }
@@ -126,6 +143,52 @@ function valuationDisagreement(values = []) {
   const active = values.map(num).filter((value) => value > 0);
   if (active.length < 2) return 1;
   return Number((Math.max(...active) / Math.min(...active)).toFixed(2));
+}
+
+function missingDataCompletionForProject(project = {}) {
+  const sourceType = String(project.sourceType || project.dex || "").toLowerCase();
+  const researchOnly = project.researchOnly === true || project.tradableCandidate === false;
+  const missing = [];
+  const resolverByField = {
+    chain: "officialIdentityResolver",
+    contractAddress: "contractDiscoveryResolver",
+    primaryPool: "dexPoolResolver",
+    priceUsd: "marketPriceResolver",
+    marketCap: "marketCapResolver",
+    liquidityUsd: "liquidityDepthResolver",
+    safetyProof: "contractSafetyResolver",
+    freshBuyQuote: "routeQuoteResolver",
+    freshSellQuote: "routeQuoteResolver",
+    buyerBreadth: "buyerBreadthResolver",
+    walletFlow: "walletFlowResolver",
+    holderDistribution: "holderEvidenceResolver",
+  };
+
+  if (!project.chain && !project.chainId) missing.push("chain");
+  if (!researchOnly && !project.tokenAddress && !project.contractAddress && !project.address) missing.push("contractAddress");
+  if (!researchOnly && sourceType !== "cex" && !project.poolAddress && !project.pairAddress) missing.push("primaryPool");
+  if (!num(project.priceUsd)) missing.push("priceUsd");
+  if (!num(project.marketCap) && !num(project.circulatingMarketCapUsd) && !num(project.estimatedMarketCapUsd)) missing.push("marketCap");
+  if (!researchOnly && sourceType !== "cex" && !num(project.liquidityUsd) && !num(project.dexLiquidityUsd)) missing.push("liquidityUsd");
+  if (!project.instantSafetyStatus && !project.contractSafetyStatus && !project.securityStatus) missing.push("safetyProof");
+  if (!researchOnly && project.buyQuoteVerified !== true) missing.push("freshBuyQuote");
+  if (!researchOnly && project.sellQuoteVerified !== true) missing.push("freshSellQuote");
+  if (!num(project.uniqueBuyers24h) && !num(project.buyers24h) && !num(project.clusterAdjustedUniqueBuyers)) missing.push("buyerBreadth");
+  if (!num(project.walletFlowScore) && !num(project.smartWalletArrivalScore)) missing.push("walletFlow");
+  if (!num(project.holderCount) && !num(project.holders)) missing.push("holderDistribution");
+
+  const expected = Object.keys(resolverByField);
+  const uniqueMissing = [...new Set(missing)];
+  const present = Math.max(0, expected.length - uniqueMissing.length);
+  const completionScore = Math.round((present / expected.length) * 100);
+
+  return {
+    completionScore,
+    completionStatus: uniqueMissing.length ? "INCOMPLETE" : "COMPLETE",
+    missing,
+    nextResolvers: [...new Set(uniqueMissing.map((field) => resolverByField[field]).filter(Boolean))],
+    nextSingleResolver: resolverByField[uniqueMissing[0]] || null,
+  };
 }
 
 function normalizeProject(project = {}) {
@@ -169,8 +232,15 @@ function normalizeProject(project = {}) {
     discoveredAt: project.discoveredAt || new Date().toISOString(),
   });
 
+  const completion = missingDataCompletionForProject(normalized);
+
   return attachProjectIdentity({
     ...normalized,
+    completionScore: normalized.completionScore ?? completion.completionScore,
+    missingDataCompletion: completion,
+    missingInfoNeeded: [...new Set([...(normalized.missingInfoNeeded || []), ...completion.missing])],
+    nextResolvers: [...new Set([...(normalized.nextResolvers || []), ...completion.nextResolvers])],
+    nextSingleResolver: normalized.nextSingleResolver || completion.nextSingleResolver,
     discoveryLane: project.discoveryLane || discoveryLaneForProject(normalized),
     evidenceFamilies: project.evidenceFamilies || evidenceFamiliesForProject(normalized),
     independentEvidenceScore: project.independentEvidenceScore || independentEvidenceScore(normalized),
@@ -259,9 +329,11 @@ async function safeSource(name, fn, options = {}) {
   try {
     const output = await runWithTimeBudget(fn, { label: name, timeoutMs });
     const candidateCount = normalizeResults(output, []).length;
+    const status = candidateCount > 0 ? SUCCESS_WITH_DATA : SUCCESS_EMPTY;
     return {
       name,
-      status: "SUCCESS",
+      status,
+      successClass: status,
       durationMs: Date.now() - startedAt,
       output: output || [],
       error: null,
@@ -272,14 +344,15 @@ async function safeSource(name, fn, options = {}) {
       usableEvidence: candidateCount > 0,
     };
   } catch (error) {
+    const failureType = discoveryFailureType(error);
     console.warn(`${name} skipped: ${error.message}`);
     return {
       name,
-      status: "FAILED",
+      status: failureType,
       durationMs: Date.now() - startedAt,
       output: [],
       error: error.message,
-      failureType: error.code === "DISCOVERY_SOURCE_TIMEOUT" ? "TIMEOUT" : "ERROR",
+      failureType,
       attempted: true,
       timeoutMs,
       candidateCount: 0,
@@ -387,6 +460,7 @@ function buildSourceExecutionTelemetry(sourceOutcomes = {}, providers = []) {
   const failed = new Set();
   const skipped = new Set();
   const timedOut = new Set();
+  const empty = new Set();
   const usableEvidence = new Set();
 
   const record = ({
@@ -400,20 +474,29 @@ function buildSourceExecutionTelemetry(sourceOutcomes = {}, providers = []) {
     if (!source || source === "unknown") return;
     configured.add(source);
     const normalizedStatus = String(status || "UNKNOWN").toUpperCase();
-    const healthy = ["SUCCESS", "USED", "HEALTHY", "OK"].includes(normalizedStatus);
+    const usefulSuccess =
+      normalizedStatus === SUCCESS_WITH_DATA ||
+      ["USED", "HEALTHY", "OK"].includes(normalizedStatus) && num(candidateCount) > 0 ||
+      normalizedStatus === "SUCCESS" && num(candidateCount) > 0;
+    const emptySuccess =
+      normalizedStatus === SUCCESS_EMPTY ||
+      (["SUCCESS", "HEALTHY", "OK"].includes(normalizedStatus) && num(candidateCount) === 0);
 
     if (!wasAttempted || normalizedStatus === "SKIPPED" || normalizedStatus === "DISABLED") {
       skipped.add(source);
-    } else if (healthy) {
+    } else if (usefulSuccess) {
       attempted.add(source);
       succeeded.add(source);
+    } else if (emptySuccess) {
+      attempted.add(source);
+      empty.add(source);
     } else {
       attempted.add(source);
       failed.add(source);
     }
 
     if (failureType === "TIMEOUT") timedOut.add(source);
-    if (!aggregate && healthy && num(candidateCount) > 0) usableEvidence.add(source);
+    if (!aggregate && usefulSuccess && num(candidateCount) > 0) usableEvidence.add(source);
   };
 
   for (const [source, outcome] of Object.entries(sourceOutcomes)) {
@@ -443,6 +526,7 @@ function buildSourceExecutionTelemetry(sourceOutcomes = {}, providers = []) {
     sourcesFailed: [...failed].sort(),
     sourcesSkipped: [...skipped].sort(),
     sourcesTimedOut: [...timedOut].sort(),
+    sourcesReturnedEmpty: [...empty].sort(),
     sourcesWithUsableEvidence: [...usableEvidence].sort(),
   };
 }

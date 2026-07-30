@@ -57,10 +57,10 @@ test("discovery source grid runs independent sources and records usable evidence
     { sourceConcurrency: 2, sourceTimeoutMs: 1_000 }
   );
 
-  assert.equal(outcomes.market.status, "SUCCESS");
+  assert.equal(outcomes.market.status, "SUCCESS_WITH_DATA");
   assert.equal(outcomes.market.usableEvidence, true);
   assert.equal(outcomes.market.candidateCount, 1);
-  assert.equal(outcomes.empty.status, "SUCCESS");
+  assert.equal(outcomes.empty.status, "SUCCESS_EMPTY");
   assert.equal(outcomes.empty.usableEvidence, false);
 });
 
@@ -85,7 +85,7 @@ test("free-max discovery uses the wide public-source profile", () => {
   assert.equal(limits.freeOnly, true);
   assert.equal(limits.wideScan, true);
   assert.equal(limits.targetCandidates, 39_000);
-  assert.equal(limits.maxTokens, 750);
+  assert.equal(limits.maxTokens, 10_000);
 });
 
 test("free-only mode never invokes an API-key discovery source", async () => {

@@ -104,6 +104,7 @@ function classifyStatus(item = {}) {
   if (/451|region|blocked|forbidden|403/.test(text)) return "REGION_BLOCKED";
   if (/stale/.test(text)) return "STALE";
   if (/fail|error|timeout|fetch/.test(text)) return "FAILED";
+  if (/success_empty|empty|no_data|no data/.test(text)) return "EMPTY";
   if (num(item.lastCandidateCount || item.candidates) > 0 || /success|ok|used|ready/.test(text)) return "AVAILABLE";
   return "UNKNOWN";
 }
@@ -159,6 +160,7 @@ function sourceNextAction(item = {}, setup = {}) {
   if (item.status === "RATE_LIMITED") return "Lower request volume, honor cooldown, or add a fallback source.";
   if (item.status === "REGION_BLOCKED") return "Use an allowed regional endpoint or alternate provider.";
   if (item.status === "FAILED") return "Inspect the provider error, keep cooldown, and rely on alternate source until healthy.";
+  if (item.status === "EMPTY") return "Provider probe completed but returned no usable records; widen query, rotate endpoint, or rely on alternate source.";
   if (item.status === "STALE") return "Refresh this source before using it for current rankings.";
   if (item.status === "UNKNOWN" && setup.free) return "Run the no-key source probe and confirm it returns non-empty usable data.";
   if (item.status === "UNKNOWN") return "Configure a probe or connector health record so availability can be verified.";
