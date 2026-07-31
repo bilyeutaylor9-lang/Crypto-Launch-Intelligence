@@ -112,5 +112,19 @@ test("engine data contract health summary rolls engine gaps into project health"
 test("pipeline display names resolve to existing engine contracts", () => {
   assert.equal(findEngineContractForName("Project Identity Graph")?.id, "projectIdentity");
   assert.equal(findEngineContractForName("Execution Proof")?.id, "executionProof");
+  assert.equal(findEngineContractForName("Execution Proof Recovery")?.id, "executionProofRecovery");
+  assert.equal(findEngineContractForName("Smart Wallet")?.id, "smartWallet");
+  assert.equal(findEngineContractForName("Smart Wallet Performance")?.id, "smartWalletPerformance");
+  assert.equal(findEngineContractForName("Smart Money Accumulation")?.id, "smartMoneyAccumulation");
+  assert.equal(findEngineContractForName("Smart Wallet Arrival")?.id, "smartWalletArrival");
+  assert.equal(findEngineContractForName("Smart Wallet Novelty")?.id, "smartWalletNovelty");
+  assert.equal(findEngineContractForName("Social Acceleration")?.id, "socialAcceleration");
+  assert.equal(findEngineContractForName("Opportunity Timing Refresh")?.id, "opportunityTiming");
   assert.equal(findEngineContractForName("High-Upside Scalp Classification")?.id, "highUpsideScalpClassification");
+});
+
+test("engine contracts never resolve by unsafe substring similarity", () => {
+  assert.equal(findEngineContractForName("Smart Wallet Experimental"), null);
+  assert.equal(findEngineContractForName("Execution Proof Recovery Preview"), null);
+  assert.equal(findEngineContractForName("Acceleration Marketing"), null);
 });

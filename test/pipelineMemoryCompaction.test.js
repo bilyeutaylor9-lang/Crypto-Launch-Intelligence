@@ -6,6 +6,9 @@ import {
   runEngine,
   runStagedPipelineEngine,
 } from "../src/intelligencePipeline.js";
+import { analyzeSmartWalletBatch } from "../src/engines/smartWalletEngine.js";
+import { analyzeSmartWalletNoveltyBatch } from "../src/engines/smartWalletNoveltyEngine.js";
+import { summarizeEngineDataContractHealth } from "../src/kernel/engineDataContractGovernor.js";
 
 test("new pipeline runs discard persisted engine audits and stamp current scan identity", () => {
   const [project] = prepareProjectsForPipelineRun(
@@ -103,6 +106,61 @@ test("progressive pipeline stage runs deep engines only on deep-selected project
   assert.equal(output[1].deepEngineTouched, true);
   assert.equal(output[2].deepEngineTouched, undefined);
   assert.equal(output[1].engineResults.deepMemoryProbe.status, "SUCCESS");
+});
+
+test("wallet stages retain separate contracts across progressive funnel merges", async () => {
+  const projects = ["A", "B", "C"].map((symbol, index) => ({
+    standardSelectionIdentityKey: `base:${symbol.toLowerCase()}`,
+    symbol,
+    smartWalletBuys24h: index + 2,
+    smartWalletSells24h: 1,
+    smartWalletBuyVolumeUsd: 10_000 + index,
+    smartWalletSellVolumeUsd: 1_000,
+    smartWallets: [
+      {
+        address: `wallet-${symbol}`,
+        sampleSize: 12,
+        hitRate: 60,
+        rugExposureRate: 0,
+      },
+    ],
+  }));
+  const context = buildProgressivePipelineStageContext(
+    {
+      progressiveFunnel: true,
+      analysisFunnelSelection: {
+        advanced: projects,
+        deep: [projects[0]],
+      },
+    },
+    projects
+  );
+
+  let output = await runStagedPipelineEngine(
+    "Smart Wallet",
+    analyzeSmartWalletBatch,
+    projects,
+    { scanRunId: "scan_wallet_contracts" },
+    "advanced",
+    context
+  );
+  output = await runStagedPipelineEngine(
+    "Smart Wallet Novelty",
+    analyzeSmartWalletNoveltyBatch,
+    output,
+    { scanRunId: "scan_wallet_contracts" },
+    "deep",
+    context
+  );
+
+  assert.ok(output.every((project) => project.engineDataContractHealth.engines.smartWallet));
+  assert.ok(output[0].engineDataContractHealth.engines.smartWalletNovelty);
+  assert.equal(output[1].engineDataContractHealth.engines.smartWalletNovelty, undefined);
+  assert.equal(output[2].engineDataContractHealth.engines.smartWalletNovelty, undefined);
+
+  const summary = summarizeEngineDataContractHealth(output);
+  assert.equal(summary.outputContractMismatchProjects, 0);
+  assert.equal(summary.enginesWithOutputGaps, 0);
 });
 
 test("engine runner has a default timeout when no global timeout is configured", async () => {

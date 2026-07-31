@@ -43,14 +43,21 @@ export function findEngineContractForName(name = "", options = {}) {
   const contracts = options.contracts || getEngineContracts();
   const key = normalizeKey(name);
   if (!key) return null;
-  if (CONTRACT_CACHE.has(key)) return CONTRACT_CACHE.get(key);
+  const useSharedCache = !options.contracts;
+  if (useSharedCache && CONTRACT_CACHE.has(key)) return CONTRACT_CACHE.get(key);
 
-  const contract =
-    contracts.find((item) => normalizeKey(item.displayName || item.name || item.id) === key) ||
-    contracts.find((item) => key.includes(normalizeKey(item.id)) || normalizeKey(item.id).includes(key)) ||
-    null;
+  const contract = contracts.find((item) =>
+    [
+      item.id,
+      item.name,
+      item.displayName,
+      ...(Array.isArray(item.aliases) ? item.aliases : []),
+    ]
+      .filter(Boolean)
+      .some((candidate) => normalizeKey(candidate) === key)
+  ) || null;
 
-  CONTRACT_CACHE.set(key, contract);
+  if (useSharedCache) CONTRACT_CACHE.set(key, contract);
   return contract;
 }
 
