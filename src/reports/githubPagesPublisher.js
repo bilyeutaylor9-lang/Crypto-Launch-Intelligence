@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { REQUIRED_REPORT_FILES, assertReportContracts } from "./reportContractValidator.js";
+import {
+  REQUIRED_REPORT_FILES,
+  assertReportContracts,
+  validateDashboardArtifactConsistency,
+} from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 
 const REPORTS_DIR = path.resolve("reports");
@@ -258,7 +262,15 @@ function rankDisplayEligible(candidate = {}) {
     "MANUAL_REVIEW",
     "CONDITIONAL_WATCH",
     "RESEARCH_ONLY",
+    "PRELAUNCH_RESEARCH",
   ].includes(candidate.researchStatus || candidate.lane);
+  if ((candidate.researchStatus || candidate.lane) === "PRELAUNCH_RESEARCH") {
+    return Boolean(
+      (candidate.chain || candidate.requiredChain) &&
+        (candidate.symbol || candidate.name || candidate.projectName) &&
+        (candidate.github || candidate.website || candidate.provenance || candidate.sourceList || candidate.discoverySources)
+    );
+  }
   if (researchLane) return Boolean(contractFor(candidate) && (candidate.chain || candidate.requiredChain));
   if (candidate.strictRankEligible === true) return true;
   if (Object.hasOwn(candidate, "strictRankEligible")) return false;
@@ -327,6 +339,7 @@ function buildResearchWorthyBoard({
 } = {}) {
   const sources = [
     ...(top10Breakout.top10ResearchOpportunities || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Top 10 Research")),
+    ...(top10Breakout.prelaunchResearchCandidates || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Prelaunch Research")),
     ...(top10Breakout.qualifiedExecutableBuys || top10Breakout.qualifiedPicks || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Top 10 Executable")),
     ...(hottestTenNow.topTenCurrentResearchBoard || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Hottest Ten")),
     ...(hottestTenNow.topTenHighestRatedNow || []).map((candidate) => compactResearchWorthyCandidate(candidate, "Qualified Now")),
@@ -1436,11 +1449,26 @@ export function publishGithubPagesDashboard(options = {}) {
 
   const copiedFiles = PUBLIC_REPORTS.filter((fileName) => copyIfExists(fileName, reportsDir, docsDir));
   writeLandingPage(copiedFiles, { reportsDir, docsDir });
+  const dashboardConsistency = validateDashboardArtifactConsistency({
+    reportsDir,
+    docsDir,
+    files: copiedFiles,
+  });
+  if (dashboardConsistency.status !== "PASS") {
+    const message = [
+      "Dashboard artifact consistency validation failed.",
+      ...dashboardConsistency.errors.slice(0, 20).map((error) => `- ${error}`),
+    ].join("\n");
+    const error = new Error(message);
+    error.dashboardConsistency = dashboardConsistency;
+    throw error;
+  }
 
   return {
     outputDir: docsDir,
     copiedFiles,
     validation,
+    dashboardConsistency,
     urlPath: "docs/index.html",
   };
 }

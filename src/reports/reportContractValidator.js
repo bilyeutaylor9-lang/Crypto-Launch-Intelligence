@@ -62,6 +62,18 @@ export const REQUIRED_REPORT_FILES = [
   "institutional-ranking.json",
 ];
 
+export const DASHBOARD_CRITICAL_REPORT_FILES = [
+  "system-readiness.json",
+  "daily-source-gaps.json",
+  "high-upside-scalp-research.json",
+  "hottest-ten-now.json",
+  "daily-capital-move.json",
+  "top-10-breakout-picks.json",
+  "route-universe.json",
+  "execution-proof-recovery.json",
+  "user-accessibility-ranking.json",
+];
+
 function invalidValueIssues(value, location = "root", issues = []) {
   if (value === undefined) {
     issues.push(`${location}: undefined`);
@@ -129,6 +141,84 @@ function highUpsideScalpIssues(report = {}, fileName = "high-upside-scalp-resear
   }
 
   return issues;
+}
+
+function readJsonIfExists(filePath = "") {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function comparableScanId(report = {}) {
+  return report.scanRunId || report.meta?.scanRunId || null;
+}
+
+function comparableCount(report = {}) {
+  if (report.projectsAnalyzed !== undefined) return Number(report.projectsAnalyzed);
+  if (report.inputProjectCount !== undefined) return Number(report.inputProjectCount);
+  if (report.projectCount !== undefined) return Number(report.projectCount);
+  return null;
+}
+
+export function validateDashboardArtifactConsistency(options = {}) {
+  const reportsDir = path.resolve(options.reportsDir || "reports");
+  const docsDir = path.resolve(options.docsDir || "docs");
+  const requestedFiles = options.files || DASHBOARD_CRITICAL_REPORT_FILES;
+  const criticalSet = new Set(DASHBOARD_CRITICAL_REPORT_FILES);
+  const files = requestedFiles.filter((fileName) => criticalSet.has(fileName));
+  const issues = [];
+  const checked = [];
+
+  for (const fileName of files) {
+    const reportsReport = readJsonIfExists(path.join(reportsDir, fileName));
+    const docsReport = readJsonIfExists(path.join(docsDir, fileName));
+    if (!reportsReport || !docsReport) {
+      issues.push(`${fileName}: missing from ${!reportsReport ? "reports" : "docs"} during dashboard consistency check`);
+      checked.push({ fileName, status: "MISSING" });
+      continue;
+    }
+
+    const reportScanId = comparableScanId(reportsReport);
+    const docsScanId = comparableScanId(docsReport);
+    const reportCount = comparableCount(reportsReport);
+    const docsCount = comparableCount(docsReport);
+    const fileIssues = [];
+
+    if (reportScanId && docsScanId && reportScanId !== docsScanId) {
+      fileIssues.push(`scanRunId mismatch reports=${reportScanId} docs=${docsScanId}`);
+    }
+    if (reportsReport.status !== docsReport.status) {
+      fileIssues.push(`status mismatch reports=${reportsReport.status} docs=${docsReport.status}`);
+    }
+    if (
+      reportCount !== null &&
+      docsCount !== null &&
+      Number.isFinite(reportCount) &&
+      Number.isFinite(docsCount) &&
+      reportCount !== docsCount
+    ) {
+      fileIssues.push(`projects count mismatch reports=${reportCount} docs=${docsCount}`);
+    }
+
+    if (fileIssues.length) {
+      issues.push(...fileIssues.map((issue) => `${fileName}: ${issue}`));
+      checked.push({ fileName, status: "MISMATCH", issues: fileIssues });
+    } else {
+      checked.push({ fileName, status: "PASS" });
+    }
+  }
+
+  return {
+    status: issues.length ? "FAIL" : "PASS",
+    reportsDir,
+    docsDir,
+    checkedFiles: checked.length,
+    files: checked,
+    errors: issues,
+  };
 }
 
 export function validateReportContracts(options = {}) {

@@ -288,7 +288,7 @@ export function generateReports(projects = [], meta = {}) {
     alternativeRoutesPath,
     userAccessibilityRankingPath,
     venueCoverageHealthPath,
-  } = writeRouteAccessibilityReports(projects, meta);
+  } = writeRouteAccessibilityReports(fullProjects, meta);
   const {
     filePath: executionProofRecoveryPath,
     report: executionProofRecovery,
@@ -299,26 +299,26 @@ export function generateReports(projects = [], meta = {}) {
     dataStarvationByProviderPath,
     dataStarvationByEnginePath,
     dataStarvationByFieldPath,
-  } = writeDataStarvationRootCauseReports(projects, meta);
+  } = writeDataStarvationRootCauseReports(fullProjects, meta);
   const {
     filePath: starvationRescueQueuePath,
     report: starvationRescueQueue,
-  } = writeStarvationRescueQueueReport(projects, meta);
+  } = writeStarvationRescueQueueReport(fullProjects, meta);
   const {
     filePath: recoveredOpportunityWatchlistPath,
     recoveryPath: starvationRecoveryResultsPath,
-  } = writeRecoveredOpportunityWatchlistReport(projects, meta);
+  } = writeRecoveredOpportunityWatchlistReport(fullProjects, meta);
   const {
     filePath: firstSeenOpportunitiesPath,
-  } = writeFirstSeenOpportunityReport(projects, meta);
+  } = writeFirstSeenOpportunityReport(fullProjects, meta);
   const {
     filePath: missedWinnerReplayPath,
-  } = writeMissedWinnerReplayReport(projects, meta);
+  } = writeMissedWinnerReplayReport(fullProjects, meta);
   const {
     filePath: earlyAsymmetryRankingPath,
     preBreakoutSequencePath,
     earlyOpportunityOutcomesPath,
-  } = writeEarlyAsymmetryReport(projects, meta);
+  } = writeEarlyAsymmetryReport(fullProjects, meta);
   const {
     aliasResolutionSummaryPath,
     aliasResolutionConflictsPath,
@@ -326,7 +326,7 @@ export function generateReports(projects = [], meta = {}) {
     unresolvedFieldVerbiagePath,
     rejectedAliasCandidatesPath,
     aliasStarvationRecoveriesPath,
-  } = writeAliasResolutionReports(projects, meta);
+  } = writeAliasResolutionReports(fullProjects, meta);
   const {
     filePath: advertisedCategoryCoveragePath,
   } = writeAdvertisedCategoryCoverageReport(projects, meta);
@@ -336,16 +336,16 @@ export function generateReports(projects = [], meta = {}) {
   } = writeCrawlerReports(projects, meta);
   const {
     filePath: utilityQualityPath,
-  } = writeUtilityQualityReport(projects, meta);
+  } = writeUtilityQualityReport(fullProjects, meta);
   const {
     filePath: highUpsideScalpPath,
   } = writeHighUpsideScalpReport(fullProjects, meta);
   const {
     filePath: scalpMicrostructurePath,
-  } = writeScalpMicrostructureReport(projects, meta);
+  } = writeScalpMicrostructureReport(fullProjects, meta);
   const {
     filePath: hottestTenNowPath,
-  } = writeHottestTenNowReport(projects, meta);
+  } = writeHottestTenNowReport(fullProjects, meta);
   const {
     filePath: dailyCapitalMovePath,
   } = writeDailyCapitalMoveReport(fullProjects, meta);

@@ -2503,7 +2503,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Buyer Retention", analyzeBuyerRetentionBatch, results);
   results = await runEngine("Organic Buyer Firewall", analyzeOrganicBuyerBatch, results);
   results = await runEngine("Instant Safety Gate", analyzeInstantSafetyGateBatch, results);
-  results = await runEngine("Contract Authority Risk", analyzeContractAuthorityRiskBatch, results, options.contractAuthorityRisk || {});
+  results = await runEngine("Contract Authority Risk", analyzeContractAuthorityRiskBatch, results, {
+    collectSecurityEvidence: process.env.SECURITY_EVIDENCE_COLLECT !== "false",
+    ...(options.contractAuthorityRisk || {}),
+  });
   results = await runEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
   results = await runEngine("Candidate Lifecycle", analyzeCandidateLifecycleBatch, results);
   results = await runEngine("Discovery Decision", analyzeDiscoveryDecisionBatch, results);

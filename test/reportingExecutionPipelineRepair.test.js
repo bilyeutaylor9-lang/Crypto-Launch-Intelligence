@@ -59,6 +59,7 @@ import { writeDecisionReportCompactionAudit } from "../src/reports/decisionRepor
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
+  validateDashboardArtifactConsistency,
   validateReportContracts,
 } from "../src/reports/reportContractValidator.js";
 import { publishGithubPagesDashboard } from "../src/reports/githubPagesPublisher.js";
@@ -987,4 +988,40 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.equal(fs.existsSync(path.join(docsDir, "emerging-radar.json")), true);
   assert.equal(fs.existsSync(path.join(docsDir, "progressive-opportunities.json")), true);
   assert.equal(fs.existsSync(path.join(docsDir, "engine-health-report.json")), true);
+});
+
+test("dashboard artifact consistency rejects stale dashboard-critical files", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "reports-consistency-"));
+  const docsDir = fs.mkdtempSync(path.join(os.tmpdir(), "docs-consistency-"));
+  const fileName = "top-10-breakout-picks.json";
+
+  fs.writeFileSync(
+    path.join(reportsDir, fileName),
+    JSON.stringify({
+      generatedAt: NOW,
+      scanRunId: "scan_current",
+      status: "PASS_WITH_RESEARCH_OPPORTUNITIES",
+      projectsAnalyzed: 100,
+    })
+  );
+  fs.writeFileSync(
+    path.join(docsDir, fileName),
+    JSON.stringify({
+      generatedAt: NOW,
+      scanRunId: "scan_old",
+      status: "PASS_NO_QUALIFIED_RESULTS",
+      projectsAnalyzed: 25,
+    })
+  );
+
+  const result = validateDashboardArtifactConsistency({
+    reportsDir,
+    docsDir,
+    files: [fileName],
+  });
+
+  assert.equal(result.status, "FAIL");
+  assert.ok(result.errors.some((error) => error.includes("scanRunId mismatch")));
+  assert.ok(result.errors.some((error) => error.includes("status mismatch")));
+  assert.ok(result.errors.some((error) => error.includes("projects count mismatch")));
 });

@@ -220,10 +220,14 @@ function statusFromRows(rows = [], pipelineStages = [], requiredProfile = resolv
       !acceptedStageStatuses.has(stage.contractStatus)
   );
   const runtimeFailures = rows.filter((row) => row.healthStatus === "FAIL");
-  const unmappedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "UNCONTRACTED");
+  const unmappedRequiredStages = pipelineStages.filter(
+    (stage) =>
+      stage.profile === "DAILY_TENX_REQUIRED" &&
+      stage.contractStatus === "UNCONTRACTED"
+  );
 
   if (runtimeFailures.length) return "FAIL";
-  if (missingRequiredContracts.length || unmappedLiveStages.length) return "DEGRADED";
+  if (missingRequiredContracts.length || unmappedRequiredStages.length) return "DEGRADED";
   return "PASS";
 }
 
@@ -428,10 +432,11 @@ export function buildWholeEngineAuditReport(options = {}) {
   const manifestBackedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "DEPENDENCY_MANIFEST_BACKED");
   const runtimeVerifiedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "FULL_AUDIT_EXECUTION_VERIFIED");
   const uncontractedLiveStages = pipelineStages.filter((stage) => stage.contractStatus === "UNCONTRACTED");
+  const uncontractedDailyRequiredStages = uncontractedLiveStages.filter((stage) => stage.profile === "DAILY_TENX_REQUIRED");
   const outputMissingEngines = engineTruthTable.filter((row) => row.outputStatus === "PIPELINE_OUTPUT_MISSING");
   const runtimeFailureCount = engineTruthTable.filter((row) => row.healthStatus === "FAIL").length;
   const miswiredEngineCount =
-    uncontractedLiveStages.length + contractsWithoutFiles.length + dependencyGaps.length + outputMissingEngines.length;
+    uncontractedDailyRequiredStages.length + contractsWithoutFiles.length + dependencyGaps.length + outputMissingEngines.length;
 
   const report = {
     generatedAt,
@@ -448,6 +453,7 @@ export function buildWholeEngineAuditReport(options = {}) {
       manifestBackedLiveStageCount: manifestBackedLiveStages.length,
       runtimeVerifiedLiveStageCount: runtimeVerifiedLiveStages.length,
       uncontractedLiveStageCount: uncontractedLiveStages.length,
+      uncontractedDailyRequiredStageCount: uncontractedDailyRequiredStages.length,
       standaloneOrDormantEngineCount: engineTruthTable.filter((row) => row.profile === "STANDALONE_OR_DORMANT").length,
       dailyRequiredEngineCount: profileSummary.DAILY_TENX_REQUIRED || 0,
       dailyAllowedEngineCount: profileSummary.DAILY_ALLOWED || 0,
@@ -462,7 +468,8 @@ export function buildWholeEngineAuditReport(options = {}) {
         (row) => row.recommendation === "RUNTIME_VERIFIED_ADD_FORMAL_CONTRACT_LATER"
       ).length,
       dataBlockingIssueCount:
-        runtimeFailureCount + outputMissingEngines.length + contractsWithoutFiles.length + uncontractedLiveStages.length,
+        runtimeFailureCount + outputMissingEngines.length + contractsWithoutFiles.length + uncontractedDailyRequiredStages.length,
+      optionalContractDebtCount: uncontractedLiveStages.length - uncontractedDailyRequiredStages.length,
     },
     recommendationSummary,
     profileSummary,

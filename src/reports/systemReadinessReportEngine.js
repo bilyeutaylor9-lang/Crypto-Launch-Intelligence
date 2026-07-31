@@ -59,7 +59,19 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     failures.push({ area: "whole-engine-audit", severity: "WARN", reason: "Some engines are missing runtime outputs.", nextAction: "Open whole-engine-audit.json and repair output-missing engines." });
   }
   if (contractHealth.status && contractHealth.status !== "PASS") {
-    failures.push({ area: "engine-contracts", severity: "FAIL", reason: "Engine input/output contract gaps exist.", nextAction: "Open engine-data-contract-health.json and repair missing inputs/outputs." });
+    const outputContractBroken =
+      contractHealth.status === "OUTPUT_CONTRACT_GAPS" ||
+      Number(contractHealth.outputContractMismatchProjects || 0) > 0;
+    failures.push({
+      area: "engine-contracts",
+      severity: outputContractBroken ? "FAIL" : "WARN",
+      reason: outputContractBroken
+        ? "Engine output contract gaps exist."
+        : "Engine input contracts found recoverable candidate data gaps.",
+      nextAction: outputContractBroken
+        ? "Open engine-data-contract-health.json and repair missing engine outputs."
+        : "Open engine-data-contract-health.json and daily-recovery-queue.json to recover missing candidate evidence.",
+    });
   }
   if (dailyCapital.status === "NO_PROJECTS") {
     failures.push({ area: "daily-capital", severity: "WARN", reason: "No projects reached daily capital evaluation.", nextAction: "Check discovery and pipeline-stage reports." });

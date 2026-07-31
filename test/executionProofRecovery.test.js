@@ -259,5 +259,9 @@ test("route-universe report re-analyzes recovered routes when canonicalRoutes ar
   });
 
   assert.ok(report.routeCount > 0);
-  assert.ok(report.routeUniverse.some((route) => route.venue === "Jupiter"));
+  const jupiterRoute = report.routeUniverse.find((route) => route.venue === "Jupiter");
+  assert.ok(jupiterRoute);
+  assert.equal(jupiterRoute.buyQuoteVerified, true);
+  assert.equal(jupiterRoute.sellQuoteVerified, true);
+  assert.equal(jupiterRoute.routeTruthStatus, "SELL_QUOTE_VERIFIED");
 });

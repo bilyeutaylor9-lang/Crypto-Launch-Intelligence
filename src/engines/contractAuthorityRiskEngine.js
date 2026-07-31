@@ -30,6 +30,13 @@ function riskPoints(summary = {}) {
   return points;
 }
 
+function safetyProofStatus(summary = null, riskScore = 100) {
+  if (!summary || summary.status === "UNKNOWN") return "SAFETY_UNKNOWN";
+  if (summary.malicious || summary.honeypot || riskScore >= 80) return "SAFETY_BLOCKED";
+  if (summary.verifiedSource === true && riskScore < 35) return "SAFETY_VERIFIED_CLEAN";
+  return "SAFETY_PARTIAL";
+}
+
 export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
   let summary = existingSummary(project);
   let evidence = project.securityEvidence || project.freeSecurityEvidence?.evidence || [];
@@ -44,11 +51,14 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
 
   if (!summary) {
     const score = 58;
+    const safetyStatus = safetyProofStatus(null, score);
     return {
       ...project,
       securityEvidence: evidence,
       securityEvidenceSummary: null,
       securityEvidenceStatus: "UNKNOWN",
+      safetyProofStatus: safetyStatus,
+      safetyProofLane: safetyStatus,
       contractAuthorityRiskScore: score,
       contractAuthoritySafetyScore: 42,
       contractAuthorityVerdict: "SECURITY_UNKNOWN_REVIEW",
@@ -85,12 +95,15 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
       : summary.verifiedSource
       ? "CONTRACT_EVIDENCE_CLEAN"
       : "CONTRACT_EVIDENCE_INCOMPLETE";
+  const safetyStatus = safetyProofStatus(summary, riskScore);
 
   return {
     ...project,
     securityEvidence: evidence,
     securityEvidenceSummary: summary,
     securityEvidenceStatus: summary.status || "UNKNOWN",
+    safetyProofStatus: safetyStatus,
+    safetyProofLane: safetyStatus,
     contractAuthorityRiskScore: riskScore,
     contractAuthoritySafetyScore: safetyScore,
     contractAuthorityVerdict: verdict,
