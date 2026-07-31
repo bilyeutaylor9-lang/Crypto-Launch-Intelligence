@@ -11,7 +11,10 @@ import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEviden
 import { normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
 import { summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
-import { analyzeContractAuthorityRisk } from "../src/engines/contractAuthorityRiskEngine.js";
+import {
+  analyzeContractAuthorityRisk,
+  analyzeContractAuthorityRiskBatch,
+} from "../src/engines/contractAuthorityRiskEngine.js";
 import { analyzeLiquidityControlRisk } from "../src/engines/liquidityControlRiskEngine.js";
 
 const ADDRESS = "0x1111111111111111111111111111111111111111";
@@ -212,6 +215,47 @@ test("contract authority risk blocks malicious or honeypot evidence", async () =
   assert.equal(result.contractAuthorityVerdict, "BLOCK_CONTRACT_RISK");
   assert.equal(result.contractSafetyVerified, false);
   assert.ok(result.contractAuthorityRiskScore >= 80);
+});
+
+test("contract authority safety recovery is priority bounded and de-duplicated", async () => {
+  let providerCalls = 0;
+  const projects = Array.from({ length: 1_500 }, (_, index) => ({
+    symbol: `SAFE${index}`,
+    chain: "base",
+    tokenAddress: `0x${String(index + 1).padStart(40, "0")}`,
+    researchOpportunityScore: 2_000 - index,
+  }));
+  projects[2].tokenAddress = projects[0].tokenAddress;
+
+  const results = await analyzeContractAuthorityRiskBatch(projects, {
+    collectSecurityEvidence: true,
+    maxSecurityRecoveryCandidates: 25,
+    securityEvidenceConcurrency: 2,
+    securityEvidenceRequestTimeoutMs: 100,
+    securityEvidence: {
+      providers: [
+        async () => {
+          providerCalls += 1;
+          return {
+            provider: "mock-security",
+            status: "EVIDENCE_AVAILABLE",
+            verifiedSource: true,
+            riskFindings: [],
+            warnings: [],
+            confidence: 90,
+            observedAt: new Date().toISOString(),
+          };
+        },
+      ],
+    },
+  });
+
+  assert.equal(providerCalls, 25);
+  assert.equal(results.filter((project) => project.safetyRecoveryAttempted).length, 25);
+  assert.equal(results.filter((project) => project.safetyRecoveryDeferred).length, 1_475);
+  assert.equal(results[0].safetyProofStatus, "SAFETY_VERIFIED_CLEAN");
+  assert.equal(results[2].safetyRecoveryAttempted, false);
+  assert.equal(results[2].safetyProofStatus, "SAFETY_UNKNOWN");
 });
 
 test("liquidity control risk flags LP removal and concentrated LP ownership", () => {
