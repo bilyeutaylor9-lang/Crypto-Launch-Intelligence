@@ -8,6 +8,10 @@ function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
 
+function measured(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+}
+
 function ratio(a = 0, b = 0) {
   const x = num(a);
   const y = num(b);
@@ -98,6 +102,44 @@ export function scoreSmartWalletSignal(project = {}) {
 }
 
 export function analyzeSmartWallets(project = {}) {
+  const expectedFields = [
+    "smartWalletBuys24h",
+    "smartWalletSells24h",
+    "smartWalletBuyVolumeUsd",
+    "smartWalletSellVolumeUsd",
+  ];
+  const observedFields = expectedFields.filter((field) => measured(project[field]));
+  const smartWalletCoverage = {
+    observedComponentCount: observedFields.length,
+    expectedComponentCount: expectedFields.length,
+    coveragePct: Math.round((observedFields.length / expectedFields.length) * 100),
+    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(project[field])])),
+    missingValues: expectedFields.filter((field) => !observedFields.includes(field)),
+    sourceFamilies: observedFields.length ? ["wallets"] : [],
+  };
+
+  if (!observedFields.length) {
+    return {
+      ...project,
+      smartWalletSignal: null,
+      smartWalletScore: null,
+      smartWalletLevel: "unmeasured",
+      smartWalletReasons: ["Smart-wallet flow observations are unavailable."],
+      smartWalletReason: "Smart-wallet flow remains unknown until wallet observations are recovered.",
+      smartWalletCoverage,
+      intelligenceSignals: {
+        ...(project.intelligenceSignals || {}),
+        smartWallet: {
+          score: null,
+          level: "unmeasured",
+          signal: null,
+          reasons: ["Smart-wallet flow observations are unavailable."],
+          coverage: smartWalletCoverage,
+        },
+      },
+    };
+  }
+
   const smartWalletSignal = calculateSmartWalletSignal(project);
   const smartWalletScore = scoreSmartWalletSignal(project);
   const reasons = buildReasons(smartWalletSignal);
@@ -120,6 +162,7 @@ export function analyzeSmartWallets(project = {}) {
     smartWalletScore,
     smartWalletLevel,
     smartWalletReasons: reasons,
+    smartWalletCoverage,
     smartWalletReason:
       smartWalletScore >= 50
         ? "High-signal wallets appear to be accumulating."

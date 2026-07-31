@@ -8,6 +8,10 @@
  * price or volume fully reacts.
  */
 
+function measured(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+}
+
 export function calculateSocialAcceleration(project = {}) {
   const mentionsNow = Number(project.socialMentionsNow || 0);
   const mentionsPrevious = Number(project.socialMentionsPrevious || 0);
@@ -46,6 +50,35 @@ export function scoreSocialAcceleration(project = {}) {
 }
 
 export function analyzeSocialAcceleration(project = {}) {
+  const expectedFields = [
+    "socialMentionsNow",
+    "socialMentionsPrevious",
+    "followersNow",
+    "followersPrevious",
+    "xFollowers",
+    "influencerMentions",
+  ];
+  const observedFields = expectedFields.filter((field) => measured(project[field]));
+  const socialAccelerationCoverage = {
+    observedComponentCount: observedFields.length,
+    expectedComponentCount: expectedFields.length,
+    coveragePct: Math.round((observedFields.length / expectedFields.length) * 100),
+    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(project[field])])),
+    missingValues: expectedFields.filter((field) => !observedFields.includes(field)),
+    sourceFamilies: observedFields.length ? ["social"] : [],
+  };
+
+  if (!observedFields.length) {
+    return {
+      ...project,
+      socialAcceleration: null,
+      socialAccelerationScore: null,
+      socialAccelerationLevel: "unmeasured",
+      socialAccelerationReason: "Social acceleration remains unknown until timestamped observations are recovered.",
+      socialAccelerationCoverage,
+    };
+  }
+
   const socialAcceleration = calculateSocialAcceleration(project);
   const socialAccelerationScore = scoreSocialAcceleration(project);
 
@@ -53,6 +86,7 @@ export function analyzeSocialAcceleration(project = {}) {
     ...project,
     socialAcceleration,
     socialAccelerationScore,
+    socialAccelerationCoverage,
     socialAccelerationLevel:
       socialAccelerationScore >= 80 ? "explosive" :
       socialAccelerationScore >= 60 ? "accelerating" :

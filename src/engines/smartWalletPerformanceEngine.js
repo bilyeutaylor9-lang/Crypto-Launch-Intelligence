@@ -10,24 +10,55 @@ function avg(values = []) {
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
+function measured(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+}
+
 export function analyzeSmartWalletPerformance(project = {}) {
   const wallets = project.smartWallets || project.trackedWallets || [];
 
-  const winRates = wallets.map(w => w.winRate || w.successRate || 0);
-  const avgReturns = wallets.map(w => w.avgReturn || w.averageReturn || 0);
-  const holdingDays = wallets.map(w => w.avgHoldingDays || w.holdingDays || 0);
+  const winRates = wallets
+    .map((wallet) => wallet.winRate ?? wallet.successRate)
+    .filter(measured);
+  const avgReturns = wallets
+    .map((wallet) => wallet.avgReturn ?? wallet.averageReturn)
+    .filter(measured);
+  const holdingDays = wallets
+    .map((wallet) => wallet.avgHoldingDays ?? wallet.holdingDays)
+    .filter(measured);
 
   const walletCount = wallets.length;
-  const winRateScore = clamp(avg(winRates));
-  const returnScore = clamp(avg(avgReturns));
-  const holdingScore = clamp(avg(holdingDays) * 3);
-  const participationScore = clamp(walletCount * 12);
+  const observedComponents = [
+    winRates.length ? ["winRate", clamp(avg(winRates)), 0.35] : null,
+    avgReturns.length ? ["averageReturn", clamp(avg(avgReturns)), 0.3] : null,
+    holdingDays.length ? ["holdingDuration", clamp(avg(holdingDays) * 3), 0.15] : null,
+    walletCount ? ["walletParticipation", clamp(walletCount * 12), 0.2] : null,
+  ].filter(Boolean);
+  const expectedComponents = ["winRate", "averageReturn", "holdingDuration", "walletParticipation"];
+  const smartWalletPerformanceCoverage = {
+    observedComponentCount: observedComponents.length,
+    expectedComponentCount: expectedComponents.length,
+    coveragePct: Math.round((observedComponents.length / expectedComponents.length) * 100),
+    observedValues: Object.fromEntries(observedComponents.map(([field, value]) => [field, value])),
+    missingValues: expectedComponents.filter(
+      (field) => !observedComponents.some(([observed]) => observed === field)
+    ),
+    sourceFamilies: observedComponents.length ? ["wallet-history"] : [],
+  };
 
+  if (!observedComponents.length || (!winRates.length && !avgReturns.length && !holdingDays.length)) {
+    return {
+      ...project,
+      smartWalletPerformanceScore: null,
+      smartWalletPerformanceLevel: "unmeasured",
+      smartWalletPerformanceCoverage,
+    };
+  }
+
+  const observedWeight = observedComponents.reduce((sum, [, , weight]) => sum + weight, 0);
   const smartWalletPerformanceScore = clamp(
-    winRateScore * 0.35 +
-      returnScore * 0.3 +
-      holdingScore * 0.15 +
-      participationScore * 0.2
+    observedComponents.reduce((sum, [, value, weight]) => sum + value * weight, 0) /
+      Math.max(observedWeight, 0.01)
   );
 
   const smartWalletPerformanceLevel =
@@ -42,7 +73,8 @@ export function analyzeSmartWalletPerformance(project = {}) {
   return {
     ...project,
     smartWalletPerformanceScore,
-    smartWalletPerformanceLevel
+    smartWalletPerformanceLevel,
+    smartWalletPerformanceCoverage,
   };
 }
 

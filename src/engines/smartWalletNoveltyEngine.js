@@ -15,6 +15,28 @@ function smartWalletRows(project = {}) {
 
 export function analyzeSmartWalletNovelty(project = {}) {
   const rows = smartWalletRows(project);
+  if (!rows.length) {
+    return {
+      ...project,
+      smartWalletNoveltyScore: null,
+      smartWalletNoveltyStatus: "SMART_WALLET_NOVELTY_UNMEASURED",
+      smartWalletNovelty: null,
+      smartWalletNoveltyCoverage: {
+        observedComponentCount: 0,
+        expectedComponentCount: 5,
+        coveragePct: 0,
+        observedValues: {},
+        missingValues: [
+          "walletHistoricalHitRate",
+          "walletResolvedSampleSize",
+          "walletMedianEntryLeadTime",
+          "walletRugExposureRate",
+          "walletFundingCluster",
+        ],
+        sourceFamilies: [],
+      },
+    };
+  }
   const qualified = rows.filter((wallet) => {
     const sample = num(wallet.walletResolvedSampleSize ?? wallet.sampleSize);
     const hitRate = num(wallet.walletHistoricalHitRate ?? wallet.hitRate);
@@ -53,6 +75,20 @@ export function analyzeSmartWalletNovelty(project = {}) {
       walletIndependence: Math.round(independence),
       walletEntryNovelty: Math.round(entryNovelty),
       policy: "Large wallets are not treated as smart wallets without measured history and independence.",
+    },
+    smartWalletNoveltyCoverage: {
+      observedComponentCount: 5,
+      expectedComponentCount: 5,
+      coveragePct: 100,
+      observedValues: {
+        walletCount: rows.length,
+        qualifiedWalletCount: qualified.length,
+        unrelatedFundingClusterCount: unrelatedFundingClusters.size,
+        walletMedianEntryLeadTime: medianLead || null,
+        walletIndependence: Math.round(independence),
+      },
+      missingValues: [],
+      sourceFamilies: ["wallet-history", "funding-clusters"],
     },
   };
 }
