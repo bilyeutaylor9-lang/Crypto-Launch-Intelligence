@@ -47,3 +47,16 @@ test("all GitHub workflows use Node 24-safe action versions", () => {
     assert.doesNotMatch(workflow, /actions\/upload-artifact@v4/);
   }
 });
+
+test("only the live dashboard workflow schedules or runs full scans on main pushes", () => {
+  const manual = fs.readFileSync(".github/workflows/manual.yml", "utf8");
+  const live = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
+
+  assert.doesNotMatch(manual, /\bpush:/);
+  assert.doesNotMatch(manual, /\bschedule:/);
+  assert.match(manual, /workflow_dispatch:/);
+  assert.match(live, /\bpush:/);
+  assert.match(live, /\bschedule:/);
+  assert.match(manual, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+  assert.match(live, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+});

@@ -1,16 +1,10 @@
 name: Crypto Launch Intelligence
 
 on:
-  push:
-    branches: [main]
-
   workflow_dispatch:
 
-  schedule:
-    - cron: "0 */6 * * *"
-
 concurrency:
-  group: intelligence-scan-${{ github.ref }}
+  group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
