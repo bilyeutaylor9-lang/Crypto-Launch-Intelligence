@@ -1,6 +1,46 @@
 import fs from "fs";
 import path from "path";
 
+function compactList(value = [], limit = 12) {
+  return (Array.isArray(value) ? value : value == null ? [] : [value])
+    .slice(0, limit)
+    .map((item) => {
+      if (item == null || ["string", "number", "boolean"].includes(typeof item)) return item;
+      return {
+        field: item.field || item.canonicalField || null,
+        rootCause: item.rootCause || null,
+        reason: item.reason || item.message || null,
+        blockingResearch: item.blockingResearch === true,
+        blockingExecution: item.blockingExecution === true,
+      };
+    });
+}
+
+function compactFirstSeen(firstSeen = {}) {
+  return {
+    firstSeenAt: firstSeen.firstSeenAt || null,
+    firstSeenPrice: firstSeen.firstSeenPrice ?? null,
+    firstSeenMarketCap: firstSeen.firstSeenMarketCap ?? null,
+    firstSeenLiquidity: firstSeen.firstSeenLiquidity ?? null,
+    firstSeenVolume: firstSeen.firstSeenVolume ?? null,
+    firstSeenBuyerCount: firstSeen.firstSeenBuyerCount ?? null,
+    firstSeenHolderCount: firstSeen.firstSeenHolderCount ?? null,
+    firstSeenPoolAge: firstSeen.firstSeenPoolAge ?? null,
+    firstSeenSources: compactList(firstSeen.firstSeenSources, 12),
+    firstSeenIdentityState: firstSeen.firstSeenIdentityState || "UNKNOWN",
+    firstSeenSafetyState: firstSeen.firstSeenSafetyState || "UNKNOWN",
+    firstSeenResearchPriority: firstSeen.firstSeenResearchPriority ?? null,
+    firstSeenOpportunityRank: firstSeen.firstSeenOpportunityRank ?? null,
+    firstSeenCoverage: firstSeen.firstSeenCoverage ?? null,
+    firstSeenMissingEvidence: compactList(firstSeen.firstSeenMissingEvidence, 12),
+    firstSeenReasonNotSelected: compactList(firstSeen.firstSeenReasonNotSelected, 8),
+    firstSeenFunnelStage: firstSeen.firstSeenFunnelStage || null,
+    firstSeenRouteState: firstSeen.firstSeenRouteState || "UNKNOWN",
+    firstSeenCodeCommitSha: firstSeen.firstSeenCodeCommitSha || null,
+    firstSeenScanRunId: firstSeen.firstSeenScanRunId || null,
+  };
+}
+
 export function writeFirstSeenOpportunityReport(projects = [], extra = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -10,13 +50,13 @@ export function writeFirstSeenOpportunityReport(projects = [], extra = {}) {
     .map((project) => ({
       symbol: project.symbol || "UNKNOWN",
       chain: project.chain || project.canonicalAliases?.chain || null,
-      firstSeen: project.firstSeenOpportunity || {
+      firstSeen: compactFirstSeen(project.firstSeenOpportunity || {
         firstSeenAt: project.firstSeenAt,
         firstSeenResearchPriority: project.firstSeenResearchPriority,
         firstSeenMissingEvidence: project.firstSeenMissingEvidence,
-      },
+      }),
       currentStage: project.preBreakoutTimingState || project.researchReadinessState || "UNKNOWN",
-      reasonNotYetQualified: project.reasonNotQualified || project.researchReadinessWarnings || [],
+      reasonNotYetQualified: compactList(project.reasonNotQualified || project.researchReadinessWarnings, 8),
     }));
   const report = {
     generatedAt: new Date().toISOString(),

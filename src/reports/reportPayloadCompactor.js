@@ -1,8 +1,8 @@
 const DEFAULT_REPORT_PROJECT_LIMIT = 0;
-const DEFAULT_REPORT_ARRAY_LIMIT = 40;
+const DEFAULT_REPORT_ARRAY_LIMIT = 12;
 const DEFAULT_REPORT_OBJECT_KEY_LIMIT = 80;
-const DEFAULT_REPORT_STRING_LIMIT = 4_000;
-const DEFAULT_REPORT_DEPTH_LIMIT = 5;
+const DEFAULT_REPORT_STRING_LIMIT = 1_500;
+const DEFAULT_REPORT_DEPTH_LIMIT = 4;
 const DISCOVERY_SAMPLE_LIMIT = 50;
 
 const HEAVY_FIELD_PATTERNS = [
@@ -27,6 +27,10 @@ const HEAVY_FIELD_PATTERNS = [
   /embedding/i,
   /vector/i,
   /debugRaw/i,
+  /^engineResults$/i,
+  /^evidence$/i,
+  /^institutionalDataProvenance$/i,
+  /^executionProofRecovery$/i,
 ];
 
 const IDENTITY_FIELDS = [
@@ -107,6 +111,14 @@ const DECISION_FIELDS = [
   "routeVerificationStatus",
   "marketBenchmarkLane",
   "nativeAssetVariant",
+  "opportunityRankingTier",
+  "progressiveLane",
+  "fourLaneStatus",
+  "capitalMigrationLane",
+  "executionReadinessState",
+  "tradabilityState",
+  "researchEligibilityState",
+  "projectLifecycleState",
 ];
 
 const EVIDENCE_FIELDS = [
@@ -132,7 +144,6 @@ const EVIDENCE_FIELDS = [
   "sourceTruthScore",
   "sourceReliabilityScore",
   "engineHealth",
-  "engineResults",
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
@@ -361,10 +372,10 @@ export function compactMetaForReportWriters(meta = {}) {
   const { discovery, ...rest } = meta;
   return {
     ...compactValueForReport(rest, {
-      arrayLimit: 60,
-      objectKeyLimit: 140,
-      stringLimit: 2_000,
-      depthLimit: 5,
+      arrayLimit: 20,
+      objectKeyLimit: 100,
+      stringLimit: 1_000,
+      depthLimit: 4,
     }),
     discovery: compactDiscoveryForReports(discovery),
   };

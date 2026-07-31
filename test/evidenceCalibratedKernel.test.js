@@ -589,6 +589,15 @@ test("institutional provenance ledger scores clean source lineage", () => {
   assert.ok(provenance.sourceSummary.sourceCount >= 3);
   assert.equal(summary.totalProjects, 1);
   assert.ok(summary.averageProvenanceScore >= 75);
+  assert.equal(summary.ledgerDetailMode, "COMPACT");
+  assert.equal(summary.ledgers[0].records, undefined);
+
+  const detailed = summarizeInstitutionalDataProvenance([strongProject()], {
+    now: "2026-07-15T01:00:00.000Z",
+    includeDetailedLedgers: true,
+  });
+  assert.equal(detailed.ledgerDetailMode, "FULL");
+  assert.ok(detailed.ledgers[0].records.length > 0);
 });
 
 test("institutional provenance ledger blocks severe source disagreement", () => {

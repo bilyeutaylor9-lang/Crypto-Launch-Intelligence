@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { analyzeProgressiveOpportunityRankingBatch } from "../engines/progressiveOpportunityRankingEngine.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 
 const DEFAULT_LIMIT = 5;
@@ -393,10 +392,15 @@ function buildCategory(projects = [], definition = {}, limit = DEFAULT_LIMIT) {
 
 export function summarizeAdvertisedCategoryCoverage(projects = [], options = {}) {
   const safe = Array.isArray(projects) ? projects : [];
-  const analyzed = safe.every((project) => project.opportunityRankingTier)
-    ? safe
-    : analyzeProgressiveOpportunityRankingBatch(safe);
-  const candidates = [...analyzed].sort((a, b) => rankScore(b) - rankScore(a));
+  const storedClassificationCount = safe.filter((project) =>
+    Boolean(
+      project.opportunityRankingTier ||
+      project.progressiveLane ||
+      project.highUpsideScalpLane ||
+      project.capitalMigrationLane
+    )
+  ).length;
+  const candidates = [...safe].sort((a, b) => rankScore(b) - rankScore(a));
   const limit = Math.max(1, Math.round(num(options.limit || DEFAULT_LIMIT)));
   const categories = CATEGORY_DEFINITIONS.map((definition) => buildCategory(candidates, definition, limit));
   const categoriesWithAnyResult = categories.filter((category) => category.displayedCount > 0).length;
@@ -414,6 +418,11 @@ export function summarizeAdvertisedCategoryCoverage(projects = [], options = {})
           ? "PARTIAL_CATEGORY_COVERAGE"
           : "NO_CATEGORY_RESULTS",
     totalProjects: safe.length,
+    storedClassificationCount,
+    storedClassificationCoveragePct: safe.length
+      ? Math.round((storedClassificationCount / safe.length) * 100)
+      : 0,
+    reportLayerRecomputation: false,
     advertisedCategoryCount: categories.length,
     categoriesWithAnyResult,
     categoriesWithStrictResults,
@@ -427,6 +436,7 @@ export function summarizeAdvertisedCategoryCoverage(projects = [], options = {})
       "Research backfill results mean the category has no direct signal yet, so the scanner is assigning the best safe candidates for targeted evidence recovery.",
       "A category with research fallback is useful for investigation, not promotion.",
       "Deterministic safety blocks such as honeypot, scam, rug, sell restriction, or critical contract mismatch are excluded from fallbacks.",
+      "This report consumes stored pipeline decisions and never re-runs ranking engines after report compaction.",
     ],
   };
 }

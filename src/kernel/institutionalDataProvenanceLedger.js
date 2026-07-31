@@ -618,7 +618,8 @@ export function summarizeInstitutionalDataProvenance(projects = [], options = {}
         ...compactLedger(ledger),
         agreement: ledger.agreement,
       })),
-    ledgers,
+    ledgerDetailMode: options.includeDetailedLedgers === true ? "FULL" : "COMPACT",
+    ledgers: options.includeDetailedLedgers === true ? ledgers : ledgers.map(compactLedger),
   };
 }
 

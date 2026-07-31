@@ -269,7 +269,15 @@ export function writeAlphaDashboardV2Report(projects = [], meta = {}) {
   fs.writeFileSync(weightOptimizerPath, JSON.stringify(report.autoLearningWeightOptimizer, null, 2));
   fs.writeFileSync(sourceTruthPath, JSON.stringify(report.sourceTruth, null, 2));
   fs.writeFileSync(githubProPath, JSON.stringify(report.githubIntelligencePro, null, 2));
-  fs.writeFileSync(provenancePath, JSON.stringify(report.institutionalDataProvenance, null, 2));
+  fs.writeFileSync(provenancePath, JSON.stringify({
+    generatedAt: report.generatedAt,
+    status: "CANONICAL_REPORT_REFERENCE",
+    canonicalReport: "institutional-data-provenance.json",
+    totalProjects: report.institutionalDataProvenance?.totalProjects || 0,
+    averageProvenanceScore: report.institutionalDataProvenance?.averageProvenanceScore || 0,
+    counts: report.institutionalDataProvenance?.counts || {},
+    note: "The canonical provenance report contains the bounded project ledger. This dashboard companion intentionally avoids duplicating it.",
+  }, null, 2));
 
   return {
     filePath,

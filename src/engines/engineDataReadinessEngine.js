@@ -266,6 +266,8 @@ export function summarizeEngineDataReadiness(projects = [], options = {}) {
   const analyzed = safeProjects.map((project) =>
     project.engineDataReadiness
       ? project
+      : options.recomputeMissing === false
+        ? project
       : analyzeEngineDataReadiness(project, {
           contracts,
           disableSemanticScan: options.disableSemanticScan ?? true,
@@ -292,6 +294,8 @@ export function summarizeEngineDataReadiness(projects = [], options = {}) {
     generatedAt: new Date().toISOString(),
     status: statuses.CORE_DATA_STARVED ? "GAPS_FOUND" : "PASS",
     projectsAnalyzed: analyzed.length,
+    notEvaluated: statuses.UNKNOWN || 0,
+    reportLayerRecomputation: options.recomputeMissing !== false,
     contractCount: contracts.length,
     averageCoverage: analyzed.length
       ? Math.round(analyzed.reduce((sum, project) => sum + (project.engineDataReadinessScore || 0), 0) / analyzed.length)

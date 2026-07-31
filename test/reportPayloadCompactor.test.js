@@ -35,6 +35,13 @@ test("report project compactor preserves ranking fields while bounding raw resea
       },
       rawProviderPayload: { payload: "x".repeat(500_000) },
       websiteText: "w".repeat(500_000),
+      engineResults: Object.fromEntries(
+        Array.from({ length: 100 }, (_, index) => [`engine-${index}`, { payload: "r".repeat(10_000) }])
+      ),
+      evidence: Array.from({ length: 100 }, (_, index) => ({
+        source: `source-${index}`,
+        payload: "e".repeat(10_000),
+      })),
       nestedGraph: {
         evidence: Array.from({ length: 100 }, (_, index) => ({
           index,
@@ -53,6 +60,8 @@ test("report project compactor preserves ranking fields while bounding raw resea
   assert.equal(compacted.quantumReasoningBrain.probabilities.bull, 35);
   assert.equal(compacted.rawProviderPayload.omittedFromReport, true);
   assert.equal(compacted.websiteText.omittedFromReport, true);
+  assert.equal(compacted.engineResults.omittedFromReport, true);
+  assert.equal(compacted.evidence.omittedFromReport, true);
   assert.ok(compacted.finalBlockingReasons.length <= 11);
   assert.equal(compacted.reportCompaction.mode, "bounded-project");
 });

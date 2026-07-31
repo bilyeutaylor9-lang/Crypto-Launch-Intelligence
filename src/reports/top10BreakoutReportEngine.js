@@ -18,6 +18,10 @@ import {
   deterministicCandidateBlocks,
   deriveProjectLifecycleState,
 } from "../kernel/candidateTruthState.js";
+import {
+  compactMetaForReportWriters,
+  compactValueForReport,
+} from "./reportPayloadCompactor.js";
 
 const BREAKOUT_WEIGHTS = [
   ["earlyAcceleration", 18],
@@ -343,6 +347,16 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "sniperState",
   "progressiveLane",
 ];
+
+const TOP10_RECOMPUTED_OR_RAW_FIELDS = new Set([
+  "candidateProofState",
+  "evidence",
+  "executionProofRecovery",
+  "executionReadinessComponents",
+  "rawCandidate",
+  "researchOpportunityComponents",
+  "researchWarnings",
+]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -1080,7 +1094,76 @@ function copyCandidateInputProject(project = {}) {
   const copy = {};
   for (const field of TOP10_CANDIDATE_INPUT_FIELDS) {
     const value = project[field];
-    if (value !== undefined) copy[field] = value;
+    if (value === undefined) continue;
+
+    if (TOP10_RECOMPUTED_OR_RAW_FIELDS.has(field)) {
+      continue;
+    }
+    if (field === "sniperEvidenceFamilyList") {
+      copy[field] = (Array.isArray(value) ? value : [])
+        .slice(0, 12)
+        .map((item) => {
+          if (typeof item === "string") return item;
+          return {
+            family: item?.family || null,
+            name: item?.name || null,
+          };
+        });
+      continue;
+    }
+    if (field === "institutionalDataProvenance") {
+      copy[field] = {
+        score: value.score ?? null,
+        institutionalReadiness: value.institutionalReadiness || null,
+        sourceSummary: {
+          sourceCount: value.sourceSummary?.sourceCount || 0,
+          sourceFamilyCount: value.sourceSummary?.sourceFamilyCount || 0,
+          sources: Array.isArray(value.sourceSummary?.sources)
+            ? value.sourceSummary.sources.slice(0, 12)
+            : [],
+        },
+        components: {
+          contradictionRisk: value.components?.contradictionRisk ?? null,
+          sourceAgreement: value.components?.sourceAgreement ?? null,
+          freshness: value.components?.freshness ?? null,
+        },
+      };
+      continue;
+    }
+    if (field === "smallCapHunter") {
+      copy[field] = {
+        purchaseRoute: {
+          score: value.purchaseRoute?.score ?? null,
+          status: value.purchaseRoute?.status || null,
+        },
+        execution: {
+          liquidityUsd: value.execution?.liquidityUsd ?? null,
+        },
+      };
+      continue;
+    }
+    if (field === "proofOfAlphaExecutionTwin") {
+      copy[field] = {
+        quote: {
+          liquidityUsd: value.quote?.liquidityUsd ?? null,
+        },
+      };
+      continue;
+    }
+    if (field === "prePump") {
+      copy[field] = {
+        status: value.status || null,
+        score: value.score ?? null,
+      };
+      continue;
+    }
+
+    copy[field] = compactValueForReport(value, {
+      arrayLimit: 8,
+      objectKeyLimit: 40,
+      stringLimit: 1_000,
+      depthLimit: 4,
+    });
   }
   return copy;
 }
@@ -1094,12 +1177,14 @@ export function buildTop10CandidateInput(projects = [], meta = {}) {
     codeCommitSha: meta.codeCommitSha || null,
     dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || meta.generatedAt || null,
     schemaVersion: "top10-candidate-input-v1",
-    source: "full-fidelity-analyzed-projects",
+    source: "bounded-decision-complete-analyzed-projects",
     description:
-      "Curated project records preserving every field consumed by the Top 10 breakout scanner before generic report compaction.",
-    meta,
+      "Bounded project records preserving the normalized facts consumed by the Top 10 breakout scanner while excluding raw provider and engine working-memory payloads.",
+    meta: compactMetaForReportWriters(meta),
     projectCount: safeProjects.length,
-    fieldsPreserved: TOP10_CANDIDATE_INPUT_FIELDS,
+    fieldsPreserved: TOP10_CANDIDATE_INPUT_FIELDS.filter(
+      (field) => !TOP10_RECOMPUTED_OR_RAW_FIELDS.has(field)
+    ),
     projects: safeProjects.map(copyCandidateInputProject),
   };
 }

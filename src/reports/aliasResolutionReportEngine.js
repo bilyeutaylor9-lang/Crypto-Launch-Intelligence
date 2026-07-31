@@ -34,11 +34,34 @@ function reportMeta(projects = [], extra = {}) {
   };
 }
 
-function flatten(object = {}, prefix = "", output = []) {
-  if (!object || typeof object !== "object" || Array.isArray(object)) return output;
+const UNKNOWN_VOCABULARY_SKIP_PATHS = Object.freeze([
+  /^engineResults(\.|$)/,
+  /^engineDataReadiness(\.|$)/,
+  /^institutionalDataProvenance(\.|$)/,
+  /^candidateProofState(\.|$)/,
+  /^executionProofRecovery(\.|$)/,
+  /^evidence(\.|$)/,
+  /^aliasResolutionAudit(\.|$)/,
+  /^canonicalAliasProvenance(\.|$)/,
+  /^canonicalAliases(\.|$)/,
+  /^canonicalAliasConflicts(\.|$)/,
+]);
+
+function flatten(object = {}, prefix = "", output = [], depth = 0, limit = 500) {
+  if (!object || typeof object !== "object" || output.length >= limit || depth >= 4) return output;
+  if (prefix && UNKNOWN_VOCABULARY_SKIP_PATHS.some((pattern) => pattern.test(prefix))) return output;
+  if (Array.isArray(object)) {
+    for (const item of object.slice(0, 3)) {
+      if (item && typeof item === "object") flatten(item, prefix, output, depth + 1, limit);
+      if (output.length >= limit) break;
+    }
+    return output;
+  }
   for (const [key, value] of Object.entries(object)) {
+    if (output.length >= limit) break;
     const nextPath = prefix ? `${prefix}.${key}` : key;
-    if (value && typeof value === "object" && !Array.isArray(value)) flatten(value, nextPath, output);
+    if (UNKNOWN_VOCABULARY_SKIP_PATHS.some((pattern) => pattern.test(nextPath))) continue;
+    if (value && typeof value === "object") flatten(value, nextPath, output, depth + 1, limit);
     else output.push({ path: nextPath, field: key, value });
   }
   return output;
@@ -95,11 +118,70 @@ function projectLabel(project = {}) {
   return `${project.symbol || project.name || project.projectId || "UNKNOWN"}:${project.chain || project.canonicalAliases?.chain || "unknown"}`;
 }
 
-export function summarizeAliasResolution(projects = []) {
-  const resolvedRuns = projects.map((project) => ({
-    project,
-    resolution: project.aliasResolutionAudit ? { audits: project.aliasResolutionAudit, conflicts: project.canonicalAliasConflicts || {} } : resolveCanonicalAliases(project),
-  }));
+const SOURCE_VOCABULARY_ROOTS = Object.freeze([
+  "rawCandidate",
+  "providerPayload",
+  "sourcePayload",
+  "sourceResponse",
+  "marketData",
+  "tokenInfo",
+  "stats",
+  "ticker",
+  "transactions",
+  "pair",
+  "pool",
+  "links",
+  "socials",
+  "projectLinks",
+]);
+
+function sourceVocabularyPayload(project = {}) {
+  const payload = {};
+  for (const root of SOURCE_VOCABULARY_ROOTS) {
+    const value = project[root];
+    if (value && typeof value === "object") payload[root] = value;
+  }
+  return payload;
+}
+
+function sourceVocabularyShape(provider = "unknown", payload = {}) {
+  const shape = Object.entries(payload)
+    .map(([root, value]) => {
+      const keys = value && typeof value === "object" ? Object.keys(value).sort().join("|") : "";
+      return `${root}:${keys}`;
+    })
+    .sort()
+    .join(";");
+  return `${provider}:${shape}`;
+}
+
+export function summarizeAliasResolution(projects = [], options = {}) {
+  let notEvaluatedCount = 0;
+  const resolvedRuns = projects.map((project) => {
+    if (project.aliasResolutionAudit) {
+      return {
+        project,
+        resolution: {
+          audits: project.aliasResolutionAudit,
+          conflicts: project.canonicalAliasConflicts || {},
+        },
+      };
+    }
+    if (options.recomputeMissing === false) {
+      notEvaluatedCount += 1;
+      return {
+        project,
+        resolution: {
+          audits: [],
+          conflicts: project.canonicalAliasConflicts || {},
+        },
+      };
+    }
+    return {
+      project,
+      resolution: resolveCanonicalAliases(project),
+    };
+  });
   const audits = resolvedRuns.flatMap((item) => item.resolution.audits || []);
   const valid = audits.filter((record) => record.validationStatus === "VALID" || record.validationStatus === "PARTIAL");
   const rejected = audits.filter((record) => record.validationStatus === "REJECTED_ALIAS" || record.validationStatus === "INVALID");
@@ -114,8 +196,16 @@ export function summarizeAliasResolution(projects = []) {
   );
 
   const unknownFields = [];
+  const vocabularyShapes = new Set();
   for (const project of projects) {
-    for (const raw of flatten(project)) {
+    const provider = canonicalProviderId(project.provider || project.source || "unknown");
+    const payload = sourceVocabularyPayload(project);
+    if (!Object.keys(payload).length) continue;
+    const shape = sourceVocabularyShape(provider, payload);
+    if (vocabularyShapes.has(shape)) continue;
+    vocabularyShapes.add(shape);
+
+    for (const raw of flatten(payload)) {
       if (shouldIgnoreUnknownField(raw)) continue;
       const canonical = canonicalFieldForAlias(raw.path) || canonicalFieldForAlias(raw.field);
       if (canonical) continue;
@@ -152,12 +242,15 @@ export function summarizeAliasResolution(projects = []) {
     fieldCounts,
     rejectedByReason,
     recoveredProjects,
+    vocabularyShapesAnalyzed: vocabularyShapes.size,
+    notEvaluatedCount,
+    reportLayerRecomputation: options.recomputeMissing !== false,
   };
 }
 
 export function writeAliasResolutionReports(projects = [], extra = {}) {
   const meta = reportMeta(projects, extra);
-  const summary = summarizeAliasResolution(projects);
+  const summary = summarizeAliasResolution(projects, { recomputeMissing: false });
   const summaryPath = writeJson("alias-resolution-summary.json", {
     ...meta,
     fieldsResolvedByExactAlias: summary.typeCounts.EXACT_ALIAS || 0,
@@ -168,6 +261,9 @@ export function writeAliasResolutionReports(projects = [], extra = {}) {
     fieldsRejected: summary.rejected.length,
     conflictsDetected: summary.conflicts.length,
     projectsRecoveredFromAliasStarvation: summary.recoveredProjects.length,
+    vocabularyShapesAnalyzed: summary.vocabularyShapesAnalyzed,
+    notEvaluatedCount: summary.notEvaluatedCount,
+    reportLayerRecomputation: summary.reportLayerRecomputation,
     resolvedByField: entries(summary.fieldCounts).slice(0, 100),
     resolvedByProvider: entries(summary.providerCounts).slice(0, 100),
   });
@@ -185,6 +281,7 @@ export function writeAliasResolutionReports(projects = [], extra = {}) {
   const unresolvedPath = writeJson("unresolved-field-verbiage.json", {
     ...meta,
     topUnknownFieldNames: entries(countBy(summary.unknownFields, (item) => item.field)).slice(0, 200),
+    vocabularyShapesAnalyzed: summary.vocabularyShapesAnalyzed,
     potentialNewAliases: summary.unknownFields.filter((item) => item.potentialCanonicalFields.length).slice(0, 200),
     examples: summary.unknownFields.slice(0, 200),
   });

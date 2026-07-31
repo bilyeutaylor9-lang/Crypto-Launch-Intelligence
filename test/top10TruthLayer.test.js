@@ -491,6 +491,35 @@ test("Top 10 candidate input preserves scoring fields before generic report comp
   const noisy = {
     ...strongProject(),
     ignoredLargeBlob: "x".repeat(10_000),
+    rawCandidate: { payload: "r".repeat(1_000_000) },
+    evidence: Array.from({ length: 100 }, (_, index) => ({
+      source: `source-${index}`,
+      payload: "e".repeat(10_000),
+    })),
+    executionProofRecovery: {
+      adapterResults: Array.from({ length: 100 }, (_, index) => ({
+        provider: `provider-${index}`,
+        payload: "q".repeat(10_000),
+      })),
+    },
+    institutionalDataProvenance: {
+      score: 82,
+      institutionalReadiness: "REVIEW_READY",
+      sourceSummary: {
+        sourceCount: 20,
+        sourceFamilyCount: 8,
+        sources: Array.from({ length: 50 }, (_, index) => `source-${index}`),
+      },
+      components: {
+        contradictionRisk: 8,
+        sourceAgreement: 84,
+        freshness: 91,
+      },
+      records: Array.from({ length: 100 }, (_, index) => ({
+        field: `field-${index}`,
+        payload: "p".repeat(10_000),
+      })),
+    },
   };
   for (let index = 0; index < 120; index += 1) noisy[`extra_${index}`] = index;
 
@@ -502,6 +531,12 @@ test("Top 10 candidate input preserves scoring fields before generic report comp
   assert.equal(input.projects[0].liquidityFormationScore, 82);
   assert.equal(input.projects[0].executionRoute.buyQuoteVerified, true);
   assert.equal(input.projects[0].ignoredLargeBlob, undefined);
+  assert.equal(input.projects[0].rawCandidate, undefined);
+  assert.equal(input.projects[0].evidence, undefined);
+  assert.equal(input.projects[0].executionProofRecovery, undefined);
+  assert.equal(input.projects[0].institutionalDataProvenance.records, undefined);
+  assert.equal(input.projects[0].institutionalDataProvenance.components.sourceAgreement, 84);
+  assert.ok(Buffer.byteLength(JSON.stringify(input)) < 150_000);
 });
 
 test("Alpha OS summary reports skipped profile instead of fake zero candidates", () => {

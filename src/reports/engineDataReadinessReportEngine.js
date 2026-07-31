@@ -9,7 +9,7 @@ export function writeEngineDataReadinessReport(projects = []) {
 
   const unknownChainAliases = summarizeUnknownChainValues(projects);
   const report = {
-    ...summarizeEngineDataReadiness(projects),
+    ...summarizeEngineDataReadiness(projects, { recomputeMissing: false }),
     unknownChainAliasCount: unknownChainAliases.length,
     unknownChainAliases,
     disclaimer:
