@@ -78,7 +78,18 @@ function jupiterMock({ sellSucceeds = true } = {}) {
 }
 
 test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified route state", async () => {
-  const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject({
+    candidateQuarantineReasons: ["BUY_ROUTE_FAILED", "SELL_ROUTE_FAILED", "STALE_MARKET_DATA"],
+    quarantineReasons: ["BUY_ROUTE_FAILED", "SELL_ROUTE_FAILED", "STALE_MARKET_DATA"],
+    canonicalExecutionRoute: {
+      routeType: "DEX_AGGREGATOR",
+      chain: "solana",
+      tokenAddress: SOL_TOKEN,
+      poolAddress: SOL_POOL,
+      quarantineReasons: ["BUY_ROUTE_FAILED", "SELL_ROUTE_FAILED", "STALE_MARKET_DATA"],
+      missingEvidence: ["fresh buy quote", "fresh sell quote"],
+    },
+  })], {
     fetchJson: jupiterMock(),
     now: () => NOW,
     maxCandidates: 25,
@@ -87,13 +98,17 @@ test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified r
   assert.equal(recovered.executionProofRecovery.status, "ROUTE_RECOVERED");
   assert.equal(recovered.buyQuoteVerified, true);
   assert.equal(recovered.sellQuoteVerified, true);
-  assert.equal(recovered.routeTruthStatus, "SELL_QUOTE_VERIFIED");
+  assert.equal(recovered.routeTruthStatus, "LIVE_EXECUTION_READY");
   assert.equal(recovered.executionProofRecoveryRoute.venue, "Jupiter");
   assert.equal(recovered.executionProofRecoveryRoute.executableDepthUsd, 25);
   assert.equal(recovered.executionProofRecoveryRoute.verifiedTradeSizeUsd, 25);
   assert.equal(recovered.canonicalExecutionRoute.executableDepthUsd, 25);
   assert.equal(recovered.canonicalExecutionRoute.quoteTokenAddress, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
   assert.equal(recovered.canonicalExecutionRoute.slippageIsHeuristic, false);
+  assert.equal(recovered.candidateQuarantineReasons.includes("BUY_ROUTE_FAILED"), false);
+  assert.equal(recovered.candidateQuarantineReasons.includes("SELL_ROUTE_FAILED"), false);
+  assert.equal(recovered.candidateQuarantineReasons.includes("STALE_MARKET_DATA"), false);
+  assert.equal(recovered.canonicalExecutionRoute.quarantineReasons.includes("BUY_ROUTE_FAILED"), false);
 
   const [proof] = analyzeExecutionProofBatch([recovered]);
   assert.equal(proof.executionProofState, "ORDER_BOOK_DEPTH_VERIFIED");

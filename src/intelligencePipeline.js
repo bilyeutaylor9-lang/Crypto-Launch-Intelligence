@@ -4,6 +4,10 @@ import { analyzeRichTokenIntelligenceBatch } from "./engines/richTokenIntelligen
 import { analyzeInfrastructureNarrativeBatch } from "./engines/infrastructureNarrativeEngine.js";
 import { analyzeMarketRankBatch } from "./engines/marketRankingEngine.js";
 import { isLiveExecutionReady } from "./execution/routeTruthV2.js";
+import {
+  analyzeCandidateTruthReconciliationBatch,
+} from "./engines/candidateTruthReconciliationEngine.js";
+import { attachCandidateTruthStateBatch } from "./kernel/candidateTruthState.js";
 
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
 import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
@@ -160,6 +164,7 @@ import { analyzeResearchReadinessBatch } from "./engines/researchReadinessEngine
 import { analyzeFirstSeenOpportunityBatch } from "./engines/firstSeenOpportunityEngine.js";
 import { analyzeUtilityQualityBatch } from "./engines/utilityQualityEngine.js";
 import { analyzeHighUpsideScalpClassificationBatch } from "./engines/highUpsideScalpClassificationEngine.js";
+import { analyzeCandidateDecisionScoringBatch } from "./engines/candidateDecisionScoringEngine.js";
 import { analyzeDailyCapitalMoveBatch } from "./engines/dailyCapitalMoveEngine.js";
 import { applyScannerVNextScoring } from "./kernel/scannerVNextScoringKernel.js";
 import { calculateEvidenceCoverage } from "./kernel/evidenceCoverage.js";
@@ -279,6 +284,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "Execution Proof Recovery": "deep",
   "Execution Proof": "deep",
   "Route Accessibility": "deep",
+  "Candidate Truth Reconciliation": "deep",
   "Capital Flow Observation": "deep",
   "Capital Flow Baseline": "deep",
   "Capital Migration Core": "deep",
@@ -319,6 +325,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "7-Day Asymmetric Research": "deep",
   "Scalp Microstructure": "deep",
   "High-Upside Scalp Classification": "deep",
+  "Candidate Decision Scoring": "deep",
   "Daily Capital Move": "deep",
 
   "Research Operating System": "llama",
@@ -614,6 +621,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Execution Proof Recovery",
   "Execution Proof",
   "Route Accessibility",
+  "Candidate Truth Reconciliation",
   "Data Starvation Root Cause",
   "Value Of Information",
   "Starvation Rescue",
@@ -630,6 +638,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Contract Authority Risk",
   "Organic Demand Integrity",
   "High-Upside Scalp Classification",
+  "Candidate Decision Scoring",
   "Daily Capital Move",
 ]);
 
@@ -2526,6 +2535,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
+  results = await runEngine(
+    "Candidate Truth Reconciliation",
+    analyzeCandidateTruthReconciliationBatch,
+    results
+  );
   const capitalFlowObservationOptions = {
     ...(options.capitalFlowObservation || {}),
     persist: options.capitalFlowObservation?.persist ?? options.saveMemory !== false,
@@ -2618,7 +2632,14 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     results,
     options.highUpsideScalpClassification || {}
   );
+  results = await runEngine(
+    "Candidate Decision Scoring",
+    analyzeCandidateDecisionScoringBatch,
+    results,
+    options.candidateDecisionScoring || {}
+  );
   results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  results = attachCandidateTruthStateBatch(results);
 
   const finalIntegrity = validateFinalSelectionInvariants(results);
   if (finalIntegrity.status !== "PASS") {

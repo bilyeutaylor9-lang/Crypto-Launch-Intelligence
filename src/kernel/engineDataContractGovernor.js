@@ -278,12 +278,13 @@ export function summarizeEngineDataContractHealth(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const engineMap = new Map();
   const sourceMap = new Map();
+  const sourceObservations = new Set();
   let pass = 0;
   let inputStarved = 0;
   let outputMismatch = 0;
   let outputPartial = 0;
 
-  for (const project of safeProjects) {
+  for (const [projectIndex, project] of safeProjects.entries()) {
     const health = project.engineDataContractHealth || {};
     if (health.status === "PASS") pass += 1;
     if (health.status === "INPUT_DATA_STARVED") inputStarved += 1;
@@ -310,14 +311,23 @@ export function summarizeEngineDataContractHealth(projects = [], options = {}) {
       if (record.outputStatus === "OUTPUT_CONTRACT_MISMATCH") summary.outputMismatchRuns += 1;
       if (record.outputStatus === "OUTPUT_PARTIAL") summary.outputPartialRuns += 1;
       for (const item of record.topMissingInputs || []) {
-        summary.topMissingInputs.set(item.fields, (summary.topMissingInputs.get(item.fields) || 0) + (item.count || 1));
+        summary.topMissingInputs.set(
+          item.fields,
+          Math.max(summary.topMissingInputs.get(item.fields) || 0, item.count || 1)
+        );
       }
       for (const item of record.topMissingOutputs || []) {
-        summary.topMissingOutputs.set(item.fields, (summary.topMissingOutputs.get(item.fields) || 0) + (item.count || 1));
+        summary.topMissingOutputs.set(
+          item.fields,
+          Math.max(summary.topMissingOutputs.get(item.fields) || 0, item.count || 1)
+        );
       }
       for (const source of record.nextSources || []) {
         const sourceName = source.source || source;
-        sourceMap.set(sourceName, (sourceMap.get(sourceName) || 0) + (source.count || 1));
+        const observationKey = `${project.canonicalProjectId || project.projectId || projectIndex}|${key}|${sourceName}`;
+        if (sourceObservations.has(observationKey)) continue;
+        sourceObservations.add(observationKey);
+        sourceMap.set(sourceName, (sourceMap.get(sourceName) || 0) + 1);
       }
       engineMap.set(key, summary);
     }

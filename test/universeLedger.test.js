@@ -35,6 +35,7 @@ test("universe ledger promotes selected projects with authoritative final fields
   assert.equal(record.finalState, "PROMOTED");
   assert.equal(record.finalQualified, true);
   assert.equal(record.processing.stage, "DEEP_SNIPER_QUEUE");
+  assert.ok(record.lastSelectedAt);
   assert.ok(record.dataCoverageScore >= 40);
   assert.equal(record.finalEvidenceFamilies.identity.status, "confirmed");
   assert.equal(record.finalEvidenceFamilies.manipulationRisk.status, "clear");

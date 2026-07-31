@@ -2,7 +2,8 @@ import { getBlockscoutSecurityEvidence } from "./blockscoutConnector.js";
 import { getEtherscanV2SecurityEvidence } from "./etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./goplusSecurityConnector.js";
 import { getSourcifySecurityEvidence } from "./sourcifyV2Connector.js";
-import { summarizeSecurityEvidence } from "./securityEvidenceUtils.js";
+import { getSolanaSecurityEvidence } from "./solanaSecurityConnector.js";
+import { chainKey, summarizeSecurityEvidence } from "./securityEvidenceUtils.js";
 
 const DEFAULT_PROVIDERS = [
   getGoPlusSecurityEvidence,
@@ -12,7 +13,11 @@ const DEFAULT_PROVIDERS = [
 ];
 
 export async function getFreeSecurityEvidence(project = {}, options = {}) {
-  const providers = options.providers || DEFAULT_PROVIDERS;
+  const providers =
+    options.providers ||
+    (chainKey(project.chain || project.canonicalChain || project.network) === "solana"
+      ? [getSolanaSecurityEvidence]
+      : DEFAULT_PROVIDERS);
   const settled = await Promise.allSettled(
     providers.map((provider) => provider(project, options))
   );

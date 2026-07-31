@@ -353,6 +353,32 @@ test("Top 10 research opportunities stay visible when only live sell-route proof
   assert.ok(report.failureWaterfall.topRejectionReasons.some((item) => item.reason === "SELL_ROUTE_FAILED"));
 });
 
+test("legacy researchOnly cannot misclassify a live token as prelaunch", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      symbol: "LIVEONLY",
+      researchOnly: true,
+      tradableCandidate: false,
+      sellQuoteVerified: false,
+      routeTruthStatus: "SELL_QUOTE_VERIFIED_PENDING",
+      executionProofState: "SELL_QUOTE_VERIFIED_PENDING",
+      executionRoute: {
+        ...strongProject().executionRoute,
+        sellRouteAvailable: false,
+        sellQuoteVerified: false,
+      },
+      executionProof: {
+        ...strongProject().executionProof,
+        sellQuoteVerified: false,
+      },
+    }),
+  ]);
+
+  assert.equal(report.prelaunchResearchCandidates.length, 0);
+  assert.equal(report.top10ResearchOpportunities.length, 1);
+  assert.equal(report.top10ResearchOpportunities[0].symbol, "LIVEONLY");
+});
+
 test("missing identity confidence score does not become maximum identity risk", () => {
   const report = buildTop10BreakoutReport([
     strongProject({

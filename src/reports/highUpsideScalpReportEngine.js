@@ -575,6 +575,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
+    dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
     status: reportStatus({
       projectsAnalyzed: scored.length,
       classificationEligibleCount: classificationEligible.length,

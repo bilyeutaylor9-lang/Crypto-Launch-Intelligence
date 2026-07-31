@@ -1,6 +1,7 @@
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyAggregateCandidate } from "../identity/displayIdentityGuard.js";
+import { deterministicCandidateBlocks } from "../kernel/candidateTruthState.js";
 
 export const HIGH_UPSIDE_SCALP_LANES = [
   "SCALP_READY_RESEARCH",
@@ -161,6 +162,52 @@ function hasAnyPath(project = {}, paths = []) {
   });
 }
 
+function hasObservedSafetyEvidence(project = {}) {
+  const summary = project.securityEvidenceSummary || project.freeSecurityEvidence?.summary || {};
+  const evidence = Array.isArray(project.securityEvidence)
+    ? project.securityEvidence
+    : Array.isArray(project.freeSecurityEvidence?.evidence)
+      ? project.freeSecurityEvidence.evidence
+      : [];
+  const sources = [
+    ...(project.securityEvidenceSources || []),
+    ...(summary.knownProviders || []),
+    ...(summary.providers || []),
+  ].filter(Boolean);
+  const status = String(
+    project.safetyProofStatus ||
+      project.safetyProofLane ||
+      project.securityEvidenceStatus ||
+      summary.status ||
+      ""
+  ).toUpperCase();
+
+  return Boolean(
+    evidence.length ||
+      sources.length ||
+      project.contractSafetyVerified === true ||
+      (project.instantSafetyStatus === "PASS" && project.instantSafetyScore !== undefined) ||
+      (status && !/UNKNOWN|NOT_TESTED|PROVIDER_UNAVAILABLE/.test(status))
+  );
+}
+
+function hasObservedRouteEvidence(project = {}) {
+  const route = project.executionProofRecoveryRoute || project.canonicalExecutionRoute || {};
+  const proof = project.executionProof || {};
+  return Boolean(
+    Object.keys(route).length ||
+      Object.keys(proof).length ||
+      project.executionRecoverySource ||
+      project.exactIdentityVerified === true ||
+      project.buyQuoteVerified !== undefined ||
+      project.sellQuoteVerified !== undefined ||
+      project.quoteTimestamp ||
+      project.quoteAgeSeconds !== undefined ||
+      project.orderBookDepthUsd !== undefined ||
+      project.estimatedRoundTripSlippagePct !== undefined
+  );
+}
+
 function routeReady(project = {}) {
   return resolveStrictCandidateGate(project).strictRankEligible === true && isLiveExecutionReady({
     ...project,
@@ -288,7 +335,7 @@ export function markHighUpsideScalpResearchDeferred(project = {}) {
 }
 
 function routeComponent(project = {}, paths = []) {
-  if (!hasAnyPath(project, paths)) {
+  if (!hasAnyPath(project, paths) || !hasObservedRouteEvidence(project)) {
     return { available: false, field: paths[0] || "routeTruthStatus", value: null };
   }
   return {
@@ -302,7 +349,9 @@ function familyScore(project = {}, family = "", specs = []) {
   const components = specs.map((paths) =>
     family === "route" && paths.includes("routeTruthStatus")
       ? routeComponent(project, paths)
-      : explicitNumber(project, paths)
+      : family === "safety" && !hasObservedSafetyEvidence(project)
+        ? { available: false, field: paths[0] || "safetyProofStatus", value: null }
+        : explicitNumber(project, paths)
   );
   const available = components.filter((component) => component.available);
   const missingFields = components
@@ -350,31 +399,7 @@ function utilityBlocked(project = {}) {
 }
 
 function deterministicSafetyBlocked(project = {}) {
-  const blockers = [
-    ...(project.sevenDayTenXBlockers || []),
-    ...(project.finalSelectionBlockers || []),
-    ...(project.finalBlockingReasons || []),
-    ...(project.sniperIntegrityBlockers || []),
-  ]
-    .join(" ")
-    .toLowerCase();
-  const hasSafetyBlockerText =
-    /honeypot|verified scam|identity conflict|contract mismatch|chain mismatch|cannot sell|sell restricted|blacklist|mint authority|liquidity removal|owner can drain|malicious|critical safety/.test(
-      blockers
-    );
-
-  return Boolean(
-    project.honeypotDetected ||
-      project.verifiedScam ||
-      project.sellRestricted ||
-      project.identityConflict ||
-      project.canonicalIdentityHardBlock ||
-      project.instantSafetyStatus === "CRITICAL" ||
-      num(project.contractAuthorityRiskScore) >= 70 ||
-      num(project.liquidityControlRiskScore) >= 75 ||
-      num(project.washTradingRiskScore) >= 75 ||
-      (project.finalSelectionState === "BLOCKED" && hasSafetyBlockerText)
-  );
+  return deterministicCandidateBlocks(project).length > 0;
 }
 
 function routeOnlyScalpBlock(project = {}) {

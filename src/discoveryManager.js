@@ -754,12 +754,20 @@ export async function runDiscoveryManager(options = {}) {
       {
         key: "freeMarketData",
         name: "FreeMarketData",
-        run: () => getFreeMarketDataProviderBatch({ limit: freeLimit, freeOnly }),
+        run: () => getFreeMarketDataProviderBatch({
+          limit: freeLimit,
+          freeOnly,
+          providerBudgets: options.freeMarketProviderBudgets,
+        }),
       },
       {
         key: "expandedMarketData",
         name: "ExpandedMarketData",
-        run: () => getExpandedMarketDataProviderBatch({ limit: expandedLimit, freeOnly }),
+        run: () => getExpandedMarketDataProviderBatch({
+          limit: expandedLimit,
+          freeOnly,
+          providerBudgets: options.expandedMarketProviderBudgets,
+        }),
       },
       {
         key: "googleNewsDiscovery",
@@ -967,6 +975,8 @@ export async function runDiscoveryManager(options = {}) {
       googleNewsLimit,
       githubDiscoveryLimit,
       nativeDiscoveryLimit,
+      freeMarketProviderBudgets: freeMarket.output?.providerBudgets || {},
+      expandedMarketProviderBudgets: expandedMarket.output?.providerBudgets || {},
     },
     targetCoverage: {
       targetCandidates,

@@ -6,6 +6,7 @@ import {
   validateDashboardArtifactConsistency,
 } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
+import { finalizeScanArtifactManifestPublication } from "./scanArtifactManifestReportEngine.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -154,6 +155,7 @@ const PUBLIC_REPORTS = [
   "daily-recovery-queue.json",
   "daily-source-gaps.json",
   "system-readiness.json",
+  "scan-artifact-manifest.json",
   "decision-report-compaction-audit.json",
   "decision-report-compaction-audit.md",
   "web-crawler-preimplementation-audit.json",
@@ -1449,6 +1451,10 @@ export function publishGithubPagesDashboard(options = {}) {
 
   const copiedFiles = PUBLIC_REPORTS.filter((fileName) => copyIfExists(fileName, reportsDir, docsDir));
   writeLandingPage(copiedFiles, { reportsDir, docsDir });
+  if (copiedFiles.includes("scan-artifact-manifest.json")) {
+    finalizeScanArtifactManifestPublication({ reportsDir, docsDir });
+    copyIfExists("scan-artifact-manifest.json", reportsDir, docsDir);
+  }
   const dashboardConsistency = validateDashboardArtifactConsistency({
     reportsDir,
     docsDir,

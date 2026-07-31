@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto from "node:crypto";
 
 export const REQUIRED_REPORT_FILES = [
   "small-cap-hunter.json",
@@ -58,6 +59,7 @@ export const REQUIRED_REPORT_FILES = [
   "daily-recovery-queue.json",
   "daily-source-gaps.json",
   "system-readiness.json",
+  "scan-artifact-manifest.json",
   "decision-report-compaction-audit.json",
   "institutional-ranking.json",
 ];
@@ -163,6 +165,12 @@ function comparableCount(report = {}) {
   return null;
 }
 
+function fileSha256(filePath = "") {
+  return fs.existsSync(filePath)
+    ? crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")
+    : null;
+}
+
 export function validateDashboardArtifactConsistency(options = {}) {
   const reportsDir = path.resolve(options.reportsDir || "reports");
   const docsDir = path.resolve(options.docsDir || "docs");
@@ -171,10 +179,14 @@ export function validateDashboardArtifactConsistency(options = {}) {
   const files = requestedFiles.filter((fileName) => criticalSet.has(fileName));
   const issues = [];
   const checked = [];
+  const reportScanIds = new Set();
+  const docsScanIds = new Set();
 
   for (const fileName of files) {
-    const reportsReport = readJsonIfExists(path.join(reportsDir, fileName));
-    const docsReport = readJsonIfExists(path.join(docsDir, fileName));
+    const reportsPath = path.join(reportsDir, fileName);
+    const docsPath = path.join(docsDir, fileName);
+    const reportsReport = readJsonIfExists(reportsPath);
+    const docsReport = readJsonIfExists(docsPath);
     if (!reportsReport || !docsReport) {
       issues.push(`${fileName}: missing from ${!reportsReport ? "reports" : "docs"} during dashboard consistency check`);
       checked.push({ fileName, status: "MISSING" });
@@ -187,8 +199,17 @@ export function validateDashboardArtifactConsistency(options = {}) {
     const docsCount = comparableCount(docsReport);
     const fileIssues = [];
 
+    if (!reportScanId) fileIssues.push("reports scanRunId missing");
+    if (!docsScanId) fileIssues.push("docs scanRunId missing");
+    if (reportScanId) reportScanIds.add(reportScanId);
+    if (docsScanId) docsScanIds.add(docsScanId);
     if (reportScanId && docsScanId && reportScanId !== docsScanId) {
       fileIssues.push(`scanRunId mismatch reports=${reportScanId} docs=${docsScanId}`);
+    }
+    const reportsHash = fileSha256(reportsPath);
+    const docsHash = fileSha256(docsPath);
+    if (reportsHash && docsHash && reportsHash !== docsHash) {
+      fileIssues.push(`artifact hash mismatch reports=${reportsHash} docs=${docsHash}`);
     }
     if (reportsReport.status !== docsReport.status) {
       fileIssues.push(`status mismatch reports=${reportsReport.status} docs=${docsReport.status}`);
@@ -211,11 +232,20 @@ export function validateDashboardArtifactConsistency(options = {}) {
     }
   }
 
+  if (reportScanIds.size > 1) {
+    issues.push(`reports contain multiple dashboard scanRunIds: ${[...reportScanIds].join(", ")}`);
+  }
+  if (docsScanIds.size > 1) {
+    issues.push(`docs contain multiple dashboard scanRunIds: ${[...docsScanIds].join(", ")}`);
+  }
+
   return {
     status: issues.length ? "FAIL" : "PASS",
     reportsDir,
     docsDir,
     checkedFiles: checked.length,
+    reportScanRunIds: [...reportScanIds],
+    docsScanRunIds: [...docsScanIds],
     files: checked,
     errors: issues,
   };

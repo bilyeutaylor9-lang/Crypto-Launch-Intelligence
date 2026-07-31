@@ -80,6 +80,7 @@ import { writeDailySourceGapReport } from "./dailySourceGapReportEngine.js";
 import { writeExecutionProofRecoveryReport } from "./executionProofRecoveryReportEngine.js";
 import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
+import { writeScanArtifactManifest } from "./scanArtifactManifestReportEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -407,6 +408,9 @@ export function generateReports(projects = [], meta = {}) {
     sourceRouter,
     dailySourceGaps,
   });
+  const {
+    filePath: scanArtifactManifestPath,
+  } = writeScanArtifactManifest(meta);
 
   sanitizeReportJsonFiles(REQUIRED_REPORT_FILES);
 
@@ -551,6 +555,7 @@ export function generateReports(projects = [], meta = {}) {
     watchtowerPerformancePath,
     localAIResearchPath,
     systemReadinessPath,
+    scanArtifactManifestPath,
     watchlistPath,
     summaryPath,
     watchlistCount: watchlist.length,

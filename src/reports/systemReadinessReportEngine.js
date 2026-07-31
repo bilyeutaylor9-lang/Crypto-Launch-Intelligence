@@ -27,7 +27,7 @@ function countFailures(value) {
 export function summarizeSystemReadiness(meta = {}, options = {}) {
   const reportsDir = path.resolve(options.reportsDir || "reports");
   const requiredFiles = (options.requiredFiles || REQUIRED_REPORT_FILES).filter(
-    (fileName) => fileName !== "system-readiness.json"
+    (fileName) => !["system-readiness.json", "scan-artifact-manifest.json"].includes(fileName)
   );
   const validation = validateReportContracts({ reportsDir, requiredFiles });
   const engineHealth = readJson("engine-health-report.json", reportsDir) || {};
@@ -110,6 +110,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
+    dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
     status: statusFromFailures(failures),
     objective: "One master readiness gate for scanner completion, engine contracts, reports, dashboard data, source coverage, routes, Supabase, and daily capital research.",
     scanStatus: meta.scannedProjects || meta.projectsAnalyzed || meta.discoveredProjects ? "SCAN_COMPLETED" : "SCAN_STATUS_UNKNOWN",

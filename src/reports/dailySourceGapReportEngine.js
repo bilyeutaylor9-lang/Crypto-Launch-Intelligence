@@ -103,10 +103,19 @@ function classifyStatus(item = {}) {
   if (/429|rate/.test(text)) return "RATE_LIMITED";
   if (/451|region|blocked|forbidden|403/.test(text)) return "REGION_BLOCKED";
   if (/stale/.test(text)) return "STALE";
-  if (/fail|error|timeout|fetch/.test(text)) return "FAILED";
+  if (/timeout|timed out|time budget/.test(text)) return "TIMEOUT";
+  if (/fail|error|fetch/.test(text)) return "FAILED";
   if (/success_empty|empty|no_data|no data/.test(text)) return "EMPTY";
   if (num(item.lastCandidateCount || item.candidates) > 0 || /success|ok|used|ready/.test(text)) return "AVAILABLE";
   return "UNKNOWN";
+}
+
+function providerState(item = {}) {
+  if (item.status === "AVAILABLE") return item.returnedUsefulData ? "SUCCESS_WITH_DATA" : "PARTIAL";
+  if (item.status === "EMPTY") return "SUCCESS_EMPTY";
+  if (item.status === "MISSING_KEY" || item.status === "MISSING_OPTIONAL_KEY") return "AUTH_REQUIRED";
+  if (item.status === "STALE") return "COOLDOWN";
+  return item.status || "UNKNOWN";
 }
 
 function cleanEnvKey(value = "") {
@@ -160,6 +169,7 @@ function sourceNextAction(item = {}, setup = {}) {
   if (item.status === "RATE_LIMITED") return "Lower request volume, honor cooldown, or add a fallback source.";
   if (item.status === "REGION_BLOCKED") return "Use an allowed regional endpoint or alternate provider.";
   if (item.status === "FAILED") return "Inspect the provider error, keep cooldown, and rely on alternate source until healthy.";
+  if (item.status === "TIMEOUT") return "Reduce the request budget, retry after cooldown, or use a faster fallback endpoint.";
   if (item.status === "EMPTY") return "Provider probe completed but returned no usable records; widen query, rotate endpoint, or rely on alternate source.";
   if (item.status === "STALE") return "Refresh this source before using it for current rankings.";
   if (item.status === "UNKNOWN" && setup.free) return "Run the no-key source probe and confirm it returns non-empty usable data.";
@@ -197,7 +207,13 @@ function mergeSource(sourceMap, key, patch = {}) {
   };
   if (!next.status) next.status = classifyStatus(next);
   next.returnedUsefulData = returnedUsefulData(next);
-  if (next.returnedUsefulData && !["MISSING_KEY", "MISSING_OPTIONAL_KEY", "RATE_LIMITED", "REGION_BLOCKED", "FAILED", "STALE"].includes(next.status)) {
+  const optionalKeyOnly = next.returnedUsefulData &&
+    ["MISSING_KEY", "MISSING_OPTIONAL_KEY"].includes(next.status) &&
+    (setup.optional === true || next.optional === true);
+  if (optionalKeyOnly) {
+    next.capacityWarning = `Optional ${next.missingKey || setup.envKey || "provider key"} is absent; useful lower-capacity data was still returned.`;
+    next.status = "AVAILABLE";
+  } else if (next.returnedUsefulData && !["MISSING_KEY", "MISSING_OPTIONAL_KEY", "RATE_LIMITED", "REGION_BLOCKED", "FAILED", "TIMEOUT", "STALE"].includes(next.status)) {
     next.status = "AVAILABLE";
   }
   sourceMap.set(key, next);
@@ -320,6 +336,7 @@ export function summarizeDailySourceGaps(meta = {}) {
       source: item.source,
       label: item.label || setup.label || item.source,
       status: item.status || "UNKNOWN",
+      providerState: providerState(item),
       optional,
       free: item.free === true || setup.free === true,
       critical: item.critical === true || setup.critical === true,
@@ -331,19 +348,21 @@ export function summarizeDailySourceGaps(meta = {}) {
       missingKey: ["MISSING_KEY", "MISSING_OPTIONAL_KEY"].includes(item.status) ? cleanEnvKey(item.missingKey) || setup.envKey || null : null,
       regionBlocked: item.status === "REGION_BLOCKED",
       failed: item.status === "FAILED",
+      timedOut: item.status === "TIMEOUT",
       stale: item.status === "STALE",
       returnedUsefulData: Boolean(item.returnedUsefulData),
       usefulRecordCount: usefulCount(item),
       cooldownUntil: item.cooldownUntil || null,
       lastError: item.lastError || item.error || null,
+      capacityWarning: item.capacityWarning || null,
       improves: item.improves || setup.improves || "source coverage",
       nextAction: sourceNextAction(item, setup),
     };
   }).sort((a, b) => {
-    const priority = { MISSING_KEY: 5, FAILED: 4, RATE_LIMITED: 3, REGION_BLOCKED: 2, MISSING_OPTIONAL_KEY: 1, STALE: 1, UNKNOWN: 1, AVAILABLE: 0 };
+    const priority = { MISSING_KEY: 5, FAILED: 4, TIMEOUT: 4, RATE_LIMITED: 3, REGION_BLOCKED: 2, MISSING_OPTIONAL_KEY: 1, STALE: 1, UNKNOWN: 1, EMPTY: 1, AVAILABLE: 0 };
     return (priority[b.status] || 0) - (priority[a.status] || 0) || b.trustScore - a.trustScore;
   });
-  const fatalGapStatuses = new Set(["MISSING_KEY", "FAILED", "RATE_LIMITED", "REGION_BLOCKED"]);
+  const fatalGapStatuses = new Set(["MISSING_KEY", "FAILED", "TIMEOUT", "RATE_LIMITED", "REGION_BLOCKED"]);
   const availableCount = sources.filter((item) => item.status === "AVAILABLE").length;
   const workingFreeSourceCount = sources.filter((item) => item.free && item.status === "AVAILABLE").length;
   const workingPaidSourceCount = sources.filter((item) => !item.free && item.status === "AVAILABLE").length;
@@ -363,6 +382,9 @@ export function summarizeDailySourceGaps(meta = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
+    scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
+    codeCommitSha: meta.codeCommitSha || null,
+    dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || meta.generatedAt || null,
     status: availableCount === 0 || sources.some((item) => !item.optional && fatalGapStatuses.has(item.status))
       ? "SOURCE_GAPS_FOUND"
       : "SOURCE_HEALTH_OK",
@@ -392,6 +414,7 @@ export function summarizeDailySourceGaps(meta = {}) {
     missingKeyCount: sources.filter((item) => item.status === "MISSING_KEY").length,
     optionalMissingKeyCount: sources.filter((item) => item.status === "MISSING_OPTIONAL_KEY").length,
     failedCount: sources.filter((item) => item.status === "FAILED").length,
+    timedOutCount: sources.filter((item) => item.status === "TIMEOUT").length,
     rateLimitedCount: sources.filter((item) => item.status === "RATE_LIMITED").length,
     regionBlockedCount: sources.filter((item) => item.status === "REGION_BLOCKED").length,
     topFreeSourceFailures: sources

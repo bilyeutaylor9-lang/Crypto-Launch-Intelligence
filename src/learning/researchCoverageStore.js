@@ -99,6 +99,7 @@ export function saveResearchCoveragePlan(projects = [], plan = {}, context = {})
       queuedCount: num(previous.queuedCount) + (selected ? 1 : 0),
       deferredCount: num(previous.deferredCount) + (selected ? 0 : 1),
       lastQueuedAt: selected ? observedAt : previous.lastQueuedAt || null,
+      lastSelectedAt: selected ? observedAt : previous.lastSelectedAt || previous.lastQueuedAt || null,
       lastSelectionReason: selected
         ? plan.selectionReasons?.[identityKey] || "SELECTED"
         : previous.lastSelectionReason || null,

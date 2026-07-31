@@ -394,19 +394,31 @@ export async function getKrakenTickerCandidates(options = {}) {
 
 export async function getFreeMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
+  const configuredBudgets = options.providerBudgets || {};
+  const maximumBudgets = {
+    coinpaprika: 2_000,
+    defillama: 1_000,
+    "defillama-chain": 100,
+    binance: 1_000,
+    kucoin: 1_000,
+    coinbase: 1_000,
+    kraken: 500,
+  };
+  const budget = (source) =>
+    Math.max(1, Math.min(limit, Number(configuredBudgets[source] || maximumBudgets[source] || 500)));
   const providerConcurrency = Math.max(
     1,
     Math.min(8, Number(options.providerConcurrency || process.env.MARKET_PROVIDER_CONCURRENCY || 4))
   );
 
   const sourceCalls = [
-    ["coinpaprika", () => getCoinPaprikaCandidates({ limit })],
-    ["defillama", () => getDefiLlamaProtocolCandidates({ limit })],
-    ["defillama-chain", () => getDefiLlamaChainCandidates({ limit: 50 })],
-    ["binance", () => getBinanceTickerCandidates({ limit })],
-    ["kucoin", () => getKuCoinTickerCandidates({ limit })],
-    ["coinbase", () => getCoinbaseProductCandidates({ limit })],
-    ["kraken", () => getKrakenTickerCandidates({ limit: 50 })]
+    ["coinpaprika", () => getCoinPaprikaCandidates({ limit: budget("coinpaprika") })],
+    ["defillama", () => getDefiLlamaProtocolCandidates({ limit: budget("defillama") })],
+    ["defillama-chain", () => getDefiLlamaChainCandidates({ limit: budget("defillama-chain") })],
+    ["binance", () => getBinanceTickerCandidates({ limit: budget("binance") })],
+    ["kucoin", () => getKuCoinTickerCandidates({ limit: budget("kucoin") })],
+    ["coinbase", () => getCoinbaseProductCandidates({ limit: budget("coinbase") })],
+    ["kraken", () => getKrakenTickerCandidates({ limit: budget("kraken") })]
   ];
 
   const providers = await runConcurrent(
@@ -426,6 +438,7 @@ export async function getFreeMarketDataProviderBatch(options = {}) {
   return {
     candidates: providers.flatMap((provider) => provider.candidates || []),
     providers: providers.map(({ candidates, ...provider }) => provider),
+    providerBudgets: Object.fromEntries(sourceCalls.map(([source]) => [source, budget(source)])),
   };
 }
 

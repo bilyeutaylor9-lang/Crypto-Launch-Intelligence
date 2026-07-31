@@ -5,6 +5,7 @@ import {
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
 import { routeQuoteFresh } from "../execution/routeTruthV2.js";
+import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -789,7 +790,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     ].filter(Boolean))],
     failureReasons: bestRoute.executionRecoveryFailures || [],
   };
-  return {
+  const recoveredProject = {
     ...project,
     executionProofRecovery,
     canonicalExecutionRoute,
@@ -838,6 +839,24 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
         ],
       },
     ],
+  };
+  const strictCandidateGate = resolveStrictCandidateGate(recoveredProject);
+  const reconciledRoute = {
+    ...canonicalExecutionRoute,
+    routeTruthStatus: strictCandidateGate.routeVerificationStatus,
+    routeVerificationStatus: strictCandidateGate.routeVerificationStatus,
+    quarantineReason: strictCandidateGate.candidateQuarantineReason,
+    quarantineReasons: strictCandidateGate.candidateQuarantineReasons,
+    missingEvidence: strictCandidateGate.strictCandidateMissingProof,
+  };
+
+  return {
+    ...recoveredProject,
+    canonicalExecutionRoute: reconciledRoute,
+    canonicalExecutionRouteStatus: reconciledRoute.status,
+    routeTruthStatus: strictCandidateGate.routeVerificationStatus,
+    strictCandidateGate,
+    ...strictCandidateGate,
   };
 }
 

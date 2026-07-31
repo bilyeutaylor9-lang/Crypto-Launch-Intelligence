@@ -103,7 +103,17 @@ export function fieldApplicability(project = {}, canonicalField = "", contract =
   const family = chain ? chainKind(chain) : null;
   const venue = venueType(project);
   const life = lifecycle(project);
+  const tokenAddress = canonicalValue(project, "tokenAddress");
 
+  if (
+    contract.id === "deployerReputation" &&
+    (!tokenAddress || venue === "cex" || life.includes("prelaunch"))
+  ) {
+    return {
+      status: "NOT_APPLICABLE",
+      reason: "Deployer history requires a launched on-chain token identity; CEX-only, contractless, and prelaunch records remain research-only.",
+    };
+  }
   if (["lpLockedPct", "lpBurnedPct", "ownerLpSharePct", "poolAddress"].includes(canonicalField) && venue === "cex") {
     return { status: "NOT_APPLICABLE", reason: "CEX-only project does not require DEX pool or LP-lock evidence." };
   }
@@ -218,7 +228,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
     }
   }
 
-  const mergedMissing = [...missing, ...notApplicable].map((item) => {
+  const unresolvedEvidence = [...missing, ...notApplicable].map((item) => {
     const plan = buildTargetedEnrichmentPlan([item]);
     const target = plan.items[0] || {};
     return {
@@ -229,6 +239,14 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
       estimatedRecoveryValue: target.valueOfInformationScore ?? item.estimatedRecoveryValue,
     };
   });
+  const mergedMissing = [
+    ...new Map(
+      unresolvedEvidence.map((item) => [
+        `${item.canonicalField}|${item.producingEngine}|${item.rootCause}`,
+        item,
+      ])
+    ).values(),
+  ];
   const countsByRootCause = mergedMissing.reduce((acc, item) => {
     acc[item.rootCause] = (acc[item.rootCause] || 0) + 1;
     return acc;

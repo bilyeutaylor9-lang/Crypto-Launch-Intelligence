@@ -524,7 +524,7 @@ export const ENGINE_CONTRACTS = [
       optional: ["verifiedCatalystScore", "marketActivityScore", "capitalFormationScore", "searchAttentionScore", "exchangeAttentionScore"],
     },
     outputContract: {
-      requiredAny: [["attentionGapV2Score", "attentionGapV2State"]],
+      requiredAny: [["attentionGapV2State"], ["attentionGapV2Coverage"]],
       scoreFields: ["attentionGapV2Score", "fundamentalProgressScore", "priceAttentionScore"],
       evidenceRequiredWhenScored: true,
     },
@@ -1025,6 +1025,27 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: true,
   },
   {
+    id: "candidateTruthReconciliation",
+    phase: "execution",
+    priority: 129.75,
+    module: "./engines/candidateTruthReconciliationEngine.js",
+    exportName: "analyzeCandidateTruthReconciliationBatch",
+    dependsOn: ["routeAccessibility", "executionProof"],
+    inputContract: {
+      requiredAny: [["canonicalExecutionRoute", "executionProof", "routeTruthStatus"]],
+      optional: ["safetyProofStatus", "regionStatus", "executionProofRecoveryRoute", "lifecycleStage"],
+    },
+    outputContract: {
+      requiredAny: [["candidateProofState", "projectLifecycleState", "researchEligibilityState", "tradabilityState", "executionReadinessState"]],
+      nonScoringOutput: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "fail-closed",
+    affectsFinalDecision: true,
+    canBlockCandidate: false,
+  },
+  {
     id: "utilityQuality",
     phase: "quality",
     priority: 137.5,
@@ -1251,12 +1272,46 @@ export const ENGINE_CONTRACTS = [
     canBlockCandidate: true,
   },
   {
+    id: "candidateDecisionScoring",
+    phase: "decision-reporting",
+    priority: 139.85,
+    module: "./engines/candidateDecisionScoringEngine.js",
+    exportName: "analyzeCandidateDecisionScoringBatch",
+    dependsOn: ["candidateTruthReconciliation", "highUpsideScalpClassification"],
+    inputContract: {
+      requiredAny: [
+        ["candidateProofState", "executionReadinessState"],
+        ["highUpsideScalpScore", "earlyAsymmetryResearchPriorityScore", "preBreakoutRadarScore"],
+      ],
+      optional: [
+        "utilityQualityScore",
+        "capitalMigrationScore",
+        "buyerBreadthAccelerationScore",
+        "developerAccelerationScore",
+      ],
+    },
+    outputContract: {
+      requiredAny: [
+        ["researchOpportunityScore", "researchOpportunityCoverage"],
+        ["executionReadinessScore", "executionReadinessCoverage"],
+        ["finalDecisionScoreState"],
+      ],
+      scoreFields: ["researchOpportunityScore", "executionReadinessScore", "finalDecisionScore"],
+      evidenceRequiredWhenScored: true,
+    },
+    timeoutMs: 7000,
+    retries: 1,
+    failureMode: "fail-closed",
+    affectsFinalDecision: true,
+    canBlockCandidate: false,
+  },
+  {
     id: "dailyCapitalMove",
     phase: "decision-reporting",
     priority: 139.9,
     module: "./engines/dailyCapitalMoveEngine.js",
     exportName: "analyzeDailyCapitalMoveBatch",
-    dependsOn: ["highUpsideScalpClassification", "scalpMicrostructure", "routeAccessibility", "utilityQuality"],
+    dependsOn: ["candidateDecisionScoring", "highUpsideScalpClassification", "scalpMicrostructure", "routeAccessibility", "utilityQuality"],
     inputContract: {
       requiredAny: [
         ["highUpsideScalpScore", "hottestTenNowScore", "sevenDayTenXScore", "earlyAsymmetryResearchPriorityScore"],

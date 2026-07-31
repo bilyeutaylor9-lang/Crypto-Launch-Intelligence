@@ -1,6 +1,7 @@
 // src/index.js
 
 import "./config/loadEnv.js";
+import { execFileSync } from "node:child_process";
 import { runDiscoveryManager } from "./discoveryManager.js";
 
 import {
@@ -33,6 +34,18 @@ import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js"
 import { engineProfileReport } from "./config/engineProfileConfig.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
+
+function currentCodeCommitSha() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim() || null;
+  } catch {
+    return null;
+  }
+}
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -731,10 +744,15 @@ async function main() {
     }
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
+    const scanRunId = `scan_${startedAt.getTime()}`;
+    const completedAt = new Date().toISOString();
     let reportMeta = {
-      runId: `scan_${startedAt.getTime()}`,
+      runId: scanRunId,
+      scanRunId,
+      codeCommitSha: currentCodeCommitSha(),
       startedAt: startedAt.toISOString(),
-      completedAt: new Date().toISOString(),
+      completedAt,
+      dataCutoffTimestamp: completedAt,
       discoveredProjects: discoveredList.length,
       discovery: discoveredProjects,
       researchCoverage,

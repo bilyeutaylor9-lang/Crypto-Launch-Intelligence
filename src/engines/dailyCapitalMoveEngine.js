@@ -164,6 +164,14 @@ function utilityScore(project = {}) {
 }
 
 function opportunityScore(project = {}) {
+  if (
+    project.researchOpportunityScore !== null &&
+    project.researchOpportunityScore !== undefined &&
+    project.researchOpportunityScore !== "" &&
+    Number.isFinite(Number(project.researchOpportunityScore))
+  ) {
+    return Number(project.researchOpportunityScore);
+  }
   const preConsensusScore = first([
     project.preConsensusBreakoutScore,
     project.preConsensusOpportunityScore,
@@ -290,15 +298,23 @@ export function analyzeDailyCapitalMove(project = {}) {
     routeTruthStatus: "LIVE_EXECUTION_READY",
   });
   const missing = missingProof(project);
+  const storedDecisionScore =
+    project.finalDecisionScore !== null &&
+    project.finalDecisionScore !== undefined &&
+    project.finalDecisionScore !== "" &&
+    Number.isFinite(Number(project.finalDecisionScore))
+    ? Number(project.finalDecisionScore)
+    : null;
   const score = Math.round(clamp(
-    opportunityScore(project) * 0.3 +
-      flowScore(project) * 0.22 +
-      utilityScore(project) * 0.18 +
-      proofScore(project) * 0.14 +
-      (liveReady ? 90 : 35) * 0.16 -
-      riskPenalty(project) * 0.24 +
-      (priceUsd(project) > 0 && priceUsd(project) < 0.01 ? 4 : 0) +
-      (marketCapUsd(project) > 0 && marketCapUsd(project) <= MAX_MARKET_CAP_USD ? 4 : 0)
+    storedDecisionScore ??
+      (opportunityScore(project) * 0.3 +
+        flowScore(project) * 0.22 +
+        utilityScore(project) * 0.18 +
+        proofScore(project) * 0.14 +
+        (liveReady ? 90 : 35) * 0.16 -
+        riskPenalty(project) * 0.24 +
+        (priceUsd(project) > 0 && priceUsd(project) < 0.01 ? 4 : 0) +
+        (marketCapUsd(project) > 0 && marketCapUsd(project) <= MAX_MARKET_CAP_USD ? 4 : 0))
   ));
   let lane = "WATCH";
   let reason = "Needs more confirmation before capital move research.";
@@ -438,6 +454,7 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
+    dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
     status: best ? "CAPITAL_MOVE_RESEARCH_READY" : (watchlist.length || quarantined.length) ? "NO_VALID_MOVE_TODAY_RESEARCH_ONLY" : analyzed.length ? "NO_VALID_MOVE_TODAY" : "NO_PROJECTS",
     mode: "AGGRESSIVE_1_TO_7_DAY_UTILITY_SMALL_CAP",
     objective: "Select one daily capital-move research candidate only when strict utility, safety, and execution proof exists.",

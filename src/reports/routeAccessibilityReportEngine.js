@@ -32,6 +32,9 @@ export function writeRouteAccessibilityReports(projects = [], meta = {}) {
   const report = summarizeRouteAccessibility(routeProjects, meta.routeAccessibility || meta);
   const shared = {
     generatedAt: report.generatedAt,
+    scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
+    codeCommitSha: meta.codeCommitSha || null,
+    dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || meta.generatedAt || null,
     status: report.status,
     rule: report.rule,
     projectsAnalyzed: report.projectsAnalyzed,

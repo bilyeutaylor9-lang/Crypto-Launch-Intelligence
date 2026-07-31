@@ -1061,33 +1061,59 @@ function dedupe(projects = []) {
 
 export async function getExpandedMarketDataProviderBatch(options = {}) {
   const limit = Number(options.limit || 100);
+  const configuredBudgets = options.providerBudgets || {};
+  const maximumBudgets = {
+    coincap: 2_000,
+    coinlore: 2_500,
+    "coinlore-assets": 2_500,
+    "coinlore-movers": 120,
+    cryptocompare: 500,
+    "defillama-yields": 1_000,
+    "defillama-stablecoins": 500,
+    "dexscreener-search": 300,
+    "dexscreener-profiles": 500,
+    "dexscreener-boosts": 500,
+    "dexscreener-community-takeovers": 300,
+    "dexscreener-ads": 300,
+    okx: 1_000,
+    bybit: 1_000,
+    gate: 1_000,
+    mexc: 1_000,
+    bitget: 1_000,
+    htx: 1_000,
+    bitfinex: 1_000,
+    bitstamp: 1_000,
+    gemini: 1_000,
+  };
+  const budget = (source) =>
+    Math.max(1, Math.min(limit, Number(configuredBudgets[source] || maximumBudgets[source] || 1_000)));
   const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
   const providerConcurrency = Math.max(
     1,
     Math.min(8, Number(options.providerConcurrency || process.env.MARKET_PROVIDER_CONCURRENCY || 4))
   );
   const sourceCalls = [
-    ["coincap", () => getCoinCapProviderResult({ limit }), true, true],
-    ["coinlore", () => getCoinLoreCandidates({ limit })],
-    ["coinlore-assets", () => getCoinLoreAssetsCandidates({ limit })],
-    ["coinlore-movers", () => getCoinLoreMoversCandidates({ limit: Math.min(limit, 120) })],
-    ["cryptocompare", () => getCryptoCompareCandidates({ limit, freeOnly })],
-    ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit })],
-    ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit })],
-    ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit })],
-    ["dexscreener-profiles", () => getDexScreenerTokenProfileCandidates({ limit })],
-    ["dexscreener-boosts", () => getDexScreenerBoostCandidates({ limit })],
-    ["dexscreener-community-takeovers", () => getDexScreenerCommunityTakeoverCandidates({ limit })],
-    ["dexscreener-ads", () => getDexScreenerAdCandidates({ limit })],
-    ["okx", () => getOkxTickerCandidates({ limit })],
-    ["bybit", () => getBybitProviderResult({ limit }), true],
-    ["gate", () => getGateTickerCandidates({ limit })],
-    ["mexc", () => getMexcTickerCandidates({ limit })],
-    ["bitget", () => getBitgetTickerCandidates({ limit })],
-    ["htx", () => getHtxTickerCandidates({ limit })],
-    ["bitfinex", () => getBitfinexTickerCandidates({ limit })],
-    ["bitstamp", () => getBitstampTickerCandidates({ limit })],
-    ["gemini", () => getGeminiTickerCandidates({ limit })],
+    ["coincap", () => getCoinCapProviderResult({ limit: budget("coincap") }), true, true],
+    ["coinlore", () => getCoinLoreCandidates({ limit: budget("coinlore") })],
+    ["coinlore-assets", () => getCoinLoreAssetsCandidates({ limit: budget("coinlore-assets") })],
+    ["coinlore-movers", () => getCoinLoreMoversCandidates({ limit: budget("coinlore-movers") })],
+    ["cryptocompare", () => getCryptoCompareCandidates({ limit: budget("cryptocompare"), freeOnly })],
+    ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit: budget("defillama-yields") })],
+    ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit: budget("defillama-stablecoins") })],
+    ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit: budget("dexscreener-search") })],
+    ["dexscreener-profiles", () => getDexScreenerTokenProfileCandidates({ limit: budget("dexscreener-profiles") })],
+    ["dexscreener-boosts", () => getDexScreenerBoostCandidates({ limit: budget("dexscreener-boosts") })],
+    ["dexscreener-community-takeovers", () => getDexScreenerCommunityTakeoverCandidates({ limit: budget("dexscreener-community-takeovers") })],
+    ["dexscreener-ads", () => getDexScreenerAdCandidates({ limit: budget("dexscreener-ads") })],
+    ["okx", () => getOkxTickerCandidates({ limit: budget("okx") })],
+    ["bybit", () => getBybitProviderResult({ limit: budget("bybit") }), true],
+    ["gate", () => getGateTickerCandidates({ limit: budget("gate") })],
+    ["mexc", () => getMexcTickerCandidates({ limit: budget("mexc") })],
+    ["bitget", () => getBitgetTickerCandidates({ limit: budget("bitget") })],
+    ["htx", () => getHtxTickerCandidates({ limit: budget("htx") })],
+    ["bitfinex", () => getBitfinexTickerCandidates({ limit: budget("bitfinex") })],
+    ["bitstamp", () => getBitstampTickerCandidates({ limit: budget("bitstamp") })],
+    ["gemini", () => getGeminiTickerCandidates({ limit: budget("gemini") })],
   ].filter(([, , , requiresKey]) => !(freeOnly && requiresKey));
   const providers = await runConcurrent(
     sourceCalls,
@@ -1109,6 +1135,7 @@ export async function getExpandedMarketDataProviderBatch(options = {}) {
   return {
     candidates: dedupe(providers.flatMap((provider) => provider.candidates || [])),
     providers: providers.map(({ candidates, ...provider }) => provider),
+    providerBudgets: Object.fromEntries(sourceCalls.map(([source]) => [source, budget(source)])),
   };
 }
 

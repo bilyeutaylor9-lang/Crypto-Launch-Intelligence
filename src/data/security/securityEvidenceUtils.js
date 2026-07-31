@@ -202,5 +202,11 @@ export function summarizeSecurityEvidence(evidence = []) {
     riskFindings,
     warnings,
     confidence,
+    testedChecks: [...new Set(known.flatMap((item) => item.testedChecks || []))],
+    sourceTimestamps: Object.fromEntries(
+      items
+        .filter((item) => item.provider && item.observedAt)
+        .map((item) => [item.provider, item.observedAt])
+    ),
   };
 }

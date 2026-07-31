@@ -56,6 +56,7 @@ import { writeDailySourceGapReport } from "../src/reports/dailySourceGapReportEn
 import { writeExecutionProofRecoveryReport } from "../src/reports/executionProofRecoveryReportEngine.js";
 import { writeSystemReadinessReport } from "../src/reports/systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "../src/reports/decisionReportCompactionAuditEngine.js";
+import { writeScanArtifactManifest } from "../src/reports/scanArtifactManifestReportEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -470,6 +471,7 @@ test("mandatory report contracts are generated and validate", () => {
   });
   writeDecisionReportCompactionAudit(processed);
   writeSystemReadinessReport({ scannedProjects: processed.length });
+  writeScanArtifactManifest();
 
   for (const fileName of REQUIRED_REPORT_FILES) {
     assert.equal(fs.existsSync(path.resolve("reports", fileName)), true, `${fileName} should exist`);
@@ -937,8 +939,36 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   };
 
   for (const [fileName, value] of Object.entries(fixtures)) {
-    fs.writeFileSync(path.join(reportsDir, fileName), JSON.stringify(value, null, 2));
+    fs.writeFileSync(
+      path.join(reportsDir, fileName),
+      JSON.stringify(
+        value && typeof value === "object" && !Array.isArray(value)
+          ? { ...value, scanRunId: "dashboard-test" }
+          : value,
+        null,
+        2
+      )
+    );
   }
+  writeScanArtifactManifest(
+    { scanRunId: "dashboard-test", codeCommitSha: "test-sha" },
+    {
+      reportsDir,
+      files: Object.keys(fixtures).filter((fileName) =>
+        [
+          "system-readiness.json",
+          "daily-source-gaps.json",
+          "high-upside-scalp-research.json",
+          "hottest-ten-now.json",
+          "daily-capital-move.json",
+          "top-10-breakout-picks.json",
+          "route-universe.json",
+          "execution-proof-recovery.json",
+          "user-accessibility-ranking.json",
+        ].includes(fileName)
+      ),
+    }
+  );
 
   const result = publishGithubPagesDashboard({ reportsDir, docsDir });
   const html = fs.readFileSync(path.join(docsDir, "index.html"), "utf8");

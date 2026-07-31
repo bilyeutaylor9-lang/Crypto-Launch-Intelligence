@@ -294,6 +294,9 @@ function sellRouteConfirmedUnavailable(project = {}, routes = []) {
 
 function verifiedIdentity(project = {}) {
   return Boolean(
+    project.canonicalExecutionRoute?.exactIdentityVerified === true ||
+      project.strictIdentityVerified === true ||
+      project.candidateProofState?.identity?.exactIdentityVerified === true ||
     project.identityVerified === true ||
       project.contractVerified === true ||
       project.projectIdentityVerdict === "Identity Resolved" ||
@@ -302,12 +305,22 @@ function verifiedIdentity(project = {}) {
 }
 
 function safetyNonBlocked(project = {}, routes = []) {
-  return Boolean(
+  const nonBlocked = Boolean(
     project.honeypotDetected !== true &&
       num(project.honeypotRiskScore) < 85 &&
       !sellRouteConfirmedUnavailable(project, routes) &&
       !["CRITICAL", "RESTRICTED"].includes(project.instantSafetyStatus) &&
       project.verifiedScam !== true
+  );
+  if (!nonBlocked) return false;
+  return Boolean(
+    project.safetyProofStatus === "VERIFIED_SAFE" ||
+      project.safetyProofStatus === "SAFETY_VERIFIED_CLEAN" ||
+      project.safetyProofLane === "SAFETY_VERIFIED_CLEAN" ||
+      project.instantSafetyStatus === "PASS" ||
+      project.contractSafetyVerified === true ||
+      project.securityEvidence?.status === "VERIFIED_SAFE" ||
+      project.securityEvidence?.status === "PASS"
   );
 }
 
@@ -473,13 +486,27 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
   const observedSlippageVerified = observedSlippage !== null && observedSlippage !== undefined && Number.isFinite(Number(observedSlippage));
   const chainVerified = Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
-  const contractVerified = Boolean(addressOf(project) && verifiedIdentity(project));
+  const exactIdentityVerified = Boolean(
+    project.canonicalExecutionRoute?.exactIdentityVerified === true ||
+      project.strictIdentityVerified === true ||
+      project.candidateProofState?.identity?.exactIdentityVerified === true
+  );
+  const contractVerified = Boolean(addressOf(project) && (verifiedIdentity(project) || exactIdentityVerified));
   const routeType = project.canonicalExecutionRoute?.routeType || routes.find((route) => route.routeType)?.routeType || "";
   const poolVerified = routeType === "CEX"
     ? Boolean(routes.some((route) => route.marketPair) || project.marketPair || project.exchangeAssetId)
     : ["AGGREGATOR", "DEX_AGGREGATOR"].includes(String(routeType).toUpperCase())
-      ? Boolean(chainVerified && contractVerified && buyRouteAvailable && sellRouteAvailable)
-      : Boolean(pairOf(project) || routes.some((route) => route.pairAddress));
+      ? Boolean(chainVerified && contractVerified && buyRouteAvailable && sellRouteAvailable && (
+        pairOf(project) ||
+        project.canonicalExecutionRoute?.poolAddress ||
+        project.executionProofRecoveryRoute?.poolAddress
+      ))
+      : Boolean(
+        pairOf(project) ||
+        project.canonicalExecutionRoute?.poolAddress ||
+        project.canonicalExecutionRoute?.pairAddress ||
+        routes.some((route) => route.pairAddress)
+      );
   const quoteVerified = Boolean(
     buyRouteAvailable &&
       sellRouteAvailable &&
@@ -509,7 +536,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     ]),
     estimatedSlippagePct: observedSlippage,
     slippageIsHeuristic: !observedSlippageVerified,
-    exactIdentityVerified: chainVerified && contractVerified && poolVerified,
+    exactIdentityVerified: exactIdentityVerified && chainVerified && contractVerified && poolVerified,
     routeType,
   };
   const liveReady = Boolean(
@@ -604,7 +631,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     buyQuoteVerified: buyRouteAvailable,
     sellQuoteVerified: sellRouteAvailable,
     routeTruthStatus: executionProofState,
-    exactIdentityVerified: chainVerified && contractVerified && poolVerified,
+    exactIdentityVerified: exactIdentityVerified && chainVerified && contractVerified && poolVerified,
     chainVerified,
     contractVerified,
     poolVerified,

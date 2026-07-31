@@ -58,6 +58,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "Execution Proof Recovery",
   "Execution Proof",
   "Route Accessibility",
+  "Candidate Truth Reconciliation",
   "Capital Migration Core",
   "Quiet Accumulation",
   "Pre-Breakout Momentum",
@@ -88,6 +89,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "7-Day Asymmetric Research",
   "Scalp Microstructure",
   "High-Upside Scalp Classification",
+  "Candidate Decision Scoring",
 ]);
 
 const PROFILES = {

@@ -521,6 +521,7 @@ export function buildUniverseLedgerRecord(project = {}, context = {}) {
       rank: context.rank || null,
     },
     firstSeenAt: enriched.discoveredAt || observedAt,
+    lastSelectedAt: context.selected ? observedAt : null,
     lastSeenAt: observedAt,
   };
 }
@@ -645,6 +646,7 @@ export function saveUniverseLedger(projects = [], context = {}) {
       ...previous,
       projectId: record.projectId,
       firstSeenAt: previous.firstSeenAt || record.firstSeenAt,
+      lastSelectedAt: record.lastSelectedAt || previous.lastSelectedAt || null,
       lastSeenAt: record.lastSeenAt,
       observations: num(previous.observations) + 1,
       latest: record,
@@ -656,6 +658,7 @@ export function saveUniverseLedger(projects = [], context = {}) {
         riskClass: record.riskClass,
         dataCoverageScore: record.dataCoverageScore,
         aggregateRiskScore: record.aggregateRiskScore,
+        selected: record.processing?.selectedForDeepResearch === true,
       }].slice(-MAX_HISTORY),
     };
   }

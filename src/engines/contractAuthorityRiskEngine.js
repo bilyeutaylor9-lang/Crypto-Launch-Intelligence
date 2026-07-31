@@ -37,6 +37,32 @@ function safetyProofStatus(summary = null, riskScore = 100) {
   return "SAFETY_PARTIAL";
 }
 
+function safetyProofFields(summary = null, evidence = []) {
+  const known = (Array.isArray(evidence) ? evidence : []).filter((item) => item?.status !== "UNKNOWN");
+  const testedChecks = [
+    ...(summary?.testedChecks || []),
+    ...known.flatMap((item) => item.testedChecks || []),
+  ];
+  const sourceTimestamps = {
+    ...(summary?.sourceTimestamps || {}),
+    ...Object.fromEntries(
+      known
+        .filter((item) => item.provider && item.observedAt)
+        .map((item) => [item.provider, item.observedAt])
+    ),
+  };
+  return {
+    testedChecks: [...new Set(testedChecks)],
+    unknownChecks: summary?.unknownProviders || [],
+    deterministicBlocks: [
+      ...(summary?.malicious ? ["Verified malicious-token evidence."] : []),
+      ...(summary?.honeypot ? ["Verified honeypot evidence."] : []),
+    ],
+    safetyEvidenceProvenance: summary?.knownProviders || [],
+    safetySourceTimestamps: sourceTimestamps,
+  };
+}
+
 export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
   let summary = existingSummary(project);
   let evidence = project.securityEvidence || project.freeSecurityEvidence?.evidence || [];
@@ -59,6 +85,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
       securityEvidenceStatus: "UNKNOWN",
       safetyProofStatus: safetyStatus,
       safetyProofLane: safetyStatus,
+      ...safetyProofFields(null, evidence),
       contractAuthorityRiskScore: score,
       contractAuthoritySafetyScore: 42,
       contractAuthorityVerdict: "SECURITY_UNKNOWN_REVIEW",
@@ -104,6 +131,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     securityEvidenceStatus: summary.status || "UNKNOWN",
     safetyProofStatus: safetyStatus,
     safetyProofLane: safetyStatus,
+    ...safetyProofFields(summary, evidence),
     contractAuthorityRiskScore: riskScore,
     contractAuthoritySafetyScore: safetyScore,
     contractAuthorityVerdict: verdict,
