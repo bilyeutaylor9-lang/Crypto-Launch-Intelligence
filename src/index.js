@@ -673,6 +673,7 @@ function printAlphaTruthMemory(alphaTruth = {}) {
 async function main() {
   try {
     const startedAt = new Date();
+    const scanRunId = `scan_${startedAt.getTime()}`;
 
     printBanner();
 
@@ -707,6 +708,7 @@ async function main() {
 
     const pipelineStageExecution = summarizePipelineStageExecution(researchPlan);
     let pipelineResults = await runIntelligencePipeline(researchQueue, {
+      scanRunId,
       saveMemory: true,
       freeOnly: discoveredProjects.freeMode?.enabled === true,
       localAI,
@@ -744,7 +746,6 @@ async function main() {
     }
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
-    const scanRunId = `scan_${startedAt.getTime()}`;
     const completedAt = new Date().toISOString();
     let reportMeta = {
       runId: scanRunId,

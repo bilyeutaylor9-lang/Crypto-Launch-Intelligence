@@ -116,6 +116,7 @@ export function preflightEngineDataContract(name = "", projects = [], options = 
   return {
     engineName: name,
     engineId: contract.id,
+    scanRunId: options.scanRunId || null,
     phase: contract.phase,
     criticality: options.criticality || (contract.affectsFinalDecision || contract.canBlockCandidate ? "REQUIRED" : "OPTIONAL"),
     status:
@@ -201,6 +202,7 @@ export function postflightEngineDataContract(name = "", projects = [], options =
   return {
     engineName: name,
     engineId: contract.id,
+    scanRunId: options.scanRunId || null,
     phase: contract.phase,
     status,
     contractFound: true,
@@ -224,6 +226,7 @@ export function attachEngineDataContractAudit(projects = [], preflight = {}, pos
   const auditRecord = {
     engineName: preflight.engineName || postflight.engineName,
     engineId: preflight.engineId || postflight.engineId,
+    scanRunId: postflight.scanRunId || preflight.scanRunId || null,
     phase: preflight.phase || postflight.phase || null,
     inputStatus: preflight.status || "UNKNOWN",
     outputStatus: postflight.status || "UNKNOWN",

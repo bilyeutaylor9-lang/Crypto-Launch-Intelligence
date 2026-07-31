@@ -598,6 +598,25 @@ export async function runStagedPipelineEngine(
   return mergeStageResults(safeProjects, staged);
 }
 
+export function prepareProjectsForPipelineRun(projects = [], options = {}) {
+  const scanRunId = options.scanRunId || null;
+  return (Array.isArray(projects) ? projects : []).map((project) => {
+    const next = project && typeof project === "object" ? { ...project } : {};
+
+    // Engine outcomes and contract audits describe one pipeline run. Persisted
+    // discovery records may carry an older run's derived state, which must not
+    // be mistaken for current evidence on projects deferred by this funnel.
+    delete next.engineResults;
+    delete next.engineHealth;
+    delete next.engineDataContractHealth;
+
+    return {
+      ...next,
+      pipelineScanRunId: scanRunId,
+    };
+  });
+}
+
 async function runLocalAIResearchPipelineStage(projects = [], options = {}, context = {}) {
   if (!context.enabled) return runLocalAIResearchStage(projects, options);
   const stageSet = context.stageSets?.llama || new Set();
@@ -2410,9 +2429,10 @@ export function addFinalScoring(projects = []) {
 export async function runIntelligencePipeline(projects = [], options = {}) {
   const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
   const engineProfile = resolveEngineProfile(options.engineProfile);
-  let results = Array.isArray(projects)
-    ? [...projects]
-    : normalizeEngineOutput(projects, []);
+  let results = prepareProjectsForPipelineRun(
+    Array.isArray(projects) ? projects : normalizeEngineOutput(projects, []),
+    { scanRunId: options.scanRunId }
+  );
   console.log(`Engine Profile: ${engineProfile.label} (${engineProfile.id})`);
   const stageContext = buildProgressivePipelineStageContext(options, results);
   results = attachProgressiveStageMetadata(results, stageContext);
@@ -2426,7 +2446,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       name,
       engine,
       currentProjects,
-      { ...engineOptions, engineProfile },
+      { scanRunId: options.scanRunId || null, ...engineOptions, engineProfile },
       pipelineStageForEngine(name),
       stageContext
     );

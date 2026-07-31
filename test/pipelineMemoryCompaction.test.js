@@ -2,9 +2,32 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildProgressivePipelineStageContext,
+  prepareProjectsForPipelineRun,
   runEngine,
   runStagedPipelineEngine,
 } from "../src/intelligencePipeline.js";
+
+test("new pipeline runs discard persisted engine audits and stamp current scan identity", () => {
+  const [project] = prepareProjectsForPipelineRun(
+    [
+      {
+        symbol: "FRESH",
+        engineResults: { oldEngine: { status: "FAILED" } },
+        engineHealth: { pipelineStatus: "FAILED" },
+        engineDataContractHealth: {
+          status: "OUTPUT_CONTRACT_MISMATCH",
+          engines: { oldEngine: { scanRunId: "scan_old" } },
+        },
+      },
+    ],
+    { scanRunId: "scan_current" }
+  );
+
+  assert.equal(project.engineResults, undefined);
+  assert.equal(project.engineHealth, undefined);
+  assert.equal(project.engineDataContractHealth, undefined);
+  assert.equal(project.pipelineScanRunId, "scan_current");
+});
 
 test("pipeline engine metadata keeps a bounded per-project status map while health tracks all engines", async () => {
   const previousLimit = process.env.MAX_PROJECT_ENGINE_RESULTS;

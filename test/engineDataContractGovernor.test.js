@@ -72,6 +72,25 @@ test("engine data contract governor detects output contract mismatches", () => {
   assert.ok(postflight.topMissingOutputs.some((item) => item.fields === "testScore"));
 });
 
+test("engine data contract audits retain the current scan identity", () => {
+  const input = { liquidityUsd: 1, volume24h: 2 };
+  const output = { ...input, testScore: 50, testVerdict: "MEASURED" };
+  const preflight = preflightEngineDataContract("Test Engine", [input], {
+    contract: CONTRACT,
+    scanRunId: "scan_contract_current",
+  });
+  const postflight = postflightEngineDataContract("Test Engine", [output], {
+    contract: CONTRACT,
+    scanRunId: "scan_contract_current",
+  });
+  const [audited] = attachEngineDataContractAudit([output], preflight, postflight);
+
+  assert.equal(
+    audited.engineDataContractHealth.engines.testEngine.scanRunId,
+    "scan_contract_current"
+  );
+});
+
 test("engine data contract health summary rolls engine gaps into project health", () => {
   const project = { symbol: "GAP", liquidityUsd: 1 };
   const preflight = preflightEngineDataContract("Test Engine", [project], {

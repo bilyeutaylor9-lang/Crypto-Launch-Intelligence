@@ -119,6 +119,18 @@ jobs:
           SUPABASE_JWKS_URL: ${{ secrets.SUPABASE_JWKS_URL }}
           SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
 
+      - name: Run Full Engine Health Audit
+        run: npm run engine:audit:full
+
+      - name: Refresh Master System Readiness
+        run: npm run system:readiness:refresh
+
+      - name: Validate Required Report Contracts
+        run: npm run results:health
+
+      - name: Build Public Dashboard
+        run: npm run publish:dashboard
+
       - name: Upload Scan Reports And Diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -130,15 +142,6 @@ jobs:
             *.log
             npm-debug.log*
           if-no-files-found: ignore
-
-      - name: Run Full Engine Health Audit
-        run: npm run engine:audit:full
-
-      - name: Validate Required Report Contracts
-        run: npm run results:health
-
-      - name: Build Public Dashboard
-        run: npm run publish:dashboard
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
