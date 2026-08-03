@@ -111,13 +111,14 @@ jobs:
           SOLANA_RAYDIUM_CLMM_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_CLMM_PROGRAM }}
           SOLANA_METEORA_DBC_PROGRAM: ${{ secrets.SOLANA_METEORA_DBC_PROGRAM }}
           SOLANA_METEORA_DLMM_PROGRAM: ${{ secrets.SOLANA_METEORA_DLMM_PROGRAM }}
-          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || 'false' }}
+          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'false' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_JWKS_URL: ${{ secrets.SUPABASE_JWKS_URL }}
-          SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
+          SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || secrets.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
+          SUPABASE_SYNC_PROJECT_LIMIT: ${{ vars.SUPABASE_SYNC_PROJECT_LIMIT || secrets.SUPABASE_SYNC_PROJECT_LIMIT || '2500' }}
 
       - name: Run Full Engine Health Audit
         run: npm run engine:audit:full

@@ -35,6 +35,18 @@ for (const workflowPath of WORKFLOW_PATHS) {
     assert.ok(dashboard > validate);
     assert.ok(upload > dashboard);
     assert.match(workflow, /run:\s*npm run system:readiness:refresh/);
+    assert.match(
+      workflow,
+      /SUPABASE_ENABLED:\s*\$\{\{ vars\.SUPABASE_ENABLED \|\| secrets\.SUPABASE_ENABLED \|\| 'false' \}\}/,
+    );
+    assert.match(
+      workflow,
+      /SUPABASE_SYNC_ALPHA_RECEIPTS:\s*\$\{\{ vars\.SUPABASE_SYNC_ALPHA_RECEIPTS \|\| secrets\.SUPABASE_SYNC_ALPHA_RECEIPTS \|\| 'true' \}\}/,
+    );
+    assert.match(
+      workflow,
+      /SUPABASE_SYNC_PROJECT_LIMIT:\s*\$\{\{ vars\.SUPABASE_SYNC_PROJECT_LIMIT \|\| secrets\.SUPABASE_SYNC_PROJECT_LIMIT \|\| '2500' \}\}/,
+    );
   });
 }
 
