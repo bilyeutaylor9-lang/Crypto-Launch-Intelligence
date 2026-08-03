@@ -19,6 +19,12 @@ import {
   deriveProjectLifecycleState,
 } from "../kernel/candidateTruthState.js";
 import {
+  hasCleanDisplayIdentity,
+  isGenericMarketIdentity,
+  isLikelyAggregateCandidate,
+  isLikelyMemeIdentity,
+} from "../identity/displayIdentityGuard.js";
+import {
   compactMetaForReportWriters,
   compactValueForReport,
 } from "./reportPayloadCompactor.js";
@@ -224,6 +230,13 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "docsUrl",
   "roadmap",
   "description",
+  "utilityQualityScore",
+  "realUtilityScore",
+  "utilityClassification",
+  "realUtilityQualified",
+  "utilityEvidenceFamilies",
+  "memeOnlySpeculative",
+  "memeSpeculationScore",
   "githubPushedAt",
   "githubStars",
   "relativeStrengthScore",
@@ -864,6 +877,15 @@ function candidateRecord(project = {}, rank = null) {
     finalDecisionScoreState: project.finalDecisionScoreState || "NOT_CALCULATED",
     researchOpportunityCoverage: project.researchOpportunityCoverage || null,
     executionReadinessCoverage: project.executionReadinessCoverage || null,
+    utilityQualityScore: first([
+      project.utilityQualityScore,
+      project.realUtilityScore,
+    ]),
+    utilityClassification: project.utilityClassification || "UNKNOWN_UTILITY",
+    realUtilityQualified: project.realUtilityQualified === true,
+    utilityEvidenceFamilies: unique(array(project.utilityEvidenceFamilies)),
+    memeOnlySpeculative: project.memeOnlySpeculative === true,
+    memeSpeculationScore: project.memeSpeculationScore ?? null,
     confidence: confidence(researchOpportunityScore, researchCompleteness, families.length, blockers),
     evidenceCompleteness: completeness,
     researchEvidenceCompleteness: researchCompleteness,
@@ -990,10 +1012,38 @@ function hasIdentityQuarantine(record = {}) {
   return array(record.candidateQuarantineReasons).some((reason) => IDENTITY_ROUTE_REASONS.has(reason));
 }
 
+function displayIdentityEligible(record = {}) {
+  return (
+    hasCleanDisplayIdentity(record) &&
+    !isLikelyAggregateCandidate(record) &&
+    !isGenericMarketIdentity(record)
+  );
+}
+
+function utilityEligible(record = {}) {
+  const utilityScore = first([record.utilityQualityScore, record.realUtilityScore]);
+  const utilityFamilies = unique(array(record.utilityEvidenceFamilies));
+  const memeOnly =
+    record.memeOnlySpeculative === true ||
+    record.utilityClassification === "MEME_SPECULATION" ||
+    (isLikelyMemeIdentity(record) && record.realUtilityQualified !== true);
+
+  if (memeOnly) return false;
+  return (
+    record.realUtilityQualified === true ||
+    record.utilityClassification === "REAL_UTILITY" ||
+    (measuredNumber(utilityScore) !== null &&
+      Number(utilityScore) >= 55 &&
+      utilityFamilies.length >= 2)
+  );
+}
+
 function researchEligible(record = {}) {
   if (record.qualificationState === "BLOCKED" || record.qualificationState === "MARKET_BENCHMARK") return false;
   if (record.prelaunchResearch) return false;
   if (record.hardBlocks?.length) return false;
+  if (!displayIdentityEligible(record)) return false;
+  if (!utilityEligible(record)) return false;
   if (hasIdentityQuarantine(record)) return false;
   if (!record.chain || !record.verifiedContractAddress) return false;
   if (record.researchOpportunityScore < 45 && record.researchEvidenceCompleteness < 40) return false;
@@ -1004,6 +1054,14 @@ function prelaunchEligible(record = {}) {
   if (!record.prelaunchResearch) return false;
   if (record.qualificationState === "BLOCKED" || record.qualificationState === "MARKET_BENCHMARK") return false;
   if (record.hardBlocks?.length) return false;
+  if (!displayIdentityEligible(record)) return false;
+  if (
+    record.memeOnlySpeculative === true ||
+    record.utilityClassification === "MEME_SPECULATION" ||
+    (isLikelyMemeIdentity(record) && record.realUtilityQualified !== true)
+  ) {
+    return false;
+  }
   if (record.verifiedContractAddress && record.primaryTradablePool) return false;
   if (record.researchOpportunityScore < 35 && record.researchEvidenceCompleteness < 45) return false;
   return true;
@@ -1195,7 +1253,14 @@ export function buildTop10BreakoutReport(projects = [], meta = {}) {
   const ranked = rankRecords(records);
   const executableRanked = rankExecutableRecords(records);
   const finalists = ranked.slice(0, 25);
-  const qualified = executableRanked.filter((record) => record.qualified).slice(0, 10);
+  const qualified = executableRanked
+    .filter(
+      (record) =>
+        record.qualified &&
+        displayIdentityEligible(record) &&
+        utilityEligible(record)
+    )
+    .slice(0, 10);
   const researchOpportunities = ranked
     .filter(researchEligible)
     .slice(0, 10)

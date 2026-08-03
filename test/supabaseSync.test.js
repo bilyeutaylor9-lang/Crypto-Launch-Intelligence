@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildSupabaseRestHeaders,
   buildSupabaseScanPayload,
   resolveSupabaseConfig,
   summarizeSupabaseConfig,
@@ -49,6 +50,15 @@ test("Supabase config supports new Supabase URL, secret, publishable, and JWKS n
   assert.equal(config.serverWriteCapable, true);
   assert.equal(config.jwksUrl.endsWith("/.well-known/jwks.json"), true);
   assert.equal(JSON.stringify(summarizeSupabaseConfig({ ...ENV, SUPABASE_SECRET_KEY: "server-secret" })).includes("server-secret"), false);
+});
+
+test("REST headers distinguish modern API keys from legacy JWT keys", () => {
+  const modern = buildSupabaseRestHeaders({ key: "sb_secret_modern-test-key" });
+  const legacy = buildSupabaseRestHeaders({ key: "legacy-service-role-jwt" });
+
+  assert.equal(modern.apikey, "sb_secret_modern-test-key");
+  assert.equal(modern.authorization, undefined);
+  assert.equal(legacy.authorization, "Bearer legacy-service-role-jwt");
 });
 
 test("Supabase publishable-only config is read-only and cannot sync scanner writes", async () => {

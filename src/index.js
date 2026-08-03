@@ -10,6 +10,7 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
+import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -97,6 +98,12 @@ function confidenceForScore(score = 0) {
 }
 
 export function scoreOf(project = {}) {
+  if (
+    project.liveRankingAuthoritative === true &&
+    Number.isFinite(Number(project.guardedLiveScore))
+  ) {
+    return Number(project.guardedLiveScore);
+  }
   const current = num(project.pipelineScore ?? project.opportunityScore ?? project.score);
   const fallback = weightedScore(project);
   const authoritativeScore = current || fallback;
@@ -415,15 +422,40 @@ function printSummary(summary) {
 }
 
 function printTopProjects(results) {
+  const candidates = results.filter((project) =>
+    ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus)
+  );
   console.log("");
-  console.log("============= TOP OPPORTUNITIES =============");
+  console.log("============= GUARDED TOP OPPORTUNITIES =============");
   console.log("");
 
-  results.slice(0, 10).forEach((project, index) => {
+  if (!candidates.length) {
+    const recoveryCount = results.filter(
+      (project) => project.liveActionStatus === "DATA_RECOVERY_REQUIRED"
+    ).length;
+    console.log("NO_VALID_MOVE_TODAY");
+    console.log("No candidate passed the measured-evidence threshold for the guarded research slate.");
+    console.log(`${recoveryCount} candidates remain in the separate data-recovery queue.`);
+    console.log("");
+    return;
+  }
+
+  candidates.slice(0, 10).forEach((project, index) => {
     console.log(`${index + 1}. ${project.name || "Unknown"}`);
     console.log(`   Symbol: ${project.symbol || "-"}`);
     console.log(`   Chain: ${project.chain || "-"}`);
-    console.log(`   Pipeline Score: ${scoreOf(project).toFixed(1)}`);
+    console.log(
+      `   Guarded Live Score: ${scoreOf(project).toFixed(1)} | Status: ${project.liveActionStatus || "UNRANKED"}`
+    );
+    console.log(
+      `   Old Score/Rank: ${project.legacyProductionScore ?? "-"} / #${project.legacyRank ?? "-"} | Model: ${project.liveRankingModel || "-"}`
+    );
+    console.log(
+      `   Evidence: ${project.liveRankingCoverage ?? 0} | Execution Ready: ${project.liveExecutionReady ? "yes" : "no"} | Safety Verified: ${project.liveRankingTrace?.execution?.safetyVerified ? "yes" : "no"}`
+    );
+    console.log(
+      `   Experiment Ceiling: ${project.microTestPlan?.maximumExperimentAllocationUsd ?? "not configured"} USD`
+    );
     if (project.vNextScore !== undefined) {
       console.log(
         `   Legacy/vNext: ${project.legacyScore || 0} (#${project.legacyRank || "-"}) -> ${project.vNextScore || 0} (#${project.vNextRank || "-"}) | ${project.vNextRecommendation || "Unknown"}`
@@ -620,6 +652,8 @@ function printReportPaths(paths) {
   if (paths.top10BreakoutHtmlPath) console.log(`Top 10 HTML:    ${paths.top10BreakoutHtmlPath}`);
   if (paths.top10BreakoutCsvPath) console.log(`Top 10 CSV:     ${paths.top10BreakoutCsvPath}`);
   if (paths.top10BreakoutExplanationsPath) console.log(`Top 10 Explain: ${paths.top10BreakoutExplanationsPath}`);
+  if (paths.liveCoreRankingMarkdownPath) console.log(`Live Ranking:   ${paths.liveCoreRankingMarkdownPath}`);
+  if (paths.microTestWatchlistPath) console.log(`Micro Watch:    ${paths.microTestWatchlistPath}`);
   if (paths.top10ExcludedFinalistsPath) console.log(`Top 10 Excluded:${paths.top10ExcludedFinalistsPath}`);
   console.log(`Roadmap:        ${paths.roadmapPath}`);
   console.log(`Source Router:  ${paths.sourceRouterPath}`);
@@ -719,7 +753,6 @@ async function main() {
 
     let results = normalizeForReports(pipelineResults);
     pipelineResults = null;
-    const summary = summarizePipelineResults(results);
     let researchCoverage = researchPlan.report;
 
     try {
@@ -746,6 +779,21 @@ async function main() {
     }
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
+    let guardedLiveRanking = buildGuardedLiveRanking(results, {
+      env: process.env,
+      scanRunId,
+      dataCutoffTimestamp: new Date().toISOString(),
+      backtestReportPath: "reports/core-model-backtest.json",
+    });
+    results = guardedLiveRanking.ranked;
+    const guardedLiveRankingMeta = {
+      authoritativeRanking: guardedLiveRanking.authoritativeRanking,
+      summary: guardedLiveRanking.summary,
+      policy: guardedLiveRanking.policy,
+      configuration: guardedLiveRanking.configuration,
+    };
+    const summary = summarizePipelineResults(results);
+
     const completedAt = new Date().toISOString();
     let reportMeta = {
       runId: scanRunId,
@@ -762,11 +810,17 @@ async function main() {
       scannedProjects: results.length,
       engineMode: "progressive-stage-execution",
       engineProfile: engineProfileReport(process.env.PIPELINE_ENGINE_PROFILE),
-      scoringMode: "institutional-weighted-fallback",
+      scoringMode: "guarded-live-core-authoritative",
+      authoritativeRanking: guardedLiveRankingMeta.authoritativeRanking,
+      guardedLiveRanking: guardedLiveRankingMeta.summary,
+      guardedLiveRankingPolicy: guardedLiveRankingMeta.policy,
+      guardedLiveRankingConfiguration: guardedLiveRankingMeta.configuration,
+      automaticTradingEnabled: false,
       localAIMode: localAI.mode,
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
       platform: "Crypto Launch Intelligence",
     };
+    guardedLiveRanking = null;
     reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
 
     const alphaTruth = persistAlphaTruthMemory(results, reportMeta);

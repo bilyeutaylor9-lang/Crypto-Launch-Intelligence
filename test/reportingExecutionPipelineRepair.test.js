@@ -57,6 +57,7 @@ import { writeExecutionProofRecoveryReport } from "../src/reports/executionProof
 import { writeSystemReadinessReport } from "../src/reports/systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "../src/reports/decisionReportCompactionAuditEngine.js";
 import { writeScanArtifactManifest } from "../src/reports/scanArtifactManifestReportEngine.js";
+import { writeGuardedLiveRankingReports } from "../src/ranking/guardedLiveRankingEngine.js";
 import { buildPipelineStageHealth } from "../src/kernel/pipelineReliabilityKernel.js";
 import {
   REQUIRED_REPORT_FILES,
@@ -78,6 +79,31 @@ function finiteWalk(value, label = "value") {
   if (value && typeof value === "object") {
     Object.entries(value).forEach(([key, nested]) => finiteWalk(nested, `${label}.${key}`));
   }
+}
+
+function validRequiredReportFixture(fileName) {
+  if (fileName === "live-core-ranking.json") {
+    return {
+      scanRunId: "scan_contract_fixture",
+      automaticTradingEnabled: false,
+      projectsAnalyzed: 0,
+      summary: {
+        microTestEligible: 0,
+        researchWatchlist: 0,
+        dataRecoveryRequired: 0,
+        blocked: 0,
+      },
+      microEligible: [],
+    };
+  }
+  if (fileName === "micro-test-watchlist.json") {
+    return {
+      scanRunId: "scan_contract_fixture",
+      automaticTradingEnabled: false,
+      candidates: [],
+    };
+  }
+  return { ok: true };
 }
 
 function project(overrides = {}) {
@@ -471,6 +497,9 @@ test("mandatory report contracts are generated and validate", () => {
   });
   writeDecisionReportCompactionAudit(processed);
   writeSystemReadinessReport({ scannedProjects: processed.length });
+  writeGuardedLiveRankingReports(processed, {
+    scanRunId: "scan_reporting_contract",
+  });
   writeScanArtifactManifest();
 
   for (const fileName of REQUIRED_REPORT_FILES) {
@@ -528,7 +557,10 @@ test("report contract validator rejects non-finite report values", () => {
   const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-report-contract-"));
 
   for (const fileName of REQUIRED_REPORT_FILES) {
-    fs.writeFileSync(path.join(reportsDir, fileName), JSON.stringify({ ok: true }));
+    fs.writeFileSync(
+      path.join(reportsDir, fileName),
+      JSON.stringify(validRequiredReportFixture(fileName))
+    );
   }
   assert.equal(validateReportContracts({ reportsDir }).status, "PASS");
 
@@ -542,7 +574,10 @@ test("report contract validator rejects incomplete high-upside lane accounting",
   const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-high-upside-contract-"));
 
   for (const fileName of REQUIRED_REPORT_FILES) {
-    fs.writeFileSync(path.join(reportsDir, fileName), JSON.stringify({ ok: true }));
+    fs.writeFileSync(
+      path.join(reportsDir, fileName),
+      JSON.stringify(validRequiredReportFixture(fileName))
+    );
   }
   fs.writeFileSync(
     path.join(reportsDir, "high-upside-scalp-research.json"),
@@ -563,6 +598,40 @@ test("report contract validator rejects incomplete high-upside lane accounting",
   assert.equal(failed.status, "FAIL");
   assert.ok(failed.errors.some((error) => error.includes("laneDistribution total 2")));
   assert.ok(failed.errors.some((error) => error.includes("PASS_WITH_SCALP_READY")));
+});
+
+test("report contract validator rejects unqualified aggregate utility leads", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-utility-contract-"));
+
+  for (const fileName of REQUIRED_REPORT_FILES) {
+    fs.writeFileSync(
+      path.join(reportsDir, fileName),
+      JSON.stringify(validRequiredReportFixture(fileName))
+    );
+  }
+  fs.writeFileSync(
+    path.join(reportsDir, "real-utility-opportunities.json"),
+    JSON.stringify({
+      realUtilityQualifiedCount: 1,
+      topRealUtilityResearch: [
+        {
+          name: "All Markets Aggregate",
+          symbol: "BTCETHSOLUSDC",
+          realUtilityQualified: false,
+          utilityIdentityEligible: false,
+        },
+      ],
+      memeSpeculationOnly: [],
+    })
+  );
+
+  const failed = validateReportContracts({ reportsDir });
+  assert.equal(failed.status, "FAIL");
+  assert.ok(
+    failed.errors.some((error) =>
+      error.includes("real-utility lead lacks qualified utility or valid project identity")
+    )
+  );
 });
 
 test("report sanitizer removes provider placeholder strings before public validation", () => {

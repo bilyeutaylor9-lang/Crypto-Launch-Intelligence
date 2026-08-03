@@ -81,6 +81,7 @@ import { writeExecutionProofRecoveryReport } from "./executionProofRecoveryRepor
 import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
 import { writeScanArtifactManifest } from "./scanArtifactManifestReportEngine.js";
+import { writeGuardedLiveRankingReports } from "../ranking/guardedLiveRankingEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -91,6 +92,12 @@ import {
 export function generateReports(projects = [], meta = {}) {
   const precomputedPipelineStageHealth = meta.pipelineStageHealth;
   const fullProjects = Array.isArray(projects) ? projects : [];
+  const {
+    liveCoreRankingJsonPath,
+    liveCoreRankingMarkdownPath,
+    liveCoreRankingCsvPath,
+    microTestWatchlistPath,
+  } = writeGuardedLiveRankingReports(fullProjects, meta);
   meta = { ...meta };
   delete meta.pipelineStageHealth;
 
@@ -418,6 +425,10 @@ export function generateReports(projects = [], meta = {}) {
     htmlPath,
     jsonPath,
     csvPath,
+    liveCoreRankingJsonPath,
+    liveCoreRankingMarkdownPath,
+    liveCoreRankingCsvPath,
+    microTestWatchlistPath,
     quantumFieldPath,
     quantumSuiteHealthPath,
     quantumReasoningBrainPath,

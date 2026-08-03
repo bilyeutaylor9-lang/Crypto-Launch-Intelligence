@@ -62,6 +62,11 @@ test("JSON report bounds an oversized enriched project while preserving final de
       finalIntegrityScore: 42,
       pipelineScore: 71,
       riskScore: 34,
+      utilityQualityScore: 77,
+      utilityClassification: "REAL_UTILITY",
+      realUtilityQualified: true,
+      utilityIdentityEligible: true,
+      utilityEvidenceFamilies: ["PRODUCT", "DEVELOPMENT", "SOURCE_QUALITY"],
       hugeResearchPayload: "e".repeat(200_000),
       nestedEngineOutput: Array.from({ length: 500 }, (_, index) => ({
         index,
@@ -77,6 +82,11 @@ test("JSON report bounds an oversized enriched project while preserving final de
   assert.equal(project.symbol, "BND");
   assert.equal(project.finalSelectionState, "RESEARCH_ONLY");
   assert.equal(project.pipelineScore, 71);
+  assert.equal(project.utilityQualityScore, 77);
+  assert.equal(project.utilityClassification, "REAL_UTILITY");
+  assert.equal(project.realUtilityQualified, true);
+  assert.equal(project.utilityIdentityEligible, true);
+  assert.deepEqual(project.utilityEvidenceFamilies, ["PRODUCT", "DEVELOPMENT", "SOURCE_QUALITY"]);
   assert.equal(report.meta.reportSerialization.truncatedProjects, 1);
   assert.ok(fs.statSync(reportPath).size < 100_000);
 });

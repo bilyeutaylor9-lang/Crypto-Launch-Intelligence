@@ -155,6 +155,10 @@ const PUBLIC_REPORTS = [
   "daily-recovery-queue.json",
   "daily-source-gaps.json",
   "system-readiness.json",
+  "live-core-ranking.json",
+  "live-core-ranking.md",
+  "live-core-ranking.csv",
+  "micro-test-watchlist.json",
   "scan-artifact-manifest.json",
   "decision-report-compaction-audit.json",
   "decision-report-compaction-audit.md",
@@ -541,20 +545,22 @@ function renderScalpCandidateTable(candidates = [], title = "Research Candidates
                 const needs = [
                   ...(candidate.missingInfoNeeded || []),
                   ...(candidate.missingEvidence || []),
+                  ...(candidate.liveRankingMissingEvidence || []),
                 ]
                   .filter(Boolean)
                   .slice(0, 3)
                   .join(", ");
                 return `
                   <tr>
-                    <td>${escapeHtml(candidate.rank ?? "")}</td>
+                    <td>${escapeHtml(candidate.rank ?? candidate.liveRank ?? "")}</td>
                     <td>${escapeHtml(candidate.symbol || "UNKNOWN")}</td>
                     <td>${escapeHtml(candidate.chain || "unknown")}</td>
                     <td>${escapeHtml(shortAddress(contractFor(candidate)))}<br /><span class="muted">${escapeHtml(candidate.canonicalId || "")}</span></td>
                     <td>${escapeHtml(shortAddress(pairFor(candidate)))}<br /><span class="muted">${escapeHtml(candidate.dexName || candidate.bestVerifiedVenue || "")}</span></td>
-                    <td>${escapeHtml(candidate.lane || candidate.scalpMicrostructureLane || "UNKNOWN")}</td>
+                    <td>${escapeHtml(candidate.liveActionStatus || candidate.lane || candidate.scalpMicrostructureLane || "UNKNOWN")}</td>
                     <td>${escapeHtml(
-                      candidate.hottestTenNowScore ??
+                      candidate.guardedLiveScore ??
+                        candidate.hottestTenNowScore ??
                         candidate.highUpsideScalpScore ??
                         candidate.scalpMicrostructureScore ??
                         candidate.progressiveOpportunityScore ??
@@ -677,6 +683,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const dailyRecovery = readJsonReport("daily-recovery-queue.json", reportsDir) || {};
   const dailySourceGaps = readJsonReport("daily-source-gaps.json", reportsDir) || {};
   const systemReadiness = readJsonReport("system-readiness.json", reportsDir) || {};
+  const liveCoreRanking = readJsonReport("live-core-ranking.json", reportsDir) || {};
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -1275,6 +1282,29 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     <div class="subtitle">Live high-upside research board. Research output only, not financial advice, and never a profit guarantee.</div>
   </header>
   <main>
+    <section class="panel hero-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Guarded Live Top 10</h2>
+          <p>${escapeHtml(
+            liveCoreRanking.policy?.winnerPublished
+              ? `The ranking uses the verified backtest winner: ${liveCoreRanking.policy.bestModel}.`
+              : "No model has won an adequate untouched backtest. This guarded ranking is an explicitly unproven canary with strict identity, safety, evidence, and route gates."
+          )}</p>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="./live-core-ranking.json">Open Guarded Ranking</a>
+          <a class="button" href="./micro-test-watchlist.json">Manual Micro-Test Gate</a>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.microTestEligible ?? 0)}</div><div class="metric-label">Micro-Test Eligible</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.researchWatchlist ?? 0)}</div><div class="metric-label">Research Watchlist</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.dataRecoveryRequired ?? 0)}</div><div class="metric-label">Needs Data Recovery</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.blocked ?? 0)}</div><div class="metric-label">Deterministically Blocked</div></div>
+      </div>
+      ${renderScalpCandidateTable(liveCoreRanking.top10 || [], "Authoritative Guarded Research Ranking")}
+    </section>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
     ${renderDailyCapitalSlate(dailyCapital, dailyRecovery)}
     <section class="panel">
@@ -1421,6 +1451,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./daily-recovery-queue.json">Recovery Queue</a>
         <a class="button" href="./daily-source-gaps.json">Source Gaps</a>
         <a class="button" href="./system-readiness.json">System Readiness</a>
+        <a class="button primary" href="./live-core-ranking.json">Guarded Live Ranking</a>
+        <a class="button" href="./micro-test-watchlist.json">Micro-Test Gate</a>
         <a class="button" href="./execution-ready.json">Execution Ready</a>
         <a class="button" href="./emerging-radar.json">Emerging Radar</a>
         <a class="button" href="./blocked-projects.json">Blocked</a>

@@ -9,6 +9,7 @@ import {
 } from "./intelligencePipeline.js";
 
 import { generateReports } from "./reports/reportOrchestrator.js";
+import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
 import { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 function formatMoney(value = 0) {
@@ -132,7 +133,14 @@ function printToken(token = {}, index = 0) {
   console.log(`Liquidity / Market Cap...... ${formatMoney(token.liquidityUsd || token.marketCap)}`);
   console.log(`24h Volume.................. ${formatMoney(token.volume24h)}`);
   console.log(`24h Price Change............ ${formatNumber(token.priceChange24h)}%`);
-  console.log(`Pipeline Score.............. ${formatNumber(token.pipelineScore || score)}`);
+  console.log(`Guarded Live Score.......... ${formatNumber(token.guardedLiveScore || score)}`);
+  console.log(`Live Status................. ${token.liveActionStatus || "UNRANKED"}`);
+  console.log(`Old Score / Rank............ ${token.legacyProductionScore ?? "-"} / #${token.legacyRank ?? "-"}`);
+  console.log(`Ranking Model............... ${token.liveRankingModel || "-"}`);
+  console.log(`Evidence Coverage........... ${token.liveRankingCoverage ?? 0}`);
+  console.log(`Execution Ready............. ${token.liveExecutionReady ? "yes" : "no"}`);
+  console.log(`Safety Verified............. ${token.liveRankingTrace?.execution?.safetyVerified ? "yes" : "no"}`);
+  console.log(`Experiment Ceiling.......... ${token.microTestPlan?.maximumExperimentAllocationUsd ?? "not configured"} USD`);
   console.log(`Pipeline Tier............... ${token.pipelineTier || "Unknown"}`);
   console.log(`Market Rank Score........... ${token.marketRankScore || 0}/100`);
   console.log(`Market Rank Level........... ${token.marketRankLevel || "unknown"}`);
@@ -174,6 +182,8 @@ function printReportPaths(paths = {}) {
   console.log(`CSV Export.................. ${paths.csvPath}`);
   console.log(`Watchlist................... ${paths.watchlistPath}`);
   console.log(`Summary..................... ${paths.summaryPath}`);
+  console.log(`Live Core Ranking........... ${paths.liveCoreRankingMarkdownPath}`);
+  console.log(`Micro-Test Watchlist........ ${paths.microTestWatchlistPath}`);
   console.log(`Watchlist Count............. ${paths.watchlistCount}`);
   console.log("---------------------------------------------------------------");
   console.log("Open dashboard:");
@@ -182,6 +192,7 @@ function printReportPaths(paths = {}) {
 
 async function main() {
   const startedAt = new Date();
+  const scanRunId = `scan_${Date.now()}`;
 
   const discovery = await runDiscoveryManager({
     maxTokens: Number(process.env.MAX_TOKENS || 300),
@@ -210,26 +221,49 @@ async function main() {
     localAI: resolveLocalAIOptions(),
   });
 
-  const ranked = normalizeForReports(pipelineResults);
+  const legacyRanked = normalizeForReports(pipelineResults);
+  const guardedLiveRanking = buildGuardedLiveRanking(legacyRanked, {
+    env: process.env,
+    scanRunId,
+    dataCutoffTimestamp: new Date().toISOString(),
+  });
+  const ranked = guardedLiveRanking.ranked;
   const summary = summarizePipelineResults(ranked);
 
   const reportPaths = generateReports(ranked, {
+    runId: scanRunId,
+    scanRunId,
     startedAt: startedAt.toISOString(),
     completedAt: new Date().toISOString(),
+    dataCutoffTimestamp: new Date().toISOString(),
     discoveredCount: candidates.length,
     memeAccepted: memeGate.acceptedCount,
     memeRejected: memeGate.rejectedCount,
     rankedProjects: ranked.length,
     platform: "Crypto Launch Intelligence",
     mode: "showTokens",
+    scoringMode: "guarded-live-core-authoritative",
+    authoritativeRanking: guardedLiveRanking.authoritativeRanking,
+    guardedLiveRanking: guardedLiveRanking.summary,
+    guardedLiveRankingPolicy: guardedLiveRanking.policy,
+    guardedLiveRankingConfiguration: guardedLiveRanking.configuration,
+    automaticTradingEnabled: false,
   });
 
   printHeader(discovery, memeGate, ranked, summary);
 
-  console.log("\n🏆 TOP FULL-PIPELINE RANKED PROJECTS");
+  console.log("\n🏆 GUARDED LIVE CORE RANKING");
   console.log("---------------------------------------------------------------");
 
-  ranked.slice(0, 25).forEach(printToken);
+  if (!guardedLiveRanking.top10.length) {
+    console.log("NO_VALID_MOVE_TODAY");
+    console.log("No candidate passed the guarded measured-evidence threshold.");
+    console.log(
+      `${guardedLiveRanking.summary.dataRecoveryRequired} candidates remain in data recovery.`
+    );
+  } else {
+    guardedLiveRanking.top10.forEach(printToken);
+  }
 
   printReportPaths(reportPaths);
 

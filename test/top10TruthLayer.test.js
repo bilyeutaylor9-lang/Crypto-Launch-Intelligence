@@ -289,6 +289,12 @@ function strongProject(overrides = {}) {
     sourceReliabilityScore: 80,
     opportunityEvidenceCoverage: 78,
     identityConfidence: 92,
+    utilityQualityScore: 82,
+    realUtilityScore: 82,
+    utilityClassification: "REAL_UTILITY",
+    realUtilityQualified: true,
+    utilityEvidenceFamilies: ["PRODUCT", "DEVELOPMENT", "ADOPTION"],
+    memeOnlySpeculative: false,
     ...overrides,
   };
 }
@@ -430,6 +436,34 @@ test("deterministic safety blockers still remove candidates from research", () =
   assert.equal(report.qualifiedPicks.length, 0);
   assert.equal(report.top10ResearchOpportunities.length, 0);
   assert.equal(report.excludedFinalists[0].qualificationState, "BLOCKED");
+});
+
+test("malformed aggregate display identities cannot enter either top 10", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      name: "WHAT IS THE TICKER? ".repeat(20),
+      symbol: "BTCETHSOLUSDC".repeat(20),
+    }),
+  ]);
+
+  assert.equal(report.qualifiedExecutableBuys.length, 0);
+  assert.equal(report.top10ResearchOpportunities.length, 0);
+});
+
+test("meme-only candidates cannot enter utility research or executable top 10", () => {
+  const report = buildTop10BreakoutReport([
+    strongProject({
+      name: "Artificial Inu",
+      symbol: "AINU",
+      utilityClassification: "MEME_SPECULATION",
+      realUtilityQualified: false,
+      memeOnlySpeculative: true,
+      utilityEvidenceFamilies: [],
+    }),
+  ]);
+
+  assert.equal(report.qualifiedExecutableBuys.length, 0);
+  assert.equal(report.top10ResearchOpportunities.length, 0);
 });
 
 test("failure waterfall requires positive buy and sell quote proof", () => {

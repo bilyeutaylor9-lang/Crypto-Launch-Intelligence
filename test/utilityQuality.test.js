@@ -187,3 +187,26 @@ test("utility report publishes real-utility and speculative-only lanes", () => {
   assert.equal(parsed.topRealUtilityResearch[0].symbol, "UTIL");
   assert.equal(parsed.memeSpeculationOnly[0].symbol, "MEME");
 });
+
+test("malformed aggregate identities cannot become real-utility leads", () => {
+  const malformed = analyzeUtilityQualityBatch([
+    base({
+      name: "WHAT IS THE TICKER? ".repeat(20),
+      symbol: "BTCETHSOLUSDC".repeat(40),
+      description: "protocol sdk api mainnet developers users revenue fees integrations staking ".repeat(20),
+      developerActivityScore: 99,
+      ecosystemIntegrationScore: 99,
+      tokenomicsScore: 99,
+      discoverySources: ["defillama-category", "market-list"],
+    }),
+  ]);
+  const summary = summarizeUtilityQuality(malformed);
+
+  assert.equal(malformed[0].utilityIdentityEligible, false);
+  assert.equal(malformed[0].utilityQualityScore, null);
+  assert.equal(malformed[0].realUtilityQualified, false);
+  assert.equal(malformed[0].utilityClassification, "INVALID_OR_AGGREGATE_IDENTITY");
+  assert.equal(summary.realUtilityQualifiedCount, 0);
+  assert.equal(summary.invalidOrAggregateIdentityCount, 1);
+  assert.equal(summary.topRealUtilityResearch.length, 0);
+});

@@ -238,3 +238,54 @@ create table if not exists public.report_runs (
   validation_status text,
   payload_json jsonb not null default '{}'::jsonb
 );
+
+-- This warehouse is scanner-owned and is not a client-facing Supabase API.
+-- The service role bypasses RLS; anon/authenticated receive no direct access.
+alter table public.projects enable row level security;
+alter table public.project_identities enable row level security;
+alter table public.pools enable row level security;
+alter table public.market_observations enable row level security;
+alter table public.capital_flow_observations enable row level security;
+alter table public.wallet_observations enable row level security;
+alter table public.wallet_performance enable row level security;
+alter table public.execution_quotes enable row level security;
+alter table public.engine_runs enable row level security;
+alter table public.predictions enable row level security;
+alter table public.prediction_outcomes enable row level security;
+alter table public.source_health enable row level security;
+alter table public.alerts enable row level security;
+alter table public.report_runs enable row level security;
+
+revoke all on table
+  public.projects,
+  public.project_identities,
+  public.pools,
+  public.market_observations,
+  public.capital_flow_observations,
+  public.wallet_observations,
+  public.wallet_performance,
+  public.execution_quotes,
+  public.engine_runs,
+  public.predictions,
+  public.prediction_outcomes,
+  public.source_health,
+  public.alerts,
+  public.report_runs
+from public, anon, authenticated;
+
+grant all on table
+  public.projects,
+  public.project_identities,
+  public.pools,
+  public.market_observations,
+  public.capital_flow_observations,
+  public.wallet_observations,
+  public.wallet_performance,
+  public.execution_quotes,
+  public.engine_runs,
+  public.predictions,
+  public.prediction_outcomes,
+  public.source_health,
+  public.alerts,
+  public.report_runs
+to service_role;

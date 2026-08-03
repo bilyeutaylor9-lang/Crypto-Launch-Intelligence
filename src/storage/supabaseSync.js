@@ -17,6 +17,25 @@ function firstText(...values) {
   return values.map((value) => text(value)).find(Boolean) || "";
 }
 
+export function isModernSupabaseApiKey(value = "") {
+  return /^sb_(?:secret|publishable)_/i.test(text(value));
+}
+
+export function buildSupabaseRestHeaders(config = {}, extraHeaders = {}) {
+  const key = text(config.key);
+  const headers = {
+    apikey: key,
+    ...extraHeaders,
+  };
+
+  // Modern sb_secret_/sb_publishable_ keys are API keys, not JWTs.
+  if (key && !isModernSupabaseApiKey(key)) {
+    headers.authorization = `Bearer ${key}`;
+  }
+
+  return headers;
+}
+
 function resolveSupabaseKey(env = {}) {
   const candidates = [
     ["secret", env.SUPABASE_SECRET_KEY, true],
@@ -131,6 +150,19 @@ function reportRowsFor(runId = "", reportPaths = {}) {
 
 function compactProjectPayload(project = {}) {
   return {
+    guardedLiveScore: project.guardedLiveScore ?? null,
+    liveRank: project.liveRank ?? null,
+    liveActionStatus: project.liveActionStatus || null,
+    liveRankingModel: project.liveRankingModel || null,
+    liveRankingCoverage: project.liveRankingCoverage ?? null,
+    liveExecutionReady: project.liveExecutionReady === true,
+    liveRankingDisplayEligible: project.liveRankingDisplayEligible === true,
+    liveRankingUtilityEligible: project.liveRankingUtilityEligible === true,
+    legacyProductionScore: project.legacyProductionScore ?? null,
+    legacyRank: project.legacyRank ?? null,
+    liveRankingMissingEvidence: compactList(project.liveRankingMissingEvidence, 16),
+    liveRankingBlocks: compactList(project.liveRankingBlocks, 12),
+    microTestPlan: project.microTestPlan || null,
     source: project.source || null,
     discoverySources: project.discoverySources || [],
     address: project.address || project.tokenAddress || null,
@@ -263,7 +295,7 @@ export function buildSupabaseScanPayload(input = {}, options = {}) {
     best_chain: nullableIndexedText(best.chain, 80),
     best_score: scoreOf(best),
     market_regime: summary.marketRegime || null,
-    scoring_model: summary.scoringPrimaryModel || "legacy",
+    scoring_model: meta.scoringMode || summary.scoringPrimaryModel || "legacy",
     summary_json: {
       ...summary,
       alerts: undefined,
@@ -321,12 +353,10 @@ async function postRows(config = {}, table = "", rows = [], options = {}) {
     const response = await Promise.resolve(
       fetchImpl(`${config.restUrl}/${encodeURIComponent(table)}${onConflict}`, {
         method: "POST",
-        headers: {
-          apikey: config.key,
-          authorization: `Bearer ${config.key}`,
+        headers: buildSupabaseRestHeaders(config, {
           "content-type": "application/json",
           prefer: "resolution=merge-duplicates,return=minimal",
-        },
+        }),
         body: JSON.stringify(chunk),
         signal: controller.signal,
       })

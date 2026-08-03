@@ -62,6 +62,8 @@ export const REQUIRED_REPORT_FILES = [
   "scan-artifact-manifest.json",
   "decision-report-compaction-audit.json",
   "institutional-ranking.json",
+  "live-core-ranking.json",
+  "micro-test-watchlist.json",
 ];
 
 export const DASHBOARD_CRITICAL_REPORT_FILES = [
@@ -74,6 +76,8 @@ export const DASHBOARD_CRITICAL_REPORT_FILES = [
   "route-universe.json",
   "execution-proof-recovery.json",
   "user-accessibility-ranking.json",
+  "live-core-ranking.json",
+  "micro-test-watchlist.json",
 ];
 
 function invalidValueIssues(value, location = "root", issues = []) {
@@ -140,6 +144,99 @@ function highUpsideScalpIssues(report = {}, fileName = "high-upside-scalp-resear
       Number(report.manualReviewCount || 0) <= 0
   ) {
     issues.push(`${fileName}: PASS_WITH_WATCHLIST requires a watchlist, route-missing, or manual-review research candidate`);
+  }
+
+  return issues;
+}
+
+function guardedLiveRankingIssues(report = {}, fileName = "") {
+  if (!["live-core-ranking.json", "micro-test-watchlist.json"].includes(fileName)) return [];
+  const issues = [];
+  if (!comparableScanId(report)) issues.push(`${fileName}: scanRunId missing`);
+  if (report.automaticTradingEnabled !== false) {
+    issues.push(`${fileName}: automaticTradingEnabled must be false`);
+  }
+  const candidates = fileName === "live-core-ranking.json" ? report.microEligible || [] : report.candidates || [];
+  for (const candidate of candidates) {
+    if (candidate.liveActionStatus !== "MICRO_TEST_ELIGIBLE") {
+      issues.push(`${fileName}: non-eligible candidate appears in micro-test output`);
+    }
+    if (
+      candidate.liveExecutionReady !== true ||
+      candidate.safetyVerified !== true ||
+      candidate.liveRankingTrace?.baseline?.eligible !== true ||
+      candidate.liveRankingDisplayEligible !== true ||
+      (report.configuration?.requireUtility !== false &&
+        candidate.liveRankingUtilityEligible !== true)
+    ) {
+      issues.push(`${fileName}: micro-test candidate lacks execution, safety, or measured baseline proof`);
+    }
+  }
+  if (fileName === "live-core-ranking.json") {
+    const top10 = report.top10 || [];
+    for (const candidate of top10) {
+      if (!["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(candidate.liveActionStatus)) {
+        issues.push(`${fileName}: data-recovery or blocked candidate appears in guarded top10`);
+      }
+      if (
+        candidate.liveRankingDisplayEligible !== true ||
+        (report.configuration?.requireUtility !== false &&
+          candidate.liveRankingUtilityEligible !== true)
+      ) {
+        issues.push(`${fileName}: guarded top10 candidate lacks clean identity or utility proof`);
+      }
+    }
+    const summary = report.summary || {};
+    const total =
+      Number(summary.microTestEligible || 0) +
+      Number(summary.researchWatchlist || 0) +
+      Number(summary.dataRecoveryRequired || 0) +
+      Number(summary.blocked || 0);
+    if (total !== Number(report.projectsAnalyzed || 0)) {
+      issues.push(`${fileName}: status counts ${total} do not equal projectsAnalyzed ${report.projectsAnalyzed}`);
+    }
+    if (
+      Number(summary.microTestEligible || 0) + Number(summary.researchWatchlist || 0) === 0 &&
+      top10.length > 0
+    ) {
+      issues.push(`${fileName}: guarded top10 must be empty when no evidence-backed candidate qualifies`);
+    }
+  }
+  return issues;
+}
+
+function utilityQualityIssues(report = {}, fileName = "") {
+  if (fileName !== "real-utility-opportunities.json") return [];
+  const issues = [];
+  const utilityLeads = Array.isArray(report.topRealUtilityResearch)
+    ? report.topRealUtilityResearch
+    : [];
+  const speculativeLeads = Array.isArray(report.memeSpeculationOnly)
+    ? report.memeSpeculationOnly
+    : [];
+
+  for (const candidate of utilityLeads) {
+    if (
+      candidate.realUtilityQualified !== true ||
+      candidate.utilityIdentityEligible !== true
+    ) {
+      issues.push(
+        `${fileName}: real-utility lead lacks qualified utility or valid project identity`
+      );
+    }
+  }
+  for (const candidate of speculativeLeads) {
+    if (
+      candidate.memeOnlySpeculative !== true ||
+      candidate.utilityIdentityEligible !== true
+    ) {
+      issues.push(
+        `${fileName}: speculative lead lacks explicit speculation classification or valid project identity`
+      );
+    }
+  }
+  if (Number(report.realUtilityQualifiedCount || 0) > 0 && utilityLeads.length === 0) {
+    issues.push(`${fileName}: qualified utility count is nonzero but no utility lead is published`);
   }
 
   return issues;
@@ -272,6 +369,8 @@ export function validateReportContracts(options = {}) {
         valueIssues.push(`${fileName}: empty report object`);
       }
       valueIssues.push(...highUpsideScalpIssues(parsed, fileName));
+      valueIssues.push(...guardedLiveRankingIssues(parsed, fileName));
+      valueIssues.push(...utilityQualityIssues(parsed, fileName));
       if (valueIssues.length) {
         errors.push(...valueIssues);
         files.push({ fileName, status: "INVALID", issues: valueIssues });

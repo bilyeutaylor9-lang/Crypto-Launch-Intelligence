@@ -3,7 +3,10 @@ import fs from "fs";
 import path from "path";
 
 import "../config/loadEnv.js";
-import { resolveSupabaseConfig } from "./supabaseSync.js";
+import {
+  buildSupabaseRestHeaders,
+  resolveSupabaseConfig,
+} from "./supabaseSync.js";
 
 const DEFAULT_REPORT_PATH = "reports/supabase-memory.json";
 
@@ -80,11 +83,9 @@ async function fetchTableRows(config = {}, table = "", params = {}, options = {}
   try {
     const response = await fetchImpl(url, {
       method: "GET",
-      headers: {
-        apikey: config.key,
-        authorization: `Bearer ${config.key}`,
+      headers: buildSupabaseRestHeaders(config, {
         accept: "application/json",
-      },
+      }),
       signal: controller.signal,
     });
 

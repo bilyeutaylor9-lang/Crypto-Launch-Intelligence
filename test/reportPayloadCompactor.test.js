@@ -16,6 +16,12 @@ test("report project compactor preserves ranking fields while bounding raw resea
       chain: "base",
       pipelineScore: 88,
       finalSelectionState: "RESEARCH_ONLY",
+      utilityQualityScore: 79,
+      realUtilityScore: 79,
+      utilityClassification: "REAL_UTILITY",
+      realUtilityQualified: true,
+      utilityIdentityEligible: true,
+      utilityEvidenceFamilies: ["PRODUCT", "DEVELOPMENT", "ADOPTION"],
       finalBlockingReasons: Array.from({ length: 100 }, (_, index) => `block-${index}`),
       quantumOutcomeField: {
         scenarioCount: 4096,
@@ -56,6 +62,10 @@ test("report project compactor preserves ranking fields while bounding raw resea
   assert.equal(compacted.symbol, "HVY");
   assert.equal(compacted.pipelineScore, 88);
   assert.equal(compacted.finalSelectionState, "RESEARCH_ONLY");
+  assert.equal(compacted.utilityQualityScore, 79);
+  assert.equal(compacted.realUtilityQualified, true);
+  assert.equal(compacted.utilityIdentityEligible, true);
+  assert.deepEqual(compacted.utilityEvidenceFamilies, ["PRODUCT", "DEVELOPMENT", "ADOPTION"]);
   assert.equal(compacted.quantumOutcomeField.scenarioCount, 4096);
   assert.equal(compacted.quantumReasoningBrain.probabilities.bull, 35);
   assert.equal(compacted.rawProviderPayload.omittedFromReport, true);

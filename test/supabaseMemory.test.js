@@ -120,6 +120,21 @@ test("Supabase remote memory loads prior scan rows and ignores health-check rows
   assert.equal(calls[0].headers.authorization, "Bearer server-secret");
 });
 
+test("modern Supabase secret keys use apikey without a fake bearer JWT", async () => {
+  const calls = [];
+  const memory = await collectSupabaseMemory({
+    env: {
+      ...ENV,
+      SUPABASE_SECRET_KEY: "sb_secret_modern-test-key",
+    },
+    fetchImpl: createFetchStub(calls),
+  });
+
+  assert.equal(memory.status, "OK");
+  assert.equal(calls[0].headers.apikey, "sb_secret_modern-test-key");
+  assert.equal(calls[0].headers.authorization, undefined);
+});
+
 test("Supabase health check can verify memory reads and write path without exposing secrets", async () => {
   const calls = [];
   const report = await runSupabaseHealthCheck({

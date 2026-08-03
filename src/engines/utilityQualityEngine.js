@@ -1,4 +1,9 @@
 import { resolveCanonicalAliases } from "../data/canonicalAliasResolver.js";
+import {
+  hasCleanDisplayIdentity,
+  isGenericMarketIdentity,
+  isLikelyAggregateCandidate,
+} from "../identity/displayIdentityGuard.js";
 
 const UTILITY_TERMS = {
   product: ["app", "dapp", "platform", "protocol", "mainnet", "testnet", "sdk", "api", "docs", "developer", "product", "game", "marketplace", "wallet", "payments", "storage", "compute"],
@@ -57,6 +62,19 @@ function hasRawValue(value) {
   if (Array.isArray(value)) return value.length > 0;
   if (typeof value === "number") return Number.isFinite(value);
   return true;
+}
+
+function hasExactTokenIdentity(project = {}) {
+  const chain = clean(project.chain || project.network || project.chainId);
+  const tokenAddress = clean(
+    project.finalContractAddress ||
+      project.canonicalAddress ||
+      project.tokenAddress ||
+      project.contractAddress ||
+      project.baseToken?.address ||
+      project.marketData?.tokenAddress
+  );
+  return Boolean(chain && tokenAddress);
 }
 
 function normalizeUtilityProject(project = {}) {
@@ -174,6 +192,36 @@ function categorySignals(project = {}) {
 
 export function analyzeUtilityQuality(project = {}) {
   project = normalizeUtilityProject(project);
+  const utilityIdentityEligible =
+    hasCleanDisplayIdentity(project) &&
+    !isLikelyAggregateCandidate(project) &&
+    (!isGenericMarketIdentity(project) || hasExactTokenIdentity(project));
+
+  if (!utilityIdentityEligible) {
+    return {
+      ...project,
+      utilityQualityScore: null,
+      realUtilityScore: null,
+      utilityClassification: "INVALID_OR_AGGREGATE_IDENTITY",
+      realUtilityQualified: false,
+      memeOnlySpeculative: false,
+      memeSpeculationScore: null,
+      utilityIdentityEligible: false,
+      utilityEvidenceFamilies: [],
+      utilityQualityComponents: {},
+      utilitySignals: {
+        product: [],
+        infrastructure: [],
+        finance: [],
+        adoption: [],
+        token: [],
+        meme: [],
+      },
+      utilityResearchWarnings: [
+        "Project identity is malformed, generic, or aggregate; utility scoring is withheld until exact project identity is recovered.",
+      ],
+    };
+  }
   const body = text(project);
   const signals = categorySignals(project);
   const memeHits = hits(body, MEME_TERMS);
@@ -264,6 +312,7 @@ export function analyzeUtilityQuality(project = {}) {
     realUtilityScore: utilityQualityScore,
     utilityClassification,
     realUtilityQualified,
+    utilityIdentityEligible: true,
     memeOnlySpeculative,
     memeSpeculationScore,
     utilityEvidenceFamilies,
@@ -313,11 +362,21 @@ export function summarizeUtilityQuality(projects = []) {
     generatedAt: new Date().toISOString(),
     status: ranked.length ? "PASS" : "NO_PROJECTS",
     projectsAnalyzed: ranked.length,
-    realUtilityQualifiedCount: ranked.filter((project) => project.realUtilityQualified).length,
+    realUtilityQualifiedCount: ranked.filter(
+      (project) =>
+        project.realUtilityQualified && project.utilityIdentityEligible !== false
+    ).length,
     memeSpeculationCount: ranked.filter((project) => project.memeOnlySpeculative).length,
     mixedMemeUtilityCount: ranked.filter((project) => project.utilityClassification === "MIXED_MEME_UTILITY").length,
+    invalidOrAggregateIdentityCount: ranked.filter(
+      (project) => project.utilityIdentityEligible === false
+    ).length,
     topRealUtilityResearch: ranked
-      .filter((project) => project.utilityClassification !== "MEME_SPECULATION")
+      .filter(
+        (project) =>
+          project.realUtilityQualified === true &&
+          project.utilityIdentityEligible !== false
+      )
       .slice(0, 50)
       .map(compactUtilityProject),
     memeSpeculationOnly: ranked
@@ -340,6 +399,7 @@ function compactUtilityProject(project = {}) {
     utilityQualityScore: project.utilityQualityScore || 0,
     utilityClassification: project.utilityClassification || "UNKNOWN_UTILITY",
     realUtilityQualified: Boolean(project.realUtilityQualified),
+    utilityIdentityEligible: project.utilityIdentityEligible !== false,
     memeOnlySpeculative: Boolean(project.memeOnlySpeculative),
     memeSpeculationScore: project.memeSpeculationScore || 0,
     utilityEvidenceFamilies: project.utilityEvidenceFamilies || [],

@@ -127,10 +127,18 @@ Commands:
   crypto-launch ai-discovery      Run AI discovery swarm
   crypto-launch audit             Run engine import health check
   crypto-launch explain SYMBOL    Explain a project from the latest report
+  crypto-launch live-ranking      Print the guarded live top 10
+  crypto-launch micro-test        Print manual micro-test eligible candidates
 `);
 }
 
 switch (command) {
+  case "live-ranking":
+    runNpm("ranking:live", args);
+    break;
+  case "micro-test":
+    runNpm("micro-test:watchlist", args);
+    break;
   case "demo":
     runNpm("demo", args);
     break;
