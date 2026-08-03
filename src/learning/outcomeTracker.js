@@ -21,12 +21,66 @@ function pctChange(oldValue, newValue) {
   return ((newNum - oldNum) / oldNum) * 100;
 }
 
+const EVM_CHAINS = new Set([
+  "ethereum",
+  "base",
+  "bsc",
+  "arbitrum",
+  "optimism",
+  "polygon",
+  "avalanche",
+  "fantom",
+  "linea",
+  "scroll",
+  "zksync",
+  "mantle",
+  "blast",
+  "ronin",
+  "mode",
+  "berachain",
+  "sonic",
+  "robinhood",
+  "robinhood-chain",
+]);
+
+function normalizedAddress(chain, value) {
+  const address = String(value || "").trim();
+  return EVM_CHAINS.has(chain) ? address.toLowerCase() : address;
+}
+
+function tokenAddress(project = {}) {
+  const explicit =
+    project.tokenAddress ||
+    project.contractAddress ||
+    project.canonicalAddress ||
+    project.baseToken?.address ||
+    project.marketData?.tokenAddress ||
+    null;
+  if (explicit) return explicit;
+  const genericAddress = String(project.address || "").trim();
+  const knownPool = String(poolAddress(project) || "").trim();
+  return genericAddress && genericAddress !== knownPool ? genericAddress : null;
+}
+
+function poolAddress(project = {}) {
+  return (
+    project.poolAddress ||
+    project.pairAddress ||
+    project.primaryTradablePool ||
+    project.marketData?.poolAddress ||
+    null
+  );
+}
+
 function getProjectKey(project = {}) {
   const chain = String(project.chain || project.network || "unknown").toLowerCase();
-  const address = String(project.address || project.contractAddress || project.pairAddress || "").toLowerCase();
+  const address = normalizedAddress(chain, tokenAddress(project));
+  const pool = normalizedAddress(chain, poolAddress(project));
   const symbol = String(project.symbol || project.tokenSymbol || project.name || "unknown").toLowerCase();
 
-  return address ? `${chain}:${address}` : `${chain}:${symbol}`;
+  if (address) return `${chain}:${address}`;
+  if (pool) return `${chain}:pool:${pool}`;
+  return `${chain}:${symbol}`;
 }
 
 function getPrice(project = {}) {
@@ -64,12 +118,18 @@ function getVolume24h(project = {}) {
 }
 
 export function createOutcomeSnapshot(project = {}, timestamp = new Date().toISOString()) {
+  const chain = String(project.chain || project.network || "unknown").toLowerCase();
+  const resolvedTokenAddress = normalizedAddress(chain, tokenAddress(project)) || null;
+  const resolvedPoolAddress = normalizedAddress(chain, poolAddress(project)) || null;
   return {
     key: getProjectKey(project),
+    identityCasePreserved: true,
     timestamp,
     name: project.name || null,
     symbol: project.symbol || null,
     chain: project.chain || project.network || null,
+    tokenAddress: resolvedTokenAddress,
+    poolAddress: resolvedPoolAddress,
     priceUsd: getPrice(project),
     marketCap: getMarketCap(project),
     liquidityUsd: getLiquidity(project),

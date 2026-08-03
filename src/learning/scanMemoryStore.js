@@ -23,6 +23,25 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function numericOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function booleanOrNull(value) {
+  return typeof value === "boolean" ? value : null;
+}
+
+function firstValue(...values) {
+  return values.find((value) => value !== null && value !== undefined && value !== "") ?? null;
+}
+
+function isoTimestampOrNull(value) {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -135,6 +154,194 @@ function tokenId(project = {}) {
   ).toLowerCase();
 }
 
+function canonicalIdentityKey(project = {}, tokenAddress = null) {
+  if (!tokenAddress) return null;
+  const chain = String(project.chain || project.network || "unknown").toLowerCase();
+  const normalizedAddress = [
+    "ethereum",
+    "base",
+    "bsc",
+    "arbitrum",
+    "optimism",
+    "polygon",
+    "avalanche",
+    "fantom",
+    "linea",
+    "scroll",
+    "zksync",
+    "mantle",
+    "blast",
+    "ronin",
+    "mode",
+    "berachain",
+    "sonic",
+    "robinhood",
+    "robinhood-chain",
+  ].includes(chain)
+    ? String(tokenAddress).toLowerCase()
+    : String(tokenAddress);
+  return chain && chain !== "unknown" ? `${chain}:${normalizedAddress}` : null;
+}
+
+function createPointInTimeEvidence(project = {}, scannedAt) {
+  const sourceTimestamp = isoTimestampOrNull(
+    firstValue(
+      project.observedAt,
+      project.sourceTimestamp,
+      project.dataTimestamp,
+      project.quoteTimestamp,
+      project.updatedAt
+    )
+  );
+  const tokenAddress = firstValue(
+    project.tokenAddress,
+    project.contractAddress,
+    project.canonicalAddress,
+    project.baseToken?.address,
+    project.marketData?.tokenAddress
+  );
+  const poolAddress = firstValue(
+    project.poolAddress,
+    project.pairAddress,
+    project.primaryTradablePool,
+    project.marketData?.poolAddress
+  );
+  const catalyst = project.strongestCatalyst || project.nextCatalyst || null;
+  const deterministicBlocks = compactTextList(
+    project.safetyProofState?.deterministicBlocks ||
+      project.safetyDeterministicBlocks ||
+      project.deterministicSafetyBlocks,
+    12
+  );
+
+  return {
+    schemaVersion: 1,
+    capturedAt: scannedAt,
+    sourceTimestamp,
+    identity: {
+      chain: project.chain || project.network || null,
+      tokenAddress: tokenAddress ? String(tokenAddress) : null,
+      poolAddress: poolAddress ? String(poolAddress) : null,
+      resolved: booleanOrNull(
+        firstValue(project.identityResolved, project.strictIdentityVerified, project.tokenIdentityVerified)
+      ),
+      status: firstValue(project.identityStatus, project.identityResolutionStatus, project.finalIdentityState),
+      confidence: numericOrNull(firstValue(project.identityConfidence, project.identityResolutionScore)),
+      source: firstValue(project.identitySource, project.identityResolutionSource),
+      observedAt: isoTimestampOrNull(firstValue(project.identityObservedAt, sourceTimestamp)),
+    },
+    buyers: {
+      uniqueBuyers24h: numericOrNull(
+        firstValue(project.uniqueBuyers24h, project.buyers24h, project.marketData?.buyers24h)
+      ),
+      clusterAdjustedUniqueBuyers24h: numericOrNull(
+        firstValue(
+          project.clusterAdjustedUniqueBuyers24h,
+          project.clusterAdjustedBuyers24h,
+          project.independentBuyers24h
+        )
+      ),
+      previousClusterAdjustedUniqueBuyers24h: numericOrNull(
+        firstValue(project.previousClusterAdjustedUniqueBuyers24h, project.priorIndependentBuyers24h)
+      ),
+      accelerationPct: numericOrNull(
+        firstValue(project.buyerBreadthAccelerationPct, project.independentBuyerAccelerationPct)
+      ),
+      source: firstValue(project.buyerBreadthSource, project.buyerSource),
+      observedAt: isoTimestampOrNull(firstValue(project.buyerBreadthObservedAt, sourceTimestamp)),
+    },
+    smartWallets: {
+      qualifiedNetFlowUsd: numericOrNull(
+        firstValue(
+          project.qualifiedSmartWalletNetFlowUsd,
+          project.walletFlow?.qualifiedSmartWalletNetFlowUsd,
+          project.smartWalletNetFlowUsd
+        )
+      ),
+      qualifiedWalletCount: numericOrNull(
+        firstValue(project.qualifiedSmartWalletCount, project.smartWalletFlow?.qualifiedWalletCount)
+      ),
+      qualificationMethod: firstValue(
+        project.smartWalletQualificationMethod,
+        project.walletFlow?.qualificationMethod
+      ),
+      source: firstValue(project.smartWalletFlowSource, project.walletFlow?.source),
+      observedAt: isoTimestampOrNull(firstValue(project.smartWalletFlowObservedAt, sourceTimestamp)),
+    },
+    liquidity: {
+      liquidityUsd: numericOrNull(
+        firstValue(project.liquidityUsd, project.dexLiquidityUsd, project.marketData?.liquidityUsd)
+      ),
+      previousLiquidityUsd: numericOrNull(
+        firstValue(project.previousLiquidityUsd, project.priorLiquidityUsd)
+      ),
+      growthPct: numericOrNull(firstValue(project.liquidityGrowthPct, project.liquidityFormationPct)),
+      source: firstValue(project.liquiditySource, project.marketData?.source),
+      observedAt: isoTimestampOrNull(firstValue(project.liquidityObservedAt, sourceTimestamp)),
+    },
+    market: {
+      priceUsd: numericOrNull(firstValue(project.priceUsd, project.price, project.marketData?.priceUsd)),
+      priceChange24hPct: numericOrNull(firstValue(project.priceChange24h, project.marketData?.priceChange24h)),
+      volume24hUsd: numericOrNull(firstValue(project.volume24h, project.volume, project.marketData?.volume24h)),
+      previousVolume24hUsd: numericOrNull(firstValue(project.previousVolume24h, project.priorVolume24h)),
+      volumeAccelerationPct: numericOrNull(firstValue(project.volumeAccelerationPct, project.volumeGrowthPct)),
+      marketCapUsd: numericOrNull(
+        firstValue(project.circulatingMarketCapUsd, project.marketCapUsd, project.marketCap)
+      ),
+      source: firstValue(project.marketData?.source, project.source),
+      observedAt: isoTimestampOrNull(firstValue(project.marketObservedAt, sourceTimestamp)),
+    },
+    catalyst: {
+      verified: booleanOrNull(
+        firstValue(project.verifiedCatalyst, catalyst?.verified, catalyst?.verificationStatus === "VERIFIED" ? true : null)
+      ),
+      type: firstValue(catalyst?.type, project.catalystType),
+      announcedAt: isoTimestampOrNull(firstValue(catalyst?.announcedAt, catalyst?.publishedAt)),
+      eventAt: isoTimestampOrNull(firstValue(catalyst?.date, catalyst?.expectedAt)),
+      source: firstValue(catalyst?.source, project.catalystSource),
+    },
+    safety: {
+      status: firstValue(project.safetyProofStatus, project.safetyProofState?.status),
+      honeypotDetected: booleanOrNull(firstValue(project.honeypotDetected, project.isHoneypot)),
+      sellRestricted: booleanOrNull(firstValue(project.sellRestricted, project.sellRestrictionDetected)),
+      contractVerified: booleanOrNull(firstValue(project.contractVerified, project.sourceCodeVerified)),
+      testedChecks: compactTextList(project.safetyProofState?.testedChecks || project.safetyTestedChecks, 16),
+      unknownChecks: compactTextList(project.safetyProofState?.unknownChecks || project.safetyUnknownChecks, 16),
+      deterministicBlocks,
+      source: firstValue(project.safetyProofSource, project.securitySource),
+      observedAt: isoTimestampOrNull(firstValue(project.safetyProofObservedAt, sourceTimestamp)),
+    },
+    execution: {
+      buyQuoteVerified: booleanOrNull(project.buyQuoteVerified),
+      sellQuoteVerified: booleanOrNull(project.sellQuoteVerified),
+      depthVerified: booleanOrNull(firstValue(project.depthVerified, project.orderBookDepthVerified)),
+      slippageVerified: booleanOrNull(project.slippageVerified),
+      quoteTimestamp: isoTimestampOrNull(project.quoteTimestamp),
+      orderBookDepthUsd: numericOrNull(project.orderBookDepthUsd),
+      estimatedRoundTripSlippagePct: numericOrNull(project.estimatedRoundTripSlippagePct),
+      routeTruthStatus: firstValue(project.routeTruthStatus, project.executionProofState),
+      source: firstValue(project.executionRecoverySource, project.routeSource),
+    },
+    provenance: {
+      discoverySources: compactTextList(project.discoverySources || project.sources, 20),
+      providerStatuses: Array.isArray(project.providerStatuses)
+        ? project.providerStatuses.slice(0, 20).map((item) => ({
+            provider: compactText(item?.provider || item?.source || "", 80),
+            status: compactText(item?.status || "", 80),
+            observedAt: isoTimestampOrNull(item?.observedAt || item?.timestamp),
+          }))
+        : [],
+      aliasConflicts: compactTextList(project.aliasConflicts || project.canonicalFieldConflicts, 12),
+    },
+    productionDecision: {
+      score: numericOrNull(firstValue(project.pipelineScore, project.opportunityScore)),
+      rank: numericOrNull(firstValue(project.marketOpportunityRank, project.opportunityRank)),
+      verdict: firstValue(project.finalSelectionState, project.pipelineTier, project.verdict),
+      confidence: numericOrNull(firstValue(project.pipelineConfidenceScore, project.confidenceScore)),
+    },
+  };
+}
+
 function compactEvidence(evidence = []) {
   return Array.isArray(evidence)
     ? evidence.slice(-12).map((item) => ({
@@ -176,15 +383,24 @@ function compactCatalyst(value = null) {
   };
 }
 
-export function createScanRecord(project = {}) {
+export function createScanRecord(project = {}, options = {}) {
+  const scannedAt = isoTimestampOrNull(options.scannedAt || project.scanTimestamp) || new Date().toISOString();
+  const pointInTime = createPointInTimeEvidence(project, scannedAt);
   return {
     id: tokenId(project),
+    identityKey: canonicalIdentityKey(project, pointInTime.identity.tokenAddress),
+    pointInTimeSchemaVersion: 3,
+    scanRunId: project.scanRunId || project.runId || null,
+    codeCommitSha: project.codeCommitSha || process.env.GITHUB_SHA || null,
     name: project.name || "Unknown",
     symbol: project.symbol || "UNKNOWN",
     chain: project.chain || "unknown",
+    tokenAddress: pointInTime.identity.tokenAddress,
+    poolAddress: pointInTime.identity.poolAddress,
     source: project.source || "unknown",
     discoverySources: project.discoverySources || [],
-    scannedAt: new Date().toISOString(),
+    scannedAt,
+    pointInTime,
 
     market: {
       priceUsd: num(project.priceUsd ?? project.price),
@@ -387,7 +603,8 @@ export function createScanRecord(project = {}) {
 
 export function saveScanMemory(projects = []) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const newRecords = safeProjects.map(createScanRecord);
+  const scannedAt = new Date().toISOString();
+  const newRecords = safeProjects.map((project) => createScanRecord(project, { scannedAt }));
 
   if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
     const sidecar = appendMemorySidecar(MEMORY_FILE, newRecords, { recordType: "scan-history" });
