@@ -94,6 +94,7 @@ function validRequiredReportFixture(fileName) {
         blocked: 0,
       },
       microEligible: [],
+      ranked: [],
     };
   }
   if (fileName === "micro-test-watchlist.json") {

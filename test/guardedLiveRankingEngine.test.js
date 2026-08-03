@@ -382,3 +382,39 @@ test("live ranking report does not publish an incomplete candidate as a pick", (
   assert.deepEqual(report.top10, []);
   assert.equal(report.dataRecovery.length, 1);
 });
+
+test("live ranking report keeps a complete bounded index without duplicating every proof graph", () => {
+  const projectCount = 2000;
+  const projects = Array.from({ length: projectCount }, (_, index) => ({
+    ...candidate({
+      name: `Recovery Candidate ${index}`,
+      symbol: `R${index}`,
+      tokenAddress: `0x${String(index + 1).padStart(40, "0")}`,
+      contractAddress: `0x${String(index + 1).padStart(40, "0")}`,
+      liveRank: index + 1,
+      legacyRank: index + 1,
+      liveActionStatus: "DATA_RECOVERY_REQUIRED",
+      liveRankingDisplayEligible: true,
+      liveRankingUtilityEligible: false,
+      liveRankingMissingEvidence: ["verifiedUtilityEvidence"],
+    }),
+    liveRankingTrace: {
+      proofGraph: "x".repeat(5000),
+      execution: { safetyVerified: false, safetyStatus: "UNKNOWN" },
+    },
+  }));
+  const reportDir = fs.mkdtempSync(path.join(os.tmpdir(), "guarded-bounded-report-"));
+  const paths = writeGuardedLiveRankingReports(
+    projects,
+    { scanRunId: "scan_bounded_report" },
+    { reportDir }
+  );
+  const report = JSON.parse(fs.readFileSync(paths.liveCoreRankingJsonPath, "utf8"));
+  const reportBytes = fs.statSync(paths.liveCoreRankingJsonPath).size;
+
+  assert.equal(report.ranked.length, projectCount);
+  assert.ok(report.ranked.every((project) => project.liveRankingTrace === undefined));
+  assert.equal(report.dataRecovery.length, 25);
+  assert.equal(report.dataRecovery[0].liveRankingTrace.proofGraph.length, 5000);
+  assert.ok(reportBytes < 3_000_000, `expected bounded report, received ${reportBytes} bytes`);
+});

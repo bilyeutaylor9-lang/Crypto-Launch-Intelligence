@@ -2,6 +2,7 @@
 /reports/
 /data/
 /docs/
+/.test-artifact-backup-*/
 /.env
 /.env.local
 /supabase/.branches/

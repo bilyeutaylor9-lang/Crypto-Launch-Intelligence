@@ -195,6 +195,12 @@ function guardedLiveRankingIssues(report = {}, fileName = "") {
     if (total !== Number(report.projectsAnalyzed || 0)) {
       issues.push(`${fileName}: status counts ${total} do not equal projectsAnalyzed ${report.projectsAnalyzed}`);
     }
+    if (!Array.isArray(report.ranked) || report.ranked.length !== Number(report.projectsAnalyzed || 0)) {
+      issues.push(`${fileName}: ranked audit index must contain every analyzed project exactly once`);
+    }
+    if ((report.ranked || []).some((candidate) => candidate.liveRankingTrace !== undefined)) {
+      issues.push(`${fileName}: ranked audit index must not duplicate full proof traces`);
+    }
     if (
       Number(summary.microTestEligible || 0) + Number(summary.researchWatchlist || 0) === 0 &&
       top10.length > 0

@@ -1030,6 +1030,29 @@ function compactProject(project = {}) {
   };
 }
 
+function compactProjectIndex(project = {}) {
+  return {
+    liveRank: project.liveRank ?? null,
+    legacyRank: project.legacyRank ?? null,
+    name: project.name || "Unknown",
+    symbol: project.symbol || null,
+    chain: project.chain || null,
+    identityKey: project.identityKey || null,
+    tokenAddress: tokenAddress(project),
+    poolAddress: poolAddress(project),
+    guardedLiveScore: project.guardedLiveScore ?? 0,
+    legacyProductionScore: project.legacyProductionScore ?? null,
+    liveRankingCoverage: project.liveRankingCoverage ?? 0,
+    liveActionStatus: project.liveActionStatus || "DATA_RECOVERY_REQUIRED",
+    liveExecutionReady: project.liveExecutionReady === true,
+    liveRankingDisplayEligible: project.liveRankingDisplayEligible === true,
+    liveRankingUtilityEligible: project.liveRankingUtilityEligible === true,
+    missingEvidenceCount: array(project.liveRankingMissingEvidence).length,
+    blockerCount: array(project.liveRankingBlocks).length,
+    gateReasonCount: array(project.liveRankingGateReasons).length,
+  };
+}
+
 function reportStatus(summary = {}) {
   if (!summary.analyzed) return "NO_PROJECTS";
   if (summary.microTestEligible > 0) return "PASS_WITH_MICRO_TEST_ELIGIBLE";
@@ -1106,24 +1129,32 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
   const ranked = [...projects].sort(
     (left, right) => Number(left.liveRank || 0) - Number(right.liveRank || 0)
   );
-  const rows = ranked.map(compactProject);
+  const rows = ranked.map(compactProjectIndex);
+  const projectsByStatus = (status, limit) =>
+    ranked
+      .filter(
+        (project) =>
+          (project.liveActionStatus || "DATA_RECOVERY_REQUIRED") === status
+      )
+      .slice(0, limit);
   const byStatus = (status, limit) =>
-    rows.filter((project) => project.liveActionStatus === status).slice(0, limit);
-  const evidenceBacked = rows.filter((project) =>
+    projectsByStatus(status, limit).map(compactProject);
+  const evidenceBackedProjects = ranked.filter((project) =>
     ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus)
   );
-  const recoveryLead = byStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
+  const evidenceBacked = evidenceBackedProjects.slice(0, 10).map(compactProject);
+  const recoveryLead = projectsByStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
   const summary = {
     analyzed: rows.length,
-    microTestEligible: byStatus("MICRO_TEST_ELIGIBLE", rows.length).length,
-    researchWatchlist: byStatus("RESEARCH_WATCHLIST", rows.length).length,
-    dataRecoveryRequired: byStatus("DATA_RECOVERY_REQUIRED", rows.length).length,
-    blocked: byStatus("BLOCKED", rows.length).length,
+    microTestEligible: projectsByStatus("MICRO_TEST_ELIGIBLE", ranked.length).length,
+    researchWatchlist: projectsByStatus("RESEARCH_WATCHLIST", ranked.length).length,
+    dataRecoveryRequired: projectsByStatus("DATA_RECOVERY_REQUIRED", ranked.length).length,
+    blocked: projectsByStatus("BLOCKED", ranked.length).length,
     legacyLeader: [...rows].sort(
       (left, right) => Number(left.legacyRank || Infinity) - Number(right.legacyRank || Infinity)
     )[0]?.name || null,
-    liveLeader: evidenceBacked[0]?.name || null,
-    liveLeaderStatus: evidenceBacked[0]?.liveActionStatus || null,
+    liveLeader: evidenceBackedProjects[0]?.name || null,
+    liveLeaderStatus: evidenceBackedProjects[0]?.liveActionStatus || null,
     recoveryLeader: recoveryLead?.name || null,
     invalidDisplayIdentity: rows.filter(
       (project) => project.liveRankingDisplayEligible !== true
@@ -1145,11 +1176,17 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     automaticTradingEnabled: false,
     disclaimer:
       "Research and manual paper-execution support only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
-    policy: meta.guardedLiveRankingPolicy || rows[0]?.liveRankingTrace?.policy || null,
+    policy: meta.guardedLiveRankingPolicy || ranked[0]?.liveRankingTrace?.policy || null,
     configuration: meta.guardedLiveRankingConfiguration || null,
     projectsAnalyzed: rows.length,
     summary,
-    top10: evidenceBacked.slice(0, 10),
+    rankedDetailPolicy: {
+      mode: "COMPLETE_LIGHTWEIGHT_INDEX_WITH_BOUNDED_LANE_DETAILS",
+      rankedIndexCount: rows.length,
+      fullTraceSections: ["top10", "microEligible", "researchWatchlist", "dataRecovery", "blocked"],
+      csvContainsAllProjects: true,
+    },
+    top10: evidenceBacked,
     microEligible: byStatus("MICRO_TEST_ELIGIBLE", 10),
     researchWatchlist: byStatus("RESEARCH_WATCHLIST", 25),
     dataRecovery: byStatus("DATA_RECOVERY_REQUIRED", 25),
@@ -1182,22 +1219,22 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     "missingEvidence",
     "blocks",
   ];
-  const csvRows = rows.map((project) => [
+  const csvRows = ranked.map((project) => [
     project.liveRank,
     project.legacyRank,
     project.name,
     project.symbol,
     project.chain,
-    project.tokenAddress,
+    tokenAddress(project),
     project.guardedLiveScore,
     project.legacyProductionScore,
     project.liveActionStatus,
     project.liveRankingCoverage,
     project.liveExecutionReady,
-    project.safetyVerified,
-    project.quoteAgeSeconds,
-    project.routeDepthUsd,
-    project.estimatedRoundTripSlippagePct,
+    project.liveRankingTrace?.execution?.safetyVerified === true,
+    project.liveRankingTrace?.execution?.quoteAgeSeconds ?? null,
+    project.liveRankingTrace?.execution?.routeDepthUsd ?? null,
+    project.liveRankingTrace?.execution?.estimatedRoundTripSlippagePct ?? null,
     project.microTestPlan?.maximumExperimentAllocationUsd,
     project.liveRankingMissingEvidence,
     project.liveRankingBlocks,
