@@ -142,6 +142,8 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     candidate.coverageKey = coverageKey(candidate);
     candidate.history = historyFor(history, candidate.identityKey);
   }
+  const totalUniqueIdentityCount = new Set(candidates.map((candidate) => candidate.identityKey)).size;
+  const totalDuplicateIdentityCount = Math.max(0, candidates.length - totalUniqueIdentityCount);
 
   const hardBlocked = candidates.filter((candidate) => (candidate.project.preIntelligenceHardBlockers || []).length);
   const identityEnrichment = candidates.filter(
@@ -406,8 +408,18 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
       evidenceIneligibleCandidateCount: researchOnly.length,
       identityOnlyCandidateCount: identityEnrichment.length,
       uniqueCandidateCount: unique.length,
-      duplicateIdentityCount: duplicates.length,
+      rankableUniqueCandidateCount: unique.length,
+      uniqueIdentityEnrichmentCandidateCount: uniqueIdentityEnrichment.length,
+      totalUniqueCandidateCount: totalUniqueIdentityCount,
+      duplicateIdentityCount: totalDuplicateIdentityCount,
+      selectionLaneDuplicateIdentityCount: duplicates.length,
       selectedCount: selectedProjects.length,
+      rankableSelectedCount: selectedProjects.filter(
+        (project) => (project.preIntelligenceLane || project.discoveryLane) !== "identity-only"
+      ).length,
+      identityEnrichmentSelectedCount: selectedProjects.filter(
+        (project) => (project.preIntelligenceLane || project.discoveryLane) === "identity-only"
+      ).length,
       deferredCount: allExcluded.length,
       selectedByReason,
       selectedByChain: countBy(selected, (candidate) => normalized(candidate.project.chain || candidate.project.network)),

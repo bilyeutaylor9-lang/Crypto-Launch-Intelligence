@@ -87,13 +87,16 @@ function projectNameFromTitle(title = "") {
 
 export function candidateFromArticle(article = {}, query = "") {
   const title = cleanText(article.title);
+  const claimId = `google-news-${Buffer.from(`${query}:${title}`).toString("base64url").slice(0, 48)}`;
 
   return {
     name: projectNameFromTitle(title),
     symbol: symbolFromTitle(title) || "UNRESOLVED",
     chain: null,
     address: null,
-    pairAddress: `google-news-${Buffer.from(`${query}:${title}`).toString("base64url").slice(0, 48)}`,
+    pairAddress: null,
+    claimId,
+    researchDocumentId: claimId,
     dex: "internet-research",
     url: article.url || null,
     priceUsd: null,

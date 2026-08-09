@@ -82,6 +82,7 @@ import {
 import {
   __coinGeckoTestHooks,
   normalizeCoinGeckoListItem,
+  normalizeCoinGeckoMarket,
 } from "../src/data/coinGeckoConnector.js";
 import { __birdeyeTestHooks } from "../src/data/birdeyeConnector.js";
 
@@ -2560,6 +2561,32 @@ test("CoinGecko coin list platform identities become strict chain-aware candidat
   );
   assert.equal(__coinGeckoTestHooks.normalizeCoinGeckoPlatform("binance-smart-chain"), "bsc");
   assert.equal(__coinGeckoTestHooks.normalizeCoinGeckoPlatform("real-world-assets-rwa"), null);
+});
+
+test("CoinGecko dedupe preserves platform identity when market evidence arrives later", () => {
+  const identity = normalizeCoinGeckoListItem({
+    id: "utility-alpha",
+    symbol: "ualpha",
+    name: "Utility Alpha",
+    platforms: {
+      base: "0x00000000000000000000000000000000000000a1",
+    },
+  });
+  const market = normalizeCoinGeckoMarket({
+    id: "utility-alpha",
+    symbol: "ualpha",
+    name: "Utility Alpha",
+    current_price: 0.25,
+    market_cap: 4_000_000,
+    total_volume: 900_000,
+  });
+  const [merged] = __coinGeckoTestHooks.dedupeProjects([identity, market]);
+
+  assert.equal(merged.chain, "base");
+  assert.equal(merged.tokenAddress, "0x00000000000000000000000000000000000000a1");
+  assert.equal(merged.address, "0x00000000000000000000000000000000000000a1");
+  assert.equal(merged.marketCap, 4_000_000);
+  assert.deepEqual(new Set(merged.sources), new Set(["coingecko-list", "coingecko"]));
 });
 
 test("Binance routes to Binance.US in US mode and keeps liquidity separate from volume", async () => {

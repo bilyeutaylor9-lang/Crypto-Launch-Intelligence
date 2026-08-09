@@ -62,6 +62,9 @@ test("universe ledger blocks rejected or unresolved identity projects", () => {
   assert.equal(record.processing.stage, "BLOCKED");
   assert.ok(record.finalBlockingReasons.includes("canonical identity unresolved"));
   assert.ok(record.finalBlockingReasons.includes("manipulation-risk family active"));
+  assert.equal(record.baselineScan.priceUsd, null);
+  assert.equal(record.baselineScan.liquidityUsd, null);
+  assert.equal(record.baselineScan.marketCap, null);
 });
 
 test("universe ledger snapshot accounts for full target coverage", () => {

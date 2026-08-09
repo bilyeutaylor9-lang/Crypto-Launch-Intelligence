@@ -20,7 +20,12 @@ import {
   buildDiscoveryCoverage,
 } from "./discovery/discoveryCoverageEngine.js";
 import { planCoverageSelection } from "./discovery/coverageSelectionPlanner.js";
-import { identityKeyForProject, attachProjectIdentity } from "./discovery/projectIdentityGraph.js";
+import {
+  attachProjectIdentity,
+  identityKeyForProject,
+  identityKeysForProject,
+  projectIdentitySignals,
+} from "./discovery/projectIdentityGraph.js";
 import { buildSourceCapabilityAudit } from "./discovery/sourceCapabilityAudit.js";
 import { buildDiscoveryFrontier } from "./discovery/discoveryFrontierEngine.js";
 import {
@@ -133,21 +138,53 @@ function discoveryFailureType(error = {}) {
   return "FAILED";
 }
 
-function keyForProject(project = {}) {
-  return identityKeyForProject(project);
+function conservativeNumber(a = null, b = null) {
+  const left = numOrNull(a);
+  const right = numOrNull(b);
+  if (left === null && right === null) return null;
+  if (left > 0 && right > 0) return Math.min(left, right);
+  return left ?? right;
 }
 
-function conservativeNumber(a = 0, b = 0) {
-  const left = num(a);
-  const right = num(b);
-  if (left > 0 && right > 0) return Math.min(left, right);
-  return left || right || 0;
+function maxKnownNumber(...values) {
+  const known = values.map(numOrNull).filter((value) => value !== null);
+  return known.length ? Math.max(...known) : null;
 }
 
 function valuationDisagreement(values = []) {
   const active = values.map(num).filter((value) => value > 0);
+  if (active.length === 0) return null;
   if (active.length < 2) return 1;
   return Number((Math.max(...active) / Math.min(...active)).toFixed(2));
+}
+
+function knownChain(value = "") {
+  const chain = String(value || "").trim().toLowerCase();
+  return chain && chain !== "unknown" ? chain : null;
+}
+
+function mergeUnique(values = [], keyForValue = (value) => JSON.stringify(value)) {
+  const seen = new Set();
+  const merged = [];
+  for (const value of values.filter((entry) => entry !== undefined && entry !== null && entry !== "")) {
+    const key = keyForValue(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(value);
+  }
+  return merged;
+}
+
+function mergedTradability(a = {}, b = {}) {
+  const candidates = [a, b];
+  const researchOnly = candidates.every(
+    (project) => project.researchOnly === true || project.tradableCandidate === false
+  );
+  const explicitlyTradable = candidates.some((project) => project.tradableCandidate === true);
+  return {
+    researchOnly: researchOnly && !explicitlyTradable,
+    tradableCandidate: explicitlyTradable ? true : researchOnly ? false : undefined,
+  };
 }
 
 function missingDataCompletionForProject(project = {}) {
@@ -197,14 +234,14 @@ function missingDataCompletionForProject(project = {}) {
 }
 
 function normalizeProject(project = {}) {
-  const circulatingMarketCap = num(
+  const circulatingMarketCap = numOrNull(
     project.circulatingMarketCap ??
       project.verifiedMarketCap ??
       project.marketData?.marketCap ??
       project.marketCap
   );
-  const fullyDilutedValue = num(project.fdv ?? project.fullyDilutedValue ?? project.marketData?.fdv);
-  const estimatedMarketCap = num(project.estimatedMarketCap ?? project.rawCandidate?.marketCap);
+  const fullyDilutedValue = numOrNull(project.fdv ?? project.fullyDilutedValue ?? project.marketData?.fdv);
+  const estimatedMarketCap = numOrNull(project.estimatedMarketCap ?? project.rawCandidate?.marketCap);
   const valuationSources = [
     ...(Array.isArray(project.valuationSources) ? project.valuationSources : []),
     ...(circulatingMarketCap > 0 ? [{ source: project.source || "unknown", type: "circulatingMarketCap", value: circulatingMarketCap }] : []),
@@ -222,15 +259,15 @@ function normalizeProject(project = {}) {
     liquidityUsd: numOrNull(project.liquidityUsd ?? project.liquidity?.usd ?? project.liquidity),
     volume24h: numOrNull(project.volume24h ?? project.volume?.h24 ?? project.volume),
     circulatingMarketCap,
-    verifiedMarketCap: num(project.verifiedMarketCap),
+    verifiedMarketCap: numOrNull(project.verifiedMarketCap),
     estimatedMarketCap,
     marketCap: circulatingMarketCap,
     fdv: fullyDilutedValue,
     fullyDilutedValue,
-    circulatingSupply: num(project.circulatingSupply ?? project.marketData?.circulatingSupply),
-    totalSupply: num(project.totalSupply ?? project.marketData?.totalSupply),
-    maxSupply: num(project.maxSupply ?? project.marketData?.maxSupply),
-    supplyConfidence: num(project.supplyConfidence),
+    circulatingSupply: numOrNull(project.circulatingSupply ?? project.marketData?.circulatingSupply),
+    totalSupply: numOrNull(project.totalSupply ?? project.marketData?.totalSupply),
+    maxSupply: numOrNull(project.maxSupply ?? project.marketData?.maxSupply),
+    supplyConfidence: numOrNull(project.supplyConfidence),
     valuationSources,
     valuationDisagreement: valuationDisagreement(valuationSources.map((source) => source.value)),
     priceChange24h: numOrNull(project.priceChange24h ?? project.priceChange?.h24),
@@ -262,31 +299,88 @@ export function mergeProject(existing = {}, incoming = {}) {
     a.source,
     b.source,
   ].filter(Boolean);
+  const chain = knownChain(b.chain || b.chainId) || knownChain(a.chain || a.chainId) || "unknown";
+  const address = b.address || b.tokenAddress || b.contractAddress || a.address || a.tokenAddress || a.contractAddress || null;
+  const tokenAddress = b.tokenAddress || b.contractAddress || b.address || a.tokenAddress || a.contractAddress || a.address || null;
+  const pairAddress = b.pairAddress || b.poolAddress || a.pairAddress || a.poolAddress || null;
+  const poolAddress = b.poolAddress || b.pairAddress || a.poolAddress || a.pairAddress || null;
+  const tradability = mergedTradability(a, b);
 
   const merged = {
     ...a,
     ...b,
     name: a.name !== "Unknown" ? a.name : b.name,
     symbol: a.symbol !== "UNKNOWN" ? a.symbol : b.symbol,
-    priceUsd: b.priceUsd || a.priceUsd,
-    liquidityUsd: Math.max(a.liquidityUsd, b.liquidityUsd),
-    volume24h: Math.max(a.volume24h, b.volume24h),
+    chain,
+    chainId: b.chainId || a.chainId || chain,
+    address,
+    tokenAddress,
+    contractAddress: b.contractAddress || b.tokenAddress || b.address || a.contractAddress || a.tokenAddress || a.address || null,
+    pairAddress,
+    poolAddress,
+    tokenAddresses: mergeUnique([
+      ...(a.tokenAddresses || []),
+      ...(a.contractAddresses || []),
+      a.tokenAddress,
+      a.contractAddress,
+      ...(b.tokenAddresses || []),
+      ...(b.contractAddresses || []),
+      b.tokenAddress,
+      b.contractAddress,
+    ]),
+    poolAddresses: mergeUnique([
+      ...(a.poolAddresses || []),
+      a.poolAddress,
+      a.pairAddress,
+      ...(b.poolAddresses || []),
+      b.poolAddress,
+      b.pairAddress,
+    ]),
+    baseToken: {
+      ...(a.baseToken || {}),
+      ...(b.baseToken || {}),
+      address: b.baseToken?.address || a.baseToken?.address || tokenAddress,
+    },
+    quoteToken: {
+      ...(a.quoteToken || {}),
+      ...(b.quoteToken || {}),
+      address: b.quoteToken?.address || a.quoteToken?.address || b.quoteTokenAddress || a.quoteTokenAddress || null,
+    },
+    quoteTokenAddress: b.quoteTokenAddress || b.quoteToken?.address || a.quoteTokenAddress || a.quoteToken?.address || null,
+    coinGeckoId: b.coinGeckoId || b.coingeckoId || a.coinGeckoId || a.coingeckoId || null,
+    providerAssetId: b.providerAssetId || a.providerAssetId || null,
+    marketKey: b.marketKey || a.marketKey || null,
+    coinGeckoPlatforms: mergeUnique(
+      [...(a.coinGeckoPlatforms || []), ...(b.coinGeckoPlatforms || [])],
+      (platform) => `${platform.chain || platform.platform || "unknown"}:${platform.tokenAddress || "unknown"}`
+    ),
+    narrativeCategories: mergeUnique([
+      ...(a.narrativeCategories || []),
+      ...(b.narrativeCategories || []),
+    ], (value) => String(value).toLowerCase()),
+    ...tradability,
+    identityResolutionRequired: address || pairAddress
+      ? false
+      : Boolean(a.identityResolutionRequired || b.identityResolutionRequired),
+    priceUsd: b.priceUsd ?? a.priceUsd ?? null,
+    liquidityUsd: maxKnownNumber(a.liquidityUsd, b.liquidityUsd),
+    volume24h: maxKnownNumber(a.volume24h, b.volume24h),
     circulatingMarketCap: conservativeNumber(a.circulatingMarketCap, b.circulatingMarketCap),
     verifiedMarketCap: conservativeNumber(a.verifiedMarketCap, b.verifiedMarketCap),
     estimatedMarketCap: conservativeNumber(a.estimatedMarketCap, b.estimatedMarketCap),
     marketCap: conservativeNumber(a.marketCap, b.marketCap),
-    fdv: Math.max(a.fdv, b.fdv),
-    fullyDilutedValue: Math.max(a.fullyDilutedValue, b.fullyDilutedValue),
-    circulatingSupply: a.circulatingSupply || b.circulatingSupply,
-    totalSupply: Math.max(a.totalSupply, b.totalSupply),
-    maxSupply: Math.max(a.maxSupply, b.maxSupply),
-    supplyConfidence: Math.max(a.supplyConfidence, b.supplyConfidence),
+    fdv: maxKnownNumber(a.fdv, b.fdv),
+    fullyDilutedValue: maxKnownNumber(a.fullyDilutedValue, b.fullyDilutedValue),
+    circulatingSupply: a.circulatingSupply ?? b.circulatingSupply ?? null,
+    totalSupply: maxKnownNumber(a.totalSupply, b.totalSupply),
+    maxSupply: maxKnownNumber(a.maxSupply, b.maxSupply),
+    supplyConfidence: maxKnownNumber(a.supplyConfidence, b.supplyConfidence),
     valuationSources: [...(a.valuationSources || []), ...(b.valuationSources || [])],
     valuationDisagreement: valuationDisagreement([
       ...(a.valuationSources || []),
       ...(b.valuationSources || []),
     ].map((source) => source.value)),
-    tvl: Math.max(num(a.tvl), num(b.tvl)),
+    tvl: maxKnownNumber(a.tvl, b.tvl),
     discoverySources: [...new Set(sources)],
     discoveredAt: a.discoveredAt || b.discoveredAt || new Date().toISOString(),
   };
@@ -304,24 +398,67 @@ export function mergeProject(existing = {}, incoming = {}) {
   });
 }
 
-function dedupeAndMerge(projects = []) {
+export function dedupeAndMerge(projects = []) {
   const safeProjects = normalizeResults(projects, []);
-  const seen = new Map();
+  const projectsToMerge = safeProjects
+    .filter((project) => project && typeof project === "object")
+    .map(normalizeProject);
+  const parent = projectsToMerge.map((_, index) => index);
+  const exactContracts = projectsToMerge.map((project) => {
+    const signals = projectIdentitySignals(project);
+    return new Set(signals.tokenContracts.map((contract) => `${signals.chain}:token:${contract}`));
+  });
+  const ownerByKey = new Map();
 
-  for (const rawProject of safeProjects) {
-    if (!rawProject || typeof rawProject !== "object") continue;
-
-    const project = normalizeProject(rawProject);
-    const key = keyForProject(project);
-
-    if (!seen.has(key)) {
-      seen.set(key, project);
-    } else {
-      seen.set(key, mergeProject(seen.get(key), project));
+  const find = (index) => {
+    let root = index;
+    while (parent[root] !== root) root = parent[root];
+    while (parent[index] !== index) {
+      const next = parent[index];
+      parent[index] = root;
+      index = next;
     }
-  }
+    return root;
+  };
 
-  return [...seen.values()];
+  const union = (leftIndex, rightIndex) => {
+    const left = find(leftIndex);
+    const right = find(rightIndex);
+    if (left === right) return left;
+    const leftContracts = exactContracts[left];
+    const rightContracts = exactContracts[right];
+    const conflicts =
+      leftContracts.size > 0 &&
+      rightContracts.size > 0 &&
+      ![...leftContracts].some((key) => rightContracts.has(key));
+    if (conflicts) return null;
+
+    parent[right] = left;
+    exactContracts[left] = new Set([...leftContracts, ...rightContracts]);
+    return left;
+  };
+
+  projectsToMerge.forEach((project, index) => {
+    for (const key of identityKeysForProject(project)) {
+      if (!ownerByKey.has(key)) {
+        ownerByKey.set(key, index);
+        continue;
+      }
+      const owner = ownerByKey.get(key);
+      const mergedRoot = union(owner, index);
+      if (mergedRoot !== null) ownerByKey.set(key, mergedRoot);
+    }
+  });
+
+  const groups = new Map();
+  projectsToMerge.forEach((project, index) => {
+    const root = find(index);
+    const group = groups.get(root) || [];
+    group.push(project);
+    groups.set(root, group);
+  });
+
+  return [...groups.values()].map((group) => group.slice(1).reduce(mergeProject, group[0]));
 }
 
 function enrichDiscoverySource(project = {}, source = "unknown") {

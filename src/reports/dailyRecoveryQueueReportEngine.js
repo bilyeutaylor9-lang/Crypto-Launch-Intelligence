@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { hasCleanDisplayIdentity, isLikelyAggregateCandidate } from "../identity/displayIdentityGuard.js";
+import {
+  hasCleanDisplayIdentity,
+  isLikelyAggregateCandidate,
+  isLikelyMemeIdentity,
+} from "../identity/displayIdentityGuard.js";
 
 const MAX_ITEMS = 50;
 
@@ -104,6 +108,11 @@ export function summarizeDailyRecoveryQueue(projects = [], meta = {}) {
         score(project) > 0 &&
         missingItems(project).length > 0 &&
         recoverableLane(project) &&
+        project.researchOnly !== true &&
+        project.tradableCandidate !== false &&
+        project.memeOnlySpeculative !== true &&
+        project.memeBrandingDetected !== true &&
+        !isLikelyMemeIdentity(project) &&
         hasCleanDisplayIdentity(project, { requireName: false }) &&
         !isLikelyAggregateCandidate(project)
     )

@@ -187,7 +187,11 @@ test("news and repository discovery remain unresolved research until identity is
   assert.equal(symbolFromTitle("New chain project launches mainnet"), null);
   assert.equal(article.tradableCandidate, false);
   assert.equal(article.liquidityUsd, null);
+  assert.equal(article.pairAddress, null);
+  assert.match(article.claimId, /^google-news-/);
   assert.equal(repo.tradableCandidate, false);
+  assert.equal(repo.symbol, "UNRESOLVED");
+  assert.equal(repo.repositoryCode, "ALPHAPRO");
   assert.equal(repo.commits30d, null);
   assert.equal(repo.contributors, null);
 });

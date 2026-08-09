@@ -87,7 +87,8 @@ export function normalizeRepo(repo = {}) {
 
   return {
     name: repo.full_name || repo.name || "GitHub Project",
-    symbol: repoSymbol(repo),
+    symbol: "UNRESOLVED",
+    repositoryCode: repoSymbol(repo),
     chain: inferChain(text),
     category: "github-discovered crypto project",
     description: repo.description || "Public GitHub repository discovered by free GitHub search.",

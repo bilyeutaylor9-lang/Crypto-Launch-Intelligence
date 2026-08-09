@@ -75,6 +75,90 @@ test("utility quality separates real utility from meme-only speculation", () => 
   assert.equal(meme.utilityClassification, "MEME_SPECULATION");
 });
 
+test("single-token meme branding is enough to exclude obvious launch memes", () => {
+  for (const identity of [
+    { name: "Midas Toad", symbol: "TOAD" },
+    { name: "Pump Guy", symbol: "GUY" },
+    { name: "dogshit", symbol: "DS" },
+    { name: "Rave Cat", symbol: "RAVE" },
+  ]) {
+    const [result] = analyzeUtilityQualityBatch([
+      base({
+        ...identity,
+        description: "Community launch token.",
+        developerActivityScore: 0,
+        githubProScore: 0,
+        tokenomicsScore: 0,
+        ecosystemIntegrationScore: 0,
+        discoverySources: ["dexscreener"],
+        alerts: ["Relative strength leadership detected.", "Contract risk warning detected."],
+      }),
+    ]);
+
+    assert.equal(result.memeBrandingDetected, true, identity.name);
+    assert.equal(result.memeOnlySpeculative, true, identity.name);
+    assert.equal(result.utilityClassification, "MEME_SPECULATION", identity.name);
+    assert.deepEqual(result.alerts, ["Contract risk warning detected."], identity.name);
+    assert.equal(result.suppressedOpportunityAlertCount, 1, identity.name);
+  }
+});
+
+test("meme symbol matching does not reject innocent substrings", () => {
+  const [utility] = analyzeUtilityQualityBatch([
+    base({
+      name: "Education Catalyst Protocol",
+      symbol: "CATALYST",
+      category: "developer infrastructure",
+      description: "Protocol app with SDK API mainnet developer docs users revenue fees integrations staking utility.",
+      website: "https://catalyst.example",
+      docsUrl: "https://docs.catalyst.example",
+      githubRepo: "https://github.com/catalyst/protocol",
+      developerActivityScore: 82,
+      ecosystemIntegrationScore: 78,
+      tokenomicsScore: 75,
+      liveCatalystRadarScore: 72,
+      discoverySources: ["dexscreener", "github", "official-docs"],
+    }),
+  ]);
+
+  assert.equal(utility.memeBrandingDetected, false);
+  assert.equal(utility.realUtilityQualified, true);
+});
+
+test("strong utility evidence cannot override the default no-meme operating policy", () => {
+  const previous = process.env.EXCLUDE_MEME_CANDIDATES;
+  process.env.EXCLUDE_MEME_CANDIDATES = "true";
+  try {
+    const [mixed] = analyzeUtilityQualityBatch([
+      base({
+        name: "Pepe Compute Protocol",
+        symbol: "PEPE",
+        category: "AI infrastructure",
+        description: "AI compute protocol with SDK API mainnet developer docs users revenue fees integrations and staking utility.",
+        website: "https://pepe-compute.example",
+        docsUrl: "https://docs.pepe-compute.example",
+        githubRepo: "https://github.com/example/pepe-compute",
+        developerActivityScore: 84,
+        githubProScore: 80,
+        ecosystemIntegrationScore: 78,
+        tokenomicsScore: 76,
+        liveCatalystRadarScore: 72,
+        discoverySources: ["dexscreener", "github", "official-docs"],
+      }),
+    ]);
+    const report = summarizeUtilityQuality([mixed]);
+
+    assert.equal(mixed.memeBrandingDetected, true);
+    assert.equal(mixed.memePolicyExcluded, true);
+    assert.equal(mixed.realUtilityQualified, false);
+    assert.equal(mixed.utilityClassification, "MIXED_MEME_UTILITY");
+    assert.equal(report.topRealUtilityResearch.length, 0);
+  } finally {
+    if (previous === undefined) delete process.env.EXCLUDE_MEME_CANDIDATES;
+    else process.env.EXCLUDE_MEME_CANDIDATES = previous;
+  }
+});
+
 test("utility quality uses canonical aliases for provider-style product evidence", () => {
   const [utility] = analyzeUtilityQualityBatch([
     base({

@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { summarizeUniverseLedger } from "../learning/universeLedgerStore.js";
+import {
+  hasCleanDisplayIdentity,
+  isLikelyAggregateCandidate,
+  isLikelyMemeIdentity,
+} from "../identity/displayIdentityGuard.js";
 
 function compactRecord(record = {}) {
   return {
@@ -37,9 +42,37 @@ function compactRecord(record = {}) {
   };
 }
 
+export function publicUniverseLedgerRecordEligible(record = {}) {
+  const displayRecord = record.canonicalIdentity
+    ? {
+        name: record.canonicalIdentity.name,
+        symbol: record.canonicalIdentity.symbol,
+        chain: record.canonicalIdentity.chain,
+        discoverySources: record.sourceCoverage?.sources || [],
+      }
+    : record;
+
+  return Boolean(
+    hasCleanDisplayIdentity(displayRecord) &&
+      !isLikelyMemeIdentity(displayRecord) &&
+      !isLikelyAggregateCandidate(displayRecord)
+  );
+}
+
+function publicSample(records = []) {
+  return (records || []).filter(publicUniverseLedgerRecordEligible).slice(0, 100).map(compactRecord);
+}
+
+function excludedSampleCount(records = []) {
+  return (records || []).filter((record) => !publicUniverseLedgerRecordEligible(record)).length;
+}
+
 export function buildUniverseLedgerReport(meta = {}) {
   const ledger = summarizeUniverseLedger();
   const discoveryLedger = meta.discovery?.universeLedger || null;
+  const topPromoted = publicSample(ledger.topPromoted);
+  const topBlocked = publicSample(ledger.topBlocked);
+  const lowCoverage = publicSample(ledger.lowCoverage);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -71,9 +104,16 @@ export function buildUniverseLedgerReport(meta = {}) {
       totals: ledger.totals,
       indexes: ledger.indexes,
     },
-    topPromoted: (ledger.topPromoted || []).slice(0, 100).map(compactRecord),
-    topBlocked: (ledger.topBlocked || []).slice(0, 100).map(compactRecord),
-    lowCoverage: (ledger.lowCoverage || []).slice(0, 100).map(compactRecord),
+    publicSamplePolicy: {
+      utilityFirst: true,
+      internalLedgerPreserved: true,
+      excludedFromTopPromoted: excludedSampleCount(ledger.topPromoted),
+      excludedFromTopBlocked: excludedSampleCount(ledger.topBlocked),
+      excludedFromLowCoverage: excludedSampleCount(ledger.lowCoverage),
+    },
+    topPromoted,
+    topBlocked,
+    lowCoverage,
   };
 }
 

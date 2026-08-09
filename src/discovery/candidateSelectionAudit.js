@@ -64,17 +64,18 @@ export function buildStandardSelectionReport(plan = {}) {
     llama3Count: plan.llama3?.length || 0,
     debateCount: plan.debate?.length || 0,
     finalistCount: plan.finalists?.length || 0,
-    bestOpportunity: plan.winner
+    preIntelligenceLeader: plan.preIntelligenceLeader || plan.winner
       ? {
-          name: plan.winner.name || "Unknown",
-          symbol: plan.winner.symbol || "UNKNOWN",
-          chain: plan.winner.chain || "unknown",
-          score: plan.winner.preIntelligenceOpportunityScore || 0,
-          reason: plan.winner.standardSelectionReason || "",
+          name: (plan.preIntelligenceLeader || plan.winner).name || "Unknown",
+          symbol: (plan.preIntelligenceLeader || plan.winner).symbol || "UNKNOWN",
+          chain: (plan.preIntelligenceLeader || plan.winner).chain || "unknown",
+          score: (plan.preIntelligenceLeader || plan.winner).preIntelligenceOpportunityScore || 0,
+          reason: (plan.preIntelligenceLeader || plan.winner).standardSelectionReason || "",
+          status: "PRELIMINARY_RESEARCH_ROUTING_ONLY",
         }
       : null,
     stageLeaders: plan.report?.stageLeaders || {},
-    disclaimer: "This is a selection audit for research routing, not a final buy recommendation.",
+    disclaimer: "This is a preliminary selection audit for research routing, not a capital candidate or buy recommendation.",
   };
 }
 

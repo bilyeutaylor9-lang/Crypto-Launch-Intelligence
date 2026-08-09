@@ -3,6 +3,7 @@ import {
   hasCleanDisplayIdentity,
   isGenericMarketIdentity,
   isLikelyAggregateCandidate,
+  memeIdentitySignals,
 } from "../identity/displayIdentityGuard.js";
 
 const UTILITY_TERMS = {
@@ -190,6 +191,11 @@ function categorySignals(project = {}) {
   );
 }
 
+function positiveAlertsOnlyFiltered(alerts = []) {
+  const riskPattern = /risk|warning|deterioration|sell|honeypot|scam|blacklist|freeze|contract mismatch|liquidity (?:drop|loss|risk)/i;
+  return (Array.isArray(alerts) ? alerts : []).filter((alert) => riskPattern.test(String(alert)));
+}
+
 export function analyzeUtilityQuality(project = {}) {
   project = normalizeUtilityProject(project);
   const utilityIdentityEligible =
@@ -225,6 +231,15 @@ export function analyzeUtilityQuality(project = {}) {
   const body = text(project);
   const signals = categorySignals(project);
   const memeHits = hits(body, MEME_TERMS);
+  const identityMemeSignals = memeIdentitySignals(project);
+  const memeCategoryDetected = /(?:^|\b)meme(?:coin|[- ]token| coin)?(?:\b|$)/i.test(
+    [project.category, project.narrative, project.primaryNarrative].filter(Boolean).join(" ")
+  );
+  const memeBrandingSignals = [
+    ...identityMemeSignals,
+    ...(memeCategoryDetected ? ["category:meme"] : []),
+  ];
+  const memeBrandingDetected = memeBrandingSignals.length > 0;
   const productEvidenceScore = Math.round(
     clamp(signals.product.length * 14 + (project.website ? 12 : 0) + (project.docsUrl || project.githubRepo ? 14 : 0))
   );
@@ -277,9 +292,6 @@ export function analyzeUtilityQuality(project = {}) {
     { score: catalystUtilityScore, weight: 14 },
     { score: sourceEvidenceScore, weight: 12 },
   ]);
-  const memeSpeculationScore = Math.round(
-    clamp(memeHits.length * 18 + num(project.narrativeHeatScore) * 0.35 + num(project.socialAccelerationScore) * 0.25 - utilityQualityScore * 0.35)
-  );
   const utilityEvidenceFamilies = [
     productEvidenceScore >= 45 ? "PRODUCT" : null,
     developerEvidenceScore >= 45 ? "DEVELOPMENT" : null,
@@ -288,23 +300,39 @@ export function analyzeUtilityQuality(project = {}) {
     catalystUtilityScore >= 45 ? "CATALYST" : null,
     sourceEvidenceScore >= 45 ? "SOURCE_QUALITY" : null,
   ].filter(Boolean);
-  const memeOnlySpeculative = memeSpeculationScore >= 55 && utilityQualityScore < 48;
+  const memeBrandingScore = memeBrandingDetected
+    ? Math.min(90, 62 + Math.max(0, memeBrandingSignals.length - 1) * 10)
+    : 0;
+  const memeSpeculationScore = Math.round(
+    clamp(Math.max(
+      memeBrandingScore,
+      memeHits.length * 18 + num(project.narrativeHeatScore) * 0.35 + num(project.socialAccelerationScore) * 0.25 - utilityQualityScore * 0.35
+    ))
+  );
+  const strongVerifiedUtility = utilityQualityScore >= 65 && utilityEvidenceFamilies.length >= 3;
+  const memeOnlySpeculative = memeSpeculationScore >= 55 && !strongVerifiedUtility;
+  const memePolicyExcluded = process.env.EXCLUDE_MEME_CANDIDATES !== "false" && memeBrandingDetected;
   const realUtilityQualified =
     !deterministicSafetyBlocked(project) &&
+    !memePolicyExcluded &&
     utilityQualityScore >= 65 &&
     utilityEvidenceFamilies.length >= 3 &&
     !memeOnlySpeculative;
   const utilityClassification = deterministicSafetyBlocked(project)
     ? "UTILITY_BLOCKED_BY_SAFETY"
+    : memeBrandingDetected
+      ? strongVerifiedUtility
+        ? "MIXED_MEME_UTILITY"
+        : "MEME_SPECULATION"
     : realUtilityQualified
       ? "REAL_UTILITY"
-      : utilityQualityScore >= 55
+      : memeOnlySpeculative
+        ? "MEME_SPECULATION"
+        : utilityQualityScore >= 55
         ? memeHits.length
           ? "MIXED_MEME_UTILITY"
           : "UTILITY_RESEARCH"
-        : memeOnlySpeculative
-          ? "MEME_SPECULATION"
-          : "UNKNOWN_UTILITY";
+        : "UNKNOWN_UTILITY";
 
   return {
     ...project,
@@ -314,7 +342,16 @@ export function analyzeUtilityQuality(project = {}) {
     realUtilityQualified,
     utilityIdentityEligible: true,
     memeOnlySpeculative,
+    memeBrandingDetected,
+    memeBrandingSignals,
+    memePolicyExcluded,
     memeSpeculationScore,
+    alerts: memeBrandingDetected || memeOnlySpeculative
+      ? positiveAlertsOnlyFiltered(project.alerts)
+      : project.alerts,
+    suppressedOpportunityAlertCount: memeBrandingDetected || memeOnlySpeculative
+      ? Math.max(0, (Array.isArray(project.alerts) ? project.alerts : []).length - positiveAlertsOnlyFiltered(project.alerts).length)
+      : 0,
     utilityEvidenceFamilies,
     utilityQualityComponents: {
       productEvidenceScore,
@@ -332,9 +369,13 @@ export function analyzeUtilityQuality(project = {}) {
       adoption: signals.adoption.slice(0, 8),
       token: signals.token.slice(0, 8),
       meme: memeHits.slice(0, 8),
+      memeBranding: memeBrandingSignals.slice(0, 8),
     },
     utilityResearchWarnings: [
       memeOnlySpeculative ? "Meme/social signal dominates verified utility evidence; keep this speculative-only." : null,
+      memeBrandingDetected && strongVerifiedUtility
+        ? "Meme branding is present even though utility evidence exists; keep it out of no-meme operating lanes."
+        : null,
       utilityQualityScore < 45 ? "Utility evidence is still weak or missing." : null,
       sourceEvidenceScore < 45 ? "Independent source support is weak." : null,
       developerEvidenceScore < 35 && /ai|gaming|infra|protocol|depin|rwa|defi/.test(body)
@@ -364,9 +405,12 @@ export function summarizeUtilityQuality(projects = []) {
     projectsAnalyzed: ranked.length,
     realUtilityQualifiedCount: ranked.filter(
       (project) =>
-        project.realUtilityQualified && project.utilityIdentityEligible !== false
+        project.realUtilityQualified &&
+        project.utilityIdentityEligible !== false &&
+        project.memePolicyExcluded !== true
     ).length,
     memeSpeculationCount: ranked.filter((project) => project.memeOnlySpeculative).length,
+    memeBrandingCount: ranked.filter((project) => project.memeBrandingDetected).length,
     mixedMemeUtilityCount: ranked.filter((project) => project.utilityClassification === "MIXED_MEME_UTILITY").length,
     invalidOrAggregateIdentityCount: ranked.filter(
       (project) => project.utilityIdentityEligible === false
@@ -375,7 +419,8 @@ export function summarizeUtilityQuality(projects = []) {
       .filter(
         (project) =>
           project.realUtilityQualified === true &&
-          project.utilityIdentityEligible !== false
+          project.utilityIdentityEligible !== false &&
+          project.memePolicyExcluded !== true
       )
       .slice(0, 50)
       .map(compactUtilityProject),
@@ -401,6 +446,9 @@ function compactUtilityProject(project = {}) {
     realUtilityQualified: Boolean(project.realUtilityQualified),
     utilityIdentityEligible: project.utilityIdentityEligible !== false,
     memeOnlySpeculative: Boolean(project.memeOnlySpeculative),
+    memeBrandingDetected: Boolean(project.memeBrandingDetected),
+    memeBrandingSignals: project.memeBrandingSignals || [],
+    memePolicyExcluded: Boolean(project.memePolicyExcluded),
     memeSpeculationScore: project.memeSpeculationScore || 0,
     utilityEvidenceFamilies: project.utilityEvidenceFamilies || [],
     components: project.utilityQualityComponents || {},

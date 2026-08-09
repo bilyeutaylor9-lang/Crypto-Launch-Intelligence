@@ -181,6 +181,7 @@ export async function getDefiLlamaProtocolCandidates(options = {}) {
       declaredChain: protocol.chain || null,
       address: null,
       pairAddress: null,
+      coinGeckoId: protocol.gecko_id || null,
       providerAssetId: protocol.slug || protocol.name || null,
       marketKey: protocol.slug ? `defillama:${protocol.slug}` : null,
       dex: "protocol",

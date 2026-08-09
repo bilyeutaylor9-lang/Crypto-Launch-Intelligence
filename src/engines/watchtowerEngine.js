@@ -1,5 +1,18 @@
 import { loadProjectWatchStore, projectWatchId } from "../learning/projectWatchlistStore.js";
-import { saveWatchtowerAlerts, saveWatchtowerBrief } from "../learning/watchtowerStore.js";
+import {
+  saveWatchtowerAlerts,
+  saveWatchtowerBrief,
+  watchtowerAlertPublicEligible,
+} from "../learning/watchtowerStore.js";
+import {
+  hasCleanDisplayIdentity,
+  isLikelyAggregateCandidate,
+  isLikelyMemeIdentity,
+} from "../identity/displayIdentityGuard.js";
+import {
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -21,8 +34,34 @@ function severityFor(delta = 0, high = 20, critical = 35) {
   return "Low";
 }
 
+function exactTradableIdentity(project = {}) {
+  const chain = [
+    project.chain,
+    project.chainId,
+    project.network,
+    project.canonicalExecutionRoute?.chain,
+    project.rawCandidate?.chain,
+  ].map(normalizeChainId).find(Boolean);
+  if (!chain) return null;
+
+  const tokenAddress = [
+    project.tokenAddress,
+    project.contractAddress,
+    project.canonicalAddress,
+    project.finalContractAddress,
+    project.canonicalExecutionRoute?.contractAddress,
+    project.marketData?.tokenAddress,
+    project.rawCandidate?.tokenAddress,
+    project.rawCandidate?.contractAddress,
+  ].map((value) => normalizeTokenAddress(value, chain)).find(Boolean);
+
+  return tokenAddress ? { chain, tokenAddress } : null;
+}
+
 function alert(project = {}, previous = {}, fields = {}) {
   const opportunityAlert = /priority|score spike|social|liquidity|pre-breakout|smart money/i.test(fields.type || "");
+  const exactIdentity = exactTradableIdentity(project);
+  const opportunityPolicyEligible = opportunityAlertEligible(project);
   const sniperAwareFields =
     project.sniperIntegrityGate && opportunityAlert && project.sniperQualified !== true
       ? {
@@ -53,7 +92,9 @@ function alert(project = {}, previous = {}, fields = {}) {
     projectId: projectWatchId(project),
     project: project.name || project.symbol || "Unknown",
     symbol: project.symbol || "Unknown",
-    chain: project.chain || "unknown",
+    chain: exactIdentity?.chain || project.chain || "unknown",
+    tokenAddress: exactIdentity?.tokenAddress || null,
+    opportunityPolicyEligible,
     previousScore: num(previous.score),
     currentScore: num(project.pipelineScore ?? project.opportunityScore ?? project.score),
     status: "open",
@@ -67,6 +108,19 @@ function latestHistory(project = {}, watchStore = {}) {
   return history.at(-1) || null;
 }
 
+export function opportunityAlertEligible(project = {}) {
+  return Boolean(
+    project.researchOnly !== true &&
+    project.tradableCandidate !== false &&
+    project.memeOnlySpeculative !== true &&
+    project.memeBrandingDetected !== true &&
+    !isLikelyMemeIdentity(project) &&
+    hasCleanDisplayIdentity(project) &&
+    !isLikelyAggregateCandidate(project) &&
+    exactTradableIdentity(project)
+  );
+}
+
 function detectProjectAlerts(project = {}, previous = null) {
   const alerts = [];
   const currentScore = num(project.pipelineScore ?? project.opportunityScore ?? project.score);
@@ -74,6 +128,7 @@ function detectProjectAlerts(project = {}, previous = null) {
   const scoreDelta = currentScore - previousScore;
 
   if (!previous) {
+    if (!opportunityAlertEligible(project)) return alerts;
     if (project.sniperQualified && project.sniperState === "ARMED") {
       alerts.push(
         alert(project, {}, {
@@ -244,14 +299,18 @@ function detectProjectAlerts(project = {}, previous = null) {
     );
   }
 
-  return alerts;
+  return opportunityAlertEligible(project)
+    ? alerts
+    : alerts.filter((item) => /risk|deterioration|warning/i.test(item.type || ""));
 }
 
 function buildDailyBrief(projects = [], alerts = []) {
   const openAlerts = alerts.filter((item) => item.status !== "archived");
-  const ranked = [...projects].sort(
+  const ranked = [...projects]
+    .filter(opportunityAlertEligible)
+    .sort(
     (a, b) => num(b.pipelineScore ?? b.opportunityScore ?? b.score) - num(a.pipelineScore ?? a.opportunityScore ?? a.score)
-  );
+    );
   const critical = openAlerts.filter((item) => item.severity === "Critical");
   const high = openAlerts.filter((item) => item.severity === "High");
   const risk = openAlerts.filter((item) => /risk|deterioration|vesting|unlock/i.test(item.type));
@@ -287,18 +346,20 @@ function buildDailyBrief(projects = [], alerts = []) {
 export function analyzeWatchtower(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const watchStore = options.watchStore || loadProjectWatchStore();
-  const alerts = safeProjects.flatMap((project) =>
+  const internalAlerts = safeProjects.flatMap((project) =>
     detectProjectAlerts(project, latestHistory(project, watchStore))
   );
+  const alerts = internalAlerts.filter(watchtowerAlertPublicEligible);
   const brief = buildDailyBrief(safeProjects, alerts);
 
   if (options.persist !== false) {
-    saveWatchtowerAlerts(alerts);
+    saveWatchtowerAlerts(internalAlerts);
     saveWatchtowerBrief(brief);
   }
 
   return {
     alerts,
+    internalAlerts,
     brief,
   };
 }

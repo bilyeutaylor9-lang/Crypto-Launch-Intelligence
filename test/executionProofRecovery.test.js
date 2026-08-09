@@ -186,10 +186,53 @@ test("missing optional 0x key creates an optional source gap, not a fatal candid
   assert.ok(recovered.executionProofRecovery.optionalSourceGaps.some((gap) => gap.missingKey === "ZEROX_API_KEY"));
   assert.equal(sourceGaps.optionalMissingKeyCount, 1);
   assert.equal(sourceGaps.availableCount >= 2, true);
-  assert.equal(sourceGaps.status, "SOURCE_HEALTH_OK");
+  assert.equal(sourceGaps.status, "SOURCE_GAPS_FOUND");
 });
 
-test("CEX order-book depth does not prove token contract identity by itself", async () => {
+test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async () => {
+  const quoteToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([evmProject({
+    source: "dexscreener",
+    dex: "aerodrome",
+  })], {
+    zeroxApiKey: "",
+    fetchJson: async (url, init = {}) => {
+      assert.equal(init.adapter, "lifi");
+      const parsed = new URL(url);
+      assert.equal(parsed.hostname, "li.quest");
+      assert.equal(parsed.searchParams.get("fromChain"), "8453");
+      assert.equal(parsed.searchParams.get("toChain"), "8453");
+      const fromToken = parsed.searchParams.get("fromToken").toLowerCase();
+      if (fromToken === quoteToken.toLowerCase()) {
+        return {
+          tool: "aerodrome",
+          toolDetails: { name: "Aerodrome" },
+          action: { fromToken: { address: quoteToken, symbol: "USDC", decimals: 6 } },
+          estimate: { tool: "aerodrome", toAmount: "5000000000000000000" },
+        };
+      }
+      assert.equal(fromToken, EVM_TOKEN.toLowerCase());
+      assert.equal(parsed.searchParams.get("fromAmount"), "5000000000000000000");
+      return {
+        tool: "aerodrome",
+        action: { fromToken: { address: EVM_TOKEN, symbol: "EVX", decimals: 18 } },
+        estimate: { tool: "aerodrome", toAmount: "24750000" },
+      };
+    },
+    now: () => NOW,
+  });
+
+  assert.equal(recovered.executionProofRecovery.status, "ROUTE_RECOVERED");
+  assert.equal(recovered.executionProofRecoveryRoute.provider, "LI.FI");
+  assert.equal(recovered.executionProofRecoveryRoute.exactIdentityVerified, true);
+  assert.equal(recovered.executionProofRecoveryRoute.quoteTokenAddress.toLowerCase(), quoteToken.toLowerCase());
+  assert.equal(recovered.executionProofRecoveryRoute.estimatedRoundTripSlippagePct, 1);
+  assert.equal(recovered.routeTruthStatus, "LIVE_EXECUTION_READY");
+  assert.equal(recovered.strictRankEligible, true);
+});
+
+test("symbol-only candidates never probe CEX books or impersonate listed assets", async () => {
+  let requests = 0;
   const [recovered] = await analyzeExecutionProofRecoveryBatch([
     {
       symbol: "BOOK",
@@ -200,6 +243,31 @@ test("CEX order-book depth does not prove token contract identity by itself", as
       highUpsideScalpScore: 75,
     },
   ], {
+    fetchJson: async () => {
+      requests += 1;
+      return {};
+    },
+    now: () => NOW,
+  });
+
+  assert.equal(recovered.executionProofRecovery.status, "NOT_SELECTED");
+  assert.equal(requests, 0);
+});
+
+test("provider-verified CEX markets can recover book depth without proving token contract identity", async () => {
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([{
+    symbol: "BOOK",
+    name: "Book Only",
+    baseSymbol: "BOOK",
+    quoteSymbol: "USDT",
+    marketKey: "mexc:BOOKUSDT",
+    exchangeAssetId: "mexc:BOOK",
+    exchange: "MEXC",
+    dex: "cex",
+    source: "mexc",
+    priceUsd: 0.01,
+    highUpsideScalpScore: 75,
+  }], {
     fetchJson: async () => ({
       bids: [["0.0100", "10000"]],
       asks: [["0.0102", "10000"]],
@@ -210,9 +278,38 @@ test("CEX order-book depth does not prove token contract identity by itself", as
 
   assert.equal(recovered.executionProofRecovery.status, "ROUTE_RECOVERED");
   assert.equal(recovered.executionProofRecoveryRoute.routeType, "CEX");
+  assert.equal(recovered.executionProofRecoveryRoute.venue, "MEXC");
   assert.equal(recovered.executionProofRecoveryRoute.orderBookDepthVerified, true);
   assert.equal(proof.executionProof.contractVerified, false);
   assert.equal(proof.executionProofState, "MARKET_OBSERVED");
+});
+
+test("CEX recovery never rewrites an explicit Coinbase market into a different product", async () => {
+  let requestedUrl = "";
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([{
+    symbol: "BOOK",
+    name: "Book Only",
+    marketPair: "BOOK-USDT",
+    marketKey: "coinbase:BOOK-USDT",
+    exchangeAssetId: "coinbase:BOOK",
+    exchange: "Coinbase",
+    source: "coinbase",
+    priceUsd: 0.01,
+    highUpsideScalpScore: 75,
+  }], {
+    fetchJson: async (url) => {
+      requestedUrl = url;
+      return {
+        bids: [["0.0100", "10000"]],
+        asks: [["0.0102", "10000"]],
+      };
+    },
+    now: () => NOW,
+  });
+
+  assert.equal(recovered.executionProofRecovery.status, "ROUTE_RECOVERED");
+  assert.match(requestedUrl, /products\/BOOK-USDT\/book/);
+  assert.doesNotMatch(requestedUrl, /products\/BOOK-USD\/book/);
 });
 
 test("recovery respects max candidates and concurrency", async () => {

@@ -15,16 +15,22 @@ function normalizeProjects(output = {}) {
 
 export async function runWatchtowerOnce(options = {}) {
   const startedAt = new Date();
+  const scanRunId = `watch_${startedAt.getTime()}`;
   const discovered = await runDiscoveryManager(options.discovery || {});
   const candidates = normalizeProjects(discovered);
   const results = await runIntelligencePipeline(candidates, {
+    scanRunId,
     saveMemory: true,
     localAI: options.localAI ?? resolveLocalAIOptions(),
     ...(options.pipeline || {}),
   });
+  const completedAt = new Date().toISOString();
   const reports = generateReports(results, {
+    runId: scanRunId,
+    scanRunId,
     startedAt: startedAt.toISOString(),
-    completedAt: new Date().toISOString(),
+    completedAt,
+    dataCutoffTimestamp: completedAt,
     discoveredProjects: candidates.length,
     scannedProjects: results.length,
     engineMode: "watchtower",

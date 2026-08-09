@@ -172,6 +172,26 @@ test("daily capital engine refuses meme-only speculation in utility mode", () =>
   assert.equal(result.dailyCapitalMoveLane, "MEME_ONLY_EXCLUDED");
 });
 
+test("research-only entities stay outside tradable route recovery and capital lanes", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    name: "builder/alpha-protocol",
+    symbol: "UNRESOLVED",
+    researchOnly: true,
+    tradableCandidate: false,
+    tokenAddress: null,
+    contractAddress: null,
+    poolAddress: null,
+    pairAddress: null,
+  }));
+  const summary = summarizeDailyCapitalMoves([result]);
+  const recovery = summarizeDailyRecoveryQueue([result]);
+
+  assert.equal(result.dailyCapitalMoveLane, "ENTITY_RESEARCH_ONLY");
+  assert.equal(summary.entityResearchOnly.length, 1);
+  assert.equal(summary.quarantinedIdentityOrRoute.length, 0);
+  assert.equal(recovery.recoveryCandidateCount, 0);
+});
+
 test("daily capital engine excludes meme-like identities without utility proof", () => {
   for (const project of [
     { symbol: "CAPOO", name: "Capoo Bugcat" },

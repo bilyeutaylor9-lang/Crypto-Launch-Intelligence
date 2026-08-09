@@ -5,7 +5,7 @@ import path from "node:path";
 const rootDir = process.cwd();
 const reportsDir = path.join(rootDir, "reports");
 const testDir = path.join(rootDir, "test");
-const backupRoot = path.join(rootDir, `.test-artifact-backup-${process.pid}`);
+const backupRoot = fs.mkdtempSync(path.join(rootDir, ".test-artifact-backup-"));
 const backupReportsDir = path.join(backupRoot, "reports");
 const reportsExisted = fs.existsSync(reportsDir);
 let isolationMode = reportsExisted ? "PENDING" : "EMPTY";

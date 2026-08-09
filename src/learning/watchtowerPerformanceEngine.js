@@ -1,7 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { loadOutcomeSnapshots } from "./outcomeSnapshotStore.js";
-import { loadWatchtowerAlerts } from "./watchtowerStore.js";
+import {
+  loadWatchtowerAlerts,
+  watchtowerAlertPublicEligible,
+} from "./watchtowerStore.js";
 
 const DATA_DIR = path.resolve("data");
 const PERFORMANCE_FILE = path.join(DATA_DIR, "watchtower-performance.json");
@@ -197,7 +200,9 @@ function summarizeGroup(evaluations = [], keyFn = () => "all") {
 
 export function buildWatchtowerPerformanceReport(options = {}) {
   const horizons = options.horizons || DEFAULT_HORIZONS;
-  const alerts = options.alerts || loadWatchtowerAlerts().alerts;
+  const alerts = (options.alerts || loadWatchtowerAlerts().alerts).filter(
+    watchtowerAlertPublicEligible
+  );
   const snapshots = options.snapshots || loadOutcomeSnapshots();
   const snapshotsByKey = groupSnapshots(snapshots);
   const evaluations = alerts.map((alert) => evaluateAlert(alert, snapshotsByKey, horizons));
