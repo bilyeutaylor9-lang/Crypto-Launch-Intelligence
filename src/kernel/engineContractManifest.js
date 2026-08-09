@@ -1226,7 +1226,7 @@ export const ENGINE_CONTRACTS = [
       optional: ["utilityQualityScore", "realUtilityScore", "ecosystemIntegrationScore", "tokenomicsScore"],
     },
     outputContract: {
-      requiredAny: [["utilityQualityScore"], ["utilityClassification", "realUtilityQualified"]],
+      requiredAny: [["utilityQualityScore", "utilityClassification", "realUtilityQualified"]],
       scoreFields: ["utilityQualityScore", "realUtilityScore"],
       evidenceRequiredWhenScored: true,
     },

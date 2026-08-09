@@ -119,6 +119,22 @@ test("identity-only discovery rows are capped and cannot enter ranking", () => {
   assert.equal(features.preIntelligenceRankEligible, false);
 });
 
+test("asset ids without price, pool, volume, or liquidity remain identity-only", () => {
+  const features = calculatePreIntelligenceFeatures({
+    name: "CoinGecko Identity Alpha",
+    symbol: "CGIA",
+    chain: "base",
+    tokenAddress: "0x1111111111111111111111111111111111111111",
+    coinGeckoId: "coingecko-identity-alpha",
+    marketKey: "coingecko:coingecko-identity-alpha",
+    source: "coingecko-list",
+  });
+
+  assert.equal(features.preIntelligenceLane, "identity-only");
+  assert.equal(features.preIntelligenceRankEligible, false);
+  assert.ok(features.preIntelligenceOpportunityScore <= 10);
+});
+
 test("identity-only rows receive bounded enrichment and never advance", () => {
   const marketProjects = Array.from({ length: 30 }, (_, index) => coiled({
     name: `Market ${index}`,

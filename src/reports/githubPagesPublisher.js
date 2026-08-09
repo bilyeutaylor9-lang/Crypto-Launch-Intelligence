@@ -7,6 +7,7 @@ import {
 } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import { finalizeScanArtifactManifestPublication } from "./scanArtifactManifestReportEngine.js";
+import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -259,6 +260,12 @@ function pairFor(candidate = {}) {
 }
 
 function rankDisplayEligible(candidate = {}) {
+  if (
+    candidate.memeOnlySpeculative === true ||
+    candidate.memeBrandingDetected === true ||
+    isLikelyMemeIdentity(candidate)
+  ) return false;
+  if (candidate.researchOnly === true || candidate.tradableCandidate === false) return false;
   const researchLane = [
     "RESEARCH_WORTHY_ROUTE_PENDING",
     "RESEARCH_WORTHY_PROOF_PENDING",

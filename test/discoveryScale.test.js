@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveDiscoveryLimits } from "../src/discoveryManager.js";
+import { dedupeAndMerge, resolveDiscoveryLimits } from "../src/discoveryManager.js";
 import {
   attachProjectIdentity,
   buildProjectIdentityGraph,
+  identityKeysForProject,
   identityKeyForProject,
 } from "../src/discovery/projectIdentityGraph.js";
 
@@ -85,6 +86,188 @@ test("project identity uses provider-scoped ids and market keys before symbol al
   assert.equal(identityKeyForProject(coinLoreAsset), identityKeyForProject(coinLoreMover));
   assert.notEqual(identityKeyForProject(coinLoreAsset), identityKeyForProject(sameSymbolOtherProvider));
   assert.ok(coinLoreAsset.projectIdentity.evidence.includes("marketKey"));
+});
+
+test("project identity exposes every strong join anchor without using symbol aliases", () => {
+  const project = attachProjectIdentity({
+    name: "Utility Alpha",
+    symbol: "UALPHA",
+    chain: "base",
+    tokenAddress: "0x00000000000000000000000000000000000000a1",
+    pairAddress: "0x00000000000000000000000000000000000000b1",
+    coinGeckoId: "utility-alpha",
+    marketKey: "coingecko:utility-alpha",
+  });
+  const keys = identityKeysForProject(project);
+
+  assert.ok(keys.includes("base:token:0x00000000000000000000000000000000000000a1"));
+  assert.ok(keys.includes("base:pool:0x00000000000000000000000000000000000000b1"));
+  assert.ok(keys.includes("asset:coingecko:utility-alpha"));
+  assert.ok(!keys.some((key) => key.includes("ualpha")));
+});
+
+test("discovery merge joins exact contract evidence while preserving executable identity", () => {
+  const merged = dedupeAndMerge([
+    {
+      name: "Utility Alpha",
+      symbol: "UALPHA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a1",
+      coinGeckoId: "utility-alpha",
+      marketKey: "coingecko:utility-alpha",
+      source: "coingecko-list",
+    },
+    {
+      name: "Utility Alpha",
+      symbol: "UALPHA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a1",
+      pairAddress: "0x00000000000000000000000000000000000000b1",
+      source: "dexscreener",
+      liquidityUsd: 250_000,
+    },
+    {
+      name: "Utility Alpha",
+      symbol: "UALPHA",
+      coinGeckoId: "utility-alpha",
+      marketKey: "coingecko:utility-alpha",
+      source: "coingecko",
+      marketCap: 4_000_000,
+    },
+  ]);
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].chain, "base");
+  assert.equal(merged[0].tokenAddress, "0x00000000000000000000000000000000000000a1");
+  assert.equal(merged[0].pairAddress, "0x00000000000000000000000000000000000000b1");
+  assert.equal(merged[0].liquidityUsd, 250_000);
+  assert.equal(merged[0].marketCap, 4_000_000);
+  assert.deepEqual(new Set(merged[0].discoverySources), new Set(["coingecko-list", "dexscreener", "coingecko"]));
+});
+
+test("entity evidence can enrich a contract through a shared external id without becoming the instrument identity", () => {
+  const [merged] = dedupeAndMerge([
+    {
+      name: "Utility Alpha",
+      symbol: "UALPHA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a1",
+      coinGeckoId: "utility-alpha",
+      marketKey: "coingecko:utility-alpha",
+      source: "coingecko-list",
+    },
+    {
+      name: "Utility Alpha Protocol",
+      symbol: "UALPHA",
+      chain: "base",
+      coinGeckoId: "utility-alpha",
+      marketKey: "defillama:utility-alpha",
+      source: "defillama",
+      researchOnly: true,
+      tradableCandidate: false,
+      tvl: 12_000_000,
+    },
+  ]);
+
+  assert.equal(merged.tokenAddress, "0x00000000000000000000000000000000000000a1");
+  assert.equal(merged.tvl, 12_000_000);
+  assert.ok(merged.discoverySources.includes("defillama"));
+});
+
+test("entity ids never collapse conflicting exact contracts", () => {
+  const merged = dedupeAndMerge([
+    {
+      name: "Utility Alpha Base",
+      symbol: "UALPHA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a1",
+      coinGeckoId: "utility-alpha",
+      marketKey: "base:utility-alpha",
+    },
+    {
+      name: "Utility Alpha Ethereum",
+      symbol: "UALPHA",
+      chain: "ethereum",
+      tokenAddress: "0x00000000000000000000000000000000000000e1",
+      coinGeckoId: "utility-alpha",
+      marketKey: "ethereum:utility-alpha",
+    },
+  ]);
+
+  assert.equal(merged.length, 2);
+});
+
+test("shared pool evidence cannot collapse conflicting token contracts", () => {
+  const pool = "0x00000000000000000000000000000000000000b1";
+  const merged = dedupeAndMerge([
+    {
+      name: "Pool Base Asset",
+      symbol: "BASEA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a1",
+      pairAddress: pool,
+      source: "dexscreener",
+    },
+    {
+      name: "Pool Quote Asset",
+      symbol: "QUOTEA",
+      chain: "base",
+      tokenAddress: "0x00000000000000000000000000000000000000a2",
+      pairAddress: pool,
+      source: "geckoterminal",
+    },
+  ]);
+
+  assert.equal(merged.length, 2);
+});
+
+test("one exact token can safely collect evidence from multiple pools", () => {
+  const tokenAddress = "0x00000000000000000000000000000000000000a1";
+  const merged = dedupeAndMerge([
+    {
+      name: "Multi Pool Utility",
+      symbol: "MPU",
+      chain: "base",
+      tokenAddress,
+      pairAddress: "0x00000000000000000000000000000000000000b1",
+      source: "dexscreener",
+      liquidityUsd: 100_000,
+    },
+    {
+      name: "Multi Pool Utility",
+      symbol: "MPU",
+      chain: "base",
+      tokenAddress,
+      pairAddress: "0x00000000000000000000000000000000000000b2",
+      source: "geckoterminal",
+      volume24h: 50_000,
+    },
+  ]);
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].liquidityUsd, 100_000);
+  assert.equal(merged[0].volume24h, 50_000);
+  assert.deepEqual(new Set(merged[0].poolAddresses), new Set([
+    "0x00000000000000000000000000000000000000b1",
+    "0x00000000000000000000000000000000000000b2",
+  ]));
+});
+
+test("discovery merge preserves missing market evidence as unknown", () => {
+  const [merged] = dedupeAndMerge([{
+    name: "Identity Only Utility",
+    symbol: "IOU",
+    chain: "base",
+    tokenAddress: "0x00000000000000000000000000000000000000a1",
+    coinGeckoId: "identity-only-utility",
+    source: "coingecko-list",
+  }]);
+
+  assert.equal(merged.priceUsd, null);
+  assert.equal(merged.liquidityUsd, null);
+  assert.equal(merged.volume24h, null);
+  assert.equal(merged.marketCap, null);
+  assert.equal(merged.valuationDisagreement, null);
 });
 
 test("project identity graph exposes symbol identity edges", () => {

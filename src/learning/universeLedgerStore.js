@@ -37,6 +37,11 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function numOrNull(value) {
+  if (value === undefined || value === null || value === "") return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
 function boolEnv(value, fallback = false) {
   if (value === undefined || value === null || value === "") return fallback;
   return /^(true|1|yes|on)$/i.test(String(value).trim());
@@ -452,15 +457,15 @@ function finalDecision(project = {}, context = {}) {
 
 function compactBaseline(project = {}) {
   return {
-    priceUsd: num(project.priceUsd ?? project.price),
-    liquidityUsd: num(project.liquidityUsd ?? project.liquidity),
-    volume24h: num(project.volume24h ?? project.volume),
-    marketCap: num(project.circulatingMarketCap ?? project.marketCap),
-    fdv: num(project.fdv ?? project.fullyDilutedValue),
-    priceChange24h: num(project.priceChange24h),
-    discoveryPriorityScore: num(project.discoveryPriorityScore),
-    independentEvidenceScore: num(project.independentEvidenceScore),
-    dataCoverageScore: num(project.dataCoverageScore),
+    priceUsd: numOrNull(project.priceUsd ?? project.price),
+    liquidityUsd: numOrNull(project.liquidityUsd ?? project.liquidity),
+    volume24h: numOrNull(project.volume24h ?? project.volume),
+    marketCap: numOrNull(project.circulatingMarketCap ?? project.marketCap),
+    fdv: numOrNull(project.fdv ?? project.fullyDilutedValue),
+    priceChange24h: numOrNull(project.priceChange24h),
+    discoveryPriorityScore: numOrNull(project.discoveryPriorityScore),
+    independentEvidenceScore: numOrNull(project.independentEvidenceScore),
+    dataCoverageScore: numOrNull(project.dataCoverageScore),
   };
 }
 

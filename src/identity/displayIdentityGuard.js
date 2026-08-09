@@ -28,10 +28,14 @@ const GENERIC_MARKET_NAMES = new Set([
 ]);
 
 const AGGREGATE_SOURCE_PATTERN = /defillama|yield|category|ecosystem|top-volume|trending|market-list|coin-list/i;
-const MEME_IDENTITY_SYMBOL_PATTERN =
-  /cat|doge|dog|inu|pepe|bonk|shib|wif|wojak|frog|ferret|waddles|ballerina|cappuccina|baby|meme|moon|pump|capoo|kitty|kitten|doggo|floki|ponke|mog|popcat|turbo|raccoo|raccoon|bull/i;
+const MEME_IDENTITY_SYMBOLS = new Set([
+  "APU", "BONK", "CAPOO", "CAT", "DOG", "DOGE", "DOGGO", "DOGSHIT",
+  "FLOKI", "FROG", "INU", "KITTY", "MEME", "MOG", "MONKEY", "PEPE",
+  "PONKE", "POPCAT", "PUMP", "RACCOON", "RACCOOS", "SHIB", "TOAD",
+  "TROLL", "WIF", "WOJAK",
+]);
 const MEME_IDENTITY_NAME_PATTERN =
-  /\b(cat|doge|dog|inu|pepe|bonk|shib|wif|wojak|frog|ferret|waddles|ballerina|cappuccina|baby|meme|moon|pump|capoo|kitty|kitten|doggo|floki|ponke|mog|popcat|turbo|raccoo|raccoon|bull)\b|bugcat/i;
+  /\b(apu|bonk|bugcat|capoo|cat|dog|doge|dogecoin|doggo|dogshit|floki|frog|inu|kitty|kitten|meme|memecoin|meme coin|mog|monkey|pepe|ponke|popcat|pump|raccoon|raccoos|shib|toad|troll|wif|wojak)\b/i;
 
 function text(value = "") {
   return String(value || "").trim();
@@ -109,10 +113,21 @@ export function isGenericMarketIdentity(project = {}) {
 }
 
 export function isLikelyMemeIdentity(project = {}) {
-  const symbol = text(project.symbol || project.rawCandidate?.symbol);
-  const name = text(project.name || project.projectName || project.rawCandidate?.name);
+  return memeIdentitySignals(project).length > 0;
+}
 
-  return MEME_IDENTITY_SYMBOL_PATTERN.test(symbol) || MEME_IDENTITY_NAME_PATTERN.test(name);
+export function memeIdentitySignals(project = {}) {
+  const symbol = text(project.symbol || project.rawCandidate?.symbol)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+  const name = text(project.name || project.projectName || project.rawCandidate?.name);
+  const signals = [];
+
+  if (MEME_IDENTITY_SYMBOLS.has(symbol)) signals.push(`symbol:${symbol}`);
+  const nameHit = name.match(MEME_IDENTITY_NAME_PATTERN)?.[0];
+  if (nameHit) signals.push(`name:${nameHit.toLowerCase().replace(/\s+/g, "-")}`);
+
+  return [...new Set(signals)];
 }
 
 export function hasCleanDisplayIdentity(project = {}, options = {}) {

@@ -91,6 +91,36 @@ test("full discovery can stay 39,000 while standard intelligence remains 4,000",
   assert.equal(plan.report.funnel.llama3Selected, 100);
 });
 
+test("funnel accounting separates rankable assets from identity-enrichment research rows", () => {
+  const projects = [
+    candidate(1, { name: "Rankable Alpha", symbol: "RALPHA" }),
+    {
+      name: "builder/alpha-protocol",
+      symbol: "UNRESOLVED",
+      chain: "base",
+      source: "github-project-discovery",
+      repository: "builder/alpha-protocol",
+      github: "https://github.com/builder/alpha-protocol",
+      researchOnly: true,
+      tradableCandidate: false,
+      discoveryLane: "identity-only",
+    },
+  ];
+  const plan = planInstitutionalCandidateSelection(projects, {
+    standardIntelligenceLimit: 2,
+    laneBudgets: { identityEnrichmentReserve: 1 },
+  });
+
+  assert.equal(plan.report.funnel.deduplicatedUniverse, 2);
+  assert.equal(plan.report.funnel.rankablePreIntelligenceUniverse, 1);
+  assert.equal(plan.report.funnel.identityEnrichmentUniverse, 1);
+  assert.equal(plan.report.funnel.standardRankableSelected, 1);
+  assert.equal(plan.report.funnel.identityEnrichmentSelected, 1);
+  assert.equal(plan.report.funnel.preIntelligenceLeader, "RALPHA");
+  assert.equal(plan.report.funnel.leaderStatus, "PRELIMINARY_RESEARCH_ROUTING_ONLY");
+  assert.equal(plan.report.funnel.bestOpportunity, undefined);
+});
+
 test("selector does not choose the first records merely by discovery order", () => {
   const weakEarly = Array.from({ length: 20 }, (_, index) =>
     candidate(index, {
@@ -236,6 +266,18 @@ test("raw liquidity alone cannot dominate selection and already pumped projects 
 
   assert.ok(steadyFeatures.preIntelligenceComponents.timing > pumpedFeatures.preIntelligenceComponents.timing);
   assert.ok(steadyFeatures.preIntelligenceOpportunityScore > pumpedFeatures.preIntelligenceOpportunityScore);
+});
+
+test("default institutional selection hard-blocks obvious meme branding before expensive intelligence", () => {
+  const features = calculatePreIntelligenceFeatures(candidate(8, {
+    name: "Midas Toad",
+    symbol: "TOAD",
+    category: "meme-token",
+  }));
+
+  assert.equal(features.preIntelligenceOpportunityScore, 0);
+  assert.equal(features.preIntelligenceRankEligible, false);
+  assert.ok(features.preIntelligenceHardBlockers.includes("meme branding excluded by scanner policy"));
 });
 
 test("missing noncritical data lowers confidence without zeroing opportunity", () => {

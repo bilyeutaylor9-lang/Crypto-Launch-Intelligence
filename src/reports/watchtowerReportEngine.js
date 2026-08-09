@@ -1,7 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { analyzeWatchtower } from "../engines/watchtowerEngine.js";
-import { loadWatchtowerAlerts, loadWatchtowerBrief } from "../learning/watchtowerStore.js";
+import {
+  loadWatchtowerAlerts,
+  loadWatchtowerBrief,
+  watchtowerAlertPublicEligible,
+} from "../learning/watchtowerStore.js";
 
 export function writeWatchtowerReports(projects = [], options = {}) {
   const reportsDir = path.resolve("reports");
@@ -12,6 +16,7 @@ export function writeWatchtowerReports(projects = [], options = {}) {
   });
   const alertStore = loadWatchtowerAlerts();
   const briefStore = loadWatchtowerBrief();
+  const publicAlertHistory = alertStore.alerts.filter(watchtowerAlertPublicEligible);
   const alertsPath = path.join(reportsDir, "alerts.json");
   const briefPath = path.join(reportsDir, "daily-brief.json");
 
@@ -21,7 +26,7 @@ export function writeWatchtowerReports(projects = [], options = {}) {
       {
         generatedAt: new Date().toISOString(),
         latestAlerts: analysis.alerts,
-        alertHistory: alertStore.alerts,
+        alertHistory: publicAlertHistory,
       },
       null,
       2

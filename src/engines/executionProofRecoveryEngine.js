@@ -6,6 +6,7 @@ import {
 } from "../identity/strictIdentityValidators.js";
 import { routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -28,6 +29,12 @@ const DEFAULT_OPTIONS = {
   requestTimeoutMs: 8_000,
   concurrency: 2,
 };
+
+const DEFAULT_EVM_QUOTE_ADDRESS = "0x0000000000000000000000000000000000000001";
+const EXPLICIT_CEX_SOURCES = new Set([
+  "binance", "binance-us", "coinbase", "kraken", "gate", "mexc", "kucoin",
+  "bitget", "bybit", "okx", "gemini", "crypto.com", "htx", "upbit", "bithumb",
+]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -82,9 +89,23 @@ function resolveOptions(options = {}) {
     concurrency: Math.max(1, options.concurrency ?? intEnv(env.EXECUTION_RECOVERY_CONCURRENCY, DEFAULT_OPTIONS.concurrency)),
     jupiterApiKey: options.jupiterApiKey ?? env.JUPITER_API_KEY ?? "",
     zeroxApiKey: options.zeroxApiKey ?? env.ZEROX_API_KEY ?? "",
+    lifiApiKey: options.lifiApiKey ?? env.LIFI_API_KEY ?? "",
+    lifiEnabled: options.lifiEnabled ?? boolEnv(env.LIFI_EXECUTION_RECOVERY_ENABLED, true),
+    lifiIntegrator: clean(options.lifiIntegrator ?? env.LIFI_INTEGRATOR ?? "crypto-launch-intel")
+      .replace(/[^A-Za-z0-9._-]/g, "-")
+      .slice(0, 23) || "crypto-launch-intel",
+    executionQuoteTakerAddress: options.executionQuoteTakerAddress ?? env.EXECUTION_QUOTE_TAKER_ADDRESS ?? DEFAULT_EVM_QUOTE_ADDRESS,
+    lifiTokenCache: options.lifiTokenCache || new Map(),
     fetchJson: options.fetchJson || defaultFetchJson,
     now: options.now || (() => new Date()),
   };
+}
+
+function errorMessage(error, fallback = "provider request failed") {
+  if (typeof error === "string" && error.trim()) return error.trim();
+  if (error?.message) return String(error.message);
+  if (error?.cause?.message) return String(error.cause.message);
+  return fallback;
 }
 
 async function defaultFetchJson(url, init = {}) {
@@ -179,6 +200,51 @@ function marketPairOf(project = {}) {
   ]);
 }
 
+function explicitCexSource(project = {}) {
+  const values = [
+    project.source,
+    project.provider,
+    project.exchange,
+    project.dex,
+    project.sourceType,
+    project.canonicalExecutionRoute?.venue,
+    project.canonicalExecutionRoute?.routeType,
+    ...array(project.discoverySources),
+  ].map(lower).filter(Boolean);
+  return values.find((value) => value === "cex" || EXPLICIT_CEX_SOURCES.has(value)) || null;
+}
+
+function hasExplicitCexMarket(project = {}) {
+  if (!explicitCexSource(project)) return false;
+  const exactMarket = first([
+    marketPairOf(project),
+    project.marketKey,
+    project.exchangeAssetId,
+    project.verifiedExchangeAssetId,
+    project.baseSymbol && project.quoteSymbol ? `${project.baseSymbol}${project.quoteSymbol}` : null,
+  ]);
+  return Boolean(exactMarket);
+}
+
+function exactCexProvider(project = {}) {
+  const marketPrefix = lower(clean(project.marketKey).split(":")[0]);
+  const candidates = [
+    marketPrefix,
+    lower(project.source),
+    lower(project.provider),
+    lower(project.exchange).replace(/\.us$/, "-us"),
+  ];
+  return candidates.find((candidate) => EXPLICIT_CEX_SOURCES.has(candidate)) || null;
+}
+
+function hasRecoverableIdentity(project = {}) {
+  const chain = chainOf(project);
+  if (chain === "solana" || chainDefinition(chain)?.kind === "evm") {
+    return Boolean(tokenAddressOf(project));
+  }
+  return hasExplicitCexMarket(project);
+}
+
 function symbolOf(project = {}) {
   return clean(first([project.symbol, project.ticker, project.baseToken?.symbol, project.rawCandidate?.symbol])) || "UNKNOWN";
 }
@@ -244,8 +310,14 @@ function identityKey(project = {}) {
   const token = tokenAddressOf(project);
   const pool = poolAddressOf(project);
   const pair = marketPairOf(project);
+  const exchangeIdentity = first([
+    project.marketKey,
+    project.exchangeAssetId,
+    project.verifiedExchangeAssetId,
+  ]);
   if (token) return `${chain}:token:${token}`;
   if (pool) return `${chain}:pool:${pool}`;
+  if (exchangeIdentity && hasExplicitCexMarket(project)) return `cex:${lower(exchangeIdentity)}`;
   if (pair) return `${chain}:pair:${String(pair).toUpperCase()}`;
   return `${chain}:display:${symbolOf(project).toUpperCase()}:${nameOf(project).toLowerCase()}`;
 }
@@ -255,8 +327,11 @@ export function selectExecutionRecoveryCandidates(projects = [], options = {}) {
   const deduped = new Map();
   const sorted = (Array.isArray(projects) ? projects : [])
     .filter((project) => project && typeof project === "object")
+    .filter((project) => project.researchOnly !== true && project.tradableCandidate !== false)
+    .filter((project) => project.memeOnlySpeculative !== true && project.memeBrandingDetected !== true && !isLikelyMemeIdentity(project))
     .filter((project) => !hardBlocked(project))
     .filter((project) => needsRecoveredExecution(project))
+    .filter((project) => hasRecoverableIdentity(project))
     .map((project, index) => ({
       project,
       index,
@@ -358,7 +433,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
   try {
     recovered = await tryQuoteAsset(SOLANA_USDC_MINT, "USDC", amountUnits(tradeUsd, 6));
   } catch (error) {
-    failures.push(`Jupiter USDC quote failed: ${error.message}`);
+    failures.push(`Jupiter USDC quote failed: ${errorMessage(error)}`);
   }
 
   const primaryAttempt = recovered;
@@ -367,7 +442,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
       const fallback = await tryQuoteAsset(SOLANA_SOL_MINT, "SOL", "100000000");
       if (fallback.status === "ROUTE_RECOVERED" || !primaryAttempt) recovered = fallback;
     } catch (error) {
-      failures.push(`Jupiter SOL fallback failed: ${error.message}`);
+      failures.push(`Jupiter SOL fallback failed: ${errorMessage(error)}`);
     }
   }
 
@@ -524,14 +599,211 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
     };
     return { adapter: "0x", status: "ROUTE_RECOVERED", route, failures: [] };
   } catch (error) {
-    return { adapter: "0x", status: "PROVIDER_FAILED", failures: [error.message] };
+    return { adapter: "0x", status: "PROVIDER_FAILED", failures: [errorMessage(error)] };
+  }
+}
+
+function lifiHeaders(options = {}) {
+  return {
+    accept: "application/json",
+    ...(options.lifiApiKey ? { "x-lifi-api-key": options.lifiApiKey } : {}),
+  };
+}
+
+async function resolveLiFiQuoteToken(chain = "", options = {}, signal = null) {
+  if (EVM_USDC_BY_CHAIN[chain]) return { ...EVM_USDC_BY_CHAIN[chain], symbol: "USDC" };
+  const definition = chainDefinition(chain);
+  if (!definition || definition.kind !== "evm" || !Number.isInteger(definition.chainId)) return null;
+  const cached = options.lifiTokenCache.get(definition.chainId);
+  if (cached !== undefined) return cached;
+
+  const url = new URL("https://li.quest/v1/token");
+  url.searchParams.set("chain", String(definition.chainId));
+  url.searchParams.set("token", "USDC");
+  const token = await options.fetchJson(url.toString(), {
+    headers: lifiHeaders(options),
+    timeoutMs: options.requestTimeoutMs,
+    signal,
+    adapter: "lifi-token",
+  });
+  const address = normalizeTokenAddress(token?.address, chain);
+  const decimals = Number(token?.decimals);
+  const resolved = address && Number.isInteger(decimals) && decimals >= 0 && decimals <= 36
+    ? { chainId: definition.chainId, address, decimals, symbol: token.symbol || "USDC" }
+    : null;
+  options.lifiTokenCache.set(definition.chainId, resolved);
+  return resolved;
+}
+
+async function fetchLiFiQuote({ chainId, fromToken, toToken, fromAmount, options, signal }) {
+  if (signal?.aborted) throw new Error("LI.FI request aborted before start.");
+  const fromAddress = normalizeTokenAddress(options.executionQuoteTakerAddress, "ethereum");
+  if (!fromAddress) throw new Error("EXECUTION_QUOTE_TAKER_ADDRESS is not a valid EVM address.");
+  const url = new URL("https://li.quest/v1/quote");
+  url.searchParams.set("fromChain", String(chainId));
+  url.searchParams.set("toChain", String(chainId));
+  url.searchParams.set("fromToken", fromToken);
+  url.searchParams.set("toToken", toToken);
+  url.searchParams.set("fromAmount", String(fromAmount));
+  url.searchParams.set("fromAddress", fromAddress);
+  url.searchParams.set("toAddress", fromAddress);
+  url.searchParams.set("slippage", "0.01");
+  url.searchParams.set("skipSimulation", "true");
+  url.searchParams.set("integrator", options.lifiIntegrator);
+  return options.fetchJson(url.toString(), {
+    headers: lifiHeaders(options),
+    timeoutMs: options.requestTimeoutMs,
+    signal,
+    adapter: "lifi",
+  });
+}
+
+function lifiOutAmount(quote = {}) {
+  return first([
+    quote.estimate?.toAmount,
+    quote.toAmount,
+    quote.action?.toAmount,
+  ]);
+}
+
+function validLiFiQuote(quote = {}) {
+  const amount = lifiOutAmount(quote);
+  try {
+    return Boolean(amount && BigInt(String(amount)) > 0n && (quote.tool || quote.estimate?.tool || quote.toolDetails?.name));
+  } catch {
+    return false;
+  }
+}
+
+function quotedRoundTripSlippagePct(inputAmount = "0", finalAmount = "0") {
+  try {
+    const input = BigInt(String(inputAmount));
+    const output = BigInt(String(finalAmount));
+    if (input <= 0n || output < 0n) return null;
+    if (output >= input) return 0;
+    const loss = input - output;
+    const scaledPercent = (loss * 1_000_000n + input / 2n) / input;
+    return Number(scaledPercent) / 10_000;
+  } catch {
+    return null;
+  }
+}
+
+export async function recoverLiFiRoute(project = {}, options = {}, signal = null) {
+  const chain = chainOf(project);
+  const definition = chainDefinition(chain);
+  const tokenAddress = tokenAddressOf(project);
+  if (!definition || definition.kind !== "evm") return { adapter: "lifi", status: "NOT_APPLICABLE", reason: "Project is not on an EVM chain." };
+  if (!options.lifiEnabled) return { adapter: "lifi", status: "DISABLED", reason: "LI.FI recovery is disabled." };
+  if (!tokenAddress) return { adapter: "lifi", status: "MISSING_IDENTITY", reason: "EVM token identity is missing or invalid." };
+
+  const timestamp = quoteTimestamp(options);
+  const tradeUsd = options.tradeSizesUsd[0] || 25;
+  try {
+    const quoteToken = await resolveLiFiQuoteToken(chain, options, signal);
+    if (!quoteToken) {
+      return { adapter: "lifi", status: "QUOTE_TOKEN_UNAVAILABLE", reason: `No verified USDC quote token is available for ${chain}.` };
+    }
+    const buyInputAmount = amountUnits(tradeUsd, quoteToken.decimals);
+    const buy = await fetchLiFiQuote({
+      chainId: quoteToken.chainId,
+      fromToken: quoteToken.address,
+      toToken: tokenAddress,
+      fromAmount: buyInputAmount,
+      options,
+      signal,
+    });
+    if (!validLiFiQuote(buy)) {
+      return { adapter: "lifi", status: "NO_BUY_QUOTE", buyQuoteVerified: false, sellQuoteVerified: false };
+    }
+    const sellAmount = String(lifiOutAmount(buy));
+    const sell = await fetchLiFiQuote({
+      chainId: quoteToken.chainId,
+      fromToken: tokenAddress,
+      toToken: quoteToken.address,
+      fromAmount: sellAmount,
+      options,
+      signal,
+    });
+    if (!validLiFiQuote(sell)) {
+      return { adapter: "lifi", status: "NO_SELL_QUOTE", buyQuoteVerified: true, sellQuoteVerified: false };
+    }
+
+    const slippage = quotedRoundTripSlippagePct(buyInputAmount, lifiOutAmount(sell));
+    if (slippage === null) {
+      return { adapter: "lifi", status: "INVALID_SLIPPAGE_PROOF", buyQuoteVerified: true, sellQuoteVerified: true };
+    }
+    const venue = clean(first([
+      buy.toolDetails?.name,
+      buy.estimate?.tool,
+      buy.tool,
+      "LI.FI",
+    ]));
+    const route = {
+      source: "lifi",
+      provider: "LI.FI",
+      venue: "LI.FI",
+      underlyingVenue: venue,
+      routeType: "DEX_AGGREGATOR",
+      chain,
+      chainId: quoteToken.chainId,
+      tokenAddress,
+      contractAddress: tokenAddress,
+      baseTokenAddress: tokenAddress,
+      poolAddress: poolAddressOf(project),
+      quoteAsset: quoteToken.symbol || "USDC",
+      quoteTokenAddress: normalizeTokenAddress(buy.action?.fromToken?.address, chain) || quoteToken.address,
+      buyRouteAvailable: true,
+      sellRouteAvailable: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteVerified: true,
+      quoteTimestamp: timestamp,
+      quoteAgeSeconds: quoteAgeSeconds(timestamp, options.now()),
+      priceImpactPct: slippage,
+      estimatedRoundTripSlippagePct: slippage,
+      slippagePct: slippage,
+      slippageIsHeuristic: false,
+      verifiedTradeSizeUsd: tradeUsd,
+      executableDepthUsd: tradeUsd,
+      verifiedDepthSource: "live-buy-sell-quote",
+      liquidityUsd: liquidityUsd(project) || null,
+      priceUsd: priceUsd(project) || null,
+      routeTruthStatus: "SELL_QUOTE_VERIFIED",
+      status: "SELL_QUOTE_VERIFIED",
+      verificationStatus: "PARTIALLY_VERIFIED",
+      regionStatus: "UNKNOWN",
+      exactIdentityVerified: true,
+      executionRecoverySource: "lifi",
+      executionRecoveryFailures: [],
+      buyQuote: {
+        verified: true,
+        timestamp,
+        outAmount: lifiOutAmount(buy),
+        tool: buy.tool || buy.estimate?.tool || null,
+      },
+      sellQuote: {
+        verified: true,
+        timestamp,
+        outAmount: lifiOutAmount(sell),
+        tool: sell.tool || sell.estimate?.tool || null,
+      },
+    };
+    return { adapter: "lifi", status: "ROUTE_RECOVERED", route, failures: [] };
+  } catch (error) {
+    return { adapter: "lifi", status: "PROVIDER_FAILED", failures: [errorMessage(error, "LI.FI quote failed")] };
   }
 }
 
 function parseMarketPair(project = {}) {
   const explicit = clean(marketPairOf(project));
-  const symbol = symbolOf(project).replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const pair = explicit ? explicit.toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
+  const baseSymbol = clean(project.baseSymbol).replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  const quoteSymbol = clean(project.quoteSymbol).replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  const marketKeyPair = hasExplicitCexMarket(project)
+    ? clean(project.marketKey).split(":").at(-1)
+    : "";
+  const rawPair = explicit || (baseSymbol && quoteSymbol ? `${baseSymbol}${quoteSymbol}` : marketKeyPair);
+  const pair = rawPair ? rawPair.toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
   const quoteAssets = ["USDT", "USDC", "USD"];
   if (pair) {
     for (const quote of quoteAssets) {
@@ -540,7 +812,7 @@ function parseMarketPair(project = {}) {
       }
     }
   }
-  return symbol && symbol !== "UNKNOWN" ? { base: symbol, quote: "USDT", compact: `${symbol}USDT` } : null;
+  return null;
 }
 
 function orderLevels(value = []) {
@@ -575,7 +847,7 @@ function depthUsd(levels = [], limitUsd = 100) {
 async function tryCexBook(provider, product, options, signal) {
   if (signal?.aborted) throw new Error("CEX order-book request aborted before start.");
   const urls = {
-    coinbase: `https://api.exchange.coinbase.com/products/${product.base}-${product.quote === "USDT" ? "USD" : product.quote}/book?level=2`,
+    coinbase: `https://api.exchange.coinbase.com/products/${product.base}-${product.quote}/book?level=2`,
     kraken: `https://api.kraken.com/0/public/Depth?pair=${product.base}${product.quote}&count=25`,
     gate: `https://api.gateio.ws/api/v4/spot/order_book?currency_pair=${product.base}_${product.quote}&limit=20`,
     mexc: `https://api.mexc.com/api/v3/depth?symbol=${product.base}${product.quote}&limit=20`,
@@ -604,11 +876,23 @@ async function tryCexBook(provider, product, options, signal) {
 }
 
 export async function recoverCexOrderBookRoute(project = {}, options = {}, signal = null) {
+  if (!hasExplicitCexMarket(project)) {
+    return { adapter: "cex-order-book", status: "NOT_APPLICABLE", reason: "No provider-verified CEX market identity is attached to this candidate." };
+  }
   const product = parseMarketPair(project);
   if (!product) return { adapter: "cex-order-book", status: "MISSING_MARKET_PAIR", reason: "No exact spot market pair could be inferred." };
+  const exactProvider = exactCexProvider(project);
+  const supportedProviders = new Set(["coinbase", "kraken", "gate", "mexc"]);
+  if (!supportedProviders.has(exactProvider)) {
+    return {
+      adapter: "cex-order-book",
+      status: "UNSUPPORTED_PROVIDER",
+      reason: `No exact public order-book adapter is configured for ${exactProvider || "this CEX market"}.`,
+    };
+  }
   const timestamp = quoteTimestamp(options);
   const failures = [];
-  for (const provider of ["coinbase", "kraken", "gate", "mexc"]) {
+  for (const provider of [exactProvider]) {
     try {
       const book = await tryCexBook(provider, product, options, signal);
       if (book.status !== "ORDER_BOOK_RECOVERED") {
@@ -653,7 +937,7 @@ export async function recoverCexOrderBookRoute(project = {}, options = {}, signa
       };
       return { adapter: "cex-order-book", status: "ROUTE_RECOVERED", route, failures };
     } catch (error) {
-      failures.push(`${provider}: ${error.message}`);
+      failures.push(`${provider}: ${errorMessage(error)}`);
     }
   }
   return { adapter: "cex-order-book", status: "PROVIDER_FAILED", failures };
@@ -675,8 +959,11 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
   const chain = chainOf(project);
   const adapters = [];
   if (chain === "solana") adapters.push(recoverSolanaJupiterRoute);
-  if (chainDefinition(chain)?.kind === "evm") adapters.push(recoverZeroXRoute);
-  adapters.push(recoverCexOrderBookRoute);
+  if (chainDefinition(chain)?.kind === "evm") {
+    adapters.push(recoverLiFiRoute);
+    adapters.push(recoverZeroXRoute);
+  }
+  if (hasExplicitCexMarket(project)) adapters.push(recoverCexOrderBookRoute);
 
   for (const adapter of adapters) {
     if (signal?.aborted) {

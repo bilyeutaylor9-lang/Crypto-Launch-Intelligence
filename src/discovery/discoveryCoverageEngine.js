@@ -35,14 +35,17 @@ export function hasExplicitPrelaunchEvidence(project = {}) {
 }
 
 export function hasConcreteMarketEvidence(project = {}) {
+  const explicitCexMarket = Boolean(
+    String(project.dex || project.sourceType || project.canonicalExecutionRoute?.routeType || "").toLowerCase() === "cex" &&
+    (project.verifiedExchangeAssetId || project.exchangeAssetId || project.marketPair)
+  );
   return Boolean(
     num(project.priceUsd ?? project.price) > 0 ||
       num(project.liquidityUsd ?? project.liquidity) > 0 ||
       num(project.volume24h ?? project.volume) > 0 ||
       project.pairAddress ||
       project.poolAddress ||
-      project.marketKey ||
-      project.verifiedExchangeAssetId
+      explicitCexMarket
   );
 }
 

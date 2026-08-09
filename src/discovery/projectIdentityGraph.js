@@ -111,11 +111,14 @@ export function projectIdentitySignals(project = {}) {
     project.tokenAddress,
     project.contractAddress,
     project.baseToken?.address,
+    ...(Array.isArray(project.tokenAddresses) ? project.tokenAddresses : []),
+    ...(Array.isArray(project.contractAddresses) ? project.contractAddresses : []),
   ].map((value) => normalizeTokenAddress(value, chain)).filter(Boolean);
   const poolAddresses = [
     project.pairAddress,
     project.poolAddress,
     project.pair?.address,
+    ...(Array.isArray(project.poolAddresses) ? project.poolAddresses : []),
   ].map((value) => normalizePoolAddress(value, chain)).filter(Boolean);
   const websites = [
     project.website,
@@ -207,6 +210,41 @@ export function identityKeyForProject(project = {}) {
   if (signals.socialAccounts[0]) return `social:${signals.socialAccounts[0]}`;
 
   return `${signals.chain}:alias:${signals.aliases.join(":") || "unknown"}`;
+}
+
+/**
+ * Return every strong identity anchor that may safely join evidence for the
+ * same tradable instrument. Symbols, names, domains, repositories and social
+ * handles are deliberately excluded whenever a strong anchor exists: those
+ * are useful entity hints, but they are not safe token identifiers.
+ */
+export function identityKeysForProject(project = {}) {
+  const signals = projectIdentitySignals(project);
+  const strongKeys = [
+    ...signals.tokenContracts.map((contract) => `${signals.chain}:token:${contract}`),
+    ...signals.poolAddresses.map((pool) => `${signals.chain}:pool:${pool}`),
+    ...signals.exchangeAssetIds.map((assetId) => `exchange:${assetId}`),
+    ...signals.marketKeys.map((marketKey) => `market:${marketKey}`),
+    ...signals.externalAssetIds.map((assetId) => `asset:${assetId}`),
+  ];
+
+  return strongKeys.length
+    ? [...new Set(strongKeys)]
+    : [identityKeyForProject(project)];
+}
+
+/**
+ * Exact instrument anchors are used to prevent an entity-level identifier
+ * (for example a CoinGecko id) from collapsing two different contracts into
+ * one executable asset.
+ */
+export function exactIdentityKeysForProject(project = {}) {
+  const signals = projectIdentitySignals(project);
+  return [...new Set([
+    ...signals.tokenContracts.map((contract) => `${signals.chain}:token:${contract}`),
+    ...signals.poolAddresses.map((pool) => `${signals.chain}:pool:${pool}`),
+    ...signals.exchangeAssetIds.map((assetId) => `exchange:${assetId}`),
+  ])];
 }
 
 export function attachProjectIdentity(project = {}) {

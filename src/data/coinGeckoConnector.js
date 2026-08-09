@@ -181,6 +181,42 @@ function normalizeCoinGeckoPlatform(platform = "") {
   return normalizeChainId(mapped);
 }
 
+function mergeUnique(values = [], keyForValue = (value) => JSON.stringify(value)) {
+  const seen = new Set();
+  return values.filter((value) => {
+    if (value === undefined || value === null || value === "") return false;
+    const key = keyForValue(value);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function mergeCoinGeckoProject(existing = {}, incoming = {}) {
+  const merged = { ...existing };
+  for (const [field, value] of Object.entries(incoming)) {
+    if (value !== undefined && value !== null && value !== "") merged[field] = value;
+  }
+
+  const chain = incoming.chain || existing.chain || null;
+  const tokenAddress = incoming.tokenAddress || incoming.address || existing.tokenAddress || existing.address || null;
+  return {
+    ...merged,
+    chain,
+    tokenAddress,
+    address: incoming.address || incoming.tokenAddress || existing.address || existing.tokenAddress || null,
+    sources: mergeUnique([...(existing.sources || []), ...(incoming.sources || [])]),
+    narrativeCategories: mergeUnique([
+      ...(existing.narrativeCategories || []),
+      ...(incoming.narrativeCategories || []),
+    ], (value) => String(value).toLowerCase()),
+    coinGeckoPlatforms: mergeUnique(
+      [...(existing.coinGeckoPlatforms || []), ...(incoming.coinGeckoPlatforms || [])],
+      (platform) => `${platform.chain || platform.platform || "unknown"}:${platform.tokenAddress || "unknown"}`
+    ),
+  };
+}
+
 function dedupeProjects(projects = []) {
   const seen = new Map();
 
@@ -195,13 +231,7 @@ function dedupeProjects(projects = []) {
 
     const existing = seen.get(key);
 
-    seen.set(key, {
-      ...existing,
-      ...project,
-      sources: Array.from(
-        new Set([...(existing.sources || []), ...(project.sources || [])])
-      )
-    });
+    seen.set(key, mergeCoinGeckoProject(existing, project));
   }
 
   return Array.from(seen.values());
@@ -378,7 +408,7 @@ export async function getCoinGeckoCandidates(options = {}) {
   const stopOnRateLimit = options.stopOnRateLimit ?? process.env.COINGECKO_STOP_ON_429 !== "false";
   const includeCoinList =
     options.includeCoinList ??
-    boolEnv(process.env.COINGECKO_INCLUDE_COIN_LIST, Boolean(coinGeckoAuthConfig().key));
+    boolEnv(process.env.COINGECKO_INCLUDE_COIN_LIST, true);
   const coinListLimit = Number(options.coinListLimit || process.env.COINGECKO_COIN_LIST_LIMIT || 20000);
 
   const candidates = [];
@@ -473,6 +503,8 @@ export const __coinGeckoTestHooks = {
   coinGeckoBaseUrl,
   coinGeckoHeaders,
   normalizeCoinGeckoPlatform,
+  mergeCoinGeckoProject,
+  dedupeProjects,
   requestDelayMs,
 };
 

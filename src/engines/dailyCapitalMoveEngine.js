@@ -144,6 +144,7 @@ function memeOnly(project = {}) {
     utilityScore(project) >= 65 ||
     (Array.isArray(project.utilityEvidenceFamilies) && project.utilityEvidenceFamilies.length >= 3);
   return Boolean(
+    project.memeBrandingDetected === true ||
     project.memeOnlySpeculative === true ||
       project.utilityClassification === "MEME_SPECULATION" ||
       project.utilityQualityVerdict === "Meme-only speculation" ||
@@ -325,6 +326,9 @@ export function analyzeDailyCapitalMove(project = {}) {
   } else if (!hasCleanDisplayIdentity(project) || isLikelyAggregateCandidate(project)) {
     lane = "BLOCKED";
     reason = "Malformed or aggregate project identity cannot be used for daily capital research.";
+  } else if (project.researchOnly === true || project.tradableCandidate === false) {
+    lane = "ENTITY_RESEARCH_ONLY";
+    reason = "Entity-level research evidence is not a contract-resolved tradable asset.";
   } else if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") {
     lane = "MARKET_BENCHMARK";
     reason = "Established native asset is market benchmark context, not an early utility-small-cap capital candidate.";
@@ -442,6 +446,7 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
   const needsProof = analyzed.filter((project) => project.dailyCapitalMoveLane === "NEEDS_PROOF");
   const watch = analyzed.filter((project) => project.dailyCapitalMoveLane === "WATCH");
   const quarantined = analyzed.filter((project) => project.dailyCapitalMoveLane === "QUARANTINED_IDENTITY_OR_ROUTE");
+  const entityResearchOnly = analyzed.filter((project) => project.dailyCapitalMoveLane === "ENTITY_RESEARCH_ONLY");
   const marketBenchmarks = analyzed.filter((project) => project.dailyCapitalMoveLane === "MARKET_BENCHMARK");
   const blocked = analyzed.filter((project) =>
     ["BLOCKED", "LATE_CHASE_DO_NOT_CHASE", "MEME_ONLY_EXCLUDED"].includes(project.dailyCapitalMoveLane)
@@ -455,7 +460,7 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
     dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
-    status: best ? "CAPITAL_MOVE_RESEARCH_READY" : (watchlist.length || quarantined.length) ? "NO_VALID_MOVE_TODAY_RESEARCH_ONLY" : analyzed.length ? "NO_VALID_MOVE_TODAY" : "NO_PROJECTS",
+    status: best ? "CAPITAL_MOVE_RESEARCH_READY" : (watchlist.length || quarantined.length || entityResearchOnly.length) ? "NO_VALID_MOVE_TODAY_RESEARCH_ONLY" : analyzed.length ? "NO_VALID_MOVE_TODAY" : "NO_PROJECTS",
     mode: "AGGRESSIVE_1_TO_7_DAY_UTILITY_SMALL_CAP",
     objective: "Select one daily capital-move research candidate only when strict utility, safety, and execution proof exists.",
     disclaimer: "Research output only. Not financial advice, not a buy/sell recommendation, and not a profit guarantee.",
@@ -465,6 +470,7 @@ export function summarizeDailyCapitalMoves(projects = [], meta = {}) {
     watchlist: watchlist.map((project, index) => compact(project, index + 1)),
     needsProof: needsProof.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     quarantinedIdentityOrRoute: quarantined.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
+    entityResearchOnly: entityResearchOnly.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     marketBenchmarks: marketBenchmarks.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     blockedOrRejected: blocked.slice(0, TARGET_WATCHLIST).map((project, index) => compact(project, index + 1)),
     countsByLane: analyzed.reduce((counts, project) => {

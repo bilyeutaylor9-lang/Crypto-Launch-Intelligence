@@ -163,7 +163,18 @@ The system does not trust one score. It builds a full research case:
 - Institutional provenance: requires source lineage, freshness, direct observation, and cross-source agreement before a project can receive institutional-ready data status.
 - Progressive opportunity ranking: always shows the strongest non-hard-blocked best-available leads while preserving strict final safety gates.
 - Execution proof: never treats a provider outage as proof that no route exists, and never claims route proof unless execution evidence exists.
-- Identity protection: never merges projects by symbol alone; ambiguous tickers are sent to review instead of silently contaminating results.
+- Identity protection: joins candidates through exact contract, pool, venue-asset, market, or external-ID anchors; conflicting exact identities cannot collapse into one project.
+- Research/market separation: repository and news discoveries remain research entities until an exact tradable identity and concrete market evidence are attached.
+- Utility-first guardrail: obvious meme branding is excluded from intelligence, recovery, dashboard, and public alert lanes by default; internal forensic risk history can still be retained.
+
+### Institutional integrity defaults
+
+- Missing price, liquidity, volume, contract, pool, and route evidence remains `null` or explicitly unavailable. Missing data is never converted into a favorable zero.
+- CoinGecko catalogue identity is preserved when it is enriched with market rows, including platform contracts returned by the free coin-list endpoint.
+- EVM execution recovery requests actual same-chain buy and sell quotes from LI.FI using the exact contract. Solana recovery uses Jupiter, while 0x remains an optional keyed fallback.
+- A ticker-derived CEX market such as `SYMBOLUSDT` is never invented. CEX depth can be probed only when discovery supplied an explicit venue and market identity.
+- Research-only entities and aggregate market rows cannot enter route recovery or execution-ready rankings.
+- The scanner never sends a transaction. Route recovery is quote-only research, and every execution claim must retain its provider evidence and timestamp.
 
 ## System Architecture
 
@@ -552,6 +563,7 @@ Supported discovery and research sources include:
 - CoinGecko
 - CoinPaprika
 - DeFiLlama
+- LI.FI quote and token APIs for exact-contract EVM execution research
 - CoinCap
 - CoinLore
 - CryptoCompare
@@ -960,7 +972,22 @@ export BASE_AERODROME_FACTORY="optional_factory_address"
 export BASE_RPC_URL="optional_base_rpc_url"
 export SOLANA_RAYDIUM_CPMM_PROGRAM="optional_program_id"
 export SOLANA_RPC_URL="optional_solana_rpc_url"
+export LIFI_API_KEY="optional_higher_rate_limit_key"
+export ZEROX_API_KEY="optional_0x_fallback_key"
 ```
+
+The institutional defaults are configurable without weakening identity requirements:
+
+```bash
+export COINGECKO_INCLUDE_COIN_LIST=true
+export EXCLUDE_MEME_CANDIDATES=true
+export LIFI_EXECUTION_RECOVERY_ENABLED=true
+export EXECUTION_RECOVERY_MAX_CANDIDATES=25
+export EXECUTION_RECOVERY_TRADE_SIZES_USD=100
+export EXECUTION_QUOTE_TAKER_ADDRESS="optional_valid_evm_address_for_quote_context"
+```
+
+LI.FI works without a key at its public rate limit. `LIFI_API_KEY` is optional and only increases available request capacity. Setting `EXCLUDE_MEME_CANDIDATES=false` admits meme-branded rows to comparative research; public opportunity and execution boards remain utility-first.
 
 For the complete OP Mode template, see `.env.example`. GitHub repository secrets can use the same names.
 

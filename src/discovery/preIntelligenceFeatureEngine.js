@@ -6,6 +6,7 @@ import {
   independentEvidenceScore,
 } from "./discoveryCoverageEngine.js";
 import { analyzeExplosionReadinessBatch } from "./explosionReadinessEngine.js";
+import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 
 function present(value) {
   return value !== undefined && value !== null && value !== "";
@@ -92,6 +93,15 @@ function hardDangerReasons(project = {}) {
   }
   if (num(project.liquidityManipulationRisk) >= 90 || num(project.washTradingRiskScore) >= 90) {
     reasons.push("severe manipulation evidence");
+  }
+  const memeCategory = /(?:^|\b)meme(?:coin|[- ]token| coin)?(?:\b|$)/i.test(
+    [project.category, project.narrative, project.primaryNarrative].filter(Boolean).join(" ")
+  );
+  if (
+    process.env.EXCLUDE_MEME_CANDIDATES !== "false" &&
+    (isLikelyMemeIdentity(project) || memeCategory)
+  ) {
+    reasons.push("meme branding excluded by scanner policy");
   }
   return reasons;
 }

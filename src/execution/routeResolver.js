@@ -100,6 +100,8 @@ const SUPPORTED_ROUTE_VENUES = new Set([
   "geckoterminal",
   "htx",
   "jupiter",
+  "li.fi",
+  "lifi",
   "kraken",
   "kucoin",
   "mexc",
@@ -303,7 +305,7 @@ function inferRouteType(project = {}) {
   if (["coinbase", "kraken", "binance", "binance.us", "gemini", "okx", "bybit", "kucoin", "gate", "mexc", "bitget", "crypto.com", "htx", "upbit", "bithumb"].some((item) => venue.includes(item))) {
     return "CEX";
   }
-  if (["jupiter", "1inch", "paraswap", "matcha", "0x", "zero_x"].some((item) => venue.includes(item))) {
+  if (["jupiter", "li.fi", "lifi", "1inch", "paraswap", "matcha", "0x", "zero_x"].some((item) => venue.includes(item))) {
     return "AGGREGATOR";
   }
   return raw || "DEX";

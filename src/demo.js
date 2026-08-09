@@ -113,6 +113,7 @@ Open \`report.html\` locally, or inspect the JSON files directly.
 
 async function main() {
   const startedAt = new Date();
+  const scanRunId = `demo_${startedAt.getTime()}`;
   const limit = Number(process.env.DEMO_PROJECT_LIMIT || 8);
   const projects = getFallbackResearchSeedCandidates({ limit });
 
@@ -133,6 +134,7 @@ async function main() {
   writeCandidateSelectionAuditReports(selectionPlan);
 
   const results = await runIntelligencePipeline(projects, {
+    scanRunId,
     saveMemory: false,
     webResearchAgent: { limit: 0 },
     externalIntelligence: {
@@ -149,10 +151,14 @@ async function main() {
     },
   });
   const summary = summarizePipelineResults(results);
+  const completedAt = new Date().toISOString();
   const reportPaths = generateReports(results, {
     mode: "demo",
+    runId: scanRunId,
+    scanRunId,
     startedAt: startedAt.toISOString(),
-    completedAt: new Date().toISOString(),
+    completedAt,
+    dataCutoffTimestamp: completedAt,
     scannedProjects: results.length,
     analysisFunnel: selectionPlan.report,
     note: "Generated from built-in research seed projects. No API keys required.",

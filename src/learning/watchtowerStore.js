@@ -39,6 +39,23 @@ function alertFingerprint(alert = {}) {
     .toLowerCase();
 }
 
+const POSITIVE_OPPORTUNITY_ALERT_PATTERN =
+  /armed|pre-breakout|score spike|priority|smart money|liquidity|social/i;
+
+export function watchtowerAlertRetentionEligible(alert = {}) {
+  if (!POSITIVE_OPPORTUNITY_ALERT_PATTERN.test(String(alert.type || ""))) return true;
+  return alert.opportunityPolicyEligible === true;
+}
+
+export function watchtowerAlertPublicEligible(alert = {}) {
+  return Boolean(
+    alert.opportunityPolicyEligible === true &&
+    alert.tokenAddress &&
+    alert.chain &&
+    String(alert.chain).toLowerCase() !== "unknown"
+  );
+}
+
 export function loadWatchtowerAlerts() {
   const parsed = readJson(ALERT_FILE, {
     version: 1,
@@ -58,6 +75,7 @@ export function saveWatchtowerAlerts(alerts = []) {
   const seen = new Set();
   const merged = [...existing.alerts, ...(Array.isArray(alerts) ? alerts : [])]
     .reverse()
+    .filter(watchtowerAlertRetentionEligible)
     .filter((alert) => {
       const fingerprint = alertFingerprint(alert);
       if (seen.has(fingerprint)) return false;

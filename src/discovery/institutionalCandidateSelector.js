@@ -241,6 +241,10 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
   const finalists = selectStage(debate, config.finalistComparisonLimit, "finalistSelectionScore", "finalist");
   const shadowAudit = buildShadowAudit(standard, lanePlan.deferred);
   const missedOpportunityAudit = buildMissedOpportunityAudit(shadowAudit);
+  const preIntelligenceLeader = finalists[0] || rankableStandard[0] || null;
+  const identityEnrichmentSelected = standard.filter(
+    (project) => (project.preIntelligenceLane || project.discoveryLane) === "identity-only"
+  );
 
   return {
     selected: standard,
@@ -251,7 +255,8 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
     llama3,
     debate,
     finalists,
-    winner: finalists[0] || rankableStandard[0] || null,
+    preIntelligenceLeader,
+    winner: preIntelligenceLeader,
     selectedIdentityKeys: lanePlan.selectedIdentityKeys,
     selectionReasons: lanePlan.selectionReasons,
     rescued: lanePlan.rescued,
@@ -261,9 +266,13 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
       ...lanePlan.report,
       funnel: {
         discoveryUniverse: projects.length,
-        deduplicatedUniverse: lanePlan.report.uniqueCandidateCount,
-        eligiblePreIntelligenceUniverse: lanePlan.report.eligibleCandidateCount,
+        deduplicatedUniverse: lanePlan.report.totalUniqueCandidateCount,
+        rankablePreIntelligenceUniverse: lanePlan.report.rankableUniqueCandidateCount,
+        identityEnrichmentUniverse: lanePlan.report.uniqueIdentityEnrichmentCandidateCount,
+        eligiblePreIntelligenceUniverse: lanePlan.report.rankableUniqueCandidateCount,
         standardIntelligenceSelected: standard.length,
+        standardRankableSelected: rankableStandard.length,
+        identityEnrichmentSelected: identityEnrichmentSelected.length,
         standardIntelligenceLimit: config.standardIntelligenceLimit,
         advancedIntelligenceSelected: advanced.length,
         advancedIntelligenceLimit: config.advancedIntelligenceLimit,
@@ -277,7 +286,8 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
         debateLimit: config.finalistDebateLimit,
         finalists: finalists.length,
         finalistLimit: config.finalistComparisonLimit,
-        bestOpportunity: finalists[0]?.symbol || rankableStandard[0]?.symbol || "no eligible leader",
+        preIntelligenceLeader: preIntelligenceLeader?.symbol || "no eligible leader",
+        leaderStatus: "PRELIMINARY_RESEARCH_ROUTING_ONLY",
       },
       stageLeaders: {
         standard: standard.slice(0, 10).map(compact),
