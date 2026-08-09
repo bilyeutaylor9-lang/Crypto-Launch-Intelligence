@@ -16,8 +16,19 @@ function rankedProjects(projects = []) {
   const analyzed = safe.every((project) => Number.isFinite(Number(project.marketOpportunityRank)))
     ? safe
     : analyzeMarketOpportunityRankBatch(safe);
-  return [...analyzed].sort(
+  const guardedContractPresent = analyzed.some((project) => project.liveActionStatus);
+  const eligible = guardedContractPresent
+    ? analyzed.filter(
+        (project) =>
+          ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus) &&
+          project.liveRankingDisplayEligible === true &&
+          project.liveRankingUtilityEligible === true
+      )
+    : analyzed;
+  return [...eligible].sort(
     (a, b) =>
+      Number(b.liveActionStatus === "MICRO_TEST_ELIGIBLE") - Number(a.liveActionStatus === "MICRO_TEST_ELIGIBLE") ||
+      num(b.guardedLiveScore) - num(a.guardedLiveScore) ||
       num(b.marketOpportunityRank) - num(a.marketOpportunityRank) ||
       num(b.progressiveOpportunityScore) - num(a.progressiveOpportunityScore) ||
       num(b.trustScore) - num(a.trustScore)
@@ -40,6 +51,10 @@ function compact(project = {}, rank = 0) {
     projectKey: record.projectKey,
     identity: record.identity,
     marketOpportunityRank: Math.round(clamp(project.marketOpportunityRank)),
+    guardedLiveScore: Math.round(clamp(project.guardedLiveScore)),
+    liveActionStatus: project.liveActionStatus || null,
+    explosionReadinessScore: Math.round(clamp(project.explosionReadinessScore)),
+    explosionReadinessState: project.explosionReadinessState || "INSUFFICIENT_EVIDENCE",
     marketOpportunityLearningScore: Math.round(clamp(project.marketOpportunityLearningScore)),
     marketOpportunityLearningAdjustment: Math.round(num(project.marketOpportunityLearningAdjustment)),
     learnedMarketOpportunityRank: Math.round(clamp(project.learnedMarketOpportunityRank ?? project.marketOpportunityRank)),
@@ -73,6 +88,14 @@ function clearLeaderCheck(top = null, runnerUp = null) {
   const record = recordFor(top);
   const gap = num(top.marketOpportunityRank) - num(runnerUp?.marketOpportunityRank);
   const checks = [
+    ...(
+      top.liveActionStatus
+        ? [{
+            pass: top.liveActionStatus === "MICRO_TEST_ELIGIBLE",
+            reason: "Canonical best-now status must be MICRO_TEST_ELIGIBLE under guarded live ranking.",
+          }]
+        : []
+    ),
     {
       pass: num(top.marketOpportunityRank) >= 80,
       reason: "Market Opportunity Rank must be at least 80.",
@@ -289,6 +312,7 @@ export function summarizeMarketOpportunity(projects = []) {
     localAIChiefJudgment: chiefJudgment(comparison, topFive),
     leaderEvidenceRecord: leaderRecord,
     clearLeaderRequirements: [
+      "Guarded live status = MICRO_TEST_ELIGIBLE when live-ranking fields are present",
       "Market Opportunity Rank >= 80",
       "Trust Score >= 60",
       "Evidence coverage >= 60",

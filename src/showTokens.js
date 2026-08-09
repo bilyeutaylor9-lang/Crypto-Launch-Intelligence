@@ -135,6 +135,8 @@ function printToken(token = {}, index = 0) {
   console.log(`24h Price Change............ ${formatNumber(token.priceChange24h)}%`);
   console.log(`Guarded Live Score.......... ${formatNumber(token.guardedLiveScore || score)}`);
   console.log(`Live Status................. ${token.liveActionStatus || "UNRANKED"}`);
+  console.log(`Explosion Readiness......... ${formatNumber(token.explosionReadinessScore)}/100`);
+  console.log(`Explosion State............. ${token.explosionReadinessState || "INSUFFICIENT_EVIDENCE"}`);
   console.log(`Old Score / Rank............ ${token.legacyProductionScore ?? "-"} / #${token.legacyRank ?? "-"}`);
   console.log(`Ranking Model............... ${token.liveRankingModel || "-"}`);
   console.log(`Evidence Coverage........... ${token.liveRankingCoverage ?? 0}`);

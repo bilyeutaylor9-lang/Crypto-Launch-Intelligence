@@ -877,6 +877,23 @@ async function mapLimit(items = [], limit = 2, iterator) {
 export async function analyzeExecutionProofRecoveryBatch(projects = [], options = {}) {
   const resolved = resolveOptions(options);
   const safe = Array.isArray(projects) ? projects : [];
+  if (options.auditMode === true) {
+    return safe.map((project) => ({
+      ...project,
+      executionProofRecovery: {
+        status: "AUDIT_MODE_SKIPPED",
+        attempted: false,
+        selected: false,
+        reason: "Live quote recovery is disabled during deterministic engine audits.",
+      },
+      executionProofRecoveryStage: {
+        stageStatus: "AUDIT_MODE_SKIPPED",
+        selectedCandidates: 0,
+        attemptedCandidates: 0,
+        recoveredRoutes: 0,
+      },
+    }));
+  }
   if (!resolved.enabled || !safe.length) {
     return safe.map((project) => ({
       ...project,

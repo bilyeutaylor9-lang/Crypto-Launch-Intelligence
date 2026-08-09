@@ -905,6 +905,9 @@ function sortCandidates(left, right) {
   if (utilityPriority) return utilityPriority;
   const score = Number(right.guardedLiveScore || 0) - Number(left.guardedLiveScore || 0);
   if (score) return score;
+  const explosionReadiness =
+    Number(right.explosionReadinessScore || 0) - Number(left.explosionReadinessScore || 0);
+  if (explosionReadiness) return explosionReadiness;
   return String(left.identityKey || left.symbol || left.name || "").localeCompare(
     String(right.identityKey || right.symbol || right.name || "")
   );
@@ -1008,6 +1011,9 @@ function compactProject(project = {}) {
     poolAddress: poolAddress(project),
     priceUsd: firstNumber(project.priceUsd, project.price),
     guardedLiveScore: project.guardedLiveScore ?? 0,
+    explosionReadinessScore: project.explosionReadinessScore ?? 0,
+    explosionReadinessState: project.explosionReadinessState || "INSUFFICIENT_EVIDENCE",
+    explosionReadinessCoverage: project.explosionReadinessCoverage ?? 0,
     legacyProductionScore: project.legacyProductionScore ?? null,
     liveRankingModel: project.liveRankingModel || null,
     liveRankingCoverage: project.liveRankingCoverage ?? 0,
@@ -1041,6 +1047,8 @@ function compactProjectIndex(project = {}) {
     tokenAddress: tokenAddress(project),
     poolAddress: poolAddress(project),
     guardedLiveScore: project.guardedLiveScore ?? 0,
+    explosionReadinessScore: project.explosionReadinessScore ?? 0,
+    explosionReadinessState: project.explosionReadinessState || "INSUFFICIENT_EVIDENCE",
     legacyProductionScore: project.legacyProductionScore ?? null,
     liveRankingCoverage: project.liveRankingCoverage ?? 0,
     liveActionStatus: project.liveActionStatus || "DATA_RECOVERY_REQUIRED",

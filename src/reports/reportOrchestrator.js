@@ -82,6 +82,7 @@ import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
 import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAuditEngine.js";
 import { writeScanArtifactManifest } from "./scanArtifactManifestReportEngine.js";
 import { writeGuardedLiveRankingReports } from "../ranking/guardedLiveRankingEngine.js";
+import { writeExplosionReadinessReport } from "./explosionReadinessReportEngine.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -92,6 +93,7 @@ import {
 export function generateReports(projects = [], meta = {}) {
   const precomputedPipelineStageHealth = meta.pipelineStageHealth;
   const fullProjects = Array.isArray(projects) ? projects : [];
+  const { filePath: explosionReadinessPath } = writeExplosionReadinessReport(fullProjects, meta);
   const {
     liveCoreRankingJsonPath,
     liveCoreRankingMarkdownPath,
@@ -426,6 +428,7 @@ export function generateReports(projects = [], meta = {}) {
     jsonPath,
     csvPath,
     liveCoreRankingJsonPath,
+    explosionReadinessPath,
     liveCoreRankingMarkdownPath,
     liveCoreRankingCsvPath,
     microTestWatchlistPath,

@@ -13,28 +13,47 @@ function ageHours(project = {}) {
   return Math.max(0, (Date.now() - timestamp) / 36e5);
 }
 
-export function discoveryLaneForProject(project = {}) {
-  const liquidity = num(project.liquidityUsd ?? project.liquidity);
-  const volume = num(project.volume24h ?? project.volume);
-  const age = ageHours(project);
-  const hasPrelaunchSignal =
-    project.prelaunch === true ||
-    project.testnet === true ||
-    project.githubUrl ||
-    project.repository ||
-    /prelaunch|testnet|tge|airdrop|grant|hackathon|audit/i.test(
-      [
-        project.category,
-        project.description,
-        project.narrative,
-        ...(Array.isArray(project.discoverySources) ? project.discoverySources : []),
-      ].filter(Boolean).join(" ")
-    );
+function prelaunchEvidenceText(project = {}) {
+  return [
+    project.lifecycleStage,
+    project.stage,
+    project.launchStatus,
+    project.category,
+    project.description,
+    project.narrative,
+    ...(Array.isArray(project.discoverySources) ? project.discoverySources : []),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
-  if (!liquidity && !volume && hasPrelaunchSignal) return "prelaunch";
-  if (age !== null && age <= 72) return "new-pool";
-  if (liquidity > 0 || volume > 0) return "established-emerging";
-  return "prelaunch";
+export function hasExplicitPrelaunchEvidence(project = {}) {
+  if (project.prelaunch === true || project.testnet === true) return true;
+  return /\b(pre[- ]?launch|testnet|tge(?:\s+pending)?|token generation event|upcoming (?:ido|ico|launch)|(?:ido|ico|launch|mainnet) pending|before launch|not live yet)\b/i.test(
+    prelaunchEvidenceText(project)
+  );
+}
+
+export function hasConcreteMarketEvidence(project = {}) {
+  return Boolean(
+    num(project.priceUsd ?? project.price) > 0 ||
+      num(project.liquidityUsd ?? project.liquidity) > 0 ||
+      num(project.volume24h ?? project.volume) > 0 ||
+      project.pairAddress ||
+      project.poolAddress ||
+      project.marketKey ||
+      project.verifiedExchangeAssetId
+  );
+}
+
+export function discoveryLaneForProject(project = {}) {
+  const age = ageHours(project);
+  const marketEvidence = hasConcreteMarketEvidence(project);
+
+  if (!marketEvidence && hasExplicitPrelaunchEvidence(project)) return "prelaunch";
+  if (marketEvidence && age !== null && age <= 72) return "new-pool";
+  if (marketEvidence) return "established-emerging";
+  return "identity-only";
 }
 
 export function evidenceFamiliesForProject(project = {}) {

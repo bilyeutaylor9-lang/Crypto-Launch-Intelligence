@@ -66,6 +66,7 @@ function topPercentThreshold(items = [], getter = () => 0, percent = 0.01) {
 function selectionReasonLabel(reason = "") {
   return {
     COMPOSITE_MERIT: "Composite Merit",
+    EXPLOSION_READINESS_RESERVE: "Explosion Readiness Reserve",
     ACCELERATION_RESERVE: "Acceleration Reserve",
     ATTENTION_GAP_RESERVE: "Attention Gap Reserve",
     CATALYST_DEVELOPER_RESERVE: "Catalyst/Developer Reserve",
@@ -73,6 +74,7 @@ function selectionReasonLabel(reason = "") {
     STARVATION_RESCUE_RESERVE: "Data Starvation Rescue",
     FRESH_DISCOVERY_RESERVE: "Fresh Discovery Reserve",
     DEFERRED_ROTATION: "Deferred Rotation",
+    IDENTITY_ENRICHMENT_RESERVE: "Identity Enrichment Reserve",
     MERIT_FILL: "Merit Fill",
   }[reason] || reason;
 }
@@ -142,7 +144,23 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
   }
 
   const hardBlocked = candidates.filter((candidate) => (candidate.project.preIntelligenceHardBlockers || []).length);
-  const eligible = candidates.filter((candidate) => !(candidate.project.preIntelligenceHardBlockers || []).length);
+  const identityEnrichment = candidates.filter(
+    (candidate) =>
+      !(candidate.project.preIntelligenceHardBlockers || []).length &&
+      (candidate.project.preIntelligenceLane || candidate.project.discoveryLane) === "identity-only"
+  );
+  const eligible = candidates.filter(
+    (candidate) =>
+      !(candidate.project.preIntelligenceHardBlockers || []).length &&
+      (candidate.project.preIntelligenceLane || candidate.project.discoveryLane) !== "identity-only" &&
+      candidate.project.preIntelligenceRankEligible !== false
+  );
+  const researchOnly = candidates.filter(
+    (candidate) =>
+      !(candidate.project.preIntelligenceHardBlockers || []).length &&
+      (candidate.project.preIntelligenceLane || candidate.project.discoveryLane) !== "identity-only" &&
+      candidate.project.preIntelligenceRankEligible === false
+  );
   const unique = [];
   const duplicates = [];
   const seen = new Set();
@@ -157,14 +175,29 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     }
   }
 
-  const target = limit > 0 ? Math.min(limit, unique.length) : unique.length;
+  const uniqueIdentityEnrichment = [];
+  for (const candidate of [...identityEnrichment].sort(compareBy((project) => project.preIntelligenceOpportunityScore))) {
+    if (seen.has(candidate.identityKey)) duplicates.push(candidate);
+    else {
+      seen.add(candidate.identityKey);
+      uniqueIdentityEnrichment.push(candidate);
+    }
+  }
+  const target = limit > 0
+    ? Math.min(limit, unique.length + uniqueIdentityEnrichment.length)
+    : unique.length + uniqueIdentityEnrichment.length;
   const selected = [];
   const selectedIdentityKeys = new Set();
   const selectedReasonByIdentity = new Map();
   const rescueReasons = new Map();
 
+  const identityEnrichmentBudget = Math.min(
+    uniqueIdentityEnrichment.length,
+    Math.max(0, Math.floor(num(config.laneBudgets?.identityEnrichmentReserve) || target * 0.025))
+  );
+  let selectionCap = Math.max(0, target - identityEnrichmentBudget);
   const select = (candidate, reason, rescueReason = null) => {
-    if (!candidate || selected.length >= target || selectedIdentityKeys.has(candidate.identityKey)) return false;
+    if (!candidate || selected.length >= selectionCap || selectedIdentityKeys.has(candidate.identityKey)) return false;
     selected.push(candidate);
     selectedIdentityKeys.add(candidate.identityKey);
     selectedReasonByIdentity.set(candidate.identityKey, reason);
@@ -174,6 +207,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
 
   const budgets = {
     COMPOSITE_MERIT: Math.min(target, Math.max(0, Math.floor(num(config.laneBudgets?.compositeMerit) || Math.round(target * 0.6)))),
+    EXPLOSION_READINESS_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.explosionReadinessReserve) || Math.round(target * 0.1))),
     ACCELERATION_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.accelerationReserve) || Math.round(target * 0.15))),
     ATTENTION_GAP_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.attentionGapReserve) || Math.round(target * 0.1))),
     CATALYST_DEVELOPER_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.catalystDeveloperReserve) || Math.round(target * 0.075))),
@@ -181,6 +215,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     STARVATION_RESCUE_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.starvationRescueReserve) || Math.round(target * 0.075))),
     FRESH_DISCOVERY_RESERVE: Math.max(0, Math.floor(num(config.laneBudgets?.freshDiscoveryReserve) || Math.round(target * 0.05))),
     DEFERRED_ROTATION: Math.max(0, Math.floor(num(config.laneBudgets?.deferredRotation) || Math.round(target * 0.025))),
+    IDENTITY_ENRICHMENT_RESERVE: identityEnrichmentBudget,
   };
 
   unique.slice(0, budgets.COMPOSITE_MERIT).forEach((candidate) => select(candidate, "COMPOSITE_MERIT"));
@@ -200,6 +235,15 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
         select(candidate, reason, rescueReason);
       });
   };
+
+  laneSelect(
+    unique.filter((candidate) => candidate.project.explosionReadinessRankEligible === true),
+    budgets.EXPLOSION_READINESS_RESERVE,
+    "EXPLOSION_READINESS_RESERVE",
+    (project) => project.explosionReadinessScore,
+    "evidence-backed pre-breakout acceleration outside composite cut",
+    60
+  );
 
   laneSelect(
     unique,
@@ -301,6 +345,13 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     .sort(compareBy((project) => project.preIntelligenceOpportunityScore))
     .forEach((candidate) => select(candidate, "MERIT_FILL"));
 
+  selectionCap = target;
+  uniqueIdentityEnrichment
+    .slice(0, budgets.IDENTITY_ENRICHMENT_RESERVE)
+    .forEach((candidate) =>
+      select(candidate, "IDENTITY_ENRICHMENT_RESERVE", "identity-only row admitted for bounded enrichment, not ranking")
+    );
+
   const selectedProjects = selected.map((candidate, index) =>
     annotate(candidate, "SELECTED", selectedReasonByIdentity.get(candidate.identityKey), index + 1, {
       rescueReason: rescueReasons.get(candidate.identityKey),
@@ -322,7 +373,20 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     });
   const duplicateProjects = duplicates.map((candidate) => annotate(candidate, "MERGED", "DUPLICATE_IDENTITY"));
   const blockedProjects = hardBlocked.map((candidate) => annotate(candidate, "BLOCKED", "CONFIRMED_PRE_INTELLIGENCE_DANGER"));
-  const allExcluded = [...deferred, ...duplicateProjects, ...blockedProjects];
+  const selectedIdentitySet = new Set(selected.map((candidate) => candidate.identityKey));
+  const evidenceIneligibleProjects = researchOnly.map((candidate) =>
+    annotate(candidate, "DEFERRED", "EVIDENCE_INELIGIBLE")
+  );
+  const enrichmentDeferredProjects = uniqueIdentityEnrichment
+    .filter((candidate) => !selectedIdentitySet.has(candidate.identityKey))
+    .map((candidate) => annotate(candidate, "DEFERRED", "IDENTITY_ENRICHMENT_CAP"));
+  const allExcluded = [
+    ...deferred,
+    ...evidenceIneligibleProjects,
+    ...enrichmentDeferredProjects,
+    ...duplicateProjects,
+    ...blockedProjects,
+  ];
   const selectedByReason = countBy(selected, (candidate) => selectedReasonByIdentity.get(candidate.identityKey));
   const rescued = selectedProjects.filter((project) => project.standardSelectionRescueReason);
 
@@ -334,11 +398,13 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
     selectionReasons: Object.fromEntries(selectedReasonByIdentity),
     budgets,
     report: {
-      policy: "Institutional multi-lane 4,000 selector: composite, acceleration, attention gap, catalyst/developer, data-starvation rescue, coverage, fresh discovery, rotation, then merit fill. Missing data is not treated as zero; recoverable hidden candidates and never-queued projects receive reserved capacity.",
+      policy: "Evidence-first multi-lane selector: composite merit plus a temporal explosion-readiness reserve. Identity-only rows are quarantined to a bounded enrichment reserve and cannot compete with rankable market evidence.",
       runSequence,
       configuredLimit: limit,
       candidateCount: candidates.length,
       eligibleCandidateCount: eligible.length,
+      evidenceIneligibleCandidateCount: researchOnly.length,
+      identityOnlyCandidateCount: identityEnrichment.length,
       uniqueCandidateCount: unique.length,
       duplicateIdentityCount: duplicates.length,
       selectedCount: selectedProjects.length,
@@ -360,6 +426,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
       hardBlockedCount: blockedProjects.length,
       allocation: {
         compositeMerit: selectedByReason.COMPOSITE_MERIT || 0,
+        explosionReadinessReserve: selectedByReason.EXPLOSION_READINESS_RESERVE || 0,
         accelerationReserve: selectedByReason.ACCELERATION_RESERVE || 0,
         attentionGapReserve: selectedByReason.ATTENTION_GAP_RESERVE || 0,
         catalystDeveloperReserve: selectedByReason.CATALYST_DEVELOPER_RESERVE || 0,
@@ -368,6 +435,7 @@ export function allocateCandidateLanes(projects = [], config = {}, options = {})
         deferredRotation: selectedByReason.DEFERRED_ROTATION || 0,
         freshDiscoveryReserve: selectedByReason.FRESH_DISCOVERY_RESERVE || 0,
         meritFill: selectedByReason.MERIT_FILL || 0,
+        identityEnrichmentReserve: selectedByReason.IDENTITY_ENRICHMENT_RESERVE || 0,
         rescuedCandidates: rescued.length,
       },
     },
