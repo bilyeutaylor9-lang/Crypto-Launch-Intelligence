@@ -48,6 +48,11 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function numOrNull(value) {
+  if (value === undefined || value === null || value === "") return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
 function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
@@ -213,9 +218,9 @@ function normalizeProject(project = {}) {
     chain: String(project.chain || project.chainId || "unknown").toLowerCase(),
     address: project.address || project.tokenAddress || project.baseToken?.address || null,
     pairAddress: project.pairAddress || project.pair?.address || null,
-    priceUsd: num(project.priceUsd ?? project.price),
-    liquidityUsd: num(project.liquidityUsd ?? project.liquidity?.usd ?? project.liquidity),
-    volume24h: num(project.volume24h ?? project.volume?.h24 ?? project.volume),
+    priceUsd: numOrNull(project.priceUsd ?? project.price),
+    liquidityUsd: numOrNull(project.liquidityUsd ?? project.liquidity?.usd ?? project.liquidity),
+    volume24h: numOrNull(project.volume24h ?? project.volume?.h24 ?? project.volume),
     circulatingMarketCap,
     verifiedMarketCap: num(project.verifiedMarketCap),
     estimatedMarketCap,
@@ -228,7 +233,7 @@ function normalizeProject(project = {}) {
     supplyConfidence: num(project.supplyConfidence),
     valuationSources,
     valuationDisagreement: valuationDisagreement(valuationSources.map((source) => source.value)),
-    priceChange24h: num(project.priceChange24h ?? project.priceChange?.h24),
+    priceChange24h: numOrNull(project.priceChange24h ?? project.priceChange?.h24),
     discoveredAt: project.discoveredAt || new Date().toISOString(),
   });
 
@@ -236,18 +241,18 @@ function normalizeProject(project = {}) {
 
   return attachProjectIdentity({
     ...normalized,
-    completionScore: normalized.completionScore ?? completion.completionScore,
+    completionScore: completion.completionScore,
     missingDataCompletion: completion,
-    missingInfoNeeded: [...new Set([...(normalized.missingInfoNeeded || []), ...completion.missing])],
-    nextResolvers: [...new Set([...(normalized.nextResolvers || []), ...completion.nextResolvers])],
-    nextSingleResolver: normalized.nextSingleResolver || completion.nextSingleResolver,
-    discoveryLane: project.discoveryLane || discoveryLaneForProject(normalized),
-    evidenceFamilies: project.evidenceFamilies || evidenceFamiliesForProject(normalized),
-    independentEvidenceScore: project.independentEvidenceScore || independentEvidenceScore(normalized),
+    missingInfoNeeded: completion.missing,
+    nextResolvers: completion.nextResolvers,
+    nextSingleResolver: completion.nextSingleResolver,
+    discoveryLane: discoveryLaneForProject(normalized),
+    evidenceFamilies: evidenceFamiliesForProject(normalized),
+    independentEvidenceScore: independentEvidenceScore(normalized),
   });
 }
 
-function mergeProject(existing = {}, incoming = {}) {
+export function mergeProject(existing = {}, incoming = {}) {
   const a = normalizeProject(existing);
   const b = normalizeProject(incoming);
 
@@ -258,7 +263,7 @@ function mergeProject(existing = {}, incoming = {}) {
     b.source,
   ].filter(Boolean);
 
-  return attachProjectIdentity({
+  const merged = {
     ...a,
     ...b,
     name: a.name !== "Unknown" ? a.name : b.name,
@@ -283,10 +288,19 @@ function mergeProject(existing = {}, incoming = {}) {
     ].map((source) => source.value)),
     tvl: Math.max(num(a.tvl), num(b.tvl)),
     discoverySources: [...new Set(sources)],
-    evidenceFamilies: [...new Set([...(a.evidenceFamilies || []), ...(b.evidenceFamilies || [])])],
-    independentEvidenceScore: independentEvidenceScore({ ...a, ...b, discoverySources: [...new Set(sources)] }),
-    discoveryLane: a.discoveryLane || b.discoveryLane || discoveryLaneForProject({ ...a, ...b }),
     discoveredAt: a.discoveredAt || b.discoveredAt || new Date().toISOString(),
+  };
+  const completion = missingDataCompletionForProject(merged);
+  return attachProjectIdentity({
+    ...merged,
+    completionScore: completion.completionScore,
+    missingDataCompletion: completion,
+    missingInfoNeeded: completion.missing,
+    nextResolvers: completion.nextResolvers,
+    nextSingleResolver: completion.nextSingleResolver,
+    evidenceFamilies: evidenceFamiliesForProject(merged),
+    independentEvidenceScore: independentEvidenceScore(merged),
+    discoveryLane: discoveryLaneForProject(merged),
   });
 }
 

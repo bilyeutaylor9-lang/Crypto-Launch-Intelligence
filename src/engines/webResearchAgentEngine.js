@@ -134,6 +134,7 @@ export function resolveWebResearchAgentLimit(projectCount = 0, options = {}, env
 
 export async function analyzeWebResearchAgentBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
+  const auditMode = options.auditMode === true;
   const ranked = safeProjects
     .map((project) => {
       const priority = researchPriority(project);
@@ -144,7 +145,7 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
       };
     })
     .sort((a, b) => b.webResearchPriority - a.webResearchPriority);
-  const requestedLimit = Math.floor(
+  const requestedLimit = auditMode ? 0 : Math.floor(
     num(
       options.limit ??
         process.env.WEB_RESEARCH_AGENT_LIMIT ??
@@ -152,7 +153,7 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
         (process.env.WIDE_SCAN === "true" ? 100 : 25)
     )
   );
-  const limit = resolveWebResearchAgentLimit(ranked.length, options);
+  const limit = resolveWebResearchAgentLimit(ranked.length, auditMode ? { ...options, limit: 0 } : options);
   const targets = ranked.slice(0, limit);
   const targetKeys = new Set(targets.map(projectKey));
   const deferredKeys = new Set(
@@ -160,11 +161,13 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
       .slice(limit, Math.max(limit, requestedLimit))
       .map(projectKey)
   );
-  const researchMap = await getInternetProjectResearchBatch(targets, {
-    ...options.internet,
-    limit: targets.length,
-    signal: options.signal,
-  });
+  const researchMap = targets.length
+    ? await getInternetProjectResearchBatch(targets, {
+        ...options.internet,
+        limit: targets.length,
+        signal: options.signal,
+      })
+    : new Map();
 
   return ranked.map((project) => {
     const research = researchMap.get(projectKey(project));
@@ -172,7 +175,9 @@ export async function analyzeWebResearchAgentBatch(projects = [], options = {}) 
     if (!research) {
       return {
         ...project,
-        webResearchStatus: targetKeys.has(projectKey(project))
+        webResearchStatus: auditMode
+          ? "AUDIT_MODE_SKIPPED"
+          : targetKeys.has(projectKey(project))
           ? "SEARCH_ATTEMPTED_NO_RESULT"
           : deferredKeys.has(projectKey(project))
             ? "QUEUED_BUDGET_DEFERRED"

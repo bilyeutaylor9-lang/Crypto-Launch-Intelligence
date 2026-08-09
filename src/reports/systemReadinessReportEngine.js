@@ -41,6 +41,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   const opMode = readJson("op-mode-readiness.json", reportsDir) || {};
   const highUpsideScalp = readJson("high-upside-scalp-research.json", reportsDir) || {};
   const executionRecovery = readJson("execution-proof-recovery.json", reportsDir) || {};
+  const liveCoreRanking = readJson("live-core-ranking.json", reportsDir) || {};
   const scalpReadyCount = Number(highUpsideScalp.scalpReadyCount || 0);
   const highUpsideWatchCount = Number(highUpsideScalp.highUpsideWatchCount || 0);
   const routePendingCount = Number(highUpsideScalp.researchOnlyRouteMissingCount || 0);
@@ -105,6 +106,18 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   if (opMode.status && !["READY", "PASS"].includes(opMode.status)) {
     failures.push({ area: "op-mode", severity: "WARN", reason: `OP Mode status is ${opMode.status}.`, nextAction: "Open op-mode-readiness.json for exact setup gaps." });
   }
+  if (
+    liveCoreRanking.authoritativeRanking &&
+    Number(liveCoreRanking.summary?.microTestEligible || 0) === 0 &&
+    Number(liveCoreRanking.summary?.researchWatchlist || 0) === 0
+  ) {
+    failures.push({
+      area: "guarded-live-ranking",
+      severity: "WARN",
+      reason: "No project currently passes the evidence-backed live ranking gates.",
+      nextAction: "Open live-core-ranking.json and recover its missing identity, utility, safety, liquidity, buyer, and route evidence; do not force a leader.",
+    });
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -127,6 +140,9 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     routeStatus: routeHealth.status || "REPORT_NOT_GENERATED",
     dailyCapitalStatus: dailyCapital.status || "REPORT_NOT_GENERATED",
     recoveryStatus: recovery.status || "REPORT_NOT_GENERATED",
+    authoritativeRanking: liveCoreRanking.authoritativeRanking || "GUARDED_LIVE_CORE",
+    liveRankingStatus: liveCoreRanking.status || "REPORT_NOT_GENERATED",
+    liveRankingSummary: liveCoreRanking.summary || {},
     candidatePromotionStatus:
       scalpReadyCount > 0 || highUpsideWatchCount > 0
         ? "CANDIDATES_PROMOTING"

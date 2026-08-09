@@ -78,7 +78,8 @@ export function resolveAnalysisFunnelConfig(env = process.env, overrides = {}) {
     finalistComparisonLimit,
     winnerLimit: positiveInteger(overrides.winnerLimit || env.WINNER_LIMIT, DEFAULTS.winnerLimit, finalistComparisonLimit),
     laneBudgets: {
-      compositeMerit: Math.round(standardIntelligenceLimit * 0.525),
+      compositeMerit: Math.round(standardIntelligenceLimit * 0.45),
+      explosionReadinessReserve: Math.round(standardIntelligenceLimit * 0.1),
       accelerationReserve: Math.round(standardIntelligenceLimit * 0.15),
       attentionGapReserve: Math.round(standardIntelligenceLimit * 0.1),
       catalystDeveloperReserve: Math.round(standardIntelligenceLimit * 0.075),
@@ -86,6 +87,7 @@ export function resolveAnalysisFunnelConfig(env = process.env, overrides = {}) {
       starvationRescueReserve: Math.round(standardIntelligenceLimit * 0.075),
       freshDiscoveryReserve: Math.max(1, Math.round(standardIntelligenceLimit * 0.05)),
       deferredRotation: Math.max(1, Math.round(standardIntelligenceLimit * 0.025)),
+      identityEnrichmentReserve: Math.max(1, Math.round(standardIntelligenceLimit * 0.025)),
     },
     stageBudgets: {
       advanced: {

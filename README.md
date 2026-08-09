@@ -24,6 +24,7 @@ This is not a simple token screener. It is a layered research system with:
 - Evidence-Calibrated Parallel Intelligence Kernel with engine contracts, evidence ledgers, calibrated scores, and final decision overrides
 - Institutional Data Provenance Ledger for source, timestamp, confidence, observation type, source agreement, and promotion readiness
 - Progressive Opportunity Ranking that separates early-movement opportunity from trust, safety, execution, and missing-proof checks
+- Explosion Readiness ranking that requires liquidity, independent buyers, volume, builder/catalyst, attention-gap, and multi-scan persistence evidence before labeling a project as coiled or accelerating
 - Execution Proof Engine with route evidence, provider-outage handling, money confidence, and fresh quote/slippage/liquidity checks
 - Canonical Identity Resolver that protects against ticker collisions and only hard-blocks true contract conflicts
 - Four-lane candidate reporting: `SNIPER_READY`, `BEST_AVAILABLE`, `EMERGING_RESEARCH`, and `HARD_BLOCKED`
@@ -83,6 +84,12 @@ Run the maximum Alpha OS scan:
 
 ```bash
 npm run scan:op
+```
+
+Inspect the evidence-backed pre-breakout readiness report after a scan:
+
+```bash
+npm run explosion-readiness
 ```
 
 Run a smaller 100-candidate health scan before a big run:
@@ -771,6 +778,7 @@ Every scan can generate a full research packet:
 | `reports/native-discovery-mesh.json` | Native pool lifecycle candidates, first-buyer quality, usable-liquidity truth, deployer reputation, protocol coverage, checkpoints, and missed-opportunity lab |
 | `reports/discovery-decision-engine.json` | Project identity graph, organic demand firewall, instant safety gate, lifecycle-adjusted opportunity ranker, critical risk feed, and missed-winner recall lab |
 | `reports/pre-breakout-radar.json` | Proof-gated pre-breakout radar with ARMED, WATCH, RESEARCH, and BLOCKED lanes, explicit missing evidence, route/liquidity checks, and no forced picks |
+| `reports/explosion-readiness.json` | Temporal pre-breakout ranking with coiled, early-acceleration, watch, recovery, late/distorted, and risk-blocked lanes; never forces a leader |
 | `reports/progressive-opportunities.json` | Opportunity Score, Trust Score, Execution Score, Money Rank, best-available opportunities, execution-ready candidates, emerging signals, hard blocks, local AI activity, missing-evidence queue, and prediction-performance caveats |
 | `reports/best-opportunity-now.json` | Authoritative market-leader verdict. Shows BEST OPPORTUNITY RIGHT NOW only when clear-leader requirements pass, otherwise NO CLEAR MARKET LEADER |
 | `reports/top-five-opportunities.json` | Direct top-five opportunity ranking from the unified Market Opportunity Rank |

@@ -1483,7 +1483,7 @@ export function writeTop10BreakoutReports(projects = [], meta = {}) {
   const csvPath = path.join(reportsDir, "top-10-breakout-picks.csv");
   const explanationsPath = path.join(reportsDir, "top-10-breakout-explanations.json");
   const excludedPath = path.join(reportsDir, "top-10-excluded-finalists.json");
-  const bestNowPath = path.join(reportsDir, "best-opportunity-now.json");
+  const bestNowPath = path.join(reportsDir, "top10-best-opportunity-now.json");
 
   writeJson(top10Path, report);
   writeJson(candidateInputPath, candidateInput);

@@ -31,7 +31,17 @@ function hashNamespace(prefix = "cli_id", parts = []) {
 }
 
 function normalizeSymbol(value = "") {
-  const symbol = String(value || "")
+  const raw = String(value || "").trim();
+  if (
+    !raw ||
+    raw.length > 48 ||
+    /^(?:https?:|data:|ipfs:|www\.)/i.test(raw) ||
+    /(?:^|[./\\])(?:logo|icon|image|token|coins?)(?:[./\\]|$)/i.test(raw) ||
+    /(?:cloudfront|cloudinary|imgix|cdn|githubusercontent|\.com(?:[/:]|$)|\.io(?:[/:]|$)|\.org(?:[/:]|$))/i.test(raw)
+  ) {
+    return "UNKNOWN";
+  }
+  const symbol = raw
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9._-]+/g, "")
@@ -64,7 +74,9 @@ function flattenMarket(value) {
 
 export function symbolIdentityForProject(project = {}) {
   const signals = projectIdentitySignals(project);
-  const canonicalSymbol = normalizeSymbol(project.symbol || project.ticker || signals.aliases[0]);
+  const canonicalSymbol = normalizeSymbol(
+    project.symbol || project.ticker || project.baseToken?.symbol
+  );
   const chain = signals.chain || "unknown";
   const strongestProjectAnchor =
     signals.tokenContracts[0] ||
@@ -199,7 +211,8 @@ export function identityKeyForProject(project = {}) {
 
 export function attachProjectIdentity(project = {}) {
   const signals = projectIdentitySignals(project);
-  const symbolIdentity = project.symbolIdentity || symbolIdentityForProject(project);
+  const symbolIdentity = symbolIdentityForProject(project);
+  const suppliedSymbol = project.symbol || project.ticker || project.baseToken?.symbol;
   const projectId = project.projectId || hashId([
     signals.tokenContracts[0],
     signals.poolAddresses[0],
@@ -215,6 +228,9 @@ export function attachProjectIdentity(project = {}) {
 
   return {
     ...project,
+    ...(symbolIdentity.canonicalSymbol === "UNKNOWN" && suppliedSymbol
+      ? { rawSymbol: String(suppliedSymbol), symbol: "UNKNOWN" }
+      : {}),
     projectId,
     symbolIdentity,
     symbolIdentityId: symbolIdentity.symbolIdentityId,

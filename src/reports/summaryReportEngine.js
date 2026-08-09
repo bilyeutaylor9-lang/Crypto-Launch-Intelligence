@@ -13,7 +13,18 @@ export function writeSummaryReport(projects = []) {
   const watchtowerBrief = loadWatchtowerBrief().brief;
   const watchtowerPerformance = loadWatchtowerPerformanceReport();
 
-  const ranked = [...projects].sort((a, b) => {
+  const guardedContractPresent = projects.some((project) => project.liveActionStatus);
+  const authoritativeProjects = guardedContractPresent
+    ? projects.filter(
+        (project) =>
+          ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus) &&
+          project.liveRankingDisplayEligible === true &&
+          project.liveRankingUtilityEligible === true
+      )
+    : projects;
+  const ranked = [...authoritativeProjects].sort((a, b) => {
+    const liveScore = Number(b.guardedLiveScore || 0) - Number(a.guardedLiveScore || 0);
+    if (liveScore) return liveScore;
     const aScore = Number(a.opportunityScore ?? a.score ?? 0);
     const bScore = Number(b.opportunityScore ?? b.score ?? 0);
     return bScore - aScore;
@@ -22,12 +33,12 @@ export function writeSummaryReport(projects = []) {
   const topProject = ranked[0];
 
   const avgScore =
-    total === 0
+    ranked.length === 0
       ? 0
       : ranked.reduce(
           (sum, p) => sum + Number(p.opportunityScore ?? p.score ?? 0),
           0
-        ) / total;
+        ) / ranked.length;
 
   const strongBuy = ranked.filter(
     (p) => Number(p.opportunityScore ?? p.score ?? 0) >= 80

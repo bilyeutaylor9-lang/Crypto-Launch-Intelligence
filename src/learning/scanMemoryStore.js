@@ -522,6 +522,7 @@ export function createScanRecord(project = {}, options = {}) {
       partnerships: num(project.partnershipScore),
       ecosystemIntegration: num(project.ecosystemIntegrationScore),
       risk: num(project.riskScore),
+      explosionReadiness: num(project.explosionReadinessScore),
     },
 
     labels: {
@@ -590,6 +591,9 @@ export function createScanRecord(project = {}, options = {}) {
       sniperBlockingReasons: compactTextList(project.sniperBlockingReasons, 8),
       primarySniperOutcomeLabel: project.primarySniperOutcomeLabel || null,
       pointInTimeStatus: project.pointInTimeStatus || null,
+      explosionReadinessState: project.explosionReadinessState || null,
+      explosionReadinessCoverage: numericOrNull(project.explosionReadinessCoverage),
+      explosionReadinessRankEligible: Boolean(project.explosionReadinessRankEligible),
     },
 
     futureOutcomes: {

@@ -20,13 +20,14 @@ function stageScore(project = {}, stage = "advanced") {
   const signals = project.preIntelligenceSignals || {};
   if (stage === "deep") {
     return Math.round(
-      num(project.preIntelligenceOpportunityScore) * 0.25 +
-        num(components.timing) * 0.16 +
-        num(components.attentionGap) * 0.16 +
-        num(signals.liquidityAcceleration) * 0.12 +
-        num(signals.buyerAcceleration) * 0.12 +
-        num(components.catalystDeveloperChange) * 0.11 +
-        num(components.identityEvidenceStrength) * 0.08
+      num(project.explosionReadinessScore) * 0.24 +
+        num(project.preIntelligenceOpportunityScore) * 0.2 +
+        num(components.timing) * 0.13 +
+        num(components.attentionGap) * 0.12 +
+        num(signals.liquidityAcceleration) * 0.1 +
+        num(signals.buyerAcceleration) * 0.1 +
+        num(components.catalystDeveloperChange) * 0.07 +
+        num(components.identityEvidenceStrength) * 0.04
     );
   }
   if (stage === "crawler") {
@@ -66,12 +67,13 @@ function stageScore(project = {}, stage = "advanced") {
     );
   }
   return Math.round(
-    num(project.preIntelligenceOpportunityScore) * 0.34 +
-      num(components.acceleration) * 0.18 +
-      num(components.timing) * 0.15 +
-      num(components.attentionGap) * 0.15 +
-      num(components.identityEvidenceStrength) * 0.1 +
-      num(signals.rankImprovement) * 0.08
+    num(project.explosionReadinessScore) * 0.25 +
+      num(project.preIntelligenceOpportunityScore) * 0.25 +
+      num(components.acceleration) * 0.14 +
+      num(components.timing) * 0.12 +
+      num(components.attentionGap) * 0.1 +
+      num(components.identityEvidenceStrength) * 0.08 +
+      num(signals.rankImprovement) * 0.06
   );
 }
 
@@ -174,6 +176,10 @@ function compact(project = {}) {
     missingEvidence: project.preIntelligenceMissingEvidence || [],
     components: project.preIntelligenceComponents || {},
     riskPenalty: project.preIntelligenceRiskPenalty || 0,
+    explosionReadinessScore: project.explosionReadinessScore || 0,
+    explosionReadinessState: project.explosionReadinessState || "INSUFFICIENT_EVIDENCE",
+    explosionReadinessCoverage: project.explosionReadinessCoverage || 0,
+    explosionReadinessReasons: project.explosionReadinessReasons || [],
   };
 }
 
@@ -219,10 +225,15 @@ function buildMissedOpportunityAudit(shadowAudit = {}) {
 
 export function planInstitutionalCandidateSelection(projects = [], options = {}) {
   const config = options.config || resolveAnalysisFunnelConfig(options.env || process.env, options);
-  const enriched = analyzePreIntelligenceFeaturesBatch(projects);
+  const enriched = analyzePreIntelligenceFeaturesBatch(projects, options);
   const lanePlan = allocateCandidateLanes(enriched, config, options);
   const standard = lanePlan.selected;
-  const advanced = selectStageWithAllocation(standard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced", config.stageBudgets?.advanced || {});
+  const rankableStandard = standard.filter(
+    (project) =>
+      project.preIntelligenceRankEligible === true &&
+      (project.preIntelligenceLane || project.discoveryLane) !== "identity-only"
+  );
+  const advanced = selectStageWithAllocation(rankableStandard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced", config.stageBudgets?.advanced || {});
   const deep = selectStageWithAllocation(advanced, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
   const crawler = selectStageWithAllocation(deep, config.crawlerResearchLimit, "crawlerSelectionScore", "crawler", config.stageBudgets?.crawler || {});
   const llama3 = selectStageWithAllocation(crawler, config.localAITopProjectLimit, "llama3SelectionScore", "llama", config.stageBudgets?.localAI || {});
@@ -240,7 +251,7 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
     llama3,
     debate,
     finalists,
-    winner: finalists[0] || standard[0] || null,
+    winner: finalists[0] || rankableStandard[0] || null,
     selectedIdentityKeys: lanePlan.selectedIdentityKeys,
     selectionReasons: lanePlan.selectionReasons,
     rescued: lanePlan.rescued,
@@ -266,7 +277,7 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
         debateLimit: config.finalistDebateLimit,
         finalists: finalists.length,
         finalistLimit: config.finalistComparisonLimit,
-        bestOpportunity: finalists[0]?.symbol || standard[0]?.symbol || "no eligible leader",
+        bestOpportunity: finalists[0]?.symbol || rankableStandard[0]?.symbol || "no eligible leader",
       },
       stageLeaders: {
         standard: standard.slice(0, 10).map(compact),
