@@ -1058,9 +1058,9 @@ export async function runDiscoveryManager(options = {}) {
   const qualityGate = applyQualityGate(dedupedPool, options);
   const candidateRanking = rankAndLimitCandidates(qualityGate.accepted, options);
   const candidatePool = candidateRanking.limited;
-  const rankedByKey = new Map(candidateRanking.ranked.map((project) => [keyForProject(project), project]));
+  const rankedByKey = new Map(candidateRanking.ranked.map((project) => [identityKeyForProject(project), project]));
   const ledgerPool = dedupedPool.map((project) => {
-    const rankedProject = rankedByKey.get(keyForProject(project));
+    const rankedProject = rankedByKey.get(identityKeyForProject(project));
     return rankedProject || {
       ...project,
       discoveryPriorityScore: discoveryPriority(project),
