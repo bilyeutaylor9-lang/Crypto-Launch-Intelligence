@@ -152,6 +152,7 @@ import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEn
 import { analyzeDataStarvationRootCauseBatch } from "./engines/dataStarvationRootCauseEngine.js";
 import { analyzeValueOfInformationBatch } from "./engines/valueOfInformationEngine.js";
 import { analyzeStarvationRescueBatch } from "./engines/starvationRescueEngine.js";
+import { analyzeActiveEvidenceRecoveryBatch } from "./engines/activeEvidenceRecoveryEngine.js";
 import { analyzeEarlyAsymmetryTriageBatch } from "./engines/earlyAsymmetryTriageEngine.js";
 import { analyzePreBreakoutSequenceBatch } from "./engines/preBreakoutSequenceEngine.js";
 import { analyzeAttentionGapV2Batch } from "./engines/attentionGapV2Engine.js";
@@ -318,6 +319,7 @@ const ENGINE_STAGE_OVERRIDES = {
   "Value Of Information": "deep",
   "Identity Rescue": "deep",
   "Starvation Rescue": "deep",
+  "Active Evidence Recovery": "deep",
   "Research Readiness": "deep",
   "First Seen Opportunity": "deep",
   "Progressive Opportunity Ranking": "deep",
@@ -645,6 +647,7 @@ const REQUIRED_ENGINE_NAMES = new Set([
   "Data Starvation Root Cause",
   "Value Of Information",
   "Starvation Rescue",
+  "Active Evidence Recovery",
   "Early Asymmetry Triage",
   "Research Readiness",
   "First Seen Opportunity",
@@ -2451,6 +2454,35 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       stageContext
     );
   const runEngine = runPipelineEngine;
+  const runRecoveryEngine = async (name, engine, currentProjects, engineOptions = {}) => {
+    const selected = [];
+    const positions = [];
+    currentProjects.forEach((project, index) => {
+      if (["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)) {
+        selected.push(project);
+        positions.push(index);
+      }
+    });
+    if (!selected.length) {
+      console.log(`Skipping post-recovery ${name}: no recovered candidates.`);
+      return currentProjects;
+    }
+
+    console.log(`Post-Recovery Rerun: ${name} on ${selected.length}/${currentProjects.length} recovered candidates`);
+    const rerun = await runStagedPipelineEngine(
+      name,
+      engine,
+      selected,
+      { scanRunId: options.scanRunId || null, ...engineOptions, engineProfile },
+      "standard",
+      { enabled: false }
+    );
+    const next = [...currentProjects];
+    rerun.forEach((project, index) => {
+      next[positions[index]] = project;
+    });
+    return next;
+  };
 
   results = await runEngine("Rich Token Intelligence", analyzeRichTokenIntelligenceBatch, results);
   results = await runEngine("Narrative Intelligence", analyzeNarratives, results);
@@ -2633,6 +2665,25 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
   results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, options.activeEvidenceRecovery || {});
+  if (results.some((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus))) {
+    results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
+    results = await runRecoveryEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
+    results = await runRecoveryEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
+    results = await runRecoveryEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
+    results = await runRecoveryEngine(
+      "Candidate Truth Reconciliation",
+      analyzeCandidateTruthReconciliationBatch,
+      results,
+      options.candidateTruthReconciliation || {}
+    );
+    results = await runRecoveryEngine("Post-Recovery Final Scoring", addFinalScoring, results);
+    results = await runRecoveryEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+    results = await runRecoveryEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
+    results = await runRecoveryEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
+    results = await runRecoveryEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
+    results = await runRecoveryEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
+  }
   results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
   results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
     ...(options.firstSeenOpportunity || {}),

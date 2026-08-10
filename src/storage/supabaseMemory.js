@@ -7,6 +7,10 @@ import {
   buildSupabaseRestHeaders,
   resolveSupabaseConfig,
 } from "./supabaseSync.js";
+import {
+  buildPersistentProjectKey,
+  normalizePersistentProjectKey,
+} from "../identity/persistentProjectKey.js";
 
 const DEFAULT_REPORT_PATH = "reports/supabase-memory.json";
 
@@ -28,16 +32,7 @@ function scoreOf(project = {}) {
 }
 
 function projectKeyFor(project = {}) {
-  return String(
-    project.permanentProjectKey ||
-      project.projectKey ||
-      project.identityKey ||
-      project.address ||
-      project.tokenAddress ||
-      project.poolAddress ||
-      project.pairAddress ||
-      `${project.chain || "unknown"}:${project.symbol || project.name || "unknown"}`
-  ).toLowerCase();
+  return buildPersistentProjectKey(project);
 }
 
 function symbolChainKey(value = {}) {
@@ -105,7 +100,7 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
   const bySymbolChain = new Map();
 
   for (const row of projectRows.filter((item) => !isHealthCheckRow(item))) {
-    const key = text(row.project_key).toLowerCase();
+    const key = normalizePersistentProjectKey(row.project_key);
     if (!key) continue;
 
     const current =
@@ -154,7 +149,7 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
   }
 
   for (const row of receiptRows.filter((item) => !isHealthCheckRow(item))) {
-    const key = text(row.project_key).toLowerCase();
+    const key = normalizePersistentProjectKey(row.project_key);
     if (!key || !byProject.has(key)) continue;
     const current = byProject.get(key);
     current.receiptCount += 1;
@@ -178,7 +173,11 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
 function matchProjectMemory(project = {}, memory = {}) {
   const byProject = memory.byProject || {};
   const bySymbolChain = memory.bySymbolChain || {};
-  const direct = byProject[projectKeyFor(project)];
+  const key = projectKeyFor(project);
+  const direct =
+    byProject[key] ||
+    byProject[normalizePersistentProjectKey(key)] ||
+    byProject[String(key || "").toLowerCase()];
   if (direct) return direct;
 
   const alternateProjectKey = bySymbolChain[symbolChainKey(project)];
@@ -329,12 +328,42 @@ export function summarizeSupabaseMemoryImpact(projects = [], memory = {}) {
 
   return {
     status: memory.status || "UNKNOWN",
+    reason: memory.reason || null,
+    keyType: memory.keyType || null,
     rememberedProjects: memory.counts?.rememberedProjects || 0,
     matchedProjects: matched.length,
     newOrUnseenProjects: values.filter((project) => project.supabaseMemory?.status === "NEW_OR_NOT_SEEN").length,
     returningQualifiedBefore: matched.filter((project) => num(project.supabaseMemory?.qualifiedCount) > 0).length,
     returningPreviouslyBlocked: matched.filter((project) => num(project.supabaseMemory?.blockedCount) > 0).length,
   };
+}
+
+export function scanMemoryRecordsFromSupabase(memory = {}) {
+  if (memory.status !== "OK") return [];
+
+  return Object.values(memory.byProject || {}).flatMap((project) =>
+    (project.observations || []).map((observation) => ({
+      id: project.projectKey,
+      identityKey: project.projectKey,
+      scanRunId: observation.runId || null,
+      scannedAt: observation.observedAt || project.lastSeenAt || project.firstSeenAt || null,
+      name: project.name || "Unknown",
+      symbol: project.symbol || "UNKNOWN",
+      chain: project.chain || "unknown",
+      source: "supabase-remote-memory",
+      scores: {
+        pipeline: num(observation.score),
+        opportunity: num(observation.score),
+      },
+      signals: {
+        finalSelectionState: observation.finalState || null,
+        confidence: observation.confidence || null,
+        remoteMemory: true,
+      },
+      finalSelectionState: observation.finalState || null,
+      confidence: observation.confidence || null,
+    }))
+  );
 }
 
 export function writeSupabaseMemoryReport(memory = {}, filePath = DEFAULT_REPORT_PATH) {

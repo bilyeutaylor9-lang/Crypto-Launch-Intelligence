@@ -42,6 +42,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   const highUpsideScalp = readJson("high-upside-scalp-research.json", reportsDir) || {};
   const executionRecovery = readJson("execution-proof-recovery.json", reportsDir) || {};
   const liveCoreRanking = readJson("live-core-ranking.json", reportsDir) || {};
+  const scannerSemanticHealth = meta.scannerSemanticHealth || {};
   const scalpReadyCount = Number(highUpsideScalp.scalpReadyCount || 0);
   const highUpsideWatchCount = Number(highUpsideScalp.highUpsideWatchCount || 0);
   const routePendingCount = Number(highUpsideScalp.researchOnlyRouteMissingCount || 0);
@@ -118,6 +119,22 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
       nextAction: "Open live-core-ranking.json and recover its missing identity, utility, safety, liquidity, buyer, and route evidence; do not force a leader.",
     });
   }
+  if (scannerSemanticHealth.status === "DATA_DEGRADED") {
+    failures.push({
+      area: "scanner-semantic-health",
+      severity: "FAIL",
+      reason:
+        `Scanner semantic health is DATA_DEGRADED: ${scannerSemanticHealth.insufficientDataCandidates || 0} insufficient-data candidates, ${scannerSemanticHealth.averageEvidenceCoverage || 0}% average evidence coverage.`,
+      nextAction: "Run the active evidence recovery pass, inspect data-starvation-root-cause.json, and fix provider/memory/rescue failures before publishing readiness.",
+    });
+  } else if (scannerSemanticHealth.status === "INSUFFICIENT_EVIDENCE") {
+    failures.push({
+      area: "scanner-semantic-health",
+      severity: "WARN",
+      reason: "No edge was selected because evidence remains insufficient, but the scan did not cross the production degradation threshold.",
+      nextAction: "Open starvation-rescue-queue.json and data-starvation-by-field.json before expanding research scope.",
+    });
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -143,6 +160,9 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     authoritativeRanking: liveCoreRanking.authoritativeRanking || "GUARDED_LIVE_CORE",
     liveRankingStatus: liveCoreRanking.status || "REPORT_NOT_GENERATED",
     liveRankingSummary: liveCoreRanking.summary || {},
+    scannerSemanticHealth,
+    selectionOutcomeStatus: scannerSemanticHealth.status || "UNKNOWN",
+    selectionOutcomeClass: scannerSemanticHealth.readinessClass || "UNKNOWN",
     candidatePromotionStatus:
       scalpReadyCount > 0 || highUpsideWatchCount > 0
         ? "CANDIDATES_PROMOTING"

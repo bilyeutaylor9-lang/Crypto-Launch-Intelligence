@@ -27,9 +27,11 @@ import { syncScanToSupabase } from "./storage/supabaseSync.js";
 import {
   applySupabaseMemory,
   collectSupabaseMemory,
+  scanMemoryRecordsFromSupabase,
   summarizeSupabaseMemoryImpact,
   writeSupabaseMemoryReport,
 } from "./storage/supabaseMemory.js";
+import { primeScanMemory } from "./learning/scanMemoryStore.js";
 import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js";
 import { engineProfileReport } from "./config/engineProfileConfig.js";
@@ -193,6 +195,76 @@ function normalizeForReports(projects = []) {
       };
     })
     .sort((a, b) => scoreOf(b) - scoreOf(a));
+}
+
+function average(values = []) {
+  const active = values.map(num).filter((value) => Number.isFinite(value));
+  return active.length ? active.reduce((sum, value) => sum + value, 0) / active.length : 0;
+}
+
+function buildScannerSemanticHealth(projects = [], context = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const total = safeProjects.length;
+  const qualified = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED").length;
+  const insufficient = safeProjects.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA").length;
+  const recovered = safeProjects.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
+  const averageEvidenceCoverage = Math.round(
+    average(safeProjects.map((project) => project.evidenceCoverageScore ?? project.engineHealth?.averageEvidenceCoverage ?? 0))
+  );
+  const insufficientRatio = total ? insufficient / total : 0;
+  const degradedCandidateFloor = Math.max(
+    1,
+    Number(process.env.SCANNER_DATA_DEGRADED_MIN_CANDIDATES || 1000)
+  );
+  const degradedInsufficientRatio = Number(process.env.SCANNER_DATA_DEGRADED_INSUFFICIENT_RATIO || 0.75);
+  const degradedCoverageThreshold = Number(process.env.SCANNER_DATA_DEGRADED_COVERAGE_PCT || 45);
+  const discovery = context.discovery || {};
+  const target = Number(discovery.targetCoverage?.targetCandidates || discovery.targetCandidates || 0);
+  const accepted = Number(discovery.targetCoverage?.acceptedAfterLimitCount || discovery.acceptedCount || total);
+  const discoveryShortfallPct = target > 0
+    ? Math.round((Math.max(0, target - accepted) / target) * 10_000) / 100
+    : 0;
+  const rescueSkippedDespiteShortfall =
+    discoveryShortfallPct >= Number(process.env.CANDIDATE_RESCUE_SHORTFALL_PCT || 10) &&
+    discovery.candidateRescue?.status === "SKIPPED";
+  const remoteMemoryFailed =
+    context.supabaseMemory?.status === "FAILED" &&
+    process.env.SUPABASE_ENABLED === "true";
+  const largeInsufficientFailure =
+    total >= degradedCandidateFloor &&
+    insufficientRatio >= degradedInsufficientRatio &&
+    averageEvidenceCoverage < degradedCoverageThreshold;
+  const dataDegraded = largeInsufficientFailure || rescueSkippedDespiteShortfall || remoteMemoryFailed;
+  const status = qualified > 0
+    ? "EDGE_FOUND"
+    : dataDegraded
+      ? "DATA_DEGRADED"
+      : insufficient > 0
+        ? "INSUFFICIENT_EVIDENCE"
+        : "NO_EDGE_FOUND";
+
+  return {
+    status,
+    qualifiedCandidates: qualified,
+    insufficientDataCandidates: insufficient,
+    insufficientDataRatioPct: total ? Math.round(insufficientRatio * 10_000) / 100 : 0,
+    averageEvidenceCoverage,
+    activeRecoveryCandidates: recovered,
+    discoveryTargetCandidates: target,
+    discoveryAcceptedCandidates: accepted,
+    discoveryShortfallPct,
+    rescueStatus: discovery.candidateRescue?.status || "UNKNOWN",
+    supabaseMemoryStatus: context.supabaseMemory?.status || "UNKNOWN",
+    supabaseMemoryFailureReason: context.supabaseMemory?.reason || null,
+    readinessClass:
+      status === "EDGE_FOUND" || status === "NO_EDGE_FOUND"
+        ? "HEALTHY_EVIDENCE"
+        : status === "INSUFFICIENT_EVIDENCE"
+          ? "INSUFFICIENT_EVIDENCE"
+          : "DATA_DEGRADED",
+    policy:
+      "Zero picks can be healthy only when evidence coverage is adequate. Large insufficient-data populations, skipped rescue under target shortfall, or required remote-memory failure mark the scanner degraded.",
+  };
 }
 
 function runOptionalGarbageCollection(label = "scan") {
@@ -741,6 +813,24 @@ async function main() {
       `Local AI Mode: ${localAI.mode} | Inline Research: ${localAI.inline ? localAI.inlineLimit : 0} | Queue: ${localAI.queue ? "enabled" : "disabled"}`
     );
 
+    let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
+    try {
+      supabaseMemory = await collectSupabaseMemory({ projects: researchQueue });
+      const primed = primeScanMemory(scanMemoryRecordsFromSupabase(supabaseMemory), {
+        source: "supabase-remote-memory",
+      });
+      supabaseMemory.runtimeScanMemoryPrimed = primed.primed;
+      researchQueue = applySupabaseMemory(researchQueue, supabaseMemory);
+    } catch (error) {
+      supabaseMemory = {
+        status: "FAILED",
+        reason: error.message,
+        failureStage: "pre-pipeline-memory-load",
+      };
+      researchQueue = applySupabaseMemory(researchQueue, supabaseMemory);
+      console.warn(`Supabase memory failed before intelligence pipeline: ${error.message}`);
+    }
+
     const pipelineStageExecution = summarizePipelineStageExecution(researchPlan);
     let pipelineResults = await runIntelligencePipeline(researchQueue, {
       scanRunId,
@@ -754,6 +844,7 @@ async function main() {
 
     let results = normalizeForReports(pipelineResults);
     pipelineResults = null;
+    results = applySupabaseMemory(results, supabaseMemory);
     let researchCoverage = researchPlan.report;
 
     try {
@@ -769,15 +860,6 @@ async function main() {
       console.warn(`Research coverage ledger failed: ${error.message}`);
     }
 
-    let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
-    try {
-      supabaseMemory = await collectSupabaseMemory({ projects: results });
-      results = applySupabaseMemory(results, supabaseMemory);
-    } catch (error) {
-      supabaseMemory = { status: "FAILED", reason: error.message };
-      results = applySupabaseMemory(results, supabaseMemory);
-      console.warn(`Supabase memory failed: ${error.message}`);
-    }
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
     let guardedLiveRanking = buildGuardedLiveRanking(results, {
@@ -794,6 +876,10 @@ async function main() {
       configuration: guardedLiveRanking.configuration,
     };
     const summary = summarizePipelineResults(results);
+    const scannerSemanticHealth = buildScannerSemanticHealth(results, {
+      discovery: discoveredProjects,
+      supabaseMemory,
+    });
 
     const completedAt = new Date().toISOString();
     let reportMeta = {
@@ -819,6 +905,7 @@ async function main() {
       automaticTradingEnabled: false,
       localAIMode: localAI.mode,
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
+      scannerSemanticHealth,
       platform: "Crypto Launch Intelligence",
     };
     guardedLiveRanking = null;

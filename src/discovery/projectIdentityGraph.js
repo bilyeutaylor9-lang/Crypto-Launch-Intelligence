@@ -21,12 +21,12 @@ function domainFrom(value = "") {
 }
 
 function hashId(parts = []) {
-  const input = parts.filter(Boolean).join("|").toLowerCase();
+  const input = parts.filter(Boolean).join("|");
   return `cli_project_${crypto.createHash("sha1").update(input || "unknown").digest("hex").slice(0, 16)}`;
 }
 
 function hashNamespace(prefix = "cli_id", parts = []) {
-  const input = parts.filter(Boolean).join("|").toLowerCase();
+  const input = parts.filter(Boolean).join("|");
   return `${prefix}_${crypto.createHash("sha1").update(input || "unknown").digest("hex").slice(0, 16)}`;
 }
 

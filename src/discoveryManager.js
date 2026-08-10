@@ -1036,8 +1036,15 @@ export async function runDiscoveryManager(options = {}) {
             githubProjectDiscovery: githubDiscovery,
             nativeDiscoveryMesh: nativeDiscovery,
           },
+          targetCoverage: {
+            targetCandidates,
+            currentCount: agentExpandedPool.length,
+          },
         },
-        options.candidateRescue || {}
+        {
+          targetCandidates,
+          ...(options.candidateRescue || {}),
+        }
       )
     : {
         candidates: [],

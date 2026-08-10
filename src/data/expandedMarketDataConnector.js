@@ -40,10 +40,17 @@ function sleep(ms = 200) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function normalizeSymbol(symbol = "") {
-  return String(symbol || "")
-    .replace(/^X/, "")
-    .replace(/^Z/, "")
+const KRAKEN_LEGACY_PREFIX_EXCEPTIONS = new Set(["XRP", "XLM", "XMR", "ZEC"]);
+
+export function normalizeSymbol(symbol = "", options = {}) {
+  const raw = String(symbol || "").trim();
+  const upper = raw.toUpperCase();
+  const krakenAsset =
+    options.krakenAsset === true &&
+    /^[XZ][A-Z0-9]{2,8}$/.test(upper) &&
+    !KRAKEN_LEGACY_PREFIX_EXCEPTIONS.has(upper);
+
+  return String(krakenAsset ? upper.slice(1) : raw)
     .replace(/USDT$/i, "")
     .replace(/USD$/i, "")
     .replace(/-USD$/i, "")
