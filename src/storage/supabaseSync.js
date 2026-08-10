@@ -2,6 +2,7 @@
 import crypto from "node:crypto";
 
 import "../config/loadEnv.js";
+import { buildPersistentProjectKey } from "../identity/persistentProjectKey.js";
 
 const DEFAULT_SCAN_RUNS_TABLE = "scan_runs";
 const DEFAULT_SCAN_PROJECTS_TABLE = "scan_projects";
@@ -120,18 +121,7 @@ function dedupeRows(rows = [], keyFor = () => "") {
 }
 
 function projectKeyFor(project = {}) {
-  const raw = String(
-    project.permanentProjectKey ||
-      project.projectKey ||
-      project.identityKey ||
-      project.address ||
-      project.tokenAddress ||
-      project.poolAddress ||
-      project.pairAddress ||
-      `${project.chain || "unknown"}:${project.symbol || project.name || "unknown"}`
-  ).toLowerCase();
-
-  return compactIndexedText(raw, 220);
+  return compactIndexedText(buildPersistentProjectKey(project), 220);
 }
 
 function scoreOf(project = {}) {

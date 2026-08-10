@@ -136,6 +136,9 @@ jobs:
       - name: Refresh Master System Readiness
         run: npm run system:readiness:refresh
 
+      - name: Validate Scanner Semantic Health
+        run: npm run smoke:scanner
+
       - name: Validate Required Report Contracts
         run: npm run results:health
 

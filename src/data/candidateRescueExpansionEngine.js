@@ -42,7 +42,6 @@ const RESCUE_CANDIDATES = [
   ["modular", "AltLayer", "ALT", "ethereum", "rollup restaking modular infrastructure"],
   ["modular", "Sovereign Labs", "SOV", "modular", "modular rollup SDK appchain"],
   ["base", "Aerodrome", "AERO", "base", "Base DEX liquidity ve governance"],
-  ["base", "Brett", "BRETT", "base", "Base ecosystem meme liquidity social"],
   ["base", "Moonwell", "WELL", "base", "Base lending DeFi ecosystem"],
   ["base", "Seamless", "SEAM", "base", "Base lending DeFi protocol"],
   ["base", "Extra Finance", "EXTRA", "base", "Base leveraged yield DeFi"],
@@ -70,6 +69,20 @@ const RESCUE_CANDIDATES = [
   ["oracle", "API3", "API3", "ethereum", "oracle first-party data feeds"],
   ["oracle", "RedStone", "RED", "ethereum", "oracle data feeds modular"],
 ];
+
+const DEGRADED_SOURCE_STATUSES = new Set([
+  "FAILED",
+  "AUTH_REQUIRED",
+  "RATE_LIMITED",
+  "REGION_BLOCKED",
+  "TIMEOUT",
+  "UNAVAILABLE",
+  "PROVIDER_UNAVAILABLE",
+  "PROVIDER_RATE_LIMITED",
+  "REGION_RESTRICTED",
+]);
+
+const MEME_TERMS = /\b(meme|memecoin|doge|pepe|shib|inu|mascot)\b/i;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -168,10 +181,33 @@ function buildClusters(projects = []) {
     .sort((a, b) => b.score - a.score);
 }
 
-function failedSourceNames(sourceReports = {}) {
+function degradedSourceNames(sourceReports = {}) {
   return Object.entries(sourceReports)
-    .filter(([, report]) => report?.status === "FAILED")
-    .map(([name]) => name);
+    .filter(([, report]) => {
+      const status = String(report?.status || report?.failureType || report?.successClass || "").toUpperCase();
+      const errorText = String(report?.error || report?.reason || "").toLowerCase();
+      return (
+        DEGRADED_SOURCE_STATUSES.has(status) ||
+        status.includes("AUTH") ||
+        status.includes("RATE_LIMIT") ||
+        status.includes("REGION") ||
+        status.includes("TIMEOUT") ||
+        status.includes("UNAVAILABLE") ||
+        errorText.includes("auth") ||
+        errorText.includes("rate limit") ||
+        errorText.includes("region") ||
+        errorText.includes("timeout") ||
+        errorText.includes("unavailable")
+      );
+    })
+    .map(([name, report]) => ({
+      name,
+      status: report?.status || report?.failureType || "DEGRADED",
+    }));
+}
+
+function nonMemeRows(rows = []) {
+  return rows.filter((row) => !MEME_TERMS.test(row.join(" ")));
 }
 
 export function buildCandidateRescueExpansion(projects = [], context = {}, options = {}) {
@@ -182,19 +218,41 @@ export function buildCandidateRescueExpansion(projects = [], context = {}, optio
   const rescueLimit = Number(
     options.rescueLimit || process.env.CANDIDATE_RESCUE_LIMIT || 250
   );
-  const failedSources = failedSourceNames(context.sourceReports || {});
+  const degradedSources = degradedSourceNames(context.sourceReports || {});
+  const failedSources = degradedSources.map((source) => source.name);
+  const targetCandidates = Number(
+    options.targetCandidates ||
+      context.targetCoverage?.targetCandidates ||
+      process.env.DISCOVERY_TARGET_CANDIDATES ||
+      0
+  );
+  const targetShortfall = Math.max(0, targetCandidates - safeProjects.length);
+  const targetShortfallPct = targetCandidates > 0
+    ? Math.round((targetShortfall / targetCandidates) * 10_000) / 100
+    : 0;
+  const rescueShortfallPct = Number(
+    options.rescueShortfallPct ||
+      process.env.CANDIDATE_RESCUE_SHORTFALL_PCT ||
+      10
+  );
   const clusters = buildClusters(safeProjects);
   const activeNarratives = new Set(clusters.map((cluster) => cluster.narrative));
   const shouldRescue =
     safeProjects.length < rescueThreshold ||
-    failedSources.length > 0 ||
+    targetShortfallPct >= rescueShortfallPct ||
+    degradedSources.length > 0 ||
     clusters.length < 4;
   const reasons = [];
 
   if (safeProjects.length < rescueThreshold) {
     reasons.push(`candidate count ${safeProjects.length} below rescue threshold ${rescueThreshold}`);
   }
-  if (failedSources.length) reasons.push(`failed sources: ${failedSources.join(", ")}`);
+  if (targetShortfallPct >= rescueShortfallPct) {
+    reasons.push(`discovery target shortfall ${targetShortfallPct}% exceeds rescue threshold ${rescueShortfallPct}%`);
+  }
+  if (degradedSources.length) {
+    reasons.push(`degraded sources: ${degradedSources.map((source) => `${source.name}:${source.status}`).join(", ")}`);
+  }
   if (clusters.length < 4) reasons.push(`only ${clusters.length} narrative/chain clusters detected`);
 
   if (!shouldRescue) {
@@ -206,16 +264,21 @@ export function buildCandidateRescueExpansion(projects = [], context = {}, optio
         originalCount: safeProjects.length,
         expandedCount: safeProjects.length,
         addedCount: 0,
+        targetCandidates,
+        targetShortfall,
+        targetShortfallPct,
         failedSources,
+        degradedSources,
         clusters,
       },
     };
   }
 
-  const narrativeExpansion = RESCUE_CANDIDATES.filter(([narrative]) =>
+  const eligibleRows = nonMemeRows(RESCUE_CANDIDATES);
+  const narrativeExpansion = eligibleRows.filter(([narrative]) =>
     activeNarratives.size ? activeNarratives.has(narrative) : true
   ).map((row) => rescueCandidate(row, "matched active narrative cluster"));
-  const broadBackfill = RESCUE_CANDIDATES.map((row) =>
+  const broadBackfill = eligibleRows.map((row) =>
     rescueCandidate(row, "broad rescue backfill")
   );
   const candidates = [...narrativeExpansion, ...broadBackfill].slice(0, rescueLimit);
@@ -229,7 +292,11 @@ export function buildCandidateRescueExpansion(projects = [], context = {}, optio
       originalCount: safeProjects.length,
       expandedCount: safeProjects.length + candidates.length,
       addedCount: candidates.length,
+      targetCandidates,
+      targetShortfall,
+      targetShortfallPct,
       failedSources,
+      degradedSources,
       clusters,
       expandedClusters,
       topClusters: expandedClusters.slice(0, 12),

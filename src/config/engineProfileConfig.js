@@ -80,6 +80,7 @@ const TENX_REQUIRED_ENGINES = new Set([
   "Data Starvation Root Cause",
   "Value Of Information",
   "Starvation Rescue",
+  "Active Evidence Recovery",
   "Research Readiness",
   "First Seen Opportunity",
   "Utility Quality",

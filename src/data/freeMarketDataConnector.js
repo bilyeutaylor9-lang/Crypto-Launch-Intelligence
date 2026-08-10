@@ -354,6 +354,19 @@ export async function getCoinbaseProductCandidates(options = {}) {
     });
 }
 
+const KRAKEN_LEGACY_PREFIX_EXCEPTIONS = new Set(["XRP", "XLM", "XMR", "ZEC"]);
+
+export function normalizeKrakenAssetSymbol(value = "") {
+  const upper = String(value || "").trim().toUpperCase();
+  if (
+    /^[XZ][A-Z0-9]{2,8}$/.test(upper) &&
+    !KRAKEN_LEGACY_PREFIX_EXCEPTIONS.has(upper)
+  ) {
+    return upper.slice(1);
+  }
+  return upper;
+}
+
 // Kraken
 export async function getKrakenTickerCandidates(options = {}) {
   const limit = Number(options.limit || 100);
@@ -369,7 +382,7 @@ export async function getKrakenTickerCandidates(options = {}) {
 
   return Object.entries(tickerResponse?.result || {}).map(([key, ticker]) => {
     const pair = pairs.find(([pairKey]) => pairKey === key)?.[1];
-    const symbol = String(pair?.base || key).replace("X", "").replace("Z", "");
+    const symbol = normalizeKrakenAssetSymbol(pair?.base || key);
 
     return {
       name: symbol,

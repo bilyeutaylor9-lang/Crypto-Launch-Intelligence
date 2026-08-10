@@ -10,6 +10,10 @@ import {
   readMemorySidecarTail,
   shouldUseAppendOnlyMemory,
 } from "./boundedMemoryStore.js";
+import {
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "scan-history.json");
@@ -18,6 +22,7 @@ const DEFAULT_MAX_LOAD_RECORDS = 5000;
 
 let memoryCache = null;
 let memoryCacheKey = "";
+let runtimePrimedMemory = [];
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -146,40 +151,23 @@ function writeMemory(records = []) {
 }
 
 function tokenId(project = {}) {
+  const chain = normalizeChainId(project.chain || project.network || project.chainId || "");
+  const tokenAddress = normalizeTokenAddress(
+    project.address || project.tokenAddress || project.contractAddress || "",
+    chain
+  );
+  if (tokenAddress) return tokenAddress;
   return String(
-    project.address ||
-      project.tokenAddress ||
-      project.pairAddress ||
+    project.pairAddress ||
+      project.poolAddress ||
       `${project.chain || "unknown"}:${project.symbol || project.name || "unknown"}`
   ).toLowerCase();
 }
 
 function canonicalIdentityKey(project = {}, tokenAddress = null) {
   if (!tokenAddress) return null;
-  const chain = String(project.chain || project.network || "unknown").toLowerCase();
-  const normalizedAddress = [
-    "ethereum",
-    "base",
-    "bsc",
-    "arbitrum",
-    "optimism",
-    "polygon",
-    "avalanche",
-    "fantom",
-    "linea",
-    "scroll",
-    "zksync",
-    "mantle",
-    "blast",
-    "ronin",
-    "mode",
-    "berachain",
-    "sonic",
-    "robinhood",
-    "robinhood-chain",
-  ].includes(chain)
-    ? String(tokenAddress).toLowerCase()
-    : String(tokenAddress);
+  const chain = normalizeChainId(project.chain || project.network || project.chainId || "") || String(project.chain || project.network || "unknown").toLowerCase();
+  const normalizedAddress = normalizeTokenAddress(tokenAddress, chain) || String(tokenAddress);
   return chain && chain !== "unknown" ? `${chain}:${normalizedAddress}` : null;
 }
 
@@ -637,11 +625,27 @@ export function saveScanMemory(projects = []) {
 }
 
 export function loadScanMemory() {
-  return readMemory();
+  const local = readMemory();
+  return runtimePrimedMemory.length
+    ? [...local, ...runtimePrimedMemory].slice(-maxLoadRecords())
+    : local;
+}
+
+export function primeScanMemory(records = [], options = {}) {
+  const limit = maxLoadRecords(options);
+  runtimePrimedMemory = (Array.isArray(records) ? records : [])
+    .filter((record) => record && typeof record === "object")
+    .slice(-limit);
+  memoryCacheKey = "";
+  return {
+    primed: runtimePrimedMemory.length,
+    source: options.source || "runtime",
+  };
 }
 
 export function clearScanMemory() {
   writeMemory([]);
+  runtimePrimedMemory = [];
   try {
     const sidecarPath = memorySidecarPath(MEMORY_FILE);
     if (fs.existsSync(sidecarPath)) fs.unlinkSync(sidecarPath);

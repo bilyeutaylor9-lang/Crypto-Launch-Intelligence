@@ -59,7 +59,9 @@ function reportMeta(reportsDir = path.resolve("reports")) {
     ]),
     supabaseMemory: {
       status: currentReadiness.supabaseStatus || "OPTIONAL_OR_UNKNOWN",
+      reason: currentReadiness.scannerSemanticHealth?.supabaseMemoryFailureReason || null,
     },
+    scannerSemanticHealth: currentReadiness.scannerSemanticHealth || null,
   };
 }
 

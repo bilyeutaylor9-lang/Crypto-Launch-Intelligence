@@ -4,9 +4,11 @@ import assert from "node:assert/strict";
 import {
   applySupabaseMemory,
   collectSupabaseMemory,
+  scanMemoryRecordsFromSupabase,
   summarizeSupabaseMemoryImpact,
 } from "../src/storage/supabaseMemory.js";
 import { runSupabaseHealthCheck } from "../src/storage/supabaseHealthCheck.js";
+import { loadScanMemory, primeScanMemory } from "../src/learning/scanMemoryStore.js";
 
 const ENV = {
   SUPABASE_ENABLED: "true",
@@ -118,6 +120,21 @@ test("Supabase remote memory loads prior scan rows and ignores health-check rows
   assert.equal(projects[1].supabaseMemory.status, "NEW_OR_NOT_SEEN");
   assert.equal(summary.matchedProjects, 1);
   assert.equal(calls[0].headers.authorization, "Bearer server-secret");
+});
+
+test("Supabase remote memory can prime runtime scan memory before learning engines run", async () => {
+  const memory = await collectSupabaseMemory({
+    env: ENV,
+    fetchImpl: createFetchStub([]),
+  });
+  const records = scanMemoryRecordsFromSupabase(memory);
+  const primed = primeScanMemory(records, { source: "test-supabase-memory", limit: 10 });
+  const loaded = loadScanMemory();
+
+  assert.equal(primed.primed, 1);
+  assert.ok(loaded.some((record) => record.source === "supabase-remote-memory" && record.identityKey === "base:alpha"));
+
+  primeScanMemory([], { source: "test-cleanup" });
 });
 
 test("modern Supabase secret keys use apikey without a fake bearer JWT", async () => {
