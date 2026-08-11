@@ -115,3 +115,30 @@ test("report project array compactor does not double-compact already bounded pro
   assert.strictEqual(second, first);
   assert.equal(second.reportCompaction.mode, "bounded-project");
 });
+
+test("report compaction preserves every decision-critical field beyond the ordinary key cap", () => {
+  const filler = Object.fromEntries(Array.from({ length: 140 }, (_, index) => [`filler${index}`, index]));
+  const compacted = compactProjectForReportWriters({
+    ...filler,
+    name: "Protected Truth",
+    symbol: "PTR",
+    sourceTruth: { status: "VERIFIED", independentSources: 3 },
+    activeEvidenceRecovery: { status: "RECOVERED", recoveredFields: ["liquidityUsd"] },
+    executionProof: { executionProofState: "LIVE_EXECUTION_READY" },
+    engineDataReadiness: { status: "CORE_READY" },
+    dataStarvationRootCauses: { RAW_SOURCE_MISSING: 1 },
+    targetedEnrichmentPlan: { status: "TARGETED_RECOVERY_AVAILABLE" },
+    valueOfInformationPlan: { topField: "holderCount" },
+    progressivePipelineStages: { deep: "COMPLETE" },
+  }, { objectKeyLimit: 5 });
+
+  assert.equal(compacted.sourceTruth.status, "VERIFIED");
+  assert.equal(compacted.activeEvidenceRecovery.status, "RECOVERED");
+  assert.equal(compacted.executionProof.executionProofState, "LIVE_EXECUTION_READY");
+  assert.equal(compacted.engineDataReadiness.status, "CORE_READY");
+  assert.equal(compacted.dataStarvationRootCauses.RAW_SOURCE_MISSING, 1);
+  assert.equal(compacted.targetedEnrichmentPlan.status, "TARGETED_RECOVERY_AVAILABLE");
+  assert.equal(compacted.valueOfInformationPlan.topField, "holderCount");
+  assert.equal(compacted.progressivePipelineStages.deep, "COMPLETE");
+  assert.equal(Object.hasOwn(compacted, "filler139"), false);
+});

@@ -66,32 +66,74 @@ function ensureReportDir(filePath = DEFAULT_REPORT_PATH) {
 
 async function fetchTableRows(config = {}, table = "", params = {}, options = {}) {
   const fetchImpl = options.fetchImpl || fetch;
-  const controller = new AbortController();
   const timeoutMs = Math.max(1000, Number(options.timeoutMs || config.timeoutMs || 15000));
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const maxRetries = Math.max(0, Number(options.maxRetries ?? 2));
+  const retryDelayMs = Math.max(0, Number(options.retryDelayMs ?? 250));
+  const sleepImpl = options.sleepImpl || ((delay) => new Promise((resolve) => setTimeout(resolve, delay)));
   const url = new URL(`${config.restUrl}/${encodeURIComponent(table)}`);
 
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
   });
 
-  try {
-    const response = await fetchImpl(url, {
-      method: "GET",
-      headers: buildSupabaseRestHeaders(config, {
-        accept: "application/json",
-      }),
-      signal: controller.signal,
-    });
+  const keyConfigs = [
+    { key: config.key, keyType: config.keyType },
+    ...(Array.isArray(config.fallbackServerKeys) ? config.fallbackServerKeys : []),
+  ].filter((candidate, index, values) =>
+    candidate.key && values.findIndex((value) => value.key === candidate.key) === index
+  );
+  let lastError = null;
 
-    if (!response.ok) {
-      const detail = typeof response.text === "function" ? await response.text() : "";
-      throw new Error(`Supabase ${table} read failed: ${response.status} ${String(detail).slice(0, 400)}`);
+  for (const keyConfig of keyConfigs) {
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetchImpl(url, {
+          method: "GET",
+          headers: buildSupabaseRestHeaders({ ...config, ...keyConfig }, {
+            accept: "application/json",
+          }),
+          signal: controller.signal,
+        });
+
+        if (response.ok) return typeof response.json === "function" ? await response.json() : [];
+
+        const detail = typeof response.text === "function" ? await response.text() : "";
+        const error = new Error(`Supabase ${table} read failed: ${response.status} ${String(detail).slice(0, 400)}`);
+        const normalized = String(detail).toLowerCase();
+        const retryable =
+          response.status === 429 ||
+          response.status >= 500 ||
+          normalized.includes("pgrst303") ||
+          normalized.includes("jwt issued at") ||
+          normalized.includes("issued in the future") ||
+          normalized.includes("clock skew");
+        lastError = error;
+        if (!retryable || attempt === maxRetries) break;
+      } catch (error) {
+        lastError = error;
+        if (attempt === maxRetries) break;
+      } finally {
+        clearTimeout(timer);
+      }
+
+      if (retryDelayMs > 0) {
+        const jitter = Math.round(retryDelayMs * 0.25 * Math.random());
+        await sleepImpl(retryDelayMs * (attempt + 1) + jitter);
+      }
     }
+  }
 
-    return typeof response.json === "function" ? await response.json() : [];
-  } finally {
-    clearTimeout(timer);
+  throw lastError || new Error(`Supabase ${table} read failed.`);
+}
+
+async function tableRead(name = "", promise) {
+  try {
+    const rows = await promise;
+    return { name, status: "OK", rows: Array.isArray(rows) ? rows : [] };
+  } catch (error) {
+    return { name, status: "FAILED", rows: [], reason: error.message };
   }
 }
 
@@ -218,11 +260,12 @@ export async function collectSupabaseMemory(options = {}) {
     };
   }
 
-  try {
-    const runLimit = Math.max(1, Number(options.runLimit || env.SUPABASE_MEMORY_RUN_LIMIT || 25));
-    const projectLimit = Math.max(1, Number(options.projectLimit || env.SUPABASE_MEMORY_PROJECT_LIMIT || 2500));
-    const receiptLimit = Math.max(1, Number(options.receiptLimit || env.SUPABASE_MEMORY_RECEIPT_LIMIT || 1000));
-    const [runs, projects, receipts] = await Promise.all([
+  const runLimit = Math.max(1, Number(options.runLimit || env.SUPABASE_MEMORY_RUN_LIMIT || 25));
+  const projectLimit = Math.max(1, Number(options.projectLimit || env.SUPABASE_MEMORY_PROJECT_LIMIT || 2500));
+  const receiptLimit = Math.max(1, Number(options.receiptLimit || env.SUPABASE_MEMORY_RECEIPT_LIMIT || 1000));
+  const [runRead, projectRead, receiptRead] = await Promise.all([
+    tableRead(
+      "runs",
       fetchTableRows(
         config,
         config.tables.runs,
@@ -233,7 +276,10 @@ export async function collectSupabaseMemory(options = {}) {
           limit: runLimit,
         },
         options
-      ),
+      )
+    ),
+    tableRead(
+      "projects",
       fetchTableRows(
         config,
         config.tables.projects,
@@ -244,7 +290,10 @@ export async function collectSupabaseMemory(options = {}) {
           limit: projectLimit,
         },
         options
-      ),
+      )
+    ),
+    tableRead(
+      "alphaReceipts",
       fetchTableRows(
         config,
         config.tables.alphaReceipts,
@@ -255,32 +304,38 @@ export async function collectSupabaseMemory(options = {}) {
           limit: receiptLimit,
         },
         options
-      ),
-    ]);
-    const indexed = aggregateProjectMemory(projects, receipts);
+      )
+    ),
+  ]);
+  const reads = [runRead, projectRead, receiptRead];
+  const projectsUsable = projectRead.status === "OK";
+  const failedReads = reads.filter((read) => read.status === "FAILED");
+  const indexed = aggregateProjectMemory(projectRead.rows, receiptRead.rows);
 
-    return {
-      status: "OK",
-      generatedAt: new Date().toISOString(),
-      keyType: config.keyType,
-      tables: config.tables,
-      counts: {
-        runs: runs.length,
-        projectRows: projects.length,
-        receiptRows: receipts.length,
-        rememberedProjects: Object.keys(indexed.byProject).length,
-      },
-      latestRun: runs[0] || null,
-      byProject: indexed.byProject,
-      bySymbolChain: indexed.bySymbolChain,
-    };
-  } catch (error) {
-    return {
-      status: "FAILED",
-      reason: error.message,
-      tables: config.tables,
-    };
-  }
+  return {
+    status: projectsUsable ? (failedReads.length ? "DEGRADED" : "OK") : "FAILED",
+    reason: failedReads.length
+      ? failedReads.map((read) => `${read.name}: ${read.reason}`).join("; ")
+      : null,
+    generatedAt: new Date().toISOString(),
+    keyType: config.keyType,
+    tables: config.tables,
+    tableHealth: Object.fromEntries(reads.map((read) => [read.name, {
+      status: read.status,
+      rowCount: read.rows.length,
+      reason: read.reason || null,
+    }])),
+    counts: {
+      runs: runRead.rows.length,
+      projectRows: projectRead.rows.length,
+      receiptRows: receiptRead.rows.length,
+      rememberedProjects: Object.keys(indexed.byProject).length,
+      failedTables: failedReads.length,
+    },
+    latestRun: runRead.rows[0] || null,
+    byProject: indexed.byProject,
+    bySymbolChain: indexed.bySymbolChain,
+  };
 }
 
 export function applySupabaseMemory(projects = [], memory = {}) {
@@ -292,7 +347,7 @@ export function applySupabaseMemory(projects = [], memory = {}) {
       return {
         ...project,
         supabaseMemory: {
-          status: memory.status === "OK" ? "NEW_OR_NOT_SEEN" : "UNAVAILABLE",
+          status: ["OK", "DEGRADED"].includes(memory.status) ? "NEW_OR_NOT_SEEN" : "UNAVAILABLE",
           remoteMemoryStatus: memory.status || "UNKNOWN",
         },
       };
@@ -339,7 +394,7 @@ export function summarizeSupabaseMemoryImpact(projects = [], memory = {}) {
 }
 
 export function scanMemoryRecordsFromSupabase(memory = {}) {
-  if (memory.status !== "OK") return [];
+  if (!["OK", "DEGRADED"].includes(memory.status)) return [];
 
   return Object.values(memory.byProject || {}).flatMap((project) =>
     (project.observations || []).map((observation) => ({

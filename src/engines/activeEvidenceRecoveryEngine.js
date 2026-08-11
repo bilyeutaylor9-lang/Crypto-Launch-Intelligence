@@ -4,6 +4,12 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import {
+  createActiveEvidenceExecutionState,
+  executeActiveEvidenceProviderRequests,
+  mapWithBoundedConcurrency,
+  summarizeActiveEvidenceExecutionState,
+} from "../data/activeEvidenceProviderExecutor.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -184,6 +190,48 @@ function applyRecoveredField(project = {}, field = "", value = null) {
   return next;
 }
 
+function localRecoveryProvenance(project = {}, field = "") {
+  const existing =
+    project.fieldProvenance?.[field] ||
+    project.canonicalAliasProvenance?.[field] ||
+    {};
+  return {
+    value: recoveredValueFor(project, field),
+    source: existing.source || existing.sourceProvider || project.source || "existing-provider-observation",
+    sourceTimestamp:
+      existing.sourceTimestamp ||
+      existing.observedAt ||
+      project.sourceTimestamp ||
+      project.updatedAt ||
+      project.lastUpdatedAt ||
+      project.discoveredAt ||
+      null,
+    confidence: Number(existing.confidence || project.sourceReliabilityScore || 65) > 1
+      ? Number(existing.confidence || project.sourceReliabilityScore || 65) / 100
+      : Number(existing.confidence || 0.65),
+    verificationStatus:
+      existing.verificationStatus ||
+      existing.validationStatus ||
+      "RECOVERED_EXISTING_OBSERVATION",
+    recoveryRun: true,
+  };
+}
+
+function attachFieldProvenance(project = {}, field = "", record = {}) {
+  return {
+    ...project,
+    fieldProvenance: {
+      ...(project.fieldProvenance || {}),
+      [field]: {
+        ...(project.fieldProvenance?.[field] || {}),
+        ...record,
+        value: record.value,
+        recoveryRun: true,
+      },
+    },
+  };
+}
+
 function candidatePriority(project = {}, index = 0) {
   const eligibleBoost = project.starvationRescueEligible ? 25 : 0;
   const routeBoost = (project.dataStarvationBlockingExecutionCount || 0) * 4;
@@ -234,7 +282,7 @@ function recoveryTargets(projects = [], options = {}) {
   return { selected, requestBudgetUsed: requests, maxRequests, maxCandidates, maxFieldsPerCandidate };
 }
 
-export function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
+export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const targets = recoveryTargets(safeProjects, options);
   const byProject = new Map();
@@ -245,65 +293,145 @@ export function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) 
     byProject.set(target.projectIndex, list);
   }
 
-  return safeProjects.map((project, projectIndex) => {
-    const entries = byProject.get(projectIndex) || [];
-    if (!entries.length) {
+  const selected = [...byProject.entries()].map(([projectIndex, entries]) => ({
+    projectIndex,
+    project: safeProjects[projectIndex],
+    entries,
+  }));
+  const executionState = createActiveEvidenceExecutionState({
+    ...options,
+    maxProviderRequests: options.maxProviderRequests || targets.maxRequests,
+  });
+  const concurrency = Math.max(
+    1,
+    Number(
+      options.concurrency ||
+        process.env.ACTIVE_EVIDENCE_RECOVERY_CONCURRENCY ||
+        6
+    )
+  );
+
+  const recoveredProjects = await mapWithBoundedConcurrency(
+    selected,
+    concurrency,
+    async ({ projectIndex, project, entries }) => {
+      let next = { ...project };
+      const recoveredFields = [];
+      const attempts = [];
+      const unresolvedEntries = [];
+
+      for (const entry of entries) {
+        const value = recoveredValueFor(next, entry.field);
+        const planAttempt = {
+          field: entry.field,
+          rootCause: entry.item.rootCause || null,
+          valueOfInformationScore:
+            entry.item.valueOfInformationScore ||
+            entry.item.estimatedRecoveryValue ||
+            0,
+          targetSources: (entry.item.targetSources || [])
+            .map((source) => source.source)
+            .slice(0, 4),
+        };
+        if (value === null || value === undefined || value === "") {
+          unresolvedEntries.push(entry);
+          attempts.push({ ...planAttempt, status: "PROVIDER_RECOVERY_QUEUED" });
+          continue;
+        }
+        const provenance = localRecoveryProvenance(next, entry.field);
+        next = applyRecoveredField(next, entry.field, value);
+        next = attachFieldProvenance(next, entry.field, {
+          ...provenance,
+          value,
+        });
+        recoveredFields.push(entry.field);
+        attempts.push({
+          ...planAttempt,
+          status: "RECOVERED_EXISTING_OBSERVATION",
+          source: provenance.source,
+        });
+      }
+
+      let providerAttempts = [];
+      if (unresolvedEntries.length) {
+        const providerResult = await executeActiveEvidenceProviderRequests(
+          next,
+          unresolvedEntries,
+          options,
+          executionState
+        );
+        next = { ...next, ...(providerResult.projectPatch || {}) };
+        providerAttempts = providerResult.attempts || [];
+        for (const recovered of providerResult.observations || []) {
+          next = applyRecoveredField(next, recovered.field, recovered.value);
+          next = attachFieldProvenance(next, recovered.field, recovered);
+          recoveredFields.push(recovered.field);
+        }
+      }
+
+      const attemptedFields = [...new Set(entries.map((entry) => entry.field))];
+      const uniqueRecovered = [...new Set(recoveredFields)];
+      const uniqueUnrecovered = attemptedFields.filter(
+        (field) => !uniqueRecovered.includes(field)
+      );
+      const status = uniqueRecovered.length
+        ? uniqueUnrecovered.length
+          ? "PARTIAL_RECOVERY"
+          : "RECOVERED"
+        : "NO_RECOVERY";
+
       return {
-        ...project,
-        activeEvidenceRecoveryStatus: "NOT_SELECTED",
-        activeEvidenceRecovery: {
-          status: "NOT_SELECTED",
-          recoveredFields: [],
-          attemptedFields: [],
-          unrecoveredFields: [],
-          reason: "Project was outside the bounded value-of-information recovery budget.",
+        projectIndex,
+        project: {
+          ...next,
+          activeEvidenceRecoveryStatus: status,
+          activeEvidenceRecoveryRecoveredFields: uniqueRecovered,
+          activeEvidenceRecoveryAttemptedFields: attemptedFields,
+          activeEvidenceRecovery: {
+            status,
+            recoveredFields: uniqueRecovered,
+            attemptedFields,
+            unrecoveredFields: uniqueUnrecovered,
+            attempts,
+            providerAttempts,
+            plannedRequestCost: entries.reduce(
+              (sum, entry) => sum + entry.requestCost,
+              0
+            ),
+            policy:
+              "Exact provider observations are recovered with provenance under bounded request, concurrency, timeout, and circuit-breaker limits. Ambiguous identity and unknown evidence remain unpromoted.",
+          },
         },
       };
     }
+  );
 
-    let next = { ...project };
-    const recoveredFields = [];
-    const unrecoveredFields = [];
-    const attempts = [];
+  const recoveredByIndex = new Map(
+    recoveredProjects.map((entry) => [entry.projectIndex, entry.project])
+  );
+  const providerExecution = summarizeActiveEvidenceExecutionState(executionState);
 
-    for (const entry of entries) {
-      const value = recoveredValueFor(next, entry.field);
-      attempts.push({
-        field: entry.field,
-        rootCause: entry.item.rootCause || null,
-        valueOfInformationScore: entry.item.valueOfInformationScore || entry.item.estimatedRecoveryValue || 0,
-        targetSources: (entry.item.targetSources || []).map((source) => source.source).slice(0, 4),
-      });
-      if (value === null || value === undefined || value === "") {
-        unrecoveredFields.push(entry.field);
-        continue;
-      }
-      next = applyRecoveredField(next, entry.field, value);
-      recoveredFields.push(entry.field);
+  return safeProjects.map((project, projectIndex) => {
+    const recovered = recoveredByIndex.get(projectIndex);
+    if (recovered) {
+      return {
+        ...recovered,
+        activeEvidenceRecovery: {
+          ...recovered.activeEvidenceRecovery,
+          providerExecution,
+        },
+      };
     }
-
-    const uniqueRecovered = [...new Set(recoveredFields)];
-    const uniqueUnrecovered = [...new Set(unrecoveredFields.filter((field) => !uniqueRecovered.includes(field)))];
-    const status = uniqueRecovered.length
-      ? uniqueUnrecovered.length
-        ? "PARTIAL_RECOVERY"
-        : "RECOVERED"
-      : "NO_RECOVERY";
-
     return {
-      ...next,
-      activeEvidenceRecoveryStatus: status,
-      activeEvidenceRecoveryRecoveredFields: uniqueRecovered,
-      activeEvidenceRecoveryAttemptedFields: [...new Set(attempts.map((item) => item.field))],
+      ...project,
+      activeEvidenceRecoveryStatus: "NOT_SELECTED",
       activeEvidenceRecovery: {
-        status,
-        recoveredFields: uniqueRecovered,
-        attemptedFields: [...new Set(attempts.map((item) => item.field))],
-        unrecoveredFields: uniqueUnrecovered,
-        attempts,
-        requestBudgetUsed: entries.reduce((sum, entry) => sum + entry.requestCost, 0),
-        policy:
-          "Only already-observed raw/provider evidence may be promoted. Unknowns remain null and final gates must rerun before selection.",
+        status: "NOT_SELECTED",
+        recoveredFields: [],
+        attemptedFields: [],
+        unrecoveredFields: [],
+        providerExecution,
+        reason: "Project was outside the bounded value-of-information recovery budget.",
       },
     };
   });

@@ -166,6 +166,30 @@ export async function getCoinPaprikaCandidates(options = {}) {
   }));
 }
 
+export async function getCoinPaprikaTickerById(id = "", options = {}) {
+  const exactId = String(id || "").trim();
+  if (!exactId) return null;
+  const coin = await fetchJson(
+    `https://api.coinpaprika.com/v1/tickers/${encodeURIComponent(exactId)}`,
+    options
+  );
+  if (!coin || String(coin.id || "") !== exactId) return null;
+  return {
+    name: coin.name || "Unknown",
+    symbol: coin.symbol || "UNKNOWN",
+    chain: null,
+    coinPaprikaId: coin.id,
+    providerAssetId: coin.id,
+    marketKey: `coinpaprika:${coin.id}`,
+    priceUsd: nullableNumber(coin.quotes?.USD?.price),
+    volume24h: nullableNumber(coin.quotes?.USD?.volume_24h),
+    volume24hUsd: nullableNumber(coin.quotes?.USD?.volume_24h),
+    marketCap: nullableNumber(coin.quotes?.USD?.market_cap),
+    circulatingMarketCapUsd: nullableNumber(coin.quotes?.USD?.market_cap),
+    source: "coinpaprika",
+  };
+}
+
 // DeFiLlama Protocols
 export async function getDefiLlamaProtocolCandidates(options = {}) {
   const limit = Number(options.limit || 100);

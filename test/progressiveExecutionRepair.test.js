@@ -342,11 +342,11 @@ test("confirmed execution and identity proof can reach sniper-ready lane", () =>
   assert.ok(project.moneyScore >= 60);
 });
 
-test("execution proof exposes live-ready only after sell simulation, taxes, and depth are verified", () => {
+test("EVM execution proof exposes live-ready after applicable tax, quote, safety, and depth evidence", () => {
   const [project] = analyzeExecutionProofBatch([
     strongProject({
       ...liveExecutionOverrides(),
-      sellSimulationPassed: true,
+      sellSimulationPassed: undefined,
       buyTaxPct: 0,
       sellTaxPct: 0,
       orderBookDepthUsd: 25_000,

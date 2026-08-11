@@ -90,9 +90,15 @@ export function analyzeStarvationRescue(project = {}) {
               ? "Research priority is below rescue floor."
               : "Not eligible for rescue.",
     hardBlockers: blockers,
-    researchOnly: true,
-    executionReady: project.executionReady === true,
-    finalSelectionQualified: project.finalSelectionQualified === true ? project.finalSelectionQualified : false,
+    starvationRescueResearchOnly: true,
+    starvationRescueExecutionReady: project.executionReady === true,
+    ...(!project.candidateProofState
+      ? {
+          researchOnly: true,
+          executionReady: project.executionReady === true,
+          finalSelectionQualified: project.finalSelectionQualified === true ? project.finalSelectionQualified : false,
+        }
+      : {}),
   };
 }
 

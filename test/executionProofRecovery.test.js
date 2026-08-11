@@ -77,8 +77,15 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   };
 }
 
-test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified route state", async () => {
+test("Solana routes require authority proof but not EVM transfer-tax evidence", async () => {
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject({
+    securityEvidence: [{
+      provider: "solana-rpc-rugcheck",
+      status: "EVIDENCE_AVAILABLE",
+      testedChecks: ["mint authority", "freeze authority"],
+      mintRisk: false,
+      freezeRisk: false,
+    }],
     candidateQuarantineReasons: ["BUY_ROUTE_FAILED", "SELL_ROUTE_FAILED", "STALE_MARKET_DATA"],
     quarantineReasons: ["BUY_ROUTE_FAILED", "SELL_ROUTE_FAILED", "STALE_MARKET_DATA"],
     canonicalExecutionRoute: {
@@ -111,10 +118,28 @@ test("Solana buy and sell Jupiter quotes promote a candidate to depth-verified r
   assert.equal(recovered.canonicalExecutionRoute.quarantineReasons.includes("BUY_ROUTE_FAILED"), false);
 
   const [proof] = analyzeExecutionProofBatch([recovered]);
-  assert.equal(proof.executionProofState, "ORDER_BOOK_DEPTH_VERIFIED");
+  assert.equal(proof.executionProofState, "LIVE_EXECUTION_READY");
+  assert.equal(proof.executionProof.transferTaxEvidenceRequired, false);
+  assert.equal(proof.executionProof.authorityEvidenceVerified, true);
+  assert.equal(proof.executionProof.authoritySafetyClean, true);
 
   const routeSummary = summarizeRouteAccessibility(analyzeRouteAccessibilityBatch([recovered]));
   assert.ok(routeSummary.routeCount > 0);
+});
+
+test("legacy research flags do not suppress route recovery for a live token identity", async () => {
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject({
+    researchOnly: true,
+    tradableCandidate: false,
+    projectLifecycleState: "LIVE",
+  })], {
+    fetchJson: jupiterMock(),
+    now: () => NOW,
+  });
+
+  assert.equal(recovered.executionProofRecovery.status, "ROUTE_RECOVERED");
+  assert.equal(recovered.buyQuoteVerified, true);
+  assert.equal(recovered.sellQuoteVerified, true);
 });
 
 test("buy quote without sell quote remains research-only", async () => {
@@ -163,6 +188,65 @@ test("heuristic slippage never becomes live execution proof", () => {
 
   assert.notEqual(proof.executionProofState, "LIVE_EXECUTION_READY");
   assert.equal(proof.executionProof.slippageIsHeuristic, true);
+});
+
+test("EVM route readiness does not require a synthetic sell-simulation flag", () => {
+  const [proof] = analyzeExecutionProofBatch([evmProject({
+    taxesVerified: true,
+    estimatedRoundTripSlippagePct: 0.8,
+    orderBookDepthUsd: 90_000,
+    canonicalExecutionRoute: {
+      status: "VERIFIED",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      routeType: "DEX",
+      chain: "base",
+      contractAddress: EVM_TOKEN,
+      pairAddress: EVM_POOL,
+      exactIdentityVerified: true,
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteAgeSeconds: 20,
+      liquidityUsd: 260_000,
+      estimatedRoundTripSlippagePct: 0.8,
+      slippageIsHeuristic: false,
+    },
+  })]);
+
+  assert.equal(proof.sellSimulationPassed, undefined);
+  assert.equal(proof.executionProof.transferTaxEvidenceVerified, true);
+  assert.equal(proof.executionProofState, "LIVE_EXECUTION_READY");
+});
+
+test("CEX route readiness uses venue, market, access, and book evidence without token identity", () => {
+  const [proof] = analyzeExecutionProofBatch([{
+    symbol: "BOOK",
+    name: "Book Market",
+    exchange: "MEXC",
+    instantSafetyStatus: "PASS",
+    estimatedRoundTripSlippagePct: 0.5,
+    orderBookDepthUsd: 125_000,
+    canonicalExecutionRoute: {
+      status: "VERIFIED",
+      routeTruthStatus: "LIVE_EXECUTION_READY",
+      routeType: "CEX",
+      venue: "MEXC",
+      marketPair: "BOOK-USDT",
+      regionStatus: "CONFIRMED_AVAILABLE",
+      buyQuoteVerified: true,
+      sellQuoteVerified: true,
+      quoteAgeSeconds: 15,
+      orderBookDepthUsd: 125_000,
+      liquidityUsd: 125_000,
+      estimatedRoundTripSlippagePct: 0.5,
+      slippageIsHeuristic: false,
+    },
+  }]);
+
+  assert.equal(proof.executionProof.contractVerified, false);
+  assert.equal(proof.executionProof.poolRequired, false);
+  assert.equal(proof.executionProof.exactIdentityVerified, true);
+  assert.equal(proof.executionProof.userAccessVerified, true);
+  assert.equal(proof.executionProofState, "LIVE_EXECUTION_READY");
 });
 
 test("missing optional 0x key creates an optional source gap, not a fatal candidate penalty", async () => {
@@ -266,6 +350,7 @@ test("provider-verified CEX markets can recover book depth without proving token
     dex: "cex",
     source: "mexc",
     priceUsd: 0.01,
+    instantSafetyStatus: "PASS",
     highUpsideScalpScore: 75,
   }], {
     fetchJson: async () => ({
@@ -281,7 +366,8 @@ test("provider-verified CEX markets can recover book depth without proving token
   assert.equal(recovered.executionProofRecoveryRoute.venue, "MEXC");
   assert.equal(recovered.executionProofRecoveryRoute.orderBookDepthVerified, true);
   assert.equal(proof.executionProof.contractVerified, false);
-  assert.equal(proof.executionProofState, "MARKET_OBSERVED");
+  assert.equal(proof.executionProof.exactIdentityVerified, true);
+  assert.equal(proof.executionProofState, "USER_ACCESS_PROOF_REQUIRED");
 });
 
 test("CEX recovery never rewrites an explicit Coinbase market into a different product", async () => {

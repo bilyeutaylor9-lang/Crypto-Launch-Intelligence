@@ -47,9 +47,25 @@ test("Supabase config supports new Supabase URL, secret, publishable, and JWKS n
   assert.equal(config.configured, true);
   assert.equal(config.url, "https://example.supabase.co");
   assert.equal(config.keyType, "secret");
+  assert.equal(config.key, "server-secret");
   assert.equal(config.serverWriteCapable, true);
   assert.equal(config.jwksUrl.endsWith("/.well-known/jwks.json"), true);
   assert.equal(JSON.stringify(summarizeSupabaseConfig({ ...ENV, SUPABASE_SECRET_KEY: "server-secret" })).includes("server-secret"), false);
+});
+
+test("Supabase config retains a separate server-key fallback without exposing it in summaries", () => {
+  const env = {
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_SECRET_KEY: "sb_secret_primary",
+    SUPABASE_SERVICE_ROLE_KEY: "legacy-service-role-fallback",
+  };
+  const config = resolveSupabaseConfig(env);
+  const summary = summarizeSupabaseConfig(env);
+
+  assert.equal(config.key, "sb_secret_primary");
+  assert.equal(config.fallbackServerKeys.length, 1);
+  assert.equal(config.fallbackServerKeys[0].keyType, "service_role");
+  assert.equal(JSON.stringify(summary).includes("legacy-service-role-fallback"), false);
 });
 
 test("REST headers distinguish modern API keys from legacy JWT keys", () => {

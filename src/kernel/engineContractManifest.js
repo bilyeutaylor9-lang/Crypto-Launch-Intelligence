@@ -1392,7 +1392,7 @@ export const ENGINE_CONTRACTS = [
       nonScoringOutput: true,
       evidenceRequiredWhenScored: true,
     },
-    timeoutMs: 7000,
+    timeoutMs: 600000,
     retries: 1,
     failureMode: "fail-closed",
     affectsFinalDecision: true,

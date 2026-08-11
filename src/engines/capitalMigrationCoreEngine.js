@@ -189,8 +189,14 @@ export function analyzeCapitalMigrationCore(project = {}, options = {}) {
     capitalMigrationBlockers: lane.blockers,
     capitalMigrationMissingEvidence: lane.missing,
     observationCoveragePct: scoreParts.observationCoveragePct,
-    researchOnly: lane.lane !== "CONFIRMED_EARLY_FLOW" || !routeVerified(withBaseline),
-    executionReady: lane.lane === "CONFIRMED_EARLY_FLOW" && routeVerified(withBaseline),
+    capitalMigrationResearchOnly: lane.lane !== "CONFIRMED_EARLY_FLOW" || !routeVerified(withBaseline),
+    capitalMigrationExecutionReady: lane.lane === "CONFIRMED_EARLY_FLOW" && routeVerified(withBaseline),
+    ...(!withBaseline.candidateProofState
+      ? {
+          researchOnly: lane.lane !== "CONFIRMED_EARLY_FLOW" || !routeVerified(withBaseline),
+          executionReady: lane.lane === "CONFIRMED_EARLY_FLOW" && routeVerified(withBaseline),
+        }
+      : {}),
   };
 }
 
@@ -216,8 +222,8 @@ export function summarizeCapitalMigration(projects = []) {
     score: project.capitalMigrationScore || 0,
     confidence: project.capitalMigrationConfidence || "Low",
     lane: project.capitalMigrationLane || "NOT_RUN",
-    researchOnly: project.researchOnly !== false,
-    executionReady: project.executionReady === true,
+    researchOnly: project.capitalMigrationResearchOnly !== false,
+    executionReady: project.capitalMigrationExecutionReady === true,
     blockers: project.capitalMigrationBlockers || [],
     missingEvidence: project.capitalMigrationMissingEvidence || [],
   }));

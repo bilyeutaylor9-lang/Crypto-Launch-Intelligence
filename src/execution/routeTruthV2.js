@@ -211,6 +211,15 @@ export function isLiveExecutionReady(subject = {}, options = {}) {
   const routeStatus = upper(subject.canonicalExecutionRoute?.routeTruthStatus || subject.canonicalExecutionRoute?.status);
   if (HARD_BLOCK_STATUSES.has(status) || HARD_BLOCK_STATUSES.has(proofStatus) || HARD_BLOCK_STATUSES.has(routeStatus)) return false;
   if (![status, proofStatus, routeStatus].includes(LIVE_READY_STATUS)) return false;
+  if (subject.safetyVerified === false) return false;
+  if (
+    subject.transferTaxEvidenceRequired === true &&
+    subject.transferTaxEvidenceVerified !== true
+  ) return false;
+  if (
+    subject.authorityEvidenceRequired === true &&
+    (subject.authorityEvidenceVerified !== true || subject.authoritySafetyClean !== true)
+  ) return false;
 
   return Boolean(
     hasExactRouteIdentity(subject) &&

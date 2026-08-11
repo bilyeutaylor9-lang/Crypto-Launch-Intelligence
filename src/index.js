@@ -202,39 +202,56 @@ function average(values = []) {
   return active.length ? active.reduce((sum, value) => sum + value, 0) / active.length : 0;
 }
 
-function buildScannerSemanticHealth(projects = [], context = {}) {
+export function buildScannerSemanticHealth(projects = [], context = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const total = safeProjects.length;
-  const qualified = safeProjects.filter((project) => project.finalSelectionState === "QUALIFIED").length;
-  const insufficient = safeProjects.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA").length;
-  const recovered = safeProjects.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
-  const averageEvidenceCoverage = Math.round(
-    average(safeProjects.map((project) => project.evidenceCoverageScore ?? project.engineHealth?.averageEvidenceCoverage ?? 0))
+  const standardCandidateCount = safeProjects.length;
+  const progressiveExecution = safeProjects.some((project) =>
+    ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(
+      project.deepEvaluationState
+    )
   );
-  const insufficientRatio = total ? insufficient / total : 0;
+  const deepUniverse = progressiveExecution
+    ? safeProjects.filter((project) => project.deepEvaluationState === "DEEP_EVALUATED")
+    : safeProjects;
+  const deepEvaluatedCandidates = deepUniverse.length;
+  const deferredBeforeDeepCandidates = progressiveExecution
+    ? safeProjects.filter((project) => project.deepEvaluationState === "DEFERRED_BEFORE_DEEP").length
+    : 0;
+  const qualified = deepUniverse.filter((project) => project.finalSelectionState === "QUALIFIED").length;
+  const insufficient = deepUniverse.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA").length;
+  const recovered = deepUniverse.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
+  const averageEvidenceCoverage = Math.round(
+    average(deepUniverse.map((project) => project.evidenceCoverageScore ?? project.engineHealth?.averageEvidenceCoverage ?? 0))
+  );
+  const insufficientRatio = deepEvaluatedCandidates ? insufficient / deepEvaluatedCandidates : 0;
   const degradedCandidateFloor = Math.max(
     1,
-    Number(process.env.SCANNER_DATA_DEGRADED_MIN_CANDIDATES || 1000)
+    Number(process.env.SCANNER_DATA_DEGRADED_MIN_CANDIDATES || 25)
   );
   const degradedInsufficientRatio = Number(process.env.SCANNER_DATA_DEGRADED_INSUFFICIENT_RATIO || 0.75);
   const degradedCoverageThreshold = Number(process.env.SCANNER_DATA_DEGRADED_COVERAGE_PCT || 45);
   const discovery = context.discovery || {};
   const target = Number(discovery.targetCoverage?.targetCandidates || discovery.targetCandidates || 0);
-  const accepted = Number(discovery.targetCoverage?.acceptedAfterLimitCount || discovery.acceptedCount || total);
+  const accepted = Number(discovery.targetCoverage?.acceptedAfterLimitCount || discovery.acceptedCount || standardCandidateCount);
   const discoveryShortfallPct = target > 0
     ? Math.round((Math.max(0, target - accepted) / target) * 10_000) / 100
     : 0;
   const rescueSkippedDespiteShortfall =
     discoveryShortfallPct >= Number(process.env.CANDIDATE_RESCUE_SHORTFALL_PCT || 10) &&
     discovery.candidateRescue?.status === "SKIPPED";
+  const remoteMemoryRequired =
+    context.supabaseMemory?.required === true ||
+    process.env.SUPABASE_SYNC_REQUIRED === "true";
   const remoteMemoryFailed =
-    context.supabaseMemory?.status === "FAILED" &&
-    process.env.SUPABASE_ENABLED === "true";
+    context.supabaseMemory?.status === "FAILED" && remoteMemoryRequired;
+  const optionalRemoteMemoryWarning =
+    context.supabaseMemory?.status === "FAILED" && !remoteMemoryRequired;
   const largeInsufficientFailure =
-    total >= degradedCandidateFloor &&
+    deepEvaluatedCandidates >= degradedCandidateFloor &&
     insufficientRatio >= degradedInsufficientRatio &&
     averageEvidenceCoverage < degradedCoverageThreshold;
-  const dataDegraded = largeInsufficientFailure || rescueSkippedDespiteShortfall || remoteMemoryFailed;
+  const deepEvaluationMissing = standardCandidateCount > 0 && deepEvaluatedCandidates === 0;
+  const dataDegraded = largeInsufficientFailure || deepEvaluationMissing || rescueSkippedDespiteShortfall || remoteMemoryFailed;
   const status = qualified > 0
     ? "EDGE_FOUND"
     : dataDegraded
@@ -245,9 +262,12 @@ function buildScannerSemanticHealth(projects = [], context = {}) {
 
   return {
     status,
+    standardCandidateCount,
+    deepEvaluatedCandidates,
+    deferredBeforeDeepCandidates,
     qualifiedCandidates: qualified,
     insufficientDataCandidates: insufficient,
-    insufficientDataRatioPct: total ? Math.round(insufficientRatio * 10_000) / 100 : 0,
+    insufficientDataRatioPct: deepEvaluatedCandidates ? Math.round(insufficientRatio * 10_000) / 100 : 0,
     averageEvidenceCoverage,
     activeRecoveryCandidates: recovered,
     discoveryTargetCandidates: target,
@@ -256,6 +276,8 @@ function buildScannerSemanticHealth(projects = [], context = {}) {
     rescueStatus: discovery.candidateRescue?.status || "UNKNOWN",
     supabaseMemoryStatus: context.supabaseMemory?.status || "UNKNOWN",
     supabaseMemoryFailureReason: context.supabaseMemory?.reason || null,
+    supabaseMemoryRequired: remoteMemoryRequired,
+    degradedLearningWarning: optionalRemoteMemoryWarning,
     readinessClass:
       status === "EDGE_FOUND" || status === "NO_EDGE_FOUND"
         ? "HEALTHY_EVIDENCE"
@@ -263,7 +285,7 @@ function buildScannerSemanticHealth(projects = [], context = {}) {
           ? "INSUFFICIENT_EVIDENCE"
           : "DATA_DEGRADED",
     policy:
-      "Zero picks can be healthy only when evidence coverage is adequate. Large insufficient-data populations, skipped rescue under target shortfall, or required remote-memory failure mark the scanner degraded.",
+      "Decision health uses only deep-evaluated candidates. Deferred candidates are reported separately, and optional remote-memory failure degrades learning continuity without misclassifying current evidence.",
   };
 }
 
@@ -503,12 +525,29 @@ function printTopProjects(results) {
   console.log("");
 
   if (!candidates.length) {
-    const recoveryCount = results.filter(
+    const recoveryQueue = results.filter(
       (project) => project.liveActionStatus === "DATA_RECOVERY_REQUIRED"
-    ).length;
+    );
     console.log("NO_VALID_MOVE_TODAY");
     console.log("No candidate passed the measured-evidence threshold for the guarded research slate.");
-    console.log(`${recoveryCount} candidates remain in the separate data-recovery queue.`);
+    console.log(`${recoveryQueue.length} candidates remain in the separate data-recovery queue.`);
+    const usefulResearch = recoveryQueue
+      .filter((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP")
+      .sort((a, b) => scoreOf(b) - scoreOf(a))
+      .slice(0, 5);
+    if (usefulResearch.length) {
+      console.log("");
+      console.log("Highest-priority evidence recovery:");
+      usefulResearch.forEach((project, index) => {
+        const missing = (project.liveRankingMissingEvidence || project.missingSignals || [])
+          .slice(0, 3)
+          .join(", ");
+        console.log(
+          `${index + 1}. ${project.name || "Unknown"} (${project.symbol || "-"}) on ${project.chain || "unknown"} | score ${scoreOf(project).toFixed(1)} | evidence ${project.evidenceCoverageScore || 0}%`
+        );
+        if (missing) console.log(`   Next proof: ${missing}`);
+      });
+    }
     console.log("");
     return;
   }

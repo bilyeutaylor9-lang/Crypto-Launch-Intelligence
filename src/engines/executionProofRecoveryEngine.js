@@ -7,6 +7,7 @@ import {
 import { routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
+import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -327,7 +328,7 @@ export function selectExecutionRecoveryCandidates(projects = [], options = {}) {
   const deduped = new Map();
   const sorted = (Array.isArray(projects) ? projects : [])
     .filter((project) => project && typeof project === "object")
-    .filter((project) => project.researchOnly !== true && project.tradableCandidate !== false)
+    .filter((project) => !isEntityResearchOnlyCandidate(project))
     .filter((project) => project.memeOnlySpeculative !== true && project.memeBrandingDetected !== true && !isLikelyMemeIdentity(project))
     .filter((project) => !hardBlocked(project))
     .filter((project) => needsRecoveredExecution(project))

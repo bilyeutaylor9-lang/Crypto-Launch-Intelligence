@@ -5,6 +5,7 @@ import {
   isLikelyAggregateCandidate,
   isLikelyMemeIdentity,
 } from "../identity/displayIdentityGuard.js";
+import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 
 const TARGET_BACKUPS = 4;
 const TARGET_WATCHLIST = 10;
@@ -326,7 +327,7 @@ export function analyzeDailyCapitalMove(project = {}) {
   } else if (!hasCleanDisplayIdentity(project) || isLikelyAggregateCandidate(project)) {
     lane = "BLOCKED";
     reason = "Malformed or aggregate project identity cannot be used for daily capital research.";
-  } else if (project.researchOnly === true || project.tradableCandidate === false) {
+  } else if (isEntityResearchOnlyCandidate(project)) {
     lane = "ENTITY_RESEARCH_ONLY";
     reason = "Entity-level research evidence is not a contract-resolved tradable asset.";
   } else if (strictGate.strictCandidateLane === "MARKET_BENCHMARK") {

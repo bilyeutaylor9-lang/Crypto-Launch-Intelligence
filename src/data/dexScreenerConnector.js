@@ -48,6 +48,10 @@ export async function getTokenPairs(chainId, tokenAddress) {
   return fetchJson(`${BASE_URL}/token-pairs/v1/${chainId}/${tokenAddress}`);
 }
 
+export async function getPairByAddress(chainId, pairAddress) {
+  return fetchJson(`${BASE_URL}/latest/dex/pairs/${chainId}/${pairAddress}`);
+}
+
 export async function searchDexPairs(query) {
   return fetchJson(`${BASE_URL}/latest/dex/search?q=${encodeURIComponent(query)}`);
 }
@@ -83,8 +87,13 @@ export function normalizeDexPair(pair = {}) {
 
     priceUsd: nullableNumber(pair.priceUsd),
     liquidityUsd: nullableNumber(pair.liquidity?.usd),
+    marketCap: nullableNumber(pair.marketCap),
+    circulatingMarketCapUsd: nullableNumber(pair.marketCap),
+    fdv: nullableNumber(pair.fdv),
+    fullyDilutedValuationUsd: nullableNumber(pair.fdv),
 
     volume24h: nullableNumber(pair.volume?.h24),
+    volume24hUsd: nullableNumber(pair.volume?.h24),
     volume6h: nullableNumber(pair.volume?.h6),
     volume1h: nullableNumber(pair.volume?.h1),
 

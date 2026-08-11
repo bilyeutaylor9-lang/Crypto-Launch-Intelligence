@@ -8,6 +8,8 @@ import { normalizeBooleanVocabulary, normalizeStatusVocabulary } from "../src/da
 import { normalizeVenue, parseVenueProtocolVersion } from "../src/data/venueVocabularyRegistry.js";
 import { normalizeQuoteAsset, parseMarketPair } from "../src/data/semanticAliasNormalizer.js";
 import { summarizeAliasResolution } from "../src/reports/aliasResolutionReportEngine.js";
+import { sourceFamilyForField } from "../src/data/enrichmentSourceRegistry.js";
+import { routeMissingEvidence } from "../src/data/targetedEnrichmentRouter.js";
 
 const EVM = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -140,6 +142,36 @@ test("safe fuzzy aliases can recover non-identity data, but not address fields",
   assert.equal(address.resolved.tokenAddress, null);
 });
 
+test("alias scanning never mines provenance values into unrelated metrics", () => {
+  const aliases = resolveCanonicalAliases({
+    fieldProvenance: {
+      priceUsd: { value: 76, source: "dexscreener" },
+      liquidityUsd: { value: 1_000_000, source: "dexscreener" },
+    },
+    canonicalAliasProvenance: {
+      priceUsd: { originalValue: 76 },
+    },
+  }, { fields: ["volume24hUsd", "holderCount"] });
+
+  assert.equal(aliases.resolved.volume24hUsd, null);
+  assert.equal(aliases.resolved.holderCount, null);
+});
+
+test("wallet and deployer evidence route only to capable provider families", () => {
+  const wallet = routeMissingEvidence({ canonicalField: "smartWalletNetFlowUsd", recoverable: true });
+  const deployer = routeMissingEvidence({ canonicalField: "deployerHistory", recoverable: true });
+  const derived = routeMissingEvidence({ canonicalField: "progressiveOpportunityScore", recoverable: true });
+
+  assert.equal(sourceFamilyForField("smartWalletNetFlowUsd"), "WALLETS");
+  assert.equal(wallet.evidenceFamily, "WALLETS");
+  assert.ok(wallet.targetSources.every((source) => !["DexScreener", "CoinPaprika"].includes(source.source)));
+  assert.equal(deployer.evidenceFamily, "DEPLOYER");
+  assert.ok(deployer.targetSources.some((source) => /rpc|explorer/i.test(source.source)));
+  assert.equal(derived.evidenceFamily, "DERIVED");
+  assert.equal(derived.recoverable, false);
+  assert.equal(derived.recomputeAfterRecovery, true);
+});
+
 test("internal output gaps and provider-specific nested fields are classified correctly", () => {
   const missingInternal = analyzeDataStarvationRootCause(
     {
@@ -159,6 +191,25 @@ test("internal output gaps and provider-specific nested fields are classified co
     }
   );
   assert.equal(missingInternal.dataStarvationMissingEvidence[0].rootCause, "PIPELINE_OUTPUT_MISSING");
+
+  const providerFailureDoesNotRewriteDerived = analyzeDataStarvationRootCause(
+    {
+      symbol: "DERIVED",
+      providerStatus: "provider unavailable",
+      engineResults: { marketOpportunityRank: { status: "SUCCESS" } },
+    },
+    {
+      contracts: [{
+        id: "rank",
+        phase: "ranking",
+        affectsFinalDecision: true,
+        canBlockCandidate: false,
+        inputContract: { requiredAny: [["marketOpportunityRank"]], optional: [] },
+      }],
+    }
+  );
+  assert.equal(providerFailureDoesNotRewriteDerived.dataStarvationMissingEvidence[0].rootCause, "PIPELINE_OUTPUT_MISSING");
+  assert.equal(providerFailureDoesNotRewriteDerived.dataStarvationMissingEvidence[0].providerStatus, "UNKNOWN");
 
   const readiness = evaluateEngineDataReadiness(
     { source: "dexscreener", pair: { liquidity: { usd: 75_000 } } },

@@ -154,6 +154,48 @@ export function deriveProjectLifecycleState(project = {}) {
   return developmentFirst ? "PRELAUNCH" : "UNKNOWN";
 }
 
+export function isEntityResearchOnlyCandidate(project = {}) {
+  const lifecycle = upper(first([
+    project.projectLifecycleState,
+    deriveProjectLifecycleState(project),
+  ]));
+  const identityStatus = upper(project.candidateProofState?.identity?.status);
+  const tradabilityState = upper(project.tradabilityState);
+  const tokenAddress = tokenAddressOf(project);
+  const chain = chainOf(project);
+  const hasObservedMarketIdentity = Boolean(
+    tokenAddress &&
+      (chain ||
+        poolAddressOf(project) ||
+        num(first([project.priceUsd, project.price, project.liquidityUsd, project.volume24hUsd])) !== null)
+  );
+  const hasCexMarketIdentity = Boolean(
+    first([project.marketKey, project.exchangeAssetId, project.verifiedExchangeAssetId]) &&
+      /CEX|ORDER_BOOK/.test(upper(first([
+        project.routeType,
+        project.routeKind,
+        project.canonicalExecutionRoute?.routeType,
+        project.canonicalExecutionRoute?.routeKind,
+      ])))
+  );
+
+  if (
+    ["LIVE", "REACTIVATED"].includes(lifecycle) ||
+    identityStatus === "VERIFIED" ||
+    ["MARKET_IDENTIFIED", "ROUTE_QUOTED", "EXECUTION_READY"].includes(tradabilityState) ||
+    hasObservedMarketIdentity ||
+    hasCexMarketIdentity
+  ) {
+    return false;
+  }
+
+  if (lifecycle === "PRELAUNCH" || upper(project.dailyCapitalMoveLane) === "ENTITY_RESEARCH_ONLY") {
+    return true;
+  }
+
+  return project.researchOnly === true || project.tradableCandidate === false;
+}
+
 function safetyState(project = {}) {
   const deterministicBlocks = deterministicCandidateBlocks(project);
   const declared = upper(first([

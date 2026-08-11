@@ -23,11 +23,16 @@ export function summarizeCrawlerHealth(crawlResult = {}, options = {}) {
     ...fetchedPages.flatMap((page) => page.errors || []).map((error) => ({ error })),
   ];
   const mode = crawlResult.mode || "QUEUE_ONLY";
-  const status = errors.length
-    ? fetchedPages.length || seeds.length
-      ? "DEGRADED"
-      : "FAILED"
-    : "PASS";
+  const queueOnly = mode === "QUEUE_ONLY";
+  const status = queueOnly
+    ? "QUEUE_ONLY"
+    : errors.length
+      ? fetchedPages.length || seeds.length
+        ? "DEGRADED"
+        : "FAILED"
+      : evidence.length
+        ? "PASS"
+        : "NO_EVIDENCE_COLLECTED";
 
   return {
     generatedAt: new Date().toISOString(),
@@ -37,6 +42,7 @@ export function summarizeCrawlerHealth(crawlResult = {}, options = {}) {
     projectsAnalyzed: crawlResult.projectsAnalyzed || 0,
     status,
     crawlMode: mode,
+    evidenceCollectionStatus: evidence.length ? "EVIDENCE_COLLECTED" : "NO_EVIDENCE_COLLECTED",
     warnings: crawlResult.warnings || [],
     limitations: [
       "Normal scans build a trusted crawl queue and health report; live fetches only run through explicit crawler commands or a supplied fetcher.",

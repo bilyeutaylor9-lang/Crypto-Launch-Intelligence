@@ -5,6 +5,7 @@ import {
   isLikelyAggregateCandidate,
   isLikelyMemeIdentity,
 } from "../identity/displayIdentityGuard.js";
+import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 
 const MAX_ITEMS = 50;
 
@@ -14,6 +15,66 @@ function num(value = 0) {
 
 function first(values = []) {
   return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
+}
+
+function array(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function positive(project = {}, paths = []) {
+  return paths.some((path) => {
+    const value = path.split(".").reduce((current, key) => current?.[key], project);
+    return Number.isFinite(Number(value)) && Number(value) > 0;
+  });
+}
+
+function measured(project = {}, paths = []) {
+  return paths.some((path) => {
+    const value = path.split(".").reduce((current, key) => current?.[key], project);
+    return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  });
+}
+
+function staleDiscoveryGapResolved(project = {}, item = "") {
+  const text = String(item || "").toLowerCase();
+  if (/market.?cap/.test(text)) {
+    return positive(project, ["marketCapUsd", "circulatingMarketCapUsd", "marketCap", "estimatedMarketCapUsd"]);
+  }
+  if (/^priceusd$|price usd/.test(text)) return positive(project, ["priceUsd", "price"]);
+  if (/liquidity/.test(text)) {
+    return positive(project, ["liquidityUsd", "dexLiquidityUsd", "executionProof.liquidityUsd"]);
+  }
+  if (/safetyproof|safety proof/.test(text)) {
+    const status = String(first([
+      project.instantSafetyStatus,
+      project.safetyProofStatus,
+      project.contractSafetyStatus,
+    ]) || "").toUpperCase();
+    return project.executionProof?.safetyVerified === true || /PASS|VERIFIED_SAFE|VERIFIED_CLEAN/.test(status);
+  }
+  if (/freshbuyquote|buy quote/.test(text)) {
+    return project.buyQuoteVerified === true || project.executionProof?.buyQuoteVerified === true;
+  }
+  if (/freshsellquote|sell quote/.test(text)) {
+    return project.sellQuoteVerified === true || project.executionProof?.sellQuoteVerified === true;
+  }
+  if (/buyerbreadth|buyer breadth/.test(text)) {
+    return measured(project, ["uniqueBuyers24h", "buyers24h", "clusterAdjustedUniqueBuyers24h"]);
+  }
+  if (/walletflow|wallet flow/.test(text)) {
+    return measured(project, ["smartWalletNetFlowUsd", "qualifiedSmartWalletNetFlowUsd"]);
+  }
+  if (/holderdistribution|holder distribution/.test(text)) {
+    return measured(project, ["holderCount", "holders"]);
+  }
+  if (/^chain$/.test(text)) return Boolean(project.chain || project.canonicalChain || project.chainId);
+  if (/contractaddress|contract address/.test(text)) {
+    return Boolean(project.tokenAddress || project.contractAddress || project.canonicalAddress);
+  }
+  if (/primarypool|primary pool/.test(text)) {
+    return Boolean(project.poolAddress || project.pairAddress || project.primaryTradablePool);
+  }
+  return false;
 }
 
 function score(project = {}) {
@@ -29,29 +90,49 @@ function score(project = {}) {
 }
 
 function missingItems(project = {}) {
+  const discoveryGaps = [
+    ...array(project.missingInfoNeeded),
+    ...array(project.missingDataCompletion?.missing),
+  ].filter((item) => !staleDiscoveryGapResolved(project, item));
+
   return [
-    ...(project.dailyCapitalMoveMissingProof || []),
-    ...(project.highUpsideScalpMissingFields || []),
-    ...(project.missingInfoNeeded || []),
-    ...(project.missingDataCompletion?.missing || []),
-    ...(project.missingEvidence || []),
-    ...(project.missingRouteEvidence || []),
-    ...(project.engineDataContractHealth?.nextSourcesNeeded || []).map((item) => item.source || item),
+    ...array(project.dailyCapitalMoveMissingProof),
+    ...array(project.highUpsideScalpMissingFields),
+    ...array(project.liveRankingMissingEvidence),
+    ...discoveryGaps,
+    ...array(project.missingEvidence),
+    ...array(project.missingRouteEvidence),
+    ...array(project.activeEvidenceRecovery?.unrecoveredFields),
   ].filter(Boolean);
 }
 
 function sourcePlan(item = "") {
   const text = String(item || "").toLowerCase();
   if (/identity|chain|contract|token|pool|market/.test(text)) return ["DexScreener", "GeckoTerminal", "official website", "block explorer"];
-  if (/route|quote|sell|buy|slippage|depth/.test(text)) return ["Jupiter", "0x", "1inch", "chain-native DEX quote", "CEX order book"];
+  if (/route|quote|\bsell\b|\bbuy\b|slippage|depth/.test(text)) return ["Jupiter", "0x", "1inch", "chain-native DEX quote", "CEX order book"];
   if (/safety|honeypot|tax|blacklist|freeze|authority/.test(text)) return ["GoPlus", "Honeypot.is", "RugCheck", "Sourcify", "Blockscout", "Etherscan V2"];
   if (/utility|roadmap|developer|github|docs|product/.test(text)) return ["GitHub", "official docs", "project website", "package registry"];
   if (/market cap|liquidity|volume|buyer|wallet|holder|flow/.test(text)) return ["CoinGecko", "CoinPaprika", "CoinLore", "GeckoTerminal trades", "native RPC"];
   return ["source truth router", "official links", "independent market provider"];
 }
 
+function resolverFor(item = "") {
+  const text = String(item || "").toLowerCase();
+  if (/identity|chain|contract|token/.test(text)) return "officialIdentityResolver";
+  if (/pool|pair/.test(text)) return "dexPoolResolver";
+  if (/buyer/.test(text)) return "buyerBreadthResolver";
+  if (/route|quote|\bsell\b|\bbuy\b|slippage|depth/.test(text)) return "routeQuoteResolver";
+  if (/safety|honeypot|tax|blacklist|freeze|authority/.test(text)) return "contractSafetyResolver";
+  if (/market.?cap/.test(text)) return "marketCapResolver";
+  if (/liquidity/.test(text)) return "liquidityDepthResolver";
+  if (/wallet|flow/.test(text)) return "walletFlowResolver";
+  if (/holder/.test(text)) return "holderEvidenceResolver";
+  if (/utility|roadmap|developer|github|docs|product/.test(text)) return "utilityEvidenceResolver";
+  return null;
+}
+
 function recoverableLane(project = {}) {
-  return !["BLOCKED", "LATE_CHASE_DO_NOT_CHASE", "MEME_ONLY_EXCLUDED"].includes(
+  return !["BLOCKED", "ENTITY_RESEARCH_ONLY", "LATE_CHASE_DO_NOT_CHASE", "MEME_ONLY_EXCLUDED"].includes(
     String(project.dailyCapitalMoveLane || "")
   );
 }
@@ -59,13 +140,11 @@ function recoverableLane(project = {}) {
 function compact(project = {}, rank = 0) {
   const missing = [...new Set(missingItems(project))].slice(0, 12);
   const sources = [...new Set([
-    ...(project.dailyCapitalMoveNextSources || []),
+    ...array(project.dailyCapitalMoveNextSources),
     ...missing.flatMap(sourcePlan),
+    ...array(project.engineDataContractHealth?.nextSourcesNeeded).map((item) => item?.source || item),
   ])].slice(0, 12);
-  const nextResolvers = [...new Set([
-    ...(project.nextResolvers || []),
-    ...(project.missingDataCompletion?.nextResolvers || []),
-  ])].slice(0, 12);
+  const nextResolvers = [...new Set(missing.map(resolverFor).filter(Boolean))].slice(0, 12);
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
@@ -77,24 +156,24 @@ function compact(project = {}, rank = 0) {
     completionScore: project.completionScore ?? project.missingDataCompletion?.completionScore ?? null,
     lane: project.dailyCapitalMoveLane || project.highUpsideScalpLane || project.hottestTenNowLane || "RESEARCH",
     blockingResearch: project.dailyCapitalMoveLane === "NEEDS_PROOF" || missing.length > 0,
-    blockingExecution: missing.some((item) => /route|quote|sell|buy|slippage|depth|liquidity|safety|identity|contract/i.test(item)),
+    blockingExecution: missing.some((item) => /route|quote|\bsell\b|\bbuy\b|slippage|depth|liquidity|safety|identity|contract/i.test(item)),
     missingProof: missing,
     nextSingleProofToPromote: missing[0] || null,
-    nextSingleResolver: project.nextSingleResolver || project.missingDataCompletion?.nextSingleResolver || nextResolvers[0] || null,
+    nextSingleResolver: nextResolvers[0] || null,
     nextResolvers,
     targetSources: sources,
     sourcesUsed: [...new Set([
       project.executionRecoverySource,
       project.executionProofRecovery?.executionRecoverySource,
       project.canonicalExecutionRoute?.supportingSources?.[0],
-      ...(project.discoverySources || []),
+      ...array(project.discoverySources),
       project.source,
     ].filter(Boolean))].slice(0, 10),
     sourcesFailed: [...new Set([
-      ...(project.executionRecoveryFailures || []),
-      ...(project.executionProofRecovery?.executionRecoveryFailures || []),
-      ...(project.providerFailures || []),
-      ...(project.discoveryProviderFailures || []),
+      ...array(project.executionRecoveryFailures),
+      ...array(project.executionProofRecovery?.executionRecoveryFailures),
+      ...array(project.providerFailures),
+      ...array(project.discoveryProviderFailures),
     ].filter(Boolean))].slice(0, 10),
     estimatedRequests: Math.max(1, Math.min(12, sources.length)),
     reason: project.dailyCapitalMoveReason || project.reasonNotQualified || "Recover missing evidence before promotion.",
@@ -108,8 +187,7 @@ export function summarizeDailyRecoveryQueue(projects = [], meta = {}) {
         score(project) > 0 &&
         missingItems(project).length > 0 &&
         recoverableLane(project) &&
-        project.researchOnly !== true &&
-        project.tradableCandidate !== false &&
+        !isEntityResearchOnlyCandidate(project) &&
         project.memeOnlySpeculative !== true &&
         project.memeBrandingDetected !== true &&
         !isLikelyMemeIdentity(project) &&

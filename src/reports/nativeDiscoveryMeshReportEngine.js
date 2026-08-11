@@ -9,12 +9,19 @@ function num(value = 0) {
 }
 
 export function buildNativeDiscoveryMeshReport(projects = [], meta = {}) {
+  const discoverySourceReport = meta.discovery?.sourceReports?.nativeDiscoveryMesh || null;
+  const eventStore = summarizeNativeEventStore();
   const nativeProjects = projects.filter(
     (project) => project.nativeDiscoveryScore > 0 || project.nativeLifecycle || (project.discoverySources || []).includes("native-discovery-mesh")
   );
   const meshSummary = summarizeNativeDiscoveryMesh({
     candidates: nativeProjects,
     lifecycles: nativeProjects.map((project) => project.nativeLifecycle).filter(Boolean),
+    eventCount: num(
+      discoverySourceReport?.report?.eventCount ??
+      discoverySourceReport?.eventCount ??
+      eventStore.confirmedEvents + eventStore.rawEvents
+    ),
   });
   const topCandidates = nativeProjects
     .sort((a, b) => num(b.nativeDiscoveryScore) - num(a.nativeDiscoveryScore))
@@ -43,10 +50,11 @@ export function buildNativeDiscoveryMeshReport(projects = [], meta = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
-    status: nativeProjects.length ? "ACTIVE" : "WAITING_FOR_NATIVE_EVENTS",
+    status: meshSummary.status,
+    collectionStatus: meshSummary.collectionStatus,
     summary: meshSummary,
-    discoverySourceReport: meta.discovery?.sourceReports?.nativeDiscoveryMesh || null,
-    eventStore: summarizeNativeEventStore(),
+    discoverySourceReport,
+    eventStore,
     protocolCoverage: summarizeNativeProtocolCoverage(),
     topCandidates,
     missedOpportunityLab: {

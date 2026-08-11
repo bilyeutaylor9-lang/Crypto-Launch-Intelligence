@@ -207,6 +207,7 @@ test("crawler reports and audit reports write non-empty contracts", () => {
   assert.equal(fs.existsSync(audit.markdownPath), true);
 
   const health = JSON.parse(fs.readFileSync(path.resolve("reports", "crawler-health.json"), "utf8"));
-  assert.equal(health.status, "PASS");
+  assert.equal(health.status, "QUEUE_ONLY");
+  assert.equal(health.evidenceCollectionStatus, "NO_EVIDENCE_COLLECTED");
   assert.equal(Array.isArray(health.limitations), true);
 });
