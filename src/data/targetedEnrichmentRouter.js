@@ -44,6 +44,13 @@ export function routeMissingEvidence(item = {}, options = {}) {
     estimatedRequests: Math.min(sources.length, options.maxSources || 4),
     estimatedTimeMs: sources.slice(0, options.maxSources || 4).reduce((sum, source) => sum + num(source.latencyMs), 0),
     recoverable: sources.length > 0 && item.recoverable !== false,
+    recomputeAfterRecovery: family === "DERIVED",
+    routingStatus:
+      family === "DERIVED"
+        ? "RECOMPUTE_DERIVED_OUTPUT"
+        : sources.length
+          ? "PROVIDER_ROUTE_AVAILABLE"
+          : "NO_CAPABLE_PROVIDER_REGISTERED",
   };
 }
 

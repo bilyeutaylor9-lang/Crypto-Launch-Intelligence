@@ -3,6 +3,7 @@ import { applyCanonicalAliases, canonicalValue } from "../data/canonicalAliasRes
 import { INTERNAL_ENGINE_OUTPUT_FIELDS, canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
 import { evaluateEvidenceFreshness } from "../data/evidenceFreshnessPolicy.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
+import { sourceFamilyForField } from "../data/enrichmentSourceRegistry.js";
 import { normalizeChainId, chainKind } from "../identity/strictIdentityValidators.js";
 
 const INTERNAL_FIELD_PRODUCERS = Object.freeze({
@@ -23,6 +24,23 @@ const INTERNAL_FIELD_PRODUCERS = Object.freeze({
   earlyAsymmetryResearchPriorityScore: "earlyAsymmetryTriage",
   researchReadinessScore: "researchReadiness",
 });
+
+function outputProducerMap(contracts = []) {
+  const producers = new Map(Object.entries(INTERNAL_FIELD_PRODUCERS));
+  for (const contract of contracts) {
+    const outputFields = [
+      ...(contract.outputContract?.requiredAny || []).flatMap((group) =>
+        Array.isArray(group) ? group : [group]
+      ),
+      ...(contract.outputContract?.scoreFields || []),
+    ];
+    for (const field of outputFields.filter(Boolean)) {
+      const canonicalField = canonicalFieldForAlias(field) || field;
+      if (!producers.has(canonicalField)) producers.set(canonicalField, contract.id);
+    }
+  }
+  return producers;
+}
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -139,7 +157,7 @@ export function fieldApplicability(project = {}, canonicalField = "", contract =
   return { status: "APPLICABLE", reason: "Evidence is applicable to this project and engine contract." };
 }
 
-function rootCauseForMissing(project = {}, canonicalField = "", contract = {}, applicability = {}) {
+function rootCauseForMissing(project = {}, canonicalField = "", contract = {}, applicability = {}, producers = new Map()) {
   if (applicability.status === "NOT_APPLICABLE") return "NOT_APPLICABLE";
   if (project.canonicalAliasConflicts?.[canonicalField]?.length) return "CONFLICTED_DATA";
   if (canonicalField === "chain" && (project.chain || project.network || project.chainId) && !normalizeChainId(project.chain || project.network || project.chainId)) {
@@ -148,18 +166,23 @@ function rootCauseForMissing(project = {}, canonicalField = "", contract = {}, a
   if (["tokenAddress", "poolAddress"].includes(canonicalField) && !canonicalValue(project, "chain")) return "IDENTITY_UNRESOLVED";
   if (Array.isArray(project.enrichmentDeferredFields) && project.enrichmentDeferredFields.includes(canonicalField)) return "ENRICHMENT_DEFERRED";
 
-  const provider = providerStatus(project, canonicalField);
-  if (provider !== "UNKNOWN") return provider;
-
-  if (INTERNAL_ENGINE_OUTPUT_FIELDS.includes(canonicalField)) {
-    const producer = INTERNAL_FIELD_PRODUCERS[canonicalField] || contract.id;
-    const record = engineRecord(project, producer);
+  const evidenceFamily = sourceFamilyForField(canonicalField);
+  const producer = producers.get(canonicalField) || INTERNAL_FIELD_PRODUCERS[canonicalField];
+  const derivedOutput =
+    evidenceFamily === "DERIVED" ||
+    (Boolean(producer) && evidenceFamily === "UNKNOWN");
+  if (derivedOutput || INTERNAL_ENGINE_OUTPUT_FIELDS.includes(canonicalField)) {
+    const producingEngine = producer || contract.id;
+    const record = engineRecord(project, producingEngine);
     if (!record) return "PIPELINE_STAGE_NOT_RUN";
     if (record.status === "FAILED") {
       return /timeout|timed out/i.test(record.failureReason || "") ? "PIPELINE_STAGE_TIMED_OUT" : "PIPELINE_STAGE_FAILED";
     }
     return "PIPELINE_OUTPUT_MISSING";
   }
+
+  const provider = providerStatus(project, canonicalField);
+  if (provider !== "UNKNOWN") return provider;
 
   if (contract.phase === "execution" || ["purchaseRouteConfirmed", "sellRouteAvailable", "executionStatus"].includes(canonicalField)) {
     return "EXECUTION_EVIDENCE_MISSING";
@@ -168,29 +191,38 @@ function rootCauseForMissing(project = {}, canonicalField = "", contract = {}, a
   return "RAW_SOURCE_MISSING";
 }
 
-function missingRecord(project = {}, field = "", contract = {}, now = new Date()) {
+function missingRecord(project = {}, field = "", contract = {}, now = new Date(), producers = new Map()) {
   const canonicalField = canonicalFieldForAlias(field) || field;
   const applicability = fieldApplicability(project, canonicalField, contract);
   const provenance = project.canonicalAliasProvenance?.[canonicalField] || null;
   const freshness = provenance ? evaluateEvidenceFreshness(provenance.sourceTimestamp || provenance.observedAt, canonicalField, now) : null;
   const rootCause = freshness?.status === "STALE_DATA"
     ? "STALE_DATA"
-    : rootCauseForMissing(project, canonicalField, contract, applicability);
-  const recoverable = !["NOT_APPLICABLE", "UNSUPPORTED_CHAIN"].includes(rootCause);
+    : rootCauseForMissing(project, canonicalField, contract, applicability, producers);
+  const evidenceFamily = sourceFamilyForField(canonicalField);
+  const producer = producers.get(canonicalField) || INTERNAL_FIELD_PRODUCERS[canonicalField] || null;
+  const derivedOutput =
+    evidenceFamily === "DERIVED" ||
+    (Boolean(producer) && evidenceFamily === "UNKNOWN");
+  const fieldProviderStatus = derivedOutput ? "UNKNOWN" : providerStatus(project, canonicalField);
+  const recoverable =
+    !derivedOutput &&
+    !["NOT_APPLICABLE", "UNSUPPORTED_CHAIN"].includes(rootCause);
 
   return {
     field,
     canonicalField,
     rootCause,
-    producingEngine: INTERNAL_FIELD_PRODUCERS[canonicalField] || contract.id || null,
-    expectedSource: null,
-    sourceAttempted: providerStatus(project, canonicalField) !== "UNKNOWN",
-    providerStatus: providerStatus(project, canonicalField),
+    producingEngine: producer || contract.id || null,
+    expectedSource: derivedOutput ? `internal:${producer || contract.id}` : null,
+    sourceAttempted: fieldProviderStatus !== "UNKNOWN",
+    providerStatus: fieldProviderStatus,
     applicability: applicability.status,
     applicabilityReason: applicability.reason,
     firstMissingAt: new Date().toISOString(),
     lastAttemptedAt: provenance?.sourceTimestamp || null,
     recoverable,
+    recomputeAfterRecovery: derivedOutput,
     estimatedRecoveryCost: recoverable ? 1 : 0,
     estimatedRecoveryValue: recoverable ? 0.5 : 0,
     blockingResearch: Boolean(contract.affectsFinalDecision && rootCause !== "NOT_APPLICABLE"),
@@ -201,6 +233,7 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
 export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   const now = options.now ? new Date(options.now) : new Date();
   const contracts = options.contracts || getEngineContracts();
+  const producers = outputProducerMap(contracts);
   const contractFields = contracts.flatMap((contract) =>
     (contract.inputContract?.requiredAny || []).flatMap((group) => (Array.isArray(group) ? group : [group]))
   );
@@ -219,11 +252,11 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
       const applicableFields = canonicalFields.filter((field) => fieldApplicability(aliased, field, contract).status !== "NOT_APPLICABLE");
       const groupValues = applicableFields.length ? values(aliased, applicableFields) : [];
       if (!applicableFields.length) {
-        notApplicable.push(...canonicalFields.map((field) => missingRecord(aliased, field, contract, now)));
+        notApplicable.push(...canonicalFields.map((field) => missingRecord(aliased, field, contract, now, producers)));
       } else if (groupValues.some(hasValue)) {
         satisfied.push({ engineId: contract.id, fields: applicableFields });
       } else {
-        missing.push(...applicableFields.map((field) => missingRecord(aliased, field, contract, now)));
+        missing.push(...applicableFields.map((field) => missingRecord(aliased, field, contract, now, producers)));
       }
     }
   }

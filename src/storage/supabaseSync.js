@@ -46,12 +46,16 @@ function resolveSupabaseKey(env = {}) {
     ["next_public_publishable", env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, false],
   ];
 
-  const found = candidates.find(([, value]) => text(value));
+  const configured = candidates.filter(([, value]) => text(value));
+  const found = configured[0];
 
   return {
     key: found ? text(found[1]) : "",
     keyType: found ? found[0] : "missing",
     serverWriteCapable: Boolean(found?.[2]),
+    fallbackServerKeys: configured
+      .filter(([, value, serverWriteCapable]) => serverWriteCapable && text(value) !== text(found?.[1]))
+      .map(([keyType, value]) => ({ keyType, key: text(value) })),
   };
 }
 
@@ -217,6 +221,7 @@ export function resolveSupabaseConfig(env = process.env) {
     key: keyConfig.key,
     keyType: keyConfig.keyType,
     serverWriteCapable: keyConfig.serverWriteCapable,
+    fallbackServerKeys: keyConfig.fallbackServerKeys,
     jwksUrl: text(env.SUPABASE_JWKS_URL),
     restUrl: url ? `${url}/rest/v1` : "",
     required: boolEnv(env.SUPABASE_SYNC_REQUIRED, false),

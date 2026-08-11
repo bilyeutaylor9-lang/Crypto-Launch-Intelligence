@@ -160,7 +160,7 @@ export function generateReports(projects = [], meta = {}) {
     weightOptimizerPath,
     sourceTruthPath,
     githubProPath,
-  } = writeAlphaDashboardV2Report(projects, meta);
+  } = writeAlphaDashboardV2Report(fullProjects, meta);
   const {
     filePath: autonomousResearchPath,
   } = writeAutonomousResearchReport(projects);
@@ -239,7 +239,7 @@ export function generateReports(projects = [], meta = {}) {
     debugExecutionProofPath,
     debugBlockReasonsPath,
     debugStageHealthPath,
-  } = writeProgressiveOpportunityReport(projects);
+  } = writeProgressiveOpportunityReport(fullProjects);
   const {
     bestOpportunityNowPath,
     topFiveOpportunitiesPath,
@@ -266,7 +266,7 @@ export function generateReports(projects = [], meta = {}) {
   } = writeSevenDayTenXResearchReport(projects);
   const {
     filePath: scannerVNextPath,
-  } = writeScannerVNextReport(projects);
+  } = writeScannerVNextReport(fullProjects);
   const {
     filePath: capitalMigrationCorePath,
   } = writeCapitalMigrationReport(projects);
@@ -401,7 +401,7 @@ export function generateReports(projects = [], meta = {}) {
     briefPath,
     alerts,
     brief,
-  } = writeWatchtowerReports(projects);
+  } = writeWatchtowerReports(fullProjects);
   const {
     filePath: watchtowerPerformancePath,
     report: watchtowerPerformance,

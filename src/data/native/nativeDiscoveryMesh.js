@@ -309,6 +309,7 @@ function groupEvents(events = []) {
 export function summarizeNativeDiscoveryMesh(input = {}) {
   const candidates = Array.isArray(input) ? input : input.candidates || [];
   const lifecycles = Array.isArray(input.lifecycles) ? input.lifecycles : candidates.map((candidate) => candidate.nativeLifecycle).filter(Boolean);
+  const eventCount = Array.isArray(input) ? lifecycles.length : num(input.eventCount ?? lifecycles.length);
   const byStage = lifecycles.reduce((acc, lifecycle) => {
     acc[lifecycle.currentStage || "DISCOVERED"] = (acc[lifecycle.currentStage || "DISCOVERED"] || 0) + 1;
     return acc;
@@ -320,7 +321,9 @@ export function summarizeNativeDiscoveryMesh(input = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
-    status: candidates.length ? "ACTIVE" : "WAITING_FOR_NATIVE_EVENTS",
+    status: candidates.length ? "ACTIVE" : eventCount ? "EVENTS_NO_CANDIDATES" : "INACTIVE",
+    collectionStatus: eventCount ? "EVENTS_COLLECTED" : "NO_EVENTS_COLLECTED",
+    eventCount,
     candidateCount: candidates.length,
     lifecycleCount: lifecycles.length,
     byStage,
@@ -349,8 +352,8 @@ export async function runNativeDiscoveryMesh(options = {}) {
 
   if (options.collectConnectors) {
     const [evm, solana] = await Promise.all([
-      getEvmFactoryEventCandidates({ ...options, persist: false, collect: true }),
-      getSolanaProgramEventCandidates({ ...options, persist: false }),
+      getEvmFactoryEventCandidates({ ...options, persist: options.persist !== false, collect: true }),
+      getSolanaProgramEventCandidates({ ...options, persist: options.persist !== false }),
     ]);
     connectorEvents.push(...evm.events, ...solana.events);
     connectorReports.push(evm.report, solana.report);
@@ -370,10 +373,6 @@ export async function runNativeDiscoveryMesh(options = {}) {
   if (options.persist !== false && providedEvents.length) {
     recordNativeEvents(providedEvents, { confirmed: Boolean(options.confirmed) });
   }
-  if (options.persist !== false && connectorEvents.length) {
-    recordNativeEvents(connectorEvents, { confirmed: Boolean(options.confirmed) });
-  }
-
   const lifecycles = [...groupEvents(events).values()]
     .map((group) => buildNativeLifecycle(group))
     .filter((lifecycle) => lifecycle.tokenAddress || lifecycle.poolAddress)
@@ -382,7 +381,7 @@ export async function runNativeDiscoveryMesh(options = {}) {
     .map((lifecycle) => nativeCandidateFromLifecycle(lifecycle))
     .filter((candidate) => num(candidate.nativeDiscoveryScore) >= num(options.minScore || process.env.NATIVE_DISCOVERY_MIN_SCORE || 0))
     .slice(0, num(options.limit || process.env.NATIVE_DISCOVERY_LIMIT || 500) || undefined);
-  const summary = summarizeNativeDiscoveryMesh({ candidates, lifecycles });
+  const summary = summarizeNativeDiscoveryMesh({ candidates, lifecycles, eventCount: events.length });
 
   return {
     candidates,

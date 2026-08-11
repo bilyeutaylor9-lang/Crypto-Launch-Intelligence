@@ -24,6 +24,15 @@ function jsonResponse(body) {
   };
 }
 
+function errorResponse(status, body) {
+  return {
+    ok: false,
+    status,
+    json: async () => body,
+    text: async () => typeof body === "string" ? body : JSON.stringify(body),
+  };
+}
+
 function createFetchStub(calls = []) {
   return async (url, init = {}) => {
     const parsed = new URL(String(url));
@@ -150,6 +159,75 @@ test("modern Supabase secret keys use apikey without a fake bearer JWT", async (
   assert.equal(memory.status, "OK");
   assert.equal(calls[0].headers.apikey, "sb_secret_modern-test-key");
   assert.equal(calls[0].headers.authorization, undefined);
+});
+
+test("Supabase memory retries transient JWT clock skew and keeps recovered rows", async () => {
+  const attempts = new Map();
+  const baseFetch = createFetchStub([]);
+  const memory = await collectSupabaseMemory({
+    env: ENV,
+    maxRetries: 1,
+    retryDelayMs: 0,
+    fetchImpl: async (url, init) => {
+      const path = new URL(String(url)).pathname;
+      attempts.set(path, (attempts.get(path) || 0) + 1);
+      if (path.endsWith("/scan_projects") && attempts.get(path) === 1) {
+        return errorResponse(401, { code: "PGRST303", message: "JWT issued at future" });
+      }
+      return baseFetch(url, init);
+    },
+  });
+
+  assert.equal(memory.status, "OK");
+  assert.equal(memory.counts.rememberedProjects, 1);
+  assert.equal(attempts.get("/rest/v1/scan_projects"), 2);
+});
+
+test("optional receipt-table failure leaves run and project memory usable", async () => {
+  const baseFetch = createFetchStub([]);
+  const memory = await collectSupabaseMemory({
+    env: ENV,
+    maxRetries: 0,
+    fetchImpl: async (url, init) => {
+      if (new URL(String(url)).pathname.endsWith("/alpha_truth_receipts")) {
+        return errorResponse(503, "temporary receipt table outage");
+      }
+      return baseFetch(url, init);
+    },
+  });
+  const records = scanMemoryRecordsFromSupabase(memory);
+
+  assert.equal(memory.status, "DEGRADED");
+  assert.equal(memory.tableHealth.runs.status, "OK");
+  assert.equal(memory.tableHealth.projects.status, "OK");
+  assert.equal(memory.tableHealth.alphaReceipts.status, "FAILED");
+  assert.equal(memory.counts.rememberedProjects, 1);
+  assert.equal(records.length, 1);
+});
+
+test("Supabase memory falls back from a rejected legacy secret to a separate server key", async () => {
+  const seenKeys = [];
+  const baseFetch = createFetchStub([]);
+  const memory = await collectSupabaseMemory({
+    env: {
+      ...ENV,
+      SUPABASE_SECRET_KEY: "legacy-rejected-secret",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_fallback-server-key",
+    },
+    maxRetries: 0,
+    fetchImpl: async (url, init) => {
+      seenKeys.push(init.headers.apikey);
+      if (init.headers.apikey === "legacy-rejected-secret") {
+        return errorResponse(401, "invalid legacy JWT");
+      }
+      return baseFetch(url, init);
+    },
+  });
+
+  assert.equal(memory.status, "OK");
+  assert.ok(seenKeys.includes("legacy-rejected-secret"));
+  assert.ok(seenKeys.includes("sb_secret_fallback-server-key"));
+  assert.equal(JSON.stringify(memory).includes("fallback-server-key"), false);
 });
 
 test("Supabase health check can verify memory reads and write path without exposing secrets", async () => {

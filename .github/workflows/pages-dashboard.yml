@@ -20,6 +20,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    outputs:
+      scanner: ${{ steps.scanner.outcome }}
+      engine_audit: ${{ steps.engine_audit.outcome }}
+      readiness: ${{ steps.readiness.outcome }}
+      semantic_health: ${{ steps.semantic_health.outcome }}
+      report_contracts: ${{ steps.report_contracts.outcome }}
+      dashboard_build: ${{ steps.dashboard_build.outcome }}
+      reports_upload: ${{ steps.reports_upload.outcome }}
+      dashboard_artifact: ${{ steps.dashboard_artifact.outcome }}
     env:
       NODE_OPTIONS: --max-old-space-size=8192
 
@@ -36,7 +45,34 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Restore Bounded Learning Memory
+        id: learning_cache_restore
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
       - name: Run Intelligence Scanner
+        id: scanner
+        continue-on-error: true
         run: npm run scan:free-max
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -84,6 +120,8 @@ jobs:
           ZERION_API_KEY: ${{ secrets.ZERION_API_KEY }}
           TOKENSNIFFER_API_KEY: ${{ secrets.TOKENSNIFFER_API_KEY }}
           NATIVE_DISCOVERY_COLLECT: ${{ vars.NATIVE_DISCOVERY_COLLECT || 'true' }}
+          NATIVE_EVENT_STORE_MAX_EVENTS: ${{ vars.NATIVE_EVENT_STORE_MAX_EVENTS || '25000' }}
+          DISCOVERY_NATIVE_DISCOVERY_MESH_TIMEOUT_MS: ${{ vars.DISCOVERY_NATIVE_DISCOVERY_MESH_TIMEOUT_MS || '120000' }}
           NATIVE_DISCOVERY_CHAINS: ${{ vars.NATIVE_DISCOVERY_CHAINS || 'base,solana,bsc,polygon,arbitrum,ethereum,optimism,avalanche' }}
           BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
           BASE_WS_URL: ${{ secrets.BASE_WS_URL }}
@@ -130,23 +168,62 @@ jobs:
           SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || secrets.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
           SUPABASE_SYNC_PROJECT_LIMIT: ${{ vars.SUPABASE_SYNC_PROJECT_LIMIT || secrets.SUPABASE_SYNC_PROJECT_LIMIT || '2500' }}
 
+      - name: Save Bounded Learning Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
       - name: Run Full Engine Health Audit
+        id: engine_audit
+        if: always()
+        continue-on-error: true
         run: npm run engine:audit:full
 
       - name: Refresh Master System Readiness
+        id: readiness
+        if: always()
+        continue-on-error: true
         run: npm run system:readiness:refresh
 
       - name: Validate Scanner Semantic Health
+        id: semantic_health
+        if: always()
+        continue-on-error: true
         run: npm run smoke:scanner
 
       - name: Validate Required Report Contracts
+        id: report_contracts
+        if: always()
+        continue-on-error: true
         run: npm run results:health
 
       - name: Build Public Dashboard
+        id: dashboard_build
+        if: always()
+        continue-on-error: true
         run: npm run publish:dashboard
 
       - name: Upload Scan Reports And Diagnostics
+        id: reports_upload
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: scan-reports-${{ github.run_id }}
@@ -158,11 +235,16 @@ jobs:
           if-no-files-found: ignore
 
       - name: Configure Pages
+        if: always()
+        continue-on-error: true
         uses: actions/configure-pages@v6
         with:
           enablement: true
 
       - name: Upload Dashboard
+        id: dashboard_artifact
+        if: always()
+        continue-on-error: true
         uses: actions/upload-pages-artifact@v5
         with:
           path: docs
@@ -173,8 +255,41 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    if: needs.build.outputs.dashboard_artifact == 'success'
 
     steps:
       - name: Deploy Dashboard
         id: deployment
         uses: actions/deploy-pages@v5
+
+  health:
+    name: Verify Scan And Deployment Health
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always()
+    steps:
+      - name: Enforce truthful final health
+        env:
+          SCANNER: ${{ needs.build.outputs.scanner }}
+          ENGINE_AUDIT: ${{ needs.build.outputs.engine_audit }}
+          READINESS: ${{ needs.build.outputs.readiness }}
+          SEMANTIC_HEALTH: ${{ needs.build.outputs.semantic_health }}
+          REPORT_CONTRACTS: ${{ needs.build.outputs.report_contracts }}
+          DASHBOARD_BUILD: ${{ needs.build.outputs.dashboard_build }}
+          REPORTS_UPLOAD: ${{ needs.build.outputs.reports_upload }}
+          DASHBOARD_ARTIFACT: ${{ needs.build.outputs.dashboard_artifact }}
+          DEPLOY: ${{ needs.deploy.result }}
+        run: |
+          failed=0
+          for check in SCANNER ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
+            value="${!check}"
+            if [ "$value" != "success" ]; then
+              echo "::error::$check finished with $value"
+              failed=1
+            fi
+          done
+          if [ "$DEPLOY" != "success" ]; then
+            echo "::error::DEPLOY finished with $DEPLOY"
+            failed=1
+          fi
+          exit "$failed"

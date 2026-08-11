@@ -7,9 +7,19 @@ let cachedEngineContracts = null;
 const contractFieldCache = new WeakMap();
 
 function engineContracts(options = {}) {
-  if (options.contracts) return options.contracts;
+  if (options.contracts) return filterContractsForAudit(options.contracts, options.auditPhase);
   if (!cachedEngineContracts) cachedEngineContracts = getEngineContracts();
-  return cachedEngineContracts;
+  return filterContractsForAudit(cachedEngineContracts, options.auditPhase);
+}
+
+function filterContractsForAudit(contracts = [], auditPhase = "FINAL") {
+  if (auditPhase !== "PRE_RECOVERY") return contracts;
+  const recovery = contracts.find((contract) => contract.id === "activeEvidenceRecovery");
+  const cutoff = Number(recovery?.priority || Number.POSITIVE_INFINITY);
+  return contracts.filter((contract) =>
+    Number(contract.priority || 0) < cutoff &&
+    !["dataStarvationRootCause", "valueOfInformation", "starvationRescue"].includes(contract.id)
+  );
 }
 
 function hasOwn(project = {}, field = "") {
@@ -246,6 +256,7 @@ export function analyzeEngineDataReadiness(project = {}, options = {}) {
     engineDataReadinessStatus: summary.status,
     engineDataReadiness: {
       ...summary,
+      auditPhase: options.auditPhase || "FINAL",
       nextSourcePlan,
       engines: readiness,
       policy:

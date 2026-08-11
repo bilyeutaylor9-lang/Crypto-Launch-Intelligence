@@ -23,9 +23,14 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "Etherscan-compatible explorers", authority: 78, cost: 1, latencyMs: 1800, fields: ["contractVerified", "ownerRenounced", "buyTaxPct", "sellTaxPct"] },
   ],
   WALLETS: [
-    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "uniqueBuyers24h"] },
-    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "wallets"] },
-    { source: "wallet-history database", authority: 76, cost: 1, latencyMs: 1200, fields: ["smartWalletScore", "smartWalletArrivalScore"] },
+    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "uniqueBuyers24h", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletNetFlowUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
+    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "wallets", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
+    { source: "wallet-history database", authority: 76, cost: 1, latencyMs: 1200, fields: ["smartWalletScore", "smartWalletArrivalScore", "smartWallets", "trackedWallets", "smartWalletNetFlowUsd", "accumulationDays"] },
+  ],
+  DEPLOYER: [
+    { source: "native RPC", authority: 88, cost: 2, latencyMs: 2500, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "nativeLifecycle", "priorDeployments"] },
+    { source: "block explorers", authority: 80, cost: 2, latencyMs: 2200, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "deployerHistory", "priorDeployments", "walletAgeDays"] },
+    { source: "security providers", authority: 80, cost: 1, latencyMs: 2000, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "priorRugs", "reusedBytecodeRisk", "fundingSourceRisk"] },
   ],
   DEVELOPMENT: [
     { source: "GitHub discovery", authority: 62, cost: 1, latencyMs: 1600, fields: ["githubRepo", "developerActivityScore", "commits30d"] },
@@ -49,6 +54,8 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "CEX public order books", authority: 74, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "quoteTimestamp"] },
     { source: "bridge quote adapters", authority: 68, cost: 2, latencyMs: 2500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "bridgeRequired", "bridgeRisk", "quoteTimestamp"] },
   ],
+  DERIVED: [],
+  UNKNOWN: [],
 });
 
 export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
@@ -70,6 +77,28 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   wallets: "WALLETS",
   smartWalletScore: "WALLETS",
   smartWalletArrivalScore: "WALLETS",
+  smartWalletBuys24h: "WALLETS",
+  smartWalletSells24h: "WALLETS",
+  smartWalletBuyVolumeUsd: "WALLETS",
+  smartWalletSellVolumeUsd: "WALLETS",
+  smartWallets: "WALLETS",
+  trackedWallets: "WALLETS",
+  smartWalletNetFlowUsd: "WALLETS",
+  smartWalletBuyCount: "WALLETS",
+  smartWalletSellCount: "WALLETS",
+  accumulationDays: "WALLETS",
+  deployer: "DEPLOYER",
+  creator: "DEPLOYER",
+  deployerAddress: "DEPLOYER",
+  creatorAddress: "DEPLOYER",
+  deployerHistory: "DEPLOYER",
+  nativeLifecycle: "DEPLOYER",
+  priorDeployments: "DEPLOYER",
+  priorRugs: "DEPLOYER",
+  successfulLaunches: "DEPLOYER",
+  walletAgeDays: "DEPLOYER",
+  reusedBytecodeRisk: "DEPLOYER",
+  fundingSourceRisk: "DEPLOYER",
   githubRepo: "DEVELOPMENT",
   developerActivityScore: "DEVELOPMENT",
   commits30d: "DEVELOPMENT",
@@ -98,10 +127,37 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   spreadPct: "EXECUTION",
   bridgeRequired: "EXECUTION",
   bridgeRisk: "EXECUTION",
+  marketOpportunityRank: "DERIVED",
+  opportunityEvidenceRecord: "DERIVED",
+  recommendedHorizon: "DERIVED",
+  progressiveOpportunityScore: "DERIVED",
+  trustScore: "DERIVED",
+  executionScore: "DERIVED",
+  attentionGapScore: "DERIVED",
+  opportunityTimingScore: "DERIVED",
+  capitalMigrationScore: "DERIVED",
+  preBreakoutRadarScore: "DERIVED",
+  preConsensusBreakoutScore: "DERIVED",
+  preConsensusOpportunityScore: "DERIVED",
+  sniperIntegrityScore: "DERIVED",
+  confidenceAdjustedSniperScore: "DERIVED",
+  earlyAsymmetryResearchPriorityScore: "DERIVED",
+  researchReadinessScore: "DERIVED",
+  utilityQualityScore: "DERIVED",
+  realUtilityScore: "DERIVED",
+  utilityClassification: "DERIVED",
+  realUtilityQualified: "DERIVED",
+  targetedEnrichmentPlan: "DERIVED",
+  starvationRecoveryPlan: "DERIVED",
+  valueOfInformationItems: "DERIVED",
 });
 
 export function sourceFamilyForField(field = "") {
-  return FIELD_TO_EVIDENCE_FAMILY[field] || "MARKET";
+  if (FIELD_TO_EVIDENCE_FAMILY[field]) return FIELD_TO_EVIDENCE_FAMILY[field];
+  if (/(?:Score|Verdict|State|Lane|Plan|Classification|Qualified|Readiness|Rank)$/i.test(String(field || ""))) {
+    return "DERIVED";
+  }
+  return "UNKNOWN";
 }
 
 export function sourcesForField(field = "") {

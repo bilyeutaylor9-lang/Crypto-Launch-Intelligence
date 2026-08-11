@@ -13,6 +13,7 @@ import {
   normalizeChainId,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -110,8 +111,7 @@ function latestHistory(project = {}, watchStore = {}) {
 
 export function opportunityAlertEligible(project = {}) {
   return Boolean(
-    project.researchOnly !== true &&
-    project.tradableCandidate !== false &&
+    !isEntityResearchOnlyCandidate(project) &&
     project.memeOnlySpeculative !== true &&
     project.memeBrandingDetected !== true &&
     !isLikelyMemeIdentity(project) &&

@@ -257,8 +257,22 @@ export async function getMarkets(options = {}) {
   });
 
   if (category) params.set("category", category);
+  if (Array.isArray(options.ids) && options.ids.length) {
+    params.set("ids", options.ids.filter(Boolean).join(","));
+  }
 
   return fetchJson(`${coinGeckoBaseUrl()}/coins/markets?${params.toString()}`);
+}
+
+export async function getCoinGeckoMarketsByIds(ids = [], options = {}) {
+  const exactIds = [...new Set((Array.isArray(ids) ? ids : [ids]).filter(Boolean).map(String))];
+  if (!exactIds.length) return [];
+  return getMarkets({
+    ...options,
+    ids: exactIds,
+    perPage: Math.min(250, exactIds.length),
+    page: 1,
+  });
 }
 
 export async function getCoinList(options = {}) {

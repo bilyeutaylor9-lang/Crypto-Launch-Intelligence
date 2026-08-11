@@ -75,3 +75,17 @@ test("only the live dashboard workflow schedules or runs full scans on main push
   assert.match(manual, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
   assert.match(live, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
 });
+
+test("live dashboard restores bounded learning and defers final health verdict until deployment", () => {
+  const workflow = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
+
+  assert.match(workflow, /actions\/cache\/restore@v5/);
+  assert.match(workflow, /actions\/cache\/save@v5/);
+  assert.match(workflow, /data\/scan-history\.json\*/);
+  assert.match(workflow, /data\/native-discovery\/checkpoints\.json/);
+  assert.match(workflow, /id:\s*semantic_health/);
+  assert.match(workflow, /id:\s*report_contracts/);
+  assert.match(workflow, /health:\s*\n\s*name: Verify Scan And Deployment Health/);
+  assert.match(workflow, /needs: \[build, deploy\]/);
+  assert.match(workflow, /DEPLOY:\s*\$\{\{ needs\.deploy\.result \}\}/);
+});

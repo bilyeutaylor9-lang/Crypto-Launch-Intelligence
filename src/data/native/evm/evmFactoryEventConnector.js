@@ -1,6 +1,11 @@
 import { NativePoolAdapter, NATIVE_EVENT_TYPES, normalizeNativeEvent } from "../NativePoolAdapter.js";
 import { getNativeProtocolConfigs } from "../nativePoolConfig.js";
-import { recordNativeEvents, recordNativeDeadLetter, updateNativeCheckpoint } from "../nativeEventStore.js";
+import {
+  getNativeCheckpoints,
+  recordNativeEvents,
+  recordNativeDeadLetter,
+  updateNativeCheckpoint,
+} from "../nativeEventStore.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -34,7 +39,9 @@ function hexQuantity(value = 0) {
 }
 
 function numberFromQuantity(value = "0x0") {
-  const parsed = Number.parseInt(String(value || "0x0"), 16);
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const raw = String(value || "0x0").trim();
+  const parsed = /^0x/i.test(raw) ? Number.parseInt(raw, 16) : Number(raw);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
@@ -91,6 +98,17 @@ export async function fetchEvmFactoryLogs(config = {}, options = {}) {
         Number(options.lookbackBlocks || process.env.NATIVE_EVM_LOOKBACK_BLOCKS || 120)
       );
       const requestedFrom = options.fromBlock == null ? null : numberFromQuantity(options.fromBlock);
+      if (requestedFrom !== null && requestedFrom > latestBlock) {
+        attempts.push({ rpcUrl: candidateRpcUrl, status: "OK", reason: "CHECKPOINT_AT_LATEST_BLOCK" });
+        return {
+          status: "OK",
+          logs: [],
+          fromBlock: requestedFrom,
+          toBlock: latestBlock,
+          rpcUrl: candidateRpcUrl,
+          rpcAttempts: attempts,
+        };
+      }
       const fromBlock =
         requestedFrom == null ? Math.max(0, latestBlock - lookbackBlocks + 1) : Math.min(requestedFrom, latestBlock);
       const filter = {
@@ -247,41 +265,77 @@ export function createEvmFactoryAdapters(options = {}) {
     .map((config) => new EvmFactoryEventAdapter(config));
 }
 
+async function mapWithConcurrency(items = [], concurrency = 6, worker = async (item) => item) {
+  const output = new Array(items.length);
+  let cursor = 0;
+  const workers = Math.max(1, Math.min(items.length || 1, Math.floor(Number(concurrency) || 1)));
+  await Promise.all(Array.from({ length: workers }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      output[index] = await worker(items[index], index);
+    }
+  }));
+  return output;
+}
+
 export async function getEvmFactoryEventCandidates(options = {}) {
   const adapters = createEvmFactoryAdapters(options);
   const logsByProtocol = options.logsByProtocol || {};
-  const allEvents = [];
-  const reports = [];
-
-  for (const adapter of adapters) {
-    try {
-      const logs = Array.isArray(logsByProtocol[adapter.config.id]) ? logsByProtocol[adapter.config.id] : [];
-      const result = await adapter.backfill({ ...options, logs, collect: options.collect !== false });
-      allEvents.push(...result.events);
-      reports.push({
-        source: adapter.config.id,
-        status: result.status,
-        configured: Boolean(adapter.config.configured),
-        events: result.events.length,
-        rpcUrl: result.rpcUrl,
-        rpcAttempts: result.rpcAttempts,
-        reason: result.reason,
-      });
-    } catch (error) {
-      recordNativeDeadLetter({
-        source: adapter.config.id,
-        error: error.message,
-        stage: "evm-factory-backfill",
-      });
-      reports.push({
-        source: adapter.config.id,
-        status: "FAILED",
-        configured: Boolean(adapter.config.configured),
-        events: 0,
-        error: error.message,
-      });
+  const checkpoints = options.checkpoints || getNativeCheckpoints();
+  const outcomes = await mapWithConcurrency(
+    adapters,
+    options.concurrency || process.env.NATIVE_DISCOVERY_PROTOCOL_CONCURRENCY || 6,
+    async (adapter) => {
+      try {
+        const hasProvidedLogs = Array.isArray(logsByProtocol[adapter.config.id]);
+        const checkpointBlock = Number(checkpoints[adapter.config.id]?.blockNumber);
+        const backfillOptions = {
+          ...options,
+          collect: options.collect !== false,
+          ...(hasProvidedLogs ? { logs: logsByProtocol[adapter.config.id] } : {}),
+          ...(!hasProvidedLogs && options.fromBlock == null && Number.isFinite(checkpointBlock)
+            ? { fromBlock: checkpointBlock + 1 }
+            : {}),
+        };
+        delete backfillOptions.logsByProtocol;
+        const result = await adapter.backfill(backfillOptions);
+        return {
+          events: result.events,
+          report: {
+            source: adapter.config.id,
+            status: result.status,
+            configured: Boolean(adapter.config.configured),
+            events: result.events.length,
+            fromBlock: result.fromBlock ?? null,
+            toBlock: result.toBlock ?? null,
+            checkpointBlock: Number.isFinite(checkpointBlock) ? checkpointBlock : null,
+            rpcUrl: result.rpcUrl,
+            rpcAttempts: result.rpcAttempts,
+            reason: result.reason,
+          },
+        };
+      } catch (error) {
+        recordNativeDeadLetter({
+          source: adapter.config.id,
+          error: error.message,
+          stage: "evm-factory-backfill",
+        });
+        return {
+          events: [],
+          report: {
+            source: adapter.config.id,
+            status: "FAILED",
+            configured: Boolean(adapter.config.configured),
+            events: 0,
+            error: error.message,
+          },
+        };
+      }
     }
-  }
+  );
+  const allEvents = outcomes.flatMap((outcome) => outcome.events || []);
+  const reports = outcomes.map((outcome) => outcome.report);
 
   return {
     events: allEvents,

@@ -24,6 +24,9 @@ function meta(projects = [], extra = {}) {
 }
 
 export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = {}) {
+  const activelyRecovered = projects.filter((project) =>
+    ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)
+  );
   const watchlist = projects
     .filter((project) => project.starvationRescueEligible || project.dataStarvationStatus === "RECOVERABLE_GAPS")
     .sort((a, b) => (b.starvationRescueScore || b.earlyAsymmetryResearchPriorityScore || 0) - (a.starvationRescueScore || a.earlyAsymmetryResearchPriorityScore || 0))
@@ -39,12 +42,32 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
       targetSources: project.targetSources || project.targetedEnrichmentPlan?.nextSources || [],
       missingEvidence: (project.dataStarvationMissingEvidence || []).slice(0, 8),
       executionReady: project.executionReady === true,
+      activeRecoveryStatus: project.activeEvidenceRecoveryStatus || "NOT_ATTEMPTED",
+      recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
       researchOnly: true,
     }));
+  const recoveryResults = activelyRecovered.map((project) => ({
+    symbol: project.symbol || "UNKNOWN",
+    name: project.name || project.projectName || "Unknown",
+    chain: project.chain || project.canonicalAliases?.chain || null,
+    tokenAddress: project.tokenAddress || project.contractAddress || null,
+    poolAddress: project.poolAddress || project.pairAddress || null,
+    status: project.activeEvidenceRecoveryStatus,
+    recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
+    unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
+    providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
+  }));
   const report = {
     ...meta(projects, extra),
     status: watchlist.length ? "WATCHLIST_READY" : "NO_RECOVERABLE_OPPORTUNITIES",
-    recoveredThisScan: projects.filter((project) => project.starvationRecoveryResult === "RECOVERED").length,
+    recoveredThisScan: new Set([
+      ...activelyRecovered.map((project) => project.progressivePipelineIdentityKey || project.canonicalId || project.symbol),
+      ...projects
+        .filter((project) => project.starvationRecoveryResult === "RECOVERED")
+        .map((project) => project.progressivePipelineIdentityKey || project.canonicalId || project.symbol),
+    ].filter(Boolean)).size,
+    fullyRecoveredThisScan: projects.filter((project) => project.activeEvidenceRecoveryStatus === "RECOVERED").length,
+    partiallyRecoveredThisScan: projects.filter((project) => project.activeEvidenceRecoveryStatus === "PARTIAL_RECOVERY").length,
     promotedToAdvancedResearch: projects.filter((project) => project.promotedToAdvancedResearch === true).length,
     promotedToDeepResearch: projects.filter((project) => project.promotedToDeepResearch === true).length,
     stillUnresolved: projects.filter((project) => (project.dataStarvationMissingEvidence || []).some((item) => item.recoverable)).length,
@@ -54,8 +77,10 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
   const recoveryPath = writeJson("starvation-recovery-results.json", {
     ...meta(projects, extra),
     recoveredThisScan: report.recoveredThisScan,
+    fullyRecoveredThisScan: report.fullyRecoveredThisScan,
+    partiallyRecoveredThisScan: report.partiallyRecoveredThisScan,
     stillUnresolved: report.stillUnresolved,
-    recoveryResults: watchlist,
+    recoveryResults,
   });
   return {
     filePath,

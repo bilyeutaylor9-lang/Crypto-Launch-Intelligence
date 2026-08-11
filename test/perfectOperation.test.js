@@ -192,6 +192,74 @@ test("research-only entities stay outside tradable route recovery and capital la
   assert.equal(recovery.recoveryCandidateCount, 0);
 });
 
+test("legacy research flags cannot demote a contract-resolved live token to entity research", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    researchOnly: true,
+    tradableCandidate: false,
+    projectLifecycleState: "LIVE",
+    candidateProofState: {
+      identity: {
+        status: "VERIFIED",
+        chain: "base",
+        tokenAddress: TOKEN,
+        poolAddress: POOL,
+      },
+    },
+  }));
+
+  assert.equal(result.dailyCapitalMoveLane, "CAPITAL_MOVE_RESEARCH");
+  assert.notEqual(result.dailyCapitalMoveLane, "ENTITY_RESEARCH_ONLY");
+});
+
+test("route-pending live tokens remain actionable in the daily recovery queue", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    researchOnly: true,
+    tradableCandidate: false,
+    projectLifecycleState: "LIVE",
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+  }));
+  const recovery = summarizeDailyRecoveryQueue([result]);
+
+  assert.equal(result.dailyCapitalMoveLane, "QUARANTINED_IDENTITY_OR_ROUTE");
+  assert.equal(recovery.status, "RECOVERY_ACTIONS_READY");
+  assert.equal(recovery.recoveryCandidateCount, 1);
+  assert.equal(recovery.topRecoveryCandidates[0].symbol, "USC");
+});
+
+test("daily recovery actions discard discovery gaps resolved later in the pipeline", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+    uniqueBuyers24h: 27,
+    missingDataCompletion: {
+      missing: ["marketCap", "freshBuyQuote", "buyerBreadth", "walletFlow"],
+    },
+    missingInfoNeeded: ["marketCap", "freshBuyQuote", "buyerBreadth", "walletFlow"],
+  }));
+  const recovery = summarizeDailyRecoveryQueue([result]);
+  const candidate = recovery.topRecoveryCandidates[0];
+
+  assert.equal(recovery.status, "RECOVERY_ACTIONS_READY");
+  assert.equal(candidate.missingProof.includes("marketCap"), false);
+  assert.equal(candidate.missingProof.includes("freshBuyQuote"), false);
+  assert.equal(candidate.missingProof.includes("buyerBreadth"), false);
+  assert.ok(candidate.missingProof.includes("walletFlow"));
+});
+
+test("buyer acceleration gaps route to buyer evidence instead of trade quotes", () => {
+  const result = analyzeDailyCapitalMove(utilitySmallCap({
+    routeTruthStatus: "BUY_QUOTE_VERIFIED",
+    sellQuoteVerified: false,
+    liveRankingMissingEvidence: ["independentBuyerAcceleration"],
+  }));
+  const recovery = summarizeDailyRecoveryQueue([result]);
+  const candidate = recovery.topRecoveryCandidates[0];
+
+  assert.ok(candidate.nextResolvers.includes("buyerBreadthResolver"));
+  assert.equal(candidate.targetSources.includes("CoinGecko"), true);
+});
+
 test("daily capital engine excludes meme-like identities without utility proof", () => {
   for (const project of [
     { symbol: "CAPOO", name: "Capoo Bugcat" },

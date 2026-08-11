@@ -402,6 +402,8 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   const governor = source.indexOf('runEngine("Alpha Evolution Governor"');
   const finalIntegrity = source.indexOf('runEngine("Final Selection Integrity"');
   const preBreakout = source.indexOf('runEngine("Pre-Breakout Radar"');
+  const activeRecovery = source.indexOf('runEngine("Active Evidence Recovery"');
+  const postEvidenceScoring = source.indexOf('runEngine("Post-Evidence Final Scoring"');
   const progressiveRanking = source.indexOf('runEngine("Progressive Opportunity Ranking"');
   const smallCapRuns = source.match(/runEngine\("Small Cap Hunter"/g) || [];
   const executionTwinRuns = source.match(/runEngine\("Proof of Alpha Execution Twin"/g) || [];
@@ -420,8 +422,12 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   assert.equal(smallCapRuns.length, 1);
   assert.equal(executionTwinRuns.length, 1);
   assert.ok(finalIntegrity > governor);
-  assert.ok(preBreakout > finalIntegrity);
-  assert.ok(progressiveRanking > preBreakout);
+  assert.ok(preBreakout > governor);
+  assert.ok(activeRecovery > preBreakout);
+  assert.ok(postEvidenceScoring > activeRecovery);
+  assert.ok(finalIntegrity > postEvidenceScoring);
+  assert.ok(progressiveRanking > finalIntegrity);
+  assert.match(source, /"Final Selection Integrity": "deep"/);
 });
 
 test("organic report uses explicit zeroes and opens missing-input research tasks", () => {

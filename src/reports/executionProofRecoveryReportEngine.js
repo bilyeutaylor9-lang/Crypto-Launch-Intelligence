@@ -13,11 +13,36 @@ function array(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function nextProofToPromote(project = {}, recovery = {}, proofState = {}) {
+  const execution = project.executionProof || {};
+  if (execution.exactIdentityVerified !== true) {
+    return execution.routeKind === "CEX" ? "verified exchange venue and market pair" : "exact chain, token, and applicable pool identity";
+  }
+  if (execution.buyQuoteVerified !== true && recovery.buyQuoteVerified !== true) return "fresh buy quote";
+  if (execution.sellQuoteVerified !== true && recovery.sellQuoteVerified !== true) return "fresh sell quote";
+  if (execution.slippageIsHeuristic !== false) return "observed live slippage";
+  if (execution.safetyVerified !== true) return "verified route safety";
+  if (execution.transferTaxEvidenceRequired === true && execution.transferTaxEvidenceVerified !== true) return "verified transfer-tax evidence";
+  if (execution.authorityEvidenceRequired === true && execution.authorityEvidenceVerified !== true) return "mint and freeze authority proof";
+  if (execution.authorityEvidenceRequired === true && execution.authoritySafetyClean !== true) return "clean mint and freeze authority state";
+  if (execution.userAccessEvidenceRequired === true && execution.userAccessVerified !== true) return "region/accessibility confirmation";
+  if (!execution.orderBookDepthUsd && !execution.executableDepthUsd && !execution.verifiedTradeSizeUsd && !execution.liquidityUsd) {
+    return "verified executable depth";
+  }
+  if (proofState.userAccess?.status && proofState.userAccess.status !== "CONFIRMED_AVAILABLE" && execution.routeKind === "CEX") {
+    return "region/accessibility confirmation";
+  }
+  return array(execution.failureReasons)[0] || null;
+}
+
 function projectIdentity(project = {}, rank = null) {
   const recovery = project.executionProofRecovery || {};
   const route = project.executionProofRecoveryRoute || project.bestGlobalRoute || project.canonicalExecutionRoute || {};
   const proofState = project.candidateProofState || {};
   const executionReadinessState = project.executionReadinessState || "RESEARCH_ONLY";
+  const executionProofState = project.executionProofState || project.executionProof?.executionProofState || "NO_VERIFIED_ROUTE";
+  const routeExecutionReady = executionProofState === "LIVE_EXECUTION_READY";
+  const finalProjectExecutionReady = routeExecutionReady && project.finalSelectionQualified === true;
   return {
     rank,
     symbol: project.symbol || "UNKNOWN",
@@ -42,14 +67,7 @@ function projectIdentity(project = {}, rank = null) {
     failures: array(recovery.executionRecoveryFailures || route.executionRecoveryFailures)
       .filter((failure) => !["ROUTE_RECOVERED", "SUCCESS_WITH_DATA"].includes(String(failure)))
       .slice(0, 8),
-    nextSingleProofToPromote:
-      recovery.sellQuoteVerified !== true
-        ? "fresh sell quote"
-        : recovery.buyQuoteVerified !== true
-          ? "fresh buy quote"
-          : proofState.userAccess?.status !== "CONFIRMED_AVAILABLE"
-            ? "region/accessibility confirmation"
-            : null,
+    nextSingleProofToPromote: nextProofToPromote(project, recovery, proofState),
     optionalSourceGaps: array(recovery.optionalSourceGaps).slice(0, 5),
     globalRouteStatus: proofState.globalRoute?.status || null,
     userAccessStatus: proofState.userAccess?.status || "UNKNOWN",
@@ -57,7 +75,11 @@ function projectIdentity(project = {}, rank = null) {
     newlyPromotedToExecutionReview:
       recovery.newlyPromotedToExecutionReview === true &&
       ["EXECUTION_REVIEW", "READY"].includes(executionReadinessState),
-    executionReady: executionReadinessState === "READY",
+    routeExecutionReadiness: routeExecutionReady ? "ROUTE_EXECUTION_READY" : "ROUTE_NOT_READY",
+    finalProjectExecutionReadiness: finalProjectExecutionReady
+      ? "FINAL_PROJECT_EXECUTION_READY"
+      : "FINAL_PROJECT_NOT_READY",
+    executionReady: finalProjectExecutionReady,
   };
 }
 
@@ -97,9 +119,10 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
     project.executionProofRecovery?.newlyPromotedToExecutionReview === true &&
       ["EXECUTION_REVIEW", "READY"].includes(project.executionReadinessState)
   );
-  const executionReady = recoveredProjects.filter(
-    (project) => project.executionReadinessState === "READY"
+  const routeExecutionReady = recoveredProjects.filter(
+    (project) => (project.executionProofState || project.executionProof?.executionProofState) === "LIVE_EXECUTION_READY"
   );
+  const executionReady = routeExecutionReady.filter((project) => project.finalSelectionQualified === true);
 
   const adapterHealth = attemptedProjects
     .flatMap((project) => array(project.executionProofRecovery?.adapterResults))
@@ -138,6 +161,7 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
     providerFailures: providerFailures.length,
     optionalSourceGaps,
     newlyPromotedToExecutionReview: newlyPromotedToExecutionReview.length,
+    newlyRouteExecutionReady: routeExecutionReady.length,
     newlyExecutionReady: executionReady.length,
     adapterHealth: Object.values(adapterHealth),
     topRecoveredRoutes: recoveredProjects.map((project, index) => projectIdentity(project, index + 1)).slice(0, 25),

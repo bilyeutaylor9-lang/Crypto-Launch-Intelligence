@@ -126,6 +126,8 @@ function quoteAgeSeconds(project = {}) {
   const explicit = first([
     project.quoteAgeSeconds,
     project.executionQuoteAgeSeconds,
+    project.canonicalExecutionRoute?.quoteAgeSeconds,
+    project.executionProofRecoveryRoute?.quoteAgeSeconds,
     project.proofOfAlphaExecutionTwin?.quote?.ageSeconds,
     project.proofOfAlphaExecutionTwin?.quoteAgeSeconds,
   ]);
@@ -332,9 +334,7 @@ function statusFor({
   liquidity,
   quoteAge,
   outage,
-  chainVerified,
-  contractVerified,
-  poolVerified,
+  routeIdentityVerified,
   quoteVerified,
   safetyVerified,
   liveReady,
@@ -348,14 +348,14 @@ function statusFor({
     canonicalStatus === "VERIFIED" &&
     buyRouteAvailable &&
     sellRouteAvailable &&
-    (project.canonicalExecutionRoute?.routeType === "CEX" || (chainVerified && contractVerified && poolVerified)) &&
+    routeIdentityVerified &&
     quoteVerified &&
     safetyVerified
-  ) return "VERIFIED";
+  ) return "PARTIALLY_VERIFIED";
   if ((buyRouteAvailable || sellRouteAvailable) && safetyVerified) return "PARTIALLY_VERIFIED";
-  if (!chainVerified || !contractVerified || !poolVerified || !quoteVerified || !safetyVerified) return outage ? "PROVIDER_UNAVAILABLE" : "UNKNOWN";
+  if (!routeIdentityVerified || !quoteVerified || !safetyVerified) return outage ? "PROVIDER_UNAVAILABLE" : "UNKNOWN";
   if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000 && quoteAge !== null && quoteAge > 21_600) return "STALE_QUOTE";
-  if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000) return "VERIFIED";
+  if (buyRouteAvailable && sellRouteAvailable && liquidity >= 5_000) return "PARTIALLY_VERIFIED";
   if ((buyRouteAvailable || sellRouteAvailable) && liquidity > 0) return "PARTIALLY_VERIFIED";
   if (liquidity > 0 && liquidity < 1_000) return "INSUFFICIENT_LIQUIDITY";
   if (outage) return "PROVIDER_UNAVAILABLE";
@@ -383,22 +383,86 @@ function verifiedTaxEvidence(project = {}) {
   );
 }
 
-function sellSimulationPassed(project = {}) {
-  const simulation = lower(
-    [
-      project.sellSimulationStatus,
-      project.executionSellSimulationStatus,
-      project.executionProof?.sellSimulationStatus,
-      project.proofOfAlphaExecutionTwin?.simulation?.sellStatus,
-      project.proofOfAlphaExecutionTwin?.sellSimulationStatus,
-    ].join(" ")
-  );
-  return Boolean(
-    project.sellSimulationPassed === true ||
-      project.executionProof?.sellSimulationPassed === true ||
-      project.proofOfAlphaExecutionTwin?.simulation?.sellPassed === true ||
-      /passed|success|successful|verified/.test(simulation)
-  );
+function routeKindFor(project = {}, routes = []) {
+  const routeType = String(
+    project.canonicalExecutionRoute?.routeType ||
+      project.executionProofRecoveryRoute?.routeType ||
+      routes.find((route) => route.routeType)?.routeType ||
+      ""
+  ).toUpperCase();
+  if (routeType === "CEX") return "CEX";
+  const chain = lower(chainOf(project));
+  if (chain === "solana" || chain === "sol") return "SOLANA";
+  return "EVM";
+}
+
+function routeTypeFor(project = {}, routes = []) {
+  return String(
+    project.canonicalExecutionRoute?.routeType ||
+      project.executionProofRecoveryRoute?.routeType ||
+      routes.find((route) => route.routeType)?.routeType ||
+      (routeKindFor(project, routes) === "CEX" ? "CEX" : "DEX")
+  ).toUpperCase();
+}
+
+function cexIdentityVerified(project = {}, routes = []) {
+  const venue = first([
+    project.canonicalExecutionRoute?.venue,
+    project.executionProofRecoveryRoute?.venue,
+    project.exchange,
+    routes.find((route) => route.venue)?.venue,
+  ]);
+  const marketPair = first([
+    project.canonicalExecutionRoute?.marketPair,
+    project.executionProofRecoveryRoute?.marketPair,
+    project.marketPair,
+    project.exchangeAssetId,
+    routes.find((route) => route.marketPair)?.marketPair,
+  ]);
+  return Boolean(venue && marketPair);
+}
+
+function solanaAuthorityProof(project = {}) {
+  const evidence = Array.isArray(project.securityEvidence)
+    ? project.securityEvidence
+    : Array.isArray(project.freeSecurityEvidence?.evidence)
+      ? project.freeSecurityEvidence.evidence
+      : [];
+  const known = evidence.filter((item) => item && item.status !== "UNKNOWN");
+  const tested = known.filter((item) => {
+    const checks = (item.testedChecks || []).join(" ").toLowerCase();
+    return checks.includes("mint authority") && checks.includes("freeze authority");
+  });
+  const provenance = project.fieldProvenance || {};
+  const explicitMint =
+    typeof project.mintAuthorityEnabled === "boolean" &&
+    Boolean(provenance.mintAuthorityEnabled?.source || provenance.mintAuthorityEnabled?.verificationStatus);
+  const explicitFreeze =
+    typeof project.freezeAuthorityEnabled === "boolean" &&
+    Boolean(provenance.freezeAuthorityEnabled?.source || provenance.freezeAuthorityEnabled?.verificationStatus);
+  const verified = tested.length > 0 || (explicitMint && explicitFreeze);
+  const clean = verified &&
+    project.mintAuthorityEnabled !== true &&
+    project.freezeAuthorityEnabled !== true &&
+    !tested.some((item) => item.mintRisk === true || item.freezeRisk === true);
+  return {
+    verified,
+    clean,
+    sources: tested.map((item) => item.provider).filter(Boolean),
+  };
+}
+
+function regionAccessVerified(project = {}) {
+  const status = String(first([
+    project.regionStatus,
+    project.regionAvailability,
+    project.canonicalExecutionRoute?.regionStatus,
+    project.canonicalExecutionRoute?.regionAvailability,
+    project.executionProofRecoveryRoute?.regionStatus,
+    project.executionProofRecoveryRoute?.regionAvailability,
+    project.candidateProofState?.userAccess?.status,
+  ]) || "").toUpperCase();
+  return status === "CONFIRMED_AVAILABLE";
 }
 
 function orderBookDepthVerified(project = {}) {
@@ -428,33 +492,41 @@ function executionProofStateFor({
   executionStatus,
   buyRouteAvailable,
   sellRouteAvailable,
-  chainVerified,
-  contractVerified,
-  poolVerified,
+  routeIdentityVerified,
   quoteVerified,
   quoteAge,
   liquidity,
   estimatedSlippage100,
   observedSlippageVerified,
+  routeKind,
+  taxVerified,
+  authorityProof,
+  accessVerified,
+  safetyVerified,
+  liveReady,
 }) {
   if (["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH"].includes(executionStatus)) return executionStatus;
   if (executionStatus === "PROVIDER_UNAVAILABLE") return "PROVIDER_UNAVAILABLE";
 
   const marketObserved = routes.length > 0 || priceUsd(project) > 0 || liquidity > 0;
   if (!marketObserved) return "NO_VERIFIED_ROUTE";
-  if (!chainVerified || !contractVerified || !poolVerified) return "MARKET_OBSERVED";
+  if (!routeIdentityVerified) return "MARKET_OBSERVED";
   if (!buyRouteAvailable) return "PAIR_IDENTITY_VERIFIED";
   if (!sellRouteAvailable) return "BUY_QUOTE_VERIFIED";
   if (!quoteVerified) return "BUY_QUOTE_VERIFIED";
 
-  const taxVerified = verifiedTaxEvidence(project);
-  const simulationPassed = sellSimulationPassed(project);
   const depthVerified = orderBookDepthVerified(project);
   const freshEnough = quoteAge !== null && quoteAge <= 3600 && estimatedSlippage100 !== null && observedSlippageVerified;
 
-  if (freshEnough && simulationPassed && taxVerified && depthVerified) return "LIVE_EXECUTION_READY";
-  if (simulationPassed) return "SELL_SIMULATION_PASSED";
-  if (taxVerified) return "TAXES_VERIFIED";
+  if (liveReady) return "LIVE_EXECUTION_READY";
+  if (!freshEnough) return "SELL_QUOTE_VERIFIED";
+  if (!depthVerified) return "SELL_QUOTE_VERIFIED";
+  if (!safetyVerified) return "SAFETY_PROOF_REQUIRED";
+  if (routeKind === "EVM" && !taxVerified) return "TRANSFER_TAX_EVIDENCE_REQUIRED";
+  if (routeKind === "SOLANA" && (!authorityProof?.verified || !authorityProof?.clean)) {
+    return "MINT_FREEZE_AUTHORITY_PROOF_REQUIRED";
+  }
+  if (routeKind === "CEX" && !accessVerified) return "USER_ACCESS_PROOF_REQUIRED";
   if (depthVerified) return "ORDER_BOOK_DEPTH_VERIFIED";
   return "SELL_QUOTE_VERIFIED";
 }
@@ -485,28 +557,33 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   ]);
   const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
   const observedSlippageVerified = observedSlippage !== null && observedSlippage !== undefined && Number.isFinite(Number(observedSlippage));
-  const chainVerified = Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
-  const exactIdentityVerified = Boolean(
+  const routeKind = routeKindFor(project, routes);
+  const routeType = routeTypeFor(project, routes);
+  const chainVerified = routeKind === "CEX"
+    ? false
+    : Boolean(chainOf(project) && !project.chainMismatch && !project.contractChainMismatch);
+  const explicitExactIdentity = Boolean(
     project.canonicalExecutionRoute?.exactIdentityVerified === true ||
       project.strictIdentityVerified === true ||
       project.candidateProofState?.identity?.exactIdentityVerified === true
   );
-  const contractVerified = Boolean(addressOf(project) && (verifiedIdentity(project) || exactIdentityVerified));
-  const routeType = project.canonicalExecutionRoute?.routeType || routes.find((route) => route.routeType)?.routeType || "";
-  const poolVerified = routeType === "CEX"
-    ? Boolean(routes.some((route) => route.marketPair) || project.marketPair || project.exchangeAssetId)
-    : ["AGGREGATOR", "DEX_AGGREGATOR"].includes(String(routeType).toUpperCase())
-      ? Boolean(chainVerified && contractVerified && buyRouteAvailable && sellRouteAvailable && (
-        pairOf(project) ||
-        project.canonicalExecutionRoute?.poolAddress ||
-        project.executionProofRecoveryRoute?.poolAddress
-      ))
+  const contractVerified = routeKind === "CEX"
+    ? false
+    : Boolean(addressOf(project) && (verifiedIdentity(project) || explicitExactIdentity));
+  const poolRequired = routeKind !== "CEX" && !["AGGREGATOR", "DEX_AGGREGATOR"].includes(routeType);
+  const poolVerified = routeKind === "CEX"
+    ? false
+    : !poolRequired
+      ? true
       : Boolean(
         pairOf(project) ||
         project.canonicalExecutionRoute?.poolAddress ||
         project.canonicalExecutionRoute?.pairAddress ||
         routes.some((route) => route.pairAddress)
       );
+  const routeIdentityVerified = routeKind === "CEX"
+    ? cexIdentityVerified(project, routes)
+    : Boolean(chainVerified && contractVerified && (!poolRequired || poolVerified));
   const quoteVerified = Boolean(
     buyRouteAvailable &&
       sellRouteAvailable &&
@@ -516,6 +593,9 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600)
   );
   const safetyVerified = safetyNonBlocked(project, routes);
+  const taxVerified = verifiedTaxEvidence(project);
+  const authorityProof = solanaAuthorityProof(project);
+  const accessVerified = routeKind === "CEX" ? regionAccessVerified(project) : true;
   const liveReadySubject = {
     ...project,
     executionProofState: "LIVE_EXECUTION_READY",
@@ -536,13 +616,20 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     ]),
     estimatedSlippagePct: observedSlippage,
     slippageIsHeuristic: !observedSlippageVerified,
-    exactIdentityVerified: exactIdentityVerified && chainVerified && contractVerified && poolVerified,
+    exactIdentityVerified: routeIdentityVerified,
     routeType,
+    safetyVerified,
+    transferTaxEvidenceRequired: routeKind === "EVM",
+    transferTaxEvidenceVerified: routeKind !== "EVM" || taxVerified,
+    authorityEvidenceRequired: routeKind === "SOLANA",
+    authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
+    authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
   };
   const liveReady = Boolean(
     safetyVerified &&
-      sellSimulationPassed(project) &&
-      verifiedTaxEvidence(project) &&
+      (routeKind !== "EVM" || taxVerified) &&
+      (routeKind !== "SOLANA" || (authorityProof.verified && authorityProof.clean)) &&
+      (routeKind !== "CEX" || accessVerified) &&
       orderBookDepthVerified(project) &&
       isLiveExecutionReady(liveReadySubject)
   );
@@ -554,9 +641,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     liquidity,
     quoteAge,
     outage,
-    chainVerified,
-    contractVerified,
-    poolVerified,
+    routeIdentityVerified,
     quoteVerified,
     safetyVerified,
     liveReady,
@@ -570,12 +655,18 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (executionStatus === "HONEYPOT_RISK") failureReasons.push("Sell-route or honeypot evidence is unsafe.");
   if (executionStatus === "CONTRACT_MISMATCH") failureReasons.push("Contract identity mismatch prevents execution proof.");
   if (executionStatus === "CHAIN_MISMATCH") failureReasons.push("Chain mismatch prevents execution proof.");
-  if (!chainVerified) failureReasons.push("Correct chain is not verified.");
-  if (!contractVerified) failureReasons.push("Verified token contract is missing.");
-  if (!poolVerified) failureReasons.push("Verified liquidity pool is missing.");
+  if (routeKind === "CEX" && !routeIdentityVerified) failureReasons.push("Verified exchange venue and market pair are missing.");
+  if (routeKind !== "CEX" && !chainVerified) failureReasons.push("Correct chain is not verified.");
+  if (routeKind !== "CEX" && !contractVerified) failureReasons.push("Verified token contract is missing.");
+  if (poolRequired && !poolVerified) failureReasons.push("Verified liquidity pool is missing.");
   if (!quoteVerified) failureReasons.push("Verified quote is missing or stale/unknown.");
   if (!observedSlippageVerified) failureReasons.push("Live slippage quote is missing; heuristic slippage is research-only.");
   if (!safetyVerified) failureReasons.push("Execution safety is blocked or unresolved.");
+  if (routeKind === "EVM" && !taxVerified) failureReasons.push("Verified transfer-tax evidence is missing.");
+  if (routeKind === "SOLANA" && !authorityProof.verified) failureReasons.push("Mint and freeze authority evidence is missing.");
+  if (routeKind === "SOLANA" && authorityProof.verified && !authorityProof.clean) failureReasons.push("Mint or freeze authority remains enabled or unsafe.");
+  if (routeKind === "CEX" && !accessVerified) failureReasons.push("User region and exchange access are not confirmed.");
+  if (!orderBookDepthVerified(project)) failureReasons.push("Verified executable depth is missing.");
 
   const executionProofState = executionProofStateFor({
     project,
@@ -583,14 +674,18 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     executionStatus,
     buyRouteAvailable,
     sellRouteAvailable,
-    chainVerified,
-    contractVerified,
-    poolVerified,
+    routeIdentityVerified,
     quoteVerified,
     quoteAge,
     liquidity,
     estimatedSlippage100,
     observedSlippageVerified,
+    routeKind,
+    taxVerified,
+    authorityProof,
+    accessVerified,
+    safetyVerified,
+    liveReady,
   });
 
   const supportingSources = routes
@@ -618,30 +713,42 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     estimatedSlippage1000: slippageFor(liquidity, 1000, null),
     executionProofState,
     liveExecutionReady: executionProofState === "LIVE_EXECUTION_READY",
+    routeExecutionReadiness:
+      executionProofState === "LIVE_EXECUTION_READY" ? "ROUTE_EXECUTION_READY" : "ROUTE_NOT_READY",
+    finalProjectExecutionReadiness: "NOT_EVALUATED",
     executionProofActionability:
       executionProofState === "LIVE_EXECUTION_READY"
         ? "LIVE_EXECUTION_READY"
-        : executionProofState === "SELL_SIMULATION_PASSED"
-          ? "SIMULATED_SELL_READY_RESEARCH"
-          : ["SELL_QUOTE_VERIFIED", "ORDER_BOOK_DEPTH_VERIFIED", "TAXES_VERIFIED"].includes(executionProofState)
-            ? "QUOTE_VERIFIED_RESEARCH"
-            : "MARKET_OBSERVED_RESEARCH_ONLY",
+        : ["SELL_QUOTE_VERIFIED", "ORDER_BOOK_DEPTH_VERIFIED"].includes(executionProofState)
+          ? "QUOTE_VERIFIED_RESEARCH"
+          : "MARKET_OBSERVED_RESEARCH_ONLY",
     buyRouteAvailable,
     sellRouteAvailable,
     buyQuoteVerified: buyRouteAvailable,
     sellQuoteVerified: sellRouteAvailable,
     routeTruthStatus: executionProofState,
-    exactIdentityVerified: exactIdentityVerified && chainVerified && contractVerified && poolVerified,
+    routeKind,
+    routeType,
+    exactIdentityVerified: routeIdentityVerified,
     chainVerified,
     contractVerified,
+    poolRequired,
     poolVerified,
     quoteVerified,
     safetyVerified,
+    transferTaxEvidenceRequired: routeKind === "EVM",
+    transferTaxEvidenceVerified: routeKind !== "EVM" || taxVerified,
+    authorityEvidenceRequired: routeKind === "SOLANA",
+    authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
+    authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
+    authorityEvidenceSources: authorityProof.sources,
+    userAccessEvidenceRequired: routeKind === "CEX",
+    userAccessVerified: routeKind !== "CEX" || accessVerified,
     honeypotEvidence: project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 ? "DETECTED" : null,
     transferTaxEvidence: project.transferTaxEvidence || project.taxEvidence || null,
     quoteFreshnessSeconds: quoteAge,
     supportingSources: [...new Set(supportingSources)],
-    failureReasons,
+    failureReasons: [...new Set(failureReasons)],
   };
 
   const moneyMissingEvidence = [];
@@ -650,21 +757,26 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   if (quoteAge === null) moneyMissingEvidence.push("fresh quote timestamp");
   if (!liquidity) moneyMissingEvidence.push("liquidity depth");
   if (!observedSlippageVerified) moneyMissingEvidence.push("live slippage quote");
+  if (!safetyVerified) moneyMissingEvidence.push("verified safety evidence");
+  if (routeKind === "EVM" && !taxVerified) moneyMissingEvidence.push("transfer-tax evidence");
+  if (routeKind === "SOLANA" && !authorityProof.verified) moneyMissingEvidence.push("mint/freeze authority evidence");
+  if (routeKind === "CEX" && !accessVerified) moneyMissingEvidence.push("confirmed user access");
 
   const moneyEvidence = {
     buyRoute: buyRouteAvailable ? { value: true, status: "VERIFIED" } : { value: null, status: executionStatus === "PROVIDER_UNAVAILABLE" ? "UNKNOWN" : "UNKNOWN", reason: failureReasons[0] || "Buy route not verified" },
     sellRoute: sellRouteAvailable ? { value: true, status: "VERIFIED" } : { value: null, status: executionStatus === "PROVIDER_UNAVAILABLE" ? "UNKNOWN" : "UNKNOWN", reason: failureReasons[0] || "Sell route not verified" },
-    chain: chainVerified ? { value: chainOf(project), status: "VERIFIED" } : { value: chainOf(project), status: "UNKNOWN", reason: "Correct chain not verified" },
-    contract: contractVerified ? { value: addressOf(project), status: "VERIFIED" } : { value: addressOf(project), status: "UNKNOWN", reason: "Verified token contract missing" },
-    pool: poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
+    chain: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : chainVerified ? { value: chainOf(project), status: "VERIFIED" } : { value: chainOf(project), status: "UNKNOWN", reason: "Correct chain not verified" },
+    contract: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : contractVerified ? { value: addressOf(project), status: "VERIFIED" } : { value: addressOf(project), status: "UNKNOWN", reason: "Verified token contract missing" },
+    pool: !poolRequired ? { value: null, status: "NOT_APPLICABLE" } : poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
     quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteAge <= 3600 ? "VERIFIED" : "STALE" },
     liquidity: liquidity ? { value: liquidity, status: liquidity >= 5_000 ? "VERIFIED" : "LOW" } : { value: null, status: "UNKNOWN", reason: "Liquidity provider unavailable or missing" },
     slippage100: !observedSlippageVerified ? { value: null, status: "UNKNOWN", reason: "Live slippage quote unavailable; heuristic estimate is not execution proof" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
+    safety: safetyVerified ? { value: true, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Execution safety is unresolved" },
+    transferTax: routeKind !== "EVM" ? { value: null, status: "NOT_APPLICABLE" } : taxVerified ? { value: true, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Transfer-tax evidence missing" },
+    mintFreezeAuthority: routeKind !== "SOLANA" ? { value: null, status: "NOT_APPLICABLE" } : authorityProof.verified ? { value: authorityProof.clean, status: authorityProof.clean ? "VERIFIED" : "FAILED" } : { value: null, status: "UNKNOWN", reason: "Mint/freeze authority evidence missing" },
+    userAccess: routeKind !== "CEX" ? { value: null, status: "NOT_APPLICABLE" } : accessVerified ? { value: true, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "User access not confirmed" },
   };
-  const executionCoverage = calculateEvidenceCoverage([
-    { label: "correct chain", status: chainVerified ? "VERIFIED" : "UNKNOWN" },
-    { label: "verified token contract", status: contractVerified ? "VERIFIED" : "UNKNOWN" },
-    { label: "verified liquidity pool", status: poolVerified ? "VERIFIED" : "UNKNOWN" },
+  const executionCoverageItems = [
     { label: "verified quote", status: quoteVerified ? "VERIFIED" : "UNKNOWN" },
     { label: "tradable buy route", status: buyRouteAvailable ? "VERIFIED" : "UNKNOWN" },
     { label: "tradable sell route", status: sellRouteAvailable ? "VERIFIED" : "UNKNOWN" },
@@ -679,7 +791,22 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       provenance: "executionProof.liquidityUsd",
       status: liquidity >= 5_000 ? "VERIFIED" : liquidity > 0 ? "PARTIAL" : "UNKNOWN",
     }),
-  ]);
+  ];
+  if (routeKind === "CEX") {
+    executionCoverageItems.push(
+      { label: "verified exchange market", status: routeIdentityVerified ? "VERIFIED" : "UNKNOWN" },
+      { label: "confirmed user access", status: accessVerified ? "VERIFIED" : "UNKNOWN" }
+    );
+  } else {
+    executionCoverageItems.push(
+      { label: "correct chain", status: chainVerified ? "VERIFIED" : "UNKNOWN" },
+      { label: "verified token contract", status: contractVerified ? "VERIFIED" : "UNKNOWN" }
+    );
+    if (poolRequired) executionCoverageItems.push({ label: "verified liquidity pool", status: poolVerified ? "VERIFIED" : "UNKNOWN" });
+    if (routeKind === "EVM") executionCoverageItems.push({ label: "verified transfer tax", status: taxVerified ? "VERIFIED" : "UNKNOWN" });
+    if (routeKind === "SOLANA") executionCoverageItems.push({ label: "clean mint/freeze authority", status: authorityProof.verified ? authorityProof.clean ? "VERIFIED" : "FAILED" : "UNKNOWN" });
+  }
+  const executionCoverage = calculateEvidenceCoverage(executionCoverageItems);
 
   const moneyConfidence = Math.round(
     clamp(
@@ -709,6 +836,14 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     executionStatus,
     executionProofState,
     liveExecutionReady: executionProofState === "LIVE_EXECUTION_READY",
+    routeExecutionReadiness:
+      executionProofState === "LIVE_EXECUTION_READY" ? "ROUTE_EXECUTION_READY" : "ROUTE_NOT_READY",
+    finalProjectExecutionReadiness:
+      executionProofState === "LIVE_EXECUTION_READY" && project.finalSelectionQualified === true
+        ? "FINAL_PROJECT_EXECUTION_READY"
+        : project.finalSelectionQualified === false
+          ? "FINAL_PROJECT_NOT_READY"
+          : "NOT_EVALUATED",
     executionProofVerified: executionStatus === "VERIFIED",
     executionProofPartiallyVerified: executionStatus === "PARTIALLY_VERIFIED",
     executionProviderUnavailable: executionStatus === "PROVIDER_UNAVAILABLE",

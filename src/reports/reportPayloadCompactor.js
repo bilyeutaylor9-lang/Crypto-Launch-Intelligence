@@ -6,7 +6,7 @@ const DEFAULT_REPORT_DEPTH_LIMIT = 4;
 const DISCOVERY_SAMPLE_LIMIT = 50;
 
 const HEAVY_FIELD_PATTERNS = [
-  /^raw/i,
+  /^raw$/i,
   /rawCandidate/i,
   /rawCandidates/i,
   /rawPayload/i,
@@ -30,7 +30,6 @@ const HEAVY_FIELD_PATTERNS = [
   /^engineResults$/i,
   /^evidence$/i,
   /^institutionalDataProvenance$/i,
-  /^executionProofRecovery$/i,
 ];
 
 const IDENTITY_FIELDS = [
@@ -161,6 +160,16 @@ const DECISION_FIELDS = [
   "tradabilityState",
   "researchEligibilityState",
   "projectLifecycleState",
+  "deepEvaluationState",
+  "progressivePipelineIdentityKey",
+  "progressivePipelineStages",
+  "progressiveStageRanks",
+  "progressiveStageLanes",
+  "progressiveExecutionState",
+  "stageRank",
+  "stageLane",
+  "routeExecutionReadiness",
+  "finalProjectExecutionReadiness",
 ];
 
 const EVIDENCE_FIELDS = [
@@ -186,6 +195,31 @@ const EVIDENCE_FIELDS = [
   "sourceTruthScore",
   "sourceReliabilityScore",
   "engineHealth",
+  "sourceTruth",
+  "sourceTruthStatus",
+  "sourceTruthVerdict",
+  "fieldProvenance",
+  "activeEvidenceRecovery",
+  "activeEvidenceRecoveryStatus",
+  "activeRecoveryStatus",
+  "executionProof",
+  "executionProofState",
+  "executionProofRecovery",
+  "executionProofRecoveryRoute",
+  "executionProofRecoveryRoutes",
+  "canonicalExecutionRoute",
+  "executionRoutes",
+  "engineDataReadiness",
+  "engineDataContractHealth",
+  "engineHealthStatus",
+  "dataStarvationRootCause",
+  "dataStarvationRootCauses",
+  "dataStarvationPlan",
+  "targetedEnrichmentPlan",
+  "valueOfInformation",
+  "valueOfInformationPlan",
+  "starvationRescuePlan",
+  "starvationRescueState",
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
@@ -237,7 +271,7 @@ function orderedKeys(value = {}, topLevel = false, limits = {}) {
 
   const priority = REPORT_PRIORITY_FIELDS.filter((key) => Object.hasOwn(value, key));
   const remaining = keys.filter((key) => !priority.includes(key));
-  return [...priority, ...remaining].slice(0, limits.objectKeyLimit);
+  return [...priority, ...remaining.slice(0, limits.objectKeyLimit)];
 }
 
 export function compactValueForReport(value, options = {}, state = null, depth = 0, key = "", topLevel = false) {

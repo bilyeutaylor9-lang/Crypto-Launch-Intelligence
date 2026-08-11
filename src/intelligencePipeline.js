@@ -220,6 +220,7 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "AI Research Commander": 30_000,
   "Autonomous Alpha Investigator": 30_000,
   "Execution Proof Recovery": 300_000,
+  "Active Evidence Recovery": 600_000,
   "Contract Authority Risk": 180_000,
   "Capital Flow Observation": 45_000,
 };
@@ -320,6 +321,9 @@ const ENGINE_STAGE_OVERRIDES = {
   "Identity Rescue": "deep",
   "Starvation Rescue": "deep",
   "Active Evidence Recovery": "deep",
+  "Pre-Recovery Data Readiness": "deep",
+  "Post-Evidence Final Scoring": "deep",
+  "Final Selection Integrity": "deep",
   "Research Readiness": "deep",
   "First Seen Opportunity": "deep",
   "Progressive Opportunity Ranking": "deep",
@@ -457,6 +461,7 @@ function projectStageIdentityKey(project = {}, index = 0) {
   const symbol = String(project.symbol || project.ticker || project.canonicalSymbol || "").toUpperCase();
   const name = String(project.name || project.canonicalName || "").toLowerCase();
   const direct = [
+    project.progressivePipelineIdentityKey,
     project.standardSelectionIdentityKey,
     project.canonicalProjectId,
     project.permanentProjectKey,
@@ -479,6 +484,7 @@ function buildStageMetadata(selections = {}) {
   const remember = (project = {}, index = 0, stage = "standard") => {
     const key = projectStageIdentityKey(project, index);
     const current = metadata.get(key) || {
+      progressivePipelineIdentityKey: key,
       progressivePipelineStages: [],
       progressivePipelineStageRanks: {},
       progressivePipelineStageLanes: {},
@@ -552,10 +558,40 @@ export function buildProgressivePipelineStageContext(options = {}, projects = []
 
 function attachProgressiveStageMetadata(projects = [], context = {}) {
   if (!context.enabled || !(context.metadataByKey instanceof Map)) return projects;
-  return (Array.isArray(projects) ? projects : []).map((project, index) => ({
-    ...project,
-    ...(context.metadataByKey.get(projectStageIdentityKey(project, index)) || {}),
-  }));
+  return (Array.isArray(projects) ? projects : []).map((project, index) => {
+    const key = projectStageIdentityKey(project, index);
+    const selectedForDeep = context.stageSets?.deep?.has(key) === true;
+    return {
+      ...project,
+      ...(context.metadataByKey.get(key) || {}),
+      progressivePipelineIdentityKey: key,
+      deepEvaluationState: selectedForDeep
+        ? "SELECTED_FOR_DEEP"
+        : "DEFERRED_BEFORE_DEEP",
+    };
+  });
+}
+
+function markDeepEvaluationComplete(projects = [], context = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  if (!context.enabled) {
+    return safeProjects.map((project) => ({
+      ...project,
+      deepEvaluationState: "DEEP_EVALUATED",
+    }));
+  }
+
+  return safeProjects.map((project, index) => {
+    const selectedForDeep = context.stageSets?.deep?.has(
+      projectStageIdentityKey(project, index)
+    );
+    return {
+      ...project,
+      deepEvaluationState: selectedForDeep
+        ? "DEEP_EVALUATED"
+        : "DEFERRED_BEFORE_DEEP",
+    };
+  });
 }
 
 function mergeStageResults(allProjects = [], stageResults = []) {
@@ -611,6 +647,14 @@ export function prepareProjectsForPipelineRun(projects = [], options = {}) {
     delete next.engineResults;
     delete next.engineHealth;
     delete next.engineDataContractHealth;
+    delete next.deepEvaluationState;
+    delete next.finalSelectionState;
+    delete next.finalSelectionQualified;
+    delete next.finalIntegrityVerdict;
+    delete next.finalIntegrityScore;
+    delete next.finalBlockingReasons;
+    delete next.finalWarningReasons;
+    delete next.selectionAuditTrail;
 
     return {
       ...next,
@@ -2656,11 +2700,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Proof of Alpha Execution Twin", analyzeProofOfAlphaExecutionTwinBatch, results, options.executionTwin || {});
   results = await runEngine("Autonomous Causal Alpha Network", analyzeAutonomousCausalAlphaNetworkBatch, results);
   results = await runEngine("Alpha Evolution Governor", analyzeAlphaEvolutionGovernorBatch, results);
-  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
-  results = await runEngine("Post-Evidence Final Scoring", addFinalScoring, results);
   results = await runEngine("Pre-Breakout Radar", analyzePreBreakoutRadarBatch, results, options.preBreakoutRadar || {});
   results = await runEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
-  results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
+  results = await runEngine("Pre-Recovery Data Readiness", analyzeEngineDataReadinessBatch, results, {
+    ...(options.engineDataReadiness || {}),
+    auditPhase: "PRE_RECOVERY",
+  });
   results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
   results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
@@ -2668,22 +2713,38 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, options.activeEvidenceRecovery || {});
   if (results.some((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus))) {
     results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
+    results = await runRecoveryEngine("Source Truth", analyzeSourceTruthBatch, results);
+    results = await runRecoveryEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
+    results = await runRecoveryEngine("Instant Safety Gate", analyzeInstantSafetyGateBatch, results);
+    results = await runRecoveryEngine("Contract Authority Risk", analyzeContractAuthorityRiskBatch, results, {
+      collectSecurityEvidence: false,
+      ...(options.contractAuthorityRisk || {}),
+    });
     results = await runRecoveryEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
     results = await runRecoveryEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
     results = await runRecoveryEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
+    results = await runRecoveryEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
     results = await runRecoveryEngine(
       "Candidate Truth Reconciliation",
       analyzeCandidateTruthReconciliationBatch,
       results,
       options.candidateTruthReconciliation || {}
     );
-    results = await runRecoveryEngine("Post-Recovery Final Scoring", addFinalScoring, results);
-    results = await runRecoveryEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
-    results = await runRecoveryEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, options.engineDataReadiness || {});
-    results = await runRecoveryEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
-    results = await runRecoveryEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
-    results = await runRecoveryEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
+    results = await runRecoveryEngine("Institutional Data Provenance", analyzeInstitutionalDataProvenanceBatch, results, options.institutionalDataProvenance || {});
+    results = await runRecoveryEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
+    results = await runRecoveryEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
+    results = await runRecoveryEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
   }
+  results = await runEngine("Post-Evidence Final Scoring", addFinalScoring, results);
+  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = markDeepEvaluationComplete(results, stageContext);
+  results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, {
+    ...(options.engineDataReadiness || {}),
+    auditPhase: "FINAL",
+  });
+  results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
+  results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
+  results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
   results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
   results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
     ...(options.firstSeenOpportunity || {}),

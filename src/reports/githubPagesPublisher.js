@@ -8,6 +8,7 @@ import {
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import { finalizeScanArtifactManifestPublication } from "./scanArtifactManifestReportEngine.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
+import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -265,7 +266,7 @@ function rankDisplayEligible(candidate = {}) {
     candidate.memeBrandingDetected === true ||
     isLikelyMemeIdentity(candidate)
   ) return false;
-  if (candidate.researchOnly === true || candidate.tradableCandidate === false) return false;
+  if (isEntityResearchOnlyCandidate(candidate)) return false;
   const researchLane = [
     "RESEARCH_WORTHY_ROUTE_PENDING",
     "RESEARCH_WORTHY_PROOF_PENDING",

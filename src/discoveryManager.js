@@ -189,7 +189,13 @@ function mergedTradability(a = {}, b = {}) {
 
 function missingDataCompletionForProject(project = {}) {
   const sourceType = String(project.sourceType || project.dex || "").toLowerCase();
-  const researchOnly = project.researchOnly === true || project.tradableCandidate === false;
+  const hasObservedTokenIdentity = Boolean(
+    knownChain(project.chain || project.chainId) &&
+      (project.tokenAddress || project.contractAddress || project.address)
+  );
+  const researchOnly =
+    (project.researchOnly === true || project.tradableCandidate === false) &&
+    !hasObservedTokenIdentity;
   const missing = [];
   const resolverByField = {
     chain: "officialIdentityResolver",
@@ -1294,7 +1300,13 @@ export async function runDiscoveryManager(options = {}) {
       },
 
       nativeDiscoveryMesh: {
-        status: nativeDiscovery.status,
+        status:
+          nativeDiscovery.output?.report?.status === "INACTIVE"
+            ? "INACTIVE"
+            : nativeDiscovery.status,
+        collectionStatus:
+          nativeDiscovery.output?.report?.collectionStatus ||
+          (nativeDiscoveryResults.length ? "EVENTS_COLLECTED" : "NO_EVENTS_COLLECTED"),
         durationMs: nativeDiscovery.durationMs,
         attempted: nativeDiscovery.attempted,
         timeoutMs: nativeDiscovery.timeoutMs,

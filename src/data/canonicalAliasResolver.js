@@ -133,11 +133,20 @@ function flattenObject(object = {}, prefix = "", output = []) {
 }
 
 const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
-  /^engineResults(\.|$)/,
-  /^aliasResolutionAudit(\.|$)/,
-  /^canonicalAliasProvenance(\.|$)/,
-  /^canonicalAliasConflicts(\.|$)/,
-  /^canonicalAliases(\.|$)/,
+  /^engineResults(\.|$)/i,
+  /^fieldProvenance(\.|$)/i,
+  /^canonicalAliasProvenance(\.|$)/i,
+  /^aliasResolutionAudit(\.|$)/i,
+  /^aliasResolutionConflicts(\.|$)/i,
+  /^canonicalAliasConflicts(\.|$)/i,
+  /^canonicalAliases(\.|$)/i,
+  /^engineDataContractHealth(\.|$)/i,
+  /^engineDataReadiness(\.|$)/i,
+  /^dataStarvation(\.|$)/i,
+  /^targetedEnrichmentPlan(\.|$)/i,
+  /^starvationRecoveryPlan(\.|$)/i,
+  /^valueOfInformationItems(\.|$)/i,
+  /^(?:baselineDeviation|baselineDeviationVector|modelDiagnostics|scoreBreakdown|dataConfidenceBreakdown)(\.|$)/i,
   /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
   /\.(engineName|engineVersion|criticality|warningCount)$/i,
 ]);

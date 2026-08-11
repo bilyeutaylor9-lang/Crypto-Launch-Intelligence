@@ -89,6 +89,11 @@ export class SolanaProgramEventAdapter extends NativePoolAdapter {
   async backfill(options = {}) {
     const instructions = Array.isArray(options.instructions) ? options.instructions : [];
     const events = instructions.map((instruction) => this.decodeEvent(instruction));
+    const status = events.length
+      ? "OK"
+      : this.config.configured
+        ? "INACTIVE_NO_LIVE_COLLECTOR"
+        : "NOT_CONFIGURED";
 
     if (options.persist !== false && events.length) {
       recordNativeEvents(events, { confirmed: Boolean(options.confirmed) });
@@ -105,10 +110,14 @@ export class SolanaProgramEventAdapter extends NativePoolAdapter {
     }
 
     return {
-      status: this.config.configured || instructions.length ? "OK" : "NOT_CONFIGURED",
+      status,
       source: this.config.id || this.config.protocol,
       events,
-      reason: this.config.configured ? null : "No Solana RPC/program settings were supplied; decoded only provided instructions.",
+      reason: events.length
+        ? null
+        : this.config.configured
+          ? "Solana program identity is configured, but this adapter currently decodes supplied instructions only; no live evidence was collected."
+          : "No Solana RPC/program settings were supplied; decoded only provided instructions.",
     };
   }
 }
