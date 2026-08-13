@@ -1,5 +1,6 @@
 import { loadOutcomeSnapshots } from "../learning/outcomeSnapshotStore.js";
 import { loadScanMemory } from "../learning/scanMemoryStore.js";
+import { buildOutcomeExamples } from "../learning/outcomeCalibrationEngine.js";
 
 const FEATURE_KEYS = [
   "marketRank",
@@ -121,10 +122,6 @@ function cosineSimilarity(a = {}, b = {}) {
   return dot / (Math.sqrt(magA) * Math.sqrt(magB));
 }
 
-function projectKeyFromRecord(record = {}) {
-  return String(record.id || `${record.chain || "unknown"}:${record.symbol || record.name || "unknown"}`).toLowerCase();
-}
-
 export function buildOutcomeByKey(snapshots = []) {
   const grouped = new Map();
 
@@ -167,33 +164,36 @@ export function buildOutcomeByKey(snapshots = []) {
   return outcomes;
 }
 
-export function buildTrainingSet(memory = [], snapshots = []) {
-  const outcomesByKey = buildOutcomeByKey(snapshots);
-  const latestRecordByKey = new Map();
+export function buildTrainingSet(memory = [], snapshots = [], options = {}) {
+  const horizonHours = Number(
+    options.horizonHours || process.env.OUTCOME_LEARNING_HORIZON_HOURS || 24
+  );
+  const examples = buildOutcomeExamples(memory, snapshots, [horizonHours], options);
+  const latestResolvedByProject = new Map();
 
-  for (const record of memory) {
-    const key = projectKeyFromRecord(record);
-    latestRecordByKey.set(key, record);
+  for (const example of examples) {
+    const current = latestResolvedByProject.get(example.key);
+    if (!current || new Date(example.scannedAt).getTime() > new Date(current.scannedAt).getTime()) {
+      latestResolvedByProject.set(example.key, example);
+    }
   }
 
-  return [...latestRecordByKey.entries()]
-    .map(([key, record]) => {
-      const outcome = outcomesByKey.get(key);
-      if (!outcome) return null;
-
-      return {
-        key,
-        name: record.name || outcome?.name || "Unknown",
-        symbol: record.symbol || outcome?.symbol || "Unknown",
-        vector: vectorFromRecord(record),
-        label: outcome.label,
-        outcomePct: outcome.primaryMarketOutcomePct,
-        outcomeSource: outcome.outcomeSource,
-        scannerScoreDeltaIgnored: outcome.scannerScoreDeltaIgnored,
-        sampleCount: outcome.sampleCount,
-      };
-    })
-    .filter(Boolean)
+  return [...latestResolvedByProject.values()]
+    .map((example) => ({
+      key: example.key,
+      name: example.name || "Unknown",
+      symbol: example.symbol || "Unknown",
+      vector: vectorFromRecord({ scores: example.scores }),
+      label: labelMarketOutcome(example.primaryChangePct),
+      outcomePct: example.primaryChangePct,
+      outcomeSource: example.outcomeBasis,
+      scannerScoreDeltaIgnored: example.scannerScoreDeltaIgnored,
+      sampleCount: 1,
+      predictionTimestamp: example.scannedAt,
+      outcomeTimestamp: example.outcomeAt,
+      horizonHours: example.horizonHours,
+      horizonLatenessHours: example.horizonLatenessHours,
+    }))
     .filter((item) => Object.values(item.vector).some((value) => num(value) > 0));
 }
 
@@ -204,14 +204,19 @@ function average(values = []) {
 
 export function analyzeOutcomeLearning(project = {}, context = {}) {
   const trainingSet = context.trainingSet || [];
+  const minimumSamples = Number(
+    context.minimumSamples || process.env.OUTCOME_LEARNING_MIN_UNIQUE_PROJECTS || 20
+  );
   const vector = vectorFromProject(project);
 
-  if (trainingSet.length < 3) {
+  if (trainingSet.length < minimumSamples) {
     return {
       ...project,
       outcomeLearningScore: 50,
       outcomeLearning: {
         sampleSize: trainingSet.length,
+        minimumSamples,
+        learningStatus: "INSUFFICIENT_INDEPENDENT_SAMPLE",
         winnerMatches: 0,
         trapMatches: 0,
         estimatedWinRate: 50,
@@ -226,7 +231,9 @@ export function analyzeOutcomeLearning(project = {}, context = {}) {
           score: 50,
           confidence: 0.25,
           impact: "Neutral",
-          reasons: ["The scanner needs more saved outcomes before this layer becomes aggressive."],
+          reasons: [
+            `The scanner needs at least ${minimumSamples} independent, horizon-resolved projects before this layer can add positive weight.`,
+          ],
         },
       ],
     };
@@ -277,6 +284,8 @@ export function analyzeOutcomeLearning(project = {}, context = {}) {
     outcomeTrapRisk: trapRisk,
     outcomeLearning: {
       sampleSize: trainingSet.length,
+      minimumSamples,
+      learningStatus: "MEASURED_OUTCOME_MEMORY",
       winnerMatches: winnerMatches.length,
       trapMatches: trapMatches.length,
       neutralMatches: neutralMatches.length,
@@ -319,6 +328,7 @@ export function analyzeOutcomeLearningBatch(projects = []) {
   const memory = loadScanMemory();
   const context = {
     trainingSet: buildTrainingSet(memory, snapshots),
+    minimumSamples: Number(process.env.OUTCOME_LEARNING_MIN_UNIQUE_PROJECTS || 20),
   };
 
   return projects.map((project) => analyzeOutcomeLearning(project, context));

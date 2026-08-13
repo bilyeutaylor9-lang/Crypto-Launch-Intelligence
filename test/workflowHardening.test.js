@@ -89,3 +89,17 @@ test("live dashboard restores bounded learning and defers final health verdict u
   assert.match(workflow, /needs: \[build, deploy\]/);
   assert.match(workflow, /DEPLOY:\s*\$\{\{ needs\.deploy\.result \}\}/);
 });
+
+test("hourly outcome probe is bounded, exact-only, and never launches a full scan", () => {
+  const workflow = fs.readFileSync(".github/workflows/outcome-probe.yml", "utf8");
+
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /run:\s*npm run outcomes:probe/);
+  assert.doesNotMatch(workflow, /npm run scan/);
+  assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /cancel-in-progress:\s*false/);
+  assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*60/);
+  assert.match(workflow, /OUTCOME_PROBE_CONCURRENCY:\s*4/);
+  assert.match(workflow, /data\/scan-history\.json\*/);
+  assert.match(workflow, /data\/outcome-snapshots\.json\*/);
+});

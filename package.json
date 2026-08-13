@@ -245,6 +245,7 @@
     "discovery-truth": "cat reports/discovery-truth.json",
     "missed-opportunities": "cat reports/missed-opportunity-audit.json",
     "outcome-performance": "node src/outcomeBacktest.js",
+    "outcomes:probe": "node src/learning/outcomeProbe.js",
     "observations": "node src/learning/projectObservationStore.js",
     "supabase:check": "node src/storage/supabaseSync.js",
     "supabase:health": "node src/storage/supabaseHealthCheck.js",

@@ -662,6 +662,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const topFiveOpportunities = readJsonReport("top-five-opportunities.json", reportsDir) || {};
   const finalistComparison = readJsonReport("finalist-comparison.json", reportsDir) || {};
   const marketOpportunityLearning = readJsonReport("market-opportunity-learning.json", reportsDir) || {};
+  const outcomeCalibration = readJsonReport("outcome-calibration.json", reportsDir) || {};
   const institutionalRanking = readJsonReport("institutional-ranking.json", reportsDir) || {};
   const executionReady = readJsonReport("execution-ready.json", reportsDir) || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json", reportsDir) || {};
@@ -1393,6 +1394,25 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(engineHealthReport.runtime?.executedEngines ?? 0)}</div><div class="metric-label">Engines Executed</div></div>
       </div>
     </section>
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>Measured Edge</h2>
+          <p>${escapeHtml(outcomeCalibration.edgeState || "NO_EDGE_EVIDENCE")}</p>
+        </div>
+        <div class="actions">
+          <a class="button" href="./outcome-calibration.json">Open Calibration</a>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.totalExamples ?? 0)}</div><div class="metric-label">Resolved Outcomes</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.uniqueProjects ?? 0)}</div><div class="metric-label">Exact Projects</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.validatedEdgeSignals?.length ?? 0)}</div><div class="metric-label">Positive Edge Signals</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.avoidanceEdgeSignals?.length ?? 0)}</div><div class="metric-label">Avoidance Edge Signals</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.shadowEdgeHypotheses?.length ?? 0)}</div><div class="metric-label">Shadow Hypotheses</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.nextEdgeMilestone?.validationProgressPct ?? 0)}%</div><div class="metric-label">Next Validation Progress</div></div>
+      </div>
+    </section>
     <div class="toolbar">
       <div class="status">Last published: ${generatedAt}</div>
       <div class="actions">
@@ -1427,6 +1447,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./capital-outflow-watch.json">Outflow Watch</a>
         <a class="button" href="./pipeline-stage-health.json">Pipeline Health</a>
         <a class="button" href="./exact-outcome-horizon-lab.json">Outcome Lab</a>
+        <a class="button" href="./outcome-calibration.json">Outcome Calibration</a>
         <a class="button" href="./mathematical-validation.json">Math Validation</a>
         <a class="button" href="./organic-demand-integrity.json">Organic Integrity</a>
         <a class="button" href="./discovery-truth.json">Discovery Truth</a>

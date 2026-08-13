@@ -1082,6 +1082,11 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.equal(html.includes("Run Unbiased Route"), false);
   assert.ok(html.includes("Top 10 Current Research"));
   assert.ok(html.includes("Scan Truth"));
+  assert.ok(html.includes("Measured Edge"));
+  assert.ok(html.includes("Resolved Outcomes"));
+  assert.ok(html.includes("Avoidance Edge Signals"));
+  assert.ok(html.includes("Shadow Hypotheses"));
+  assert.ok(html.includes("Outcome Calibration"));
   assert.ok(html.includes("Need Confirmation"));
   assert.ok(html.includes("UTIL"));
   assert.equal(html.includes("<iframe"), false);

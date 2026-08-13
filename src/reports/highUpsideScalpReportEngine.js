@@ -25,6 +25,29 @@ function first(values = []) {
   return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
 }
 
+function valueAtPath(object = {}, field = "") {
+  return String(field || "")
+    .split(".")
+    .reduce(
+      (value, key) =>
+        value && typeof value === "object" && Object.hasOwn(value, key)
+          ? value[key]
+          : undefined,
+      object
+    );
+}
+
+function fieldIsNowPresent(project = {}, field = "") {
+  const value = valueAtPath(project, field);
+  return value !== undefined && value !== null && value !== "";
+}
+
+function reconciledMissingFields(project = {}) {
+  return (project.highUpsideScalpMissingFields || []).filter(
+    (field) => !fieldIsNowPresent(project, field)
+  );
+}
+
 function average(values = []) {
   const active = values.map(num).filter((value) => value > 0);
   if (!active.length) return 0;
@@ -211,7 +234,7 @@ function debugMissingProof(project = {}) {
     ...(project.missingRouteEvidence || []),
     ...(project.sevenDayTenXMissingEvidence || []),
     ...(project.scalpMicrostructureBlockers || []),
-  ].filter(Boolean);
+  ].filter((item) => Boolean(item) && !fieldIsNowPresent(project, item));
 }
 
 function sourceList(project = {}) {
@@ -258,6 +281,7 @@ function plainLanguageLane(project = {}) {
 function compact(project = {}, rank = null) {
   const score = project.highUpsideScalpScore ?? 0;
   const missingProof = [...new Set(debugMissingProof(project))].slice(0, 12);
+  const missingFields = reconciledMissingFields(project);
   const strictGate = project.strictCandidateGate || resolveStrictCandidateGate(project);
   return {
     rank,
@@ -286,16 +310,18 @@ function compact(project = {}, rank = null) {
     lane: project.highUpsideScalpLane || "UNCLASSIFIED",
     readableLane: plainLanguageLane(project),
     highUpsideScalpDataCoverage: project.highUpsideScalpDataCoverage ?? null,
-    highUpsideScalpMissingFields: project.highUpsideScalpMissingFields || [],
-    highUpsideScalpMissingProof: project.highUpsideScalpMissingProof || [],
-    highUpsideScalpNextProofNeeded: project.highUpsideScalpNextProofNeeded || missingProof[0] || null,
+    highUpsideScalpMissingFields: missingFields,
+    highUpsideScalpMissingProof: (project.highUpsideScalpMissingProof || []).filter(
+      (item) => !fieldIsNowPresent(project, item)
+    ),
+    highUpsideScalpNextProofNeeded: missingProof[0] || null,
     highUpsideScalpProofCategory: project.highUpsideScalpProofCategory || "unknown",
     routeProofChecklist: project.highUpsideScalpRouteChecklist || null,
     highUpsideScalpClassificationReason: project.highUpsideScalpClassificationReason || "No classification reason recorded.",
     promotionDebug: {
       whyFailedPromotion: project.highUpsideScalpClassificationReason || project.dailyCapitalMoveReason || "Promotion requirements are not fully proven yet.",
       missingProof,
-      nextSingleProofToPromote: project.highUpsideScalpNextProofNeeded || missingProof[0] || null,
+      nextSingleProofToPromote: missingProof[0] || null,
       sourcesUsed: [...new Set(sourceList(project))].slice(0, 10),
       sourcesFailed: [...new Set(failedSourceList(project))].slice(0, 10),
     },
@@ -557,7 +583,9 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
   const classificationEligible = scored.filter(
     (project) => laneForReport(project) !== "HIGH_UPSIDE_RESEARCH_DEFERRED"
   );
-  const allMissingFields = classificationEligible.flatMap((project) => project.highUpsideScalpMissingFields || []);
+  const allMissingFields = classificationEligible.flatMap((project) =>
+    reconciledMissingFields(project)
+  );
   const omittedRequiredFields = compactionDetected
     ? HIGH_UPSIDE_SCALP_REQUIRED_FIELD_NAMES.filter((field) => allMissingFields.includes(field))
     : [];

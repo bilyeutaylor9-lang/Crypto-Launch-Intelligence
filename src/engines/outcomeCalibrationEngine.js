@@ -1,5 +1,6 @@
 import {
   CALIBRATED_SIGNALS,
+  buildOutcomeCalibrationReport,
   loadOutcomeCalibrationReport,
 } from "../learning/outcomeCalibrationEngine.js";
 
@@ -61,6 +62,7 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
       calibrationRiskSignals: [],
       outcomeCalibration: {
         totalExamples: 0,
+        edgeStatus: "INSUFFICIENT_SAMPLE",
         summary: "Calibration is waiting for enough saved outcomes.",
       },
     };
@@ -70,12 +72,23 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
     const currentScore = scoreForSignal(project, signal.key);
     const stat = byKey.get(signal.key);
 
-    if (currentScore < 60 || !stat || num(stat.samples) < 3) return null;
+    if (currentScore < 60 || !stat) return null;
 
-    const direction = signal.positive ? 1 : -1;
-    const reliabilityEdge = (num(stat.reliability) - 50) / 50;
+    const validatedSupport = stat.edgeStatus === "VALIDATED_DIRECTIONAL_EDGE";
+    const validatedContradiction =
+      signal.positive && stat.edgeStatus === "CONTRADICTED_DIRECTIONAL_EDGE";
+    if (!validatedSupport && !validatedContradiction) return null;
+
+    // Contradicted positive signals may only subtract weight. Contradicted risk
+    // signals remain neutral so historical noise can never reward known risk.
+    const direction = validatedContradiction ? -1 : signal.positive ? 1 : -1;
+    const reliabilityEdge = Math.abs(num(stat.reliability) - 50) / 50;
     const strength = clamp((currentScore - 55) / 45, 0, 1);
-    const adjustment = Number((direction * reliabilityEdge * strength * 5).toFixed(2));
+    const adjustmentMagnitude = Math.max(
+      reliabilityEdge * strength * 5,
+      Math.abs(num(stat.scoreAdjustment)) * strength
+    );
+    const adjustment = Number((direction * adjustmentMagnitude).toFixed(2));
 
     return {
       key: signal.key,
@@ -85,9 +98,27 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
       samples: stat.samples,
       hitRate: stat.hitRate,
       falsePositiveRate: stat.falsePositiveRate,
+      directionalReturnEdgePct: stat.directionalReturnEdgePct,
       weightMultiplier: stat.weightMultiplier,
       adjustment,
       positive: signal.positive,
+      edgeStatus: stat.edgeStatus,
+    };
+  }).filter(Boolean);
+  const shadowByKey = new Map(
+    (report.shadowEdgeHypotheses || []).map((hypothesis) => [hypothesis.key, hypothesis])
+  );
+  const shadowSignals = CALIBRATED_SIGNALS.map((signal) => {
+    const currentScore = scoreForSignal(project, signal.key);
+    const hypothesis = shadowByKey.get(signal.key);
+
+    if (currentScore < 60 || !hypothesis) return null;
+
+    return {
+      ...hypothesis,
+      currentScore: Math.round(currentScore),
+      scoreAdjustment: 0,
+      mayAffectFinalDecision: false,
     };
   }).filter(Boolean);
 
@@ -116,6 +147,8 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
       ? "Historical calibration supports this setup."
       : totalAdjustment <= -5
       ? "Historical calibration warns against this setup."
+      : shadowSignals.length
+      ? `${shadowSignals.length} active hypothesis signal(s) remain shadow-only with zero score weight.`
       : "Historical calibration is neutral or mixed.";
 
   return {
@@ -125,8 +158,14 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
     calibrationConfidence: confidence,
     calibrationSignals: supportSignals,
     calibrationRiskSignals: riskSignals,
+    calibrationShadowSignals: shadowSignals,
     outcomeCalibration: {
       totalExamples: report.totalExamples,
+      uniqueProjects: report.uniqueProjects,
+      edgeStatus: report.edgeState ||
+        (report.validatedEdgeSignals?.length
+          ? "MEASURED_EDGE_AVAILABLE"
+          : "NO_EDGE_EVIDENCE"),
       hitRate: report.hitRate,
       missRate: report.missRate,
       avgOutcomePct: report.avgOutcomePct,
@@ -134,6 +173,7 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
       summary,
       supportSignals: supportSignals.slice(0, 5),
       riskSignals: riskSignals.slice(0, 5),
+      shadowSignals: shadowSignals.slice(0, 5),
     },
     evidence: [
       ...(project.evidence || []),
@@ -146,6 +186,7 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
         reasons: [
           `${report.totalExamples} historical outcome examples calibrated.`,
           `${supportSignals.length} supportive calibrated signals and ${riskSignals.length} warning signals active.`,
+          `${shadowSignals.length} active shadow hypotheses carry zero score weight.`,
           summary,
         ],
       },
@@ -153,8 +194,8 @@ export function analyzeOutcomeCalibration(project = {}, context = {}) {
   };
 }
 
-export function analyzeOutcomeCalibrationBatch(projects = []) {
-  const report = loadOutcomeCalibrationReport();
+export function analyzeOutcomeCalibrationBatch(projects = [], options = {}) {
+  const report = options.report || buildOutcomeCalibrationReport(options);
   const byKey = calibrationMap(report);
 
   return projects.map((project) => analyzeOutcomeCalibration(project, { report, byKey }));

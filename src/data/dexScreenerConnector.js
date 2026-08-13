@@ -15,9 +15,17 @@ import { normalizeProviderLinks } from "./providerLinkNormalizer.js";
  */
 
 const BASE_URL = "https://api.dexscreener.com";
+const DEX_SCREENER_CHAIN_IDS = {
+  "robinhood-chain": "robinhood",
+};
 
-async function fetchJson(url) {
-  const response = await fetch(url);
+export function resolveDexScreenerChainId(chainId = "") {
+  const canonical = normalizeChainId(chainId);
+  return DEX_SCREENER_CHAIN_IDS[canonical] || canonical || String(chainId || "").trim();
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, { signal: options.signal });
 
   if (!response.ok) {
     throw new Error(`DEX Screener request failed: ${response.status}`);
@@ -44,12 +52,14 @@ export async function getTopBoostedTokens() {
   return fetchJson(`${BASE_URL}/token-boosts/top/v1`);
 }
 
-export async function getTokenPairs(chainId, tokenAddress) {
-  return fetchJson(`${BASE_URL}/token-pairs/v1/${chainId}/${tokenAddress}`);
+export async function getTokenPairs(chainId, tokenAddress, options = {}) {
+  const providerChainId = resolveDexScreenerChainId(chainId);
+  return fetchJson(`${BASE_URL}/token-pairs/v1/${providerChainId}/${tokenAddress}`, options);
 }
 
-export async function getPairByAddress(chainId, pairAddress) {
-  return fetchJson(`${BASE_URL}/latest/dex/pairs/${chainId}/${pairAddress}`);
+export async function getPairByAddress(chainId, pairAddress, options = {}) {
+  const providerChainId = resolveDexScreenerChainId(chainId);
+  return fetchJson(`${BASE_URL}/latest/dex/pairs/${providerChainId}/${pairAddress}`, options);
 }
 
 export async function searchDexPairs(query) {

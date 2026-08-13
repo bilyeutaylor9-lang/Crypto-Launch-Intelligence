@@ -137,7 +137,8 @@ export function createOutcomeSnapshot(project = {}, timestamp = new Date().toISO
     score: num(project.finalScore ?? project.opportunityScore ?? project.score),
     riskScore: num(project.riskScore),
     tier: project.tier || project.opportunityTier || null,
-    action: project.opportunityThesis?.suggestedAction || null
+    action: project.opportunityThesis?.suggestedAction || null,
+    provenance: project.outcomeObservationProvenance || null,
   };
 }
 

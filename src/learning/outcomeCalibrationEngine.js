@@ -2,10 +2,21 @@ import fs from "fs";
 import path from "path";
 import { loadOutcomeSnapshots } from "./outcomeSnapshotStore.js";
 import { loadScanMemory } from "./scanMemoryStore.js";
+import {
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 const DATA_DIR = path.resolve("data");
 const CALIBRATION_FILE = path.join(DATA_DIR, "outcome-calibration.json");
 const DEFAULT_HORIZONS = [1, 24, 168, 720];
+const DEFAULT_EDGE_MIN_SAMPLES = 30;
+const DEFAULT_EDGE_MIN_UNIQUE_PROJECTS = 20;
+const DEFAULT_EDGE_MIN_DIRECTIONAL_RETURN_PCT = 3;
+const DEFAULT_EDGE_MIN_RELIABILITY = 58;
+const DEFAULT_SHADOW_MIN_SAMPLES = 10;
+const DEFAULT_SHADOW_MIN_UNIQUE_PROJECTS = 5;
+const DEFAULT_SHADOW_MIN_RELIABILITY = 50;
 
 export const CALIBRATED_SIGNALS = [
   { key: "marketRank", label: "Market Rank", positive: true },
@@ -54,8 +65,30 @@ function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+function normalizeIdentityKey(value = "") {
+  const raw = String(value || "").trim();
+  const separator = raw.indexOf(":");
+  if (separator <= 0 || separator === raw.length - 1) return "";
+  const chain = normalizeChainId(raw.slice(0, separator));
+  const identity = normalizeTokenAddress(raw.slice(separator + 1), chain);
+  return chain && identity ? `${chain}:${identity}` : "";
+}
+
 function keyOf(record = {}) {
-  return String(record.key || record.id || `${record.chain || "unknown"}:${record.symbol || record.name || "unknown"}`).toLowerCase();
+  const explicit = normalizeIdentityKey(record.identityKey || record.key);
+  if (explicit) return explicit;
+
+  const id = normalizeIdentityKey(record.id);
+  if (id) return id;
+
+  const chain = String(record.chain || "").trim().toLowerCase();
+  const tokenAddress = String(record.tokenAddress || record.contractAddress || "").trim();
+  if (!chain || !tokenAddress) return "";
+  return normalizeIdentityKey(`${chain}:${tokenAddress}`);
+}
+
+export function getOutcomeIdentityKey(record = {}) {
+  return keyOf(record);
 }
 
 function timestampOf(item = {}) {
@@ -81,9 +114,23 @@ function groupByKey(items = []) {
   return grouped;
 }
 
-function closestSnapshotAfter(snapshots = [], fromMs = 0, horizonHours = 24) {
+function horizonToleranceHours(horizonHours = 24, options = {}) {
+  const configured = Number(options.horizonToleranceHours?.[horizonHours]);
+  if (Number.isFinite(configured) && configured >= 0) return configured;
+  return Math.max(2, Math.min(24, horizonHours * 0.25));
+}
+
+export function outcomeHorizonToleranceHours(horizonHours = 24, options = {}) {
+  return horizonToleranceHours(horizonHours, options);
+}
+
+function closestSnapshotAfter(snapshots = [], fromMs = 0, horizonHours = 24, options = {}) {
   const targetMs = fromMs + horizonHours * 60 * 60 * 1000;
-  const future = snapshots.filter((snapshot) => timestampOf(snapshot) >= targetMs);
+  const toleranceMs = horizonToleranceHours(horizonHours, options) * 60 * 60 * 1000;
+  const future = snapshots.filter((snapshot) => {
+    const observedAt = timestampOf(snapshot);
+    return observedAt >= targetMs && observedAt - targetMs <= toleranceMs;
+  });
 
   if (!future.length) return null;
 
@@ -110,7 +157,12 @@ function outcomeScore(label = "neutral") {
   return 0;
 }
 
-export function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEFAULT_HORIZONS) {
+export function buildOutcomeExamples(
+  memory = [],
+  snapshots = [],
+  horizons = DEFAULT_HORIZONS,
+  options = {}
+) {
   const snapshotsByKey = groupByKey(snapshots);
   const examples = [];
 
@@ -126,7 +178,7 @@ export function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEF
     if (!fromMs || fromPrice <= 0 || !projectSnapshots.length) continue;
 
     for (const horizonHours of horizons) {
-      const future = closestSnapshotAfter(projectSnapshots, fromMs, horizonHours);
+      const future = closestSnapshotAfter(projectSnapshots, fromMs, horizonHours, options);
       if (!future) continue;
       if (num(future.priceUsd) <= 0) continue;
 
@@ -142,6 +194,13 @@ export function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEF
         name: record.name || future.name || "Unknown",
         symbol: record.symbol || future.symbol || "Unknown",
         horizonHours,
+        horizonLatenessHours: Number(
+          (
+            (timestampOf(future) - (fromMs + horizonHours * 60 * 60 * 1000)) /
+            (60 * 60 * 1000)
+          ).toFixed(3)
+        ),
+        horizonToleranceHours: horizonToleranceHours(horizonHours, options),
         scannedAt: record.scannedAt,
         outcomeAt: future.timestamp,
         scores: record.scores || {},
@@ -161,21 +220,128 @@ export function buildOutcomeExamples(memory = [], snapshots = [], horizons = DEF
   return examples;
 }
 
-function analyzeSignal(signal = {}, examples = []) {
+function median(values = []) {
+  const active = values
+    .filter((value) => Number.isFinite(Number(value)))
+    .map(Number)
+    .sort((a, b) => a - b);
+  if (!active.length) return 0;
+  const middle = Math.floor(active.length / 2);
+  return active.length % 2 ? active[middle] : (active[middle - 1] + active[middle]) / 2;
+}
+
+function winsorizedAverage(values = [], cap = 300) {
+  const active = values
+    .filter((value) => Number.isFinite(Number(value)))
+    .map((value) => clamp(value, -cap, cap));
+  return active.length ? active.reduce((sum, value) => sum + value, 0) / active.length : 0;
+}
+
+function edgePolicy(options = {}) {
+  return {
+    minimumSamples: Number(
+      options.minimumSamples || process.env.OUTCOME_EDGE_MIN_SAMPLES || DEFAULT_EDGE_MIN_SAMPLES
+    ),
+    minimumUniqueProjects: Number(
+      options.minimumUniqueProjects ||
+        process.env.OUTCOME_EDGE_MIN_UNIQUE_PROJECTS ||
+        DEFAULT_EDGE_MIN_UNIQUE_PROJECTS
+    ),
+    minimumDirectionalReturnPct: Number(
+      options.minimumDirectionalReturnPct ||
+        process.env.OUTCOME_EDGE_MIN_DIRECTIONAL_RETURN_PCT ||
+        DEFAULT_EDGE_MIN_DIRECTIONAL_RETURN_PCT
+    ),
+    minimumReliability: Number(
+      options.minimumReliability ||
+        process.env.OUTCOME_EDGE_MIN_RELIABILITY ||
+        DEFAULT_EDGE_MIN_RELIABILITY
+    ),
+    shadowMinimumSamples: Number(
+      options.shadowMinimumSamples ||
+        process.env.OUTCOME_SHADOW_MIN_SAMPLES ||
+        DEFAULT_SHADOW_MIN_SAMPLES
+    ),
+    shadowMinimumUniqueProjects: Number(
+      options.shadowMinimumUniqueProjects ||
+        process.env.OUTCOME_SHADOW_MIN_UNIQUE_PROJECTS ||
+        DEFAULT_SHADOW_MIN_UNIQUE_PROJECTS
+    ),
+    shadowMinimumReliability: Number(
+      options.shadowMinimumReliability ||
+        process.env.OUTCOME_SHADOW_MIN_RELIABILITY ||
+        DEFAULT_SHADOW_MIN_RELIABILITY
+    ),
+  };
+}
+
+function buildShadowHypothesis(signal = {}, policy = {}) {
+  if (
+    !["INSUFFICIENT_INDEPENDENT_SAMPLE", "NO_MEASURED_EDGE"].includes(signal.edgeStatus) ||
+    signal.samples < policy.shadowMinimumSamples ||
+    signal.uniqueProjects < policy.shadowMinimumUniqueProjects ||
+    signal.directionalReturnEdgePct < policy.minimumDirectionalReturnPct ||
+    signal.reliability < policy.shadowMinimumReliability
+  ) {
+    return null;
+  }
+
+  const validationRatios = [
+    signal.samples / Math.max(1, policy.minimumSamples),
+    signal.uniqueProjects / Math.max(1, policy.minimumUniqueProjects),
+    signal.directionalReturnEdgePct / Math.max(0.01, policy.minimumDirectionalReturnPct),
+    signal.reliability / Math.max(1, policy.minimumReliability),
+  ].map((ratio) => Math.min(1, Math.max(0, ratio)));
+  const validationProgressPct = Math.round(
+    (validationRatios.reduce((sum, ratio) => sum + ratio, 0) / validationRatios.length) * 100
+  );
+
+  return {
+    key: signal.key,
+    label: signal.label,
+    positive: signal.positive,
+    status: "SHADOW_ONLY",
+    samples: signal.samples,
+    uniqueProjects: signal.uniqueProjects,
+    reliability: signal.reliability,
+    directionalReturnEdgePct: signal.directionalReturnEdgePct,
+    medianOutcomePct: signal.medianOutcomePct,
+    validationProgressPct,
+    validationGaps: {
+      samplesNeeded: Math.max(0, policy.minimumSamples - signal.samples),
+      uniqueProjectsNeeded: Math.max(0, policy.minimumUniqueProjects - signal.uniqueProjects),
+      directionalReturnPctNeeded: Number(
+        Math.max(0, policy.minimumDirectionalReturnPct - signal.directionalReturnEdgePct).toFixed(2)
+      ),
+      reliabilityPointsNeeded: Math.max(0, policy.minimumReliability - signal.reliability),
+    },
+    scoreAdjustment: 0,
+    mayAffectFinalDecision: false,
+  };
+}
+
+function analyzeSignal(signal = {}, examples = [], options = {}) {
   const triggered = examples.filter((example) => num(example.scores?.[signal.key]) >= 60);
   const notTriggered = examples.filter((example) => num(example.scores?.[signal.key]) > 0 && num(example.scores?.[signal.key]) < 60);
+  const policy = edgePolicy(options);
 
   if (!triggered.length) {
     return {
       ...signal,
       samples: 0,
+      uniqueProjects: 0,
       hitRate: 50,
       avgOutcomePct: 0,
+      medianOutcomePct: 0,
+      winsorizedAvgOutcomePct: 0,
+      baselineWinsorizedAvgOutcomePct: 0,
+      directionalReturnEdgePct: 0,
       avgOutcomeScore: 45,
       falsePositiveRate: 0,
       reliability: 50,
       weightMultiplier: 1,
       scoreAdjustment: 0,
+      edgeStatus: "INSUFFICIENT_INDEPENDENT_SAMPLE",
     };
   }
 
@@ -185,6 +351,17 @@ function analyzeSignal(signal = {}, examples = []) {
   const falsePositiveRate = (loserCount / triggered.length) * 100;
   const avgOutcomePct =
     triggered.reduce((sum, example) => sum + num(example.primaryChangePct), 0) / triggered.length;
+  const triggeredReturns = triggered.map((example) => example.primaryChangePct);
+  const baselineReturns = notTriggered.length
+    ? notTriggered.map((example) => example.primaryChangePct)
+    : examples.map((example) => example.primaryChangePct);
+  const medianOutcomePct = median(triggeredReturns);
+  const winsorizedAvgOutcomePct = winsorizedAverage(triggeredReturns);
+  const baselineWinsorizedAvgOutcomePct = winsorizedAverage(baselineReturns);
+  const directionalReturnEdgePct = signal.positive
+    ? winsorizedAvgOutcomePct - baselineWinsorizedAvgOutcomePct
+    : baselineWinsorizedAvgOutcomePct - winsorizedAvgOutcomePct;
+  const uniqueProjects = new Set(triggered.map((example) => example.key)).size;
   const avgOutcomeScore =
     triggered.reduce((sum, example) => sum + num(example.outcomeScore), 0) / triggered.length * 100;
   const baselineOutcomeScore = notTriggered.length
@@ -198,22 +375,42 @@ function analyzeSignal(signal = {}, examples = []) {
       directionalEdge * 0.8 +
       (signal.positive ? hitRate - falsePositiveRate : falsePositiveRate - hitRate) * 0.25
   );
-  const sampleConfidence = Math.min(1, triggered.length / 30);
+  const sampleConfidence = Math.min(
+    1,
+    triggered.length / Math.max(1, policy.minimumSamples),
+    uniqueProjects / Math.max(1, policy.minimumUniqueProjects)
+  );
   const weightMultiplier = Number(
     clamp(1 + ((reliability - 50) / 100) * sampleConfidence, 0.75, 1.25).toFixed(3)
   );
   const scoreAdjustment = Math.round(clamp((reliability - 50) * sampleConfidence * 0.24, -8, 8));
+  const sampleReady =
+    triggered.length >= policy.minimumSamples && uniqueProjects >= policy.minimumUniqueProjects;
+  const edgeStatus = !sampleReady
+    ? "INSUFFICIENT_INDEPENDENT_SAMPLE"
+    : directionalReturnEdgePct >= policy.minimumDirectionalReturnPct &&
+        reliability >= policy.minimumReliability
+      ? "VALIDATED_DIRECTIONAL_EDGE"
+      : directionalReturnEdgePct <= -policy.minimumDirectionalReturnPct
+        ? "CONTRADICTED_DIRECTIONAL_EDGE"
+        : "NO_MEASURED_EDGE";
 
   return {
     ...signal,
     samples: triggered.length,
+    uniqueProjects,
     hitRate: Math.round(hitRate),
     avgOutcomePct: Number(avgOutcomePct.toFixed(2)),
+    medianOutcomePct: Number(medianOutcomePct.toFixed(2)),
+    winsorizedAvgOutcomePct: Number(winsorizedAvgOutcomePct.toFixed(2)),
+    baselineWinsorizedAvgOutcomePct: Number(baselineWinsorizedAvgOutcomePct.toFixed(2)),
+    directionalReturnEdgePct: Number(directionalReturnEdgePct.toFixed(2)),
     avgOutcomeScore: Math.round(avgOutcomeScore),
     falsePositiveRate: Math.round(falsePositiveRate),
     reliability: Math.round(reliability),
     weightMultiplier,
     scoreAdjustment,
+    edgeStatus,
   };
 }
 
@@ -267,12 +464,25 @@ function topOutcomes(examples = [], direction = "winner") {
 
 export function buildOutcomeCalibrationReport(options = {}) {
   const horizons = options.horizons || DEFAULT_HORIZONS;
+  const policy = edgePolicy(options);
   const examples = buildOutcomeExamples(
     options.memory || loadScanMemory(),
     options.snapshots || loadOutcomeSnapshots(),
-    horizons
+    horizons,
+    options
   );
-  const signalStats = CALIBRATED_SIGNALS.map((signal) => analyzeSignal(signal, examples));
+  const signalStats = CALIBRATED_SIGNALS.map((signal) => analyzeSignal(signal, examples, policy));
+  const validatedEdgeSignals = signalStats
+    .filter((signal) => signal.edgeStatus === "VALIDATED_DIRECTIONAL_EDGE")
+    .sort((a, b) => b.directionalReturnEdgePct - a.directionalReturnEdgePct);
+  const contradictedEdgeSignals = signalStats
+    .filter((signal) => signal.edgeStatus === "CONTRADICTED_DIRECTIONAL_EDGE")
+    .sort((a, b) => a.directionalReturnEdgePct - b.directionalReturnEdgePct);
+  const avoidanceEdgeSignals = contradictedEdgeSignals.filter((signal) => signal.positive);
+  const shadowEdgeHypotheses = signalStats
+    .map((signal) => buildShadowHypothesis(signal, policy))
+    .filter(Boolean)
+    .sort((a, b) => b.validationProgressPct - a.validationProgressPct);
   const total = examples.length;
   const winners = examples.filter((example) => example.outcomeScore >= 0.6);
   const losers = examples.filter((example) => example.outcomeScore <= 0.2);
@@ -284,6 +494,21 @@ export function buildOutcomeCalibrationReport(options = {}) {
     generatedAt: new Date().toISOString(),
     learningKernel: "TRUTH_ONLY_PRICE_OUTCOME",
     scoreBasedOutcomeLabelsAllowed: false,
+    identityJoinPolicy: "EXACT_CHAIN_SCOPED_IDENTITY_ONLY",
+    horizonResolutionPolicy: Object.fromEntries(
+      horizons.map((horizon) => [
+        `${horizon}h`,
+        { maximumLatenessHours: horizonToleranceHours(horizon, options) },
+      ])
+    ),
+    edgeQualificationPolicy: policy,
+    edgeState: validatedEdgeSignals.length
+      ? "MEASURED_EDGE_AVAILABLE"
+      : avoidanceEdgeSignals.length
+        ? "MEASURED_AVOIDANCE_EDGE_AVAILABLE"
+        : shadowEdgeHypotheses.length
+          ? "SHADOW_HYPOTHESES_ONLY"
+          : "NO_EDGE_EVIDENCE",
     horizons,
     totalExamples: total,
     uniqueProjects: new Set(examples.map((example) => example.key)).size,
@@ -292,12 +517,17 @@ export function buildOutcomeCalibrationReport(options = {}) {
     avgOutcomePct: Number(avgOutcomePct.toFixed(2)),
     confidenceCalibration: analyzeConfidence(examples),
     signalCalibration: signalStats.sort((a, b) => b.reliability - a.reliability),
+    validatedEdgeSignals,
+    contradictedEdgeSignals,
+    avoidanceEdgeSignals,
+    shadowEdgeHypotheses,
+    nextEdgeMilestone: shadowEdgeHypotheses[0] || null,
     strongestSignals: signalStats
-      .filter((signal) => signal.samples >= 3)
+      .filter((signal) => signal.edgeStatus === "VALIDATED_DIRECTIONAL_EDGE")
       .sort((a, b) => b.reliability - a.reliability)
       .slice(0, 10),
     weakestSignals: signalStats
-      .filter((signal) => signal.samples >= 3)
+      .filter((signal) => signal.edgeStatus === "CONTRADICTED_DIRECTIONAL_EDGE")
       .sort((a, b) => a.reliability - b.reliability)
       .slice(0, 10),
     topWinners: topOutcomes(examples, "winner"),

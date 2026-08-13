@@ -1,0 +1,91 @@
+name: Exact Outcome Probe
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-dashboard-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Restore Bounded Learning Memory
+        id: learning_cache_restore
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Probe Due Exact Outcomes
+        id: outcome_probe
+        run: npm run outcomes:probe
+        env:
+          OUTCOME_PROBE_HORIZONS: 1,24,168,720
+          OUTCOME_PROBE_MAX_CANDIDATES: 60
+          OUTCOME_PROBE_MAX_REQUESTS: 60
+          OUTCOME_PROBE_CONCURRENCY: 4
+
+      - name: Save Bounded Learning Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Probe Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: outcome-probe-${{ github.run_id }}
+          path: reports/outcome-probe.json
+          if-no-files-found: ignore
+          retention-days: 14
