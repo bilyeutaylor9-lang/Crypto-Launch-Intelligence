@@ -35,6 +35,7 @@ import { primeScanMemory } from "./learning/scanMemoryStore.js";
 import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js";
 import { engineProfileReport } from "./config/engineProfileConfig.js";
+import { summarizeEvidenceFunnel } from "./kernel/evidenceFunnelSummary.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -197,32 +198,19 @@ function normalizeForReports(projects = []) {
     .sort((a, b) => scoreOf(b) - scoreOf(a));
 }
 
-function average(values = []) {
-  const active = values.map(num).filter((value) => Number.isFinite(value));
-  return active.length ? active.reduce((sum, value) => sum + value, 0) / active.length : 0;
-}
-
 export function buildScannerSemanticHealth(projects = [], context = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const standardCandidateCount = safeProjects.length;
-  const progressiveExecution = safeProjects.some((project) =>
-    ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(
-      project.deepEvaluationState
-    )
+  const funnel = summarizeEvidenceFunnel(safeProjects);
+  const standardCandidateCount = funnel.standardCandidates;
+  const deepUniverse = safeProjects.filter(
+    (project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP"
   );
-  const deepUniverse = progressiveExecution
-    ? safeProjects.filter((project) => project.deepEvaluationState === "DEEP_EVALUATED")
-    : safeProjects;
-  const deepEvaluatedCandidates = deepUniverse.length;
-  const deferredBeforeDeepCandidates = progressiveExecution
-    ? safeProjects.filter((project) => project.deepEvaluationState === "DEFERRED_BEFORE_DEEP").length
-    : 0;
-  const qualified = deepUniverse.filter((project) => project.finalSelectionState === "QUALIFIED").length;
+  const deepEvaluatedCandidates = funnel.deepEvaluated;
+  const deferredBeforeDeepCandidates = funnel.deepDeferred;
+  const qualified = funnel.fullyQualified;
   const insufficient = deepUniverse.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA").length;
   const recovered = deepUniverse.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
-  const averageEvidenceCoverage = Math.round(
-    average(deepUniverse.map((project) => project.evidenceCoverageScore ?? project.engineHealth?.averageEvidenceCoverage ?? 0))
-  );
+  const averageEvidenceCoverage = funnel.coreEvidenceCoveragePct;
   const insufficientRatio = deepEvaluatedCandidates ? insufficient / deepEvaluatedCandidates : 0;
   const degradedCandidateFloor = Math.max(
     1,
@@ -251,14 +239,25 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
     insufficientRatio >= degradedInsufficientRatio &&
     averageEvidenceCoverage < degradedCoverageThreshold;
   const deepEvaluationMissing = standardCandidateCount > 0 && deepEvaluatedCandidates === 0;
-  const dataDegraded = largeInsufficientFailure || deepEvaluationMissing || rescueSkippedDespiteShortfall || remoteMemoryFailed;
+  const canonicalCoreReadinessAvailable = deepUniverse.some(
+    (project) =>
+      project.coreEvidenceCoveragePct !== undefined ||
+      project.engineDataReadiness?.coreEvidenceCoveragePct !== undefined
+  );
+  const coreEvidenceUnhealthy = canonicalCoreReadinessAvailable
+    ? !funnel.healthyCoreEvidence
+    : false;
+  const dataDegraded =
+    (coreEvidenceUnhealthy && qualified === 0) ||
+    largeInsufficientFailure ||
+    deepEvaluationMissing ||
+    rescueSkippedDespiteShortfall ||
+    remoteMemoryFailed;
   const status = qualified > 0
     ? "EDGE_FOUND"
     : dataDegraded
       ? "DATA_DEGRADED"
-      : insufficient > 0
-        ? "INSUFFICIENT_EVIDENCE"
-        : "NO_EDGE_FOUND";
+      : "NO_EDGE_FOUND";
 
   return {
     status,
@@ -270,6 +269,7 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
     insufficientDataRatioPct: deepEvaluatedCandidates ? Math.round(insufficientRatio * 10_000) / 100 : 0,
     averageEvidenceCoverage,
     activeRecoveryCandidates: recovered,
+    ...funnel,
     discoveryTargetCandidates: target,
     discoveryAcceptedCandidates: accepted,
     discoveryShortfallPct,
@@ -281,9 +281,7 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
     readinessClass:
       status === "EDGE_FOUND" || status === "NO_EDGE_FOUND"
         ? "HEALTHY_EVIDENCE"
-        : status === "INSUFFICIENT_EVIDENCE"
-          ? "INSUFFICIENT_EVIDENCE"
-          : "DATA_DEGRADED",
+        : "DATA_DEGRADED",
     policy:
       "Decision health uses only deep-evaluated candidates. Deferred candidates are reported separately, and optional remote-memory failure degrades learning continuity without misclassifying current evidence.",
   };

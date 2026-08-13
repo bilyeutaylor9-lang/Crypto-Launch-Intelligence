@@ -5,7 +5,10 @@ import fs from "fs";
 import { resolveAnalysisFunnelConfig } from "../src/config/analysisFunnelConfig.js";
 import { planResearchQueue } from "../src/index.js";
 import { planInstitutionalCandidateSelection } from "../src/discovery/institutionalCandidateSelector.js";
-import { calculatePreIntelligenceFeatures } from "../src/discovery/preIntelligenceFeatureEngine.js";
+import {
+  calculatePreIntelligenceFeatures,
+  hasDeepResolvableIdentity,
+} from "../src/discovery/preIntelligenceFeatureEngine.js";
 import { identityKeyForProject } from "../src/discovery/projectIdentityGraph.js";
 
 function evmAddress(index = 0) {
@@ -119,6 +122,40 @@ test("funnel accounting separates rankable assets from identity-enrichment resea
   assert.equal(plan.report.funnel.preIntelligenceLeader, "RALPHA");
   assert.equal(plan.report.funnel.leaderStatus, "PRELIMINARY_RESEARCH_ROUTING_ONLY");
   assert.equal(plan.report.funnel.bestOpportunity, undefined);
+});
+
+test("market data cannot promote unresolved chain or symbol-only identity into deep selection", () => {
+  const unresolved = calculatePreIntelligenceFeatures({
+    name: "Unresolved Market Row",
+    symbol: "UMR",
+    source: "dexscreener",
+    liquidityUsd: 100_000,
+    volume24h: 50_000,
+    priceUsd: 1,
+  });
+  const unsupported = calculatePreIntelligenceFeatures({
+    name: "Unsupported Chain Row",
+    symbol: "UCR",
+    chain: "not-a-chain",
+    tokenAddress: evmAddress(88),
+    source: "dexscreener",
+    liquidityUsd: 100_000,
+    volume24h: 50_000,
+    priceUsd: 1,
+  });
+
+  assert.equal(unresolved.preIntelligenceLane, "identity-only");
+  assert.equal(unresolved.preIntelligenceRankEligible, false);
+  assert.equal(unsupported.preIntelligenceLane, "identity-only");
+  assert.equal(unsupported.preIntelligenceRankEligible, false);
+  assert.equal(hasDeepResolvableIdentity(unresolved), false);
+});
+
+test("verified CEX identity remains eligible without an on-chain token address", () => {
+  assert.equal(hasDeepResolvableIdentity({
+    sourceType: "cex",
+    marketPair: "BTC-USDT",
+  }), true);
 });
 
 test("selector does not choose the first records merely by discovery order", () => {

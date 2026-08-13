@@ -191,7 +191,8 @@ function guardedLiveRankingIssues(report = {}, fileName = "") {
       Number(summary.microTestEligible || 0) +
       Number(summary.researchWatchlist || 0) +
       Number(summary.dataRecoveryRequired || 0) +
-      Number(summary.blocked || 0);
+      Number(summary.blocked || 0) +
+      Number(summary.deepDeferred || 0);
     if (total !== Number(report.projectsAnalyzed || 0)) {
       issues.push(`${fileName}: status counts ${total} do not equal projectsAnalyzed ${report.projectsAnalyzed}`);
     }

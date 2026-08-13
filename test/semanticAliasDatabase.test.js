@@ -157,14 +157,18 @@ test("alias scanning never mines provenance values into unrelated metrics", () =
   assert.equal(aliases.resolved.holderCount, null);
 });
 
-test("wallet and deployer evidence route only to capable provider families", () => {
+test("raw wallet and deployer evidence route only to providers while derived wallet output is recomputed", () => {
   const wallet = routeMissingEvidence({ canonicalField: "smartWalletNetFlowUsd", recoverable: true });
+  const walletRaw = routeMissingEvidence({ canonicalField: "smartWalletBuyVolumeUsd", recoverable: true });
   const deployer = routeMissingEvidence({ canonicalField: "deployerHistory", recoverable: true });
   const derived = routeMissingEvidence({ canonicalField: "progressiveOpportunityScore", recoverable: true });
 
-  assert.equal(sourceFamilyForField("smartWalletNetFlowUsd"), "WALLETS");
-  assert.equal(wallet.evidenceFamily, "WALLETS");
-  assert.ok(wallet.targetSources.every((source) => !["DexScreener", "CoinPaprika"].includes(source.source)));
+  assert.equal(sourceFamilyForField("smartWalletNetFlowUsd"), "DERIVED");
+  assert.equal(wallet.evidenceFamily, "DERIVED");
+  assert.equal(wallet.recoverable, false);
+  assert.equal(wallet.recomputeAfterRecovery, true);
+  assert.equal(walletRaw.evidenceFamily, "WALLETS");
+  assert.ok(walletRaw.targetSources.every((source) => !["DexScreener", "CoinPaprika"].includes(source.source)));
   assert.equal(deployer.evidenceFamily, "DEPLOYER");
   assert.ok(deployer.targetSources.some((source) => /rpc|explorer/i.test(source.source)));
   assert.equal(derived.evidenceFamily, "DERIVED");

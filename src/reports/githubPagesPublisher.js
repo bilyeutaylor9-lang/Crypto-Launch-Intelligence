@@ -474,7 +474,14 @@ function renderResearchWorthyBoard(candidates = []) {
   `;
 }
 
-function renderDailyCapitalSlate(dailyCapital = {}, recovery = {}) {
+export function emptyExecutionLabel(verifiedRoutes = 0, fullyQualified = 0) {
+  if (Number(fullyQualified || 0) > 0) return "QUALIFIED MOVE AVAILABLE";
+  return Number(verifiedRoutes || 0) > 0
+    ? "NO FULLY QUALIFIED MOVE"
+    : "NO VERIFIED ROUTE";
+}
+
+function renderDailyCapitalSlate(dailyCapital = {}, recovery = {}, funnel = {}) {
   const best = dailyCapital.bestCandidate;
   const board = [
     ...(best ? [best] : []),
@@ -506,7 +513,8 @@ function renderDailyCapitalSlate(dailyCapital = {}, recovery = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(dailyCapital.countsByLane?.CAPITAL_MOVE_RESEARCH || 0)}</div><div class="metric-label">Capital Move Research</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(dailyCapital.countsByLane?.NEEDS_PROOF || 0)}</div><div class="metric-label">Needs Proof</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(recovery.recoveryCandidateCount ?? 0)}</div><div class="metric-label">Recovery Queue</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(best?.executionTruthState || "NO VERIFIED ROUTE")}</div><div class="metric-label">Execution Truth</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(best?.executionTruthState || emptyExecutionLabel(funnel.verifiedRoutes, funnel.fullyQualified))}</div><div class="metric-label">Execution Truth</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(funnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes</div></div>
       </div>
       ${renderScalpCandidateTable(board, "Daily Capital Slate")}
     </section>
@@ -692,6 +700,14 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const dailySourceGaps = readJsonReport("daily-source-gaps.json", reportsDir) || {};
   const systemReadiness = readJsonReport("system-readiness.json", reportsDir) || {};
   const liveCoreRanking = readJsonReport("live-core-ranking.json", reportsDir) || {};
+  const evidenceFunnel = {
+    ...(liveCoreRanking.funnelSummary || liveCoreRanking.summary || {}),
+    verifiedRoutes:
+      liveCoreRanking.funnelSummary?.verifiedRoutes ??
+      liveCoreRanking.summary?.verifiedRoutes ??
+      routeUniverse.executionReadyCount ??
+      0,
+  };
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -1306,15 +1322,20 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         </div>
       </div>
       <div class="metrics">
-        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.microTestEligible ?? 0)}</div><div class="metric-label">Micro-Test Eligible</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.researchWatchlist ?? 0)}</div><div class="metric-label">Research Watchlist</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.dataRecoveryRequired ?? 0)}</div><div class="metric-label">Needs Data Recovery</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(liveCoreRanking.summary?.blocked ?? 0)}</div><div class="metric-label">Deterministically Blocked</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.standardCandidates ?? liveCoreRanking.summary?.analyzed ?? 0)}</div><div class="metric-label">Standard Candidates</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.deepDeferred ?? 0)}</div><div class="metric-label">Deep Deferred</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.deepEvaluated ?? 0)}</div><div class="metric-label">Deep Evaluated</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreEvidenceReady ?? 0)}</div><div class="metric-label">Core Evidence Ready</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreEvidencePartial ?? 0)}</div><div class="metric-label">Core Evidence Partial</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreDataStarved ?? 0)}</div><div class="metric-label">Core Data Starved</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.fullyQualified ?? 0)}</div><div class="metric-label">Fully Qualified</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.deterministicallyBlocked ?? liveCoreRanking.summary?.blocked ?? 0)}</div><div class="metric-label">Deterministically Blocked</div></div>
       </div>
       ${renderScalpCandidateTable(liveCoreRanking.top10 || [], "Authoritative Guarded Research Ranking")}
     </section>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
-    ${renderDailyCapitalSlate(dailyCapital, dailyRecovery)}
+    ${renderDailyCapitalSlate(dailyCapital, dailyRecovery, evidenceFunnel)}
     <section class="panel">
       <div class="section-heading">
         <div>

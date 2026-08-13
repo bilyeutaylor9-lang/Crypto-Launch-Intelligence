@@ -22,6 +22,23 @@ function hasValue(value) {
   return value !== undefined && value !== null && String(value).trim() !== "";
 }
 
+function numberOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function timestampOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const numericValue = Number(value);
+  const parsed = Number.isFinite(numericValue)
+    ? numericValue > 1e12
+      ? numericValue
+      : numericValue * 1000
+    : Date.parse(String(value));
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
 export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo = {}, meta = {}) {
   const sourceVerified =
     boolFlag(contract.is_verified) === true ||
@@ -38,12 +55,34 @@ export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo =
     addressInfo.implementation_address ||
     contract.implementations?.[0]?.address ||
     null;
-  const creatorAddress =
+  const rawCreatorAddress =
     contract.creator_address_hash ||
     contract.creator_address ||
     addressInfo.creator_address_hash ||
     addressInfo.creator_address ||
     null;
+  const creatorAddress = isEvmAddress(rawCreatorAddress)
+    ? lower(rawCreatorAddress)
+    : null;
+  const deploymentTransactionHash =
+    contract.creation_tx_hash ||
+    contract.creation_transaction_hash ||
+    contract.transaction_hash ||
+    addressInfo.creation_tx_hash ||
+    addressInfo.creation_transaction_hash ||
+    null;
+  const creationBlockNumber = numberOrNull(
+    contract.creation_block_number ||
+      contract.block_number ||
+      addressInfo.creation_block_number ||
+      addressInfo.block_number
+  );
+  const contractCreationTimestamp = timestampOrNull(
+    contract.creation_timestamp ||
+      contract.created_at ||
+      addressInfo.creation_timestamp ||
+      addressInfo.created_at
+  );
 
   if (!sourceVerified && !hasValue(contract.name) && !hasValue(addressInfo.hash)) {
     return {
@@ -64,6 +103,9 @@ export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo =
     proxy,
     implementationAddress,
     creatorAddress,
+    deploymentTransactionHash,
+    creationBlockNumber,
+    contractCreationTimestamp,
     contractName: contract.name || contract.contract_name || null,
     ownerRisk: false,
     mintRisk: false,

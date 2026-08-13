@@ -23,13 +23,13 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "Etherscan-compatible explorers", authority: 78, cost: 1, latencyMs: 1800, fields: ["contractVerified", "ownerRenounced", "buyTaxPct", "sellTaxPct"] },
   ],
   WALLETS: [
-    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "uniqueBuyers24h", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletNetFlowUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "wallets", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "wallet-history database", authority: 76, cost: 1, latencyMs: 1200, fields: ["smartWalletScore", "smartWalletArrivalScore", "smartWallets", "trackedWallets", "smartWalletNetFlowUsd", "accumulationDays"] },
+    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h", "buyVolumeUsd", "sellVolumeUsd", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
+    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
+    { source: "wallet-history database", authority: 76, cost: 0.25, latencyMs: 200, fields: ["walletParticipationHistory", "smartWallets", "trackedWallets"] },
   ],
   DEPLOYER: [
     { source: "native RPC", authority: 88, cost: 2, latencyMs: 2500, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "nativeLifecycle", "priorDeployments"] },
-    { source: "block explorers", authority: 80, cost: 2, latencyMs: 2200, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "deployerHistory", "priorDeployments", "walletAgeDays"] },
+    { source: "block explorers", authority: 80, cost: 2, latencyMs: 2200, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "deployerHistory", "priorDeployments", "walletAgeDays", "deploymentTransactionHash", "contractCreationTimestamp", "creationBlockNumber"] },
     { source: "security providers", authority: 80, cost: 1, latencyMs: 2000, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "priorRugs", "reusedBytecodeRisk", "fundingSourceRisk"] },
   ],
   DEVELOPMENT: [
@@ -74,19 +74,26 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   buyTransactions24h: "WALLETS",
   sellTransactions24h: "WALLETS",
   holderCount: "WALLETS",
+  holderAddresses: "WALLETS",
   wallets: "WALLETS",
-  smartWalletScore: "WALLETS",
-  smartWalletArrivalScore: "WALLETS",
+  buyerAddresses: "WALLETS",
+  sellerAddresses: "WALLETS",
+  walletTransactions: "WALLETS",
+  walletParticipationHistory: "WALLETS",
+  buyVolumeUsd: "WALLETS",
+  sellVolumeUsd: "WALLETS",
+  smartWalletScore: "DERIVED",
+  smartWalletArrivalScore: "DERIVED",
   smartWalletBuys24h: "WALLETS",
   smartWalletSells24h: "WALLETS",
   smartWalletBuyVolumeUsd: "WALLETS",
   smartWalletSellVolumeUsd: "WALLETS",
   smartWallets: "WALLETS",
   trackedWallets: "WALLETS",
-  smartWalletNetFlowUsd: "WALLETS",
+  smartWalletNetFlowUsd: "DERIVED",
   smartWalletBuyCount: "WALLETS",
   smartWalletSellCount: "WALLETS",
-  accumulationDays: "WALLETS",
+  accumulationDays: "DERIVED",
   deployer: "DEPLOYER",
   creator: "DEPLOYER",
   deployerAddress: "DEPLOYER",
@@ -97,6 +104,9 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   priorRugs: "DEPLOYER",
   successfulLaunches: "DEPLOYER",
   walletAgeDays: "DEPLOYER",
+  deploymentTransactionHash: "DEPLOYER",
+  contractCreationTimestamp: "DEPLOYER",
+  creationBlockNumber: "DEPLOYER",
   reusedBytecodeRisk: "DEPLOYER",
   fundingSourceRisk: "DEPLOYER",
   githubRepo: "DEVELOPMENT",
@@ -163,4 +173,13 @@ export function sourceFamilyForField(field = "") {
 export function sourcesForField(field = "") {
   const family = sourceFamilyForField(field);
   return ENRICHMENT_SOURCE_REGISTRY[family] || [];
+}
+
+export function recoveryDispositionForField(field = "", options = {}) {
+  if (options.applicability === "NOT_APPLICABLE") return "NOT_APPLICABLE";
+  const family = sourceFamilyForField(field);
+  if (family === "DERIVED") return "DERIVED_RECOMPUTE";
+  return sourcesForField(field).length
+    ? "RAW_RECOVERABLE"
+    : "UNAVAILABLE_WITH_CURRENT_PROVIDERS";
 }

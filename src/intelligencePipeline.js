@@ -8,6 +8,7 @@ import {
   analyzeCandidateTruthReconciliationBatch,
 } from "./engines/candidateTruthReconciliationEngine.js";
 import { attachCandidateTruthStateBatch } from "./kernel/candidateTruthState.js";
+import { attachCandidateEvidenceState } from "./kernel/evidenceFunnelSummary.js";
 
 import { analyzeNarratives } from "./engines/narrativeEngine.js";
 import { analyzeNarrativeForecastBatch } from "./engines/narrativeForecastEngine.js";
@@ -224,6 +225,53 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "Contract Authority Risk": 180_000,
   "Capital Flow Observation": 45_000,
 };
+
+export const FINAL_EVIDENCE_ENGINE_SEQUENCE = Object.freeze([
+  "Utility Quality",
+  "Progressive Opportunity Ranking",
+  "Market Opportunity Rank",
+  "High-Upside Scalp Classification",
+  "Candidate Decision Scoring",
+  "Daily Capital Move",
+  "Engine Data Readiness",
+  "Post-Evidence Final Scoring",
+  "Final Selection Integrity",
+]);
+
+export const RECOVERY_ENGINE_EVIDENCE_FAMILIES = Object.freeze({
+  "Project Identity Graph": ["IDENTITY", "DEPLOYER"],
+  "Source Truth": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Active Liquidity Truth": ["MARKET", "EXECUTION"],
+  "Organic Buyer Classifier": ["WALLETS", "MARKET"],
+  "Wallet Cluster": ["WALLETS"],
+  "Smart Wallet": ["WALLETS"],
+  "Smart Wallet Performance": ["WALLETS"],
+  "Smart Money Accumulation": ["WALLETS"],
+  "Deployer Reputation": ["DEPLOYER"],
+  "Bundled Launch": ["WALLETS", "DEPLOYER"],
+  "Wash Trading": ["WALLETS", "MARKET"],
+  "Organic Buyer Firewall": ["WALLETS", "MARKET"],
+  "Organic Demand Integrity": ["WALLETS", "MARKET"],
+  "Instant Safety Gate": ["SECURITY", "DEPLOYER"],
+  "Contract Authority Risk": ["SECURITY", "DEPLOYER"],
+  "Liquidity Control Risk": ["MARKET", "SECURITY", "DEPLOYER"],
+  "Canonical Execution Route": ["IDENTITY", "MARKET", "EXECUTION"],
+  "Execution Proof Recovery": ["IDENTITY", "MARKET", "SECURITY", "EXECUTION"],
+  "Execution Proof": ["IDENTITY", "MARKET", "SECURITY", "EXECUTION"],
+  "Route Accessibility": ["IDENTITY", "MARKET", "EXECUTION"],
+  "Candidate Truth Reconciliation": ["IDENTITY", "MARKET", "SECURITY", "EXECUTION"],
+  "Institutional Data Provenance": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Sniper Evidence Families": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Sniper Integrity Gate": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Opportunity Proof": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+});
+
+export function shouldRerunEngineForEvidenceFamilies(name = "", families = []) {
+  const dependencies = RECOVERY_ENGINE_EVIDENCE_FAMILIES[name];
+  if (!dependencies) return true;
+  const changed = new Set(Array.isArray(families) ? families : []);
+  return dependencies.some((family) => changed.has(family));
+}
 const PIPELINE_STAGE_ORDER = [
   "standard",
   "advanced",
@@ -655,6 +703,21 @@ export function prepareProjectsForPipelineRun(projects = [], options = {}) {
     delete next.finalBlockingReasons;
     delete next.finalWarningReasons;
     delete next.selectionAuditTrail;
+    delete next.engineDataReadinessScore;
+    delete next.engineDataReadinessStatus;
+    delete next.engineDataReadiness;
+    delete next.coreEvidenceCoveragePct;
+    delete next.advisoryEvidenceCoveragePct;
+    delete next.coreEvidenceState;
+    delete next.advisoryEvidenceState;
+    delete next.advisoryDataGaps;
+    delete next.missingEngineInputs;
+    delete next.coreMissingFields;
+    delete next.advisoryMissingFields;
+    delete next.nextDataSourcesNeeded;
+    delete next.preRecoveryEngineDataReadinessScore;
+    delete next.preRecoveryEngineDataReadinessStatus;
+    delete next.preRecoveryEngineDataReadiness;
 
     return {
       ...next,
@@ -2502,7 +2565,14 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     const selected = [];
     const positions = [];
     currentProjects.forEach((project, index) => {
-      if (["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)) {
+      const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamilies || [];
+      const executionWaveSelected =
+        project.activeEvidenceRecovery?.waves?.includes("WAVE3") &&
+        RECOVERY_ENGINE_EVIDENCE_FAMILIES[name]?.includes("EXECUTION");
+      if (
+        project.activeEvidenceRecovery?.waves?.length &&
+        (executionWaveSelected || shouldRerunEngineForEvidenceFamilies(name, changedFamilies))
+      ) {
         selected.push(project);
         positions.push(index);
       }
@@ -2711,15 +2781,26 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
   results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
   results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, options.activeEvidenceRecovery || {});
-  if (results.some((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus))) {
+  if (results.some((project) => project.activeEvidenceRecovery?.waves?.length)) {
     results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
     results = await runRecoveryEngine("Source Truth", analyzeSourceTruthBatch, results);
     results = await runRecoveryEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
+    results = await runRecoveryEngine("Organic Buyer Classifier", analyzeOrganicBuyerClassifierBatch, results);
+    results = await runRecoveryEngine("Wallet Cluster", analyzeWalletClusterBatch, results);
+    results = await runRecoveryEngine("Smart Wallet", analyzeSmartWalletBatch, results);
+    results = await runRecoveryEngine("Smart Wallet Performance", analyzeSmartWalletPerformanceBatch, results);
+    results = await runRecoveryEngine("Smart Money Accumulation", analyzeSmartMoneyAccumulationBatch, results);
+    results = await runRecoveryEngine("Deployer Reputation", analyzeDeployerReputationBatch, results);
+    results = await runRecoveryEngine("Bundled Launch", analyzeBundledLaunchBatch, results);
+    results = await runRecoveryEngine("Wash Trading", analyzeWashTradingBatch, results);
+    results = await runRecoveryEngine("Organic Buyer Firewall", analyzeOrganicBuyerBatch, results);
+    results = await runRecoveryEngine("Organic Demand Integrity", analyzeOrganicDemandIntegrityBatch, results);
     results = await runRecoveryEngine("Instant Safety Gate", analyzeInstantSafetyGateBatch, results);
     results = await runRecoveryEngine("Contract Authority Risk", analyzeContractAuthorityRiskBatch, results, {
       collectSecurityEvidence: false,
       ...(options.contractAuthorityRisk || {}),
     });
+    results = await runRecoveryEngine("Liquidity Control Risk", analyzeLiquidityControlRiskBatch, results);
     results = await runRecoveryEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
     results = await runRecoveryEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
     results = await runRecoveryEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
@@ -2735,16 +2816,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     results = await runRecoveryEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
     results = await runRecoveryEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
   }
-  results = await runEngine("Post-Evidence Final Scoring", addFinalScoring, results);
-  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
-  results = markDeepEvaluationComplete(results, stageContext);
-  results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, {
-    ...(options.engineDataReadiness || {}),
-    auditPhase: "FINAL",
-  });
-  results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
-  results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
-  results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
   results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
   results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
     ...(options.firstSeenOpportunity || {}),
@@ -2772,6 +2843,17 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     options.candidateDecisionScoring || {}
   );
   results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  results = markDeepEvaluationComplete(results, stageContext);
+  results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, {
+    ...(options.engineDataReadiness || {}),
+    auditPhase: "FINAL",
+  });
+  results = await runEngine("Data Starvation Root Cause", analyzeDataStarvationRootCauseBatch, results, options.dataStarvationRootCause || {});
+  results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
+  results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
+  results = await runEngine("Post-Evidence Final Scoring", addFinalScoring, results);
+  results = await runEngine("Final Selection Integrity", analyzeFinalSelectionIntegrityBatch, results, options.finalSelectionIntegrity || {});
+  results = results.map(attachCandidateEvidenceState);
   results = attachCandidateTruthStateBatch(results);
 
   const finalIntegrity = validateFinalSelectionInvariants(results);

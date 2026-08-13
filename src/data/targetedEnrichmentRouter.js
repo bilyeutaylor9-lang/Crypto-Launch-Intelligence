@@ -1,4 +1,8 @@
-import { sourcesForField, sourceFamilyForField } from "./enrichmentSourceRegistry.js";
+import {
+  recoveryDispositionForField,
+  sourcesForField,
+  sourceFamilyForField,
+} from "./enrichmentSourceRegistry.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -24,6 +28,9 @@ export function estimateValueOfInformation(item = {}) {
 export function routeMissingEvidence(item = {}, options = {}) {
   const field = item.canonicalField || item.field || "";
   const family = sourceFamilyForField(field);
+  const recoveryDisposition = recoveryDispositionForField(field, {
+    applicability: item.applicability,
+  });
   const sources = sourcesForField(field)
     .filter((source) => options.freeOnly === false || source.free !== false)
     .map((source) => ({
@@ -43,11 +50,17 @@ export function routeMissingEvidence(item = {}, options = {}) {
     targetSources: sources.slice(0, options.maxSources || 4),
     estimatedRequests: Math.min(sources.length, options.maxSources || 4),
     estimatedTimeMs: sources.slice(0, options.maxSources || 4).reduce((sum, source) => sum + num(source.latencyMs), 0),
-    recoverable: sources.length > 0 && item.recoverable !== false,
-    recomputeAfterRecovery: family === "DERIVED",
+    recoveryDisposition,
+    recoverable:
+      recoveryDisposition === "RAW_RECOVERABLE" &&
+      sources.length > 0 &&
+      item.recoverable !== false,
+    recomputeAfterRecovery: recoveryDisposition === "DERIVED_RECOMPUTE",
     routingStatus:
-      family === "DERIVED"
+      recoveryDisposition === "DERIVED_RECOMPUTE"
         ? "RECOMPUTE_DERIVED_OUTPUT"
+        : recoveryDisposition === "NOT_APPLICABLE"
+          ? "NOT_APPLICABLE"
         : sources.length
           ? "PROVIDER_ROUTE_AVAILABLE"
           : "NO_CAPABLE_PROVIDER_REGISTERED",

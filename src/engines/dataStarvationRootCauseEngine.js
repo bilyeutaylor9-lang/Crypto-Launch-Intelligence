@@ -117,11 +117,22 @@ function developmentEvidenceApplicable(project = {}) {
 }
 
 export function fieldApplicability(project = {}, canonicalField = "", contract = {}) {
-  const chain = normalizeChainId(project.chain || project.chainId || project.network || canonicalValue(project, "chain"));
+  const chain = normalizeChainId(
+    project.chain ||
+      project.chainId ||
+      project.network ||
+      project.canonicalAliases?.chain ||
+      canonicalValue(project, "chain", { disableSemanticScan: true })
+  );
   const family = chain ? chainKind(chain) : null;
   const venue = venueType(project);
   const life = lifecycle(project);
-  const tokenAddress = canonicalValue(project, "tokenAddress");
+  const tokenAddress =
+    project.tokenAddress ||
+    project.contractAddress ||
+    project.address ||
+    project.canonicalAliases?.tokenAddress ||
+    canonicalValue(project, "tokenAddress", { disableSemanticScan: true });
 
   if (
     contract.id === "deployerReputation" &&
@@ -132,11 +143,33 @@ export function fieldApplicability(project = {}, canonicalField = "", contract =
       reason: "Deployer history requires a launched on-chain token identity; CEX-only, contractless, and prelaunch records remain research-only.",
     };
   }
+  if (contract.id === "deployerReputation" && family === "solana") {
+    return {
+      status: "NOT_APPLICABLE",
+      reason: "Solana authority and mint safety are evaluated by chain-specific engines; EVM deployer reputation is not applicable.",
+    };
+  }
   if (["lpLockedPct", "lpBurnedPct", "ownerLpSharePct", "poolAddress"].includes(canonicalField) && venue === "cex") {
     return { status: "NOT_APPLICABLE", reason: "CEX-only project does not require DEX pool or LP-lock evidence." };
   }
-  if (["ownerRenounced", "contractVerified"].includes(canonicalField) && family === "solana") {
-    return { status: "NOT_APPLICABLE", reason: "Solana project does not use EVM ownership/source-verification semantics." };
+  if (
+    [
+      "ownerRenounced",
+      "contractVerified",
+      "buyTaxPct",
+      "sellTaxPct",
+      "deployer",
+      "deployerAddress",
+      "deployerHistory",
+      "priorDeployments",
+      "successfulLaunches",
+      "walletAgeDays",
+      "reusedBytecodeRisk",
+      "fundingSourceRisk",
+    ].includes(canonicalField) &&
+    family === "solana"
+  ) {
+    return { status: "NOT_APPLICABLE", reason: "Solana project does not use EVM ownership, tax, or contract-deployer semantics." };
   }
   if (["mintAuthorityEnabled"].includes(canonicalField) && family === "evm") {
     return { status: "NOT_APPLICABLE", reason: "EVM project does not use Solana mint-authority semantics." };
@@ -208,6 +241,10 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
   const recoverable =
     !derivedOutput &&
     !["NOT_APPLICABLE", "UNSUPPORTED_CHAIN"].includes(rootCause);
+  const evidenceClass =
+    contract.affectsFinalDecision || contract.canBlockCandidate
+      ? "CORE"
+      : "ADVISORY";
 
   return {
     field,
@@ -223,14 +260,44 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
     lastAttemptedAt: provenance?.sourceTimestamp || null,
     recoverable,
     recomputeAfterRecovery: derivedOutput,
+    recoveryDisposition:
+      applicability.status === "NOT_APPLICABLE"
+        ? "NOT_APPLICABLE"
+        : derivedOutput
+          ? "DERIVED_RECOMPUTE"
+          : recoverable
+            ? "RAW_RECOVERABLE"
+            : "UNAVAILABLE_WITH_CURRENT_PROVIDERS",
+    evidenceClass,
     estimatedRecoveryCost: recoverable ? 1 : 0,
     estimatedRecoveryValue: recoverable ? 0.5 : 0,
-    blockingResearch: Boolean(contract.affectsFinalDecision && rootCause !== "NOT_APPLICABLE"),
+    blockingResearch: Boolean(
+      evidenceClass === "CORE" && rootCause !== "NOT_APPLICABLE"
+    ),
     blockingExecution: contract.phase === "execution" || ["purchaseRouteConfirmed", "sellRouteAvailable"].includes(canonicalField),
   };
 }
 
 export function analyzeDataStarvationRootCause(project = {}, options = {}) {
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") {
+    return {
+      ...project,
+      dataStarvationStatus: "DEFERRED_BEFORE_DEEP",
+      dataStarvationRootCauses: {},
+      dataStarvationMissingEvidence: [],
+      coreMissingEvidence: [],
+      advisoryMissingEvidence: [],
+      coreDataStarved: false,
+      advisoryDataGaps: false,
+      dataStarvationBlockingResearchCount: 0,
+      dataStarvationBlockingExecutionCount: 0,
+      dataStarvationNotApplicableCount: 0,
+      dataStarvationSatisfiedGroups: 0,
+      starvationRecoveryPlan: buildTargetedEnrichmentPlan([]),
+      dataStarvationPolicy:
+        "Candidate was deferred before deep evaluation and is excluded from starvation and recovery denominators.",
+    };
+  }
   const now = options.now ? new Date(options.now) : new Date();
   const contracts = options.contracts || getEngineContracts();
   const producers = outputProducerMap(contracts);
@@ -286,20 +353,39 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   }, {});
   const blockingResearch = mergedMissing.filter((item) => item.blockingResearch && item.rootCause !== "NOT_APPLICABLE");
   const blockingExecution = mergedMissing.filter((item) => item.blockingExecution && item.rootCause !== "NOT_APPLICABLE");
+  const coreMissingEvidence = mergedMissing.filter(
+    (item) => item.evidenceClass === "CORE" && item.rootCause !== "NOT_APPLICABLE"
+  );
+  const advisoryMissingEvidence = mergedMissing.filter(
+    (item) => item.evidenceClass === "ADVISORY" && item.rootCause !== "NOT_APPLICABLE"
+  );
+  const recoveryItems = mergedMissing.filter(
+    (item) =>
+      item.recoveryDisposition === "RAW_RECOVERABLE" &&
+      item.recoverable
+  );
 
   return {
     ...aliased,
     dataStarvationStatus:
-      blockingResearch.length ? "RESEARCH_BLOCKED_BY_EVIDENCE" : missing.length ? "RECOVERABLE_GAPS" : "ENOUGH_EVIDENCE_TO_RANK",
+      coreMissingEvidence.length
+        ? "CORE_DATA_STARVED"
+        : advisoryMissingEvidence.length
+          ? "ADVISORY_DATA_GAPS"
+          : "ENOUGH_EVIDENCE_TO_RANK",
     dataStarvationRootCauses: countsByRootCause,
     dataStarvationMissingEvidence: mergedMissing,
+    coreMissingEvidence,
+    advisoryMissingEvidence,
+    coreDataStarved: coreMissingEvidence.length > 0,
+    advisoryDataGaps: advisoryMissingEvidence.length > 0,
     dataStarvationBlockingResearchCount: blockingResearch.length,
     dataStarvationBlockingExecutionCount: blockingExecution.length,
     dataStarvationNotApplicableCount: notApplicable.length,
     dataStarvationSatisfiedGroups: satisfied.length,
-    starvationRecoveryPlan: buildTargetedEnrichmentPlan(mergedMissing.filter((item) => item.recoverable)),
+    starvationRecoveryPlan: buildTargetedEnrichmentPlan(recoveryItems),
     dataStarvationPolicy:
-      "Missing, stale, failed, skipped, and not-applicable evidence are separated. Missing data remains unknown and cannot qualify a project.",
+      "Core and advisory gaps are reported separately. Derived fields are recomputed, deferred projects are excluded, and missing data remains unknown and cannot qualify a project.",
   };
 }
 

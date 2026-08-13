@@ -1,6 +1,9 @@
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
 import { canonicalValue, resolveCanonicalAliases } from "../data/canonicalAliasResolver.js";
-import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
+import {
+  aliasesForCanonicalField,
+  canonicalFieldForAlias,
+} from "../data/canonicalFieldAliasRegistry.js";
 import { fieldApplicability } from "./dataStarvationRootCauseEngine.js";
 
 let cachedEngineContracts = null;
@@ -102,6 +105,38 @@ function canonicalFieldsForContracts(contracts = []) {
   return canonicalFields;
 }
 
+function resolveReadinessAliases(project = {}, canonicalFields = [], options = {}) {
+  if (options.disableSemanticScan !== true) {
+    return resolveCanonicalAliases(project, {
+      fields: canonicalFields,
+      disableSemanticScan: false,
+      resolvedChain: options.resolvedChain,
+    });
+  }
+
+  const resolved = {};
+  for (const field of canonicalFields) {
+    if (hasValue(project.canonicalAliases || {}, field)) {
+      resolved[field] = project.canonicalAliases[field];
+      continue;
+    }
+    if (hasValue(project, field)) {
+      resolved[field] = project[field];
+      continue;
+    }
+    const hasExplicitAlias = aliasesForCanonicalField(field).some((sourcePath) =>
+      hasValue(project, sourcePath)
+    );
+    resolved[field] = hasExplicitAlias
+      ? canonicalValue(project, field, {
+          disableSemanticScan: true,
+          resolvedChain: options.resolvedChain,
+        })
+      : null;
+  }
+  return { resolved };
+}
+
 function evaluateRequiredGroup(project = {}, group = [], contract = {}, lookupCanonicalValue = canonicalValue) {
   const fields = Array.isArray(group) ? group : [group].filter(Boolean);
   const canonicalFields = [...new Set(fields.map((field) => canonicalFieldForAlias(field) || field))];
@@ -138,8 +173,8 @@ export function evaluateEngineDataReadiness(project = {}, contract = {}, options
   const requiredSatisfied = groups.filter((group) => group.satisfied).length;
   const requiredTotal = groups.length;
   const requiredCoveragePct = requiredTotal ? Math.round((requiredSatisfied / requiredTotal) * 100) : 100;
-  const optionalCoveragePct = optionalFields.length
-    ? Math.round((optionalPresent.length / optionalFields.length) * 100)
+  const optionalCoveragePct = optionalApplicable.length
+    ? Math.round((optionalPresent.length / optionalApplicable.length) * 100)
     : 100;
   const coveragePct = Math.round(requiredCoveragePct * 0.8 + optionalCoveragePct * 0.2);
   const missingRequiredGroups = groups.filter((group) => !group.satisfied);
@@ -155,6 +190,10 @@ export function evaluateEngineDataReadiness(project = {}, contract = {}, options
     phase: contract.phase,
     affectsFinalDecision: Boolean(contract.affectsFinalDecision),
     canBlockCandidate: Boolean(contract.canBlockCandidate),
+    evidenceClass:
+      contract.affectsFinalDecision || contract.canBlockCandidate
+        ? "CORE"
+        : "ADVISORY",
     status,
     coveragePct,
     requiredCoveragePct,
@@ -183,53 +222,112 @@ export function evaluateEngineDataReadiness(project = {}, contract = {}, options
   };
 }
 
-function summarizeReadiness(readiness = []) {
-  const required = readiness.filter((item) => item.affectsFinalDecision || item.canBlockCandidate);
-  const starved = readiness.filter((item) => item.status === "DATA_STARVED");
-  const partial = readiness.filter((item) => item.status === "PARTIAL_INPUTS");
-  const coreGaps = required.filter((item) => item.status !== "READY");
-  const coreDataStarved = required.filter((item) => item.status === "DATA_STARVED");
-  const averageCoverage = readiness.length
-    ? Math.round(readiness.reduce((sum, item) => sum + item.coveragePct, 0) / readiness.length)
-    : 0;
-  const topMissingFields = new Map();
+function averageCoverage(items = []) {
+  return items.length
+    ? Math.round(items.reduce((sum, item) => sum + item.coveragePct, 0) / items.length)
+    : 100;
+}
 
-  for (const item of readiness) {
+function summarizeMissingFields(items = []) {
+  const counts = new Map();
+  for (const item of items) {
     for (const group of item.missingRequiredGroups || []) {
       const label = group.fields.join(" or ");
-      topMissingFields.set(label, (topMissingFields.get(label) || 0) + 1);
+      counts.set(label, (counts.get(label) || 0) + 1);
     }
   }
+  return [...counts.entries()]
+    .map(([fields, count]) => ({ fields, count }))
+    .sort((a, b) => b.count - a.count || a.fields.localeCompare(b.fields));
+}
+
+function summarizeReadiness(readiness = []) {
+  const core = readiness.filter(
+    (item) => item.affectsFinalDecision || item.canBlockCandidate
+  );
+  const advisory = readiness.filter(
+    (item) => !item.affectsFinalDecision && !item.canBlockCandidate
+  );
+  const starved = readiness.filter((item) => item.status === "DATA_STARVED");
+  const partial = readiness.filter((item) => item.status === "PARTIAL_INPUTS");
+  const coreGaps = core.filter((item) => item.status !== "READY");
+  const coreStarvedEngines = core.filter((item) => item.status === "DATA_STARVED");
+  const advisoryGaps = advisory.filter((item) => item.status !== "READY");
+  const coreMissingFields = summarizeMissingFields(coreGaps);
+  const advisoryMissingFields = summarizeMissingFields(advisoryGaps);
+  const allMissingFields = summarizeMissingFields(readiness);
+  const coreEvidenceCoveragePct = averageCoverage(core);
+  const advisoryEvidenceCoveragePct = averageCoverage(advisory);
 
   return {
     status:
       coreGaps.length === 0
         ? "CORE_READY"
-        : coreDataStarved.length
+        : coreStarvedEngines.length
           ? "CORE_DATA_STARVED"
-          : coreGaps.length <= Math.max(1, Math.round(required.length * 0.25))
-          ? "CORE_PARTIAL"
-          : "CORE_DATA_STARVED",
-    averageCoverage,
+          : "CORE_PARTIAL",
+    averageCoverage: averageCoverage(readiness),
+    coreEvidenceCoveragePct,
+    advisoryEvidenceCoveragePct,
+    coreDataStarved: coreStarvedEngines.length > 0,
+    advisoryDataGaps: advisoryGaps.length > 0,
     engineCount: readiness.length,
     readyEngines: readiness.filter((item) => item.status === "READY").length,
     partialEngines: partial.length,
     starvedEngines: starved.length,
     coreGapCount: coreGaps.length,
     coreGaps: coreGaps.map((item) => item.engineId),
-    topMissingFields: [...topMissingFields.entries()]
-      .map(([fields, count]) => ({ fields, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 12),
+    coreStarvedEngineCount: coreStarvedEngines.length,
+    advisoryGapCount: advisoryGaps.length,
+    advisoryGaps: advisoryGaps.map((item) => item.engineId),
+    coreMissingFields: coreMissingFields.slice(0, 40),
+    advisoryMissingFields: advisoryMissingFields.slice(0, 40),
+    topMissingFields: allMissingFields.slice(0, 12),
   };
 }
 
 export function analyzeEngineDataReadiness(project = {}, options = {}) {
+  const auditPhase = options.auditPhase || "FINAL";
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") {
+    const deferredAudit = {
+      status: "DEFERRED_BEFORE_DEEP",
+      auditPhase,
+      coreDataStarved: false,
+      advisoryDataGaps: false,
+      coreMissingFields: [],
+      advisoryMissingFields: [],
+      engines: [],
+      policy:
+        "Candidate was deferred before deep evaluation and is excluded from readiness, recovery, and starvation denominators.",
+    };
+    if (auditPhase === "PRE_RECOVERY") {
+      return {
+        ...project,
+        preRecoveryEngineDataReadinessScore: null,
+        preRecoveryEngineDataReadinessStatus: "DEFERRED_BEFORE_DEEP",
+        preRecoveryEngineDataReadiness: deferredAudit,
+      };
+    }
+    return {
+      ...project,
+      engineDataReadinessScore: null,
+      engineDataReadinessStatus: "DEFERRED_BEFORE_DEEP",
+      coreEvidenceCoveragePct: null,
+      advisoryEvidenceCoveragePct: null,
+      coreEvidenceState: "DEFERRED_BEFORE_DEEP",
+      advisoryEvidenceState: "DEFERRED_BEFORE_DEEP",
+      advisoryDataGaps: false,
+      engineDataReadiness: deferredAudit,
+      missingEngineInputs: [],
+      coreMissingFields: [],
+      advisoryMissingFields: [],
+      nextDataSourcesNeeded: [],
+    };
+  }
   const contracts = engineContracts(options);
   const resolvedChain = canonicalValue(project, "chain", { disableSemanticScan: true });
   const canonicalFields = options.canonicalFields || canonicalFieldsForContracts(contracts);
-  const aliasResolution = resolveCanonicalAliases(project, {
-    fields: canonicalFields,
+  const aliasResolution = resolveReadinessAliases(project, canonicalFields, {
     disableSemanticScan: options.disableSemanticScan ?? false,
     resolvedChain,
   });
@@ -249,20 +347,50 @@ export function analyzeEngineDataReadiness(project = {}, options = {}) {
   const nextSourcePlan = [
     ...new Set(readiness.flatMap((item) => item.nextSources || [])),
   ].slice(0, 12);
+  const audit = {
+    ...summary,
+    auditPhase,
+    nextSourcePlan,
+    engines: readiness,
+    policy:
+      "Missing engine inputs remain unknown evidence. This audit cannot promote a project; it only shows which free sources should be queried next.",
+  };
+
+  if (auditPhase === "PRE_RECOVERY") {
+    return {
+      ...project,
+      preRecoveryEngineDataReadinessScore: summary.averageCoverage,
+      preRecoveryCoreEvidenceCoveragePct: summary.coreEvidenceCoveragePct,
+      preRecoveryAdvisoryEvidenceCoveragePct: summary.advisoryEvidenceCoveragePct,
+      preRecoveryEngineDataReadinessStatus: summary.status,
+      preRecoveryEngineDataReadiness: audit,
+      preRecoveryMissingEngineInputs: summary.topMissingFields,
+      preRecoveryCoreMissingFields: summary.coreMissingFields,
+      preRecoveryAdvisoryMissingFields: summary.advisoryMissingFields,
+      preRecoveryNextDataSourcesNeeded: nextSourcePlan,
+    };
+  }
 
   return {
     ...project,
     engineDataReadinessScore: summary.averageCoverage,
     engineDataReadinessStatus: summary.status,
-    engineDataReadiness: {
-      ...summary,
-      auditPhase: options.auditPhase || "FINAL",
-      nextSourcePlan,
-      engines: readiness,
-      policy:
-        "Missing engine inputs remain unknown evidence. This audit cannot promote a project; it only shows which free sources should be queried next.",
-    },
+    coreEvidenceCoveragePct: summary.coreEvidenceCoveragePct,
+    advisoryEvidenceCoveragePct: summary.advisoryEvidenceCoveragePct,
+    coreEvidenceState:
+      summary.status === "CORE_READY"
+        ? "CORE_EVIDENCE_READY"
+        : summary.status === "CORE_PARTIAL"
+          ? "CORE_EVIDENCE_PARTIAL"
+          : "CORE_DATA_STARVED",
+    advisoryEvidenceState: summary.advisoryDataGaps
+      ? "ADVISORY_DATA_GAPS"
+      : "ADVISORY_EVIDENCE_READY",
+    advisoryDataGaps: summary.advisoryDataGaps,
+    engineDataReadiness: audit,
     missingEngineInputs: summary.topMissingFields,
+    coreMissingFields: summary.coreMissingFields,
+    advisoryMissingFields: summary.advisoryMissingFields,
     nextDataSourcesNeeded: nextSourcePlan,
   };
 }
@@ -284,17 +412,31 @@ export function summarizeEngineDataReadiness(projects = [], options = {}) {
           disableSemanticScan: options.disableSemanticScan ?? true,
         })
   );
-  const statuses = analyzed.reduce((acc, project) => {
+  const deepEvaluated = analyzed.filter(
+    (project) =>
+      project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP" &&
+      project.engineDataReadinessStatus !== "DEFERRED_BEFORE_DEEP"
+  );
+  const deferredBeforeDeep = analyzed.length - deepEvaluated.length;
+  const statuses = deepEvaluated.reduce((acc, project) => {
     const status = project.engineDataReadinessStatus || "UNKNOWN";
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
   const missingFields = new Map();
+  const coreMissingFields = new Map();
+  const advisoryMissingFields = new Map();
   const sourceNeeds = new Map();
 
-  for (const project of analyzed) {
+  for (const project of deepEvaluated) {
     for (const item of project.missingEngineInputs || []) {
       missingFields.set(item.fields, (missingFields.get(item.fields) || 0) + item.count);
+    }
+    for (const item of project.coreMissingFields || project.engineDataReadiness?.coreMissingFields || []) {
+      coreMissingFields.set(item.fields, (coreMissingFields.get(item.fields) || 0) + item.count);
+    }
+    for (const item of project.advisoryMissingFields || project.engineDataReadiness?.advisoryMissingFields || []) {
+      advisoryMissingFields.set(item.fields, (advisoryMissingFields.get(item.fields) || 0) + item.count);
     }
     for (const source of project.nextDataSourcesNeeded || []) {
       sourceNeeds.set(source, (sourceNeeds.get(source) || 0) + 1);
@@ -304,17 +446,35 @@ export function summarizeEngineDataReadiness(projects = [], options = {}) {
   return {
     generatedAt: new Date().toISOString(),
     status: statuses.CORE_DATA_STARVED ? "GAPS_FOUND" : "PASS",
-    projectsAnalyzed: analyzed.length,
+    standardCandidates: analyzed.length,
+    projectsAnalyzed: deepEvaluated.length,
+    deepEvaluatedCandidates: deepEvaluated.length,
+    deferredBeforeDeepCandidates: deferredBeforeDeep,
     notEvaluated: statuses.UNKNOWN || 0,
     reportLayerRecomputation: options.recomputeMissing !== false,
     contractCount: contracts.length,
-    averageCoverage: analyzed.length
-      ? Math.round(analyzed.reduce((sum, project) => sum + (project.engineDataReadinessScore || 0), 0) / analyzed.length)
+    averageCoverage: deepEvaluated.length
+      ? Math.round(deepEvaluated.reduce((sum, project) => sum + (project.engineDataReadinessScore || 0), 0) / deepEvaluated.length)
+      : 0,
+    coreEvidenceCoveragePct: deepEvaluated.length
+      ? Math.round(deepEvaluated.reduce((sum, project) => sum + (project.coreEvidenceCoveragePct || 0), 0) / deepEvaluated.length)
+      : 0,
+    advisoryEvidenceCoveragePct: deepEvaluated.length
+      ? Math.round(deepEvaluated.reduce((sum, project) => sum + (project.advisoryEvidenceCoveragePct || 0), 0) / deepEvaluated.length)
       : 0,
     statuses,
     coreReady: statuses.CORE_READY || 0,
     corePartial: statuses.CORE_PARTIAL || 0,
     coreDataStarved: statuses.CORE_DATA_STARVED || 0,
+    advisoryDataGaps: deepEvaluated.filter((project) => project.advisoryDataGaps === true).length,
+    coreMissingFields: [...coreMissingFields.entries()]
+      .map(([fields, count]) => ({ fields, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20),
+    advisoryMissingFields: [...advisoryMissingFields.entries()]
+      .map(([fields, count]) => ({ fields, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20),
     topMissingInputs: [...missingFields.entries()]
       .map(([fields, count]) => ({ fields, count }))
       .sort((a, b) => b.count - a.count)
@@ -323,7 +483,7 @@ export function summarizeEngineDataReadiness(projects = [], options = {}) {
       .map(([source, count]) => ({ source, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 20),
-    mostReadyProjects: analyzed
+    mostReadyProjects: deepEvaluated
       .slice()
       .sort((a, b) => (b.engineDataReadinessScore || 0) - (a.engineDataReadinessScore || 0))
       .slice(0, 20)
