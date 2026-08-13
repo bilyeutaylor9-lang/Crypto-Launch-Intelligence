@@ -162,6 +162,27 @@ test("high-upside scalp report promotes pre-extension real-utility route-ready c
   assert.equal(report.topScalpResearchCandidates[0].subCent, true);
 });
 
+test("report-time reconciliation removes derived fields produced after classification", () => {
+  const [classifiedBeforeFinal] = classified([
+    candidate({ finalIntegrityScore: undefined }),
+  ]);
+  assert.ok(
+    classifiedBeforeFinal.highUpsideScalpMissingFields.includes("finalIntegrityScore")
+  );
+
+  const report = summarizeHighUpsideScalpResearch([
+    { ...classifiedBeforeFinal, finalIntegrityScore: 88 },
+  ]);
+  const candidateReport =
+    report.topScalpResearchCandidates[0] ||
+    report.highUpsideWatchlist[0] ||
+    report.lowerPriority[0];
+
+  assert.ok(candidateReport);
+  assert.ok(!candidateReport.highUpsideScalpMissingFields.includes("finalIntegrityScore"));
+  assert.ok(!candidateReport.promotionDebug.missingProof.includes("finalIntegrityScore"));
+});
+
 test("high-upside scalp report explains why candidates are not promoting", () => {
   const report = summarizeHighUpsideScalpResearch(
     classified([
