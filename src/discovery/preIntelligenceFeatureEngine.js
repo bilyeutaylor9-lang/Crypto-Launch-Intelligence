@@ -7,6 +7,10 @@ import {
 } from "./discoveryCoverageEngine.js";
 import { analyzeExplosionReadinessBatch } from "./explosionReadinessEngine.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
+import {
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 function present(value) {
   return value !== undefined && value !== null && value !== "";
@@ -45,6 +49,32 @@ function fixedWeightedScore(entries = []) {
     entries.reduce(
       (sum, [value, weight]) => sum + (value === null || value === undefined ? 0 : num(value) * weight),
       0
+    )
+  );
+}
+
+export function hasDeepResolvableIdentity(project = {}) {
+  const routeType = String(
+    project.sourceType || project.dex || project.canonicalExecutionRoute?.routeType || ""
+  ).toLowerCase();
+  const verifiedCexIdentity = Boolean(
+    routeType === "cex" &&
+      (project.verifiedExchangeAssetId || project.exchangeAssetId || project.marketPair)
+  );
+  if (verifiedCexIdentity) return true;
+
+  const chain = normalizeChainId(
+    project.chain || project.chainId || project.network || project.canonicalChain
+  );
+  if (!chain) return false;
+  return Boolean(
+    normalizeTokenAddress(
+      project.tokenAddress ||
+        project.contractAddress ||
+        project.canonicalAddress ||
+        project.baseToken?.address ||
+        project.address,
+      chain
     )
   );
 }
@@ -112,7 +142,14 @@ function knownOrZero(value) {
 
 export function calculatePreIntelligenceFeatures(project = {}, context = {}) {
   const evidenceFamilies = evidenceFamiliesForProject(project);
-  const lane = project.discoveryLane || discoveryLaneForProject(project);
+  const discoveredLane = project.discoveryLane || discoveryLaneForProject(project);
+  const deepResolvableIdentity = hasDeepResolvableIdentity(project);
+  const lane =
+    discoveredLane !== "prelaunch" &&
+    discoveredLane !== "identity-only" &&
+    !deepResolvableIdentity
+      ? "identity-only"
+      : discoveredLane;
   const sources = sourceCount(project);
   const discoveryRank = num(context.discoveryRank || project.discoveryRank || project.discoveryIndex);
   const priorRank = num(project.previousDiscoveryRank || project.previousRank || project.priorRank);
@@ -308,6 +345,7 @@ export function calculatePreIntelligenceFeatures(project = {}, context = {}) {
   const rankEligible = Boolean(
     !hardDangers.length &&
       lane !== "identity-only" &&
+      deepResolvableIdentity &&
       hasConcreteMarketEvidence(project) &&
       completeness >= 44 &&
       identityAndEvidence !== null

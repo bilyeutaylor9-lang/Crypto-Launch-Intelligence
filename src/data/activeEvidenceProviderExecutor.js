@@ -10,6 +10,9 @@ import {
 } from "./coinGeckoConnector.js";
 import { getCoinPaprikaTickerById } from "./freeMarketDataConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
+import { getBlockscoutSecurityEvidence } from "./security/blockscoutConnector.js";
+import { getEtherscanV2SecurityEvidence } from "./security/etherscanV2Connector.js";
+import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -63,6 +66,43 @@ const AGGREGATE_MARKET_FIELDS = new Set([
   "estimatedMarketCapUsd",
 ]);
 
+const DEPLOYER_FIELDS = new Set([
+  "creatorAddress",
+  "deployerAddress",
+  "creator",
+  "deployer",
+  "deploymentTransactionHash",
+  "contractCreationTimestamp",
+  "creationBlockNumber",
+  "walletAgeDays",
+  "priorDeployments",
+  "deployerHistory",
+  "nativeLifecycle",
+]);
+
+const WALLET_RAW_FIELDS = new Set([
+  "wallets",
+  "holderAddresses",
+  "holderCount",
+  "buyerAddresses",
+  "sellerAddresses",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "uniqueBuyers24h",
+  "buyTransactions24h",
+  "sellTransactions24h",
+  "buyVolumeUsd",
+  "sellVolumeUsd",
+  "smartWalletBuys24h",
+  "smartWalletSells24h",
+  "smartWalletBuyVolumeUsd",
+  "smartWalletSellVolumeUsd",
+  "smartWalletBuyCount",
+  "smartWalletSellCount",
+  "smartWallets",
+  "trackedWallets",
+]);
+
 function text(value = "") {
   return String(value ?? "").trim();
 }
@@ -83,6 +123,7 @@ function numberOrNull(value) {
 
 function valueKnown(value) {
   if (value === null || value === undefined || value === "") return false;
+  if (Array.isArray(value)) return value.length > 0;
   if (typeof value === "number") return Number.isFinite(value);
   return true;
 }
@@ -160,6 +201,20 @@ function providerFunctions(options = {}) {
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
       getFreeSecurityEvidence,
+    getBlockscoutSecurityEvidence:
+      injected.getBlockscoutSecurityEvidence ||
+      injected.getDeployerEvidence ||
+      options.getBlockscoutSecurityEvidence ||
+      getBlockscoutSecurityEvidence,
+    getEtherscanV2SecurityEvidence:
+      injected.getEtherscanV2SecurityEvidence ||
+      options.getEtherscanV2SecurityEvidence ||
+      getEtherscanV2SecurityEvidence,
+    getBlockscoutWalletEvidence:
+      injected.getBlockscoutWalletEvidence ||
+      injected.getWalletEvidence ||
+      options.getBlockscoutWalletEvidence ||
+      getBlockscoutWalletEvidence,
     getCoinGeckoMarketsByIds:
       injected.getCoinGeckoMarketsByIds ||
       options.getCoinGeckoMarketsByIds ||
@@ -176,7 +231,8 @@ export function createActiveEvidenceExecutionState(options = {}) {
     1,
     Number(
       options.maxProviderRequests ||
-        options.maxRequests ||
+      options.maxRequests ||
+        process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS ||
         process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS ||
         500
     )
@@ -193,6 +249,10 @@ export function createActiveEvidenceExecutionState(options = {}) {
   return {
     maxRequests,
     requestsUsed: 0,
+    concurrency: Math.max(
+      1,
+      Number(options.concurrency || process.env.ACTIVE_EVIDENCE_CONCURRENCY || 4)
+    ),
     circuitFailureThreshold,
     providers: new Map(),
   };
@@ -243,6 +303,7 @@ async function executeProviderCall(provider, operation, options = {}, state = {}
     Number(
       options.providerTimeoutMs ||
         options.timeoutMs ||
+        process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS ||
         process.env.ACTIVE_EVIDENCE_RECOVERY_PROVIDER_TIMEOUT_MS ||
         8_000
     )
@@ -281,6 +342,290 @@ async function executeProviderCall(provider, operation, options = {}, state = {}
   } finally {
     clearTimeout(timer);
   }
+}
+
+function evmIdentity(project = {}) {
+  const chain = chainOf(project);
+  const tokenAddress = tokenAddressOf(project, chain);
+  return {
+    chain,
+    tokenAddress,
+    exact:
+      Boolean(chain) &&
+      /^0x[0-9a-f]{40}$/i.test(String(tokenAddress || "")),
+  };
+}
+
+function solanaIdentity(project = {}) {
+  const chain = chainOf(project);
+  const tokenAddress = tokenAddressOf(project, chain);
+  return {
+    chain,
+    tokenAddress,
+    exact: chain === "solana" && Boolean(tokenAddress),
+  };
+}
+
+function deployerValue(result = {}, field = "") {
+  const rawCreator = lower(result.creatorAddress || result.contractCreator);
+  const creator = /^0x[0-9a-f]{40}$/.test(rawCreator) ? rawCreator : null;
+  switch (field) {
+    case "creatorAddress":
+    case "deployerAddress":
+    case "creator":
+    case "deployer":
+      return creator || null;
+    case "deploymentTransactionHash":
+      return result.deploymentTransactionHash || result.creationTxHash || null;
+    case "contractCreationTimestamp":
+      return result.contractCreationTimestamp || result.creationTimestamp || null;
+    case "creationBlockNumber":
+      return numberOrNull(result.creationBlockNumber);
+    case "walletAgeDays":
+      return numberOrNull(result.walletAgeDays);
+    case "priorDeployments":
+      return numberOrNull(result.priorDeployments);
+    case "deployerHistory":
+      return result.deployerHistory || null;
+    default:
+      return null;
+  }
+}
+
+function confidenceFraction(value, fallback = 0.8) {
+  const numeric = numberOrNull(value);
+  if (numeric === null) return fallback;
+  return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric));
+}
+
+function exactDeployerResult(result = {}, identity = {}) {
+  if (!deployerValue(result, "creatorAddress")) return false;
+  const resultChain = result.chain ? normalizeChainId(result.chain) : null;
+  const resultAddress = lower(result.address || result.tokenAddress);
+  if (resultChain && resultChain !== identity.chain) return false;
+  if (resultAddress && resultAddress !== lower(identity.tokenAddress)) return false;
+  return true;
+}
+
+function existingDeployerEvidence(project = {}, identity = {}) {
+  const candidates = [
+    ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
+    ...(Array.isArray(project.freeSecurityEvidence?.evidence)
+      ? project.freeSecurityEvidence.evidence
+      : []),
+    project.blockscoutDeployerEvidence,
+  ].filter(Boolean);
+  return candidates.find(
+    (item) => item.status !== "UNKNOWN" && exactDeployerResult(item, identity)
+  ) || null;
+}
+
+function deployerObservations(result = {}, fields = [], identity = {}, source = "blockscout") {
+  const companionFields = [
+    "creatorAddress",
+    "deployerAddress",
+    "creator",
+    "deployer",
+    "deploymentTransactionHash",
+    "contractCreationTimestamp",
+    "creationBlockNumber",
+    "walletAgeDays",
+    "priorDeployments",
+    "deployerHistory",
+  ];
+  const timestamp = result.observedAt || result.sourceTimestamp || new Date().toISOString();
+  return [...new Set([...fields, ...companionFields])]
+    .map((field) => observation(
+      field,
+      deployerValue(result, field),
+      source,
+      timestamp,
+      confidenceFraction(result.confidence),
+      { chain: identity.chain, tokenAddress: identity.tokenAddress }
+    ))
+    .filter((item) => valueKnown(item.value));
+}
+
+export async function recoverDeployerEvidence(
+  project = {},
+  fields = [],
+  providers = providerFunctions({}),
+  options = {},
+  state = createActiveEvidenceExecutionState(options)
+) {
+  const evm = evmIdentity(project);
+  if (evm.exact) {
+    const existing = existingDeployerEvidence(project, evm);
+    if (existing) {
+      const source = existing.provider || existing.source || "existing-security-evidence";
+      return {
+        observations: deployerObservations(existing, fields, evm, source),
+        attempts: [{
+          status: "LOCAL_EVIDENCE_AVAILABLE",
+          provider: source,
+          reason: null,
+          durationMs: 0,
+        }],
+        projectPatch: {},
+      };
+    }
+
+    const blockscoutAttempt = await executeProviderCall(
+      "blockscout-deployer",
+      () => providers.getBlockscoutSecurityEvidence(
+        { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+        { ...options, useCache: options.useCache }
+      ),
+      options,
+      state,
+      Math.max(1, Number(options.deployerProviderRequestCost || 2))
+    );
+    const blockscoutResult = blockscoutAttempt.value || {};
+    if (
+      blockscoutAttempt.status === "SUCCESS" &&
+      exactDeployerResult(blockscoutResult, evm)
+    ) {
+      return {
+        observations: deployerObservations(blockscoutResult, fields, evm, "blockscout"),
+        attempts: [{ ...blockscoutAttempt, value: undefined }],
+        projectPatch: { blockscoutDeployerEvidence: blockscoutResult },
+      };
+    }
+
+    const etherscanAttempt = await executeProviderCall(
+      "etherscan-v2-deployer",
+      () => providers.getEtherscanV2SecurityEvidence(
+        { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+        { ...options, useCache: options.useCache }
+      ),
+      options,
+      state,
+      Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3))
+    );
+    const etherscanResult = etherscanAttempt.value || {};
+    const observations =
+      etherscanAttempt.status === "SUCCESS" && exactDeployerResult(etherscanResult, evm)
+        ? deployerObservations(etherscanResult, fields, evm, "etherscan-v2")
+        : [];
+    return {
+      observations,
+      attempts: [
+        { ...blockscoutAttempt, value: undefined },
+        { ...etherscanAttempt, value: undefined },
+      ],
+      projectPatch: {
+        blockscoutDeployerEvidence: blockscoutResult,
+        etherscanDeployerEvidence: etherscanResult,
+      },
+    };
+  }
+
+  const solana = solanaIdentity(project);
+  if (solana.exact) {
+    const lifecycle = project.nativeLifecycle || {};
+    const creator = first([
+      lifecycle.creator,
+      lifecycle.deployer,
+      lifecycle.mintAuthority,
+      project.creatorAddress,
+      project.creator,
+    ]);
+    const timestamp = lifecycle.observedAt || project.sourceTimestamp || new Date().toISOString();
+    const observations = fields
+      .map((field) => {
+        if (!["creatorAddress", "creator"].includes(field) || !creator) return null;
+        return observation(field, creator, "native-lifecycle", timestamp, 0.8, {
+          chain: "solana",
+          applicability: "SOLANA_CREATOR_OR_MINT_AUTHORITY",
+        });
+      })
+      .filter(Boolean);
+    return {
+      observations,
+      attempts: [{
+        status: observations.length ? "LOCAL_EVIDENCE_AVAILABLE" : "NOT_APPLICABLE",
+        provider: "native-lifecycle",
+        reason: observations.length
+          ? null
+          : "No trustworthy Solana creator or mint-authority evidence was present.",
+        durationMs: 0,
+      }],
+      projectPatch: {},
+    };
+  }
+
+  return {
+    observations: [],
+    attempts: [{
+      status: "NOT_APPLICABLE",
+      provider: "blockscout-deployer",
+      reason: "Deployer recovery requires an exact chain and token contract identity.",
+      durationMs: 0,
+    }],
+    projectPatch: {},
+  };
+}
+
+export async function recoverWalletEvidence(
+  project = {},
+  fields = [],
+  providers = providerFunctions({}),
+  options = {},
+  state = createActiveEvidenceExecutionState(options)
+) {
+  const evm = evmIdentity(project);
+  if (!evm.exact) {
+    return {
+      observations: [],
+      attempts: [{
+        status: "NOT_APPLICABLE",
+        provider: "blockscout-wallets",
+        reason: "Wallet recovery requires an exact supported chain and token contract identity.",
+        durationMs: 0,
+      }],
+      projectPatch: {},
+    };
+  }
+  const attempt = await executeProviderCall(
+    "blockscout-wallets",
+    () => providers.getBlockscoutWalletEvidence(
+      {
+        ...project,
+        chain: evm.chain,
+        tokenAddress: evm.tokenAddress,
+        poolAddress: poolAddressOf(project, evm.chain),
+      },
+      options
+    ),
+    options,
+    state,
+    Math.max(1, Number(options.walletProviderRequestCost || 3))
+  );
+  if (attempt.status !== "SUCCESS") {
+    return { observations: [], attempts: [attempt], projectPatch: {} };
+  }
+  const result = attempt.value || {};
+  if (result.status !== "EVIDENCE_AVAILABLE") {
+    return {
+      observations: [],
+      attempts: [{ ...attempt, status: result.status || "UNKNOWN", value: undefined }],
+      projectPatch: { blockscoutWalletEvidence: result },
+    };
+  }
+  const timestamp = result.observedAt || new Date().toISOString();
+  const observations = [...new Set(fields)]
+    .map((field) => observation(field, result[field], "blockscout-wallets", timestamp, 0.82, {
+      chain: evm.chain,
+      tokenAddress: evm.tokenAddress,
+      poolAddress: result.poolAddress || null,
+      exactPoolIdentity: result.exactPoolIdentity === true,
+    }))
+    .filter((item) => valueKnown(item.value));
+  return {
+    observations,
+    attempts: [{ ...attempt, value: undefined }],
+    projectPatch: { blockscoutWalletEvidence: result },
+  };
 }
 
 function rawDexPairs(payload) {
@@ -668,6 +1013,12 @@ export async function executeActiveEvidenceProviderRequests(
   }
 
   const recoveredFields = new Set(observations.map((item) => item.field));
+  const deployerFields = fields.filter(
+    (field) => DEPLOYER_FIELDS.has(field) && !recoveredFields.has(field)
+  );
+  const walletFields = fields.filter(
+    (field) => WALLET_RAW_FIELDS.has(field) && !recoveredFields.has(field)
+  );
   const securityFields = fields.filter(
     (field) => SECURITY_FIELDS.has(field) && !recoveredFields.has(field)
   );
@@ -675,6 +1026,28 @@ export async function executeActiveEvidenceProviderRequests(
     (field) => AGGREGATE_MARKET_FIELDS.has(field) && !recoveredFields.has(field)
   );
   const parallel = [];
+  if (
+    deployerFields.length &&
+    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "native rpc", "security providers"])
+  ) {
+    parallel.push(
+      recoverDeployerEvidence(project, deployerFields, providers, options, executionState).then((result) => ({
+        kind: "deployer",
+        result,
+      }))
+    );
+  }
+  if (
+    walletFields.length &&
+    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "supabase"])
+  ) {
+    parallel.push(
+      recoverWalletEvidence(project, walletFields, providers, options, executionState).then((result) => ({
+        kind: "wallets",
+        result,
+      }))
+    );
+  }
   if (
     securityFields.length &&
     sourceRequested(sources, ["goplus", "sourcify", "blockscout", "rugcheck", "explorer", "chain rpc"])

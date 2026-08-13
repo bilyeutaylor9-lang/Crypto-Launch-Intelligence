@@ -405,6 +405,8 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   const activeRecovery = source.indexOf('runEngine("Active Evidence Recovery"');
   const postEvidenceScoring = source.indexOf('runEngine("Post-Evidence Final Scoring"');
   const progressiveRanking = source.indexOf('runEngine("Progressive Opportunity Ranking"');
+  const utilityQuality = source.indexOf('runEngine("Utility Quality"');
+  const finalReadiness = source.indexOf('runEngine("Engine Data Readiness"');
   const smallCapRuns = source.match(/runEngine\("Small Cap Hunter"/g) || [];
   const executionTwinRuns = source.match(/runEngine\("Proof of Alpha Execution Twin"/g) || [];
 
@@ -425,8 +427,11 @@ test("pipeline funnels proof and execution data into AI, final integrity, and ra
   assert.ok(preBreakout > governor);
   assert.ok(activeRecovery > preBreakout);
   assert.ok(postEvidenceScoring > activeRecovery);
+  assert.ok(utilityQuality > activeRecovery);
+  assert.ok(progressiveRanking > utilityQuality);
+  assert.ok(finalReadiness > progressiveRanking);
+  assert.ok(postEvidenceScoring > finalReadiness);
   assert.ok(finalIntegrity > postEvidenceScoring);
-  assert.ok(progressiveRanking > finalIntegrity);
   assert.match(source, /"Final Selection Integrity": "deep"/);
 });
 

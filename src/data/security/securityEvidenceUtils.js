@@ -29,6 +29,8 @@ export const BLOCKSCOUT_DEFAULTS = {
   arbitrum: "https://arbitrum.blockscout.com",
   avalanche: "https://avalanche.blockscout.com",
   base: "https://base.blockscout.com",
+  "robinhood-chain": "https://robinhoodchain.blockscout.com",
+  zksync: "https://zksync.blockscout.com",
 };
 
 export function clean(value = "") {

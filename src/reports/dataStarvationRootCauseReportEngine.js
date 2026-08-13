@@ -67,12 +67,29 @@ function countMissingBy(projects = [], getter = () => "unknown") {
 }
 
 export function summarizeDataStarvation(projects = []) {
-  const byRootCause = countMissingBy(projects, (item) => item.rootCause);
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const deepProjects = safeProjects.filter(
+    (project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP"
+  );
+  const byRootCause = countMissingBy(deepProjects, (item) => item.rootCause);
+  const coreMissingFields = countMissingBy(deepProjects, (item) =>
+    item.evidenceClass === "CORE" ? item.canonicalField || item.field : null
+  ).filter((item) => item.key !== "unknown");
+  const advisoryMissingFields = countMissingBy(deepProjects, (item) =>
+    item.evidenceClass === "ADVISORY" ? item.canonicalField || item.field : null
+  ).filter((item) => item.key !== "unknown");
   return {
-    ...meta(projects, {
+    ...meta(deepProjects, {
       status: byRootCause.length ? "GAPS_FOUND" : "PASS",
     }),
+    standardCandidates: safeProjects.length,
+    deepDeferredCandidates: safeProjects.length - deepProjects.length,
+    deepEvaluatedCandidates: deepProjects.length,
     status: byRootCause.length ? "GAPS_FOUND" : "PASS",
+    coreDataStarved: deepProjects.filter((project) => project.coreDataStarved === true).length,
+    advisoryDataGaps: deepProjects.filter((project) => project.advisoryDataGaps === true).length,
+    coreMissingFields,
+    advisoryMissingFields,
     totalsByRootCause: Object.fromEntries(byRootCause.map((item) => [item.key, item.count])),
     externalDataMissing: byRootCause.filter((item) => ["RAW_SOURCE_MISSING", "PROVIDER_UNAVAILABLE", "PROVIDER_RATE_LIMITED", "REGION_RESTRICTED"].includes(item.key)).reduce((sum, item) => sum + item.count, 0),
     enrichmentDeferred: byRootCause.find((item) => item.key === "ENRICHMENT_DEFERRED")?.count || 0,
@@ -80,7 +97,7 @@ export function summarizeDataStarvation(projects = []) {
     notApplicable: byRootCause.find((item) => item.key === "NOT_APPLICABLE")?.count || 0,
     aliasFailures: byRootCause.find((item) => item.key === "ALIAS_MAPPING_FAILURE")?.count || 0,
     conflictedData: byRootCause.find((item) => item.key === "CONFLICTED_DATA")?.count || 0,
-    topProjects: projects
+    topProjects: deepProjects
       .slice()
       .sort((a, b) => (b.dataStarvationBlockingResearchCount || 0) - (a.dataStarvationBlockingResearchCount || 0))
       .slice(0, 100)

@@ -9,6 +9,7 @@ import {
   isHighUpsideDeepStageDeferred,
   markHighUpsideScalpResearchDeferred,
 } from "../engines/highUpsideScalpClassificationEngine.js";
+import { summarizeEvidenceFunnel } from "../kernel/evidenceFunnelSummary.js";
 
 const MAX_REPORT_ROWS = 50;
 
@@ -570,6 +571,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     invalidIdentity,
     dataStarved,
   });
+  const funnelSummary = summarizeEvidenceFunnel(scored);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -588,6 +590,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
       unclassified,
     }),
     mode: "HIGH_UPSIDE_SCALP_RESEARCH",
+    funnelSummary,
     objective:
       "Surface pre-extension, real-utility, route-verified asymmetric candidates for manual scalping research.",
     disclaimer:

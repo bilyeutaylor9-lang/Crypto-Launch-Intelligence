@@ -15,6 +15,10 @@ import {
   isLikelyAggregateCandidate,
   isLikelyMemeIdentity,
 } from "../identity/displayIdentityGuard.js";
+import {
+  isDeferredBeforeDeep,
+  summarizeEvidenceFunnel,
+} from "../kernel/evidenceFunnelSummary.js";
 
 const EVM_CHAINS = new Set([
   "ethereum",
@@ -43,6 +47,7 @@ const ACTION_PRIORITY = Object.freeze({
   RESEARCH_WATCHLIST: 3,
   DATA_RECOVERY_REQUIRED: 2,
   BLOCKED: 1,
+  DEEP_DEFERRED: 0,
 });
 
 function numberOrNull(value) {
@@ -806,6 +811,9 @@ function scoreCandidate(project, policy, options = {}) {
   } else {
     liveActionStatus = "DATA_RECOVERY_REQUIRED";
   }
+  if (isDeferredBeforeDeep(adapted.project)) {
+    liveActionStatus = "DEEP_DEFERRED";
+  }
 
   let liveScore = selectedScore;
   if (liveScore !== null && liveActionStatus === "BLOCKED") liveScore = Math.min(20, liveScore);
@@ -834,6 +842,7 @@ function scoreCandidate(project, policy, options = {}) {
     RESEARCH_WATCHLIST: "RESEARCH_ONLY",
     DATA_RECOVERY_REQUIRED: "INSUFFICIENT_DATA",
     BLOCKED: "BLOCKED",
+    DEEP_DEFERRED: "DEFERRED_BEFORE_DEEP",
   }[liveActionStatus];
   const scored = {
     ...adapted.project,
@@ -945,6 +954,7 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
     ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus)
   );
   const recoveryLead = byStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
+  const funnelSummary = summarizeEvidenceFunnel(ranked);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -989,7 +999,9 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
       backtestPolicySource: policy.source,
       backtestWinnerPublished: policy.winnerPublished,
       selectedBacktestModel: policy.bestModel,
+      ...funnelSummary,
     },
+    funnelSummary,
     ranked,
     top10: evidenceBacked.slice(0, 10),
     microEligible: byStatus("MICRO_TEST_ELIGIBLE", 10),
@@ -1152,6 +1164,7 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
   );
   const evidenceBacked = evidenceBackedProjects.slice(0, 10).map(compactProject);
   const recoveryLead = projectsByStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
+  const funnelSummary = summarizeEvidenceFunnel(ranked);
   const summary = {
     analyzed: rows.length,
     microTestEligible: projectsByStatus("MICRO_TEST_ELIGIBLE", ranked.length).length,
@@ -1172,6 +1185,7 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     ).length,
     backtestWinnerPublished: meta.guardedLiveRankingPolicy?.winnerPublished === true,
     selectedBacktestModel: meta.guardedLiveRankingPolicy?.bestModel || null,
+    ...funnelSummary,
   };
   const payload = {
     generatedAt: new Date().toISOString(),
@@ -1188,6 +1202,7 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     configuration: meta.guardedLiveRankingConfiguration || null,
     projectsAnalyzed: rows.length,
     summary,
+    funnelSummary,
     rankedDetailPolicy: {
       mode: "COMPLETE_LIGHTWEIGHT_INDEX_WITH_BOUNDED_LANE_DETAILS",
       rankedIndexCount: rows.length,

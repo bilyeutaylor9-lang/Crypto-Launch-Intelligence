@@ -22,7 +22,7 @@ function hardSafetyBlocked(project = {}) {
 
 export function analyzeResearchReadiness(project = {}) {
   const safetyBlocked = hardSafetyBlocked(project);
-  const evidenceCoverage = clamp(project.earlyAsymmetryCoveragePct ?? project.engineDataReadinessScore ?? project.preIntelligenceConfidence);
+  const evidenceCoverage = clamp(project.earlyAsymmetryCoveragePct ?? project.coreEvidenceCoveragePct ?? project.engineDataReadinessScore ?? project.preRecoveryCoreEvidenceCoveragePct ?? project.preIntelligenceConfidence);
   const identity = clamp(project.identityResolutionScore ?? project.identityConfidence ?? (project.identityRescueStatus === "DISTINGUISHABLE_IDENTITY" ? 60 : 20));
   const sourceTruth = clamp(project.sourceTruthScore ?? project.sourceReliabilityScore ?? 40);
   const opportunity = clamp(project.earlyAsymmetryResearchPriorityScore ?? project.preIntelligenceOpportunityScore);

@@ -10,6 +10,10 @@ import {
   mapWithBoundedConcurrency,
   summarizeActiveEvidenceExecutionState,
 } from "../data/activeEvidenceProviderExecutor.js";
+import {
+  recoveryDispositionForField,
+  sourceFamilyForField,
+} from "../data/enrichmentSourceRegistry.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -240,81 +244,141 @@ function candidatePriority(project = {}, index = 0) {
   return eligibleBoost + routeBoost + researchBoost + voiBoost - index * 0.0001;
 }
 
-function recoveryTargets(projects = [], options = {}) {
-  const maxCandidates = Math.max(1, Number(options.maxCandidates || process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_CANDIDATES || 750));
-  const maxFieldsPerCandidate = Math.max(1, Number(options.maxFieldsPerCandidate || process.env.ACTIVE_EVIDENCE_RECOVERY_FIELDS_PER_CANDIDATE || 4));
-  const maxRequests = Math.max(1, Number(options.maxRequests || process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS || 2000));
-  const perCandidate = new Map();
+function isDeepCandidate(project = {}) {
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return false;
+  if (project.deepEvaluationDeferred === true) return false;
+  if (project.deepEvaluationSelected === false) return false;
+  return true;
+}
 
-  (Array.isArray(projects) ? projects : []).forEach((project, projectIndex) => {
-    const planItems = [
-      ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
-      ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
-      ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
-    ];
-    for (const item of planItems) {
-      if (!item || item.recoverable === false || item.rootCause === "NOT_APPLICABLE") continue;
-      const field = item.canonicalField || item.field;
-      if (!field) continue;
-      const requestCost = Math.max(1, item.estimatedRequests || item.targetSources?.length || 1);
-      const score =
-        num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100 +
-        candidatePriority(project, projectIndex);
-      const current = perCandidate.get(projectIndex) || [];
-      current.push({ projectIndex, field, item, requestCost, score });
-      perCandidate.set(projectIndex, current);
-    }
-  });
+function recoveryWaveForField(field = "") {
+  const family = sourceFamilyForField(field);
+  if (
+    ["chain", "tokenAddress", "poolAddress", "priceUsd", "liquidityUsd", "stableExitLiquidityUsd", "volume24hUsd", "circulatingMarketCapUsd", "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "buyTransactions24h", "sellTransactions24h", "creatorAddress", "deployerAddress", "creator", "deployer", "contractVerified", "honeypotDetected", "sellRestricted"].includes(field)
+  ) return "WAVE1";
+  if (["WALLETS", "DEPLOYER", "SECURITY"].includes(family)) return "WAVE2";
+  if (family === "EXECUTION") return "WAVE3";
+  return null;
+}
 
-  const selected = [];
-  let requests = 0;
-  for (const entries of [...perCandidate.values()]
-    .map((items) => items.sort((a, b) => b.score - a.score).slice(0, maxFieldsPerCandidate))
-    .sort((a, b) => (b[0]?.score || 0) - (a[0]?.score || 0))
-    .slice(0, maxCandidates)) {
-    for (const entry of entries) {
-      if (requests + entry.requestCost > maxRequests) continue;
-      requests += entry.requestCost;
-      selected.push(entry);
+function planItems(project = {}) {
+  const items = [
+    ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
+    ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
+    ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
+  ];
+  const bestByField = new Map();
+  for (const item of items) {
+    const field = item?.canonicalField || item?.field;
+    if (!field || item.recoverable === false) continue;
+    const recoveryDisposition = item.recoveryDisposition ||
+      recoveryDispositionForField(field, {
+        applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
+      });
+    if (recoveryDisposition !== "RAW_RECOVERABLE") continue;
+    const current = bestByField.get(field);
+    const value = num(item.valueOfInformationScore || item.estimatedRecoveryValue);
+    if (!current || value > num(current.valueOfInformationScore || current.estimatedRecoveryValue)) {
+      bestByField.set(field, { ...item, recoveryDisposition });
     }
   }
+  return [...bestByField.values()];
+}
 
-  return { selected, requestBudgetUsed: requests, maxRequests, maxCandidates, maxFieldsPerCandidate };
+function executionPriority(project = {}, index = 0) {
+  return (
+    num(project.preliminaryOpportunityScore || project.progressiveOpportunityScore) * 2 +
+    num(project.executionScore || project.executionReadinessScore) +
+    num(project.valueOfInformationScore) +
+    candidatePriority(project, index)
+  );
+}
+
+export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
+  const input = Array.isArray(projects) ? projects : [];
+  const waveLimits = {
+    WAVE1: Math.max(0, Number(options.wave1Max ?? process.env.ACTIVE_EVIDENCE_WAVE1_MAX ?? 500)),
+    WAVE2: Math.max(0, Number(options.wave2Max ?? process.env.ACTIVE_EVIDENCE_WAVE2_MAX ?? 150)),
+    WAVE3: Math.max(0, Number(options.wave3Max ?? process.env.ACTIVE_EVIDENCE_WAVE3_MAX ?? 50)),
+  };
+  const maxFieldsPerCandidate = Math.max(
+    1,
+    Number(options.maxFieldsPerCandidate || process.env.ACTIVE_EVIDENCE_RECOVERY_FIELDS_PER_CANDIDATE || 8)
+  );
+  const eligible = input
+    .map((project, projectIndex) => {
+      const items = planItems(project);
+      const valueOfInformationPriority = Math.max(
+        0,
+        ...items.map((item) => num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100)
+      );
+      return {
+        project,
+        projectIndex,
+        priority: candidatePriority(project, projectIndex) + valueOfInformationPriority,
+        executionPriority: executionPriority(project, projectIndex) + valueOfInformationPriority,
+        items,
+      };
+    })
+    .filter(({ project }) => isDeepCandidate(project));
+
+  const waves = {};
+  for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
+    const scoreKey = wave === "WAVE3" ? "executionPriority" : "priority";
+    waves[wave] = eligible
+      .map((candidate) => ({
+        ...candidate,
+        entries: candidate.items
+          .filter((item) => recoveryWaveForField(item.canonicalField || item.field) === wave)
+          .map((item) => {
+            const field = item.canonicalField || item.field;
+            return {
+              projectIndex: candidate.projectIndex,
+              field,
+              family: sourceFamilyForField(field),
+              wave,
+              item,
+              requestCost: Math.max(1, item.estimatedRequests || item.targetSources?.length || 1),
+              score:
+                num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100 +
+                candidate[scoreKey],
+            };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, maxFieldsPerCandidate),
+      }))
+      .filter((candidate) => candidate.entries.length)
+      .sort((a, b) => b[scoreKey] - a[scoreKey])
+      .slice(0, waveLimits[wave]);
+  }
+  return { waves, waveLimits, deepEvaluatedCandidates: eligible.length };
 }
 
 export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const targets = recoveryTargets(safeProjects, options);
-  const byProject = new Map();
-
-  for (const target of targets.selected) {
-    const list = byProject.get(target.projectIndex) || [];
-    list.push(target);
-    byProject.set(target.projectIndex, list);
-  }
-
-  const selected = [...byProject.entries()].map(([projectIndex, entries]) => ({
-    projectIndex,
-    project: safeProjects[projectIndex],
-    entries,
-  }));
+  const hydration = buildActiveEvidenceRecoveryWaves(safeProjects, options);
+  const maxRequests = Math.max(
+    1,
+    Number(options.maxProviderRequests || options.maxRequests || process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS || process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS || 2000)
+  );
   const executionState = createActiveEvidenceExecutionState({
     ...options,
-    maxProviderRequests: options.maxProviderRequests || targets.maxRequests,
+    maxProviderRequests: maxRequests,
   });
   const concurrency = Math.max(
     1,
     Number(
       options.concurrency ||
+        process.env.ACTIVE_EVIDENCE_CONCURRENCY ||
         process.env.ACTIVE_EVIDENCE_RECOVERY_CONCURRENCY ||
         6
     )
   );
+  const currentProjects = safeProjects.map((project) => ({ ...project }));
+  const recoveryByProject = new Map();
 
-  const recoveredProjects = await mapWithBoundedConcurrency(
-    selected,
-    concurrency,
-    async ({ projectIndex, project, entries }) => {
+  async function recoverCandidate({ projectIndex, entries }, wave) {
+      const project = currentProjects[projectIndex];
       let next = { ...project };
       const recoveredFields = [];
       const attempts = [];
@@ -324,6 +388,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         const value = recoveredValueFor(next, entry.field);
         const planAttempt = {
           field: entry.field,
+          family: entry.family,
+          wave,
           rootCause: entry.item.rootCause || null,
           valueOfInformationScore:
             entry.item.valueOfInformationScore ||
@@ -389,6 +455,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           activeEvidenceRecoveryAttemptedFields: attemptedFields,
           activeEvidenceRecovery: {
             status,
+            waves: [wave],
+            changedEvidenceFamilies: [...new Set(uniqueRecovered.map(sourceFamilyForField))],
             recoveredFields: uniqueRecovered,
             attemptedFields,
             unrecoveredFields: uniqueUnrecovered,
@@ -403,35 +471,102 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           },
         },
       };
-    }
-  );
+  }
 
-  const recoveredByIndex = new Map(
-    recoveredProjects.map((entry) => [entry.projectIndex, entry.project])
-  );
+  for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
+    const recoveredWave = await mapWithBoundedConcurrency(
+      hydration.waves[wave],
+      concurrency,
+      (candidate) => recoverCandidate(candidate, wave)
+    );
+    for (const recovered of recoveredWave) {
+      const previous = recoveryByProject.get(recovered.projectIndex);
+      const previousReport = previous?.activeEvidenceRecovery || {};
+      const report = recovered.project.activeEvidenceRecovery || {};
+      const mergedReport = {
+        ...report,
+        waves: [...new Set([...(previousReport.waves || []), ...(report.waves || [])])],
+        recoveredFields: [...new Set([...(previousReport.recoveredFields || []), ...(report.recoveredFields || [])])],
+        attemptedFields: [...new Set([...(previousReport.attemptedFields || []), ...(report.attemptedFields || [])])],
+        unrecoveredFields: [...new Set([...(previousReport.unrecoveredFields || []), ...(report.unrecoveredFields || [])])],
+        changedEvidenceFamilies: [...new Set([...(previousReport.changedEvidenceFamilies || []), ...(report.changedEvidenceFamilies || [])])],
+        attempts: [...(previousReport.attempts || []), ...(report.attempts || [])],
+        providerAttempts: [...(previousReport.providerAttempts || []), ...(report.providerAttempts || [])],
+        plannedRequestCost: num(previousReport.plannedRequestCost) + num(report.plannedRequestCost),
+      };
+      mergedReport.unrecoveredFields = mergedReport.unrecoveredFields.filter(
+        (field) => !mergedReport.recoveredFields.includes(field)
+      );
+      mergedReport.status = mergedReport.recoveredFields.length
+        ? mergedReport.unrecoveredFields.length
+          ? "PARTIAL_RECOVERY"
+          : "RECOVERED"
+        : "NO_RECOVERY";
+      const merged = {
+        ...recovered.project,
+        activeEvidenceRecoveryStatus: mergedReport.status,
+        activeEvidenceRecoveryRecoveredFields: mergedReport.recoveredFields,
+        activeEvidenceRecoveryAttemptedFields: mergedReport.attemptedFields,
+        activeEvidenceRecovery: mergedReport,
+      };
+      currentProjects[recovered.projectIndex] = merged;
+      recoveryByProject.set(recovered.projectIndex, merged);
+    }
+  }
+
   const providerExecution = summarizeActiveEvidenceExecutionState(executionState);
+  const selectedIndexes = new Set(recoveryByProject.keys());
+  const selectedWaveCounts = Object.fromEntries(
+    Object.entries(hydration.waves).map(([wave, items]) => [wave, items.length])
+  );
+  const recoveredFieldsByFamily = {};
+  const unresolvedFieldsByFamily = {};
+  for (const project of recoveryByProject.values()) {
+    for (const field of project.activeEvidenceRecovery?.recoveredFields || []) {
+      const family = sourceFamilyForField(field);
+      recoveredFieldsByFamily[family] = (recoveredFieldsByFamily[family] || 0) + 1;
+    }
+    for (const field of project.activeEvidenceRecovery?.unrecoveredFields || []) {
+      const family = sourceFamilyForField(field);
+      unresolvedFieldsByFamily[family] = (unresolvedFieldsByFamily[family] || 0) + 1;
+    }
+  }
+  const batchSummary = {
+    deepEvaluatedCandidates: hydration.deepEvaluatedCandidates,
+    recoveryCandidatesAttempted: selectedIndexes.size,
+    selectedWaveCounts,
+    providerRequestsUsed: providerExecution.requestsUsed,
+    providerRequestBudget: providerExecution.maxRequests,
+    recoveredFieldsByFamily,
+    unresolvedFieldsByFamily,
+  };
 
   return safeProjects.map((project, projectIndex) => {
-    const recovered = recoveredByIndex.get(projectIndex);
+    const recovered = recoveryByProject.get(projectIndex);
     if (recovered) {
       return {
         ...recovered,
         activeEvidenceRecovery: {
           ...recovered.activeEvidenceRecovery,
           providerExecution,
+          batchSummary,
         },
       };
     }
+    const deferred = !isDeepCandidate(project);
     return {
       ...project,
-      activeEvidenceRecoveryStatus: "NOT_SELECTED",
+      activeEvidenceRecoveryStatus: deferred ? "DEFERRED_BEFORE_DEEP" : "NOT_SELECTED",
       activeEvidenceRecovery: {
-        status: "NOT_SELECTED",
+        status: deferred ? "DEFERRED_BEFORE_DEEP" : "NOT_SELECTED",
         recoveredFields: [],
         attemptedFields: [],
         unrecoveredFields: [],
         providerExecution,
-        reason: "Project was outside the bounded value-of-information recovery budget.",
+        batchSummary,
+        reason: deferred
+          ? "Project was deferred before deep evaluation and excluded from recovery."
+          : "Project was outside the bounded value-of-information recovery budget.",
       },
     };
   });
