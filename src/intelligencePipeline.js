@@ -131,6 +131,10 @@ import { analyzePreBreakoutMomentumBatch } from "./engines/preBreakoutMomentumEn
 import { analyzeInformationAdvantageBatch } from "./engines/informationAdvantageEngine.js";
 import { analyzeDistressedMicrocapTrapBatch } from "./engines/distressedMicrocapTrapEngine.js";
 import { analyzePreConsensusBreakoutHunterBatch } from "./engines/preConsensusBreakoutHunterEngine.js";
+import { analyzeCanonicalThreeClockBatch } from "./engines/canonicalThreeClockEdgeEngine.js";
+import { analyzeAsymmetricEdgeSuiteBatch } from "./engines/asymmetricEdgeSuiteEngine.js";
+import { analyzeIgnitionRawSensorsBatch } from "./sensors/ignitionRawSensorOrchestrator.js";
+import { analyzeIgnitionTwinBatch } from "./engines/ignitionTwinEngine.js";
 import { analyzePreBreakoutRadarBatch } from "./engines/preBreakoutRadarEngine.js";
 import {
   analyzeFinalSelectionIntegrityBatch,
@@ -2728,6 +2732,23 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Early Asymmetry Triage", analyzeEarlyAsymmetryTriageBatch, results);
   results = await runEngine("Distressed Microcap Trap", analyzeDistressedMicrocapTrapBatch, results);
   results = await runEngine("Pre-Consensus Breakout Hunter", analyzePreConsensusBreakoutHunterBatch, results, options.preConsensusBreakoutHunter || {});
+  results = await runEngine("Three-Clock Edge (canonical shadow only)", analyzeCanonicalThreeClockBatch, results, {
+    ...(options.threeClockEdge || {}),
+    persist: options.threeClockEdge?.persist ?? options.saveMemory !== false,
+  });
+  results = await runEngine("Asymmetric Edge Suite (shadow only)", analyzeAsymmetricEdgeSuiteBatch, results, {
+    ...(options.asymmetricEdgeSuite || {}),
+    persist: options.asymmetricEdgeSuite?.persist ?? options.saveMemory !== false,
+  });
+  results = await runEngine("Ignition Raw Sensors (opt-in, read-only)", analyzeIgnitionRawSensorsBatch, results, {
+    ...(options.ignitionRawSensors || {}),
+    enabled: options.ignitionRawSensors?.enabled ?? String(process.env.IGNITION_RAW_SENSORS_ENABLED || "").toLowerCase() === "true",
+    persist: options.ignitionRawSensors?.persist ?? options.saveMemory !== false,
+  });
+  results = await runEngine("Ignition Twin (shadow only)", analyzeIgnitionTwinBatch, results, {
+    ...(options.ignitionTwin || {}),
+    persist: options.ignitionTwin?.persist ?? options.saveMemory !== false,
+  });
   results = await runEngine("Evidence Lineage Governor", analyzeEvidenceLineageCorrelationBatch, results);
   results = await runEngine("Sniper Outcome Labels", analyzeSniperOutcomeLabelsBatch, results, options.sniperOutcomeLabels || {});
   results = await runEngine("Sniper Point-in-Time Dataset", analyzeSniperPointInTimeBatch, results, options.sniperPointInTime || {});

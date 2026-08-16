@@ -1,0 +1,23 @@
+{
+  "note": "Synthetic shape example only; not a claim of live performance.",
+  "regimeRobustness": {
+    "state": "REGIME_ROBUSTNESS_SUPPORTED_SHADOW",
+    "qualifiedRegimes": 3,
+    "positiveQualifiedRegimePct": 100,
+    "worstQualifiedRegimeRiskDifferencePct": 6.4
+  },
+  "executionReality": {
+    "state": "EXECUTION_REALITY_SUPPORTED_SHADOW",
+    "treatmentCostCoveragePct": 78.5,
+    "costStress": [
+      { "multiplier": 1, "matchedNetPrimaryRiskDifferencePct": 11.2 },
+      { "multiplier": 1.5, "matchedNetPrimaryRiskDifferencePct": 9.1 },
+      { "multiplier": 2, "matchedNetPrimaryRiskDifferencePct": 6.8 }
+    ]
+  },
+  "governor": {
+    "state": "SHADOW_EDGE_SUPPORTED_FOR_CANARY_DESIGN_REVIEW",
+    "automaticProductionPromotion": false,
+    "automaticCanaryLaunch": false
+  }
+}

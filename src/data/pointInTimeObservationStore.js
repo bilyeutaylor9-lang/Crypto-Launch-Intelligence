@@ -27,11 +27,11 @@ export function pointInTimeIdentityKey(project = {}) {
     project.projectId ||
     project.permanentProjectKey ||
     project.finalProjectKey ||
-    (project.chain && (project.tokenAddress || project.contractAddress || project.address)
-      ? `${project.chain}:${project.tokenAddress || project.contractAddress || project.address}`
+    ((project.canonicalChain || project.finalChain || project.chain || project.network || project.chainId) && (project.finalContractAddress || project.canonicalAddress || project.tokenAddress || project.contractAddress || project.address)
+      ? `${String(project.canonicalChain || project.finalChain || project.chain || project.network || project.chainId).toLowerCase()}:token:${String(project.finalContractAddress || project.canonicalAddress || project.tokenAddress || project.contractAddress || project.address).toLowerCase()}`
       : null) ||
-    (project.chain && (project.poolAddress || project.pairAddress)
-      ? `${project.chain}:pool:${project.poolAddress || project.pairAddress}`
+    ((project.canonicalChain || project.finalChain || project.chain || project.network || project.chainId) && (project.primaryTradablePool || project.poolAddress || project.pairAddress)
+      ? `${String(project.canonicalChain || project.finalChain || project.chain || project.network || project.chainId).toLowerCase()}:pool:${String(project.primaryTradablePool || project.poolAddress || project.pairAddress).toLowerCase()}`
       : null) ||
     `${String(project.source || "unknown").toLowerCase()}:${String(project.symbol || project.name || "unknown").toLowerCase()}`
   );

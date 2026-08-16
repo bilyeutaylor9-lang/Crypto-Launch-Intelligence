@@ -1,0 +1,24 @@
+{
+  "governanceState": "SHADOW_EDGE_SUPPORTED_FOR_CANARY_DESIGN_REVIEW",
+  "policy": {
+    "version": "V14_EXECUTABLE_EDGE_CANARY_V1",
+    "mode": "PAPER_ONLY",
+    "allowedChains": ["base"],
+    "primaryNotionalUsd": 1000,
+    "quoteNotionalsUsd": [250, 500, 1000, 2500, 5000]
+  },
+  "ticket": {
+    "role": "TREATMENT",
+    "capitalArrivalState": "COMMITTED_LOADED_VACUUM_SHADOW",
+    "decisionState": "PAPER_EXECUTE",
+    "realMoneyOrderCreated": false,
+    "primaryEntryQuote": {
+      "status": "EXECUTABLE_QUOTE_OBSERVED",
+      "requestedNotionalUsd": 1000,
+      "priceImpactBps": 91,
+      "allInCostBps": 164,
+      "signalToQuoteLatencyMs": 824
+    }
+  },
+  "note": "Example only. V14 does not create live orders and cannot claim an edge before real paper-canary evidence matures."
+}

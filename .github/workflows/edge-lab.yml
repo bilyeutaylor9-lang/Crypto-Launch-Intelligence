@@ -1,0 +1,90 @@
+name: Asymmetric Edge Outcome Lab
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asymmetric-edge-lab-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  edge-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Restore Learning Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/scan-history.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+            data/committed-loaded-vacuum-replication-plan.json
+            data/committed-loaded-vacuum-observations.jsonl
+            data/ignition-executable-edge-canary-replays.jsonl
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-policy.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Refresh Lead-Time Outcome Lab
+        run: npm run edge:lab
+
+      - name: Refresh Ignition Outcome Lab
+        run: npm run ignition:lab
+
+      - name: Save Learning Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/scan-history.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Edge Lab Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: asymmetric-edge-lab-${{ github.run_id }}
+          path: |
+            reports/asymmetric-edge-outcome-lab.json
+            reports/residual-alpha-blindspots.json
+            reports/ignition-outcome-lab.json
+            reports/committed-loaded-vacuum-evidence-governor.json
+            reports/ignition-executable-edge-canary.json
+            reports/committed-loaded-vacuum-execution-reality.json
+            reports/committed-loaded-vacuum-regime-robustness.json
+            reports/committed-loaded-vacuum-replication.json
+            reports/committed-loaded-vacuum-attribution.json
+            reports/committed-loaded-vacuum-validation.json
+          if-no-files-found: ignore
+          retention-days: 14
