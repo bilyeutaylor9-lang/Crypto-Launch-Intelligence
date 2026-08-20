@@ -1,7 +1,10 @@
 import fs from "fs";
 import path from "path";
 
-import { observeChainWideCapitalRadar } from "../sensors/chainWideCapitalRadarSensor.js";
+import {
+  chainCapitalRadarObservationAvailable,
+  observeChainWideCapitalRadar,
+} from "../sensors/chainWideCapitalRadarSensor.js";
 import {
   appendChainCapitalRadarObservations,
   chainCapitalRadarHistoryFor,
@@ -39,7 +42,7 @@ if (!fs.existsSync(input)) {
     appendChainCapitalRadarObservations(radar.chains || []);
     fs.mkdirSync(path.dirname(reportFile), { recursive: true });
     fs.writeFileSync(reportFile, JSON.stringify(radar, null, 2));
-    const observed = (radar.chains || []).filter((row) => row.status.startsWith("OBSERVED"));
+    const observed = (radar.chains || []).filter(chainCapitalRadarObservationAvailable);
     console.log(JSON.stringify({
       input,
       candidates: projects.length,

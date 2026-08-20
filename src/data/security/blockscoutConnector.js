@@ -12,6 +12,7 @@ import {
 } from "./securityEvidenceUtils.js";
 
 const BLOCKSCOUT_PROVIDER = "blockscout";
+const BLOCKSCOUT_DEPLOYER_PROVIDER = "blockscout-deployer";
 
 function envBaseUrl(chain = "") {
   const key = `${String(chain || "").toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_BLOCKSCOUT_URL`;
@@ -155,5 +156,60 @@ export async function getBlockscoutSecurityEvidence(project = {}, options = {}) 
     return options.useCache === false ? evidence : setCachedSecurityEvidence(BLOCKSCOUT_PROVIDER, chain, address, evidence);
   } catch (error) {
     return unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, `Blockscout request failed: ${error.message}`);
+  }
+}
+
+export async function getBlockscoutDeployerEvidence(project = {}, options = {}) {
+  const address = tokenAddress(project);
+  const chain = chainKey(project.chain || project.network || project.chainId || "");
+  const baseUrl = envBaseUrl(chain);
+
+  if (!baseUrl || !isEvmAddress(address)) {
+    return {
+      ...unknownSecurityEvidence(
+        BLOCKSCOUT_DEPLOYER_PROVIDER,
+        "Blockscout deployer recovery requires a configured EVM explorer and contract address."
+      ),
+      chain,
+      address: address || null,
+    };
+  }
+
+  const cached = options.useCache === false
+    ? null
+    : getCachedSecurityEvidence(
+        BLOCKSCOUT_DEPLOYER_PROVIDER,
+        chain,
+        address,
+        options.cacheTtlMs
+      );
+  if (cached) return cached;
+
+  try {
+    const root = String(baseUrl).replace(/\/+$/, "");
+    const addressInfo = await fetchJson(`${root}/api/v2/addresses/${address}`, {
+      timeoutMs: options.timeoutMs,
+    });
+    const evidence = {
+      ...normalizeBlockscoutSecurityEvidence({}, addressInfo, { chain, address }),
+      provider: BLOCKSCOUT_DEPLOYER_PROVIDER,
+    };
+    return options.useCache === false
+      ? evidence
+      : setCachedSecurityEvidence(
+          BLOCKSCOUT_DEPLOYER_PROVIDER,
+          chain,
+          address,
+          evidence
+        );
+  } catch (error) {
+    return {
+      ...unknownSecurityEvidence(
+        BLOCKSCOUT_DEPLOYER_PROVIDER,
+        `Blockscout deployer request failed: ${error.message}`
+      ),
+      chain,
+      address,
+    };
   }
 }

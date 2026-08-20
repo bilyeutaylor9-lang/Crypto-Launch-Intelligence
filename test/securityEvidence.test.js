@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { normalizeBlockscoutSecurityEvidence } from "../src/data/security/blockscoutConnector.js";
+import {
+  getBlockscoutDeployerEvidence,
+  normalizeBlockscoutSecurityEvidence,
+} from "../src/data/security/blockscoutConnector.js";
 import {
   buildEtherscanV2Url,
   getEtherscanV2SecurityEvidence,
@@ -80,6 +83,38 @@ test("Blockscout normalizer preserves proxy and implementation evidence", () => 
   assert.equal(result.proxy, true);
   assert.match(result.implementationAddress, /^0x3333/);
   assert.ok(result.riskFindings.some((item) => item.includes("proxy")));
+});
+
+test("Blockscout deployer recovery uses exact address metadata without contract source lookup", async () => {
+  const originalFetch = globalThis.fetch;
+  const requestedUrls = [];
+  globalThis.fetch = async (url) => {
+    requestedUrls.push(String(url));
+    return new Response(JSON.stringify({
+      hash: ADDRESS,
+      creator_address_hash: "0x2222222222222222222222222222222222222222",
+      creation_transaction_hash: `0x${"ab".repeat(32)}`,
+      is_contract: true,
+    }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const result = await getBlockscoutDeployerEvidence(
+      { chain: "base", tokenAddress: ADDRESS },
+      { useCache: false }
+    );
+    assert.equal(result.status, "EVIDENCE_AVAILABLE");
+    assert.equal(result.address, ADDRESS);
+    assert.equal(result.creatorAddress, "0x2222222222222222222222222222222222222222");
+    assert.equal(result.provider, "blockscout-deployer");
+    assert.equal(requestedUrls.length, 1);
+    assert.match(requestedUrls[0], new RegExp(`/api/v2/addresses/${ADDRESS}$`, "i"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("Etherscan V2 normalizer preserves ABI, source, creator, and proxy proof without storing giant blobs", () => {

@@ -129,7 +129,13 @@ function closestSnapshotAfter(snapshots = [], fromMs = 0, horizonHours = 24, opt
   const toleranceMs = horizonToleranceHours(horizonHours, options) * 60 * 60 * 1000;
   const future = snapshots.filter((snapshot) => {
     const observedAt = timestampOf(snapshot);
-    return observedAt >= targetMs && observedAt - targetMs <= toleranceMs;
+    const provenanceVerified = [
+      "EXACT_CHAIN_TOKEN_MATCH",
+      "EXACT_CHAIN_TOKEN_POOL_MATCH",
+    ].includes(snapshot.provenance?.verificationStatus);
+    return observedAt >= targetMs &&
+      observedAt - targetMs <= toleranceMs &&
+      (options.requireVerifiedOutcomeProvenance !== true || provenanceVerified);
   });
 
   if (!future.length) return null;
@@ -212,6 +218,7 @@ export function buildOutcomeExamples(
         primaryChangePct: Number(primaryChangePct.toFixed(2)),
         outcomeLabel: label,
         outcomeBasis: "PRICE_ONLY_POINT_IN_TIME_SNAPSHOT",
+        outcomeProvenance: future.provenance || null,
         outcomeScore: outcomeScore(label),
       });
     }

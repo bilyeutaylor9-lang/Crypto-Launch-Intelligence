@@ -2,9 +2,11 @@ import {
   buildOutcomeCalibrationReport,
   saveOutcomeCalibrationReport,
 } from "./learning/outcomeCalibrationEngine.js";
+import { runAvoidanceEdgeVerification } from "./learning/avoidanceEdgeVerificationLab.js";
 
 const report = buildOutcomeCalibrationReport();
 const { file } = saveOutcomeCalibrationReport(report);
+const avoidanceVerification = runAvoidanceEdgeVerification();
 
 console.log(
   JSON.stringify(
@@ -20,6 +22,8 @@ console.log(
       confidenceCalibration: report.confidenceCalibration,
       strongestSignals: report.strongestSignals,
       weakestSignals: report.weakestSignals,
+      avoidanceVerificationState: avoidanceVerification.state,
+      verifiedAvoidanceEdges: avoidanceVerification.verifiedEdges,
       topWinners: report.topWinners,
       topLosers: report.topLosers,
     },

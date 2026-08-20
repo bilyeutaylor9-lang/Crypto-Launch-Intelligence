@@ -23,25 +23,52 @@ const STANDALONE_ENGINE_AUDIT_SPECS = Object.freeze({
   "airdropToTokenEngine.js": { exportName: "analyzeAirdropToTokenBatch", role: "discovery-signal", args: "projects" },
   "alphaDatabaseEngine.js": { exportName: "analyzeAlphaDatabaseBatch", role: "memory-helper", args: "projects" },
   "alphaDecayEngine.js": { exportName: "analyzeAlphaDecayBatch", role: "advisory-signal", args: "projects" },
+  "breakoutHazardEngine.js": { exportName: "analyzeBreakoutHazardBatch", role: "indirect-three-clock-component", args: "projects" },
+  "capitalArrivalCurveEngine.js": { exportName: "attachCapitalArrivalIntelligence", role: "indirect-ignition-component", args: "projects" },
+  "capitalConservationLedgerEngine.js": { exportName: "buildCapitalConservationLedger", role: "indirect-ignition-component", args: "projectsAndEmptyRows" },
+  "capitalDestinationIntelligenceEngine.js": { exportName: "analyzeCapitalDestinationIntelligenceBatch", role: "indirect-ignition-component", args: "projects" },
+  "capitalIntentGraphEngine.js": { exportName: "analyzeCapitalIntentGraphBatch", role: "indirect-three-clock-component", args: "projects" },
+  "capitalPathPredictionEngine.js": { exportName: "attachCapitalPathPredictions", role: "indirect-ignition-component", args: "projectsAndEmptyRows" },
   "cexListingDiscoveryEngine.js": { exportName: "analyzeCexListingBatch", role: "discovery-signal", args: "projects" },
   "dexPairDiscoveryEngine.js": { exportName: "discoverDexPairs", role: "discovery-source", args: "projects" },
   "discoveryFilterEngine.js": { exportName: "filterDiscoveryCandidates", role: "discovery-filter", args: "projects" },
   "discoveryPackEngine.js": { exportName: "runDiscoveryPack", role: "discovery-orchestrator", args: "inputObject" },
+  "downstreamAdoptionGraphEngine.js": { exportName: "analyzeDownstreamAdoptionGraphBatch", role: "indirect-three-clock-component", args: "projects" },
   "ecosystemDiscoveryEngine.js": { exportName: "discoverEcosystemProjects", role: "discovery-source", args: "projects" },
+  "economicParticipantFlowEngine.js": { exportName: "analyzeEconomicParticipantFlowBatch", role: "indirect-ignition-component", args: "projects" },
+  "edgeHalfLifeEngine.js": { exportName: "analyzeEdgeHalfLife", role: "indirect-three-clock-component", args: "projectAndLab" },
+  "edgeUncertaintyEngine.js": { exportName: "analyzeEdgeUncertaintyBatch", role: "indirect-three-clock-component", args: "projects" },
+  "effectiveFloatEngine.js": { exportName: "analyzeEffectiveFloatBatch", role: "indirect-ignition-component", args: "projects" },
+  "eventSequenceDNAEngine.js": { exportName: "analyzeEventSequenceDNA", role: "indirect-three-clock-component", args: "project" },
+  "fakeMomentumFirewallEngine.js": { exportName: "analyzeFakeMomentumFirewallBatch", role: "indirect-three-clock-component", args: "projects" },
+  "globalMarketRegimeEngine.js": { exportName: "attachGlobalMarketRegimeBatch", role: "indirect-three-clock-component", args: "projects" },
   "highRatingFilterEngine.js": { exportName: "applyHighRatingFilter", role: "discovery-filter", args: "projects" },
+  "informationDiffusionClockEngine.js": { exportName: "analyzeInformationDiffusionClock", role: "indirect-three-clock-component", args: "project" },
   "launchpadDiscoveryEngine.js": { exportName: "discoverLaunchpadProjects", role: "discovery-source", args: "projects" },
+  "liquidityGeometryEngine.js": { exportName: "analyzeLiquidityGeometryBatch", role: "indirect-ignition-component", args: "projects" },
   "liveMarketDiscoveryEngine.js": { exportName: "filterLiveCandidates", role: "live-discovery-filter", args: "projects", options: { minLiquidity: 1, minVolume24h: 1 } },
+  "localMarketStateEngine.js": { exportName: "analyzeLocalMarketStateBatch", role: "indirect-three-clock-component", args: "projects" },
+  "marginalSellerCurveEngine.js": { exportName: "analyzeMarginalSellerCurveBatch", role: "indirect-ignition-component", args: "projects" },
+  "marketChangePointRadarEngine.js": { exportName: "analyzeMarketChangePointRadarBatch", role: "indirect-three-clock-component", args: "projects" },
+  "marketPressureEngine.js": { exportName: "analyzeMarketPressureBatch", role: "indirect-ignition-component", args: "projects" },
   "memeFilterEngine.js": { exportName: "filterMemes", role: "legacy-discovery-filter", args: "projects" },
   "monteCarloEngine.js": { exportName: "runIntelligencePipeline", role: "legacy-pipeline-adapter", args: "projects", options: { saveMemory: false } },
   "newTokenDiscoveryEngine.js": { exportName: "discoverNewTokens", role: "discovery-source", args: "newProject" },
   "opportunityDiscoveryEngine.js": { exportName: "rankProjects", role: "legacy-ranking-helper", args: "projects" },
   "opportunityThesisEngine.js": { exportName: "analyzeOpportunityThesisBatch", role: "thesis-helper", args: "projects" },
+  "prePositioningIntelligenceEngine.js": { exportName: "analyzePrePositioningIntelligenceBatch", role: "indirect-ignition-component", args: "projects" },
   "presaleDiscoveryEngine.js": { exportName: "discoverPresales", role: "discovery-source", args: "projects" },
   "projectQualityGateEngine.js": { exportName: "analyzeProjectQualityGateBatch", role: "quality-gate-helper", args: "projects" },
+  "realTimeTradeFlowEngine.js": { exportName: "analyzeRealTimeTradeFlowBatch", role: "indirect-three-clock-component", args: "projects" },
+  "reflexivityMechanismEngine.js": { exportName: "analyzeReflexivityMechanismsBatch", role: "indirect-ignition-component", args: "projects" },
   "riskGateEngine.js": { exportName: "analyzeRiskGateBatch", role: "legacy-risk-gate", args: "projects" },
+  "supplyLineageIntelligenceEngine.js": { exportName: "analyzeSupplyLineageIntelligenceBatch", role: "indirect-ignition-component", args: "projects" },
+  "supplyShockEngine.js": { exportName: "analyzeSupplyShockBatch", role: "indirect-three-clock-component", args: "projects" },
   "testnetDiscoveryEngine.js": { exportName: "discoverTestnets", role: "discovery-source", args: "projects" },
+  "threeClockEdgeEngine.js": { exportName: "analyzeThreeClockEdgeBatch", role: "indirect-three-clock-component", args: "projects" },
   "trendingPairDiscoveryEngine.js": { exportName: "discoverTrendingPairs", role: "discovery-source", args: "projects" },
   "upcomingLaunchDiscoveryEngine.js": { exportName: "analyzeUpcomingLaunchBatch", role: "discovery-signal", args: "projects" },
+  "walletTemporalFingerprintEngine.js": { exportName: "analyzeWalletTemporalFingerprintBatch", role: "indirect-three-clock-component", args: "projects" },
   "watchtowerEngine.js": { exportName: "analyzeWatchtower", role: "watchtower-standalone", args: "watchtower" },
 });
 
@@ -424,6 +451,9 @@ function standaloneArguments(spec = {}, sample = {}) {
 
   if (spec.args === "inputObject") return [{ projects: [project] }, options];
   if (spec.args === "watchtower") return [[project], { ...options, watchStore: { projects: {} } }];
+  if (spec.args === "project") return [project, options];
+  if (spec.args === "projectAndLab") return [project, { records: [] }, options];
+  if (spec.args === "projectsAndEmptyRows") return [[project], [], options];
   return [[project], options];
 }
 

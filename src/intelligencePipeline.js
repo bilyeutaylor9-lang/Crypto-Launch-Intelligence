@@ -228,6 +228,7 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "Active Evidence Recovery": 600_000,
   "Contract Authority Risk": 180_000,
   "Capital Flow Observation": 45_000,
+  "Ignition Raw Sensors (opt-in, read-only)": 60_000,
 };
 
 export const FINAL_EVIDENCE_ENGINE_SEQUENCE = Object.freeze([

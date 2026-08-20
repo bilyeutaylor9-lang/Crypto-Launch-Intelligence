@@ -7,6 +7,11 @@ import {
   normalizeDexPair,
 } from "../data/dexScreenerConnector.js";
 import {
+  getGeckoPoolByAddress,
+  normalizeGeckoPool,
+  resolveGeckoTerminalNetworkId,
+} from "../data/geckoTerminalConnector.js";
+import {
   normalizeChainId,
   normalizePoolAddress,
   normalizeTokenAddress,
@@ -58,7 +63,13 @@ function identityFrom(record = {}, fallback = {}) {
 function alreadyResolved(snapshots = [], targetMs = 0, toleranceMs = 0) {
   return snapshots.some((snapshot) => {
     const observedAt = timestampOf(snapshot);
-    return observedAt >= targetMs && observedAt <= targetMs + toleranceMs;
+    const verificationStatus = snapshot.provenance?.verificationStatus;
+    return observedAt >= targetMs &&
+      observedAt <= targetMs + toleranceMs &&
+      [
+        "EXACT_CHAIN_TOKEN_MATCH",
+        "EXACT_CHAIN_TOKEN_POOL_MATCH",
+      ].includes(verificationStatus);
   });
 }
 
@@ -138,6 +149,10 @@ function rawPairs(payload) {
   return Array.isArray(payload?.pairs) ? payload.pairs : [];
 }
 
+function geckoPairs(payload = {}) {
+  return payload?.data ? [normalizeGeckoPool(payload.data)] : [];
+}
+
 function normalizedPair(pair = {}) {
   if (pair.chain && pair.tokenAddress) return pair;
   return normalizeDexPair(pair);
@@ -166,14 +181,35 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const payload = candidate.poolAddress
+    if (!options.consumeProviderRequest()) {
+      return { candidate, status: "PROVIDER_REQUEST_BUDGET_EXHAUSTED", observation: null };
+    }
+    const dexPayload = candidate.poolAddress
       ? await providers.getPairByAddress(candidate.chain, candidate.poolAddress, {
           signal: controller.signal,
         })
       : await providers.getTokenPairs(candidate.chain, candidate.tokenAddress, {
           signal: controller.signal,
         });
-    const pair = exactPair(candidate, rawPairs(payload));
+    let pair = exactPair(candidate, rawPairs(dexPayload));
+    let source = "dexscreener";
+
+    if (
+      !pair &&
+      candidate.poolAddress &&
+      providers.getGeckoPoolByAddress &&
+      resolveGeckoTerminalNetworkId(candidate.chain) &&
+      options.consumeProviderRequest()
+    ) {
+      const geckoPayload = await providers.getGeckoPoolByAddress(
+        candidate.chain,
+        candidate.poolAddress,
+        { maxAttempts: 1, timeoutMs }
+      );
+      pair = exactPair(candidate, geckoPairs(geckoPayload));
+      source = "geckoterminal";
+    }
+
     if (!pair) {
       return { candidate, status: "NO_EXACT_PROVIDER_MATCH", observation: null };
     }
@@ -190,7 +226,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
         tokenAddress: candidate.tokenAddress,
         poolAddress: candidate.poolAddress || pair.poolAddress || pair.pairAddress || null,
         outcomeObservationProvenance: {
-          source: "dexscreener",
+          source,
           sourceTimestamp: observedAt,
           confidence: 1,
           verificationStatus: candidate.poolAddress
@@ -230,6 +266,22 @@ async function mapWithConcurrency(items = [], concurrency = 1, worker) {
   return results;
 }
 
+function paceProvider(provider, minimumIntervalMs = 0) {
+  if (!provider || minimumIntervalMs <= 0) return provider;
+  let tail = Promise.resolve();
+  let lastStartedAt = 0;
+  return (...args) => {
+    const request = tail.then(async () => {
+      const waitMs = Math.max(0, lastStartedAt + minimumIntervalMs - Date.now());
+      if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
+      lastStartedAt = Date.now();
+      return provider(...args);
+    });
+    tail = request.catch(() => {});
+    return request;
+  };
+}
+
 function saveReport(report = {}, file = REPORT_FILE) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(report, null, 2));
@@ -251,12 +303,32 @@ export async function runOutcomeProbe(options = {}) {
     now,
   });
   const selected = candidates.slice(0, maxRequests);
+  const geckoProvider = options.providers
+    ? options.providers.getGeckoPoolByAddress || null
+    : getGeckoPoolByAddress;
+  const geckoMinimumIntervalMs = Math.max(0, Number(
+    options.geckoMinimumIntervalMs ??
+    process.env.OUTCOME_PROBE_GECKO_MINIMUM_INTERVAL_MS ??
+    6_100
+  ));
   const providers = {
     getPairByAddress: options.providers?.getPairByAddress || getPairByAddress,
     getTokenPairs: options.providers?.getTokenPairs || getTokenPairs,
+    getGeckoPoolByAddress: paceProvider(geckoProvider, geckoMinimumIntervalMs),
+  };
+  let providerRequestsUsed = 0;
+  const consumeProviderRequest = () => {
+    if (providerRequestsUsed >= maxRequests) return false;
+    providerRequestsUsed += 1;
+    return true;
   };
   const results = await mapWithConcurrency(selected, concurrency, (candidate) =>
-    probeCandidate(candidate, providers, { ...options, now, runId })
+    probeCandidate(candidate, providers, {
+      ...options,
+      now,
+      runId,
+      consumeProviderRequest,
+    })
   );
   const observations = results.map((result) => result.observation).filter(Boolean);
   const saveResult = observations.length
@@ -279,7 +351,7 @@ export async function runOutcomeProbe(options = {}) {
       (sum, candidate) => sum + candidate.duePredictions.length,
       0
     ),
-    providerRequestsUsed: selected.length,
+    providerRequestsUsed,
     providerRequestBudget: maxRequests,
     observationsSaved: num(saveResult.saved),
     unresolvedCandidates: Math.max(0, candidates.length - observations.length),

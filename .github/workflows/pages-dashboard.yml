@@ -62,6 +62,12 @@ jobs:
             data/source-router-memory.json*
             data/universe-ledger.json*
             data/watchtower-*.json*
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json
             data/native-discovery/checkpoints.json
@@ -125,6 +131,9 @@ jobs:
           NATIVE_DISCOVERY_CHAINS: ${{ vars.NATIVE_DISCOVERY_CHAINS || 'base,solana,bsc,polygon,arbitrum,ethereum,optimism,avalanche' }}
           BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
           BASE_WS_URL: ${{ secrets.BASE_WS_URL }}
+          IGNITION_RAW_SENSORS_ENABLED: ${{ vars.IGNITION_RAW_SENSORS_ENABLED || 'true' }}
+          IGNITION_CHAIN_CAPITAL_RADAR_ENABLED: ${{ vars.IGNITION_CHAIN_CAPITAL_RADAR_ENABLED || 'true' }}
+          IGNITION_RAW_SENSOR_MAX_PROJECTS: ${{ vars.IGNITION_RAW_SENSOR_MAX_PROJECTS || '8' }}
           ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
           ETHEREUM_WS_URL: ${{ secrets.ETHEREUM_WS_URL }}
           BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
@@ -185,6 +194,12 @@ jobs:
             data/source-router-memory.json*
             data/universe-ledger.json*
             data/watchtower-*.json*
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json
             data/native-discovery/checkpoints.json
