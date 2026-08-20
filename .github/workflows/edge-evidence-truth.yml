@@ -36,6 +36,8 @@ jobs:
             data/capital-commitment-episodes.jsonl
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
             data/outcome-snapshots.json*
             data/scan-history.json*
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
@@ -50,6 +52,20 @@ jobs:
         env:
           EDGE_EVIDENCE_MAX_REQUESTS: 60
           EDGE_EVIDENCE_CONCURRENCY: 4
+
+      - name: Observe Continuous Capital And Refresh Shadow Models
+        id: edge_acquisition
+        continue-on-error: true
+        run: npm run edge:acquire
+        env:
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+          IGNITION_CAPITAL_RADAR_LOOKBACK_MINUTES: 70
+          IGNITION_CAPITAL_RADAR_MAX_LOOKBACK_BLOCKS: 2400
+          IGNITION_CAPITAL_RADAR_CONTINUITY_MAX_LOOKBACK_BLOCKS: 12000
+          IGNITION_CAPITAL_RADAR_MAX_LOGS: 50000
+          IGNITION_CAPITAL_RADAR_MAX_WALLETS: 120
+          IGNITION_CAPITAL_RADAR_MAX_TRACKED_WALLETS: 160
+          IGNITION_CAPITAL_RADAR_MIN_TRANSFER_USD: 5000
 
       - name: Refresh Evidence Health And Research Loop
         run: npm run edge:evidence:truth
@@ -66,6 +82,8 @@ jobs:
             data/capital-commitment-episodes.jsonl
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
             data/outcome-snapshots.json*
             data/scan-history.json*
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
@@ -84,5 +102,7 @@ jobs:
             reports/edge-mechanism-contrast.json
             reports/edge-evidence-discovery-loop.json
             reports/edge-research-autopilot.json
+            reports/prospective-entry-edge.json
+            reports/edge-acquisition-cycle.json
           if-no-files-found: error
           retention-days: 30

@@ -9,6 +9,7 @@ export const SELECTORS = Object.freeze({
   ticks: "0xf30dba93",
   decimals: "0x313ce567",
   balanceOf: "0x70a08231",
+  allowance: "0xdd62ed3e",
 });
 
 export const ERC20_TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";

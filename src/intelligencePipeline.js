@@ -189,6 +189,7 @@ import { prePumpDetectionEngine } from "./engines/prePumpDetectionEngine.js";
 import { saveScanMemory } from "./learning/scanMemoryStore.js";
 import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
 import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
+import { saveEdgeCandidateUniverse } from "./data/edgeCandidateUniverseStore.js";
 import { saveInternetResearchMemory } from "./learning/internetResearchMemoryStore.js";
 import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.js";
 import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
@@ -2901,6 +2902,12 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       await saveMemoryStep("scan memory", () => saveScanMemory(results));
     } catch (error) {
       console.log(`Scan memory save failed: ${error.message}`);
+    }
+
+    try {
+      await saveMemoryStep("edge candidate universe", () => saveEdgeCandidateUniverse(results));
+    } catch (error) {
+      console.log(`Edge candidate universe save failed: ${error.message}`);
     }
 
     try {

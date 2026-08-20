@@ -10,6 +10,7 @@ import { runEdgeMechanismContrast } from "../learning/edgeMechanismContrastLab.j
 import { runEdgeDiscoveryLoop } from "../learning/edgeDiscoveryLoop.js";
 import { runEdgeResearchAutopilot } from "../learning/edgeResearchAutopilot.js";
 import { runAvoidanceEdgeVerification } from "../learning/avoidanceEdgeVerificationLab.js";
+import { runProspectiveEntryEdgeLab } from "../learning/prospectiveEntryEdgeLab.js";
 
 function readJson(file) {
   const absolute = path.resolve(file);
@@ -26,6 +27,7 @@ export function runEdgeEvidenceTruthCycle(options = {}) {
   const autopsy = runEdgeFailureAutopsy(outcomeLab, options.autopsy || {});
   const contrast = runEdgeMechanismContrast(outcomeLab, options.contrast || {});
   const avoidanceVerification = runAvoidanceEdgeVerification(options.avoidance || {});
+  const prospectiveEntryEdge = runProspectiveEntryEdgeLab(options.prospectiveEntry || {});
   const discovery = runEdgeDiscoveryLoop({ health, outcomeLab, autopsy, contrast }, options.discovery || {});
   const autopilot = runEdgeResearchAutopilot({
     health,
@@ -33,6 +35,7 @@ export function runEdgeEvidenceTruthCycle(options = {}) {
     autopsy,
     contrast,
     avoidanceVerification,
+    prospectiveEntryEdge,
     discovery,
   }, options.autopilot || {});
   return {
@@ -43,6 +46,7 @@ export function runEdgeEvidenceTruthCycle(options = {}) {
     autopsy,
     contrast,
     avoidanceVerification,
+    prospectiveEntryEdge,
     discovery,
     autopilot,
   };
@@ -57,6 +61,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       evidenceHealthState: result.health.state,
       edgeVerificationState: result.outcomeLab.verification.state,
       avoidanceVerificationState: result.avoidanceVerification.state,
+      prospectiveEntryEdgeState: result.prospectiveEntryEdge.state,
       autopilotState: result.autopilot.state,
       nextMechanism: result.autopilot.nextMechanism,
     }, null, 2));

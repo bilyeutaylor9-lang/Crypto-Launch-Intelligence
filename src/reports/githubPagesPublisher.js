@@ -35,6 +35,8 @@ const PUBLIC_REPORTS = [
   "mathematical-validation.json",
   "outcome-calibration.json",
   "avoidance-edge-verification.json",
+  "prospective-entry-edge.json",
+  "edge-acquisition-cycle.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
   "state-of-art-signals.json",
@@ -666,6 +668,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const outcomeCalibration = readJsonReport("outcome-calibration.json", reportsDir) || {};
   const avoidanceVerification = readJsonReport("avoidance-edge-verification.json", reportsDir) || {};
   const verifiedAvoidanceEdge = avoidanceVerification.verifiedEdges?.[0] || null;
+  const prospectiveEntryEdge = readJsonReport("prospective-entry-edge.json", reportsDir) || {};
+  const edgeAcquisition = readJsonReport("edge-acquisition-cycle.json", reportsDir) || {};
   const institutionalRanking = readJsonReport("institutional-ranking.json", reportsDir) || {};
   const executionReady = readJsonReport("execution-ready.json", reportsDir) || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json", reportsDir) || {};
@@ -712,6 +716,19 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       routeUniverse.executionReadyCount ??
       0,
   };
+  const guardedTopBoard = Array.isArray(liveCoreRanking.top10)
+    ? liveCoreRanking.top10
+    : [];
+  const guardedPrimaryBoard = guardedTopBoard.length
+    ? guardedTopBoard
+    : liveCoreRanking.primaryCandidate
+      ? [liveCoreRanking.primaryCandidate]
+      : [];
+  const guardedPrimaryTitle = guardedTopBoard.length
+    ? "Authoritative Guarded Research Ranking"
+    : liveCoreRanking.primaryCandidate?.primaryCandidateDisposition === "NOT_ACTIONABLE"
+      ? "Best Available Monitored Candidate - Not Actionable"
+      : "Authoritative Guarded Research Ranking";
   const topProject = report.projects?.[0] || {};
   const topWeightFamily = [...(weightOptimizer.families || [])].sort(
     (a, b) => Number(b.weight || 0) - Number(a.weight || 0)
@@ -765,6 +782,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     .join("");
   const cards = [
     ["Projects", report.totalProjects ?? 0],
+    ["Primary Candidate", liveCoreRanking.summary?.primaryCandidate || "None"],
+    ["Candidate Disposition", liveCoreRanking.summary?.primaryCandidateDisposition || "NOT_AVAILABLE"],
     ["Best Now", bestNowProject.identity?.symbol || "No Clear"],
     ["Leader Verdict", bestOpportunityNow.verdict || finalistComparison.verdict || "NO QUALIFIED CANDIDATE"],
     ["Leader Rank", bestNowProject.marketOpportunityRank ?? "NO QUALIFIED CANDIDATE"],
@@ -1336,7 +1355,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.fullyQualified ?? 0)}</div><div class="metric-label">Fully Qualified</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.deterministicallyBlocked ?? liveCoreRanking.summary?.blocked ?? 0)}</div><div class="metric-label">Deterministically Blocked</div></div>
       </div>
-      ${renderScalpCandidateTable(liveCoreRanking.top10 || [], "Authoritative Guarded Research Ranking")}
+      ${renderScalpCandidateTable(guardedPrimaryBoard, guardedPrimaryTitle)}
     </section>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
     ${renderDailyCapitalSlate(dailyCapital, dailyRecovery, evidenceFunnel)}
@@ -1406,6 +1425,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="actions">
           <a class="button" href="./outcome-calibration.json">Open Calibration</a>
           <a class="button" href="./avoidance-edge-verification.json">Open Avoidance Verification</a>
+          <a class="button" href="./prospective-entry-edge.json">Open Entry Trial</a>
         </div>
       </div>
       <div class="metrics">
@@ -1418,6 +1438,10 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(avoidanceVerification.state || "NO_VERIFIED_AVOIDANCE_EDGE")}</div><div class="metric-label">Avoidance Verification</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(verifiedAvoidanceEdge?.avoidanceEffectPct ?? 0)}%</div><div class="metric-label">168h Avoidance Effect</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(verifiedAvoidanceEdge?.projectClusteredBootstrap95?.lower95Pct ?? 0)}%</div><div class="metric-label">Clustered 95% Lower Bound</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(prospectiveEntryEdge.state || "ENTRY_TRIAL_NOT_STARTED")}</div><div class="metric-label">Prospective Entry Trial</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(prospectiveEntryEdge.prospectiveExecutableCohort?.resolvedTreatments ?? 0)}</div><div class="metric-label">Executable Treatments</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(prospectiveEntryEdge.prospectiveExecutableCohort?.resolvedControls ?? 0)}</div><div class="metric-label">Matched Controls</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(edgeAcquisition.preparedWallets ?? 0)}</div><div class="metric-label">Prepared Wallets Observed</div></div>
       </div>
     </section>
     <div class="toolbar">

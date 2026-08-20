@@ -922,6 +922,39 @@ function sortCandidates(left, right) {
   );
 }
 
+function selectMonitoredResearchLead(projects = []) {
+  return projects.find((project) =>
+    project.liveActionStatus === "DATA_RECOVERY_REQUIRED" &&
+    !isDeferredBeforeDeep(project) &&
+    project.liveRankingDisplayEligible === true &&
+    project.liveRankingTrace?.execution?.exactIdentity === true &&
+    Boolean(guardedIdentityKey(project)) &&
+    Boolean(poolAddress(project)) &&
+    String(tokenAddress(project)) !== String(poolAddress(project)) &&
+    project.memeOnlySpeculative !== true &&
+    project.liveRankingTrace?.utility?.memeOnly !== true &&
+    array(project.liveRankingBlocks).length === 0
+  ) || null;
+}
+
+function primaryCandidateMetadata(project = null, monitored = false) {
+  if (!project) return null;
+  if (monitored) {
+    return {
+      lane: "BEST_AVAILABLE_MONITORED_RESEARCH",
+      disposition: "NOT_ACTIONABLE",
+      reason: "Best exact-identity, display-clean, non-blocked deep candidate; missing proof prevents action.",
+    };
+  }
+  return {
+    lane: project.liveActionStatus,
+    disposition: project.liveActionStatus === "MICRO_TEST_ELIGIBLE"
+      ? "MANUAL_MICRO_TEST_ELIGIBLE"
+      : "RESEARCH_ONLY",
+    reason: "Highest-ranked candidate that passed the guarded measured-evidence research threshold.",
+  };
+}
+
 export function buildGuardedLiveRanking(projects = [], options = {}) {
   const policy =
     options.policy ||
@@ -938,7 +971,7 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
       index + 1,
     ])
   );
-  const ranked = projects
+  const initiallyRanked = projects
     .map((project) => {
       const scored = scoreCandidate(project, policy, options);
       const fallbackKey =
@@ -948,12 +981,33 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
     })
     .sort(sortCandidates)
     .map((project, index) => ({ ...project, liveRank: index + 1, rank: index + 1 }));
+  const initialEvidenceBacked = initiallyRanked.filter((project) =>
+    ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus)
+  );
+  const monitoredResearchLead = initialEvidenceBacked.length
+    ? null
+    : selectMonitoredResearchLead(initiallyRanked);
+  const initialPrimaryCandidate = initialEvidenceBacked[0] || monitoredResearchLead;
+  const primaryMetadata = primaryCandidateMetadata(
+    initialPrimaryCandidate,
+    initialPrimaryCandidate === monitoredResearchLead
+  );
+  const ranked = initiallyRanked.map((project) => ({
+    ...project,
+    primaryCandidateSelected: project === initialPrimaryCandidate,
+    primaryCandidateLane: project === initialPrimaryCandidate ? primaryMetadata?.lane || null : null,
+    primaryCandidateDisposition: project === initialPrimaryCandidate
+      ? primaryMetadata?.disposition || null
+      : null,
+    primaryCandidateReason: project === initialPrimaryCandidate ? primaryMetadata?.reason || null : null,
+  }));
   const byStatus = (status, limit) =>
     ranked.filter((project) => project.liveActionStatus === status).slice(0, limit);
   const evidenceBacked = ranked.filter((project) =>
     ["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(project.liveActionStatus)
   );
   const recoveryLead = byStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
+  const primaryCandidate = ranked.find((project) => project.primaryCandidateSelected) || null;
   const funnelSummary = summarizeEvidenceFunnel(ranked);
 
   return {
@@ -990,6 +1044,10 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
       liveLeader: evidenceBacked[0]?.name || evidenceBacked[0]?.symbol || null,
       liveLeaderStatus: evidenceBacked[0]?.liveActionStatus || null,
       recoveryLeader: recoveryLead?.name || recoveryLead?.symbol || null,
+      primaryCandidate: primaryCandidate?.name || primaryCandidate?.symbol || null,
+      primaryCandidateStatus: primaryCandidate?.liveActionStatus || null,
+      primaryCandidateLane: primaryCandidate?.primaryCandidateLane || null,
+      primaryCandidateDisposition: primaryCandidate?.primaryCandidateDisposition || null,
       invalidDisplayIdentity: ranked.filter(
         (project) => project.liveRankingDisplayEligible !== true
       ).length,
@@ -1003,6 +1061,7 @@ export function buildGuardedLiveRanking(projects = [], options = {}) {
     },
     funnelSummary,
     ranked,
+    primaryCandidate,
     top10: evidenceBacked.slice(0, 10),
     microEligible: byStatus("MICRO_TEST_ELIGIBLE", 10),
     researchWatchlist: byStatus("RESEARCH_WATCHLIST", 25),
@@ -1034,6 +1093,10 @@ function compactProject(project = {}) {
     liveRankingUnprovenCanary: project.liveRankingUnprovenCanary === true,
     liveRankingDisplayEligible: project.liveRankingDisplayEligible === true,
     liveRankingUtilityEligible: project.liveRankingUtilityEligible === true,
+    primaryCandidateSelected: project.primaryCandidateSelected === true,
+    primaryCandidateLane: project.primaryCandidateLane || null,
+    primaryCandidateDisposition: project.primaryCandidateDisposition || null,
+    primaryCandidateReason: project.primaryCandidateReason || null,
     liveRankingMissingEvidence: array(project.liveRankingMissingEvidence),
     liveRankingBlocks: array(project.liveRankingBlocks),
     liveRankingGateReasons: array(project.liveRankingGateReasons),
@@ -1067,6 +1130,9 @@ function compactProjectIndex(project = {}) {
     liveExecutionReady: project.liveExecutionReady === true,
     liveRankingDisplayEligible: project.liveRankingDisplayEligible === true,
     liveRankingUtilityEligible: project.liveRankingUtilityEligible === true,
+    primaryCandidateSelected: project.primaryCandidateSelected === true,
+    primaryCandidateLane: project.primaryCandidateLane || null,
+    primaryCandidateDisposition: project.primaryCandidateDisposition || null,
     missingEvidenceCount: array(project.liveRankingMissingEvidence).length,
     blockerCount: array(project.liveRankingBlocks).length,
     gateReasonCount: array(project.liveRankingGateReasons).length,
@@ -1097,6 +1163,10 @@ function markdown(payload = {}) {
         )
         .join("\n")
     : "| - | No candidate passed every identity, safety, measured-evidence, score, freshness, and two-way route gate. | - | - | - | - |";
+  const primary = payload.primaryCandidate;
+  const primaryRows = primary
+    ? `| ${primary.liveRank ?? "-"} | ${primary.name} | ${primary.symbol || "-"} | ${primary.chain || "-"} | ${primary.guardedLiveScore} | ${primary.primaryCandidateLane || primary.liveActionStatus} | ${primary.primaryCandidateDisposition || "RESEARCH_ONLY"} | ${primary.liveRankingMissingEvidence.join(", ") || "None"} |`
+    : "| - | No exact-identity, non-blocked deep candidate was available. | - | - | - | - | NOT_AVAILABLE | - |";
 
   return `# Guarded Live Core Ranking
 
@@ -1112,6 +1182,14 @@ Generated: ${payload.generatedAt}
 - **Research watchlist:** ${payload.summary.researchWatchlist}
 - **Data recovery required:** ${payload.summary.dataRecoveryRequired}
 - **Blocked:** ${payload.summary.blocked}
+- **Primary candidate:** ${payload.summary.primaryCandidate || "None"}
+- **Primary candidate disposition:** ${payload.summary.primaryCandidateDisposition || "NOT_AVAILABLE"}
+
+## Primary Candidate
+
+| Rank | Project | Symbol | Chain | Live score | Lane | Disposition | Missing evidence |
+|---:|---|---|---|---:|---|---|---|
+${primaryRows}
 
 ## Live Top 10
 
@@ -1164,6 +1242,27 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
   );
   const evidenceBacked = evidenceBackedProjects.slice(0, 10).map(compactProject);
   const recoveryLead = projectsByStatus("DATA_RECOVERY_REQUIRED", 1)[0] || null;
+  const markedPrimaryCandidate = ranked.find((project) => project.primaryCandidateSelected) || null;
+  const fallbackMonitoredLead = evidenceBackedProjects.length
+    ? null
+    : selectMonitoredResearchLead(ranked);
+  const primaryCandidateProject = markedPrimaryCandidate || evidenceBackedProjects[0] || fallbackMonitoredLead;
+  const inferredPrimaryMetadata = primaryCandidateMetadata(
+    primaryCandidateProject,
+    primaryCandidateProject === fallbackMonitoredLead
+  );
+  const primaryCandidate = primaryCandidateProject
+    ? compactProject({
+        ...primaryCandidateProject,
+        primaryCandidateSelected: true,
+        primaryCandidateLane:
+          primaryCandidateProject.primaryCandidateLane || inferredPrimaryMetadata?.lane,
+        primaryCandidateDisposition:
+          primaryCandidateProject.primaryCandidateDisposition || inferredPrimaryMetadata?.disposition,
+        primaryCandidateReason:
+          primaryCandidateProject.primaryCandidateReason || inferredPrimaryMetadata?.reason,
+      })
+    : null;
   const funnelSummary = summarizeEvidenceFunnel(ranked);
   const summary = {
     analyzed: rows.length,
@@ -1177,6 +1276,10 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     liveLeader: evidenceBackedProjects[0]?.name || null,
     liveLeaderStatus: evidenceBackedProjects[0]?.liveActionStatus || null,
     recoveryLeader: recoveryLead?.name || null,
+    primaryCandidate: primaryCandidate?.name || primaryCandidate?.symbol || null,
+    primaryCandidateStatus: primaryCandidate?.liveActionStatus || null,
+    primaryCandidateLane: primaryCandidate?.primaryCandidateLane || null,
+    primaryCandidateDisposition: primaryCandidate?.primaryCandidateDisposition || null,
     invalidDisplayIdentity: rows.filter(
       (project) => project.liveRankingDisplayEligible !== true
     ).length,
@@ -1206,9 +1309,10 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
     rankedDetailPolicy: {
       mode: "COMPLETE_LIGHTWEIGHT_INDEX_WITH_BOUNDED_LANE_DETAILS",
       rankedIndexCount: rows.length,
-      fullTraceSections: ["top10", "microEligible", "researchWatchlist", "dataRecovery", "blocked"],
+      fullTraceSections: ["primaryCandidate", "top10", "microEligible", "researchWatchlist", "dataRecovery", "blocked"],
       csvContainsAllProjects: true,
     },
+    primaryCandidate,
     top10: evidenceBacked,
     microEligible: byStatus("MICRO_TEST_ELIGIBLE", 10),
     researchWatchlist: byStatus("RESEARCH_WATCHLIST", 25),

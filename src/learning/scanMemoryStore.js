@@ -14,6 +14,7 @@ import {
   normalizeChainId,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import { captureProspectiveEntryEdgeCohort } from "./prospectiveEntryEdgeEpisodeStore.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "scan-history.json");
@@ -597,6 +598,12 @@ export function saveScanMemory(projects = []) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const scannedAt = new Date().toISOString();
   const newRecords = safeProjects.map((project) => createScanRecord(project, { scannedAt }));
+  let prospectiveEntryTrialCapture = null;
+  try {
+    prospectiveEntryTrialCapture = captureProspectiveEntryEdgeCohort(newRecords);
+  } catch (error) {
+    prospectiveEntryTrialCapture = { state: "CAPTURE_FAILED_SAFE", error: error.message, saved: 0 };
+  }
 
   if (shouldUseAppendOnlyMemory(MEMORY_FILE)) {
     const sidecar = appendMemorySidecar(MEMORY_FILE, newRecords, { recordType: "scan-history" });
@@ -608,6 +615,7 @@ export function saveScanMemory(projects = []) {
       persistenceMode: sidecar.mode,
       legacyFilePreserved: sidecar.legacyFilePreserved,
       legacyFileBytes: sidecar.legacyFileBytes,
+      prospectiveEntryTrialCapture,
     };
   }
 
@@ -621,6 +629,7 @@ export function saveScanMemory(projects = []) {
     totalRecords: updated.length,
     maxRecords: MAX_RECORDS,
     file: MEMORY_FILE,
+    prospectiveEntryTrialCapture,
   };
 }
 
