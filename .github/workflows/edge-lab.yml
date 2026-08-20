@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: asymmetric-edge-lab-${{ github.ref }}
+  group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:

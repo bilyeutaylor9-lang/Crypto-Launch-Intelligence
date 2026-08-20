@@ -40,10 +40,14 @@ function pathOutcome(observations, signal, hours) {
   const window = laterWindow(observations, signal, hours);
   const entry = num(signal.priceUsd);
   if (entry === null || entry <= 0 || !window.length) return null;
+  const target = Date.parse(signal.observedAt) + hours * 3_600_000;
+  const terminalWindow = window.filter((row) => Date.parse(row.observedAt) >= target);
+  // A partial path can prove an observed threshold crossing, but it cannot prove
+  // a terminal no-hit or a fixed-horizon return. Keep the episode unresolved.
+  if (!terminalWindow.length) return null;
   const prices = window.map((row) => num(row.priceUsd)).filter((price) => price !== null && price > 0);
   if (!prices.length) return null;
-  const target = Date.parse(signal.observedAt) + hours * 3_600_000;
-  const closest = [...window].sort((a, b) => Math.abs(Date.parse(a.observedAt) - target) - Math.abs(Date.parse(b.observedAt) - target))[0];
+  const closest = [...terminalWindow].sort((a, b) => Math.abs(Date.parse(a.observedAt) - target) - Math.abs(Date.parse(b.observedAt) - target))[0];
   const plus25 = prices.findIndex((price) => returnPct(entry, price) >= 25);
   const minus15 = prices.findIndex((price) => returnPct(entry, price) <= -15);
   const plus50 = prices.findIndex((price) => returnPct(entry, price) >= 50);
@@ -55,6 +59,7 @@ function pathOutcome(observations, signal, hours) {
     plus25BeforeMinus15: plus25 !== -1 && (minus15 === -1 || plus25 < minus15),
     plus50BeforeMinus20: plus50 !== -1 && (minus20 === -1 || plus50 < minus20),
     observedAt: closest.observedAt,
+    terminalObserved: true,
   };
 }
 

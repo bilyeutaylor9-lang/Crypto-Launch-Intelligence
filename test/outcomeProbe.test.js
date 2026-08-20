@@ -67,6 +67,7 @@ test("outcome probe selects only unresolved exact identities inside a due horizo
         ...baseline[0],
         timestamp: "2026-01-01T01:10:00.000Z",
         priceUsd: 1.1,
+        provenance: { verificationStatus: "EXACT_CHAIN_TOKEN_POOL_MATCH" },
       },
     ],
     { now, horizons: [1] }
@@ -76,6 +77,26 @@ test("outcome probe selects only unresolved exact identities inside a due horizo
   assert.equal(due[0].key, `base:${TOKEN_A}`);
   assert.equal(due[0].duePredictions[0].horizonHours, 1);
   assert.equal(resolved.length, 0);
+});
+
+test("outcome probe does not treat a legacy unverified snapshot as resolved", () => {
+  const memory = [memoryRecord()];
+  const snapshots = [{
+    key: `base:${TOKEN_A}`,
+    chain: "base",
+    tokenAddress: TOKEN_A,
+    poolAddress: POOL_A,
+    timestamp: "2026-01-01T01:10:00.000Z",
+    priceUsd: 1.1,
+    provenance: null,
+  }];
+
+  const due = selectOutcomeProbeCandidates(memory, snapshots, {
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+  });
+
+  assert.equal(due.length, 1);
 });
 
 test("outcome probe saves only an exact chain-token-pool match with provenance", async () => {
@@ -118,6 +139,7 @@ test("outcome probe rejects a provider response for another exact token", async 
     providers: {
       getPairByAddress: async () => ({ pairs: [providerPair(TOKEN_B, POOL_A)] }),
       getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => null,
     },
     saveSnapshots: () => assert.fail("mismatched evidence must not be persisted"),
     writeReport: false,
@@ -126,6 +148,75 @@ test("outcome probe rejects a provider response for another exact token", async 
   assert.equal(report.status, "PROVIDER_DEGRADED");
   assert.equal(report.observationsSaved, 0);
   assert.equal(report.results[0].status, "NO_EXACT_PROVIDER_MATCH");
+});
+
+test("outcome probe falls back to an exact GeckoTerminal pool with provenance", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+    maxRequests: 2,
+    geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()],
+    snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [] }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => ({
+        data: {
+          id: `base_${POOL_A}`,
+          attributes: {
+            address: POOL_A,
+            name: "Edge / WETH",
+            base_token_price_usd: "1.3",
+            reserve_in_usd: "100000",
+          },
+          relationships: {
+            base_token: { data: { id: `base_${TOKEN_A}` } },
+            quote_token: { data: { id: `base_0x${"f".repeat(40)}` } },
+          },
+        },
+      }),
+    },
+    saveSnapshots: (observations) => {
+      saved = observations;
+      return { saved: observations.length };
+    },
+    writeReport: false,
+  });
+
+  assert.equal(report.status, "PASS");
+  assert.equal(report.providerRequestsUsed, 2);
+  assert.equal(saved[0].outcomeObservationProvenance.source, "geckoterminal");
+  assert.equal(
+    saved[0].outcomeObservationProvenance.verificationStatus,
+    "EXACT_CHAIN_TOKEN_POOL_MATCH"
+  );
+});
+
+test("outcome probe does not exceed its request budget for provider fallback", async () => {
+  let geckoRequests = 0;
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+    maxRequests: 1,
+    memory: [memoryRecord()],
+    snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [] }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => {
+        geckoRequests += 1;
+        return null;
+      },
+    },
+    saveSnapshots: () => assert.fail("no exact observation should be saved"),
+    writeReport: false,
+  });
+
+  assert.equal(report.providerRequestsUsed, 1);
+  assert.equal(geckoRequests, 0);
+  assert.equal(report.status, "PROVIDER_DEGRADED");
 });
 
 test("outcome probe enforces its provider request budget", async () => {

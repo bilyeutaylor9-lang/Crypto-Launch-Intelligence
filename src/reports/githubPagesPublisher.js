@@ -34,6 +34,7 @@ const PUBLIC_REPORTS = [
   "exact-outcome-horizon-lab.json",
   "mathematical-validation.json",
   "outcome-calibration.json",
+  "avoidance-edge-verification.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
   "state-of-art-signals.json",
@@ -663,6 +664,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   const finalistComparison = readJsonReport("finalist-comparison.json", reportsDir) || {};
   const marketOpportunityLearning = readJsonReport("market-opportunity-learning.json", reportsDir) || {};
   const outcomeCalibration = readJsonReport("outcome-calibration.json", reportsDir) || {};
+  const avoidanceVerification = readJsonReport("avoidance-edge-verification.json", reportsDir) || {};
+  const verifiedAvoidanceEdge = avoidanceVerification.verifiedEdges?.[0] || null;
   const institutionalRanking = readJsonReport("institutional-ranking.json", reportsDir) || {};
   const executionReady = readJsonReport("execution-ready.json", reportsDir) || {};
   const opModeReadiness = readJsonReport("op-mode-readiness.json", reportsDir) || {};
@@ -1402,6 +1405,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         </div>
         <div class="actions">
           <a class="button" href="./outcome-calibration.json">Open Calibration</a>
+          <a class="button" href="./avoidance-edge-verification.json">Open Avoidance Verification</a>
         </div>
       </div>
       <div class="metrics">
@@ -1411,6 +1415,9 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.avoidanceEdgeSignals?.length ?? 0)}</div><div class="metric-label">Avoidance Edge Signals</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.shadowEdgeHypotheses?.length ?? 0)}</div><div class="metric-label">Shadow Hypotheses</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(outcomeCalibration.nextEdgeMilestone?.validationProgressPct ?? 0)}%</div><div class="metric-label">Next Validation Progress</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(avoidanceVerification.state || "NO_VERIFIED_AVOIDANCE_EDGE")}</div><div class="metric-label">Avoidance Verification</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(verifiedAvoidanceEdge?.avoidanceEffectPct ?? 0)}%</div><div class="metric-label">168h Avoidance Effect</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(verifiedAvoidanceEdge?.projectClusteredBootstrap95?.lower95Pct ?? 0)}%</div><div class="metric-label">Clustered 95% Lower Bound</div></div>
       </div>
     </section>
     <div class="toolbar">

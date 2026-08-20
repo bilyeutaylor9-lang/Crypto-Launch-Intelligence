@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   observeChainWideCapitalRadar,
+  chainCapitalRadarObservationAvailable,
   capitalRadarCandidateMatch,
   capitalRadarProjectKey,
   ERC20_APPROVAL_TOPIC,
@@ -196,6 +197,25 @@ test("live chain radar discovers fresh execution-ready capital but leaves generi
   }
 });
 
+test("a completed chain read with no qualifying funding remains healthy observed evidence", async () => {
+  const previousFetch = global.fetch;
+  global.fetch = makeRpcMock({ funding: false });
+  try {
+    const radar = await observeChainWideCapitalRadar([baseProject()], {
+      rpcUrl: "https://example.invalid",
+      lookbackMinutes: 1,
+      maxLookbackBlocks: 20,
+      logChunkBlocks: 100,
+      minTransferUsd: 5_000,
+    });
+    assert.equal(radar.status, "OBSERVED");
+    assert.equal(radar.chains[0].status, "NO_QUALIFYING_FUNDING");
+    assert.equal(chainCapitalRadarObservationAvailable(radar.chains[0]), true);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
 test("live chain radar assigns target-specific prepared capital and exposes a candidate match", async () => {
   const previousFetch = global.fetch;
   global.fetch = makeRpcMock({ approvalSpender: TARGET_CONTRACT, balanceUsd: 50_000 });
@@ -219,7 +239,7 @@ test("live chain radar assigns target-specific prepared capital and exposes a ca
   }
 });
 
-function makeRpcMock({ approvalSpender, balanceUsd }) {
+function makeRpcMock({ approvalSpender, balanceUsd, funding = true }) {
   return async (_url, init) => {
     const body = JSON.parse(init.body);
     const respond = (value) => new Response(JSON.stringify(value), { status: 200 });
@@ -234,6 +254,7 @@ function makeRpcMock({ approvalSpender, balanceUsd }) {
         return { jsonrpc: "2.0", id: req.id, result: word(6) };
       }
       if (req.method === "eth_getLogs") {
+        if (!funding) return { jsonrpc: "2.0", id: req.id, result: [] };
         const topic0 = req.params?.[0]?.topics?.[0];
         if (topic0 === TRANSFER_TOPIC) {
           return {

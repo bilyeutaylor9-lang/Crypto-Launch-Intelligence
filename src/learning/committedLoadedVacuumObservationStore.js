@@ -2,6 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { canonicalIdentityKey, num } from "../edge/edgeMath.js";
+import {
+  normalizeChainId,
+  normalizePoolAddress,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 
 const FILE = path.resolve("data", "committed-loaded-vacuum-observations.jsonl");
 const DEFAULT_LIMIT = 100_000;
@@ -49,6 +54,33 @@ function arrivalAt(arrival = {}, horizonHours) {
   };
 }
 
+function exactIdentity(project = {}) {
+  const chain = normalizeChainId(
+    project.chain || project.network || project.canonicalChain || project.chainId
+  );
+  const tokenAddress = normalizeTokenAddress(
+    project.tokenAddress ||
+      project.contractAddress ||
+      project.canonicalAddress ||
+      project.baseToken?.address ||
+      project.marketData?.tokenAddress,
+    chain
+  );
+  const poolAddress = normalizePoolAddress(
+    project.poolAddress ||
+      project.pairAddress ||
+      project.primaryTradablePool ||
+      project.marketData?.poolAddress,
+    chain
+  );
+  return {
+    chain,
+    tokenAddress,
+    poolAddress,
+    identityKey: chain && tokenAddress ? `${chain}:${tokenAddress}` : null,
+  };
+}
+
 function readTail(file = FILE, maxBytes = DEFAULT_MAX_BYTES) {
   if (!fs.existsSync(file)) return [];
   const stat = fs.statSync(file);
@@ -73,14 +105,20 @@ export function buildCommittedLoadedVacuumObservation(project = {}, observedAt =
   const h6 = arrivalAt(arrival, 6);
   const h24 = arrivalAt(arrival, 24);
   const supplyVacuumEvidence = triBool(arrival.supplyVacuumSupported) ?? (supply.vacuumIntegrityState ? supply.vacuumIntegrityState === "VACUUM_INTEGRITY_SUPPORTED" : null);
+  const identity = exactIdentity(project);
   return {
     schemaVersion: 3,
+    exactIdentitySchemaVersion: 1,
     signalDefinitionVersion: COMMITTED_LOADED_VACUUM_SIGNAL_VERSION,
-    identityKey: canonicalIdentityKey(project),
+    identityKey: identity.identityKey || canonicalIdentityKey(project),
+    exactIdentityKey: identity.identityKey,
+    exactIdentityVerified: Boolean(identity.identityKey),
     observedAt,
     scanRunId: project.scanRunId || project.runId || null,
     codeCommitSha: project.codeCommitSha || process.env.GITHUB_SHA || null,
-    chain: project.chain || project.network || project.canonicalChain || null,
+    chain: identity.chain || project.chain || project.network || project.canonicalChain || null,
+    tokenAddress: identity.tokenAddress,
+    poolAddress: identity.poolAddress,
     symbol: project.symbol || null,
     name: project.name || null,
     priceUsd: finite(project.priceUsd, project.price, project.marketData?.priceUsd),
@@ -144,6 +182,9 @@ export function summarizeCommittedLoadedVacuumObservations(options = {}) {
     observations: rows.length,
     schemaV2Observations: rows.filter((row) => Number(row.schemaVersion) >= 2).length,
     schemaV3Observations: rows.filter((row) => Number(row.schemaVersion) >= 3).length,
+    exactIdentitySchemaV1Observations: rows.filter((row) => Number(row.exactIdentitySchemaVersion) >= 1).length,
+    exactIdentityObservations: rows.filter((row) => row.exactIdentityVerified === true).length,
+    exactPoolObservations: rows.filter((row) => row.exactIdentityVerified === true && row.poolAddress).length,
     explicitExecutionCostObservations: rows.filter((row) => finite(row.roundTripExecutionCostBps) !== null).length,
     uniqueProjects: new Set(rows.map((row) => row.identityKey).filter(Boolean)).size,
     treatments: rows.filter((row) => row.treatment).length,
@@ -152,4 +193,4 @@ export function summarizeCommittedLoadedVacuumObservations(options = {}) {
 }
 
 export const COMMITTED_LOADED_VACUUM_OBSERVATION_FILE = FILE;
-export const __committedLoadedVacuumObservationHooks = { finite, triBool, arrivalAt, readTail, explicitRoundTripExecutionCostBps };
+export const __committedLoadedVacuumObservationHooks = { finite, triBool, arrivalAt, readTail, explicitRoundTripExecutionCostBps, exactIdentity };

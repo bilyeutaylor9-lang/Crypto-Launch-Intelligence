@@ -14,6 +14,15 @@ import { chainProfileFor, quoteUsdFor } from "./chainProfiles.js";
 
 const ERC20_APPROVAL_TOPIC = keccak256Hex("Approval(address,address,uint256)");
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const OBSERVED_CHAIN_STATES = new Set([
+  "OBSERVED_CHAIN_CAPITAL_RADAR",
+  "OBSERVED_WITH_LOG_CAP",
+  "NO_QUALIFYING_FUNDING",
+]);
+
+export function chainCapitalRadarObservationAvailable(row = {}) {
+  return OBSERVED_CHAIN_STATES.has(row.status);
+}
 
 function lower(value = "") {
   return String(value || "").trim().toLowerCase();
@@ -618,7 +627,11 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
   }
 
   return {
-    status: observations.some((row) => row.status.startsWith("OBSERVED")) ? "OBSERVED" : observations.length ? "NO_OBSERVED_CHAIN" : "NO_SUPPORTED_CHAINS",
+    status: observations.some(chainCapitalRadarObservationAvailable)
+      ? "OBSERVED"
+      : observations.length
+        ? "NO_OBSERVED_CHAIN"
+        : "NO_SUPPORTED_CHAINS",
     observedAt: new Date().toISOString(),
     source: "CHAIN_WIDE_CAPITAL_RADAR_SENSOR",
     chains: observations,

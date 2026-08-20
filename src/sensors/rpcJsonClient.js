@@ -2,6 +2,61 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function mapWithConcurrency(items = [], concurrency = 4, worker) {
+  const output = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from(
+    { length: Math.max(1, Math.min(items.length || 1, concurrency)) },
+    async () => {
+      while (cursor < items.length) {
+        const index = cursor;
+        cursor += 1;
+        output[index] = await worker(items[index], index);
+      }
+    }
+  );
+  await Promise.all(workers);
+  return output;
+}
+
+async function sequentialBatchFallback(url, calls = [], options = {}) {
+  const maxCalls = Math.max(
+    1,
+    Number(
+      options.maxSequentialFallbackCalls ||
+        process.env.RPC_BATCH_SEQUENTIAL_FALLBACK_MAX_CALLS ||
+        600
+    )
+  );
+  if (calls.length > maxCalls) {
+    throw new Error(
+      `RPC batch fallback requires ${calls.length} calls, above the bounded limit of ${maxCalls}.`
+    );
+  }
+  const concurrency = Math.max(
+    1,
+    Number(
+      options.sequentialFallbackConcurrency ||
+        process.env.RPC_BATCH_SEQUENTIAL_FALLBACK_CONCURRENCY ||
+        4
+    )
+  );
+  return mapWithConcurrency(calls, concurrency, async (call, index) => {
+    try {
+      const result = await jsonRpc(url, call.method, call.params, {
+        ...options,
+        id: index + 1,
+      });
+      return { result, error: null };
+    } catch (error) {
+      return {
+        result: null,
+        error: { message: error?.message || String(error) },
+      };
+    }
+  });
+}
+
 export async function jsonRpc(url, method, params = [], options = {}) {
   const timeoutMs = Math.max(500, Number(options.timeoutMs || 8_000));
   const retries = Math.max(0, Number(options.retries ?? 1));
@@ -57,7 +112,13 @@ export async function jsonRpcBatch(url, calls = [], options = {}) {
       });
       if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
       const rows = await response.json();
-      if (!Array.isArray(rows)) throw new Error("RPC batch response was not an array.");
+      if (!Array.isArray(rows)) {
+        if (options.allowSequentialFallback === false) {
+          throw new Error("RPC batch response was not an array.");
+        }
+        clearTimeout(timer);
+        return sequentialBatchFallback(url, safeCalls, options);
+      }
       const byId = new Map(rows.map((row) => [Number(row.id), row]));
       return payload.map((request) => {
         const row = byId.get(request.id);

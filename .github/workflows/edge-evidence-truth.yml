@@ -1,0 +1,88 @@
+name: Edge Evidence Truth
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-dashboard-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evidence-truth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Restore Bounded Edge Evidence Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
+            data/outcome-snapshots.json*
+            data/scan-history.json*
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Probe Due Frozen Treatment And Control Outcomes
+        id: edge_evidence_probe
+        continue-on-error: true
+        run: npm run edge:evidence:probe
+        env:
+          EDGE_EVIDENCE_MAX_REQUESTS: 60
+          EDGE_EVIDENCE_CONCURRENCY: 4
+
+      - name: Refresh Evidence Health And Research Loop
+        run: npm run edge:evidence:truth
+
+      - name: Save Bounded Edge Evidence Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
+            data/outcome-snapshots.json*
+            data/scan-history.json*
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Edge Evidence Truth Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-evidence-truth-${{ github.run_id }}
+          path: |
+            reports/edge-evidence-probe.json
+            reports/edge-evidence-health.json
+            reports/edge-evidence-outcome-lab.json
+            reports/avoidance-edge-verification.json
+            reports/edge-failure-autopsy.json
+            reports/edge-mechanism-contrast.json
+            reports/edge-evidence-discovery-loop.json
+            reports/edge-research-autopilot.json
+          if-no-files-found: error
+          retention-days: 30

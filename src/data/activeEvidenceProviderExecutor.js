@@ -10,8 +10,12 @@ import {
 } from "./coinGeckoConnector.js";
 import { getCoinPaprikaTickerById } from "./freeMarketDataConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
-import { getBlockscoutSecurityEvidence } from "./security/blockscoutConnector.js";
+import {
+  getBlockscoutDeployerEvidence,
+  getBlockscoutSecurityEvidence,
+} from "./security/blockscoutConnector.js";
 import { getEtherscanV2SecurityEvidence } from "./security/etherscanV2Connector.js";
+import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
   normalizeChainId,
@@ -193,6 +197,11 @@ function poolAddressOf(project = {}, chain = chainOf(project)) {
 
 function providerFunctions(options = {}) {
   const injected = options.providers || {};
+  const customDeployerProvider = Boolean(
+    injected.getBlockscoutDeployerEvidence ||
+      injected.getDeployerEvidence ||
+      options.getBlockscoutDeployerEvidence
+  );
   return {
     getTokenPairs: injected.getTokenPairs || options.getTokenPairs || getTokenPairs,
     getPairByAddress: injected.getPairByAddress || options.getPairByAddress || getPairByAddress,
@@ -201,9 +210,24 @@ function providerFunctions(options = {}) {
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
       getFreeSecurityEvidence,
+    getBlockscoutDeployerEvidence:
+      injected.getBlockscoutDeployerEvidence ||
+      injected.getDeployerEvidence ||
+      options.getBlockscoutDeployerEvidence ||
+      getBlockscoutDeployerEvidence,
+    getGoPlusDeployerEvidence:
+      injected.getGoPlusDeployerEvidence ||
+      injected.getGoPlusSecurityEvidence ||
+      options.getGoPlusDeployerEvidence ||
+      getGoPlusSecurityEvidence,
+    useGoPlusDeployerFallback:
+      Boolean(
+        injected.getGoPlusDeployerEvidence ||
+          injected.getGoPlusSecurityEvidence ||
+          options.getGoPlusDeployerEvidence
+      ) || !customDeployerProvider,
     getBlockscoutSecurityEvidence:
       injected.getBlockscoutSecurityEvidence ||
-      injected.getDeployerEvidence ||
       options.getBlockscoutSecurityEvidence ||
       getBlockscoutSecurityEvidence,
     getEtherscanV2SecurityEvidence:
@@ -258,9 +282,11 @@ export function createActiveEvidenceExecutionState(options = {}) {
   };
 }
 
-function providerState(state = {}, provider = "unknown") {
-  const current = state.providers.get(provider) || {
+function providerState(state = {}, provider = "unknown", circuitScope = null) {
+  const stateKey = circuitScope ? `${provider}:${circuitScope}` : provider;
+  const current = state.providers.get(stateKey) || {
     provider,
+    circuitScope,
     attempts: 0,
     successes: 0,
     failures: 0,
@@ -268,12 +294,19 @@ function providerState(state = {}, provider = "unknown") {
     circuitOpen: false,
     lastError: null,
   };
-  state.providers.set(provider, current);
+  state.providers.set(stateKey, current);
   return current;
 }
 
-async function executeProviderCall(provider, operation, options = {}, state = {}, cost = 1) {
-  const health = providerState(state, provider);
+async function executeProviderCall(
+  provider,
+  operation,
+  options = {},
+  state = {},
+  cost = 1,
+  circuitScope = null
+) {
+  const health = providerState(state, provider, circuitScope);
   if (health.circuitOpen) {
     health.skipped += 1;
     return {
@@ -414,6 +447,7 @@ function existingDeployerEvidence(project = {}, identity = {}) {
       ? project.freeSecurityEvidence.evidence
       : []),
     project.blockscoutDeployerEvidence,
+    project.goplusDeployerEvidence,
   ].filter(Boolean);
   return candidates.find(
     (item) => item.status !== "UNKNOWN" && exactDeployerResult(item, identity)
@@ -472,13 +506,14 @@ export async function recoverDeployerEvidence(
 
     const blockscoutAttempt = await executeProviderCall(
       "blockscout-deployer",
-      () => providers.getBlockscoutSecurityEvidence(
+      () => providers.getBlockscoutDeployerEvidence(
         { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
         { ...options, useCache: options.useCache }
       ),
       options,
       state,
-      Math.max(1, Number(options.deployerProviderRequestCost || 2))
+      Math.max(1, Number(options.deployerProviderRequestCost || 1)),
+      evm.chain
     );
     const blockscoutResult = blockscoutAttempt.value || {};
     if (
@@ -492,6 +527,39 @@ export async function recoverDeployerEvidence(
       };
     }
 
+    let goplusAttempt = null;
+    let goplusResult = {};
+    if (providers.useGoPlusDeployerFallback) {
+      goplusAttempt = await executeProviderCall(
+        "goplus-deployer",
+        () => providers.getGoPlusDeployerEvidence(
+          { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+          { ...options, useCache: options.useCache }
+        ),
+        options,
+        state,
+        Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
+        evm.chain
+      );
+      goplusResult = goplusAttempt.value || {};
+      if (
+        goplusAttempt.status === "SUCCESS" &&
+        exactDeployerResult(goplusResult, evm)
+      ) {
+        return {
+          observations: deployerObservations(goplusResult, fields, evm, "goplus"),
+          attempts: [
+            { ...blockscoutAttempt, value: undefined },
+            { ...goplusAttempt, value: undefined },
+          ],
+          projectPatch: {
+            blockscoutDeployerEvidence: blockscoutResult,
+            goplusDeployerEvidence: goplusResult,
+          },
+        };
+      }
+    }
+
     const etherscanAttempt = await executeProviderCall(
       "etherscan-v2-deployer",
       () => providers.getEtherscanV2SecurityEvidence(
@@ -500,7 +568,8 @@ export async function recoverDeployerEvidence(
       ),
       options,
       state,
-      Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3))
+      Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3)),
+      evm.chain
     );
     const etherscanResult = etherscanAttempt.value || {};
     const observations =
@@ -511,10 +580,12 @@ export async function recoverDeployerEvidence(
       observations,
       attempts: [
         { ...blockscoutAttempt, value: undefined },
+        ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
         { ...etherscanAttempt, value: undefined },
       ],
       projectPatch: {
         blockscoutDeployerEvidence: blockscoutResult,
+        ...(goplusAttempt ? { goplusDeployerEvidence: goplusResult } : {}),
         etherscanDeployerEvidence: etherscanResult,
       },
     };
@@ -599,7 +670,8 @@ export async function recoverWalletEvidence(
     ),
     options,
     state,
-    Math.max(1, Number(options.walletProviderRequestCost || 3))
+    Math.max(1, Number(options.walletProviderRequestCost || 3)),
+    evm.chain
   );
   if (attempt.status !== "SUCCESS") {
     return { observations: [], attempts: [attempt], projectPatch: {} };
@@ -770,7 +842,14 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
     };
   }
 
-  const attempt = await executeProviderCall("dexscreener", call, options, state, 1);
+  const attempt = await executeProviderCall(
+    "dexscreener",
+    call,
+    options,
+    state,
+    1,
+    chain || "unresolved"
+  );
   if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
   const pair = strictDexPair(attempt.value, project, { chain, tokenAddress, poolAddress });
   if (!pair) {
@@ -861,7 +940,8 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     ),
     options,
     state,
-    Math.max(1, Number(options.securityProviderRequestCost || 4))
+    Math.max(1, Number(options.securityProviderRequestCost || 4)),
+    chain
   );
   if (attempt.status !== "SUCCESS") {
     return { observations: [], attempts: [attempt], projectPatch: {} };

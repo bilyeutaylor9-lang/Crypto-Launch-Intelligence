@@ -1,4 +1,8 @@
-import { appendCommittedLoadedVacuumObservations } from "./committedLoadedVacuumObservationStore.js";
+import {
+  appendCommittedLoadedVacuumObservations,
+  buildCommittedLoadedVacuumObservation,
+} from "./committedLoadedVacuumObservationStore.js";
+import { captureEdgeProductionEpisodes } from "./edgeProductionEpisodeStore.js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -23,11 +27,24 @@ export function processCapitalCommitmentLearning(projects = [], radar = {}, path
   const pathRows = pathLearning?.predictionRows || [];
   const ledgersByHorizon = Object.fromEntries((options.horizonsHours || HORIZONS).map((h) => [h, buildCapitalConservationLedger(commitmentRows, pathRows, { horizonHours: h })]));
   const enriched = attachCapitalArrivalIntelligence(projects, ledgersByHorizon);
-  const validationObservationSave = options.persist === false ? { saved: 0 } : appendCommittedLoadedVacuumObservations(enriched, { observedAt: options.observedAt || options.asOf || new Date().toISOString() });
+  const validationObservedAt = options.observedAt || options.asOf || new Date().toISOString();
+  const validationObservationSave = options.persist === false
+    ? {
+        saved: 0,
+        observations: enriched.map((project) => buildCommittedLoadedVacuumObservation(project, validationObservedAt)),
+      }
+    : appendCommittedLoadedVacuumObservations(enriched, { observedAt: validationObservedAt });
+  const edgeProductionEpisodeCapture = captureEdgeProductionEpisodes(
+    validationObservationSave.observations || [],
+    {
+      ...(options.edgeProduction || {}),
+      persist: options.persist !== false,
+    }
+  );
   const lab = options.runLab === false ? null : runCapitalCommitmentWalkForwardLab(examples, options.walkForward || options);
   const result = {
     status: examples.length ? "COMMITMENT_MODEL_EVALUATED_SHADOW" : "INSUFFICIENT_COMMITMENT_HISTORY",
-    featureSave, outcomeSave, validationObservationSave,
+    featureSave, outcomeSave, validationObservationSave, edgeProductionEpisodeCapture,
     store: options.persist === false ? null : summarizeCapitalCommitmentStore(),
     examples, model, features, commitmentRows, ledgersByHorizon, lab,
     projects: enriched,
@@ -40,6 +57,13 @@ export function processCapitalCommitmentLearning(projects = [], radar = {}, path
     fs.writeFileSync(REPORT, JSON.stringify({
       generatedAt: new Date().toISOString(), status: result.status, store: result.store,
       model: { trainingExamples: model.trainingExamples, uniqueWallets: model.uniqueWallets, horizonsHours: model.horizonsHours },
+      edgeProductionEpisodes: {
+        state: edgeProductionEpisodeCapture.state,
+        treatments: edgeProductionEpisodeCapture.treatments,
+        controls: edgeProductionEpisodeCapture.controls,
+        saved: edgeProductionEpisodeCapture.saved,
+        hypothesisChanged: false,
+      },
       sixHourLedger: ledgersByHorizon[6] || null,
       projects: enriched.map((project) => ({ canonicalProjectId: project.canonicalProjectId || null, symbol: project.symbol || null, capitalArrivalIntelligence: project.capitalArrivalIntelligence || null })),
       policy: "V10 is shadow-only. Probability-weighted arrival capital cannot alter production ranking, Loaded Vacuum, route, identity, safety, or Ignition phase decisions.",

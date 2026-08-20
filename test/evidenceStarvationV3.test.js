@@ -121,6 +121,34 @@ test("active recovery invokes the deployer provider path", async () => {
   assert.equal(calls, 1);
 });
 
+test("deployer recovery falls back to exact GoPlus creator evidence", async () => {
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN },
+    [request("creatorAddress", "security providers")],
+    {
+      providers: {
+        getBlockscoutDeployerEvidence: async () => ({
+          status: "UNKNOWN",
+          chain: "base",
+          address: TOKEN,
+          creatorAddress: null,
+        }),
+        getGoPlusDeployerEvidence: async () => ({
+          status: "EVIDENCE_AVAILABLE",
+          chain: "base",
+          address: TOKEN,
+          creatorAddress: CREATOR,
+          confidence: 78,
+        }),
+      },
+    }
+  );
+  const creator = result.observations.find((item) => item.field === "creatorAddress");
+  assert.equal(creator?.value, CREATOR);
+  assert.equal(creator?.source, "goplus");
+  assert.equal(creator?.verificationStatus, "VERIFIED_PROVIDER_OBSERVATION");
+});
+
 test("deployer recovery reuses exact existing security evidence without a provider request", async () => {
   let calls = 0;
   const result = await executeActiveEvidenceProviderRequests(
@@ -239,6 +267,44 @@ test("provider circuit breaker opens after repeated failures", async () => {
   await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN }, [request("poolAddress", "DexScreener")], options, state);
   const third = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN }, [request("poolAddress", "DexScreener")], options, state);
   assert.equal(third.attempts[0].status, "CIRCUIT_OPEN");
+});
+
+test("provider circuit breakers are isolated by chain", async () => {
+  const state = createActiveEvidenceExecutionState({
+    maxProviderRequests: 20,
+    circuitFailureThreshold: 1,
+  });
+  const options = {
+    providers: {
+      getDeployerEvidence: async (project) => {
+        if (project.chain === "base") throw new Error("base explorer unavailable");
+        return {
+          chain: project.chain,
+          address: project.tokenAddress,
+          creatorAddress: CREATOR,
+          confidence: 84,
+        };
+      },
+      getEtherscanV2SecurityEvidence: async () => ({}),
+    },
+  };
+  await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN },
+    [request("creatorAddress", "block explorers")],
+    options,
+    state
+  );
+  const bsc = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creatorAddress", "block explorers")],
+    options,
+    state
+  );
+  assert.equal(
+    bsc.observations.find((item) => item.field === "creatorAddress")?.value,
+    CREATOR
+  );
+  assert.notEqual(bsc.attempts[0].status, "CIRCUIT_OPEN");
 });
 
 test("recovered evidence triggers only dependent engine reruns", () => {

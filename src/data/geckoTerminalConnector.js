@@ -10,6 +10,17 @@
  */
 
 const GECKO_TERMINAL_BASE = "https://api.geckoterminal.com/api/v2";
+const GECKO_TERMINAL_NETWORK_IDS = {
+  ethereum: "eth",
+  base: "base",
+  arbitrum: "arbitrum",
+  bsc: "bsc",
+  polygon: "polygon_pos",
+  optimism: "optimism",
+  avalanche: "avax",
+  solana: "solana",
+  "robinhood-chain": "robinhood",
+};
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -69,6 +80,40 @@ async function fetchJson(url, retries = 3) {
   }
 
   throw lastError;
+}
+
+export function resolveGeckoTerminalNetworkId(chain = "") {
+  return GECKO_TERMINAL_NETWORK_IDS[String(chain || "").trim().toLowerCase()] || null;
+}
+
+export async function getGeckoPoolByAddress(chain, poolAddress, options = {}) {
+  const network = resolveGeckoTerminalNetworkId(chain);
+  if (!network || !poolAddress) return null;
+  const url = `${GECKO_TERMINAL_BASE}/networks/${encodeURIComponent(network)}/pools/${encodeURIComponent(poolAddress)}`;
+  const maxAttempts = Math.max(1, Number(options.maxAttempts ?? 3));
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = options.signal ? null : new AbortController();
+    const timeout = controller
+      ? setTimeout(() => controller.abort(), Number(options.timeoutMs || 8_000))
+      : null;
+    const response = await fetch(url, {
+      signal: options.signal || controller.signal,
+      headers: { accept: "application/json" },
+    }).finally(() => {
+      if (timeout) clearTimeout(timeout);
+    });
+    if (response.status === 404) return null;
+    if (response.status === 429 && attempt < maxAttempts) {
+      const retryAfterMs = Number(response.headers.get("retry-after") || 0) * 1_000;
+      await sleep(Math.max(retryAfterMs, attempt * 1_000));
+      continue;
+    }
+    if (!response.ok) {
+      throw new Error(`GeckoTerminal request failed: ${response.status}`);
+    }
+    return response.json();
+  }
+  return null;
 }
 
 export async function getTrendingPools({ page = 1 } = {}) {
