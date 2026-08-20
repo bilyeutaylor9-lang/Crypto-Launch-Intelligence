@@ -41,6 +41,8 @@ jobs:
             data/research-coverage-ledger.json*
             data/source-router-memory.json*
             data/universe-ledger.json*
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
             data/watchtower-*.json*
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json
@@ -75,6 +77,8 @@ jobs:
             data/research-coverage-ledger.json*
             data/source-router-memory.json*
             data/universe-ledger.json*
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
             data/watchtower-*.json*
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json

@@ -526,8 +526,22 @@ function printTopProjects(results) {
     const recoveryQueue = results.filter(
       (project) => project.liveActionStatus === "DATA_RECOVERY_REQUIRED"
     );
+    const monitoredLead = results.find(
+      (project) =>
+        project.primaryCandidateSelected === true &&
+        project.primaryCandidateDisposition === "NOT_ACTIONABLE"
+    );
     console.log("NO_VALID_MOVE_TODAY");
     console.log("No candidate passed the measured-evidence threshold for the guarded research slate.");
+    if (monitoredLead) {
+      console.log("");
+      console.log("BEST AVAILABLE MONITORED CANDIDATE (NOT ACTIONABLE)");
+      console.log(
+        `${monitoredLead.name || "Unknown"} (${monitoredLead.symbol || "-"}) on ${monitoredLead.chain || "unknown"} | score ${scoreOf(monitoredLead).toFixed(1)}`
+      );
+      const nextProof = (monitoredLead.liveRankingMissingEvidence || []).slice(0, 3).join(", ");
+      if (nextProof) console.log(`Next proof: ${nextProof}`);
+    }
     console.log(`${recoveryQueue.length} candidates remain in the separate data-recovery queue.`);
     const usefulResearch = recoveryQueue
       .filter((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP")

@@ -174,6 +174,7 @@ function guardedLiveRankingIssues(report = {}, fileName = "") {
   }
   if (fileName === "live-core-ranking.json") {
     const top10 = report.top10 || [];
+    const primaryCandidate = report.primaryCandidate || null;
     for (const candidate of top10) {
       if (!["MICRO_TEST_ELIGIBLE", "RESEARCH_WATCHLIST"].includes(candidate.liveActionStatus)) {
         issues.push(`${fileName}: data-recovery or blocked candidate appears in guarded top10`);
@@ -207,6 +208,30 @@ function guardedLiveRankingIssues(report = {}, fileName = "") {
       top10.length > 0
     ) {
       issues.push(`${fileName}: guarded top10 must be empty when no evidence-backed candidate qualifies`);
+    }
+    if (primaryCandidate) {
+      if (
+        primaryCandidate.primaryCandidateSelected !== true ||
+        !primaryCandidate.identityKey ||
+        !primaryCandidate.tokenAddress ||
+        !primaryCandidate.poolAddress ||
+        primaryCandidate.liveRankingDisplayEligible !== true ||
+        (primaryCandidate.liveRankingBlocks || []).length > 0
+      ) {
+        issues.push(`${fileName}: primary candidate must have exact identity, clean display identity, and no deterministic block`);
+      }
+      if (
+        primaryCandidate.primaryCandidateDisposition === "NOT_ACTIONABLE" &&
+        primaryCandidate.liveActionStatus !== "DATA_RECOVERY_REQUIRED"
+      ) {
+        issues.push(`${fileName}: NOT_ACTIONABLE primary candidate must remain in data recovery`);
+      }
+      if (
+        primaryCandidate.primaryCandidateDisposition === "NOT_ACTIONABLE" &&
+        top10.some((candidate) => candidate.identityKey === primaryCandidate.identityKey)
+      ) {
+        issues.push(`${fileName}: NOT_ACTIONABLE primary candidate cannot appear in guarded top10`);
+      }
     }
   }
   return issues;

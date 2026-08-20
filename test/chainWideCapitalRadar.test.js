@@ -216,6 +216,66 @@ test("a completed chain read with no qualifying funding remains healthy observed
   }
 });
 
+test("capital radar continues from the last covered block instead of resampling a short window", () => {
+  const range = __chainWideCapitalRadarTestHooks.continuityRange(
+    2_000,
+    { blockTimeSeconds: 2 },
+    [{ status: "OBSERVED_CHAIN_CAPITAL_RADAR", blockNumber: 1_000 }],
+    { lookbackMinutes: 20, maxLookbackBlocks: 600, continuityMaxLookbackBlocks: 1_200 }
+  );
+  assert.equal(range.fromBlock, 1_001);
+  assert.equal(range.continuityStatus, "CONTIGUOUS_FROM_HISTORY");
+  assert.equal(range.continuityGapBlocks, 0);
+});
+
+test("capital radar reports a bounded continuity gap instead of claiming complete coverage", () => {
+  const range = __chainWideCapitalRadarTestHooks.continuityRange(
+    2_000,
+    { blockTimeSeconds: 2 },
+    [{ status: "NO_QUALIFYING_FUNDING", blockNumber: 100 }],
+    { lookbackMinutes: 20, maxLookbackBlocks: 600, continuityMaxLookbackBlocks: 1_200 }
+  );
+  assert.equal(range.fromBlock, 800);
+  assert.equal(range.continuityStatus, "BOUNDED_GAP_BACKFILL");
+  assert.equal(range.continuityGapBlocks, 699);
+});
+
+test("still-funded wallets carry forward until a later approval is observed", async () => {
+  const previousFetch = global.fetch;
+  global.fetch = makeRpcMock({ funding: false, balanceUsd: 40_000 });
+  try {
+    const radar = await observeChainWideCapitalRadar([
+      baseProject({ canonicalExecutionRoute: { routerAddress: ROUTER } }),
+    ], {
+      rpcUrl: "https://example.invalid",
+      history: [{
+        status: "OBSERVED_CHAIN_CAPITAL_RADAR",
+        chain: "base",
+        blockNumber: 4_080,
+        observedAt: "2026-01-01T00:00:00Z",
+        wallets: [{
+          address: WALLET_A,
+          currentStablecoinBalanceUsd: 40_000,
+          freshAvailableCapitalUsd: 40_000,
+          fundingEvents: [{ from: FUNDER_A, to: WALLET_A, amountUsd: 40_000, tokenAddress: USDC, tokenSymbol: "USDC", txHash: `0x${"c".repeat(64)}`, blockNumber: "0x0fee", logIndex: "0x0", eventTime: "2026-01-01T00:00:00Z" }],
+          approvalEvents: [{ owner: WALLET_A, spender: ROUTER, tokenAddress: USDC, tokenSymbol: "USDC", genericCandidateKeys: [`base:${TOKEN_A}`], targetCandidateKeys: [], txHash: `0x${"d".repeat(64)}`, blockNumber: "0x0fef", logIndex: "0x1", eventTime: "2026-01-01T00:01:00Z" }],
+        }],
+      }],
+      observedAt: "2026-01-01T00:10:00Z",
+      lookbackMinutes: 1,
+      maxLookbackBlocks: 20,
+      minTransferUsd: 5_000,
+    });
+    const chain = radar.chains[0];
+    assert.equal(chain.carriedWalletCount, 1);
+    assert.equal(chain.preparedWalletCount, 1);
+    assert.equal(chain.wallets[0].carriedForward, true);
+    assert.equal(chain.wallets[0].executionReadyCapitalUsd, 40_000);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
 test("live chain radar assigns target-specific prepared capital and exposes a candidate match", async () => {
   const previousFetch = global.fetch;
   global.fetch = makeRpcMock({ approvalSpender: TARGET_CONTRACT, balanceUsd: 50_000 });

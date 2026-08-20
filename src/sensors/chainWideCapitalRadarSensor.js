@@ -200,6 +200,140 @@ function priorWalletSet(history = []) {
   return set;
 }
 
+function blockValue(value) {
+  if (value === null || value === undefined || value === "") return null;
+  try {
+    const parsed = typeof value === "string" && value.startsWith("0x")
+      ? Number(BigInt(value))
+      : Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function continuityRange(blockNumber, profile = {}, history = [], options = {}) {
+  const lookbackMinutes = Math.max(
+    1,
+    Number(options.lookbackMinutes || process.env.IGNITION_CAPITAL_RADAR_LOOKBACK_MINUTES || 20)
+  );
+  const theoreticalBlocks = Math.ceil(
+    (lookbackMinutes * 60) / Math.max(1, Number(profile.blockTimeSeconds || 2))
+  );
+  const maxLookbackBlocks = Math.max(
+    10,
+    Number(options.maxLookbackBlocks || process.env.IGNITION_CAPITAL_RADAR_MAX_LOOKBACK_BLOCKS || 600)
+  );
+  const nominalLookbackBlocks = Math.min(theoreticalBlocks, maxLookbackBlocks);
+  const nominalFromBlock = Math.max(0, blockNumber - nominalLookbackBlocks);
+  const continuityMaxLookbackBlocks = Math.max(
+    maxLookbackBlocks,
+    Number(
+      options.continuityMaxLookbackBlocks ||
+      process.env.IGNITION_CAPITAL_RADAR_CONTINUITY_MAX_LOOKBACK_BLOCKS ||
+      12_000
+    )
+  );
+  const latestCoveredBlock = (Array.isArray(history) ? history : [])
+    .filter((row) => chainCapitalRadarObservationAvailable(row))
+    .map((row) => blockValue(row.coveredThroughBlock ?? row.blockNumber))
+    .filter((value) => value !== null && value <= blockNumber)
+    .sort((left, right) => right - left)[0] ?? null;
+
+  if (latestCoveredBlock === null) {
+    return {
+      fromBlock: nominalFromBlock,
+      lookbackBlocks: blockNumber - nominalFromBlock,
+      lookbackMinutes,
+      latestCoveredBlock: null,
+      continuityGapBlocks: 0,
+      continuityStatus: "INITIAL_WINDOW",
+    };
+  }
+
+  const desiredFromBlock = latestCoveredBlock + 1;
+  if (desiredFromBlock > blockNumber) {
+    return {
+      fromBlock: blockNumber,
+      lookbackBlocks: 0,
+      lookbackMinutes,
+      latestCoveredBlock,
+      continuityGapBlocks: 0,
+      continuityStatus: "HEAD_NOT_ADVANCED",
+    };
+  }
+
+  const continuityFloor = Math.max(0, blockNumber - continuityMaxLookbackBlocks);
+  const fromBlock = Math.max(desiredFromBlock, continuityFloor);
+  return {
+    fromBlock,
+    lookbackBlocks: blockNumber - fromBlock,
+    lookbackMinutes,
+    latestCoveredBlock,
+    continuityGapBlocks: Math.max(0, fromBlock - desiredFromBlock),
+    continuityStatus: fromBlock === desiredFromBlock
+      ? "CONTIGUOUS_FROM_HISTORY"
+      : "BOUNDED_GAP_BACKFILL",
+  };
+}
+
+function eventKey(row = {}) {
+  return [
+    row.txHash || row.transactionHash || "",
+    row.logIndex ?? "",
+    row.tokenAddress || "",
+    row.from || row.owner || "",
+    row.to || row.spender || "",
+  ].join("|");
+}
+
+function mergeEvents(...groups) {
+  const rows = new Map();
+  for (const row of groups.flat().filter(Boolean)) {
+    const key = eventKey(row);
+    if (key !== "||||") rows.set(key, row);
+  }
+  return [...rows.values()].sort((left, right) => {
+    const leftBlock = blockValue(left.blockNumber) ?? 0;
+    const rightBlock = blockValue(right.blockNumber) ?? 0;
+    if (leftBlock !== rightBlock) return leftBlock - rightBlock;
+    return (blockValue(left.logIndex) ?? 0) - (blockValue(right.logIndex) ?? 0);
+  });
+}
+
+function trackedWalletRows(history = [], options = {}) {
+  const nowMs = Date.parse(options.observedAt || new Date().toISOString());
+  const maxAgeMs = Math.max(
+    1,
+    Number(options.trackedWalletHours || process.env.IGNITION_CAPITAL_RADAR_TRACKED_WALLET_HOURS || 72)
+  ) * 3_600_000;
+  const latest = new Map();
+  for (const observation of Array.isArray(history) ? history : []) {
+    const observedMs = Date.parse(observation?.observedAt || "");
+    if (!Number.isFinite(observedMs) || (Number.isFinite(nowMs) && nowMs - observedMs > maxAgeMs)) continue;
+    for (const wallet of observation?.wallets || []) {
+      const walletAddress = address(wallet?.address);
+      if (!walletAddress) continue;
+      const activeCapital = Math.max(
+        finite(wallet.currentStablecoinBalanceUsd) ?? 0,
+        finite(wallet.freshAvailableCapitalUsd) ?? 0,
+        finite(wallet.executionReadyCapitalUsd) ?? 0
+      );
+      if (activeCapital <= 0) continue;
+      const prior = latest.get(walletAddress);
+      if (!prior || observedMs >= prior.observedMs) {
+        latest.set(walletAddress, { ...wallet, address: walletAddress, observedMs });
+      }
+    }
+  }
+  return [...latest.values()]
+    .sort((left, right) =>
+      Math.max(finite(right.executionReadyCapitalUsd) ?? 0, finite(right.freshAvailableCapitalUsd) ?? 0) -
+      Math.max(finite(left.executionReadyCapitalUsd) ?? 0, finite(left.freshAvailableCapitalUsd) ?? 0)
+    )
+    .slice(0, Math.max(1, Number(options.maxTrackedWallets || process.env.IGNITION_CAPITAL_RADAR_MAX_TRACKED_WALLETS || 160)));
+}
+
 async function metadataForStablecoins(rpcUrl, safeBlockNumber, stablecoins, rpcOptions) {
   const rows = await jsonRpcBatch(
     rpcUrl,
@@ -249,7 +383,7 @@ async function globalTokenLogs(rpcUrl, tokens, fromBlock, toBlock, options = {})
     const logB = b.logIndex ? Number(BigInt(b.logIndex)) : 0;
     return logA - logB;
   });
-  const maxLogs = Math.max(100, Number(options.maxLogs || process.env.IGNITION_CAPITAL_RADAR_MAX_LOGS || 10_000));
+  const maxLogs = Math.max(100, Number(options.maxLogs || process.env.IGNITION_CAPITAL_RADAR_MAX_LOGS || 50_000));
   const capped = rows.length > maxLogs;
   return {
     rows: capped ? rows.slice(-maxLogs) : rows,
@@ -442,6 +576,7 @@ function candidateSummaries(walletRows, descriptors) {
 
 export async function observeChainWideCapitalRadar(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
+  const observedAt = options.observedAt || new Date().toISOString();
   const descriptors = candidateDescriptors(safeProjects, options);
   const groups = new Map();
   for (const descriptor of descriptors) {
@@ -454,7 +589,6 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
   for (const [chain, chainDescriptors] of groups.entries()) {
     const profile = options.chainProfiles?.[chain] || chainProfileFor(chain);
     const rpcUrl = options.rpcUrls?.[chain] || options.rpcUrl || profile?.rpcUrl;
-    const observedAt = new Date().toISOString();
     if (!rpcUrl || !profile) {
       observations.push({ status: "UNSUPPORTED_CHAIN", chain, observedAt, wallets: [], candidateSummaries: [], shadowOnly: true, rankingInfluence: false });
       continue;
@@ -465,11 +599,9 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
       const safeBlock = await jsonRpc(rpcUrl, "eth_getBlockByNumber", [options.blockTag || profile.safeBlockTag || "safe", false], rpcOptions);
       const blockNumber = safeBlock?.number ? Number(BigInt(safeBlock.number)) : null;
       if (!Number.isFinite(blockNumber)) throw new Error("Safe block number unavailable.");
-      const lookbackMinutes = Math.max(1, Number(options.lookbackMinutes || process.env.IGNITION_CAPITAL_RADAR_LOOKBACK_MINUTES || 20));
-      const theoreticalBlocks = Math.ceil((lookbackMinutes * 60) / Math.max(1, Number(profile.blockTimeSeconds || 2)));
-      const maxLookbackBlocks = Math.max(10, Number(options.maxLookbackBlocks || process.env.IGNITION_CAPITAL_RADAR_MAX_LOOKBACK_BLOCKS || 600));
-      const lookbackBlocks = Math.min(theoreticalBlocks, maxLookbackBlocks);
-      const fromBlock = Math.max(0, blockNumber - lookbackBlocks);
+      const history = options.historyByChain?.[chain] || options.history || [];
+      const range = continuityRange(blockNumber, profile, history, options);
+      const { fromBlock, lookbackBlocks, lookbackMinutes } = range;
       const stablecoins = stablecoinDefinitions(profile, options);
       const tokens = await metadataForStablecoins(rpcUrl, safeBlock.number, stablecoins, rpcOptions);
       if (!tokens.length) {
@@ -488,24 +620,60 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
         fundingByWallet.set(transfer.to, existing);
       }
       const maxWallets = Math.max(1, Number(options.maxWallets || process.env.IGNITION_CAPITAL_RADAR_MAX_WALLETS || 80));
-      const walletsByInflow = [...fundingByWallet.entries()]
-        .map(([wallet, rows]) => ({ wallet, rows, totalUsd: rows.reduce((sum, row) => sum + (finite(row.amountUsd) ?? 0), 0) }))
+      const carriedWallets = trackedWalletRows(history, { ...options, observedAt });
+      const carriedByAddress = new Map(carriedWallets.map((row) => [row.address, row]));
+      const walletAddresses = new Set([...fundingByWallet.keys(), ...carriedByAddress.keys()]);
+      const walletsByInflow = [...walletAddresses]
+        .map((wallet) => {
+          const prior = carriedByAddress.get(wallet) || null;
+          const rows = mergeEvents(prior?.fundingEvents || [], fundingByWallet.get(wallet) || []);
+          return {
+            wallet,
+            prior,
+            rows,
+            totalUsd: rows.reduce((sum, row) => sum + (finite(row.amountUsd) ?? 0), 0),
+          };
+        })
         .sort((a, b) => b.totalUsd - a.totalUsd)
         .slice(0, maxWallets);
       const fundedSet = new Set(walletsByInflow.map((row) => row.wallet));
-      const approvals = approvalRows(logs.rows, fundedSet, registry);
-      const times = await blockTimes(rpcUrl, [...transfers, ...approvals], rpcOptions);
+      const currentApprovals = approvalRows(logs.rows, fundedSet, registry);
+      const times = await blockTimes(rpcUrl, [...transfers, ...currentApprovals], rpcOptions);
 
       const balanceCalls = [];
-      for (const { wallet } of walletsByInflow) {
+      for (const { wallet, prior } of walletsByInflow) {
         balanceCalls.push({ kind: "code", wallet, method: "eth_getCode", params: [wallet, safeBlock.number] });
         balanceCalls.push({ kind: "native", wallet, method: "eth_getBalance", params: [wallet, safeBlock.number] });
         for (const token of tokens) {
           balanceCalls.push({ kind: "stable", wallet, token, method: "eth_call", params: [{ to: token.address, data: callData(SELECTORS.balanceOf, [encodeAddressWord(wallet)]) }, safeBlock.number] });
         }
+        const candidateApprovals = mergeEvents(
+          prior?.approvalEvents || [],
+          currentApprovals.filter((row) => row.owner === wallet)
+        );
+        for (const approval of candidateApprovals) {
+          const token = tokens.find((row) => row.address === approval.tokenAddress);
+          if (!token || !address(approval.spender)) continue;
+          balanceCalls.push({
+            kind: "allowance",
+            wallet,
+            token,
+            approval,
+            method: "eth_call",
+            params: [{
+              to: token.address,
+              data: callData(SELECTORS.allowance, [encodeAddressWord(wallet), encodeAddressWord(approval.spender)]),
+            }, safeBlock.number],
+          });
+        }
       }
       const balanceRows = await jsonRpcBatch(rpcUrl, balanceCalls.map(({ method, params }) => ({ method, params })), rpcOptions);
-      const current = new Map(walletsByInflow.map(({ wallet }) => [wallet, { actorType: "UNKNOWN", nativeBalanceWei: null, stableBalances: new Map() }]));
+      const current = new Map(walletsByInflow.map(({ wallet }) => [wallet, {
+        actorType: "UNKNOWN",
+        nativeBalanceWei: null,
+        stableBalances: new Map(),
+        allowances: new Map(),
+      }]));
       balanceCalls.forEach((call, index) => {
         const result = balanceRows[index]?.result;
         const row = current.get(call.wallet);
@@ -516,19 +684,42 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
           const units = amountFromData(result, call.token.decimals);
           row.stableBalances.set(call.token.address, units === null ? null : units * call.token.priceUsd);
         }
+        if (call.kind === "allowance" && result) {
+          const units = amountFromData(result, call.token.decimals);
+          const key = eventKey(call.approval);
+          row.allowances.set(key, units === null ? null : units * call.token.priceUsd);
+        }
       });
 
       const priorSeen = priorWalletSet(options.historyByChain?.[chain] || options.history || []);
       const walletRows = [];
+      let contractRecipientCount = 0;
+      let zeroBalanceWalletCount = 0;
+      let gasNotReadyWalletCount = 0;
+      let noActiveApprovalWalletCount = 0;
       for (const funded of walletsByInflow) {
         const cur = current.get(funded.wallet);
-        if (cur?.actorType !== "EOA") continue;
-        const walletApprovals = approvals.filter((row) => row.owner === funded.wallet && (finite(row.allowanceUsd) ?? 0) > 0);
+        if (cur?.actorType !== "EOA") {
+          contractRecipientCount += 1;
+          continue;
+        }
+        const priorApprovals = funded.prior?.approvalEvents || [];
+        const walletApprovals = mergeEvents(
+          priorApprovals,
+          currentApprovals.filter((row) => row.owner === funded.wallet)
+        ).flatMap((approval) => {
+          const activeAllowanceUsd = cur.allowances.get(eventKey(approval));
+          if (!(finite(activeAllowanceUsd) > 0)) return [];
+          return [{ ...approval, allowanceUsd: Number(activeAllowanceUsd.toFixed(2)), allowanceVerifiedAtBlock: blockNumber }];
+        });
         const currentStablecoinBalanceUsd = [...(cur?.stableBalances?.values() || [])].reduce((sum, value) => sum + (finite(value) ?? 0), 0);
         const freshAvailableCapitalUsd = Math.min(funded.totalUsd, currentStablecoinBalanceUsd);
         const nativeGasReady = cur?.nativeBalanceWei ? BigInt(cur.nativeBalanceWei) > 0n : false;
         const executionPrepared = nativeGasReady && walletApprovals.length > 0;
         const executionReadyCapitalUsd = executionPrepared ? freshAvailableCapitalUsd : 0;
+        if (freshAvailableCapitalUsd <= 0) zeroBalanceWalletCount += 1;
+        if (!nativeGasReady) gasNotReadyWalletCount += 1;
+        if (!walletApprovals.length) noActiveApprovalWalletCount += 1;
         const destination = assignDestination(funded.wallet, walletApprovals, chainDescriptors);
         const sourceMap = new Map();
         for (const source of funded.rows) {
@@ -537,8 +728,8 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
           row.transfers += 1;
           sourceMap.set(source.from, row);
         }
-        const fundingEvents = funded.rows.map((row) => ({ ...row, eventTime: times.get(row.blockNumber) || null }));
-        const approvalEvents = walletApprovals.map((row) => ({ ...row, eventTime: times.get(row.blockNumber) || null }));
+        const fundingEvents = funded.rows.map((row) => ({ ...row, eventTime: row.eventTime || times.get(row.blockNumber) || null }));
+        const approvalEvents = walletApprovals.map((row) => ({ ...row, eventTime: row.eventTime || times.get(row.blockNumber) || null }));
         const confidencePct = Math.round(clamp(
           25 +
           (nativeGasReady ? 15 : 0) +
@@ -553,6 +744,7 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
           address: funded.wallet,
           actorType: cur?.actorType || "UNKNOWN",
           newlyDiscovered: !priorSeen.has(funded.wallet),
+          carriedForward: Boolean(funded.prior),
           observedStablecoinInflowUsd: Number(funded.totalUsd.toFixed(2)),
           currentStablecoinBalanceUsd: Number(currentStablecoinBalanceUsd.toFixed(2)),
           freshAvailableCapitalUsd: Number(freshAvailableCapitalUsd.toFixed(2)),
@@ -587,13 +779,27 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
         source: "CHAIN_WIDE_CAPITAL_RADAR_SENSOR",
         blockNumber,
         fromBlock,
+        coveredThroughBlock: blockNumber,
         lookbackMinutes,
         lookbackBlocks,
+        coveredMinutesEstimate: Number(((lookbackBlocks * Number(profile.blockTimeSeconds || 2)) / 60).toFixed(2)),
+        continuityStatus: logs.capped ? "LOG_CAP_PARTIAL" : range.continuityStatus,
+        latestCoveredBlock: range.latestCoveredBlock,
+        continuityGapBlocks: range.continuityGapBlocks,
+        coverageComplete: !logs.capped && range.continuityGapBlocks === 0,
         stablecoinCount: tokens.length,
         minTransferUsd,
         rawLogCount: logs.rawLogCount,
         returnedLogs: logs.returnedLogs,
         logCapReached: logs.capped,
+        qualifyingTransferCount: transfers.length,
+        fundedRecipientCount: fundingByWallet.size,
+        carriedWalletCount: carriedWallets.length,
+        candidateWalletCount: walletsByInflow.length,
+        contractRecipientCount,
+        zeroBalanceWalletCount,
+        gasNotReadyWalletCount,
+        noActiveApprovalWalletCount,
         discoveredWalletCount: walletRows.length,
         newlyDiscoveredWalletCount: walletRows.filter((row) => row.newlyDiscovered).length,
         preparedWalletCount: preparedWallets.length,
@@ -632,7 +838,7 @@ export async function observeChainWideCapitalRadar(projects = [], options = {}) 
       : observations.length
         ? "NO_OBSERVED_CHAIN"
         : "NO_SUPPORTED_CHAINS",
-    observedAt: new Date().toISOString(),
+    observedAt,
     source: "CHAIN_WIDE_CAPITAL_RADAR_SENSOR",
     chains: observations,
     shadowOnly: true,
@@ -662,6 +868,9 @@ export const __chainWideCapitalRadarTestHooks = {
   assignDestination,
   convergenceFor,
   candidateSummaries,
+  continuityRange,
+  trackedWalletRows,
+  mergeEvents,
 };
 
 export { ERC20_APPROVAL_TOPIC };

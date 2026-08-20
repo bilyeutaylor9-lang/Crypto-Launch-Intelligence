@@ -231,6 +231,30 @@ test("data-recovery candidates never backfill the guarded top 10", () => {
   assert.equal(result.summary.recoveryLeader, "Measured Alpha");
 });
 
+test("an exact non-blocked recovery lead is always exposed as NOT_ACTIONABLE", () => {
+  const result = buildGuardedLiveRanking(
+    [
+      candidate({
+        utilityQualityScore: null,
+        realUtilityScore: null,
+        utilityClassification: "UNKNOWN_UTILITY",
+        realUtilityQualified: false,
+        utilityEvidenceFamilies: [],
+      }),
+    ],
+    { policy: noWinnerPolicy }
+  );
+
+  assert.equal(result.top10.length, 0);
+  assert.equal(result.primaryCandidate?.name, "Measured Alpha");
+  assert.equal(result.primaryCandidate?.liveActionStatus, "DATA_RECOVERY_REQUIRED");
+  assert.equal(result.primaryCandidate?.primaryCandidateLane, "BEST_AVAILABLE_MONITORED_RESEARCH");
+  assert.equal(result.primaryCandidate?.primaryCandidateDisposition, "NOT_ACTIONABLE");
+  assert.equal(result.primaryCandidate?.finalSelectionQualified, false);
+  assert.equal(result.summary.primaryCandidate, "Measured Alpha");
+  assert.equal(result.summary.primaryCandidateDisposition, "NOT_ACTIONABLE");
+});
+
 test("meme-only candidates cannot enter the guarded research or micro-test lanes", () => {
   const result = buildGuardedLiveRanking(
     [
@@ -253,6 +277,7 @@ test("meme-only candidates cannot enter the guarded research or micro-test lanes
   assert.equal(result.researchWatchlist.length, 0);
   assert.equal(result.ranked[0].liveActionStatus, "DATA_RECOVERY_REQUIRED");
   assert.equal(result.ranked[0].liveRankingUtilityEligible, false);
+  assert.equal(result.primaryCandidate, null);
 });
 
 test("derived advisory scores are not laundered into raw baseline evidence", () => {
@@ -381,6 +406,34 @@ test("live ranking report does not publish an incomplete candidate as a pick", (
   assert.equal(report.status, "PASS_DATA_RECOVERY_ONLY");
   assert.deepEqual(report.top10, []);
   assert.equal(report.dataRecovery.length, 1);
+});
+
+test("live ranking report publishes a separate monitored lead without making it a pick", () => {
+  const ranking = buildGuardedLiveRanking(
+    [
+      candidate({
+        utilityQualityScore: null,
+        realUtilityScore: null,
+        utilityClassification: "UNKNOWN_UTILITY",
+        realUtilityQualified: false,
+        utilityEvidenceFamilies: [],
+      }),
+    ],
+    { policy: noWinnerPolicy, scanRunId: "scan_monitored_lead" }
+  );
+  const reportDir = fs.mkdtempSync(path.join(os.tmpdir(), "guarded-monitored-report-"));
+  const paths = writeGuardedLiveRankingReports(
+    ranking.ranked,
+    { scanRunId: "scan_monitored_lead" },
+    { reportDir }
+  );
+  const report = JSON.parse(fs.readFileSync(paths.liveCoreRankingJsonPath, "utf8"));
+
+  assert.deepEqual(report.top10, []);
+  assert.equal(report.primaryCandidate.name, "Measured Alpha");
+  assert.equal(report.primaryCandidate.primaryCandidateDisposition, "NOT_ACTIONABLE");
+  assert.equal(report.primaryCandidate.liveActionStatus, "DATA_RECOVERY_REQUIRED");
+  assert.equal(report.microEligible.length, 0);
 });
 
 test("live ranking report keeps a complete bounded index without duplicating every proof graph", () => {

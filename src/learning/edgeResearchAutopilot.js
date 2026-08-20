@@ -7,12 +7,15 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
   const health = inputs.health || {};
   const outcomeLab = inputs.outcomeLab || {};
   const avoidanceVerification = inputs.avoidanceVerification || {};
+  const prospectiveEntryEdge = inputs.prospectiveEntryEdge || {};
   const discovery = inputs.discovery || {};
   let state = "AUTOPILOT_EVIDENCE_WARMING";
   if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") {
     state = "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED";
   } else if (outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE") {
     state = "AUTOPILOT_VERIFIED_EDGE_REVIEW";
+  } else if (prospectiveEntryEdge.state === "VERIFIED_PROSPECTIVE_ENTRY_EDGE") {
+    state = "AUTOPILOT_VERIFIED_ENTRY_EDGE_REVIEW";
   } else if (health.state === "AUTOPILOT_EVIDENCE_HEALTHY") {
     state = "AUTOPILOT_RESEARCH_ACTIVE";
   }
@@ -23,6 +26,15 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
     evidenceHealthState: health.state || "UNKNOWN",
     edgeVerificationState: outcomeLab.verification?.state || "UNKNOWN",
     avoidanceVerificationState: avoidanceVerification.state || "UNKNOWN",
+    prospectiveEntryEdgeState: prospectiveEntryEdge.state || "UNKNOWN",
+    prospectiveEntryEdgeTrial: prospectiveEntryEdge.trial ? {
+      trialId: prospectiveEntryEdge.trial.trialId,
+      declaredAt: prospectiveEntryEdge.trial.declaredAt,
+      treatmentDefinition: prospectiveEntryEdge.trial.treatmentDefinition,
+      resolvedTreatments: prospectiveEntryEdge.prospectiveExecutableCohort?.resolvedTreatments || 0,
+      resolvedControls: prospectiveEntryEdge.prospectiveExecutableCohort?.resolvedControls || 0,
+      matchedEffectPct: prospectiveEntryEdge.prospectiveExecutableCohort?.matchedEffectPct ?? null,
+    } : null,
     verifiedAvoidanceEdges: (avoidanceVerification.verifiedEdges || []).map((edge) => ({
       signal: edge.signal,
       horizonHours: edge.horizonHours,
@@ -48,7 +60,7 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
     scoringInfluence: false,
     automaticProductionPromotion: false,
     automaticTrading: false,
-    policy: "Autopilot may collect evidence and choose the next research mechanism. Same-regime avoidance evidence is exclusion-only, and even verified matched net evidence requires human review. Neither can bypass identity, safety, liquidity, execution, or final-selection gates.",
+    policy: "Autopilot may collect evidence and choose the next research mechanism. Historical entry discovery remains post-hoc until a frozen prospective executable cohort verifies it. Same-regime avoidance evidence is exclusion-only, and every verified edge still requires human review. Nothing can bypass identity, safety, liquidity, execution, or final-selection gates.",
   };
 }
 
