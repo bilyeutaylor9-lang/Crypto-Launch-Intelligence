@@ -87,7 +87,10 @@ function providerStatus(project = {}, field = "") {
   if (recoveryAttempted) {
     if (recoveryStatuses.includes("request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
     if (recoveryStatuses.includes("circuit_open")) return "PROVIDER_CIRCUIT_OPEN";
-    if (recoveryStatuses.includes("failed")) return "PROVIDER_UNAVAILABLE";
+    if (
+      recoveryStatuses.includes("failed") ||
+      recoveryStatuses.includes("provider_unavailable")
+    ) return "PROVIDER_UNAVAILABLE";
     return "PROVIDER_RETURNED_UNKNOWN";
   }
   return "UNKNOWN";

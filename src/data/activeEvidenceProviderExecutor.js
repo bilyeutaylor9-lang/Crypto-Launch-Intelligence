@@ -14,8 +14,12 @@ import {
   getBlockscoutDeployerEvidence,
   getBlockscoutSecurityEvidence,
 } from "./security/blockscoutConnector.js";
-import { getEtherscanV2SecurityEvidence } from "./security/etherscanV2Connector.js";
+import {
+  etherscanV2ApiKey,
+  getEtherscanV2SecurityEvidence,
+} from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
+import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
   normalizeChainId,
@@ -202,6 +206,16 @@ function providerFunctions(options = {}) {
       injected.getDeployerEvidence ||
       options.getBlockscoutDeployerEvidence
   );
+  const customSourcifyProvider = Boolean(
+    injected.getSourcifyDeployerEvidence ||
+      injected.getSourcifySecurityEvidence ||
+      options.getSourcifyDeployerEvidence ||
+      options.getSourcifySecurityEvidence
+  );
+  const customEtherscanProvider = Boolean(
+    injected.getEtherscanV2SecurityEvidence ||
+      options.getEtherscanV2SecurityEvidence
+  );
   return {
     getTokenPairs: injected.getTokenPairs || options.getTokenPairs || getTokenPairs,
     getPairByAddress: injected.getPairByAddress || options.getPairByAddress || getPairByAddress,
@@ -215,6 +229,13 @@ function providerFunctions(options = {}) {
       injected.getDeployerEvidence ||
       options.getBlockscoutDeployerEvidence ||
       getBlockscoutDeployerEvidence,
+    getSourcifyDeployerEvidence:
+      injected.getSourcifyDeployerEvidence ||
+      injected.getSourcifySecurityEvidence ||
+      options.getSourcifyDeployerEvidence ||
+      options.getSourcifySecurityEvidence ||
+      getSourcifySecurityEvidence,
+    useSourcifyDeployerFallback: customSourcifyProvider || !customDeployerProvider,
     getGoPlusDeployerEvidence:
       injected.getGoPlusDeployerEvidence ||
       injected.getGoPlusSecurityEvidence ||
@@ -234,6 +255,7 @@ function providerFunctions(options = {}) {
       injected.getEtherscanV2SecurityEvidence ||
       options.getEtherscanV2SecurityEvidence ||
       getEtherscanV2SecurityEvidence,
+    customEtherscanDeployerProvider: customEtherscanProvider,
     getBlockscoutWalletEvidence:
       injected.getBlockscoutWalletEvidence ||
       injected.getWalletEvidence ||
@@ -504,6 +526,38 @@ export async function recoverDeployerEvidence(
       };
     }
 
+    let sourcifyAttempt = null;
+    let sourcifyResult = {};
+    if (providers.useSourcifyDeployerFallback) {
+      sourcifyAttempt = await executeProviderCall(
+        "sourcify-v2-deployer",
+        () => providers.getSourcifyDeployerEvidence(
+          { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+          { ...options, useCache: options.useCache }
+        ),
+        options,
+        state,
+        Math.max(1, Number(options.sourcifyDeployerProviderRequestCost || 1)),
+        evm.chain
+      );
+      sourcifyResult = sourcifyAttempt.value || {};
+      if (
+        sourcifyAttempt.status === "SUCCESS" &&
+        exactDeployerResult(sourcifyResult, evm)
+      ) {
+        return {
+          observations: deployerObservations(
+            sourcifyResult,
+            fields,
+            evm,
+            "sourcify-v2"
+          ),
+          attempts: [{ ...sourcifyAttempt, value: undefined }],
+          projectPatch: { sourcifyDeployerEvidence: sourcifyResult },
+        };
+      }
+    }
+
     const blockscoutAttempt = await executeProviderCall(
       "blockscout-deployer",
       () => providers.getBlockscoutDeployerEvidence(
@@ -522,8 +576,14 @@ export async function recoverDeployerEvidence(
     ) {
       return {
         observations: deployerObservations(blockscoutResult, fields, evm, "blockscout"),
-        attempts: [{ ...blockscoutAttempt, value: undefined }],
-        projectPatch: { blockscoutDeployerEvidence: blockscoutResult },
+        attempts: [
+          ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
+          { ...blockscoutAttempt, value: undefined },
+        ],
+        projectPatch: {
+          ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
+          blockscoutDeployerEvidence: blockscoutResult,
+        },
       };
     }
 
@@ -549,10 +609,12 @@ export async function recoverDeployerEvidence(
         return {
           observations: deployerObservations(goplusResult, fields, evm, "goplus"),
           attempts: [
+            ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
             { ...blockscoutAttempt, value: undefined },
             { ...goplusAttempt, value: undefined },
           ],
           projectPatch: {
+            ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
             blockscoutDeployerEvidence: blockscoutResult,
             goplusDeployerEvidence: goplusResult,
           },
@@ -560,17 +622,28 @@ export async function recoverDeployerEvidence(
       }
     }
 
-    const etherscanAttempt = await executeProviderCall(
-      "etherscan-v2-deployer",
-      () => providers.getEtherscanV2SecurityEvidence(
-        { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-        { ...options, useCache: options.useCache }
-      ),
-      options,
-      state,
-      Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3)),
-      evm.chain
-    );
+    const etherscanAvailable =
+      providers.customEtherscanDeployerProvider ||
+      Boolean(etherscanV2ApiKey(evm.chain, options.env || process.env));
+    const etherscanAttempt = etherscanAvailable
+      ? await executeProviderCall(
+          "etherscan-v2-deployer",
+          () => providers.getEtherscanV2SecurityEvidence(
+            { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+            { ...options, useCache: options.useCache }
+          ),
+          options,
+          state,
+          Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3)),
+          evm.chain
+        )
+      : {
+          status: "PROVIDER_UNAVAILABLE",
+          provider: "etherscan-v2-deployer",
+          value: null,
+          reason: "Etherscan deployer recovery skipped because no API key is configured.",
+          durationMs: 0,
+        };
     const etherscanResult = etherscanAttempt.value || {};
     const observations =
       etherscanAttempt.status === "SUCCESS" && exactDeployerResult(etherscanResult, evm)
@@ -579,14 +652,16 @@ export async function recoverDeployerEvidence(
     return {
       observations,
       attempts: [
+        ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
         { ...blockscoutAttempt, value: undefined },
         ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
         { ...etherscanAttempt, value: undefined },
       ],
       projectPatch: {
+        ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
         blockscoutDeployerEvidence: blockscoutResult,
         ...(goplusAttempt ? { goplusDeployerEvidence: goplusResult } : {}),
-        etherscanDeployerEvidence: etherscanResult,
+        ...(etherscanAvailable ? { etherscanDeployerEvidence: etherscanResult } : {}),
       },
     };
   }
@@ -1108,7 +1183,7 @@ export async function executeActiveEvidenceProviderRequests(
   const parallel = [];
   if (
     deployerFields.length &&
-    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "native rpc", "security providers"])
+    sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer", "native rpc", "security providers"])
   ) {
     parallel.push(
       recoverDeployerEvidence(project, deployerFields, providers, options, executionState).then((result) => ({
