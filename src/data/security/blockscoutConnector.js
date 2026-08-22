@@ -187,11 +187,21 @@ export async function getBlockscoutDeployerEvidence(project = {}, options = {}) 
 
   try {
     const root = String(baseUrl).replace(/\/+$/, "");
-    const addressInfo = await fetchJson(`${root}/api/v2/addresses/${address}`, {
-      timeoutMs: options.timeoutMs,
-    });
+    const [contractResult, addressResult] = await Promise.allSettled([
+      fetchJson(`${root}/api/v2/smart-contracts/${address}`, {
+        timeoutMs: options.timeoutMs,
+      }),
+      fetchJson(`${root}/api/v2/addresses/${address}`, {
+        timeoutMs: options.timeoutMs,
+      }),
+    ]);
+    const contract = contractResult.status === "fulfilled" ? contractResult.value : {};
+    const addressInfo = addressResult.status === "fulfilled" ? addressResult.value : {};
+    if (contractResult.status === "rejected" && addressResult.status === "rejected") {
+      throw contractResult.reason || addressResult.reason;
+    }
     const evidence = {
-      ...normalizeBlockscoutSecurityEvidence({}, addressInfo, { chain, address }),
+      ...normalizeBlockscoutSecurityEvidence(contract, addressInfo, { chain, address }),
       provider: BLOCKSCOUT_DEPLOYER_PROVIDER,
     };
     return options.useCache === false

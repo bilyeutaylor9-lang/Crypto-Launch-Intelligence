@@ -1,4 +1,9 @@
 import { resolveAnalysisFunnelConfig } from "../config/analysisFunnelConfig.js";
+import {
+  chainKind,
+  normalizeChainId,
+  normalizeTokenAddress,
+} from "../identity/strictIdentityValidators.js";
 import { analyzePreIntelligenceFeaturesBatch } from "./preIntelligenceFeatureEngine.js";
 import { allocateCandidateLanes } from "./candidateLaneAllocator.js";
 
@@ -13,6 +18,48 @@ function compareByScore(field, fallback = "preIntelligenceOpportunityScore") {
     String(left.standardSelectionIdentityKey || left.symbol || left.name).localeCompare(
       String(right.standardSelectionIdentityKey || right.symbol || right.name)
     );
+}
+
+function selectionKey(project = {}) {
+  return project.standardSelectionIdentityKey ||
+    project.projectId ||
+    `${project.chain}:${project.symbol}:${project.name}`;
+}
+
+export function hasFinalDecisionIdentity(project = {}) {
+  const chain = normalizeChainId(
+    project.chain || project.chainId || project.network || project.canonicalChain
+  );
+  if (!chain) return false;
+  return Boolean(normalizeTokenAddress(
+    project.tokenAddress ||
+      project.contractAddress ||
+      project.canonicalAddress ||
+      project.baseToken?.address ||
+      project.address,
+    chain
+  ));
+}
+
+const CORE_EVIDENCE_ACQUISITION_CHAINS = new Set([
+  "ethereum",
+  "optimism",
+  "bsc",
+  "polygon",
+  "arbitrum",
+  "avalanche",
+  "base",
+  "zksync",
+]);
+
+export function hasFinalDecisionEvidenceRoute(project = {}) {
+  if (!hasFinalDecisionIdentity(project)) return false;
+  const chain = normalizeChainId(
+    project.chain || project.chainId || project.network || project.canonicalChain
+  );
+  const family = chainKind(chain);
+  if (family === "solana") return true;
+  return family === "evm" && CORE_EVIDENCE_ACQUISITION_CHAINS.has(chain);
 }
 
 function stageScore(project = {}, stage = "advanced") {
@@ -131,7 +178,7 @@ function selectStageWithAllocation(projects = [], limit = 0, scoreField = "", st
   const take = (pool = [], count = 0, lane = "") => {
     for (const project of pool) {
       if (selected.length >= target || selected.filter((item) => item[`${stage}SelectionLane`] === lane).length >= count) break;
-      const key = project.standardSelectionIdentityKey || project.projectId || `${project.chain}:${project.symbol}:${project.name}`;
+      const key = selectionKey(project);
       if (keys.has(key)) continue;
       keys.add(key);
       selected.push({
@@ -148,7 +195,7 @@ function selectStageWithAllocation(projects = [], limit = 0, scoreField = "", st
   take(scored.filter(isMissedWinnerPatternCandidate), budget.missedWinnerPatterns || budget.redTeamOrMissedWinner || 0, "MISSED_WINNER_OR_RED_TEAM");
   take(
     scored
-      .filter((project) => !keys.has(project.standardSelectionIdentityKey || project.projectId || `${project.chain}:${project.symbol}:${project.name}`))
+      .filter((project) => !keys.has(selectionKey(project)))
       .sort((a, b) => String(a.standardSelectionIdentityKey || a.symbol).localeCompare(String(b.standardSelectionIdentityKey || b.symbol))),
     budget.randomizedAudit || budget.randomizedControl || 0,
     "DETERMINISTIC_AUDIT_CONTROL"
@@ -159,6 +206,50 @@ function selectStageWithAllocation(projects = [], limit = 0, scoreField = "", st
     ...project,
     [`${stage}SelectionRank`]: index + 1,
     [`${stage}SelectionState`]: "SELECTED",
+  }));
+}
+
+function preserveDeepIdentityCapacity(
+  selected = [],
+  candidates = [],
+  requiredCount = 0,
+  scoreField = "advancedSelectionScore"
+) {
+  const target = selected.length;
+  const required = Math.min(
+    target,
+    Math.max(0, requiredCount),
+    candidates.filter(hasFinalDecisionEvidenceRoute).length
+  );
+  const selectedIdentityCount = selected.filter(hasFinalDecisionEvidenceRoute).length;
+  const deficit = Math.max(0, required - selectedIdentityCount);
+  if (!deficit) return selected;
+
+  const selectedKeys = new Set(selected.map(selectionKey));
+  const additions = candidates
+    .filter((project) => hasFinalDecisionEvidenceRoute(project) && !selectedKeys.has(selectionKey(project)))
+    .map((project) => ({
+      ...project,
+      [scoreField]: stageScore(project, "advanced"),
+      advancedSelectionLane: "DOWNSTREAM_FINAL_IDENTITY_CAPACITY",
+    }))
+    .sort(compareByScore(scoreField))
+    .slice(0, deficit);
+  const retained = [
+    ...selected.filter(hasFinalDecisionEvidenceRoute),
+    ...selected.filter((project) => !hasFinalDecisionEvidenceRoute(project)).slice(
+      0,
+      Math.max(0, target - selectedIdentityCount - additions.length)
+    ),
+    ...additions,
+  ]
+    .sort(compareByScore(scoreField))
+    .slice(0, target);
+
+  return retained.map((project, index) => ({
+    ...project,
+    advancedSelectionRank: index + 1,
+    advancedSelectionState: "SELECTED",
   }));
 }
 
@@ -233,8 +324,15 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
       project.preIntelligenceRankEligible === true &&
       (project.preIntelligenceLane || project.discoveryLane) !== "identity-only"
   );
-  const advanced = selectStageWithAllocation(rankableStandard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced", config.stageBudgets?.advanced || {});
-  const deep = selectStageWithAllocation(advanced, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
+  const initiallyAdvanced = selectStageWithAllocation(rankableStandard, config.advancedIntelligenceLimit, "advancedSelectionScore", "advanced", config.stageBudgets?.advanced || {});
+  const advanced = preserveDeepIdentityCapacity(
+    initiallyAdvanced,
+    rankableStandard,
+    config.deepIntelligenceLimit
+  );
+  const deepIdentityCandidates = advanced.filter(hasFinalDecisionIdentity);
+  const deepEvidenceCandidates = advanced.filter(hasFinalDecisionEvidenceRoute);
+  const deep = selectStageWithAllocation(deepEvidenceCandidates, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
   const crawler = selectStageWithAllocation(deep, config.crawlerResearchLimit, "crawlerSelectionScore", "crawler", config.stageBudgets?.crawler || {});
   const llama3 = selectStageWithAllocation(crawler, config.localAITopProjectLimit, "llama3SelectionScore", "llama", config.stageBudgets?.localAI || {});
   const debate = selectStage(llama3, config.finalistDebateLimit, "debateSelectionScore", "debate");
@@ -278,6 +376,10 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
         advancedIntelligenceLimit: config.advancedIntelligenceLimit,
         deepIntelligenceSelected: deep.length,
         deepIntelligenceLimit: config.deepIntelligenceLimit,
+        deepFinalIdentityEligible: deepIdentityCandidates.length,
+        deepCoreEvidenceAcquisitionEligible: deepEvidenceCandidates.length,
+        deepIdentityDeferred: Math.max(0, advanced.length - deepIdentityCandidates.length),
+        deepProviderDeferred: Math.max(0, deepIdentityCandidates.length - deepEvidenceCandidates.length),
         crawlerResearchSelected: crawler.length,
         crawlerResearchLimit: config.crawlerResearchLimit,
         llama3Selected: llama3.length,

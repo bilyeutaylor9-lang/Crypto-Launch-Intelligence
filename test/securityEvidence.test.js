@@ -56,6 +56,11 @@ test("Sourcify normalizer treats exact matches as verified source evidence", () 
       match: "exact_match",
       creationMatch: "perfect",
       runtimeMatch: "perfect",
+      deployment: {
+        deployer: "0x2222222222222222222222222222222222222222",
+        transactionHash: `0x${"ab".repeat(32)}`,
+        blockNumber: "12345",
+      },
     },
     { chain: "base", address: ADDRESS }
   );
@@ -63,6 +68,9 @@ test("Sourcify normalizer treats exact matches as verified source evidence", () 
   assert.equal(result.status, "EVIDENCE_AVAILABLE");
   assert.equal(result.verifiedSource, true);
   assert.equal(result.exactMatch, true);
+  assert.equal(result.creatorAddress, "0x2222222222222222222222222222222222222222");
+  assert.equal(result.deploymentTransactionHash, `0x${"ab".repeat(32)}`);
+  assert.equal(result.creationBlockNumber, 12345);
   assert.equal(result.riskFindings.length, 0);
 });
 
@@ -85,7 +93,7 @@ test("Blockscout normalizer preserves proxy and implementation evidence", () => 
   assert.ok(result.riskFindings.some((item) => item.includes("proxy")));
 });
 
-test("Blockscout deployer recovery uses exact address metadata without contract source lookup", async () => {
+test("Blockscout deployer recovery checks address and smart-contract metadata", async () => {
   const originalFetch = globalThis.fetch;
   const requestedUrls = [];
   globalThis.fetch = async (url) => {
@@ -110,8 +118,9 @@ test("Blockscout deployer recovery uses exact address metadata without contract 
     assert.equal(result.address, ADDRESS);
     assert.equal(result.creatorAddress, "0x2222222222222222222222222222222222222222");
     assert.equal(result.provider, "blockscout-deployer");
-    assert.equal(requestedUrls.length, 1);
-    assert.match(requestedUrls[0], new RegExp(`/api/v2/addresses/${ADDRESS}$`, "i"));
+    assert.equal(requestedUrls.length, 2);
+    assert.ok(requestedUrls.some((url) => new RegExp(`/api/v2/addresses/${ADDRESS}$`, "i").test(url)));
+    assert.ok(requestedUrls.some((url) => new RegExp(`/api/v2/smart-contracts/${ADDRESS}$`, "i").test(url)));
   } finally {
     globalThis.fetch = originalFetch;
   }

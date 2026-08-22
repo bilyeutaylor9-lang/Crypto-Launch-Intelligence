@@ -4,7 +4,10 @@ import fs from "fs";
 
 import { resolveAnalysisFunnelConfig } from "../src/config/analysisFunnelConfig.js";
 import { planResearchQueue } from "../src/index.js";
-import { planInstitutionalCandidateSelection } from "../src/discovery/institutionalCandidateSelector.js";
+import {
+  hasFinalDecisionEvidenceRoute,
+  planInstitutionalCandidateSelection,
+} from "../src/discovery/institutionalCandidateSelector.js";
 import {
   calculatePreIntelligenceFeatures,
   hasDeepResolvableIdentity,
@@ -156,6 +159,57 @@ test("verified CEX identity remains eligible without an on-chain token address",
     sourceType: "cex",
     marketPair: "BTC-USDT",
   }), true);
+});
+
+test("final-decision routing requires a chain-specific core evidence path", () => {
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(1)), true);
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(5)), true);
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(10, {
+    chain: "robinhood-chain",
+    address: evmAddress(10),
+  })), false);
+});
+
+test("deep final-decision capacity is reserved for exact on-chain identities", () => {
+  const onChain = Array.from({ length: 4 }, (_, index) => candidate(index + 1, {
+    symbol: `CHAIN${index}`,
+    priceChange24h: 0,
+    priceChange7d: 0,
+    liquidityChange24hPct: 0,
+    buyersChange24hPct: 0,
+  }));
+  const cexBenchmarks = Array.from({ length: 4 }, (_, index) => ({
+    name: `CEX Benchmark ${index}`,
+    symbol: `CEX${index}`,
+    source: "kucoin",
+    sourceType: "cex",
+    marketPair: `CEX${index}-USDT`,
+    exchangeAssetId: `kucoin:CEX${index}`,
+    liquidityUsd: 5_000_000,
+    volume24h: 10_000_000,
+    marketCap: 50_000_000,
+    priceChange24h: 30,
+    priceChange7d: 80,
+    volumeChange24hPct: 100,
+    liquidityChange24hPct: 100,
+    buyersChange24hPct: 100,
+    sourceTruthScore: 90,
+    identityResolutionScore: 90,
+  }));
+  const plan = planInstitutionalCandidateSelection([...cexBenchmarks, ...onChain], {
+    standardIntelligenceLimit: 8,
+    advancedIntelligenceLimit: 4,
+    deepIntelligenceLimit: 3,
+    crawlerResearchLimit: 3,
+    localAITopProjectLimit: 3,
+    finalistDebateLimit: 3,
+    finalistComparisonLimit: 3,
+  });
+
+  assert.equal(plan.deep.length, 3);
+  assert.ok(plan.deep.every((project) => project.chain && project.address));
+  assert.ok(plan.deep.every((project) => project.sourceType !== "cex"));
+  assert.equal(plan.report.funnel.deepIdentityDeferred, 1);
 });
 
 test("selector does not choose the first records merely by discovery order", () => {

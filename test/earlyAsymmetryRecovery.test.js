@@ -143,6 +143,29 @@ test("root-cause engine separates internal output, deferred enrichment, provider
     }
   );
   assert.equal(rateLimited.dataStarvationMissingEvidence[0].rootCause, "PROVIDER_RATE_LIMITED");
+
+  const attemptedUnknown = analyzeDataStarvationRootCause(
+    {
+      symbol: "ATTEMPTED",
+      activeEvidenceRecovery: {
+        attemptedFields: ["liquidityUsd"],
+        providerAttempts: [{ provider: "dexscreener", status: "SUCCESS" }],
+      },
+    },
+    {
+      contracts: [
+        {
+          id: "liquidity",
+          phase: "market",
+          affectsFinalDecision: true,
+          canBlockCandidate: true,
+          inputContract: { requiredAny: [["liquidityUsd"]], optional: [] },
+        },
+      ],
+    }
+  );
+  assert.equal(attemptedUnknown.dataStarvationMissingEvidence[0].sourceAttempted, true);
+  assert.equal(attemptedUnknown.dataStarvationMissingEvidence[0].rootCause, "PROVIDER_RETURNED_UNKNOWN");
 });
 
 test("rescue queue blocks identity conflict, honeypot, and high wash-trading risk", () => {
