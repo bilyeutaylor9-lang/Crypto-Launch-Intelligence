@@ -1,5 +1,6 @@
 import { resolveAnalysisFunnelConfig } from "../config/analysisFunnelConfig.js";
 import {
+  chainKind,
   normalizeChainId,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
@@ -38,6 +39,27 @@ export function hasFinalDecisionIdentity(project = {}) {
       project.address,
     chain
   ));
+}
+
+const CORE_EVIDENCE_ACQUISITION_CHAINS = new Set([
+  "ethereum",
+  "optimism",
+  "bsc",
+  "polygon",
+  "arbitrum",
+  "avalanche",
+  "base",
+  "zksync",
+]);
+
+export function hasFinalDecisionEvidenceRoute(project = {}) {
+  if (!hasFinalDecisionIdentity(project)) return false;
+  const chain = normalizeChainId(
+    project.chain || project.chainId || project.network || project.canonicalChain
+  );
+  const family = chainKind(chain);
+  if (family === "solana") return true;
+  return family === "evm" && CORE_EVIDENCE_ACQUISITION_CHAINS.has(chain);
 }
 
 function stageScore(project = {}, stage = "advanced") {
@@ -197,15 +219,15 @@ function preserveDeepIdentityCapacity(
   const required = Math.min(
     target,
     Math.max(0, requiredCount),
-    candidates.filter(hasFinalDecisionIdentity).length
+    candidates.filter(hasFinalDecisionEvidenceRoute).length
   );
-  const selectedIdentityCount = selected.filter(hasFinalDecisionIdentity).length;
+  const selectedIdentityCount = selected.filter(hasFinalDecisionEvidenceRoute).length;
   const deficit = Math.max(0, required - selectedIdentityCount);
   if (!deficit) return selected;
 
   const selectedKeys = new Set(selected.map(selectionKey));
   const additions = candidates
-    .filter((project) => hasFinalDecisionIdentity(project) && !selectedKeys.has(selectionKey(project)))
+    .filter((project) => hasFinalDecisionEvidenceRoute(project) && !selectedKeys.has(selectionKey(project)))
     .map((project) => ({
       ...project,
       [scoreField]: stageScore(project, "advanced"),
@@ -214,8 +236,8 @@ function preserveDeepIdentityCapacity(
     .sort(compareByScore(scoreField))
     .slice(0, deficit);
   const retained = [
-    ...selected.filter(hasFinalDecisionIdentity),
-    ...selected.filter((project) => !hasFinalDecisionIdentity(project)).slice(
+    ...selected.filter(hasFinalDecisionEvidenceRoute),
+    ...selected.filter((project) => !hasFinalDecisionEvidenceRoute(project)).slice(
       0,
       Math.max(0, target - selectedIdentityCount - additions.length)
     ),
@@ -309,7 +331,8 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
     config.deepIntelligenceLimit
   );
   const deepIdentityCandidates = advanced.filter(hasFinalDecisionIdentity);
-  const deep = selectStageWithAllocation(deepIdentityCandidates, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
+  const deepEvidenceCandidates = advanced.filter(hasFinalDecisionEvidenceRoute);
+  const deep = selectStageWithAllocation(deepEvidenceCandidates, config.deepIntelligenceLimit, "deepSelectionScore", "deep", config.stageBudgets?.deep || {});
   const crawler = selectStageWithAllocation(deep, config.crawlerResearchLimit, "crawlerSelectionScore", "crawler", config.stageBudgets?.crawler || {});
   const llama3 = selectStageWithAllocation(crawler, config.localAITopProjectLimit, "llama3SelectionScore", "llama", config.stageBudgets?.localAI || {});
   const debate = selectStage(llama3, config.finalistDebateLimit, "debateSelectionScore", "debate");
@@ -354,7 +377,9 @@ export function planInstitutionalCandidateSelection(projects = [], options = {})
         deepIntelligenceSelected: deep.length,
         deepIntelligenceLimit: config.deepIntelligenceLimit,
         deepFinalIdentityEligible: deepIdentityCandidates.length,
+        deepCoreEvidenceAcquisitionEligible: deepEvidenceCandidates.length,
         deepIdentityDeferred: Math.max(0, advanced.length - deepIdentityCandidates.length),
+        deepProviderDeferred: Math.max(0, deepIdentityCandidates.length - deepEvidenceCandidates.length),
         crawlerResearchSelected: crawler.length,
         crawlerResearchLimit: config.crawlerResearchLimit,
         llama3Selected: llama3.length,

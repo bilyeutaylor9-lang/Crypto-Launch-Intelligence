@@ -4,7 +4,10 @@ import fs from "fs";
 
 import { resolveAnalysisFunnelConfig } from "../src/config/analysisFunnelConfig.js";
 import { planResearchQueue } from "../src/index.js";
-import { planInstitutionalCandidateSelection } from "../src/discovery/institutionalCandidateSelector.js";
+import {
+  hasFinalDecisionEvidenceRoute,
+  planInstitutionalCandidateSelection,
+} from "../src/discovery/institutionalCandidateSelector.js";
 import {
   calculatePreIntelligenceFeatures,
   hasDeepResolvableIdentity,
@@ -156,6 +159,15 @@ test("verified CEX identity remains eligible without an on-chain token address",
     sourceType: "cex",
     marketPair: "BTC-USDT",
   }), true);
+});
+
+test("final-decision routing requires a chain-specific core evidence path", () => {
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(1)), true);
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(5)), true);
+  assert.equal(hasFinalDecisionEvidenceRoute(candidate(10, {
+    chain: "robinhood-chain",
+    address: evmAddress(10),
+  })), false);
 });
 
 test("deep final-decision capacity is reserved for exact on-chain identities", () => {

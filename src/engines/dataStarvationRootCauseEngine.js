@@ -160,6 +160,12 @@ export function fieldApplicability(project = {}, canonicalField = "", contract =
       reason: "Solana authority and mint safety are evaluated by chain-specific engines; EVM deployer reputation is not applicable.",
     };
   }
+  if (contract.id === "deployerReputation" && family && family !== "evm") {
+    return {
+      status: "NOT_APPLICABLE",
+      reason: `Chain-specific authority and lifecycle safety replace EVM deployer reputation on ${family} chains.`,
+    };
+  }
   if (["lpLockedPct", "lpBurnedPct", "ownerLpSharePct", "poolAddress"].includes(canonicalField) && venue === "cex") {
     return { status: "NOT_APPLICABLE", reason: "CEX-only project does not require DEX pool or LP-lock evidence." };
   }
