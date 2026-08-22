@@ -11,6 +11,7 @@ import { runEdgeDiscoveryLoop } from "../learning/edgeDiscoveryLoop.js";
 import { runEdgeResearchAutopilot } from "../learning/edgeResearchAutopilot.js";
 import { runAvoidanceEdgeVerification } from "../learning/avoidanceEdgeVerificationLab.js";
 import { runProspectiveEntryEdgeLab } from "../learning/prospectiveEntryEdgeLab.js";
+import { loadAcquisitionHealthGate } from "../diagnostics/acquisitionHealthGate.js";
 
 function readJson(file) {
   const absolute = path.resolve(file);
@@ -28,8 +29,10 @@ export function runEdgeEvidenceTruthCycle(options = {}) {
   const contrast = runEdgeMechanismContrast(outcomeLab, options.contrast || {});
   const avoidanceVerification = runAvoidanceEdgeVerification(options.avoidance || {});
   const prospectiveEntryEdge = runProspectiveEntryEdgeLab(options.prospectiveEntry || {});
+  const acquisitionHealth = options.acquisitionHealth || loadAcquisitionHealthGate(options.acquisitionHealthOptions || {});
   const discovery = runEdgeDiscoveryLoop({ health, outcomeLab, autopsy, contrast }, options.discovery || {});
   const autopilot = runEdgeResearchAutopilot({
+    acquisitionHealth,
     health,
     outcomeLab,
     autopsy,
@@ -41,6 +44,7 @@ export function runEdgeEvidenceTruthCycle(options = {}) {
   return {
     episodes: episodes.length,
     outcomes: outcomes.length,
+    acquisitionHealth,
     health,
     outcomeLab,
     autopsy,
@@ -58,6 +62,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(JSON.stringify({
       episodes: result.episodes,
       outcomes: result.outcomes,
+      acquisitionHealthState: result.acquisitionHealth.state,
       evidenceHealthState: result.health.state,
       edgeVerificationState: result.outcomeLab.verification.state,
       avoidanceVerificationState: result.avoidanceVerification.state,

@@ -67,6 +67,13 @@ jobs:
           IGNITION_CAPITAL_RADAR_MAX_TRACKED_WALLETS: 160
           IGNITION_CAPITAL_RADAR_MIN_TRANSFER_USD: 5000
 
+      - name: Validate Acquisition Health
+        if: always()
+        env:
+          EDGE_ACQUISITION_STEP_OUTCOME: ${{ steps.edge_acquisition.outcome }}
+          EDGE_ACQUISITION_MAX_REPORT_AGE_MINUTES: 30
+        run: npm run edge:acquisition:health
+
       - name: Refresh Evidence Health And Research Loop
         run: npm run edge:evidence:truth
 
@@ -104,5 +111,6 @@ jobs:
             reports/edge-research-autopilot.json
             reports/prospective-entry-edge.json
             reports/edge-acquisition-cycle.json
+            reports/acquisition-health-gate.json
           if-no-files-found: error
           retention-days: 30

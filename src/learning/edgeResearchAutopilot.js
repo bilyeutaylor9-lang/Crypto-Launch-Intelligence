@@ -4,13 +4,16 @@ import path from "node:path";
 const REPORT_FILE = path.resolve("reports", "edge-research-autopilot.json");
 
 export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
+  const acquisitionHealth = inputs.acquisitionHealth || {};
   const health = inputs.health || {};
   const outcomeLab = inputs.outcomeLab || {};
   const avoidanceVerification = inputs.avoidanceVerification || {};
   const prospectiveEntryEdge = inputs.prospectiveEntryEdge || {};
   const discovery = inputs.discovery || {};
   let state = "AUTOPILOT_EVIDENCE_WARMING";
-  if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") {
+  if (acquisitionHealth.blockResearchAdvancement === true) {
+    state = "AUTOPILOT_ACQUISITION_HEALTH_BLOCKED";
+  } else if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") {
     state = "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED";
   } else if (outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE") {
     state = "AUTOPILOT_VERIFIED_EDGE_REVIEW";
@@ -23,6 +26,8 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
     schemaVersion: 1,
     generatedAt: new Date(options.now || Date.now()).toISOString(),
     state,
+    acquisitionHealthState: acquisitionHealth.state || "UNKNOWN",
+    acquisitionHealthBlockers: Array.isArray(acquisitionHealth.blockers) ? acquisitionHealth.blockers : [],
     evidenceHealthState: health.state || "UNKNOWN",
     edgeVerificationState: outcomeLab.verification?.state || "UNKNOWN",
     avoidanceVerificationState: avoidanceVerification.state || "UNKNOWN",
@@ -60,7 +65,7 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
     scoringInfluence: false,
     automaticProductionPromotion: false,
     automaticTrading: false,
-    policy: "Autopilot may collect evidence and choose the next research mechanism. Historical entry discovery remains post-hoc until a frozen prospective executable cohort verifies it. Same-regime avoidance evidence is exclusion-only, and every verified edge still requires human review. Nothing can bypass identity, safety, liquidity, execution, or final-selection gates.",
+    policy: "Autopilot may collect evidence and choose the next research mechanism. A failed or untrustworthy live acquisition cycle blocks research advancement. Historical entry discovery remains post-hoc until a frozen prospective executable cohort verifies it. Same-regime avoidance evidence is exclusion-only, and every verified edge still requires human review. Nothing can bypass identity, safety, liquidity, execution, or final-selection gates.",
   };
 }
 
