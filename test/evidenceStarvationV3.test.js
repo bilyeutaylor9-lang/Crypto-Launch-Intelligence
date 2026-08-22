@@ -121,6 +121,44 @@ test("active recovery invokes the deployer provider path", async () => {
   assert.equal(calls, 1);
 });
 
+test("deployer recovery promotes exact Sourcify deployment evidence before explorer fallbacks", async () => {
+  let blockscoutCalls = 0;
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creatorAddress", "Sourcify")],
+    {
+      providers: {
+        getSourcifySecurityEvidence: async () => ({
+          status: "EVIDENCE_AVAILABLE",
+          chain: "bsc",
+          address: TOKEN,
+          creatorAddress: CREATOR,
+          deploymentTransactionHash: `0x${"5".repeat(64)}`,
+          creationBlockNumber: 123,
+          confidence: 90,
+        }),
+        getBlockscoutDeployerEvidence: async () => {
+          blockscoutCalls += 1;
+          return {};
+        },
+      },
+    }
+  );
+  assert.equal(blockscoutCalls, 0);
+  assert.equal(
+    result.observations.find((item) => item.field === "creatorAddress")?.value,
+    CREATOR
+  );
+  assert.equal(
+    result.observations.find((item) => item.field === "creatorAddress")?.source,
+    "sourcify-v2"
+  );
+  assert.equal(
+    result.observations.find((item) => item.field === "creationBlockNumber")?.value,
+    123
+  );
+});
+
 test("deployer recovery falls back to exact GoPlus creator evidence", async () => {
   const result = await executeActiveEvidenceProviderRequests(
     { chain: "base", tokenAddress: TOKEN },
@@ -147,6 +185,31 @@ test("deployer recovery falls back to exact GoPlus creator evidence", async () =
   assert.equal(creator?.value, CREATOR);
   assert.equal(creator?.source, "goplus");
   assert.equal(creator?.verificationStatus, "VERIFIED_PROVIDER_OBSERVATION");
+});
+
+test("missing Etherscan credentials do not consume provider request budget", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN },
+    [request("creatorAddress", "block explorers")],
+    {
+      env: {},
+      providers: {
+        getBlockscoutDeployerEvidence: async () => ({
+          status: "UNKNOWN",
+          chain: "base",
+          address: TOKEN,
+          creatorAddress: null,
+        }),
+      },
+    },
+    state
+  );
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(
+    result.attempts.find((item) => item.provider === "etherscan-v2-deployer")?.status,
+    "PROVIDER_UNAVAILABLE"
+  );
 });
 
 test("deployer recovery reuses exact existing security evidence without a provider request", async () => {
