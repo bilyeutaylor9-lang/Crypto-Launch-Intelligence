@@ -71,6 +71,15 @@ jobs:
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
             data/prospective-entry-edge-episodes.jsonl
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+            data/committed-loaded-vacuum-replication-plan.json
+            data/ignition-executable-edge-canary-replays.jsonl
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-policy.json
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json
             data/native-discovery/checkpoints.json
@@ -187,7 +196,7 @@ jobs:
         run: npm run qualification:microscope
 
       - name: Save Bounded Learning Memory
-        if: always()
+        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
@@ -211,6 +220,15 @@ jobs:
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
             data/prospective-entry-edge-episodes.jsonl
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+            data/committed-loaded-vacuum-replication-plan.json
+            data/ignition-executable-edge-canary-replays.jsonl
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-policy.json
             data/native-discovery/raw-events.json
             data/native-discovery/confirmed-events.json
             data/native-discovery/checkpoints.json
