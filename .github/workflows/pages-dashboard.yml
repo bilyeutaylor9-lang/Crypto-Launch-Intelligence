@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 180
     outputs:
       scanner: ${{ steps.scanner.outcome }}
+      qualification_microscope: ${{ steps.qualification_microscope.outcome }}
       engine_audit: ${{ steps.engine_audit.outcome }}
       readiness: ${{ steps.readiness.outcome }}
       semantic_health: ${{ steps.semantic_health.outcome }}
@@ -179,6 +180,12 @@ jobs:
           SUPABASE_SYNC_ALPHA_RECEIPTS: ${{ vars.SUPABASE_SYNC_ALPHA_RECEIPTS || secrets.SUPABASE_SYNC_ALPHA_RECEIPTS || 'true' }}
           SUPABASE_SYNC_PROJECT_LIMIT: ${{ vars.SUPABASE_SYNC_PROJECT_LIMIT || secrets.SUPABASE_SYNC_PROJECT_LIMIT || '2500' }}
 
+      - name: Diagnose Qualification Failure Funnel
+        id: qualification_microscope
+        if: always()
+        continue-on-error: true
+        run: npm run qualification:microscope
+
       - name: Save Bounded Learning Memory
         if: always()
         continue-on-error: true
@@ -290,6 +297,7 @@ jobs:
       - name: Enforce truthful final health
         env:
           SCANNER: ${{ needs.build.outputs.scanner }}
+          QUALIFICATION_MICROSCOPE: ${{ needs.build.outputs.qualification_microscope }}
           ENGINE_AUDIT: ${{ needs.build.outputs.engine_audit }}
           READINESS: ${{ needs.build.outputs.readiness }}
           SEMANTIC_HEALTH: ${{ needs.build.outputs.semantic_health }}
@@ -300,7 +308,7 @@ jobs:
           DEPLOY: ${{ needs.deploy.result }}
         run: |
           failed=0
-          for check in SCANNER ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
+          for check in SCANNER QUALIFICATION_MICROSCOPE ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
             value="${!check}"
             if [ "$value" != "success" ]; then
               echo "::error::$check finished with $value"

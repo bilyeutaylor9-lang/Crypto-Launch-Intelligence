@@ -363,7 +363,16 @@
     "ignition:canary:replay": "node src/ops/runExecutableEdgeCanaryReplay.js",
     "ignition:canary:lab": "node src/ops/runExecutableEdgeCanaryLab.js",
     "ignition:canary:report": "cat reports/ignition-executable-edge-canary.json",
-    "ignition:canary:stack": "npm run ignition:canary:capture && npm run ignition:canary:replay && npm run ignition:canary:lab"
+    "ignition:canary:stack": "npm run ignition:canary:capture && npm run ignition:canary:replay && npm run ignition:canary:lab",
+    "qualification:microscope": "node src/diagnostics/qualificationFailureMicroscope.js",
+    "qualification:report": "cat reports/qualification-failure-microscope.json",
+    "edge:acquisition:health": "node src/diagnostics/acquisitionHealthGate.js",
+    "edge:acquisition:health:report": "cat reports/acquisition-health-gate.json",
+    "test:qualification-diagnostics": "node --test test/qualificationFailureMicroscope.test.js test/acquisitionHealthGate.test.js test/qualificationFailureIntegration.test.js",
+    "qualification:repair": "node src/diagnostics/qualificationProofRepairOrchestrator.js",
+    "qualification:repair:report": "cat reports/qualification-proof-repair.json",
+    "test:qualification-proof-repair": "node --test test/qualificationProofRepairOrchestrator.test.js",
+    "test:qualification-stack": "node --test test/qualificationFailureMicroscope.test.js test/acquisitionHealthGate.test.js test/qualificationFailureIntegration.test.js test/qualificationProofRepairOrchestrator.test.js"
   },
   "engines": {
     "node": ">=22"
