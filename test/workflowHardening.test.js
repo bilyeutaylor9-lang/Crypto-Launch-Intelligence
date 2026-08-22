@@ -103,3 +103,30 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   assert.match(workflow, /data\/scan-history\.json\*/);
   assert.match(workflow, /data\/outcome-snapshots\.json\*/);
 });
+
+test("learning workflows share one cache signature and never save without an exact universe", () => {
+  const workflowPaths = [
+    ".github/workflows/pages-dashboard.yml",
+    ".github/workflows/outcome-probe.yml",
+    ".github/workflows/edge-evidence-truth.yml",
+    ".github/workflows/edge-lab.yml",
+  ];
+  let expectedPaths = null;
+
+  for (const workflowPath of workflowPaths) {
+    const workflow = fs.readFileSync(workflowPath, "utf8");
+    const cachePaths = [...workflow.matchAll(
+      /uses: actions\/cache\/(?:restore|save)@v5[\s\S]*?path: \|\n((?:\s{12}data\/.*\n)+)/g,
+    )].map((match) => match[1].trim().split("\n").map((line) => line.trim()));
+
+    assert.equal(cachePaths.length, 2, `${workflowPath} must have one restore and one save path set`);
+    assert.deepEqual(cachePaths[1], cachePaths[0], `${workflowPath} restore/save cache paths drifted`);
+    expectedPaths ??= cachePaths[0];
+    assert.deepEqual(cachePaths[0], expectedPaths, `${workflowPath} cannot share scanner-learning caches`);
+    assert.ok(cachePaths[0].includes("data/edge-candidate-universe.json"));
+    assert.match(
+      workflow,
+      /if: \$\{\{ always\(\) && hashFiles\('data\/edge-candidate-universe\.json'\) != '' \}\}\n\s+continue-on-error: true\n\s+uses: actions\/cache\/save@v5/,
+    );
+  }
+});
