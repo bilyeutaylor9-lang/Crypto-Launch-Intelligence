@@ -21,6 +21,13 @@ export function normalizeSourcifyContract(raw = {}, meta = {}) {
   const match = matchValue(raw);
   const verifiedSource = Boolean(match && match !== "false" && match !== "none");
   const exactMatch = match.includes("exact") || lower(raw.creationMatch).includes("perfect") || lower(raw.runtimeMatch).includes("perfect");
+  const deployment = raw.deployment || {};
+  const creatorAddress = isEvmAddress(deployment.deployer)
+    ? lower(deployment.deployer)
+    : null;
+  const creationBlockNumber = Number.isFinite(Number(deployment.blockNumber))
+    ? Number(deployment.blockNumber)
+    : null;
 
   if (!verifiedSource) {
     return {
@@ -39,6 +46,9 @@ export function normalizeSourcifyContract(raw = {}, meta = {}) {
     address: meta.address || null,
     verifiedSource,
     exactMatch,
+    creatorAddress,
+    deploymentTransactionHash: deployment.transactionHash || null,
+    creationBlockNumber,
     sourceMatch: raw.match || raw.matchType || raw.runtimeMatch || raw.creationMatch || "matched",
     proxy: false,
     ownerRisk: false,
@@ -65,10 +75,15 @@ export async function getSourcifySecurityEvidence(project = {}, options = {}) {
   }
 
   const cached = options.useCache === false ? null : getCachedSecurityEvidence(SOURCIFY_PROVIDER, chain, address, options.cacheTtlMs);
-  if (cached) return cached;
+  const needsDeploymentRefresh = Boolean(
+    cached?.status === "EVIDENCE_AVAILABLE" &&
+      cached.verifiedSource === true &&
+      !cached.creatorAddress
+  );
+  if (cached && !needsDeploymentRefresh) return cached;
 
   try {
-    const url = `${SOURCIFY_BASE_URL}/v2/contract/${chainId}/${address}`;
+    const url = `${SOURCIFY_BASE_URL}/v2/contract/${chainId}/${address}?fields=deployment`;
     const raw = await fetchJson(url, { timeoutMs: options.timeoutMs });
     const evidence = normalizeSourcifyContract(raw, { chain, address });
     return options.useCache === false ? evidence : setCachedSecurityEvidence(SOURCIFY_PROVIDER, chain, address, evidence);

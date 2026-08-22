@@ -63,6 +63,11 @@ function values(project = {}, fields = []) {
 
 function providerStatus(project = {}, field = "") {
   const providerHealth = project.providerHealth || project.sourceHealth || project.discoverySourceHealth || {};
+  const recovery = project.activeEvidenceRecovery || {};
+  const recoveryAttempted = (recovery.attemptedFields || []).includes(field);
+  const recoveryStatuses = (recovery.providerAttempts || [])
+    .map((attempt) => clean(attempt?.status))
+    .filter(Boolean);
   const statusText = [
     providerHealth[field],
     providerHealth.status,
@@ -78,6 +83,12 @@ function providerStatus(project = {}, field = "") {
   if (statusText.includes("451") || statusText.includes("region")) return "REGION_RESTRICTED";
   if (statusText.includes("failed") || statusText.includes("timeout") || statusText.includes("unavailable")) {
     return "PROVIDER_UNAVAILABLE";
+  }
+  if (recoveryAttempted) {
+    if (recoveryStatuses.includes("request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
+    if (recoveryStatuses.includes("circuit_open")) return "PROVIDER_CIRCUIT_OPEN";
+    if (recoveryStatuses.includes("failed")) return "PROVIDER_UNAVAILABLE";
+    return "PROVIDER_RETURNED_UNKNOWN";
   }
   return "UNKNOWN";
 }
