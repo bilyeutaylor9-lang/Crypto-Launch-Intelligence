@@ -95,6 +95,12 @@ export function generateReports(projects = [], meta = {}) {
   const precomputedPipelineStageHealth = meta.pipelineStageHealth;
   const fullProjects = Array.isArray(projects) ? projects : [];
   const { filePath: explosionReadinessPath } = writeExplosionReadinessReport(fullProjects, meta);
+  // Canonical Three-Clock is a shadow-only longitudinal diagnostic. Its report
+  // needs the actual scan objects because generic report compaction may omit
+  // the nested canonical edge after the top-level key budget is exhausted.
+  const {
+    filePath: threeClockEdgePath,
+  } = writeThreeClockEdgeReport(fullProjects);
   const {
     liveCoreRankingJsonPath,
     liveCoreRankingMarkdownPath,
@@ -212,9 +218,6 @@ export function generateReports(projects = [], meta = {}) {
   const {
     filePath: preConsensusBreakoutPath,
   } = writePreConsensusBreakoutReport(projects);
-  const {
-    filePath: threeClockEdgePath,
-  } = writeThreeClockEdgeReport(projects);
   const {
     filePath: preBreakoutRadarPath,
   } = writePreBreakoutRadarReport(projects);
