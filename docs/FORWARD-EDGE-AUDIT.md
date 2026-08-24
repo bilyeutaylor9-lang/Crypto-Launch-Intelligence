@@ -83,6 +83,7 @@ Missingness is also stress-tested rather than assumed benign. Every mature treat
 ```bash
 npm run production:shadow
 npm run outcomes:probe
+npm run outcomes:hourly
 npm run production:grade
 npm run edge:verify
 ```
@@ -92,6 +93,12 @@ Expected early-stage behavior:
 - `production:shadow` freezes a cohort only when the candidate universe is no more than 90 minutes old and matchable controls exist.
 - Run cohort capture from a clean Git checkout. GitHub supplies `GITHUB_SHA`; an immutable packaged deployment must supply its build identifier through `EDGE_CODE_VERSION`. Dirty or unversioned code is rejected from the evidence ledger.
 - `outcomes:probe` prioritizes prospective treatments and controls and dual-writes exact observations.
+- `outcomes:hourly` is the lightweight, one-shot scheduler target. It checks all due
+  1h/24h/168h/720h frozen outcomes, appends only exact chain/token (and known-pool)
+  observations, and never runs discovery, cohort selection, grading, ranking, promotion,
+  or trading. It shares a lock with scan-time probing and safely skips if a scan is
+  already collecting outcomes. The optional `npm run outcomes:hourly:daemon` keeps a
+  process-local schedule at minute 7 of each hour; it does not install or modify launchd.
 - `production:grade` writes an unverified report while cohorts are immature.
 - `edge:verify` exits non-zero until a real forward certificate is justified. That non-zero state is an integrity gate, not a workflow defect.
 

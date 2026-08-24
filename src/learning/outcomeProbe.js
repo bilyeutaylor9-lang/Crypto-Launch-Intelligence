@@ -38,6 +38,7 @@ import {
 import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
 import { loadProspectiveEntryEdgeEpisodes } from "./prospectiveEntryEdgeEpisodeStore.js";
 import { PROSPECTIVE_ENTRY_EDGE_TRIALS } from "./prospectiveEntryEdgeTrialRegistry.js";
+import { acquireOutcomeProbeRunLock } from "./outcomeProbeRunLock.js";
 
 const DEFAULT_HORIZONS = [1, 24, 168, 720];
 const DEFAULT_MAX_REQUESTS = 60;
@@ -436,7 +437,7 @@ function saveReport(report = {}, file = REPORT_FILE) {
   fs.writeFileSync(file, JSON.stringify(report, null, 2));
 }
 
-export async function runOutcomeProbe(options = {}) {
+async function runOutcomeProbeUnlocked(options = {}) {
   const runId = options.runId || `outcome-probe-${Date.now()}`;
   const now = new Date(options.now || Date.now()).toISOString();
   const usingDefaultMemory = options.memory === undefined;
@@ -540,7 +541,7 @@ export async function runOutcomeProbe(options = {}) {
       };
     }
   }
-  const saveResult = observations.length
+  const saveResult = observations.length && options.saveLegacySnapshots !== false
     ? (options.saveSnapshots || saveOutcomeSnapshots)(observations)
     : { saved: 0 };
   const exactSaveResult = observations.length
@@ -635,6 +636,56 @@ export async function runOutcomeProbe(options = {}) {
 
   if (options.writeReport !== false) saveReport(report, options.reportFile || REPORT_FILE);
   return report;
+}
+
+/**
+ * Collect due exact market outcomes without allowing two scanner/scheduler
+ * processes to race the same durable evidence files. A healthy active run is
+ * skipped rather than waited on: an hourly scheduler can retry on its next
+ * tick while the original point-in-time collection remains authoritative.
+ */
+export async function runOutcomeProbe(options = {}) {
+  if (options.acquireOutcomeProbeLock === false) {
+    return runOutcomeProbeUnlocked(options);
+  }
+
+  const lock = acquireOutcomeProbeRunLock(options);
+  if (!lock.acquired) {
+    return {
+      generatedAt: new Date(options.now || Date.now()).toISOString(),
+      runId: options.runId || `outcome-probe-${Date.now()}`,
+      status: "SKIPPED_ALREADY_RUNNING",
+      skipped: true,
+      skipReason: "OUTCOME_PROBE_ALREADY_RUNNING",
+      activeRun: lock.activeRun || null,
+      activeRunAgeMs: lock.ageMs ?? null,
+      activeRunOwnerAlive: lock.ownerAlive ?? null,
+      lockFile: lock.lockFile,
+      scoringOrSelectionAllowed: false,
+      rankingInfluence: false,
+      automaticTrading: false,
+      automaticPromotion: false,
+      dueCandidates: 0,
+      duePredictions: 0,
+      observationsSaved: 0,
+      exactLedgerObservationsSaved: 0,
+      exactLedgerObservationsRejected: 0,
+      prospectiveEdgeEpisodesTracked: 0,
+      prospectiveEdgeDueCandidates: 0,
+      prospectiveEntryEdgeEpisodesTracked: 0,
+      prospectiveEntryEdgeDueCandidates: 0,
+      prospectiveEntryEdgeDuePredictions: 0,
+      unresolvedCandidates: 0,
+      outcomesByHorizon: {},
+      results: [],
+    };
+  }
+
+  try {
+    return await runOutcomeProbeUnlocked(options);
+  } finally {
+    lock.release();
+  }
 }
 
 const isMain =
