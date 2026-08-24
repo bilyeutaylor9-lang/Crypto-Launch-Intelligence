@@ -32,6 +32,7 @@ export const PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE = Object.freeze({
   minimumExplicitExecutionCostCoverage: 0.80,
   minimumComparableFeatures: 5,
   maximumP90MatchDistance: 1.25,
+  maximumControlSourceSkewMinutes: 5,
   minimumReturnEdgePct: 3,
   minimumHitRateEdge: 0.03,
   maximumCatastropheDelta: 0.02,
@@ -196,6 +197,16 @@ export function buildProspectiveStrategyFingerprint(options = {}) {
       Number(options.minimumComparableFeatures || governance.minimumComparableFeatures),
     ),
     maximumControlDistance: Number(options.maximumControlDistance || 1.5),
+    maximumControlSourceSkewMinutes: Math.min(
+      governance.maximumControlSourceSkewMinutes,
+      Math.max(
+        0,
+        firstFinite(
+          options.maximumControlSourceSkewMinutes,
+          governance.maximumControlSourceSkewMinutes,
+        ) ?? governance.maximumControlSourceSkewMinutes,
+      ),
+    ),
     treatmentCooldownHours: Math.max(1, Number(options.treatmentCooldownHours || 168)),
     maximumSourceAgeMinutes: Math.max(1, Number(options.maximumSourceAgeMinutes || 90)),
     outcomeHorizonsHours: options.outcomeHorizonsHours || PROSPECTIVE_EDGE_HORIZONS_HOURS,

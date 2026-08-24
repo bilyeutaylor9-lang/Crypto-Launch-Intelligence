@@ -134,8 +134,26 @@ function cohortTopologyFailures(episodes = []) {
     if (parent.cohortId !== row.cohortId || parent.strategyFingerprint !== row.strategyFingerprint) {
       add(row.episodeId, "CONTROL_PARENT_COHORT_MISMATCH");
     }
-    if (timestamp(parent.decisionAt) !== timestamp(row.decisionAt) || parent.sourceObservedAt !== row.sourceObservedAt) {
-      add(row.episodeId, "CONTROL_PARENT_POINT_IN_TIME_MISMATCH");
+    if (timestamp(parent.decisionAt) !== timestamp(row.decisionAt)) {
+      add(row.episodeId, "CONTROL_PARENT_DECISION_TIME_MISMATCH");
+    }
+    const parentSourceMs = timestamp(parent.sourceObservedAt);
+    const controlSourceMs = timestamp(row.sourceObservedAt);
+    const maximumSourceSkewMinutes = Math.min(
+      PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE.maximumControlSourceSkewMinutes,
+      Math.max(
+        0,
+        finite(row.strategyDefinition?.maximumControlSourceSkewMinutes) ??
+          finite(parent.strategyDefinition?.maximumControlSourceSkewMinutes) ??
+          PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE.maximumControlSourceSkewMinutes,
+      ),
+    );
+    if (
+      parentSourceMs === null ||
+      controlSourceMs === null ||
+      Math.abs(parentSourceMs - controlSourceMs) > maximumSourceSkewMinutes * 60_000
+    ) {
+      add(row.episodeId, "CONTROL_PARENT_SOURCE_TIME_SKEW_EXCEEDED");
     }
     if (strictIdentity(parent)?.chain !== strictIdentity(row)?.chain || parent.identityKey === row.identityKey) {
       add(row.episodeId, "CONTROL_PARENT_IDENTITY_MISMATCH");

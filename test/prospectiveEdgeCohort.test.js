@@ -273,6 +273,33 @@ test("production cohort capture requires fresh per-candidate market timestamps",
     fresh.episodes.map((row) => row.sourceObservedAt),
     ["2026-01-01T00:01:00.000Z", "2026-01-01T00:02:00.000Z"],
   );
+  const grade = gradeProspectiveEdgeCohorts(fresh.episodes, [], {
+    asOf: "2026-01-01T00:10:00.000Z",
+    horizonHours: 24,
+  });
+  assert.equal(grade.inputAudit.currentStrategyLedgerIntegrityPass, true);
+});
+
+test("control source timestamps must remain inside the frozen co-scan skew limit", () => {
+  const frozen = freezeProspectiveEdgeCohort(
+    [candidate(1, { sourceObservedAt: "2026-01-01T00:00:00.000Z" })],
+    [candidate(2, { sourceObservedAt: "2026-01-01T00:10:00.000Z" })],
+    freezeOptions({
+      now: "2026-01-01T00:20:00.000Z",
+      sourceObservedAt: "2026-01-01T00:00:00.000Z",
+      requireRowSourceObservedAt: true,
+      maximumControlSourceSkewMinutes: 5,
+    }),
+  );
+  const grade = gradeProspectiveEdgeCohorts(frozen.episodes, [], {
+    asOf: "2026-01-01T00:20:00.000Z",
+    horizonHours: 24,
+  });
+  assert.equal(grade.inputAudit.currentStrategyLedgerIntegrityPass, false);
+  assert.equal(
+    grade.inputAudit.episodeIntegrityFailureCounts.CONTROL_PARENT_SOURCE_TIME_SKEW_EXCEEDED,
+    1,
+  );
 });
 
 test("prospective cohort capture rejects symbol-only selections and controls", () => {
