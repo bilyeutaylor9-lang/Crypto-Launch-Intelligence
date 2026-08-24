@@ -19,20 +19,35 @@ function readTail(file = FILE, maxBytes = DEFAULT_MAX_BYTES) {
   const lines = buffer.toString("utf8").split("\n");
   if (start > 0) lines.shift();
   return lines.filter(Boolean).flatMap((line) => {
-    try { return [JSON.parse(line)]; } catch { return []; }
+    try { return [JSON.parse(line)]; }
+    catch {
+      return [{
+        __exactObservationLedgerParseFailure: true,
+        malformedLineHash: stableHash(line),
+      }];
+    }
   });
 }
 
 function observationTime(row = {}, options = {}) {
-  return row.observedAt || row.timestamp || row.lastVerifiedAt || options.observedAt || null;
+  return row.observedAt || row.timestamp || row.sourceObservedAt || row.lastVerifiedAt || options.observedAt || null;
 }
 
 export function buildExactMarketObservation(row = {}, options = {}) {
   const identity = strictIdentity(row);
   const observedAt = observationTime(row, options);
   const observedMs = timestamp(observedAt);
+  const asOfMs = timestamp(options.asOf || options.now || new Date().toISOString());
   const priceUsd = finite(row.priceUsd ?? row.price ?? row.currentPrice ?? row.marketData?.priceUsd);
-  if (!identity || observedMs === null || priceUsd === null || priceUsd <= 0) return null;
+  const maximumFutureSkewMs = Math.max(0, Number(options.maximumFutureSkewMs || 0));
+  const maximumObservationAgeMinutes = finite(options.maximumObservationAgeMinutes);
+  if (!identity || observedMs === null || asOfMs === null || priceUsd === null || priceUsd <= 0) return null;
+  if (observedMs > asOfMs + maximumFutureSkewMs) return null;
+  if (
+    maximumObservationAgeMinutes !== null &&
+    maximumObservationAgeMinutes >= 0 &&
+    asOfMs - observedMs > maximumObservationAgeMinutes * 60_000
+  ) return null;
 
   const source = String(options.source || row.source || "production-observation-ledger");
   const observationKey = stableHash([
@@ -42,7 +57,7 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     source,
   ].join("|"));
 
-  return {
+  const observation = {
     schemaVersion: 1,
     observationKey,
     observedAt: new Date(observedMs).toISOString(),
@@ -62,6 +77,15 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     exactIdentityVerified: true,
     scoringOrSelectionAllowed: false,
   };
+  return {
+    ...observation,
+    observationIntegrityHash: exactMarketObservationIntegrityHash(observation),
+  };
+}
+
+export function exactMarketObservationIntegrityHash(observation = {}) {
+  const { observationIntegrityHash: _ignored, ...payload } = observation;
+  return stableHash(payload);
 }
 
 export function loadExactMarketObservations(options = {}) {
@@ -89,9 +113,14 @@ export function appendExactMarketObservations(rows = [], options = {}) {
     } finally { fs.closeSync(fd); }
   }
 
-  const maxBytes = Number(options.maxBytes || DEFAULT_MAX_BYTES);
-  if (fs.existsSync(file) && fs.statSync(file).size > maxBytes) {
-    const retained = readTail(file, Math.floor(maxBytes * 0.75));
+  const retentionMaxBytes = finite(options.retentionMaxBytes);
+  if (
+    retentionMaxBytes !== null &&
+    retentionMaxBytes > 0 &&
+    fs.existsSync(file) &&
+    fs.statSync(file).size > retentionMaxBytes
+  ) {
+    const retained = readTail(file, Math.floor(retentionMaxBytes * 0.75));
     fs.writeFileSync(file, retained.map((row) => JSON.stringify(row)).join("\n") + (retained.length ? "\n" : ""));
   }
 

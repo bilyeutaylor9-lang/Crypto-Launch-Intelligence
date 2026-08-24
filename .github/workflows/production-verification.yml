@@ -90,12 +90,15 @@ jobs:
             reports/outcome-capture-health.json
             reports/reproducibility-audit.json
             reports/production-shadow-ranking.json
+            reports/prospective-edge-cohort-capture.json
+            reports/prospective-edge-cohort-grade.json
             reports/production-observability.json
             reports/production-readiness.json
             reports/autonomous-alpha-challengers.json
             reports/autonomous-alpha-lab.json
             reports/edge-verification-certificate.json
             reports/edge-verification-program.json
+            reports/edge-verification-posthoc-diagnostic.json
             reports/production-security-audit.json
             reports/remote-backup-attestation.json
             reports/remote-persistence-audit.json

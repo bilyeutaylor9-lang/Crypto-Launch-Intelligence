@@ -160,11 +160,10 @@ export function runEdgeVerificationProgram(selections = [], universeRows = [], o
   const returnVerified = returnDifference.lower !== null && returnDifference.lower > 0 && (returnDifference.estimate ?? 0) >= Number(options.minimumReturnEdgePct || 3);
   const hitVerified = hitRateDifference.lower !== null && hitRateDifference.lower > 0 && (hitRateDifference.estimate ?? 0) >= Number(options.minimumHitRateEdge || 0.03);
   const catastropheSafe = catastropheDifference.upper !== null && catastropheDifference.upper <= Number(options.maximumCatastropheDelta || 0.02);
-  let edgeState = "UNVERIFIED_INSUFFICIENT_FORWARD_EVIDENCE";
+  let edgeState = "DIAGNOSTIC_INSUFFICIENT_SAMPLE";
   if (enoughData) {
-    if (returnVerified && hitVerified && catastropheSafe) edgeState = "VERIFIED_FORWARD_EDGE";
-    else if ((returnDifference.estimate ?? 0) > 0 && (hitRateDifference.estimate ?? 0) > 0 && catastropheSafe) edgeState = "EMERGING_FORWARD_EDGE";
-    else edgeState = "NO_VERIFIED_EDGE";
+    if (returnVerified && hitVerified && catastropheSafe) edgeState = "DIAGNOSTIC_POSITIVE_SEPARATION";
+    else edgeState = "DIAGNOSTIC_NO_SEPARATION";
   }
   return {
     schemaVersion: 1,
@@ -176,7 +175,18 @@ export function runEdgeVerificationProgram(selections = [], universeRows = [], o
     incremental: { averageReturnPct: returnDifference, hitRate: hitRateDifference, catastrophicLossRate: catastropheDifference },
     regimeSlices: regimeSlices(treatment, controls, target, options),
     gates: { enoughData, returnVerified, hitVerified, catastropheSafe, minimumSelections, minimumUniqueProjects: minimumProjects },
-    policy: { forwardOnly: true, matchedControlsRequired: true, confidenceIntervalsRequired: true, automaticTrading: false, automaticProductionPromotion: false },
+    certificateEligible: false,
+    policy: {
+      forwardOutcomesOnly: true,
+      controlsFrozenProspectively: false,
+      postOutcomeControlSelection: true,
+      certificateEligible: false,
+      diagnosticOnly: true,
+      matchedControlsRequired: true,
+      confidenceIntervalsRequired: true,
+      automaticTrading: false,
+      automaticProductionPromotion: false,
+    },
   };
 }
 

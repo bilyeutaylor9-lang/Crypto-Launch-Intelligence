@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: autonomous-alpha-os-${{ github.ref }}
+  group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -43,13 +43,11 @@ jobs:
             data/edge-evidence-outcomes.jsonl
             data/edge-fast-outcomes.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/ignition-twin-observations.jsonl
             data/ignition-genome-history.json
             data/production-shadow-predictions.jsonl
             data/autonomous-alpha-experiments.json
             data/alpha-os-predictions.jsonl
-            data/production-market-observations.jsonl
             data/alpha-os-candidate-history.json
             data/capital-migration-history.json
             data/project-digital-twins.json
@@ -58,6 +56,18 @@ jobs:
           restore-keys: |
             alpha-os-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Run Production Shadow
         run: npm run production:shadow
@@ -92,13 +102,22 @@ jobs:
         with:
           path: |
             data/alpha-os-predictions.jsonl
-            data/production-market-observations.jsonl
             data/alpha-os-candidate-history.json
             data/capital-migration-history.json
             data/project-digital-twins.json
             data/model-factory-challengers.json
             data/autonomous-alpha-experiments.json
           key: alpha-os-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Append-Only Forward Evidence
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Alpha OS Reports
         if: always()
@@ -113,7 +132,11 @@ jobs:
             reports/meta-learning-controller.json
             reports/model-factory-evaluation.json
             reports/alpha-attribution-forward.json
+            reports/prospective-edge-cohort-capture.json
+            reports/prospective-edge-cohort-grade.json
             reports/edge-verification-program.json
+            reports/edge-verification-certificate.json
+            reports/edge-verification-posthoc-diagnostic.json
             reports/autonomous-alpha-lab.json
             reports/production-readiness.json
           if-no-files-found: warn

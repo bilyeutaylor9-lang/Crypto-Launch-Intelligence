@@ -19,6 +19,7 @@ import {
   appendEdgeEvidenceOutcomes,
   loadEdgeEvidenceOutcomes,
 } from "./edgeEvidenceOutcomeStore.js";
+import { appendExactMarketObservations } from "../production/exactMarketObservationLedger.js";
 
 const REPORT_FILE = path.resolve("reports", "edge-evidence-probe.json");
 const DEFAULT_MAX_REQUESTS = 60;
@@ -222,6 +223,13 @@ export async function runEdgeEvidenceProbe(options = {}) {
   const saved = observed.length
     ? (options.saveOutcomes || appendEdgeEvidenceOutcomes)(observed, options.outcomeStore || {})
     : { saved: 0 };
+  const exactSaved = observed.length
+    ? (options.saveExactObservations || appendExactMarketObservations)(observed, {
+        ...(options.exactObservationStore || {}),
+        asOf: now,
+        source: "edge-evidence-probe",
+      })
+    : { saved: 0, rejected: 0 };
   const dueEpisodes = candidates.reduce((sum, row) => sum + row.dueEpisodes.length, 0);
   const attemptedEpisodes = selected.reduce((sum, row) => sum + row.dueEpisodes.length, 0);
   const report = {
@@ -244,6 +252,8 @@ export async function runEdgeEvidenceProbe(options = {}) {
     providerRequestBudget: maxRequests,
     observationsAttempted: attemptedEpisodes,
     observationsSaved: Number(saved.saved || 0),
+    exactLedgerObservationsSaved: Number(exactSaved.saved || 0),
+    exactLedgerObservationsRejected: Number(exactSaved.rejected || 0),
     unresolvedDueRoutes: Math.max(0, candidates.length - results.filter((row) => row.status === "OBSERVED").length),
     outcomesByHorizon: Object.fromEntries(EDGE_PRODUCTION_HORIZONS.map((hours) => [
       `${hours}h`,

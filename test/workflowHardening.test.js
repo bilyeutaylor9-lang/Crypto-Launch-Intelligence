@@ -98,7 +98,8 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   assert.doesNotMatch(workflow, /npm run scan/);
   assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
   assert.match(workflow, /cancel-in-progress:\s*false/);
-  assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*60/);
+  assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*120/);
+  assert.match(workflow, /OUTCOME_PROBE_MAX_CANDIDATES:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_CONCURRENCY:\s*4/);
   assert.match(workflow, /data\/scan-history\.json\*/);
   assert.match(workflow, /data\/outcome-snapshots\.json\*/);
@@ -115,18 +116,65 @@ test("learning workflows share one cache signature and never save without an exa
 
   for (const workflowPath of workflowPaths) {
     const workflow = fs.readFileSync(workflowPath, "utf8");
-    const cachePaths = [...workflow.matchAll(
+    const allCachePaths = [...workflow.matchAll(
       /uses: actions\/cache\/(?:restore|save)@v5[\s\S]*?path: \|\n((?:\s{12}data\/.*\n)+)/g,
     )].map((match) => match[1].trim().split("\n").map((line) => line.trim()));
+    const cachePaths = allCachePaths.filter((paths) =>
+      paths.includes("data/edge-candidate-universe.json")
+    );
 
     assert.equal(cachePaths.length, 2, `${workflowPath} must have one restore and one save path set`);
     assert.deepEqual(cachePaths[1], cachePaths[0], `${workflowPath} restore/save cache paths drifted`);
     expectedPaths ??= cachePaths[0];
     assert.deepEqual(cachePaths[0], expectedPaths, `${workflowPath} cannot share scanner-learning caches`);
     assert.ok(cachePaths[0].includes("data/edge-candidate-universe.json"));
+    assert.equal(cachePaths[0].includes("data/production-market-observations.jsonl"), false);
     assert.match(
       workflow,
       /if: \$\{\{ always\(\) && hashFiles\('data\/edge-candidate-universe\.json'\) != '' \}\}\n\s+continue-on-error: true\n\s+uses: actions\/cache\/save@v5/,
+    );
+  }
+});
+
+test("forward evidence writers share an isolated exact append-only cache", () => {
+  const workflowPaths = [
+    ".github/workflows/outcome-probe.yml",
+    ".github/workflows/edge-evidence-truth.yml",
+    ".github/workflows/production-shadow.yml",
+    ".github/workflows/autonomous-alpha-os.yml",
+  ];
+  const expectedPaths = [
+    "data/production-market-observations.jsonl",
+    "data/prospective-edge-cohorts.jsonl",
+  ];
+  for (const workflowPath of workflowPaths) {
+    const workflow = fs.readFileSync(workflowPath, "utf8");
+    const paths = [...workflow.matchAll(
+      /uses: actions\/cache\/(?:restore|save)@v5[\s\S]*?path: \|\n((?:\s{12}data\/.*\n)+)/g,
+    )]
+      .map((match) => match[1].trim().split("\n").map((line) => line.trim()))
+      .filter((rows) => rows.includes("data/prospective-edge-cohorts.jsonl"));
+    assert.equal(paths.length, 2, `${workflowPath} must restore and save forward evidence`);
+    assert.deepEqual(paths[0], expectedPaths);
+    assert.deepEqual(paths[1], expectedPaths);
+    assert.match(workflow, /key: forward-evidence-\$\{\{ runner\.os \}\}-\$\{\{ github\.ref_name \}\}-\$\{\{ github\.run_id \}\}/);
+    assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+  }
+});
+
+test("authoritative forward evidence restores after legacy model caches", () => {
+  const expectations = [
+    [".github/workflows/production-shadow.yml", "Restore Autonomous Alpha Memory"],
+    [".github/workflows/autonomous-alpha-os.yml", "Restore Alpha OS Memory"],
+    [".github/workflows/edge-verification-program.yml", "Restore Autonomous Alpha Memory"],
+    [".github/workflows/market-discovery-os.yml", "Restore Market Discovery And Alpha Memory"],
+    [".github/workflows/future-intelligence-stack.yml", "Restore Intelligence Memory"],
+  ];
+  for (const [workflowPath, legacyRestore] of expectations) {
+    const workflow = fs.readFileSync(workflowPath, "utf8");
+    assert.ok(
+      workflow.indexOf("Restore Append-Only Forward Evidence") > workflow.indexOf(legacyRestore),
+      `${workflowPath} must let the authoritative forward cache win restore collisions`,
     );
   }
 });
@@ -136,6 +184,7 @@ test("future intelligence workflow preserves exact memory and refuses empty cach
 
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /data\/production-market-observations\.jsonl/);
+  assert.match(workflow, /data\/prospective-edge-cohorts\.jsonl/);
   assert.match(workflow, /data\/edge-candidate-universe\.json/);
   assert.match(workflow, /run:\s*npm run alpha:os/);
   assert.match(workflow, /run:\s*npm run market:discover/);

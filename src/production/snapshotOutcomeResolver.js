@@ -7,13 +7,14 @@ function snapshotRoute(row = {}) {
 export function resolveSnapshotOutcomes(snapshots = [], options = {}) {
   const horizonHours = Number(options.horizonHours || 24);
   const toleranceHours = Number(options.toleranceHours || Math.max(1, horizonHours * 0.35));
+  const asOfMs = options.asOf || options.now ? timestamp(options.asOf || options.now) : null;
   const byIdentity = new Map();
 
   for (const row of Array.isArray(snapshots) ? snapshots : []) {
     const key = snapshotRoute(row);
     const at = timestamp(row.timestamp || row.observedAt);
     const price = finite(row.priceUsd);
-    if (!key || at === null || price === null || price <= 0) continue;
+    if (!key || at === null || (asOfMs !== null && at > asOfMs) || price === null || price <= 0) continue;
     if (!byIdentity.has(key)) byIdentity.set(key, []);
     byIdentity.get(key).push({ ...row, __at: at, __price: price });
   }

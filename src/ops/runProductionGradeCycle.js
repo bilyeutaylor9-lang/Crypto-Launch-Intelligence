@@ -2,6 +2,8 @@ import fs from "node:fs";
 
 import { loadOutcomeSnapshots } from "../learning/outcomeSnapshotStore.js";
 import { loadExactMarketObservations } from "../production/exactMarketObservationLedger.js";
+import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
+import { gradeProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortGrader.js";
 import { linkShadowPredictionsToOutcomes } from "../production/shadowOutcomeLinker.js";
 import { resolveSnapshotOutcomes } from "../production/snapshotOutcomeResolver.js";
 import { buildCalibrationReport } from "../production/probabilityCalibrationEngine.js";
@@ -50,9 +52,42 @@ export function runProductionGradeCycle(options = {}) {
   const now = options.now || new Date().toISOString();
   const predictions = options.predictions || readJsonl("data/production-shadow-predictions.jsonl");
   const exactObservations = options.marketObservations || (options.snapshots ? [] : loadExactMarketObservations());
+  const usingExactObservationLedger = options.requireObservationLedgerIntegrity !== undefined
+    ? options.requireObservationLedgerIntegrity === true
+    : options.prospectiveObservations === undefined;
   const snapshots = options.snapshots || (exactObservations.length ? exactObservations : loadOutcomeSnapshots());
+  const prospectiveEpisodes = options.prospectiveEpisodes || loadProspectiveEdgeCohorts();
+  const prospectiveObservations = options.prospectiveObservations !== undefined
+    ? options.prospectiveObservations
+    : exactObservations;
+  const prospectiveEdge = gradeProspectiveEdgeCohorts(
+    prospectiveEpisodes,
+    prospectiveObservations,
+    {
+      asOf: now,
+      horizonHours: Number(options.prospectiveHorizonHours || 24),
+      toleranceHours: Number(options.prospectiveToleranceHours || 8),
+      targetReturnPct: Number(options.prospectiveTargetReturnPct || 25),
+      minimumResolvedPairs: Number(options.minimumProspectiveResolvedPairs || 250),
+      minimumUniqueProjects: Number(options.minimumProspectiveUniqueProjects || 80),
+      minimumCohorts: Number(options.minimumProspectiveCohorts || 30),
+      minimumReplicationWindows: Number(options.minimumProspectiveReplicationWindows || 3),
+      minimumPairsPerReplicationWindow: Number(options.minimumProspectivePairsPerWindow || 10),
+      minimumPairCaptureRate: Number(options.minimumProspectivePairCaptureRate || 0.95),
+      minimumEpisodeCaptureRate: Number(options.minimumProspectiveEpisodeCaptureRate || 0.95),
+      minimumExplicitExecutionCostCoverage: Number(options.minimumExplicitExecutionCostCoverage || 0.80),
+      maximumP90MatchDistance: Number(options.maximumP90MatchDistance || 1.25),
+      minimumReturnEdgePct: Number(options.minimumProspectiveReturnEdgePct || 3),
+      minimumHitRateEdge: Number(options.minimumProspectiveHitRateEdge || 0.03),
+      maximumCatastropheDelta: Number(options.maximumProspectiveCatastropheDelta || 0.02),
+      iterations: Number(options.prospectiveBootstrapIterations || 1600),
+      requireObservationLedgerIntegrity: usingExactObservationLedger,
+    },
+  );
+  writeAtomicJson("reports/prospective-edge-cohort-grade.json", prospectiveEdge);
 
   const resolved = linkShadowPredictionsToOutcomes(predictions, snapshots, {
+    asOf: now,
     horizonHours: 24,
     maxLatenessHours: 8,
     targetReturnPct: 25,
@@ -138,6 +173,7 @@ export function runProductionGradeCycle(options = {}) {
   });
 
   const broadOutcomes = resolveSnapshotOutcomes(snapshots, {
+    asOf: now,
     horizonHours: 24,
     toleranceHours: 8,
   });
@@ -155,6 +191,7 @@ export function runProductionGradeCycle(options = {}) {
     hypotheses: evaluatedHypotheses,
     challenger,
     missed,
+    prospectiveEdge,
   };
 }
 
@@ -167,6 +204,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       edgeDecay: result.decay.state,
       challenger: result.challenger.state,
       missedWinners: result.missed.missedWinners,
+      prospectiveEdge: result.prospectiveEdge.edgeState,
+      prospectiveMatchedPairs: result.prospectiveEdge.current.sample.resolvedMatchedPairs,
     }, null, 2));
   } catch (error) {
     console.error(error);

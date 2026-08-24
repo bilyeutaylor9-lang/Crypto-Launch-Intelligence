@@ -1,4 +1,4 @@
-import { finite, stableHash, timestamp, wilsonLowerBound } from "./productionMath.js";
+import { finite, stableHash, strictIdentityKey, timestamp, wilsonLowerBound } from "./productionMath.js";
 import { benjaminiHochberg, permutationDifferencePValue } from "./alphaLabStatistics.js";
 
 const returnOf = (row = {}) => finite(row.realizedReturnPct ?? row.netReturnPct ?? row.returnPct);
@@ -13,7 +13,7 @@ function uniqueIdentityRows(rows = []) {
   const seen = new Set();
   const output = [];
   for (const row of sorted) {
-    const key = String(row.identityKey || "");
+    const key = strictIdentityKey(row);
     if (!key || seen.has(key)) continue;
     seen.add(key);
     output.push(row);
@@ -82,20 +82,47 @@ export function freezeProspectiveExperiments(discovered = [], options = {}) {
       minimumWilsonLowerBound: Number(options.minimumWilsonLowerBound ?? 0.50),
       minimumForwardReturnDeltaPct: Number(options.minimumForwardReturnDeltaPct ?? 3),
       fdrAlpha: Number(options.fdrAlpha ?? 0.05),
+      forwardPermutationIterations: Math.max(1000, Number(options.forwardPermutationIterations ?? 2000)),
+      forwardValidationFdrAlpha: Math.min(0.05, Math.max(0.001, Number(options.forwardValidationFdrAlpha ?? 0.05))),
     };
     return {
-      experimentId: stableHash({ definition, frozenAt }).slice(0,24), frozenAt, state: "FROZEN_PROSPECTIVE", definition,
+      experimentId: stableHash({ definition, frozenAt }).slice(0,24), frozenAt, state: "FROZEN_PROSPECTIVE", definition, definitionFingerprint: stableHash(definition),
       discoveryEvidence: { treatmentSamples: row.treatmentSamples, controlSamples: row.controlSamples, averageReturnDeltaPct: row.averageReturnDeltaPct, hitRateDelta: row.hitRateDelta, pValue: row.pValue, qValue: row.qValue, fdrAccepted: row.fdrAccepted },
       rankingInfluence: false, productionInfluence: false, automaticPromotion: false,
     };
   });
 }
 
-export function evaluateProspectiveExperiment(experiment = {}, rows = []) {
+export function evaluateProspectiveExperiment(experiment = {}, rows = [], options = {}) {
   const frozenMs = timestamp(experiment.frozenAt);
+  const asOfMs = timestamp(options.asOf || options.now || new Date().toISOString());
   const target = Number(experiment.definition?.targetReturnPct || 25);
   const signals = experiment.definition?.signals || [];
-  const forward = uniqueIdentityRows((Array.isArray(rows) ? rows : []).filter((row) => { const at = timestamp(row.outcomeObservedAt || row.generatedAt || row.observedAt); return at !== null && frozenMs !== null && at > frozenMs && returnOf(row) !== null; }));
+  const definitionIntegrity = Boolean(experiment.definitionFingerprint) && experiment.definitionFingerprint === stableHash(experiment.definition || {});
+  let rejectedPreFreezeDecisions = 0;
+  let rejectedInvalidIdentity = 0;
+  let rejectedPointInTimeIntegrity = 0;
+  let rejectedFutureOutcomes = 0;
+  const forwardCandidates = (Array.isArray(rows) ? rows : []).filter((row) => {
+    const identity = strictIdentityKey(row);
+    const decisionMs = timestamp(row.decisionAt || row.generatedAt);
+    const outcomeMs = timestamp(row.outcomeObservedAt);
+    const sourceMs = timestamp(row.sourceObservedAt);
+    const sourceAgeMinutes = finite(row.sourceAgeMinutesAtDecision);
+    if (!identity) { rejectedInvalidIdentity += 1; return false; }
+    if (decisionMs === null || frozenMs === null || decisionMs <= frozenMs) { rejectedPreFreezeDecisions += 1; return false; }
+    if (outcomeMs === null || asOfMs === null || outcomeMs > asOfMs || outcomeMs <= decisionMs) { rejectedFutureOutcomes += 1; return false; }
+    if (
+      sourceMs === null ||
+      sourceMs > decisionMs ||
+      sourceAgeMinutes === null ||
+      sourceAgeMinutes < 0 ||
+      sourceAgeMinutes > 90 ||
+      row.controlsFrozenBeforeOutcomes !== true
+    ) { rejectedPointInTimeIntegrity += 1; return false; }
+    return returnOf(row) !== null;
+  });
+  const forward = uniqueIdentityRows(forwardCandidates);
   const treatment = forward.filter((row) => supportsAll(row, signals));
   const controls = forward.filter((row) => controlCandidate(row, signals));
   const tHit = hitRate(treatment, target); const cHit = hitRate(controls, target);
@@ -103,16 +130,53 @@ export function evaluateProspectiveExperiment(experiment = {}, rows = []) {
   const returnDelta = (averageReturn(treatment) ?? 0) - (averageReturn(controls) ?? 0);
   const hitDelta = (tHit ?? 0) - (cHit ?? 0);
   const enough = treatment.length >= Number(experiment.definition?.minimumForwardTreatmentSamples ?? 60) && controls.length >= Number(experiment.definition?.minimumForwardControlSamples ?? 100);
+  const permutation = enough
+    ? permutationDifferencePValue(
+        treatment.map(returnOf),
+        controls.map(returnOf),
+        {
+          iterations: Number(experiment.definition?.forwardPermutationIterations || 2000),
+          seed: Number.parseInt(stableHash(experiment.experimentId || "alpha-forward").slice(0, 8), 16),
+        },
+      )
+    : { pValue: null, observedDifference: returnDelta };
   const supported = enough && wilson >= Number(experiment.definition?.minimumWilsonLowerBound ?? 0.50) && returnDelta >= Number(experiment.definition?.minimumForwardReturnDeltaPct ?? 3) && hitDelta > 0;
   return { ...experiment,
-    state: !enough ? "FROZEN_AWAITING_FORWARD_EVIDENCE" : supported ? "FORWARD_ALPHA_VERIFIED" : "FORWARD_ALPHA_REJECTED",
-    forwardEvidence: { treatmentSamples: treatment.length, controlSamples: controls.length, treatmentAverageReturnPct: averageReturn(treatment), controlAverageReturnPct: averageReturn(controls), averageReturnDeltaPct: returnDelta, treatmentHitRate: tHit, controlHitRate: cHit, hitRateDelta: hitDelta, treatmentWilsonLowerBound: wilson },
+    state: !definitionIntegrity ? "FROZEN_EXPERIMENT_INTEGRITY_BLOCKED" : !enough ? "FROZEN_AWAITING_FORWARD_EVIDENCE" : supported ? "FORWARD_ALPHA_AWAITING_VALIDATION_FDR" : "FORWARD_ALPHA_REJECTED",
+    forwardEvidence: { treatmentSamples: treatment.length, controlSamples: controls.length, treatmentAverageReturnPct: averageReturn(treatment), controlAverageReturnPct: averageReturn(controls), averageReturnDeltaPct: returnDelta, treatmentHitRate: tHit, controlHitRate: cHit, hitRateDelta: hitDelta, treatmentWilsonLowerBound: wilson, permutationPValue:permutation.pValue, permutationObservedDifference:permutation.observedDifference, preCorrectionSupported:supported, integrityPass:definitionIntegrity, rejectedPreFreezeDecisions, rejectedInvalidIdentity, rejectedPointInTimeIntegrity, rejectedFutureOutcomes },
     rankingInfluence: false, productionInfluence: false, automaticPromotion: false,
   };
 }
 
+export function applyProspectiveValidationFdr(experiments = [], options = {}) {
+  const candidates = (Array.isArray(experiments) ? experiments : [])
+    .filter((row) => row.forwardEvidence?.integrityPass === true && Number.isFinite(Number(row.forwardEvidence?.permutationPValue)))
+    .map((row) => ({ experimentId: row.experimentId, pValue: Number(row.forwardEvidence.permutationPValue) }));
+  const alpha = Math.min(0.05, Math.max(0.001, Number(options.alpha || 0.05)));
+  const corrected = new Map(
+    benjaminiHochberg(candidates, { alpha }).map((row) => [row.experimentId, row]),
+  );
+  return (Array.isArray(experiments) ? experiments : []).map((row) => {
+    const correction = corrected.get(row.experimentId) || null;
+    if (!correction) return row;
+    const verified = row.forwardEvidence?.integrityPass === true &&
+      row.forwardEvidence?.preCorrectionSupported === true &&
+      correction.fdrAccepted === true;
+    return {
+      ...row,
+      state: verified ? "FORWARD_ALPHA_VERIFIED" : "FORWARD_ALPHA_REJECTED",
+      forwardEvidence: {
+        ...row.forwardEvidence,
+        validationQValue: correction.qValue,
+        validationFdrAccepted: correction.fdrAccepted,
+        validationFdrAlpha: alpha,
+      },
+    };
+  });
+}
+
 export function buildAlphaChallengerRegistry(experiments = [], options = {}) {
-  const verified = (Array.isArray(experiments) ? experiments : []).filter((row) => row.state === "FORWARD_ALPHA_VERIFIED").sort((a,b)=>(b.forwardEvidence?.averageReturnDeltaPct||0)-(a.forwardEvidence?.averageReturnDeltaPct||0));
+  const verified = (Array.isArray(experiments) ? experiments : []).filter((row) => row.state === "FORWARD_ALPHA_VERIFIED" && row.forwardEvidence?.integrityPass === true && row.definitionFingerprint === stableHash(row.definition || {})).sort((a,b)=>(b.forwardEvidence?.averageReturnDeltaPct||0)-(a.forwardEvidence?.averageReturnDeltaPct||0));
   return { schemaVersion:1, generatedAt:options.now||new Date().toISOString(), verifiedExperiments:verified.length,
     challengers: verified.map((row)=>({ challengerId:`alpha:${row.experimentId}`, experimentId:row.experimentId, signals:row.definition.signals, state:"SHADOW_CHALLENGER", forwardEvidence:row.forwardEvidence, automaticPromotion:false, rankingInfluence:false })),
     policy:{ discoveryEvidenceCannotPromote:true, forwardEvidenceRequired:true, fdrControlledDiscovery:true, automaticPromotion:false, automaticTrading:false } };

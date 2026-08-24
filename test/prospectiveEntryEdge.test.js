@@ -44,7 +44,14 @@ function record(index = 1, overrides = {}) {
 
 test("edge candidate universe rejects symbol-only identity", () => {
   assert.equal(buildEdgeCandidateDescriptor({ chain: "base", symbol: "AAA" }), null);
-  assert.ok(buildEdgeCandidateDescriptor({ chain: "base", tokenAddress: TOKEN, poolAddress: POOL }));
+  const descriptor = buildEdgeCandidateDescriptor({
+    chain: "base",
+    tokenAddress: TOKEN,
+    poolAddress: POOL,
+    quoteTimestamp: "2026-08-21T00:00:00.000Z",
+  });
+  assert.ok(descriptor);
+  assert.equal(descriptor.sourceObservedAt, "2026-08-21T00:00:00.000Z");
 });
 
 test("prospective entry rule rejects pre-declaration records", () => {

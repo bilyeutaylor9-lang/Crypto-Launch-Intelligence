@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  prospectiveCohortsToProbeMemory,
   runOutcomeProbe,
   selectOutcomeProbeCandidates,
 } from "../src/learning/outcomeProbe.js";
@@ -99,8 +100,25 @@ test("outcome probe does not treat a legacy unverified snapshot as resolved", ()
   assert.equal(due.length, 1);
 });
 
+test("dedicated exact-ledger observations prevent redundant outcome requests", () => {
+  const exactLedgerObservation = {
+    chain: "base",
+    tokenAddress: TOKEN_A,
+    poolAddress: POOL_A,
+    observedAt: "2026-01-01T01:10:00.000Z",
+    priceUsd: 1.1,
+    exactIdentityVerified: true,
+  };
+  const due = selectOutcomeProbeCandidates([memoryRecord()], [exactLedgerObservation], {
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+  });
+  assert.equal(due.length, 0);
+});
+
 test("outcome probe saves only an exact chain-token-pool match with provenance", async () => {
   let saved = [];
+  let exactSaved = [];
   const report = await runOutcomeProbe({
     now: "2026-01-01T01:30:00.000Z",
     horizons: [1],
@@ -114,12 +132,18 @@ test("outcome probe saves only an exact chain-token-pool match with provenance",
       saved = observations;
       return { saved: observations.length };
     },
+    saveExactObservations: (observations) => {
+      exactSaved = observations;
+      return { saved: observations.length, rejected: 0 };
+    },
     writeReport: false,
   });
 
   assert.equal(report.status, "PASS");
   assert.equal(report.providerRequestsUsed, 1);
   assert.equal(report.observationsSaved, 1);
+  assert.equal(report.exactLedgerObservationsSaved, 1);
+  assert.equal(exactSaved.length, 1);
   assert.equal(saved[0].tokenAddress, TOKEN_A);
   assert.equal(saved[0].poolAddress, POOL_A);
   assert.equal(saved[0].outcomeObservationProvenance.source, "dexscreener");
@@ -182,6 +206,7 @@ test("outcome probe falls back to an exact GeckoTerminal pool with provenance", 
       saved = observations;
       return { saved: observations.length };
     },
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }),
     writeReport: false,
   });
 
@@ -242,6 +267,7 @@ test("outcome probe enforces its provider request budget", async () => {
       getTokenPairs: async () => [],
     },
     saveSnapshots: (observations) => ({ saved: observations.length }),
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }),
     writeReport: false,
   });
 
@@ -256,4 +282,44 @@ test("outcome probe provider adapter keeps canonical identity while using provid
   assert.equal(resolveDexScreenerChainId("robinhood-chain"), "robinhood");
   assert.equal(resolveDexScreenerChainId("robinhood"), "robinhood");
   assert.equal(resolveDexScreenerChainId("solana"), "solana");
+});
+
+test("an exact observation from another known pool does not resolve a frozen pool route", () => {
+  const memory = [memoryRecord(TOKEN_A, POOL_A)];
+  const wrongPool = [{
+    key: `base:${TOKEN_A}`,
+    chain: "base",
+    tokenAddress: TOKEN_A,
+    poolAddress: POOL_B,
+    timestamp: "2026-01-01T01:10:00.000Z",
+    priceUsd: 1.1,
+    exactIdentityVerified: true,
+  }];
+  const due = selectOutcomeProbeCandidates(memory, wrongPool, {
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+  });
+  assert.equal(due.length, 1);
+  assert.equal(due[0].poolAddress, POOL_A);
+});
+
+test("prospective treatment and control outcomes receive priority over ordinary scan memory", () => {
+  const cohortMemory = prospectiveCohortsToProbeMemory([{
+    cohortId: "cohort-1",
+    episodeId: "episode-1",
+    role: "TREATMENT",
+    decisionAt: "2026-01-01T00:00:00.000Z",
+    chain: "base",
+    tokenAddress: TOKEN_B,
+    poolAddress: POOL_B,
+    outcomeHorizonsHours: [1],
+  }]);
+  const due = selectOutcomeProbeCandidates(
+    [memoryRecord(TOKEN_A, POOL_A), ...cohortMemory],
+    [],
+    { now: "2026-01-01T01:30:00.000Z", horizons: [1], maxCandidates: 1 },
+  );
+  assert.equal(due.length, 1);
+  assert.equal(due[0].key, `base:${TOKEN_B}`);
+  assert.equal(due[0].forwardEvidencePriority, 100);
 });

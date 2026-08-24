@@ -48,7 +48,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -97,7 +96,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*

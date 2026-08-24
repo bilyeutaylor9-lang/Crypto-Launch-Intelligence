@@ -3,10 +3,13 @@ import { finite, strictIdentity, strictIdentityKey, timestamp } from "./producti
 export function linkShadowPredictionsToOutcomes(predictions = [], outcomes = [], options = {}) {
   const horizonHours = Number(options.horizonHours || 24);
   const maxLatenessHours = Number(options.maxLatenessHours || 6);
+  const asOfMs = options.asOf || options.now ? timestamp(options.asOf || options.now) : null;
   const byIdentity = new Map();
   for (const row of Array.isArray(outcomes) ? outcomes : []) {
     const key = strictIdentityKey(row);
+    const at = timestamp(row.observedAt || row.timestamp);
     if (!key) continue;
+    if (at === null || (asOfMs !== null && at > asOfMs)) continue;
     if (!byIdentity.has(key)) byIdentity.set(key, []);
     byIdentity.get(key).push(row);
   }
@@ -19,7 +22,7 @@ export function linkShadowPredictionsToOutcomes(predictions = [], outcomes = [],
     const predictionIdentity = strictIdentity(prediction);
     const key = predictionIdentity?.identityKey || null;
     const decisionAt = timestamp(prediction.decisionAt || prediction.generatedAt || prediction.observedAt);
-    if (!key || decisionAt === null) continue;
+    if (!key || decisionAt === null || (asOfMs !== null && decisionAt > asOfMs)) continue;
     const targetAt = decisionAt + horizonHours * 3_600_000;
     const maxAt = targetAt + maxLatenessHours * 3_600_000;
     const match = (byIdentity.get(key) || []).find((row) => {

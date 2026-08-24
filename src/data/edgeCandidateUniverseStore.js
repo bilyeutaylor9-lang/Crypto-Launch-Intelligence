@@ -16,6 +16,13 @@ function finite(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isoOrNull(value) {
+  const parsed = typeof value === "number" && value > 0
+    ? (value < 10_000_000_000 ? value * 1000 : value)
+    : Date.parse(value || "");
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
 function addresses(values = []) {
   return [...new Set((Array.isArray(values) ? values : [values])
     .flat(Infinity)
@@ -71,10 +78,62 @@ export function buildEdgeCandidateDescriptor(project = {}) {
     ...identity,
     symbol: project.symbol || null,
     name: project.name || null,
+    sourceObservedAt: isoOrNull(
+      project.sourceObservedAt ??
+      project.marketObservedAt ??
+      project.priceObservedAt ??
+      project.quoteTimestamp ??
+      project.canonicalExecutionRoute?.quoteTimestamp ??
+      project.canonicalExecutionRoute?.lastVerifiedAt ??
+      project.routeLastVerifiedAt ??
+      project.lastVerifiedAt ??
+      project.sourceTimestamp ??
+      project.observationTimestamp ??
+      project.observedAt ??
+      project.scannedAt
+    ),
+    narrative: project.narrative || project.primaryNarrative || project.category || null,
+    sector: project.sector || project.projectSector || null,
+    pairCreatedAt: isoOrNull(
+      project.pairCreatedAt ?? project.pairCreatedAtMs ?? project.poolCreatedAt ?? project.launchedAt
+    ),
     priceUsd: finite(project.priceUsd ?? project.price),
     liquidityUsd: finite(project.liquidityUsd ?? project.activeLiquidityUsd),
-    volume24h: finite(project.volume24h ?? project.dexVolume24hUsd),
-    marketCap: finite(project.marketCap ?? project.circulatingMarketCapUsd),
+    volume24h: finite(project.volume24hUsd ?? project.volume24h ?? project.dexVolume24hUsd),
+    volume24hUsd: finite(project.volume24hUsd ?? project.volume24h ?? project.dexVolume24hUsd),
+    marketCap: finite(project.marketCapUsd ?? project.marketCap ?? project.circulatingMarketCapUsd),
+    marketCapUsd: finite(project.marketCapUsd ?? project.marketCap ?? project.circulatingMarketCapUsd),
+    evidenceCoveragePct: finite(
+      project.evidenceCoveragePct ?? project.evidenceCoverageScore ?? project.dataConfidence
+    ),
+    riskScore: finite(project.riskScore ?? project.riskScorePct ?? project.trapRiskScore),
+    priceChange24hPct: finite(project.priceChange24hPct ?? project.priceChange?.h24),
+    roundTripExecutionCostBps: finite(
+      project.roundTripExecutionCostBps ??
+      project.executionAwareEV?.roundTripExecutionCostBps ??
+      project.executionAwareEV?.estimatedRoundTripCostBps ??
+      project.executionCosts?.roundTripBps
+    ),
+    executionReferenceSizeUsd: finite(
+      project.executionReferenceSizeUsd ??
+      project.executionAwareEV?.referenceSizeUsd ??
+      project.executionCosts?.referenceSizeUsd ??
+      project.tradeSizeUsd
+    ),
+    executionCostProvenance: project.executionCostProvenance ||
+      project.executionReality?.provenance ||
+      project.executionCostEvidence?.provenance ||
+      project.executionCosts?.provenance ||
+      null,
+    buyPriceImpactPct: finite(
+      project.buyPriceImpactPct ?? project.executionAwareEV?.buyPriceImpactPct
+    ),
+    sellPriceImpactPct: finite(
+      project.sellPriceImpactPct ?? project.executionAwareEV?.sellPriceImpactPct
+    ),
+    routeQualityScore: finite(
+      project.routeQualityScore ?? project.executionAwareEV?.routeQualityScore
+    ),
     canonicalExecutionRoute: {
       routerAddress: project.canonicalExecutionRoute?.routerAddress || null,
       spenderAddress: project.canonicalExecutionRoute?.spenderAddress || null,
@@ -128,8 +187,9 @@ export function saveEdgeCandidateUniverse(projects = [], options = {}) {
     scanRunId: projects.find((project) => project?.scanRunId || project?.runId)?.scanRunId || null,
     codeCommitSha: process.env.GITHUB_SHA || null,
     exactCandidates: descriptors.length,
+    exactCandidatesWithSourceTimestamp: descriptors.filter((row) => row.sourceObservedAt).length,
     candidates: descriptors,
-    policy: "Bounded exact chain-token-pool descriptors for read-only edge acquisition. No symbol-only candidate is persisted.",
+    policy: "Bounded exact chain-token-pool descriptors with explicit candidate source timestamps for read-only edge acquisition. No symbol-only candidate is persisted.",
   };
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(payload, null, 2)}\n`);
@@ -153,4 +213,4 @@ export function loadEdgeCandidateUniverse(options = {}) {
 }
 
 export const EDGE_CANDIDATE_UNIVERSE_FILE = FILE;
-export const __edgeCandidateUniverseHooks = { exactIdentity, addresses, boundedBuyEvents };
+export const __edgeCandidateUniverseHooks = { exactIdentity, addresses, boundedBuyEvents, isoOrNull };

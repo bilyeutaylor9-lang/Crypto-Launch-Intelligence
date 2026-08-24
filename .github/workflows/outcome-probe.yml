@@ -49,7 +49,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -68,14 +67,36 @@ jobs:
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
 
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
+
       - name: Probe Due Exact Outcomes
         id: outcome_probe
         run: npm run outcomes:probe
         env:
           OUTCOME_PROBE_HORIZONS: 1,24,168,720
-          OUTCOME_PROBE_MAX_CANDIDATES: 60
-          OUTCOME_PROBE_MAX_REQUESTS: 60
+          OUTCOME_PROBE_MAX_CANDIDATES: 120
+          OUTCOME_PROBE_MAX_REQUESTS: 120
           OUTCOME_PROBE_CONCURRENCY: 4
+
+      - name: Save Append-Only Forward Evidence
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Bounded Learning Memory
         if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
@@ -101,7 +122,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*

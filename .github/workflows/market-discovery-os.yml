@@ -43,7 +43,6 @@ jobs:
             data/capital-migration-history.json
             data/project-digital-twins.json
             data/model-factory-challengers.json
-            data/production-market-observations.jsonl
             data/edge-production-episodes.jsonl
             data/edge-evidence-outcomes.jsonl
             data/edge-fast-outcomes.jsonl
@@ -57,6 +56,18 @@ jobs:
             alpha-os-${{ runner.os }}-${{ github.ref_name }}-
             production-shadow-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Refresh CLI 5 Alpha OS
         run: npm run alpha:os
@@ -82,7 +93,6 @@ jobs:
             data/capital-migration-history.json
             data/project-digital-twins.json
             data/model-factory-challengers.json
-            data/production-market-observations.jsonl
           key: market-discovery-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Market Discovery Evidence

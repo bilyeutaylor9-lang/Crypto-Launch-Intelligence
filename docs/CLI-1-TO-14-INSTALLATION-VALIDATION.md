@@ -56,3 +56,9 @@ A real networked dependency audit completed before the CLI 9.0–14.0 integratio
 The code is installed and locally validated, but the system correctly remains `NOT_PRODUCTION_READY`. Current blockers are real external or forward-evidence requirements, including live RPC/provider and storage configuration, remote backup/PITR attestation, GitHub Actions behavior, matured exact forward outcomes, calibration, observability, challenger performance, and canary evidence.
 
 No credentials, provider health, backup status, observations, calibration, or verified alpha were fabricated to clear those gates.
+
+## Forward-edge audit addendum
+
+A later methodological audit found that the generic CLI 1.0 diagnostic chose comparison controls after outcome data was available. It is now explicitly diagnostic-only and cannot issue an edge certificate. The authoritative certificate path uses fresh, exact, prospectively frozen treatment/control cohorts, a dedicated append-only forward-evidence cache, fixed-horizon exact observations, frozen execution-cost estimates, clustered uncertainty, time-window replication, strategy fingerprints, and fail-closed ledger-integrity checks.
+
+See `docs/FORWARD-EDGE-AUDIT.md` for the current evidence contract and operating commands. The historical test counts above remain installation-time results; current validation results must be reported from the latest commit and must not be conflated with verified market alpha.

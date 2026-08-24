@@ -66,6 +66,39 @@ test("shadow prediction links by exact identity and future timestamp", () => {
   assert.equal(Number(rows[0].realizedReturnPct.toFixed(2)), 40);
 });
 
+test("grading cutoffs exclude observations that are still in the evaluator's future", () => {
+  const token = "0x" + "1".repeat(40);
+  const predictions = [{
+    chain: "base",
+    tokenAddress: token,
+    decisionAt: "2026-01-01T00:00:00Z",
+    priceUsd: 1,
+  }];
+  const snapshots = [
+    {
+      chain: "base",
+      tokenAddress: token,
+      timestamp: "2026-01-01T00:00:00Z",
+      priceUsd: 1,
+    },
+    {
+      chain: "base",
+      tokenAddress: token,
+      timestamp: "2026-01-02T00:10:00Z",
+      priceUsd: 2,
+    },
+  ];
+  assert.deepEqual(linkShadowPredictionsToOutcomes(predictions, snapshots, {
+    asOf: "2026-01-01T12:00:00Z",
+    horizonHours: 24,
+    maxLatenessHours: 1,
+  }), []);
+  assert.deepEqual(resolveSnapshotOutcomes(snapshots, {
+    asOf: "2026-01-01T12:00:00Z",
+    horizonHours: 24,
+  }), []);
+});
+
 test("security audit can run in an empty workspace without inventing findings", () => {
   const report = runProductionSecurityAudit({
     root: process.cwd(),

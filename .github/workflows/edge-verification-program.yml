@@ -49,7 +49,6 @@ jobs:
         with:
           path: |
             data/production-shadow-predictions.jsonl
-            data/production-market-observations.jsonl
           key: production-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             production-shadow-${{ runner.os }}-${{ github.ref_name }}-
@@ -61,11 +60,22 @@ jobs:
         with:
           path: |
             data/autonomous-alpha-experiments.json
-            data/production-market-observations.jsonl
           key: autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-
             autonomous-alpha-${{ runner.os }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Grade Mature Shadow Outcomes
         run: npm run production:grade
@@ -84,7 +94,6 @@ jobs:
         with:
           path: |
             data/autonomous-alpha-experiments.json
-            data/production-market-observations.jsonl
           key: autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Edge Verification Evidence
@@ -95,6 +104,8 @@ jobs:
           path: |
             reports/edge-verification-program.json
             reports/edge-verification-certificate.json
+            reports/edge-verification-posthoc-diagnostic.json
+            reports/prospective-edge-cohort-grade.json
             reports/autonomous-alpha-lab.json
             reports/autonomous-alpha-challengers.json
           if-no-files-found: warn

@@ -34,7 +34,6 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: |
-            data/production-market-observations.jsonl
             data/production-shadow-predictions.jsonl
             data/autonomous-alpha-experiments.json
             data/alpha-os-*.json*
@@ -44,6 +43,18 @@ jobs:
           restore-keys: |
             future-intelligence-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Refresh Existing Alpha OS
         continue-on-error: true
@@ -65,7 +76,6 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: |
-            data/production-market-observations.jsonl
             data/production-shadow-predictions.jsonl
             data/autonomous-alpha-experiments.json
             data/alpha-os-*.json*

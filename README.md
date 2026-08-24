@@ -46,6 +46,19 @@ This is not a simple token screener. It is a layered research system with:
 
 > Research software only. This project does not provide financial advice, trading advice, or guaranteed predictions. Every output should be manually verified before any real-world decision.
 
+## Forward Edge Truth
+
+The system does not infer edge from feature count or backtests. It freezes exact treatment candidates and same-chain matched controls before outcomes, collects exact future observations, grades net performance with clustered uncertainty, and evaluates the latest strategy fingerprint rather than selecting the best historical result. Predeclared sample checkpoints and alpha spending control repeated strategy search and optional stopping.
+
+```bash
+npm run production:shadow
+npm run outcomes:probe
+npm run production:grade
+npm run edge:verify
+```
+
+`edge:verify` is expected to exit non-zero until real forward sample, outcome-capture, execution-cost, match-quality, time-replication, return, hit-rate, and catastrophic-loss gates pass. Post-outcome control matching is diagnostic-only and cannot issue a certificate. See [`docs/FORWARD-EDGE-AUDIT.md`](docs/FORWARD-EDGE-AUDIT.md) for the full operating contract.
+
 ## Quick Start
 
 Run the full no-key demo:

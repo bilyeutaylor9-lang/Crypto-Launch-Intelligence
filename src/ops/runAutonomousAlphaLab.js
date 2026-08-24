@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { buildAlphaChallengerRegistry, discoverAlphaHypotheses, evaluateProspectiveExperiment, freezeProspectiveExperiments } from "../production/autonomousAlphaLab.js";
+import { applyProspectiveValidationFdr, buildAlphaChallengerRegistry, discoverAlphaHypotheses, evaluateProspectiveExperiment, freezeProspectiveExperiments } from "../production/autonomousAlphaLab.js";
 import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 function readJson(file, fallback = null) { try { return JSON.parse(fs.readFileSync(file,"utf8")); } catch { return fallback; } }
 
@@ -20,7 +20,10 @@ export function runAutonomousAlphaLab(options = {}) {
     experiments = [...existing, ...freezeProspectiveExperiments(novel, { frozenAt:now, targetReturnPct:25, lossReturnPct:-20, horizonHours:24, minimumForwardTreatmentSamples:60, minimumForwardControlSamples:100, minimumWilsonLowerBound:0.50, minimumForwardReturnDeltaPct:3, fdrAlpha:0.05 })];
     discovered = novel;
   }
-  const evaluated = experiments.map((experiment)=>evaluateProspectiveExperiment(experiment, rows));
+  const evaluated = applyProspectiveValidationFdr(
+    experiments.map((experiment)=>evaluateProspectiveExperiment(experiment, rows, { asOf: now })),
+    { alpha: 0.05 },
+  );
   writeAtomicJson(registryFile, evaluated);
   const challengers = buildAlphaChallengerRegistry(evaluated, { now });
   writeAtomicJson("reports/autonomous-alpha-challengers.json", challengers);
@@ -28,10 +31,11 @@ export function runAutonomousAlphaLab(options = {}) {
     awaitingForwardEvidence:evaluated.filter((row)=>["FROZEN_AWAITING_FORWARD_EVIDENCE","FROZEN_PROSPECTIVE"].includes(row.state)).length,
     forwardVerified:evaluated.filter((row)=>row.state==="FORWARD_ALPHA_VERIFIED").length,
     forwardRejected:evaluated.filter((row)=>row.state==="FORWARD_ALPHA_REJECTED").length,
+    integrityBlocked:evaluated.filter((row)=>row.state==="FROZEN_EXPERIMENT_INTEGRITY_BLOCKED").length,
     experiments:evaluated, challengerRegistry:challengers,
     discoveryDue,
     nextDiscoveryEligibleAt: new Date((latestFrozenAt || Date.parse(now)) + discoveryIntervalMs).toISOString(),
-    policy:{ dataMiningCorrection:"BENJAMINI_HOCHBERG_FDR", prospectiveFreezeRequired:true, discoverySampleCannotValidateSameHypothesis:true, duplicateHypothesesSuppressed:true, periodicDiscoveryHours:Number(options.discoveryIntervalHours || 168), automaticPromotion:false, automaticTrading:false } };
+    policy:{ dataMiningCorrection:"BENJAMINI_HOCHBERG_FDR", prospectiveValidationCorrection:"BENJAMINI_HOCHBERG_FDR", prospectiveFreezeRequired:true, discoverySampleCannotValidateSameHypothesis:true, duplicateHypothesesSuppressed:true, periodicDiscoveryHours:Number(options.discoveryIntervalHours || 168), automaticPromotion:false, automaticTrading:false } };
   writeAtomicJson("reports/autonomous-alpha-lab.json", report); return report;
 }
 if (import.meta.url === `file://${process.argv[1]}`) { try { const report=runAutonomousAlphaLab(); console.log(JSON.stringify({ totalExperiments:report.totalExperiments, awaitingForwardEvidence:report.awaitingForwardEvidence, forwardVerified:report.forwardVerified, forwardRejected:report.forwardRejected, challengers:report.challengerRegistry.verifiedExperiments },null,2)); } catch(error){ console.error(error); process.exitCode=1; } }

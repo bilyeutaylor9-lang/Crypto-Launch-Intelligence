@@ -52,7 +52,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -70,6 +69,18 @@ jobs:
           restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Probe Due Frozen Treatment And Control Outcomes
         id: edge_evidence_probe
@@ -141,7 +152,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -156,6 +166,16 @@ jobs:
             data/native-discovery/confirmed-events.json
             data/native-discovery/checkpoints.json
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Append-Only Forward Evidence
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Edge Evidence Truth Reports
         if: always()

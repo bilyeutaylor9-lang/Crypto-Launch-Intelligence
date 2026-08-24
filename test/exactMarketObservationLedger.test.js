@@ -7,6 +7,7 @@ import path from "node:path";
 import {
   appendExactMarketObservations,
   buildExactMarketObservation,
+  exactMarketObservationIntegrityHash,
   loadExactMarketObservations,
 } from "../src/production/exactMarketObservationLedger.js";
 import { strictIdentityKey } from "../src/production/productionMath.js";
@@ -34,7 +35,36 @@ test("exact market ledger rejects symbol-only rows and deduplicates exact observ
   assert.equal(loaded.length, 1);
   assert.equal(loaded[0].identityKey, `base:${TOKEN}`);
   assert.equal(loaded[0].exactIdentityVerified, true);
+  assert.equal(loaded[0].observationIntegrityHash, exactMarketObservationIntegrityHash(loaded[0]));
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("malformed exact-ledger lines surface an integrity sentinel instead of disappearing", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "exact-ledger-malformed-"));
+  const file = path.join(dir, "observations.jsonl");
+  fs.writeFileSync(file, "{not-json}\n");
+  const loaded = loadExactMarketObservations({ file });
+  assert.equal(loaded.length, 1);
+  assert.equal(loaded[0].__exactObservationLedgerParseFailure, true);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("exact market ledger rejects observations from the future and can enforce freshness", () => {
+  const row = { chain: "base", tokenAddress: TOKEN, poolAddress: POOL, priceUsd: 1.25 };
+  assert.equal(buildExactMarketObservation(row, {
+    observedAt: "2026-08-23T12:01:00Z",
+    asOf: "2026-08-23T12:00:00Z",
+  }), null);
+  assert.equal(buildExactMarketObservation(row, {
+    observedAt: "2026-08-23T10:00:00Z",
+    asOf: "2026-08-23T12:00:00Z",
+    maximumObservationAgeMinutes: 30,
+  }), null);
+  assert.ok(buildExactMarketObservation(row, {
+    observedAt: "2026-08-23T11:45:00Z",
+    asOf: "2026-08-23T12:00:00Z",
+    maximumObservationAgeMinutes: 30,
+  }));
 });
 
 test("shadow outcome truth cannot link two symbol-only rows", () => {

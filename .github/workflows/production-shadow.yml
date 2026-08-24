@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-shadow-${{ github.ref }}
+  group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -40,7 +40,6 @@ jobs:
             data/outcome-snapshots.json
             data/edge-fast-outcomes.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/ignition-twin-observations.jsonl
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
@@ -54,7 +53,6 @@ jobs:
           path: |
             data/ignition-genome-history.json
             data/production-shadow-predictions.jsonl
-            data/production-market-observations.jsonl
           key: production-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             production-shadow-${{ runner.os }}-${{ github.ref_name }}-
@@ -70,6 +68,18 @@ jobs:
           restore-keys: |
             autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-
             autonomous-alpha-${{ runner.os }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
 
       - name: Run Production Shadow Cycle
         run: npm run production:shadow
@@ -97,7 +107,7 @@ jobs:
         continue-on-error: true
         run: npm run production:readiness
 
-      - name: Save Learning Memory
+      - name: Save Production Shadow Memory
         if: always()
         continue-on-error: true
         uses: actions/cache/save@v5
@@ -105,9 +115,18 @@ jobs:
           path: |
             data/ignition-genome-history.json
             data/production-shadow-predictions.jsonl
-            data/production-market-observations.jsonl
             data/autonomous-alpha-experiments.json
           key: production-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Append-Only Forward Evidence
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Autonomous Alpha Memory
         if: always()
@@ -128,12 +147,15 @@ jobs:
             reports/ignition-genome-multiscale.json
             reports/ignition-genome-convergence.json
             reports/production-shadow-ranking.json
+            reports/prospective-edge-cohort-capture.json
+            reports/prospective-edge-cohort-grade.json
             reports/production-observability.json
             reports/production-readiness.json
             reports/autonomous-alpha-challengers.json
             reports/autonomous-alpha-lab.json
             reports/edge-verification-certificate.json
             reports/edge-verification-program.json
+            reports/edge-verification-posthoc-diagnostic.json
             reports/reproducibility-audit.json
             reports/outcome-capture-health.json
             reports/exact-identity-health.json
