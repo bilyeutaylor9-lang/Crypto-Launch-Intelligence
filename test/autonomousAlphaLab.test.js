@@ -1,0 +1,13 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { buildAlphaChallengerRegistry, discoverAlphaHypotheses, evaluateProspectiveExperiment, freezeProspectiveExperiments } from "../src/production/autonomousAlphaLab.js";
+import { benjaminiHochberg } from "../src/production/alphaLabStatistics.js";
+function row(index, signals, returnPct, at="2026-01-01T00:00:00Z") { return { identityKey:`base:${index}`, verifiedSignals:signals, realizedReturnPct:returnPct, outcomeObservedAt:at }; }
+
+test("BH correction only accepts sufficiently small p-values",()=>{ const rows=benjaminiHochberg([{name:"a",pValue:.001},{name:"b",pValue:.01},{name:"c",pValue:.30}],{alpha:.05}); assert.equal(rows[0].fdrAccepted,true); assert.equal(rows[2].fdrAccepted,false); });
+
+test("discovery can identify strong signal combination but does not promote it",()=>{ const rows=[]; for(let i=0;i<80;i++){ const winner=i<35; rows.push(row(i,winner?["A","B","C"]:i%2?["A"]:["B"],winner?45:0)); } const discovered=discoverAlphaHypotheses(rows,{minimumTreatmentSamples:20,minimumControlSamples:20,maxSignals:3,combinationSizes:[2],permutationIterations:250,exploratoryPValue:.20}); assert.ok(discovered.length>=1); const experiments=freezeProspectiveExperiments(discovered,{frozenAt:"2026-01-02T00:00:00Z"}); assert.equal(experiments[0].rankingInfluence,false); assert.equal(experiments[0].state,"FROZEN_PROSPECTIVE"); });
+
+test("prospective evaluation ignores discovery-era rows",()=>{ const experiment=freezeProspectiveExperiments([{signals:["A","B"],treatmentSamples:30,controlSamples:30,averageReturnDeltaPct:20,hitRateDelta:.3,pValue:.01,qValue:.02,fdrAccepted:true}],{frozenAt:"2026-01-02T00:00:00Z",minimumForwardTreatmentSamples:2,minimumForwardControlSamples:2,minimumWilsonLowerBound:0,minimumForwardReturnDeltaPct:1})[0]; const rows=[row(1,["A","B"],100,"2026-01-01T00:00:00Z"),row(2,["A","B"],40,"2026-01-03T00:00:00Z"),row(3,["A","B"],35,"2026-01-03T00:00:01Z"),row(4,["A"],0,"2026-01-03T00:00:02Z"),row(5,["B"],5,"2026-01-03T00:00:03Z")]; const result=evaluateProspectiveExperiment(experiment,rows); assert.equal(result.forwardEvidence.treatmentSamples,2); assert.equal(result.forwardEvidence.controlSamples,2); assert.equal(result.state,"FORWARD_ALPHA_VERIFIED"); });
+
+test("only forward-verified experiments enter challenger registry",()=>{ const registry=buildAlphaChallengerRegistry([{experimentId:"a",state:"FORWARD_ALPHA_VERIFIED",definition:{signals:["A"]},forwardEvidence:{averageReturnDeltaPct:10}},{experimentId:"b",state:"FROZEN_AWAITING_FORWARD_EVIDENCE",definition:{signals:["B"]}}]); assert.equal(registry.challengers.length,1); assert.equal(registry.challengers[0].automaticPromotion,false); });

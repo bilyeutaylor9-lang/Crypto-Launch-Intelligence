@@ -1,0 +1,120 @@
+name: Production Verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "test/**"
+      - "package.json"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Syntax And Production Tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:production-platform
+          npm run test:alpha-os
+          npm run test:market-discovery
+          npm run test:future-intelligence
+          npm run test:edge-adaptive
+
+      - name: Existing Provider And Backtest Integrity
+        run: |
+          npm run test:providers
+          npm run test:core-backtest
+
+      - name: Production Shadow
+        run: npm run production:shadow
+
+      - name: Grade Mature Shadow Evidence
+        run: npm run production:grade
+
+      - name: CLI 2.0 Autonomous Alpha Lab
+        run: npm run alpha:lab
+
+      - name: CLI 3.0-14.0 Research Stack
+        run: |
+          npm run alpha:os
+          npm run market:discover
+          npm run future:intelligence
+
+      - name: CLI 1.0 Forward Edge Verification
+        continue-on-error: true
+        run: npm run edge:verify
+
+      - name: Security Audit
+        run: npm run production:security
+
+      - name: Operational Audits
+        continue-on-error: true
+        run: npm run production:ops-audit
+
+      - name: Production Readiness
+        continue-on-error: true
+        run: npm run production:readiness
+
+      - name: Upload Verification Evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-verification-${{ github.run_id }}
+          path: |
+            reports/live-environment-audit.json
+            reports/backup-restore-audit.json
+            reports/fault-injection-audit.json
+            reports/exact-identity-health.json
+            reports/outcome-capture-health.json
+            reports/reproducibility-audit.json
+            reports/production-shadow-ranking.json
+            reports/production-observability.json
+            reports/production-readiness.json
+            reports/autonomous-alpha-challengers.json
+            reports/autonomous-alpha-lab.json
+            reports/edge-verification-certificate.json
+            reports/edge-verification-program.json
+            reports/production-security-audit.json
+            reports/remote-backup-attestation.json
+            reports/remote-persistence-audit.json
+            reports/missed-winner-autopsy-production.json
+            reports/champion-challenger.json
+            reports/research-hypothesis-evidence.json
+            reports/production-counterfactual-edge.json
+            reports/production-edge-decay.json
+            reports/production-calibration.json
+            reports/production-shadow-resolved.json
+            reports/future-intelligence-stack.json
+            reports/realtime-market-nervous-system.json
+            reports/market-microstructure-brain.json
+            reports/economic-entity-graph-v2.json
+            reports/cross-market-intelligence.json
+            reports/liquidity-weather-forecast.json
+            reports/capital-destination-v2.json
+            reports/self-optimizing-research.json
+            reports/alpha-memory-graph.json
+            reports/market-thesis.json
+          if-no-files-found: warn
+          retention-days: 30

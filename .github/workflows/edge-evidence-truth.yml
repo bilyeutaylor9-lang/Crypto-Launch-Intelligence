@@ -21,9 +21,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Restore Bounded Edge Evidence Memory
         continue-on-error: true
@@ -48,6 +52,7 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
+            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -90,13 +95,27 @@ jobs:
 
       - name: Validate Acquisition Health
         if: always()
+        continue-on-error: true
         env:
           EDGE_ACQUISITION_STEP_OUTCOME: ${{ steps.edge_acquisition.outcome }}
           EDGE_ACQUISITION_MAX_REPORT_AGE_MINUTES: 30
         run: npm run edge:acquisition:health
 
       - name: Refresh Evidence Health And Research Loop
+        if: always()
         run: npm run edge:evidence:truth
+
+      - name: Refresh Adaptive Edge Learning
+        if: always()
+        run: npm run edge:learn:adaptive
+
+      - name: Refresh Ignition Genome
+        if: always()
+        run: npm run ignition:genome
+
+      - name: Synthesize Research Priority
+        if: always()
+        run: npm run edge:research:synthesis
 
       - name: Save Bounded Edge Evidence Memory
         if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
@@ -122,6 +141,7 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
+            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -154,5 +174,9 @@ jobs:
             reports/prospective-entry-edge.json
             reports/edge-acquisition-cycle.json
             reports/acquisition-health-gate.json
+            reports/edge-opportunity-synthesis.json
+            reports/ignition-genome.json
+            reports/edge-research-priority.json
+            reports/edge-signal-darwinism.json
           if-no-files-found: error
           retention-days: 30

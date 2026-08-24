@@ -1,0 +1,100 @@
+name: CLI 6-8 Market Discovery OS
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-discovery-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  market-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Market Discovery And Alpha Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/market-discovery-predictions.jsonl
+            data/market-discovery-dependencies.json
+            data/market-regime-history.json
+            data/research-value-accounting.jsonl
+            data/alpha-os-predictions.jsonl
+            data/alpha-os-candidate-history.json
+            data/capital-migration-history.json
+            data/project-digital-twins.json
+            data/model-factory-challengers.json
+            data/production-market-observations.jsonl
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/edge-fast-outcomes.jsonl
+            data/edge-candidate-universe.json
+            data/ignition-twin-observations.jsonl
+            data/ignition-genome-history.json
+            data/production-shadow-predictions.jsonl
+          key: market-discovery-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            market-discovery-${{ runner.os }}-${{ github.ref_name }}-
+            alpha-os-${{ runner.os }}-${{ github.ref_name }}-
+            production-shadow-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Refresh CLI 5 Alpha OS
+        run: npm run alpha:os
+
+      - name: Run CLI 6-8 Market Discovery
+        run: npm run market:discover
+
+      - name: Learn From Mature Market Discovery Outcomes
+        run: npm run market:learn
+
+      - name: Save Market Discovery Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/market-discovery-predictions.jsonl
+            data/market-discovery-dependencies.json
+            data/market-regime-history.json
+            data/research-value-accounting.jsonl
+            data/alpha-os-predictions.jsonl
+            data/alpha-os-candidate-history.json
+            data/capital-migration-history.json
+            data/project-digital-twins.json
+            data/model-factory-challengers.json
+            data/production-market-observations.jsonl
+          key: market-discovery-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Market Discovery Evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: market-discovery-${{ github.run_id }}
+          path: |
+            reports/market-discovery-engine.json
+            reports/market-discovery-resolved.json
+            reports/market-discovery-lead-time.json
+            reports/earliest-cause-analysis.json
+            reports/evidence-value-accounting.json
+          if-no-files-found: warn
+          retention-days: 60

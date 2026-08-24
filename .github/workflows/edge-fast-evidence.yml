@@ -1,0 +1,77 @@
+name: Edge Fast Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: edge-fast-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fast-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Shared Frozen Edge Episodes
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/edge-production-episodes.jsonl
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Fast Evidence Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/edge-fast-outcomes.jsonl
+          key: edge-fast-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            edge-fast-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            edge-fast-evidence-${{ runner.os }}-
+
+      - name: Probe Tight-Window Fast Outcomes
+        run: npm run edge:evidence:fast
+        env:
+          EDGE_FAST_EVIDENCE_MAX_REQUESTS: 30
+          EDGE_FAST_EVIDENCE_CONCURRENCY: 4
+
+      - name: Save Fast Evidence Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/edge-fast-outcomes.jsonl
+          key: edge-fast-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Fast Evidence Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-fast-evidence-${{ github.run_id }}
+          path: |
+            reports/edge-fast-evidence-probe.json
+          if-no-files-found: error
+          retention-days: 14

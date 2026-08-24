@@ -1,0 +1,11 @@
+services:
+  production-shadow:
+    build:
+      context: .
+      dockerfile: Dockerfile.production-shadow
+    env_file:
+      - .env.production
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    restart: "no"

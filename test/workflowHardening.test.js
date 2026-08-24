@@ -130,3 +130,30 @@ test("learning workflows share one cache signature and never save without an exa
     );
   }
 });
+
+test("future intelligence workflow preserves exact memory and refuses empty cache saves", () => {
+  const workflow = fs.readFileSync(".github/workflows/future-intelligence-stack.yml", "utf8");
+
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /data\/production-market-observations\.jsonl/);
+  assert.match(workflow, /data\/edge-candidate-universe\.json/);
+  assert.match(workflow, /run:\s*npm run alpha:os/);
+  assert.match(workflow, /run:\s*npm run market:discover/);
+  assert.match(workflow, /run:\s*npm run future:intelligence/);
+  assert.match(workflow, /run:\s*npm run test:future-intelligence/);
+  assert.match(
+    workflow,
+    /if: \$\{\{ always\(\) && hashFiles\('data\/edge-candidate-universe\.json'\) != '' \}\}\n\s+continue-on-error: true\n\s+uses: actions\/cache\/save@v5/,
+  );
+});
+
+test("production verification exercises CLI 3-14 and treats security failure as blocking", () => {
+  const workflow = fs.readFileSync(".github/workflows/production-verification.yml", "utf8");
+
+  assert.match(workflow, /npm run test:alpha-os/);
+  assert.match(workflow, /npm run test:market-discovery/);
+  assert.match(workflow, /npm run test:future-intelligence/);
+  assert.match(workflow, /npm run future:intelligence/);
+  assert.match(workflow, /- name: Security Audit\n\s+run: npm run production:security/);
+  assert.doesNotMatch(workflow, /- name: Security Audit\n\s+continue-on-error: true/);
+});

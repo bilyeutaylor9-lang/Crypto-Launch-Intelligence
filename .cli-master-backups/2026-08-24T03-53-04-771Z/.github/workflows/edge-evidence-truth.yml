@@ -1,9 +1,9 @@
-name: Asymmetric Edge Outcome Lab
+name: Edge Evidence Truth
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "40 * * * *"
+    - cron: "35 * * * *"
 
 permissions:
   contents: read
@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  edge-lab:
+  evidence-truth:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Restore Learning Memory
+      - name: Restore Bounded Edge Evidence Memory
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
@@ -48,7 +48,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -67,13 +66,39 @@ jobs:
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
 
-      - name: Refresh Lead-Time Outcome Lab
-        run: npm run edge:lab
+      - name: Probe Due Frozen Treatment And Control Outcomes
+        id: edge_evidence_probe
+        continue-on-error: true
+        run: npm run edge:evidence:probe
+        env:
+          EDGE_EVIDENCE_MAX_REQUESTS: 60
+          EDGE_EVIDENCE_CONCURRENCY: 4
 
-      - name: Refresh Ignition Outcome Lab
-        run: npm run ignition:lab
+      - name: Observe Continuous Capital And Refresh Shadow Models
+        id: edge_acquisition
+        continue-on-error: true
+        run: npm run edge:acquire
+        env:
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+          IGNITION_CAPITAL_RADAR_LOOKBACK_MINUTES: 70
+          IGNITION_CAPITAL_RADAR_MAX_LOOKBACK_BLOCKS: 2400
+          IGNITION_CAPITAL_RADAR_CONTINUITY_MAX_LOOKBACK_BLOCKS: 12000
+          IGNITION_CAPITAL_RADAR_MAX_LOGS: 50000
+          IGNITION_CAPITAL_RADAR_MAX_WALLETS: 120
+          IGNITION_CAPITAL_RADAR_MAX_TRACKED_WALLETS: 160
+          IGNITION_CAPITAL_RADAR_MIN_TRANSFER_USD: 5000
 
-      - name: Save Learning Memory
+      - name: Validate Acquisition Health
+        if: always()
+        env:
+          EDGE_ACQUISITION_STEP_OUTCOME: ${{ steps.edge_acquisition.outcome }}
+          EDGE_ACQUISITION_MAX_REPORT_AGE_MINUTES: 30
+        run: npm run edge:acquisition:health
+
+      - name: Refresh Evidence Health And Research Loop
+        run: npm run edge:evidence:truth
+
+      - name: Save Bounded Edge Evidence Memory
         if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
         continue-on-error: true
         uses: actions/cache/save@v5
@@ -97,7 +122,6 @@ jobs:
             data/capital-path-learning-observations.jsonl
             data/chain-capital-radar-observations.jsonl
             data/edge-candidate-universe.json
-            data/production-market-observations.jsonl
             data/prospective-entry-edge-episodes.jsonl
             data/asymmetric-edge-observations.jsonl
             data/asymmetric-edge-outcomes.json*
@@ -113,21 +137,22 @@ jobs:
             data/native-discovery/checkpoints.json
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
-      - name: Upload Edge Lab Reports
+      - name: Upload Edge Evidence Truth Reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: asymmetric-edge-lab-${{ github.run_id }}
+          name: edge-evidence-truth-${{ github.run_id }}
           path: |
-            reports/asymmetric-edge-outcome-lab.json
-            reports/residual-alpha-blindspots.json
-            reports/ignition-outcome-lab.json
-            reports/committed-loaded-vacuum-evidence-governor.json
-            reports/ignition-executable-edge-canary.json
-            reports/committed-loaded-vacuum-execution-reality.json
-            reports/committed-loaded-vacuum-regime-robustness.json
-            reports/committed-loaded-vacuum-replication.json
-            reports/committed-loaded-vacuum-attribution.json
-            reports/committed-loaded-vacuum-validation.json
-          if-no-files-found: ignore
-          retention-days: 14
+            reports/edge-evidence-probe.json
+            reports/edge-evidence-health.json
+            reports/edge-evidence-outcome-lab.json
+            reports/avoidance-edge-verification.json
+            reports/edge-failure-autopsy.json
+            reports/edge-mechanism-contrast.json
+            reports/edge-evidence-discovery-loop.json
+            reports/edge-research-autopilot.json
+            reports/prospective-entry-edge.json
+            reports/edge-acquisition-cycle.json
+            reports/acquisition-health-gate.json
+          if-no-files-found: error
+          retention-days: 30

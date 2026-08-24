@@ -393,10 +393,7 @@
     "test:production-platform": "node --test test/productionPlatform.test.js test/multiscaleGenome.test.js test/operationalAudits.test.js test/productionGradeCycle.test.js test/edgeVerificationProgram.test.js test/autonomousAlphaLab.test.js test/exactMarketObservationLedger.test.js",
     "test:alpha-os": "node --test test/alphaOSRoadmap.test.js",
     "test:market-discovery": "node --test test/marketDiscoveryRoadmap.test.js",
-    "production:verify": "npm run typecheck && npm run lint && npm run test:production-platform && npm run test:alpha-os && npm run test:market-discovery && npm run test:future-intelligence && npm run test:edge-adaptive && npm run test:providers && npm run test:core-backtest && npm run results:health",
-    "future:intelligence": "node src/ops/runFutureIntelligenceStack.js",
-    "future:thesis": "node src/ops/runFutureIntelligenceStack.js",
-    "test:future-intelligence": "node --test test/futureIntelligenceRoadmap.test.js"
+    "production:verify": "npm run typecheck && npm run lint && npm run test:production-platform && npm run test:alpha-os && npm run test:market-discovery && npm run test:edge-adaptive && npm run test:providers && npm run test:core-backtest && npm run results:health"
   },
   "engines": {
     "node": ">=22"
