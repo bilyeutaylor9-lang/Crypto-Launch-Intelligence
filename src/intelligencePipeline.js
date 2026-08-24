@@ -190,6 +190,7 @@ import { saveScanMemory } from "./learning/scanMemoryStore.js";
 import { saveProjectWatchlist } from "./learning/projectWatchlistStore.js";
 import { saveOutcomeSnapshots } from "./learning/outcomeSnapshotStore.js";
 import { saveEdgeCandidateUniverse } from "./data/edgeCandidateUniverseStore.js";
+import { captureForwardExecutionCosts } from "./production/forwardExecutionCostCapture.js";
 import { saveInternetResearchMemory } from "./learning/internetResearchMemoryStore.js";
 import { saveAgentCouncilMemory } from "./learning/agentPerformanceMemoryStore.js";
 import { saveStrategyMemory } from "./learning/strategyMemoryStore.js";
@@ -2895,6 +2896,27 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       throw new Error(warning);
     }
     console.log(warning);
+  }
+
+  // Execution-cost evidence is deliberately captured only after all scoring
+  // and selection invariants have run. It is a bounded, read-only shadow
+  // observation used by the later prospective cohort ledger; it cannot alter
+  // ranking, selection, route gates, or create an order in this scan.
+  if (options.saveMemory !== false && options.forwardExecutionCostCapture?.enabled !== false) {
+    try {
+      const executionCostCapture = await captureForwardExecutionCosts(results, {
+        ...(options.forwardExecutionCostCapture || {}),
+      });
+      results = executionCostCapture.projects;
+      console.log(
+        `Forward execution-cost capture: ${executionCostCapture.state} ` +
+        `(${executionCostCapture.audit.accepted}/${executionCostCapture.audit.attempted} paired quotes accepted).`
+      );
+    } catch (error) {
+      // Quote providers are optional evidence sources. A transient failure must
+      // leave execution costs unknown and preserve the completed scan.
+      console.log(`Forward execution-cost capture failed non-fatally: ${error.message}`);
+    }
   }
 
   if (options.saveMemory !== false) {

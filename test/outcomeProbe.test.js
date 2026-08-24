@@ -3,9 +3,11 @@ import assert from "node:assert/strict";
 
 import {
   prospectiveCohortsToProbeMemory,
+  prospectiveEntryEpisodesToProbeMemory,
   runOutcomeProbe,
   selectOutcomeProbeCandidates,
 } from "../src/learning/outcomeProbe.js";
+import { PROSPECTIVE_ENTRY_EDGE_TRIALS } from "../src/learning/prospectiveEntryEdgeTrialRegistry.js";
 import { resolveDexScreenerChainId } from "../src/data/dexScreenerConnector.js";
 
 const TOKEN_A = `0x${"1".repeat(40)}`;
@@ -365,4 +367,99 @@ test("prospective treatment and control outcomes receive priority over ordinary 
   assert.equal(due.length, 1);
   assert.equal(due[0].key, `base:${TOKEN_B}`);
   assert.equal(due[0].forwardEvidencePriority, 100);
+});
+
+function prospectiveEntryEpisode(role = "TREATMENT", overrides = {}) {
+  const trial = PROSPECTIVE_ENTRY_EDGE_TRIALS[0];
+  return {
+    schemaVersion: 1,
+    trialId: trial.trialId,
+    trialSchemaVersion: trial.schemaVersion,
+    declaredAt: trial.declaredAt,
+    episodeId: `entry-${role.toLowerCase()}-episode`,
+    role,
+    signalObservedAt: "2026-08-21T00:00:00.000Z",
+    chain: "base",
+    tokenAddress: TOKEN_B,
+    poolAddress: POOL_B,
+    identityKey: `base:${TOKEN_B}`,
+    exactIdentityFrozen: true,
+    outcomeHorizonHours: trial.horizonHours,
+    postDeclaration: true,
+    rankingInfluence: false,
+    scoringInfluence: false,
+    realMoneyOrderCreated: false,
+    ...overrides,
+  };
+}
+
+test("immutable prospective-entry episodes become exact high-priority probe memory at their declared horizon", () => {
+  const trial = PROSPECTIVE_ENTRY_EDGE_TRIALS[0];
+  const memory = prospectiveEntryEpisodesToProbeMemory([
+    prospectiveEntryEpisode("TREATMENT"),
+    prospectiveEntryEpisode("CONTROL_MATCHED", {
+      episodeId: "entry-control-episode",
+      tokenAddress: TOKEN_A,
+      poolAddress: POOL_A,
+      identityKey: `base:${TOKEN_A}`,
+    }),
+  ]);
+
+  assert.equal(memory.length, 2);
+  assert.deepEqual(memory.map((row) => row.outcomeHorizonsHours), [[trial.horizonHours], [trial.horizonHours]]);
+  assert.ok(memory[0].forwardEvidencePriority > 100);
+  assert.equal(memory[0].poolAddress, POOL_B);
+  assert.equal(memory[0].exactIdentityFrozen, true);
+  assert.equal(memory[0].outcomeProbeOnly, true);
+  assert.equal(memory[0].rankingInfluence, false);
+  assert.equal(memory[0].scoringInfluence, false);
+  assert.equal(memory[0].automaticTrading, false);
+  assert.equal(memory[0].automaticPromotion, false);
+});
+
+test("prospective-entry probe memory rejects any non-frozen or non-registry-exact episode", () => {
+  const trial = PROSPECTIVE_ENTRY_EDGE_TRIALS[0];
+  const memory = prospectiveEntryEpisodesToProbeMemory([
+    prospectiveEntryEpisode("TREATMENT", { exactIdentityFrozen: false }),
+    prospectiveEntryEpisode("TREATMENT", { poolAddress: null }),
+    prospectiveEntryEpisode("TREATMENT", { outcomeHorizonHours: trial.horizonHours - 1 }),
+    prospectiveEntryEpisode("TREATMENT", { identityKey: `base:${TOKEN_A}` }),
+    prospectiveEntryEpisode("CONTROL_POOL"),
+  ]);
+  assert.deepEqual(memory, []);
+});
+
+test("default outcome-probe memory loads immutable prospective-entry episodes and prioritizes their declared outcome", async () => {
+  const trial = PROSPECTIVE_ENTRY_EDGE_TRIALS[0];
+  let exactSaved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-08-28T01:30:00.000Z",
+    horizons: [1, trial.horizonHours],
+    loadScanMemory: () => [],
+    loadProspectiveEdgeCohorts: () => [],
+    loadProspectiveEntryEdgeEpisodes: () => [prospectiveEntryEpisode()],
+    snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [providerPair(TOKEN_B, POOL_B)] }),
+      getTokenPairs: async () => [],
+    },
+    saveSnapshots: (observations) => ({ saved: observations.length }),
+    saveExactObservations: (observations) => {
+      exactSaved = observations;
+      return { saved: observations.length, rejected: 0 };
+    },
+    writeReport: false,
+  });
+
+  assert.equal(report.status, "PASS");
+  assert.equal(report.prospectiveEntryEdgeEpisodesTracked, 1);
+  assert.equal(report.prospectiveEntryEdgeDueCandidates, 1);
+  assert.equal(report.prospectiveEntryEdgeDuePredictions, 1);
+  assert.equal(report.duePredictions, 1);
+  assert.equal(report.outcomesByHorizon[`${trial.horizonHours}h`], 1);
+  assert.equal(report.rankingInfluence, false);
+  assert.equal(report.automaticTrading, false);
+  assert.equal(report.automaticPromotion, false);
+  assert.equal(exactSaved[0].tokenAddress, TOKEN_B);
+  assert.equal(exactSaved[0].poolAddress, POOL_B);
 });

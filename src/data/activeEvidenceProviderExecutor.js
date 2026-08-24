@@ -5,6 +5,11 @@ import {
   searchDexPairs,
 } from "./dexScreenerConnector.js";
 import {
+  getGeckoPoolByAddress,
+  normalizeGeckoPool,
+  resolveGeckoTerminalNetworkId,
+} from "./geckoTerminalConnector.js";
+import {
   getCoinGeckoMarketsByIds,
   normalizeCoinGeckoMarket,
 } from "./coinGeckoConnector.js";
@@ -53,6 +58,27 @@ const DEX_COMPANION_FIELDS = [
   "fullyDilutedValuationUsd",
   "buyTransactions24h",
   "sellTransactions24h",
+];
+
+// GeckoTerminal recovery is intentionally market-data-only. Its public pool
+// endpoint is useful for an exact pool fallback, but it cannot establish an
+// executable route, price impact, or stable exit liquidity.
+const GECKO_FIELDS = new Set([
+  "chain",
+  "tokenAddress",
+  "poolAddress",
+  "priceUsd",
+  "liquidityUsd",
+  "volume24hUsd",
+]);
+
+const GECKO_COMPANION_FIELDS = [
+  "chain",
+  "tokenAddress",
+  "poolAddress",
+  "priceUsd",
+  "liquidityUsd",
+  "volume24hUsd",
 ];
 
 const SECURITY_FIELDS = new Set([
@@ -220,6 +246,10 @@ function providerFunctions(options = {}) {
     getTokenPairs: injected.getTokenPairs || options.getTokenPairs || getTokenPairs,
     getPairByAddress: injected.getPairByAddress || options.getPairByAddress || getPairByAddress,
     searchDexPairs: injected.searchDexPairs || options.searchDexPairs || searchDexPairs,
+    getGeckoPoolByAddress:
+      injected.getGeckoPoolByAddress ||
+      options.getGeckoPoolByAddress ||
+      getGeckoPoolByAddress,
     getFreeSecurityEvidence:
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
@@ -884,6 +914,64 @@ function dexObservations(pair = {}, fields = [], timestamp = new Date().toISOStr
     .filter((item) => valueKnown(item.value));
 }
 
+function strictGeckoPool(payload, project = {}, lookup = {}) {
+  const expectedChain = lookup.chain || chainOf(project);
+  const expectedToken = lookup.tokenAddress || tokenAddressOf(project, expectedChain);
+  const expectedPool = lookup.poolAddress || poolAddressOf(project, expectedChain);
+  if (!expectedChain || !expectedToken || !expectedPool) return null;
+
+  const raw = payload?.data || payload?.pool || payload;
+  if (!raw || Array.isArray(raw) || typeof raw !== "object") return null;
+  const normalized = normalizeGeckoPool(raw);
+  const chain = normalizeChainId(normalized.chain);
+  const tokenAddress = normalizeTokenAddress(normalized.tokenAddress, chain);
+  const poolAddress = normalizePoolAddress(normalized.poolAddress, chain);
+  if (
+    chain !== expectedChain ||
+    tokenAddress !== expectedToken ||
+    poolAddress !== expectedPool
+  ) return null;
+
+  return { ...normalized, chain, tokenAddress, poolAddress };
+}
+
+function geckoValue(pool = {}, field = "") {
+  switch (field) {
+    case "chain":
+      return pool.chain || null;
+    case "tokenAddress":
+      return pool.tokenAddress || null;
+    case "poolAddress":
+      return pool.poolAddress || null;
+    case "priceUsd":
+      return numberOrNull(pool.priceUsd);
+    case "liquidityUsd":
+      return numberOrNull(pool.liquidityUsd);
+    case "volume24hUsd":
+      return numberOrNull(pool.volume24hUsd ?? pool.volume24h);
+    default:
+      return null;
+  }
+}
+
+function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOString()) {
+  return fields
+    .map((field) => observation(
+      field,
+      geckoValue(pool, field),
+      "geckoterminal",
+      timestamp,
+      0.9,
+      {
+        identityMatchMode: "exact-pool",
+        marketEvidenceOnly: true,
+        geckoTerminalPoolId: pool.geckoTerminalPoolId || null,
+        endpoint: "exact-pool",
+      }
+    ))
+    .filter((item) => valueKnown(item.value));
+}
+
 async function recoverDex(project = {}, fields = [], providers = {}, options = {}, state = {}) {
   const chain = chainOf(project);
   const tokenAddress = tokenAddressOf(project, chain);
@@ -947,6 +1035,68 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
       mode
     ),
     attempts: [{ ...attempt, value: undefined, matchedIdentity: `${pair.chain}:${pair.tokenAddress}` }],
+  };
+}
+
+async function recoverGeckoPool(project = {}, fields = [], providers = {}, options = {}, state = {}) {
+  const chain = chainOf(project);
+  const tokenAddress = tokenAddressOf(project, chain);
+  const poolAddress = poolAddressOf(project, chain);
+  if (!chain || !tokenAddress || !poolAddress || !resolveGeckoTerminalNetworkId(chain)) {
+    return {
+      observations: [],
+      attempts: [{
+        status: "NOT_APPLICABLE",
+        provider: "geckoterminal",
+        reason: "GeckoTerminal fallback requires an exact supported chain, token, and pool identity.",
+        durationMs: 0,
+      }],
+    };
+  }
+
+  const timeoutMs = Math.max(
+    250,
+    Number(
+      options.providerTimeoutMs ||
+      options.timeoutMs ||
+      process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS ||
+      process.env.ACTIVE_EVIDENCE_RECOVERY_PROVIDER_TIMEOUT_MS ||
+      8_000
+    )
+  );
+  const attempt = await executeProviderCall(
+    "geckoterminal",
+    () => providers.getGeckoPoolByAddress(chain, poolAddress, { maxAttempts: 1, timeoutMs }),
+    options,
+    state,
+    1,
+    chain
+  );
+  if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
+  const pool = strictGeckoPool(attempt.value, project, { chain, tokenAddress, poolAddress });
+  if (!pool) {
+    return {
+      observations: [],
+      attempts: [{
+        ...attempt,
+        status: "NO_EXACT_POOL_MATCH",
+        reason: "GeckoTerminal did not return the exact requested chain, base token, and pool identity.",
+        value: undefined,
+      }],
+    };
+  }
+
+  return {
+    observations: geckoObservations(
+      pool,
+      [...new Set([...fields, ...GECKO_COMPANION_FIELDS])],
+      options.now?.().toISOString?.() || new Date().toISOString(),
+    ),
+    attempts: [{
+      ...attempt,
+      value: undefined,
+      matchedIdentity: `${pool.chain}:${pool.tokenAddress}:${pool.poolAddress}`,
+    }],
   };
 }
 
@@ -1158,11 +1308,22 @@ export async function executeActiveEvidenceProviderRequests(
   let projectPatch = {};
 
   const dexFields = fields.filter((field) => DEX_FIELDS.has(field));
-  if (
-    dexFields.length &&
-    sourceRequested(sources, ["dexscreener", "geckoterminal", "native rpc"])
-  ) {
+  const dexRequested = sourceRequested(sources, ["dexscreener", "native rpc"]);
+  const geckoRequested = sourceRequested(sources, ["geckoterminal"]);
+  if (dexFields.length && dexRequested) {
     const result = await recoverDex(project, dexFields, providers, options, executionState);
+    observations.push(...result.observations);
+    attempts.push(...result.attempts);
+  }
+
+  // GeckoTerminal is a strict market-data fallback. It is only attempted for
+  // fields DexScreener did not recover, and never supplies execution evidence.
+  const recoveredDexFields = new Set(observations.map((item) => item.field));
+  const geckoFields = dexFields.filter(
+    (field) => GECKO_FIELDS.has(field) && !recoveredDexFields.has(field)
+  );
+  if (geckoFields.length && geckoRequested) {
+    const result = await recoverGeckoPool(project, geckoFields, providers, options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
   }

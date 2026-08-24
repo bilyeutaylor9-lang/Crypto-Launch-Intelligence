@@ -51,6 +51,26 @@ function contract({ advisory = false } = {}) {
   };
 }
 
+function geckoPool({ tokenAddress = TOKEN, poolAddress = POOL } = {}) {
+  return {
+    data: {
+      id: `base_${poolAddress}`,
+      attributes: {
+        address: poolAddress,
+        name: "Gecko Recovery / USDC",
+        base_token_price_usd: "0.42",
+        reserve_in_usd: "240000",
+        volume_usd: { h24: "81000" },
+      },
+      relationships: {
+        network: { data: { id: "base" } },
+        base_token: { data: { id: `base_${tokenAddress}` } },
+        quote_token: { data: { id: `base_${BUYER}` } },
+      },
+    },
+  };
+}
+
 test("utility producers run before final readiness and final scoring", () => {
   const utility = FINAL_EVIDENCE_ENGINE_SEQUENCE.indexOf("Utility Quality");
   const readiness = FINAL_EVIDENCE_ENGINE_SEQUENCE.indexOf("Engine Data Readiness");
@@ -285,6 +305,91 @@ test("derived fields are never sent to external providers", async () => {
   );
   assert.equal(calls, 0);
   assert.deepEqual(result.attempts, []);
+});
+
+test("GeckoTerminal recovers only exact-pool market evidence after DexScreener has no match", async () => {
+  let dexCalls = 0;
+  let geckoCalls = 0;
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN, poolAddress: POOL },
+    [
+      request("priceUsd", "DexScreener"),
+      request("liquidityUsd", "GeckoTerminal"),
+      request("volume24hUsd", "GeckoTerminal"),
+    ],
+    {
+      providers: {
+        getTokenPairs: async () => {
+          dexCalls += 1;
+          return [];
+        },
+        getGeckoPoolByAddress: async (chain, poolAddress, options) => {
+          geckoCalls += 1;
+          assert.equal(chain, "base");
+          assert.equal(poolAddress, POOL);
+          assert.equal(options.maxAttempts, 1);
+          return geckoPool();
+        },
+      },
+    },
+  );
+
+  assert.equal(dexCalls, 1);
+  assert.equal(geckoCalls, 1);
+  assert.equal(result.observations.find((item) => item.field === "priceUsd")?.value, 0.42);
+  assert.equal(result.observations.find((item) => item.field === "liquidityUsd")?.value, 240000);
+  assert.equal(result.observations.find((item) => item.field === "volume24hUsd")?.value, 81000);
+  assert.equal(result.observations.find((item) => item.field === "priceUsd")?.source, "geckoterminal");
+  assert.equal(result.observations.find((item) => item.field === "priceUsd")?.identityMatchMode, "exact-pool");
+  assert.equal(result.observations.find((item) => item.field === "priceUsd")?.marketEvidenceOnly, true);
+  assert.equal(result.observations.some((item) => item.field === "stableExitLiquidityUsd"), false);
+});
+
+test("GeckoTerminal rejects a base-token or pool mismatch", async () => {
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN, poolAddress: POOL },
+    [request("priceUsd", "GeckoTerminal")],
+    {
+      providers: {
+        getGeckoPoolByAddress: async () => geckoPool({ tokenAddress: BUYER }),
+      },
+    },
+  );
+
+  assert.equal(result.observations.length, 0);
+  assert.equal(result.attempts[0]?.status, "NO_EXACT_POOL_MATCH");
+});
+
+test("GeckoTerminal is not called when DexScreener returns exact requested market fields", async () => {
+  let geckoCalls = 0;
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN, poolAddress: POOL },
+    [
+      request("priceUsd", "DexScreener"),
+      request("liquidityUsd", "GeckoTerminal"),
+      request("volume24hUsd", "GeckoTerminal"),
+    ],
+    {
+      providers: {
+        getTokenPairs: async () => [{
+          chainId: "base",
+          pairAddress: POOL,
+          baseToken: { address: TOKEN, symbol: "GEO", name: "Gecko Recovery" },
+          quoteToken: { address: BUYER, symbol: "USDC" },
+          liquidity: { usd: 240000 },
+          volume: { h24: 81000 },
+          priceUsd: "0.42",
+        }],
+        getGeckoPoolByAddress: async () => {
+          geckoCalls += 1;
+          return geckoPool();
+        },
+      },
+    },
+  );
+
+  assert.equal(geckoCalls, 0);
+  assert.equal(result.observations.find((item) => item.field === "priceUsd")?.source, "dexscreener");
 });
 
 test("wave 2 only includes the configured top value-of-information candidates", () => {
