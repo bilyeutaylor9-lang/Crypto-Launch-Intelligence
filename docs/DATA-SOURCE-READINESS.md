@@ -61,6 +61,16 @@ Provider names with no executable connector are reported as
 when an environment key is present. They remain optional future integrations;
 they are not counted as working data sources.
 
+## Forward execution-cost evidence
+
+Routine scans can capture a bounded paired BUY→SELL quote only when
+`IGNITION_EXECUTABLE_QUOTE_ENDPOINT` is explicitly configured. Each accepted
+pair must have exact chain/token/pool identity, a recorded provider, fresh
+timestamps, a common reference notional, and explicit all-in costs for both
+sides. The resulting round-trip cost and quote provenance are frozen for
+shadow prospective cohorts only; missing or failed quotes remain `null` and do
+not affect ranking, promotion, or order creation.
+
 ## Production gate
 
 Production readiness now has separate gates for critical data-source code and
