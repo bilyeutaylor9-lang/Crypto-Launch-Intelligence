@@ -1,0 +1,5 @@
+import { clamp, finite, mean, median } from "./productionMath.js";
+export function evaluateLeadTimeModel(rows = [], options = {}) {
+  const active=(Array.isArray(rows)?rows:[]).filter(r=>typeof r.hit==="boolean"); const hits=active.filter(r=>r.hit&&finite(r.leadTimeHours)!==null); const hitRate=active.length?hits.length/active.length:null; const medianLead=median(hits.map(r=>finite(r.leadTimeHours))); const returns=active.map(r=>finite(r.realizedReturnPct)).filter(v=>v!==null); const avgReturn=mean(returns); const leadUtility=medianLead===null?0:clamp(Math.log1p(Math.max(0,medianLead))/Math.log1p(Number(options.targetLeadHours||12))); const score=active.length?clamp((hitRate||0)*.45 + clamp(((avgReturn||0)+20)/80)*.30 + leadUtility*.25)*100:0;
+  return {samples:active.length,hitRate,medianWinningLeadHours:medianLead,averageReturnPct:avgReturn,alphaLeadTimeScore:Number(score.toFixed(2)),state:active.length<Number(options.minimumSamples||50)?"INSUFFICIENT_LEAD_TIME_SAMPLE":score>=70?"LEAD_TIME_EDGE_STRONG":score>=55?"LEAD_TIME_EDGE_DEVELOPING":"LEAD_TIME_EDGE_WEAK"};
+}

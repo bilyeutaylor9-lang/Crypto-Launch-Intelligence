@@ -98,7 +98,7 @@ export async function observeHyperliquidLeverage(project = {}, options = {}) {
     return {
       status: "OBSERVED_PERP_MARKET",
       source: "HYPERLIQUID_PUBLIC_INFO",
-      observedAt: new Date().toISOString(),
+      observedAt: new Date(options.now || Date.now()).toISOString(),
       coin,
       derivatives: {
         venue: "Hyperliquid",

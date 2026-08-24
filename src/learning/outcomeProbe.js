@@ -22,6 +22,20 @@ import {
 } from "./outcomeCalibrationEngine.js";
 import { loadOutcomeSnapshots, saveOutcomeSnapshots } from "./outcomeSnapshotStore.js";
 import { loadScanMemory } from "./scanMemoryStore.js";
+import {
+  appendExactMarketObservations,
+  loadExactMarketObservations,
+} from "../production/exactMarketObservationLedger.js";
+import {
+  appendMarketContextObservations,
+  buildMarketContextObservation,
+  loadMarketContextObservations,
+} from "../production/marketContextObservationLedger.js";
+import {
+  attachMarketContext,
+  collectMarketContextSnapshot,
+} from "../production/marketContextSnapshotProvider.js";
+import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
 
 const DEFAULT_HORIZONS = [1, 24, 168, 720];
 const DEFAULT_MAX_REQUESTS = 60;
@@ -34,7 +48,7 @@ function num(value = 0) {
 }
 
 function timestampOf(item = {}) {
-  return new Date(item.timestamp || item.scannedAt || 0).getTime();
+  return new Date(item.observedAt || item.timestamp || item.scannedAt || item.decisionAt || 0).getTime();
 }
 
 function parseHorizons(value = DEFAULT_HORIZONS) {
@@ -60,16 +74,46 @@ function identityFrom(record = {}, fallback = {}) {
   return { key, chain, tokenAddress, poolAddress };
 }
 
-function alreadyResolved(snapshots = [], targetMs = 0, toleranceMs = 0) {
+function alreadyResolved(snapshots = [], targetMs = 0, toleranceMs = 0, expectedIdentity = null) {
   return snapshots.some((snapshot) => {
     const observedAt = timestampOf(snapshot);
     const verificationStatus = snapshot.provenance?.verificationStatus;
+    const actualIdentity = identityFrom(snapshot);
+    const poolCompatible = !expectedIdentity?.poolAddress ||
+      !actualIdentity?.poolAddress ||
+      expectedIdentity.poolAddress === actualIdentity.poolAddress;
     return observedAt >= targetMs &&
       observedAt <= targetMs + toleranceMs &&
-      [
+      poolCompatible &&
+      (snapshot.exactIdentityVerified === true || [
         "EXACT_CHAIN_TOKEN_MATCH",
         "EXACT_CHAIN_TOKEN_POOL_MATCH",
-      ].includes(verificationStatus);
+      ].includes(verificationStatus));
+  });
+}
+
+export function prospectiveCohortsToProbeMemory(episodes = []) {
+  return (Array.isArray(episodes) ? episodes : []).flatMap((episode) => {
+    const key = getOutcomeIdentityKey(episode);
+    const scannedAt = episode.decisionAt || episode.frozenAt || null;
+    if (!key || !scannedAt || !["TREATMENT", "CONTROL_MATCHED"].includes(episode.role)) return [];
+    return [{
+      identityKey: key,
+      chain: episode.chain,
+      tokenAddress: episode.tokenAddress,
+      poolAddress: episode.poolAddress || null,
+      symbol: episode.symbol || null,
+      name: episode.name || null,
+      scannedAt,
+      outcomeHorizonsHours: Array.isArray(episode.outcomeHorizonsHours)
+        ? episode.outcomeHorizonsHours.map(Number).filter((value) => value > 0)
+        : [24, 168],
+      forwardEvidencePriority: episode.role === "TREATMENT" ? 100 : 90,
+      prospectiveEdgeCohortId: episode.cohortId || null,
+      prospectiveEdgeEpisodeId: episode.episodeId || null,
+      prospectiveEdgeRole: episode.role,
+      scores: { opportunity: episode.role === "TREATMENT" ? 100 : 90 },
+    }];
   });
 }
 
@@ -104,19 +148,25 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
     const identity = identityFrom(record, latestSnapshotByKey.get(key));
     if (!identity) continue;
 
-    for (const horizonHours of horizons) {
+    const allowedHorizons = Array.isArray(record.outcomeHorizonsHours) && record.outcomeHorizonsHours.length
+      ? new Set(record.outcomeHorizonsHours.map(Number))
+      : null;
+    for (const horizonHours of horizons.filter((value) => !allowedHorizons || allowedHorizons.has(value))) {
       const targetMs = scannedAtMs + horizonHours * 60 * 60 * 1000;
       const toleranceHours = outcomeHorizonToleranceHours(horizonHours, options);
       const toleranceMs = toleranceHours * 60 * 60 * 1000;
       if (nowMs < targetMs || nowMs > targetMs + toleranceMs) continue;
-      if (alreadyResolved(snapshotsByKey.get(key) || [], targetMs, toleranceMs)) continue;
+      if (alreadyResolved(snapshotsByKey.get(key) || [], targetMs, toleranceMs, identity)) continue;
 
       const dueKey = `${record.scannedAt || scannedAtMs}:${horizonHours}`;
-      const current = dueByKey.get(key) || {
+      const routeKey = `${identity.key}:${identity.poolAddress || "TOKEN_SCOPED"}`;
+      const current = dueByKey.get(routeKey) || {
         ...identity,
+        routeKey,
         name: record.name || latestSnapshotByKey.get(key)?.name || "Unknown",
         symbol: record.symbol || latestSnapshotByKey.get(key)?.symbol || "Unknown",
         opportunityScore: num(record.scores?.opportunity || record.scores?.pipeline),
+        forwardEvidencePriority: num(record.forwardEvidencePriority),
         duePredictions: [],
       };
 
@@ -130,16 +180,21 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
         });
       }
       current.opportunityScore = Math.max(current.opportunityScore, num(record.scores?.opportunity));
-      dueByKey.set(key, current);
+      current.forwardEvidencePriority = Math.max(
+        current.forwardEvidencePriority,
+        num(record.forwardEvidencePriority),
+      );
+      dueByKey.set(routeKey, current);
     }
   }
 
   return [...dueByKey.values()]
     .sort(
       (a, b) =>
+        b.forwardEvidencePriority - a.forwardEvidencePriority ||
         b.duePredictions.length - a.duePredictions.length ||
         b.opportunityScore - a.opportunityScore ||
-        a.key.localeCompare(b.key)
+        a.routeKey.localeCompare(b.routeKey)
     )
     .slice(0, maxCandidates);
 }
@@ -220,6 +275,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       status: "OBSERVED",
       observation: {
         ...pair,
+        observedAt,
         name: pair.name || candidate.name,
         symbol: pair.symbol || candidate.symbol,
         chain: candidate.chain,
@@ -290,8 +346,19 @@ function saveReport(report = {}, file = REPORT_FILE) {
 export async function runOutcomeProbe(options = {}) {
   const runId = options.runId || `outcome-probe-${Date.now()}`;
   const now = new Date(options.now || Date.now()).toISOString();
-  const memory = options.memory || loadScanMemory();
-  const snapshots = options.snapshots || loadOutcomeSnapshots();
+  const scanMemory = options.memory || loadScanMemory();
+  const prospectiveEpisodes = options.prospectiveEpisodes !== undefined
+    ? options.prospectiveEpisodes
+    : options.memory === undefined
+      ? loadProspectiveEdgeCohorts()
+      : [];
+  const prospectiveMemory = prospectiveCohortsToProbeMemory(prospectiveEpisodes);
+  const memory = [...scanMemory, ...prospectiveMemory];
+  const existingExactObservations = options.exactObservations || loadExactMarketObservations();
+  const snapshots = options.snapshots || [
+    ...loadOutcomeSnapshots(),
+    ...existingExactObservations,
+  ];
   const maxRequests = Number(
     options.maxRequests || process.env.OUTCOME_PROBE_MAX_REQUESTS || DEFAULT_MAX_REQUESTS
   );
@@ -330,10 +397,53 @@ export async function runOutcomeProbe(options = {}) {
       consumeProviderRequest,
     })
   );
-  const observations = results.map((result) => result.observation).filter(Boolean);
+  let observations = results.map((result) => result.observation).filter(Boolean);
+  let marketContext = null;
+  let marketContextSaveResult = { saved: 0, rejected: 0 };
+  const shouldCollectMarketContext =
+    observations.length > 0 &&
+    options.collectMarketContext !== false &&
+    (typeof options.marketContextProvider === "function" || options.providers === undefined);
+  if (shouldCollectMarketContext) {
+    try {
+      const rawContext = await (options.marketContextProvider || collectMarketContextSnapshot)({
+        now,
+        providers: options.marketContextProviders,
+        previousContext: options.marketContextObservations || loadMarketContextObservations(),
+        previousExactObservations: existingExactObservations,
+        currentExactObservations: observations,
+        timeoutMs: options.marketContextTimeoutMs,
+      });
+      marketContext = buildMarketContextObservation(rawContext, { now, asOf: now });
+      if (marketContext) {
+        marketContextSaveResult = (options.saveMarketContextObservations || appendMarketContextObservations)(
+          [marketContext],
+          { ...(options.marketContextStore || {}), now, asOf: now }
+        );
+        observations = attachMarketContext(observations, marketContext);
+      }
+    } catch (error) {
+      marketContext = {
+        observedAt: now,
+        state: "CONTEXT_CAPTURE_FAILED",
+        error: error?.message || "Unknown market-context provider failure",
+        pointInTimeVerified: false,
+        scoringOrSelectionAllowed: false,
+        automaticTrading: false,
+      };
+    }
+  }
   const saveResult = observations.length
     ? (options.saveSnapshots || saveOutcomeSnapshots)(observations)
     : { saved: 0 };
+  const exactSaveResult = observations.length
+    ? (options.saveExactObservations || appendExactMarketObservations)(observations, {
+        ...(options.exactObservationStore || {}),
+        observedAt: now,
+        asOf: now,
+        source: "outcome-probe",
+      })
+    : { saved: 0, rejected: 0 };
   const report = {
     generatedAt: now,
     runId,
@@ -354,6 +464,33 @@ export async function runOutcomeProbe(options = {}) {
     providerRequestsUsed,
     providerRequestBudget: maxRequests,
     observationsSaved: num(saveResult.saved),
+    exactLedgerObservationsSaved: num(exactSaveResult.saved),
+    exactLedgerObservationsRejected: num(exactSaveResult.rejected),
+    marketContextCapture: marketContext
+      ? {
+          state: marketContext.state,
+          observationKey: marketContext.observationKey || null,
+          pointInTimeVerified: marketContext.pointInTimeVerified === true,
+          unavailableFields: marketContext.unavailableFields || [],
+          error: marketContext.error || null,
+        }
+      : {
+          state: observations.length
+            ? options.providers !== undefined && !options.marketContextProvider
+              ? "NOT_REQUESTED_WITH_INJECTED_TEST_PROVIDERS"
+              : "NOT_REQUESTED"
+            : "NO_EXACT_OBSERVATIONS",
+          observationKey: null,
+          pointInTimeVerified: false,
+          unavailableFields: [],
+          error: null,
+        },
+    marketContextObservationsSaved: num(marketContextSaveResult.saved),
+    marketContextObservationsRejected: num(marketContextSaveResult.rejected),
+    prospectiveEdgeEpisodesTracked: prospectiveMemory.length,
+    prospectiveEdgeDueCandidates: candidates.filter(
+      (candidate) => candidate.forwardEvidencePriority > 0
+    ).length,
     unresolvedCandidates: Math.max(0, candidates.length - observations.length),
     outcomesByHorizon: Object.fromEntries(
       parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS).map(

@@ -1,0 +1,178 @@
+name: Production Shadow Intelligence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,37 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-dashboard-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  shadow-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Learning Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/outcome-snapshots.json
+            data/edge-fast-outcomes.jsonl
+            data/edge-candidate-universe.json
+            data/ignition-twin-observations.jsonl
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Production Shadow Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/ignition-genome-history.json
+            data/production-shadow-predictions.jsonl
+          key: production-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            production-shadow-${{ runner.os }}-${{ github.ref_name }}-
+            production-shadow-${{ runner.os }}-
+
+      - name: Restore Autonomous Alpha Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/autonomous-alpha-experiments.json
+          key: autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-
+            autonomous-alpha-${{ runner.os }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
+
+      - name: Run Production Shadow Cycle
+        run: npm run production:shadow
+
+      - name: Grade Mature Shadow Predictions
+        if: always()
+        run: npm run production:grade
+
+      - name: CLI 2.0 Autonomous Alpha Lab
+        if: always()
+        run: npm run alpha:lab
+
+      - name: CLI 1.0 Forward Edge Verification
+        if: always()
+        continue-on-error: true
+        run: npm run edge:verify
+
+      - name: Run Operational Audits
+        if: always()
+        continue-on-error: true
+        run: npm run production:ops-audit
+
+      - name: Run Production Readiness Audit
+        if: always()
+        continue-on-error: true
+        run: npm run production:readiness
+
+      - name: Save Production Shadow Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/ignition-genome-history.json
+            data/production-shadow-predictions.jsonl
+            data/autonomous-alpha-experiments.json
+          key: production-shadow-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Append-Only Forward Evidence
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Autonomous Alpha Memory
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/autonomous-alpha-experiments.json
+          key: autonomous-alpha-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Production Shadow Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-shadow-${{ github.run_id }}
+          path: |
+            reports/production-run-manifest.json
+            reports/ignition-genome-multiscale.json
+            reports/ignition-genome-convergence.json
+            reports/production-shadow-ranking.json
+            reports/prospective-edge-cohort-capture.json
+            reports/prospective-edge-cohort-grade.json
+            reports/production-observability.json
+            reports/production-readiness.json
+            reports/autonomous-alpha-challengers.json
+            reports/autonomous-alpha-lab.json
+            reports/edge-verification-certificate.json
+            reports/edge-verification-program.json
+            reports/edge-verification-posthoc-diagnostic.json
+            reports/reproducibility-audit.json
+            reports/outcome-capture-health.json
+            reports/exact-identity-health.json
+            reports/production-security-audit.json
+            reports/fault-injection-audit.json
+            reports/backup-restore-audit.json
+            reports/remote-backup-attestation.json
+            reports/remote-persistence-audit.json
+            reports/live-environment-audit.json
+            reports/missed-winner-autopsy-production.json
+            reports/champion-challenger.json
+            reports/research-hypothesis-evidence.json
+            reports/production-counterfactual-edge.json
+            reports/production-edge-decay.json
+            reports/production-calibration.json
+            reports/production-shadow-resolved.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -513,7 +513,7 @@ export async function getDefiLlamaYieldCandidates(options = {}) {
 
 export async function getDefiLlamaStablecoinCandidates(options = {}) {
   const limit = Number(options.limit || 100);
-  const response = await fetchJson("https://stablecoins.llama.fi/stablecoins?includePrices=true");
+  const response = await fetchJson("https://stablecoins.llama.fi/stablecoins?includePrices=true", options);
 
   return (response.peggedAssets || [])
     .slice(0, limit)
@@ -533,6 +533,25 @@ export async function getDefiLlamaStablecoinCandidates(options = {}) {
         description: `${asset.name || ""} ${asset.symbol || ""} stablecoin payments settlement DeFiLlama`,
       })
     );
+}
+
+export async function getDefiLlamaStablecoinSnapshot(options = {}) {
+  const response = await fetchJson(
+    options.baseUrl || "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+    options
+  );
+  const assets = Array.isArray(response?.peggedAssets) ? response.peggedAssets : [];
+  const totalSupplyUsd = assets.reduce((sum, asset) => {
+    const supply = nullableNumber(asset?.circulating?.peggedUSD);
+    return supply === null || supply < 0 ? sum : sum + supply;
+  }, 0);
+
+  return {
+    source: "defillama-stablecoins",
+    observedAt: options.now || new Date().toISOString(),
+    totalSupplyUsd: assets.length ? totalSupplyUsd : null,
+    assetCount: assets.length,
+  };
 }
 
 export async function getDexScreenerCommunityTakeoverCandidates(options = {}) {

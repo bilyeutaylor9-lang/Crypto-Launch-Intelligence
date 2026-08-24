@@ -1,0 +1,125 @@
+name: CLI 9-14 Future Intelligence Stack
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "11,41 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: future-intelligence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  future-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Intelligence Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-shadow-predictions.jsonl
+            data/autonomous-alpha-experiments.json
+            data/alpha-os-*.json*
+            data/ignition-*.json*
+            data/edge-candidate-universe.json
+          key: future-intelligence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            future-intelligence-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
+
+      - name: Refresh Existing Alpha OS
+        continue-on-error: true
+        run: npm run alpha:os
+
+      - name: Refresh Market Discovery
+        continue-on-error: true
+        run: npm run market:discover
+
+      - name: Capture Point-In-Time Market Context
+        continue-on-error: true
+        run: npm run market:context
+
+      - name: Run CLI 9-14 Future Intelligence
+        run: npm run future:intelligence
+
+      - name: Refresh Data Source Readiness
+        continue-on-error: true
+        run: npm run sources:readiness
+
+      - name: Run Future Intelligence Tests
+        run: npm run test:future-intelligence
+
+      - name: Save Append-Only Context And Forward Evidence
+        if: ${{ always() && (hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/market-context-observations.jsonl
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Intelligence Memory
+        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/production-shadow-predictions.jsonl
+            data/autonomous-alpha-experiments.json
+            data/alpha-os-*.json*
+            data/ignition-*.json*
+            data/edge-candidate-universe.json
+          key: future-intelligence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Future Intelligence Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: future-intelligence-${{ github.run_id }}
+          path: |
+            reports/future-intelligence-stack.json
+            reports/realtime-market-nervous-system.json
+            reports/market-microstructure-brain.json
+            reports/economic-entity-graph-v2.json
+            reports/cross-market-intelligence.json
+            reports/liquidity-weather-forecast.json
+            reports/capital-destination-v2.json
+            reports/self-optimizing-research.json
+            reports/alpha-memory-graph.json
+            reports/market-thesis.json
+            reports/market-context-capture.json
+            reports/data-source-readiness.json
+          if-no-files-found: warn
+          retention-days: 60

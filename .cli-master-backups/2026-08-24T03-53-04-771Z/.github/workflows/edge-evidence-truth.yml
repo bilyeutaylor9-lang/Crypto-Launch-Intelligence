@@ -1,0 +1,158 @@
+name: Edge Evidence Truth
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-dashboard-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evidence-truth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Restore Bounded Edge Evidence Memory
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+            data/committed-loaded-vacuum-replication-plan.json
+            data/ignition-executable-edge-canary-replays.jsonl
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-policy.json
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Probe Due Frozen Treatment And Control Outcomes
+        id: edge_evidence_probe
+        continue-on-error: true
+        run: npm run edge:evidence:probe
+        env:
+          EDGE_EVIDENCE_MAX_REQUESTS: 60
+          EDGE_EVIDENCE_CONCURRENCY: 4
+
+      - name: Observe Continuous Capital And Refresh Shadow Models
+        id: edge_acquisition
+        continue-on-error: true
+        run: npm run edge:acquire
+        env:
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+          IGNITION_CAPITAL_RADAR_LOOKBACK_MINUTES: 70
+          IGNITION_CAPITAL_RADAR_MAX_LOOKBACK_BLOCKS: 2400
+          IGNITION_CAPITAL_RADAR_CONTINUITY_MAX_LOOKBACK_BLOCKS: 12000
+          IGNITION_CAPITAL_RADAR_MAX_LOGS: 50000
+          IGNITION_CAPITAL_RADAR_MAX_WALLETS: 120
+          IGNITION_CAPITAL_RADAR_MAX_TRACKED_WALLETS: 160
+          IGNITION_CAPITAL_RADAR_MIN_TRANSFER_USD: 5000
+
+      - name: Validate Acquisition Health
+        if: always()
+        env:
+          EDGE_ACQUISITION_STEP_OUTCOME: ${{ steps.edge_acquisition.outcome }}
+          EDGE_ACQUISITION_MAX_REPORT_AGE_MINUTES: 30
+        run: npm run edge:acquisition:health
+
+      - name: Refresh Evidence Health And Research Loop
+        run: npm run edge:evidence:truth
+
+      - name: Save Bounded Edge Evidence Memory
+        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/*memory*.json*
+            data/scan-history.json*
+            data/market-opportunity-learning.json*
+            data/outcome-snapshots.json*
+            data/point-in-time-observations.json*
+            data/project-observations.jsonl
+            data/project-watchlist.json*
+            data/research-coverage-ledger.json*
+            data/source-router-memory.json*
+            data/universe-ledger.json*
+            data/watchtower-*.json*
+            data/edge-production-episodes.jsonl
+            data/edge-evidence-outcomes.jsonl
+            data/committed-loaded-vacuum-observations.jsonl
+            data/capital-commitment-episodes.jsonl
+            data/capital-path-learning-observations.jsonl
+            data/chain-capital-radar-observations.jsonl
+            data/edge-candidate-universe.json
+            data/prospective-entry-edge-episodes.jsonl
+            data/asymmetric-edge-observations.jsonl
+            data/asymmetric-edge-outcomes.json*
+            data/three-clock-edge-observations.jsonl
+            data/wallet-temporal-fingerprints.jsonl
+            data/ignition-twin-observations.jsonl
+            data/committed-loaded-vacuum-replication-plan.json
+            data/ignition-executable-edge-canary-replays.jsonl
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-policy.json
+            data/native-discovery/raw-events.json
+            data/native-discovery/confirmed-events.json
+            data/native-discovery/checkpoints.json
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload Edge Evidence Truth Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-evidence-truth-${{ github.run_id }}
+          path: |
+            reports/edge-evidence-probe.json
+            reports/edge-evidence-health.json
+            reports/edge-evidence-outcome-lab.json
+            reports/avoidance-edge-verification.json
+            reports/edge-failure-autopsy.json
+            reports/edge-mechanism-contrast.json
+            reports/edge-evidence-discovery-loop.json
+            reports/edge-research-autopilot.json
+            reports/prospective-entry-edge.json
+            reports/edge-acquisition-cycle.json
+            reports/acquisition-health-gate.json
+          if-no-files-found: error
+          retention-days: 30

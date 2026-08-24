@@ -1,5 +1,9 @@
 # Crypto Launch Intelligence
 
+Data-source implementation, configuration, and live-health truth are audited
+separately. See [Data Source Readiness](docs/DATA-SOURCE-READINESS.md) and run
+`npm run sources:readiness`; missing live evidence remains a production blocker.
+
 [![Node.js](https://img.shields.io/badge/node-24%20ready-45e08f)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live Dashboard](https://img.shields.io/badge/live-dashboard-5fb7ff)](https://bilyeutaylor9-lang.github.io/Crypto-Launch-Intelligence/)
@@ -45,6 +49,19 @@ This is not a simple token screener. It is a layered research system with:
 - Machine-readable institutional reports
 
 > Research software only. This project does not provide financial advice, trading advice, or guaranteed predictions. Every output should be manually verified before any real-world decision.
+
+## Forward Edge Truth
+
+The system does not infer edge from feature count or backtests. It freezes exact treatment candidates and same-chain matched controls before outcomes, collects exact future observations, grades net performance with clustered uncertainty, and evaluates the latest strategy fingerprint rather than selecting the best historical result. Predeclared sample checkpoints and alpha spending control repeated strategy search and optional stopping.
+
+```bash
+npm run production:shadow
+npm run outcomes:probe
+npm run production:grade
+npm run edge:verify
+```
+
+`edge:verify` is expected to exit non-zero until real forward sample, outcome-capture, execution-cost, match-quality, time-replication, return, hit-rate, and catastrophic-loss gates pass. Post-outcome control matching is diagnostic-only and cannot issue a certificate. See [`docs/FORWARD-EDGE-AUDIT.md`](docs/FORWARD-EDGE-AUDIT.md) for the full operating contract.
 
 ## Quick Start
 

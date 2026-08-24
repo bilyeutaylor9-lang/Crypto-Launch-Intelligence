@@ -176,6 +176,7 @@ test("probe candidate selection reads frozen episodes instead of scan memory", (
 
 test("probe saves exact frozen pool observation with provenance", async () => {
   let saved = [];
+  let exactSaved = [];
   const row = episode(1);
   const report = await runEdgeEvidenceProbe({
     now: "2026-01-01T07:00:00.000Z",
@@ -193,12 +194,18 @@ test("probe saves exact frozen pool observation with provenance", async () => {
       getTokenPairs: async () => [],
     },
     saveOutcomes: (outcomes) => { saved = outcomes; return { saved: outcomes.length }; },
+    saveExactObservations: (outcomes) => {
+      exactSaved = outcomes;
+      return { saved: outcomes.length, rejected: 0 };
+    },
     writeReport: false,
   });
   assert.equal(report.state, "EDGE_EVIDENCE_PROBE_PASS");
   assert.equal(saved[0].poolAddress, row.poolAddress);
   assert.equal(saved[0].provenance.verificationStatus, "EXACT_BASE_TOKEN_POOL_MATCH");
   assert.equal(saved[0].scoringOrSelectionAllowed, false);
+  assert.equal(report.exactLedgerObservationsSaved, 1);
+  assert.equal(exactSaved.length, 1);
 });
 
 test("probe rejects a mismatched provider token for the frozen pool", async () => {
@@ -234,6 +241,7 @@ test("probe enforces request budget across frozen routes", async () => {
       getTokenPairs: async () => [],
     },
     saveOutcomes: (outcomes) => ({ saved: outcomes.length }),
+    saveExactObservations: (outcomes) => ({ saved: outcomes.length, rejected: 0 }),
   });
   assert.equal(requests, 1);
   assert.equal(report.providerRequestsUsed, 1);

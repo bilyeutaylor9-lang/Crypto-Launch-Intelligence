@@ -21,6 +21,11 @@ function lower(value = "") {
   return clean(value).toLowerCase();
 }
 
+function chainAddress(value = "", chain = "") {
+  const address = clean(value);
+  return lower(chain) === "solana" ? address : address.toLowerCase();
+}
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -33,7 +38,8 @@ export function nativeEventId(event = {}) {
   if (event.eventId) return event.eventId;
 
   const chain = lower(event.chain || event.chainId || "unknown");
-  const tx = lower(event.transactionHash || event.signature || "pending");
+  const rawTx = clean(event.transactionHash || event.signature || "pending");
+  const tx = chain === "solana" ? rawTx : rawTx.toLowerCase();
   const index = event.eventIndex ?? event.logIndex ?? event.instructionIndex ?? event.innerInstructionIndex ?? 0;
   const source = lower(event.protocol || event.source || event.dex || "native");
 
@@ -41,25 +47,26 @@ export function nativeEventId(event = {}) {
 }
 
 export function normalizeNativeEvent(event = {}, defaults = {}) {
+  const chain = lower(event.chain || defaults.chain || "unknown");
   const normalized = {
     eventType: event.eventType || defaults.eventType || NATIVE_EVENT_TYPES.POOL_CREATED,
-    chain: lower(event.chain || defaults.chain || "unknown"),
+    chain,
     chainId: event.chainId || defaults.chainId || null,
     protocol: lower(event.protocol || defaults.protocol || "unknown"),
     protocolVersion: event.protocolVersion || defaults.protocolVersion || null,
     dex: event.dex || defaults.dex || event.protocol || defaults.protocol || "unknown",
-    factoryAddress: lower(event.factoryAddress || defaults.factoryAddress || ""),
-    poolAddress: lower(event.poolAddress || event.pairAddress || event.pool || ""),
-    tokenAddress: lower(event.tokenAddress || event.baseToken || event.baseTokenAddress || ""),
-    baseToken: lower(event.baseToken || event.tokenAddress || event.baseTokenAddress || ""),
-    quoteToken: lower(event.quoteToken || event.quoteTokenAddress || ""),
+    factoryAddress: chainAddress(event.factoryAddress || defaults.factoryAddress || "", chain),
+    poolAddress: chainAddress(event.poolAddress || event.pairAddress || event.pool || "", chain),
+    tokenAddress: chainAddress(event.tokenAddress || event.baseToken || event.baseTokenAddress || "", chain),
+    baseToken: chainAddress(event.baseToken || event.tokenAddress || event.baseTokenAddress || "", chain),
+    quoteToken: chainAddress(event.quoteToken || event.quoteTokenAddress || "", chain),
     feeTier: event.feeTier ?? defaults.feeTier ?? null,
     tickSpacing: event.tickSpacing ?? defaults.tickSpacing ?? null,
-    creator: lower(event.creator || event.deployer || event.owner || ""),
-    deployer: lower(event.deployer || event.creator || event.owner || ""),
+    creator: chainAddress(event.creator || event.deployer || event.owner || "", chain),
+    deployer: chainAddress(event.deployer || event.creator || event.owner || "", chain),
     blockNumber: event.blockNumber ?? defaults.blockNumber ?? null,
     slot: event.slot ?? defaults.slot ?? null,
-    transactionHash: lower(event.transactionHash || event.txHash || ""),
+    transactionHash: chainAddress(event.transactionHash || event.txHash || "", chain),
     signature: event.signature || "",
     eventIndex: event.eventIndex ?? event.logIndex ?? event.instructionIndex ?? 0,
     instructionIndex: event.instructionIndex ?? null,
@@ -81,6 +88,7 @@ export function normalizeNativeEvent(event = {}, defaults = {}) {
     deployerNetFlow: num(event.deployerNetFlow),
     liquidityChange: num(event.liquidityChange),
     evidenceConfidence: num(event.evidenceConfidence || defaults.evidenceConfidence || 55),
+    exactIdentityEvidence: event.exactIdentityEvidence || null,
     raw: event.raw || null,
   };
 

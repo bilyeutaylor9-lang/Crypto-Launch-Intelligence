@@ -1,7 +1,8 @@
 /node_modules/
 /reports/
 /data/
-/docs/
+/docs/*
+!/docs/DATA-SOURCE-READINESS.md
 /.test-artifact-backup-*/
 /.env
 /.env.local
