@@ -36,6 +36,9 @@ import { persistAlphaTruthMemory } from "./kernel/alphaTruthKernel.js";
 import { buildPipelineStageHealth } from "./kernel/pipelineReliabilityKernel.js";
 import { engineProfileReport } from "./config/engineProfileConfig.js";
 import { summarizeEvidenceFunnel } from "./kernel/evidenceFunnelSummary.js";
+import { runOutcomeProbe } from "./learning/outcomeProbe.js";
+import { runProductionShadowCycle } from "./ops/runProductionShadowCycle.js";
+import { runProductionGradeCycle } from "./ops/runProductionGradeCycle.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -49,6 +52,88 @@ function currentCodeCommitSha() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Freeze prospective, shadow-only cohorts after the scan has saved its exact
+ * candidate universe, then collect any horizon-due outcomes and grade only
+ * already-frozen episodes. This is deliberately outside the live ranking
+ * path: evidence capture must never change a scan's score, selection, or
+ * trading behavior.
+ */
+export async function runForwardEvidenceCapture(options = {}) {
+  const now = options.now || new Date().toISOString();
+  const enabled = options.enabled ??
+    String(process.env.FORWARD_EVIDENCE_CAPTURE_ENABLED || "true").toLowerCase() !== "false";
+  if (!enabled) {
+    return {
+      status: "DISABLED",
+      generatedAt: now,
+      automaticTrading: false,
+      automaticPromotion: false,
+      rankingInfluence: false,
+    };
+  }
+
+  const shadowCycle = options.runProductionShadowCycle || runProductionShadowCycle;
+  const outcomeProbe = options.runOutcomeProbe || runOutcomeProbe;
+  const gradeCycle = options.runProductionGradeCycle || runProductionGradeCycle;
+  const result = {
+    status: "COMPLETE",
+    generatedAt: now,
+    codeCommitSha: options.codeCommitSha || currentCodeCommitSha(),
+    shadow: null,
+    outcomeProbe: null,
+    grade: null,
+    errors: [],
+    automaticTrading: false,
+    automaticPromotion: false,
+    rankingInfluence: false,
+  };
+
+  try {
+    const shadow = await shadowCycle({
+      now,
+      codeCommitSha: result.codeCommitSha,
+      persistProspectiveCohorts: true,
+    });
+    result.shadow = {
+      state: shadow.prospectiveCohort?.state || "UNKNOWN",
+      treatmentsFrozen: shadow.prospectiveCohort?.audit?.treatmentsFrozen || 0,
+      controlsFrozen: shadow.prospectiveCohort?.audit?.controlsFrozen || 0,
+      exactMarketObservationsSaved: shadow.marketObservationAudit?.saved || 0,
+    };
+  } catch (error) {
+    result.errors.push({ stage: "PRODUCTION_SHADOW_CAPTURE", message: error.message });
+  }
+
+  try {
+    const probe = await outcomeProbe({ now });
+    result.outcomeProbe = {
+      status: probe.status || "UNKNOWN",
+      dueCandidates: probe.dueCandidates || 0,
+      duePredictions: probe.duePredictions || 0,
+      exactMarketObservationsSaved: probe.exactLedgerObservationsSaved || 0,
+      prospectiveEdgeDueCandidates: probe.prospectiveEdgeDueCandidates || 0,
+      prospectiveEntryEdgeEpisodesTracked: probe.prospectiveEntryEdgeEpisodesTracked || 0,
+      prospectiveEntryEdgeDueCandidates: probe.prospectiveEntryEdgeDueCandidates || 0,
+    };
+  } catch (error) {
+    result.errors.push({ stage: "FORWARD_OUTCOME_PROBE", message: error.message });
+  }
+
+  try {
+    const grade = await gradeCycle({ now });
+    result.grade = {
+      edgeState: grade.prospectiveEdge?.edgeState || "UNKNOWN",
+      resolvedMatchedPairs: grade.prospectiveEdge?.current?.sample?.resolvedMatchedPairs || 0,
+    };
+  } catch (error) {
+    result.errors.push({ stage: "PRODUCTION_FORWARD_GRADE", message: error.message });
+  }
+
+  if (result.errors.length) result.status = "PARTIAL_FAILURE";
+  return result;
 }
 
 function num(value = 0) {
@@ -961,6 +1046,14 @@ async function main() {
     };
     guardedLiveRanking = null;
     reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
+
+    // The pipeline has persisted the exact candidate universe by this point.
+    // Capture and grade forward evidence without allowing it to influence this
+    // scan's ranking, report selection, or any execution decision.
+    reportMeta.forwardEvidence = await runForwardEvidenceCapture({
+      now: completedAt,
+      codeCommitSha: reportMeta.codeCommitSha,
+    });
 
     const alphaTruth = persistAlphaTruthMemory(results, reportMeta);
     reportMeta.alphaTruth = alphaTruth.report;

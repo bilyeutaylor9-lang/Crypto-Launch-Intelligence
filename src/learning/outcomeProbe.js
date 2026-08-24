@@ -36,12 +36,17 @@ import {
   collectMarketContextSnapshot,
 } from "../production/marketContextSnapshotProvider.js";
 import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
+import { loadProspectiveEntryEdgeEpisodes } from "./prospectiveEntryEdgeEpisodeStore.js";
+import { PROSPECTIVE_ENTRY_EDGE_TRIALS } from "./prospectiveEntryEdgeTrialRegistry.js";
 
 const DEFAULT_HORIZONS = [1, 24, 168, 720];
 const DEFAULT_MAX_REQUESTS = 60;
 const DEFAULT_CONCURRENCY = 4;
 const DEFAULT_TIMEOUT_MS = 8_000;
 const REPORT_FILE = path.resolve("reports/outcome-probe.json");
+const PROSPECTIVE_ENTRY_ROLES = new Set(["TREATMENT", "CONTROL_MATCHED"]);
+const PROSPECTIVE_ENTRY_TREATMENT_PRIORITY = 140;
+const PROSPECTIVE_ENTRY_CONTROL_PRIORITY = 130;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -117,6 +122,78 @@ export function prospectiveCohortsToProbeMemory(episodes = []) {
   });
 }
 
+/**
+ * Convert only immutable, post-declaration entry-trial episodes into outcome
+ * probe work. These rows are evidence-collection instructions, not inputs to
+ * ranking, scoring, promotion, or order creation.
+ */
+export function prospectiveEntryEpisodesToProbeMemory(episodes = [], options = {}) {
+  const trials = Array.isArray(options.trials)
+    ? options.trials
+    : PROSPECTIVE_ENTRY_EDGE_TRIALS;
+  const trialsById = new Map(trials.map((trial) => [trial?.trialId, trial]));
+
+  return (Array.isArray(episodes) ? episodes : []).flatMap((episode) => {
+    const trial = trialsById.get(episode?.trialId);
+    const chain = normalizeChainId(episode?.chain);
+    const tokenAddress = normalizeTokenAddress(episode?.tokenAddress, chain);
+    const poolAddress = normalizePoolAddress(episode?.poolAddress, chain);
+    const canonicalIdentityKey = chain && tokenAddress ? `${chain}:${tokenAddress}` : null;
+    const declaredAtMs = Date.parse(trial?.declaredAt || "");
+    const signalObservedAtMs = Date.parse(episode?.signalObservedAt || "");
+    const declaredHorizonHours = Number(trial?.horizonHours);
+    const frozenHorizonHours = Number(episode?.outcomeHorizonHours);
+
+    if (
+      !trial ||
+      !PROSPECTIVE_ENTRY_ROLES.has(episode?.role) ||
+      episode?.exactIdentityFrozen !== true ||
+      episode?.postDeclaration !== true ||
+      !episode?.episodeId ||
+      !chain ||
+      !tokenAddress ||
+      !poolAddress ||
+      !canonicalIdentityKey ||
+      getOutcomeIdentityKey({ identityKey: episode.identityKey }) !== canonicalIdentityKey ||
+      Number(episode?.trialSchemaVersion) !== Number(trial.schemaVersion) ||
+      episode?.declaredAt !== trial.declaredAt ||
+      !Number.isFinite(declaredAtMs) ||
+      !Number.isFinite(signalObservedAtMs) ||
+      signalObservedAtMs < declaredAtMs ||
+      !(declaredHorizonHours > 0) ||
+      frozenHorizonHours !== declaredHorizonHours
+    ) return [];
+
+    const treatment = episode.role === "TREATMENT";
+    return [{
+      identityKey: canonicalIdentityKey,
+      chain,
+      tokenAddress,
+      poolAddress,
+      symbol: episode.symbol || null,
+      name: episode.name || null,
+      scannedAt: new Date(signalObservedAtMs).toISOString(),
+      outcomeHorizonsHours: [declaredHorizonHours],
+      forwardEvidencePriority: treatment
+        ? PROSPECTIVE_ENTRY_TREATMENT_PRIORITY
+        : PROSPECTIVE_ENTRY_CONTROL_PRIORITY,
+      prospectiveEntryEdgeTrialId: trial.trialId,
+      prospectiveEntryEdgeEpisodeId: episode.episodeId,
+      prospectiveEntryEdgeRole: episode.role,
+      prospectiveEntryEdgeDeclaredAt: trial.declaredAt,
+      prospectiveEntryEdgeOutcomeHorizonHours: declaredHorizonHours,
+      exactIdentityFrozen: true,
+      outcomeProbeOnly: true,
+      rankingInfluence: false,
+      scoringInfluence: false,
+      automaticTrading: false,
+      automaticPromotion: false,
+      realMoneyOrderCreated: false,
+      scores: { opportunity: 0 },
+    }];
+  });
+}
+
 export function selectOutcomeProbeCandidates(memory = [], snapshots = [], options = {}) {
   const now = new Date(options.now || Date.now());
   const nowMs = now.getTime();
@@ -167,6 +244,8 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
         symbol: record.symbol || latestSnapshotByKey.get(key)?.symbol || "Unknown",
         opportunityScore: num(record.scores?.opportunity || record.scores?.pipeline),
         forwardEvidencePriority: num(record.forwardEvidencePriority),
+        prospectiveEntryEdgeEpisodeIds: [],
+        prospectiveEntryEdgeRoles: [],
         duePredictions: [],
       };
 
@@ -177,7 +256,21 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
           predictionAt: record.scannedAt || new Date(scannedAtMs).toISOString(),
           targetAt: new Date(targetMs).toISOString(),
           maximumLatenessHours: toleranceHours,
+          prospectiveEntryEdgeEpisodeId: record.prospectiveEntryEdgeEpisodeId || null,
+          prospectiveEntryEdgeRole: record.prospectiveEntryEdgeRole || null,
         });
+      }
+      if (
+        record.prospectiveEntryEdgeEpisodeId &&
+        !current.prospectiveEntryEdgeEpisodeIds.includes(record.prospectiveEntryEdgeEpisodeId)
+      ) {
+        current.prospectiveEntryEdgeEpisodeIds.push(record.prospectiveEntryEdgeEpisodeId);
+      }
+      if (
+        record.prospectiveEntryEdgeRole &&
+        !current.prospectiveEntryEdgeRoles.includes(record.prospectiveEntryEdgeRole)
+      ) {
+        current.prospectiveEntryEdgeRoles.push(record.prospectiveEntryEdgeRole);
       }
       current.opportunityScore = Math.max(current.opportunityScore, num(record.scores?.opportunity));
       current.forwardEvidencePriority = Math.max(
@@ -346,14 +439,28 @@ function saveReport(report = {}, file = REPORT_FILE) {
 export async function runOutcomeProbe(options = {}) {
   const runId = options.runId || `outcome-probe-${Date.now()}`;
   const now = new Date(options.now || Date.now()).toISOString();
-  const scanMemory = options.memory || loadScanMemory();
+  const usingDefaultMemory = options.memory === undefined;
+  const scanMemory = usingDefaultMemory
+    ? (options.loadScanMemory || loadScanMemory)()
+    : (Array.isArray(options.memory) ? options.memory : []);
   const prospectiveEpisodes = options.prospectiveEpisodes !== undefined
     ? options.prospectiveEpisodes
-    : options.memory === undefined
-      ? loadProspectiveEdgeCohorts()
+    : usingDefaultMemory
+      ? (options.loadProspectiveEdgeCohorts || loadProspectiveEdgeCohorts)()
+      : [];
+  const prospectiveEntryEpisodes = options.prospectiveEntryEpisodes !== undefined
+    ? options.prospectiveEntryEpisodes
+    : usingDefaultMemory
+      ? (options.loadProspectiveEntryEdgeEpisodes || loadProspectiveEntryEdgeEpisodes)(
+          options.prospectiveEntryEpisodeStore || {}
+        )
       : [];
   const prospectiveMemory = prospectiveCohortsToProbeMemory(prospectiveEpisodes);
-  const memory = [...scanMemory, ...prospectiveMemory];
+  const prospectiveEntryMemory = prospectiveEntryEpisodesToProbeMemory(
+    prospectiveEntryEpisodes,
+    { trials: options.prospectiveEntryTrials }
+  );
+  const memory = [...scanMemory, ...prospectiveMemory, ...prospectiveEntryMemory];
   const existingExactObservations = options.exactObservations || loadExactMarketObservations();
   const snapshots = options.snapshots || [
     ...loadOutcomeSnapshots(),
@@ -455,6 +562,9 @@ export async function runOutcomeProbe(options = {}) {
           : "PARTIAL"
         : "PROVIDER_DEGRADED",
     scoringOrSelectionAllowed: false,
+    rankingInfluence: false,
+    automaticTrading: false,
+    automaticPromotion: false,
     identityPolicy: "EXACT_CHAIN_TOKEN_WITH_OPTIONAL_EXACT_POOL",
     dueCandidates: candidates.length,
     duePredictions: candidates.reduce(
@@ -491,6 +601,17 @@ export async function runOutcomeProbe(options = {}) {
     prospectiveEdgeDueCandidates: candidates.filter(
       (candidate) => candidate.forwardEvidencePriority > 0
     ).length,
+    prospectiveEntryEdgeEpisodesTracked: prospectiveEntryMemory.length,
+    prospectiveEntryEdgeDueCandidates: candidates.filter(
+      (candidate) => candidate.prospectiveEntryEdgeEpisodeIds.length > 0
+    ).length,
+    prospectiveEntryEdgeDuePredictions: candidates.reduce(
+      (sum, candidate) => sum + candidate.duePredictions.filter(
+        (prediction) => prediction.prospectiveEntryEdgeEpisodeId
+      ).length,
+      0
+    ),
+    prospectiveEntryEdgePolicy: "Only immutable, post-declaration, exact chain-token-pool treatment/control episodes at their registry-declared horizon are probed; the probe cannot influence ranking, promotion, or trading.",
     unresolvedCandidates: Math.max(0, candidates.length - observations.length),
     outcomesByHorizon: Object.fromEntries(
       parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS).map(
