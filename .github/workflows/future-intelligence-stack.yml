@@ -50,6 +50,7 @@ jobs:
         with:
           path: |
             data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
@@ -64,11 +65,30 @@ jobs:
         continue-on-error: true
         run: npm run market:discover
 
+      - name: Capture Point-In-Time Market Context
+        continue-on-error: true
+        run: npm run market:context
+
       - name: Run CLI 9-14 Future Intelligence
         run: npm run future:intelligence
 
+      - name: Refresh Data Source Readiness
+        continue-on-error: true
+        run: npm run sources:readiness
+
       - name: Run Future Intelligence Tests
         run: npm run test:future-intelligence
+
+      - name: Save Append-Only Context And Forward Evidence
+        if: ${{ always() && (hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            data/market-context-observations.jsonl
+            data/production-market-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Intelligence Memory
         if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
@@ -99,5 +119,7 @@ jobs:
             reports/self-optimizing-research.json
             reports/alpha-memory-graph.json
             reports/market-thesis.json
+            reports/market-context-capture.json
+            reports/data-source-readiness.json
           if-no-files-found: warn
           retention-days: 60

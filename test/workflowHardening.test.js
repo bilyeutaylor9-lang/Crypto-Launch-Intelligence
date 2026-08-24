@@ -145,6 +145,7 @@ test("forward evidence writers share an isolated exact append-only cache", () =>
   ];
   const expectedPaths = [
     "data/production-market-observations.jsonl",
+    "data/market-context-observations.jsonl",
     "data/prospective-edge-cohorts.jsonl",
   ];
   for (const workflowPath of workflowPaths) {
@@ -184,10 +185,12 @@ test("future intelligence workflow preserves exact memory and refuses empty cach
 
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /data\/production-market-observations\.jsonl/);
+  assert.match(workflow, /data\/market-context-observations\.jsonl/);
   assert.match(workflow, /data\/prospective-edge-cohorts\.jsonl/);
   assert.match(workflow, /data\/edge-candidate-universe\.json/);
   assert.match(workflow, /run:\s*npm run alpha:os/);
   assert.match(workflow, /run:\s*npm run market:discover/);
+  assert.match(workflow, /run:\s*npm run market:context/);
   assert.match(workflow, /run:\s*npm run future:intelligence/);
   assert.match(workflow, /run:\s*npm run test:future-intelligence/);
   assert.match(

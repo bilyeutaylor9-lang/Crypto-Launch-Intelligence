@@ -71,6 +71,7 @@ jobs:
         with:
           path: |
             data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |

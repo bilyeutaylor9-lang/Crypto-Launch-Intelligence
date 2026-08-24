@@ -26,6 +26,15 @@ import {
   appendExactMarketObservations,
   loadExactMarketObservations,
 } from "../production/exactMarketObservationLedger.js";
+import {
+  appendMarketContextObservations,
+  buildMarketContextObservation,
+  loadMarketContextObservations,
+} from "../production/marketContextObservationLedger.js";
+import {
+  attachMarketContext,
+  collectMarketContextSnapshot,
+} from "../production/marketContextSnapshotProvider.js";
 import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
 
 const DEFAULT_HORIZONS = [1, 24, 168, 720];
@@ -266,6 +275,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       status: "OBSERVED",
       observation: {
         ...pair,
+        observedAt,
         name: pair.name || candidate.name,
         symbol: pair.symbol || candidate.symbol,
         chain: candidate.chain,
@@ -344,9 +354,10 @@ export async function runOutcomeProbe(options = {}) {
       : [];
   const prospectiveMemory = prospectiveCohortsToProbeMemory(prospectiveEpisodes);
   const memory = [...scanMemory, ...prospectiveMemory];
+  const existingExactObservations = options.exactObservations || loadExactMarketObservations();
   const snapshots = options.snapshots || [
     ...loadOutcomeSnapshots(),
-    ...loadExactMarketObservations(),
+    ...existingExactObservations,
   ];
   const maxRequests = Number(
     options.maxRequests || process.env.OUTCOME_PROBE_MAX_REQUESTS || DEFAULT_MAX_REQUESTS
@@ -386,7 +397,42 @@ export async function runOutcomeProbe(options = {}) {
       consumeProviderRequest,
     })
   );
-  const observations = results.map((result) => result.observation).filter(Boolean);
+  let observations = results.map((result) => result.observation).filter(Boolean);
+  let marketContext = null;
+  let marketContextSaveResult = { saved: 0, rejected: 0 };
+  const shouldCollectMarketContext =
+    observations.length > 0 &&
+    options.collectMarketContext !== false &&
+    (typeof options.marketContextProvider === "function" || options.providers === undefined);
+  if (shouldCollectMarketContext) {
+    try {
+      const rawContext = await (options.marketContextProvider || collectMarketContextSnapshot)({
+        now,
+        providers: options.marketContextProviders,
+        previousContext: options.marketContextObservations || loadMarketContextObservations(),
+        previousExactObservations: existingExactObservations,
+        currentExactObservations: observations,
+        timeoutMs: options.marketContextTimeoutMs,
+      });
+      marketContext = buildMarketContextObservation(rawContext, { now, asOf: now });
+      if (marketContext) {
+        marketContextSaveResult = (options.saveMarketContextObservations || appendMarketContextObservations)(
+          [marketContext],
+          { ...(options.marketContextStore || {}), now, asOf: now }
+        );
+        observations = attachMarketContext(observations, marketContext);
+      }
+    } catch (error) {
+      marketContext = {
+        observedAt: now,
+        state: "CONTEXT_CAPTURE_FAILED",
+        error: error?.message || "Unknown market-context provider failure",
+        pointInTimeVerified: false,
+        scoringOrSelectionAllowed: false,
+        automaticTrading: false,
+      };
+    }
+  }
   const saveResult = observations.length
     ? (options.saveSnapshots || saveOutcomeSnapshots)(observations)
     : { saved: 0 };
@@ -420,6 +466,27 @@ export async function runOutcomeProbe(options = {}) {
     observationsSaved: num(saveResult.saved),
     exactLedgerObservationsSaved: num(exactSaveResult.saved),
     exactLedgerObservationsRejected: num(exactSaveResult.rejected),
+    marketContextCapture: marketContext
+      ? {
+          state: marketContext.state,
+          observationKey: marketContext.observationKey || null,
+          pointInTimeVerified: marketContext.pointInTimeVerified === true,
+          unavailableFields: marketContext.unavailableFields || [],
+          error: marketContext.error || null,
+        }
+      : {
+          state: observations.length
+            ? options.providers !== undefined && !options.marketContextProvider
+              ? "NOT_REQUESTED_WITH_INJECTED_TEST_PROVIDERS"
+              : "NOT_REQUESTED"
+            : "NO_EXACT_OBSERVATIONS",
+          observationKey: null,
+          pointInTimeVerified: false,
+          unavailableFields: [],
+          error: null,
+        },
+    marketContextObservationsSaved: num(marketContextSaveResult.saved),
+    marketContextObservationsRejected: num(marketContextSaveResult.rejected),
     prospectiveEdgeEpisodesTracked: prospectiveMemory.length,
     prospectiveEdgeDueCandidates: candidates.filter(
       (candidate) => candidate.forwardEvidencePriority > 0

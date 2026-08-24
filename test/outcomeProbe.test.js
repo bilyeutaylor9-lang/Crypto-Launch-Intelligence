@@ -154,6 +154,49 @@ test("outcome probe saves only an exact chain-token-pool match with provenance",
   assert.equal(saved[0].outcomeObservationProvenance.confidence, 1);
 });
 
+test("outcome probe attaches and persists point-in-time market context separately from request budget", async () => {
+  let exactSaved = [];
+  let contextSaved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1],
+    memory: [memoryRecord()],
+    snapshots: [],
+    exactObservations: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [providerPair()] }),
+      getTokenPairs: async () => [],
+    },
+    marketContextProvider: async ({ now }) => ({
+      observedAt: now,
+      state: "PARTIAL_POINT_IN_TIME_CONTEXT",
+      pointInTimeVerified: true,
+      btcReturnPct: 2,
+      stablecoinSupplyUsd: 100,
+      stablecoinNetFlowUsd: null,
+      fieldProvenance: { btcReturnPct: "test:observed" },
+      providerHealth: { test: { status: "OBSERVED" } },
+    }),
+    saveSnapshots: (observations) => ({ saved: observations.length }),
+    saveExactObservations: (observations) => {
+      exactSaved = observations;
+      return { saved: observations.length, rejected: 0 };
+    },
+    saveMarketContextObservations: (observations) => {
+      contextSaved = observations;
+      return { saved: observations.length, rejected: 0 };
+    },
+    writeReport: false,
+  });
+
+  assert.equal(report.providerRequestsUsed, 1);
+  assert.equal(report.marketContextObservationsSaved, 1);
+  assert.equal(report.marketContextCapture.pointInTimeVerified, true);
+  assert.equal(contextSaved.length, 1);
+  assert.equal(exactSaved[0].btcReturnPct, 2);
+  assert.equal(exactSaved[0].marketContextPointInTimeVerified, true);
+});
+
 test("outcome probe rejects a provider response for another exact token", async () => {
   const report = await runOutcomeProbe({
     now: "2026-01-01T01:30:00.000Z",

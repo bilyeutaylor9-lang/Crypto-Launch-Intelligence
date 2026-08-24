@@ -1,5 +1,9 @@
 # Crypto Launch Intelligence
 
+Data-source implementation, configuration, and live-health truth are audited
+separately. See [Data Source Readiness](docs/DATA-SOURCE-READINESS.md) and run
+`npm run sources:readiness`; missing live evidence remains a production blocker.
+
 [![Node.js](https://img.shields.io/badge/node-24%20ready-45e08f)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live Dashboard](https://img.shields.io/badge/live-dashboard-5fb7ff)](https://bilyeutaylor9-lang.github.io/Crypto-Launch-Intelligence/)

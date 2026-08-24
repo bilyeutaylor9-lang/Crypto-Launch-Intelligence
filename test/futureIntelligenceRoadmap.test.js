@@ -197,6 +197,41 @@ test("unified future stack quarantines symbol-only candidates and future observa
   assert.equal(result.marketThesis.bestFittingCandidates.length, 1);
 });
 
+test("unified future stack joins only earlier point-in-time market context", () => {
+  const result = runFutureIntelligenceStack({
+    now: "2026-08-24T02:00:00Z",
+    universe: { candidates: [{ chain: "base", tokenAddress: A, poolAddress: P }] },
+    marketObservations: [{
+      chain: "base", tokenAddress: A, poolAddress: P,
+      observedAt: "2026-08-24T01:00:00Z", priceUsd: 1,
+    }],
+    marketContextObservations: [
+      {
+        observationKey: "earlier",
+        observedAt: "2026-08-24T00:30:00Z",
+        pointInTimeVerified: true,
+        btcReturnPct: 2,
+        btcVolatilityPct: 3,
+        stablecoinNetFlowUsd: 1_000_000,
+      },
+      {
+        observationKey: "future",
+        observedAt: "2026-08-24T01:30:00Z",
+        pointInTimeVerified: true,
+        btcReturnPct: 99,
+      },
+    ],
+    events: [],
+    shadow: { rows: [] },
+    alphaOS: {},
+    marketDiscovery: { routes: [] },
+    writeReports: false,
+  });
+  assert.equal(result.identityHealth.marketContextFieldSamples.btcReturnPct, 1);
+  assert.equal(result.liquidityWeather.drivers.stablecoin, 1_000_000);
+  assert.equal(result.liquidityWeather.drivers.volatility, 3);
+});
+
 test("market thesis stays low-confidence with no route, factors, or candidates", () => {
   const thesis = generateMarketThesis({
     liquidityWeather: { state: "NEUTRAL", expansionProbability: 0.5 },

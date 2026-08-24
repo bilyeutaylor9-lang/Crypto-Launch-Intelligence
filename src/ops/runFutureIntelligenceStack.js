@@ -18,6 +18,8 @@ import { buildAlphaMemoryGraph } from "../production/alphaMemoryGraph.js";
 import { generateMarketThesis } from "../production/marketThesisGenerator.js";
 import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 import { strictIdentity, timestamp } from "../production/productionMath.js";
+import { attachMarketContext } from "../production/marketContextSnapshotProvider.js";
+import { loadMarketContextObservations } from "../production/marketContextObservationLedger.js";
 
 function readJson(file, fallback = {}) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; }
@@ -50,12 +52,27 @@ export function runFutureIntelligenceStack(options = {}) {
     return identity ? [{ ...candidate, ...identity }] : [];
   });
   const rawLedger = options.marketObservations || readJsonl("data/production-market-observations.jsonl");
+  const rawMarketContext = options.marketContextObservations || loadMarketContextObservations();
   const cutoffMs = timestamp(now);
+  const pointInTimeContext = (Array.isArray(rawMarketContext) ? rawMarketContext : [])
+    .filter((row) => {
+      const observedMs = timestamp(row.observedAt || row.timestamp);
+      return observedMs !== null && (cutoffMs === null || observedMs <= cutoffMs) && row.pointInTimeVerified === true;
+    })
+    .sort((left, right) => timestamp(left.observedAt || left.timestamp) - timestamp(right.observedAt || right.timestamp));
+  const maximumContextAgeMs = Math.max(1, Number(options.maximumMarketContextAgeHours || 6)) * 60 * 60 * 1000;
   const exactLedger = (Array.isArray(rawLedger) ? rawLedger : []).flatMap((row) => {
     const identity = strictIdentity(row);
     const observedMs = timestamp(row.observedAt || row.timestamp || row.outcomeObservedAt);
     if (!identity || observedMs === null || (cutoffMs !== null && observedMs > cutoffMs)) return [];
-    return [{ ...row, ...identity }];
+    if (row.marketContextPointInTimeVerified === true) return [{ ...row, ...identity }];
+    const context = [...pointInTimeContext].reverse().find((candidate) => {
+      const contextMs = timestamp(candidate.observedAt || candidate.timestamp);
+      const keyMatch = row.marketContextObservationKey && candidate.observationKey === row.marketContextObservationKey;
+      return contextMs !== null && contextMs <= observedMs && (keyMatch || observedMs - contextMs <= maximumContextAgeMs);
+    });
+    const enriched = context ? attachMarketContext([{ ...row, ...identity }], context)[0] : { ...row, ...identity };
+    return [enriched];
   });
   const shadow = options.shadow || readJson("reports/production-shadow-ranking.json", { rows: [] });
   const alphaOS = options.alphaOS || readJson("reports/autonomous-alpha-os.json", {});
@@ -136,8 +153,8 @@ export function runFutureIntelligenceStack(options = {}) {
     futureReturnPct: row.returnPct ?? row.realizedReturnPct,
     btcReturnPct: row.btcReturnPct,
     ethReturnPct: row.ethReturnPct,
-    btcVolatility: row.btcVolatility,
-    stablecoinFlowUsd: row.stablecoinFlowUsd,
+    btcVolatility: row.btcVolatility ?? row.btcVolatilityPct,
+    stablecoinFlowUsd: row.stablecoinFlowUsd ?? row.stablecoinNetFlowUsd,
     perpFundingRate: row.perpFundingRate,
     openInterestChangePct: row.openInterestChangePct,
     liquidationUsd: row.liquidationUsd,
@@ -145,6 +162,13 @@ export function runFutureIntelligenceStack(options = {}) {
   }));
   const crossMarket = learnCrossMarketRelevance(crossRows, { now });
   const liquidityWeather = forecastLiquidityWeather(exactLedger, { now, horizonHours: 12 });
+  const marketContextCoverage = Object.fromEntries([
+    "btcReturnPct", "ethReturnPct", "btcVolatilityPct", "stablecoinNetFlowUsd",
+    "perpFundingRate", "openInterestChangePct", "liquidationUsd", "marketBreadthPct",
+    "bridgeNetFlowUsd", "dexVolumeChangePct", "liquidityChangePct",
+  ].map((field) => [field, exactLedger.filter((row) =>
+    row[field] !== null && row[field] !== undefined && row[field] !== "" && Number.isFinite(Number(row[field]))
+  ).length]));
 
   const existingRoutes = marketDiscovery.capitalRoutes || marketDiscovery.routes || [];
   const capitalDestination = forecastCapitalDestinations(existingRoutes, candidateRows, { now });
@@ -199,6 +223,9 @@ export function runFutureIntelligenceStack(options = {}) {
       marketObservations: Array.isArray(rawLedger) ? rawLedger.length : 0,
       exactPointInTimeMarketObservations: exactLedger.length,
       rejectedMarketObservations: (Array.isArray(rawLedger) ? rawLedger.length : 0) - exactLedger.length,
+      marketContextObservations: Array.isArray(rawMarketContext) ? rawMarketContext.length : 0,
+      exactPointInTimeMarketContextObservations: pointInTimeContext.length,
+      marketContextFieldSamples: marketContextCoverage,
       symbolOrNameFallbackAllowed: false,
     },
     policy: {

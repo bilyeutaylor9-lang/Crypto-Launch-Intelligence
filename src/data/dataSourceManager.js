@@ -675,6 +675,25 @@ export const SOURCE_STATUS = {
   }
 };
 
+const DECLARED_ONLY_SOURCES = new Set([
+  "coinMarketCap",
+  "dexTools",
+  "messari",
+  "mobula",
+  "solscan",
+  "npm",
+  "reddit",
+  "googleTrends",
+  "telegram",
+  "discord",
+  "honeypotChecker",
+  "tokenSniffer",
+  "debank",
+  "zerion",
+  "arkham",
+  "nansen",
+]);
+
 function normalize(value = "") {
   return String(value || "").trim();
 }
@@ -702,11 +721,14 @@ function hasRequiredKey(config = {}) {
 
 function cloneSourceConfig(name, config = {}) {
   const envPresent = hasRequiredKey(config);
+  const implemented = !DECLARED_ONLY_SOURCES.has(name);
 
   return {
     name,
-    enabled: Boolean(config.enabled && envPresent),
+    enabled: Boolean(config.enabled && envPresent && implemented),
     configuredEnabled: Boolean(config.enabled),
+    implemented,
+    implementationStatus: implemented ? "IMPLEMENTED" : "DECLARED_ONLY_NO_EXECUTOR",
     requiresKey: Boolean(config.requiresKey),
     hasKey: envPresent,
     envKey: config.envKey || null,
@@ -838,6 +860,16 @@ export function enableSource(sourceName = "") {
   }
 
   const key = config.name;
+  if (DECLARED_ONLY_SOURCES.has(key)) {
+    return {
+      status: "IMPLEMENTATION_MISSING",
+      source: key,
+      enabled: false,
+      requiresKey: Boolean(SOURCE_STATUS[key].requiresKey),
+      envKey: SOURCE_STATUS[key].envKey || null,
+      message: `${key} is declared for future integration but has no executable connector.`
+    };
+  }
   SOURCE_STATUS[key].enabled = true;
 
   const hasKey = hasRequiredKey(SOURCE_STATUS[key]);
@@ -962,7 +994,7 @@ export function clearSourceHealth(sourceName = "") {
 export function getMissingApiKeys() {
   return Object.entries(SOURCE_STATUS)
     .map(([name, config]) => cloneSourceConfig(name, config))
-    .filter(source => source.requiresKey && source.configuredEnabled && !source.hasKey)
+    .filter(source => source.implemented && source.requiresKey && source.configuredEnabled && !source.hasKey)
     .map(source => ({
       source: source.name,
       envKey: source.envKey,
@@ -973,7 +1005,7 @@ export function getMissingApiKeys() {
 export function getAvailableApiKeys() {
   return Object.entries(SOURCE_STATUS)
     .map(([name, config]) => cloneSourceConfig(name, config))
-    .filter(source => source.requiresKey && source.hasKey)
+    .filter(source => source.implemented && source.requiresKey && source.hasKey)
     .map(source => ({
       source: source.name,
       envKey: source.envKey,
@@ -1028,7 +1060,8 @@ export function buildSourceExecutionPlan(options = {}) {
         category: source.category,
         requiresKey: source.requiresKey,
         hasKey: source.hasKey,
-        envKey: source.envKey
+        envKey: source.envKey,
+        implementationStatus: source.implementationStatus
       })),
     missingApiKeys: getMissingApiKeys(),
     health: getSourceHealth()
@@ -1050,6 +1083,14 @@ export function getSourcePlan(options = {}) {
     }),
     missingApiKeys: getMissingApiKeys(),
     availableApiKeys: getAvailableApiKeys(),
+    declaredOnlySources: getAllSources({ includeDisabled: true })
+      .filter(source => !source.implemented)
+      .map(source => ({
+        source: source.name,
+        category: source.category,
+        envKey: source.envKey,
+        implementationStatus: source.implementationStatus,
+      })),
     executionPlan: buildSourceExecutionPlan(options),
     health: getSourceHealth()
   };

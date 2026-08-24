@@ -22,6 +22,7 @@ export function runProductionReadiness() {
   const reproducibility = read("reports/reproducibility-audit.json");
   const backupRestore = read("reports/backup-restore-audit.json");
   const faultInjection = read("reports/fault-injection-audit.json");
+  const sourceReadiness = read("reports/data-source-readiness.json");
 
   const report = evaluateProductionReadiness({
     environment,
@@ -41,6 +42,7 @@ export function runProductionReadiness() {
     reproducibility,
     backupRestore,
     faultInjection,
+    sourceReadiness,
   });
   writeAtomicJson("reports/production-readiness.json", report);
   return report;

@@ -50,6 +50,10 @@ jobs:
       - name: Production Shadow
         run: npm run production:shadow
 
+      - name: Data Source Readiness
+        continue-on-error: true
+        run: npm run sources:readiness
+
       - name: Grade Mature Shadow Evidence
         run: npm run production:grade
 
@@ -84,6 +88,7 @@ jobs:
           name: production-verification-${{ github.run_id }}
           path: |
             reports/live-environment-audit.json
+            reports/data-source-readiness.json
             reports/backup-restore-audit.json
             reports/fault-injection-audit.json
             reports/exact-identity-health.json

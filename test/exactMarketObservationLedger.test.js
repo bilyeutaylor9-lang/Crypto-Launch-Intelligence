@@ -67,6 +67,33 @@ test("exact market ledger rejects observations from the future and can enforce f
   }));
 });
 
+test("exact market ledger persists only point-in-time market context", () => {
+  const row = {
+    chain: "base",
+    tokenAddress: TOKEN,
+    poolAddress: POOL,
+    priceUsd: 1.25,
+    observedAt: "2026-08-23T12:00:00Z",
+    marketContextObservedAt: "2026-08-23T12:00:00Z",
+    marketContextPointInTimeVerified: true,
+    marketContextObservationKey: "context-1",
+    btcReturnPct: 2,
+    stablecoinNetFlowUsd: 100,
+  };
+  const accepted = buildExactMarketObservation(row, { asOf: row.observedAt });
+  assert.equal(accepted.marketContextPointInTimeVerified, true);
+  assert.equal(accepted.btcReturnPct, 2);
+  assert.equal(accepted.stablecoinFlowUsd, 100);
+
+  const rejectedContext = buildExactMarketObservation({
+    ...row,
+    marketContextObservedAt: "2026-08-23T12:01:00Z",
+    btcReturnPct: 99,
+  }, { asOf: "2026-08-23T12:01:00Z" });
+  assert.equal(rejectedContext.marketContextPointInTimeVerified, false);
+  assert.equal(rejectedContext.btcReturnPct, null);
+});
+
 test("shadow outcome truth cannot link two symbol-only rows", () => {
   const prediction = { chain: "base", symbol: "SAME", decisionAt: "2026-08-23T00:00:00Z", priceUsd: 1 };
   const outcome = { chain: "base", symbol: "SAME", observedAt: "2026-08-24T00:10:00Z", priceUsd: 2 };

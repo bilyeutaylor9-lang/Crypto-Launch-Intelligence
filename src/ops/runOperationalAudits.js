@@ -12,6 +12,7 @@ import { runReproducibilityAudit } from "./runReproducibilityAudit.js";
 import { loadEdgeCandidateUniverse } from "../data/edgeCandidateUniverseStore.js";
 import { loadEdgeProductionEpisodes } from "../learning/edgeProductionEpisodeStore.js";
 import { loadEdgeEvidenceOutcomes } from "../learning/edgeEvidenceOutcomeStore.js";
+import { runDataSourceReadiness } from "./runDataSourceReadiness.js";
 
 export async function runOperationalAudits(options = {}) {
   const environment = await runLiveEnvironmentAudit({
@@ -46,6 +47,10 @@ export async function runOperationalAudits(options = {}) {
   });
 
   const reproducibility = runReproducibilityAudit();
+  const sourceReadiness = runDataSourceReadiness({
+    env: options.env || process.env,
+    writeReport: true,
+  });
 
   return {
     environment,
@@ -57,6 +62,7 @@ export async function runOperationalAudits(options = {}) {
     identityHealth,
     outcomeHealth,
     reproducibility,
+    sourceReadiness,
   };
 }
 
@@ -73,6 +79,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       identity: report.identityHealth.state,
       outcomes: report.outcomeHealth.state,
       reproducibility: report.reproducibility.state,
+      dataSources: report.sourceReadiness.state,
     }, null, 2));
     if (
       report.environment.state !== "ENVIRONMENT_READY" ||
@@ -82,7 +89,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       report.backupRestore.pass !== true ||
       report.faultInjection.pass !== true ||
       report.security.pass !== true ||
-      report.reproducibility.pass !== true
+      report.reproducibility.pass !== true ||
+      report.sourceReadiness.liveReady !== true
     ) {
       process.exitCode = 2;
     }

@@ -10,6 +10,7 @@ const DEFAULT_PATHS = Object.freeze([
   "data/edge-fast-outcomes.jsonl",
   "data/edge-candidate-universe.json",
   "data/production-market-observations.jsonl",
+  "data/market-context-observations.jsonl",
   "data/prospective-edge-cohorts.jsonl",
   "data/ignition-twin-observations.jsonl",
   "data/ignition-genome-history.json",

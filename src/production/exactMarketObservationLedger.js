@@ -51,14 +51,19 @@ export function buildExactMarketObservation(row = {}, options = {}) {
 
   const source = String(options.source || row.source || "production-observation-ledger");
   const observationKey = stableHash([
-    "PRODUCTION_MARKET_OBSERVATION_V1",
+    "PRODUCTION_MARKET_OBSERVATION_V2",
     identity.routeKey,
     new Date(observedMs).toISOString(),
     source,
   ].join("|"));
+  const marketContextMs = timestamp(row.marketContextObservedAt);
+  const marketContextPointInTimeVerified =
+    marketContextMs !== null &&
+    marketContextMs <= observedMs &&
+    row.marketContextPointInTimeVerified === true;
 
   const observation = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     observationKey,
     observedAt: new Date(observedMs).toISOString(),
     source,
@@ -74,6 +79,49 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     marketCapUsd: finite(row.marketCapUsd ?? row.marketCap ?? row.circulatingMarketCapUsd ?? row.marketData?.marketCap),
     volume24hUsd: finite(row.volume24hUsd ?? row.volume24h ?? row.dexVolume24hUsd ?? row.marketData?.volume24h),
     globalMarketRegimeState: row.globalMarketRegimeState || row.marketRegime || null,
+    marketContextObservationKey: marketContextPointInTimeVerified
+      ? row.marketContextObservationKey || null
+      : null,
+    marketContextObservedAt: marketContextPointInTimeVerified
+      ? new Date(marketContextMs).toISOString()
+      : null,
+    marketContextState: marketContextPointInTimeVerified ? row.marketContextState || null : null,
+    btcReturnPct: marketContextPointInTimeVerified ? finite(row.btcReturnPct) : null,
+    ethReturnPct: marketContextPointInTimeVerified ? finite(row.ethReturnPct) : null,
+    btcVolatility: marketContextPointInTimeVerified
+      ? finite(row.btcVolatility ?? row.btcVolatilityPct)
+      : null,
+    btcVolatilityPct: marketContextPointInTimeVerified
+      ? finite(row.btcVolatilityPct ?? row.btcVolatility)
+      : null,
+    stablecoinSupplyUsd: marketContextPointInTimeVerified ? finite(row.stablecoinSupplyUsd) : null,
+    stablecoinFlowUsd: marketContextPointInTimeVerified
+      ? finite(row.stablecoinFlowUsd ?? row.stablecoinNetFlowUsd)
+      : null,
+    stablecoinNetFlowUsd: marketContextPointInTimeVerified
+      ? finite(row.stablecoinNetFlowUsd ?? row.stablecoinFlowUsd)
+      : null,
+    perpFundingRate: marketContextPointInTimeVerified ? finite(row.perpFundingRate) : null,
+    openInterestUsd: marketContextPointInTimeVerified ? finite(row.openInterestUsd) : null,
+    openInterestChangePct: marketContextPointInTimeVerified ? finite(row.openInterestChangePct) : null,
+    liquidationUsd: marketContextPointInTimeVerified ? finite(row.liquidationUsd) : null,
+    bridgeNetFlowUsd: marketContextPointInTimeVerified ? finite(row.bridgeNetFlowUsd) : null,
+    dexVolumeChangePct: marketContextPointInTimeVerified ? finite(row.dexVolumeChangePct) : null,
+    liquidityChangePct: marketContextPointInTimeVerified ? finite(row.liquidityChangePct) : null,
+    marketBreadthPct: marketContextPointInTimeVerified ? finite(row.marketBreadthPct) : null,
+    marketBreadthSampleSize: marketContextPointInTimeVerified
+      ? Math.max(0, Number(row.marketBreadthSampleSize || 0))
+      : 0,
+    dexVolumeChangeSampleSize: marketContextPointInTimeVerified
+      ? Math.max(0, Number(row.dexVolumeChangeSampleSize || 0))
+      : 0,
+    liquidityChangeSampleSize: marketContextPointInTimeVerified
+      ? Math.max(0, Number(row.liquidityChangeSampleSize || 0))
+      : 0,
+    marketContextFieldProvenance: marketContextPointInTimeVerified && row.marketContextFieldProvenance
+      ? row.marketContextFieldProvenance
+      : {},
+    marketContextPointInTimeVerified,
     exactIdentityVerified: true,
     scoringOrSelectionAllowed: false,
   };

@@ -21,6 +21,7 @@ export function evaluateProductionReadiness(inputs = {}, options = {}) {
   const reproducible = inputs.reproducibility?.pass === true;
   const restore = inputs.backupRestore?.pass === true;
   const faultInjection = inputs.faultInjection?.pass === true;
+  const sourceReadiness = inputs.sourceReadiness || {};
 
   const gates = [
     pass("LIVE_ENVIRONMENT", environment.state === "ENVIRONMENT_READY", environment.state, "ENVIRONMENT_READY"),
@@ -39,6 +40,8 @@ export function evaluateProductionReadiness(inputs = {}, options = {}) {
     pass("REPRODUCIBILITY", reproducible, reproducible, true),
     pass("BACKUP_RESTORE", restore, restore, true),
     pass("FAULT_INJECTION", faultInjection, faultInjection, true),
+    pass("DATA_SOURCE_CODE_COVERAGE", sourceReadiness.criticalCodeComplete === true, sourceReadiness.state, "criticalCodeComplete=true"),
+    pass("DATA_SOURCE_LIVE_HEALTH", sourceReadiness.liveReady === true, sourceReadiness.state, "DATA_SOURCES_LIVE"),
     pass("CHALLENGER_FORWARD_SAMPLE", Number(challenger.samples || 0) >= Number(options.minimumForwardSamples || 200), challenger.samples, ">=200"),
     pass("CHALLENGER_GOVERNANCE", challenger.state === "CHAMPION_ELIGIBLE", challenger.state, "CHAMPION_ELIGIBLE"),
     pass("NO_AUTOMATIC_PROMOTION", challenger.automaticPromotion !== true, challenger.automaticPromotion, "false"),

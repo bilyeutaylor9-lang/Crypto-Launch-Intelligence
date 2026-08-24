@@ -63,6 +63,7 @@ jobs:
         with:
           path: |
             data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
@@ -110,12 +111,13 @@ jobs:
           key: alpha-os-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Append-Only Forward Evidence
-        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: |
             data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
