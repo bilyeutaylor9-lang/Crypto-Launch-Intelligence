@@ -37,6 +37,9 @@ const PUBLIC_REPORTS = [
   "avoidance-edge-verification.json",
   "prospective-entry-edge.json",
   "edge-acquisition-cycle.json",
+  "forward-alpha-validation-os.json",
+  "cli15-promotion-gate.json",
+  "cli15-multi-horizon-evidence.json",
   "pre-pump-patterns.json",
   "institutional-vnext.json",
   "state-of-art-signals.json",
@@ -778,7 +781,12 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         "The top candidates are too closely ranked or lack enough independent evidence.";
   const links = copiedFiles
     .filter((fileName) => fileName !== "report.html")
-    .map((fileName) => `<a href="./${fileName}">${fileName}</a>`)
+    .map(
+      (fileName) =>
+        `<a data-report-link href="./${fileName}"><span>${escapeHtml(fileName)}</span><small>${escapeHtml(
+          fileName.split(".").pop()?.toUpperCase() || "FILE"
+        )}</small></a>`
+    )
     .join("");
   const cards = [
     ["Projects", report.totalProjects ?? 0],
@@ -1057,39 +1065,105 @@ function writeLandingPage(copiedFiles = [], options = {}) {
   <style>
     :root {
       color-scheme: dark;
-      --bg: #071015;
-      --panel: #101b23;
-      --panel-2: #142532;
+      --bg: #071014;
+      --panel: rgba(14, 27, 35, 0.94);
+      --panel-2: #12242e;
       --text: #edf7f2;
-      --muted: #94a8b0;
-      --line: #24404f;
+      --muted: #9bb0b8;
+      --line: #213e4a;
       --green: #45e08f;
       --blue: #5fb7ff;
       --amber: #f2bd55;
       --red: #ff6b6b;
+      --shadow: 0 18px 55px rgba(0, 0, 0, 0.22);
     }
 
     * {
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 78% -10%, rgba(95, 183, 255, 0.12), transparent 32rem),
+        radial-gradient(circle at 12% 0%, rgba(69, 224, 143, 0.09), transparent 28rem),
+        var(--bg);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     header {
       border-bottom: 1px solid var(--line);
-      padding: 24px clamp(18px, 4vw, 42px);
+      padding: 22px clamp(18px, 4vw, 42px) 18px;
+      background: rgba(7, 16, 20, 0.78);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
     }
 
     h1 {
       margin: 0;
       font-size: clamp(26px, 4vw, 46px);
       letter-spacing: 0;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .published {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      padding-top: 8px;
+    }
+
+    nav {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 16px;
+      padding-bottom: 1px;
+    }
+
+    nav a {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+      padding: 7px 10px;
+      border-radius: 999px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    nav a:hover,
+    nav a:focus-visible {
+      color: var(--text);
+      background: var(--panel-2);
+      outline: none;
     }
 
     .subtitle {
@@ -1109,9 +1183,12 @@ function writeLandingPage(copiedFiles = [], options = {}) {
 
     .panel {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 16px;
       background: var(--panel);
-      padding: 18px;
+      padding: clamp(16px, 2.2vw, 24px);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      scroll-margin-top: 150px;
     }
 
     .panel h2,
@@ -1127,14 +1204,14 @@ function writeLandingPage(copiedFiles = [], options = {}) {
 
     .metrics {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 10px;
       margin-top: 16px;
     }
 
     .metric {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 12px;
       background: var(--panel-2);
       padding: 12px;
       min-height: 76px;
@@ -1159,6 +1236,8 @@ function writeLandingPage(copiedFiles = [], options = {}) {
 
     main {
       padding: 22px clamp(18px, 4vw, 42px) 42px;
+      width: min(1540px, 100%);
+      margin: 0 auto;
     }
 
     .toolbar {
@@ -1191,11 +1270,19 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       align-items: center;
       min-height: 38px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 10px;
       background: var(--panel);
       padding: 8px 12px;
       text-decoration: none;
       font-size: 14px;
+      transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+    }
+
+    .button:hover,
+    .links a:hover {
+      border-color: var(--blue);
+      background: #142a36;
+      transform: translateY(-1px);
     }
 
     .button.primary {
@@ -1260,10 +1347,84 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     }
 
     .links {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
       gap: 10px;
-      flex-wrap: wrap;
       margin-top: 18px;
+    }
+
+    .links a {
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .links a span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .links a small {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .report-search {
+      width: min(520px, 100%);
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #0a171e;
+      color: var(--text);
+      padding: 10px 13px;
+      font: inherit;
+    }
+
+    .report-search:focus {
+      border-color: var(--blue);
+      outline: 3px solid rgba(95, 183, 255, 0.13);
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .quick-link {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-2);
+      padding: 14px;
+      text-decoration: none;
+    }
+
+    .quick-link strong,
+    .quick-link span {
+      display: block;
+    }
+
+    .quick-link span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+
+    details {
+      border-top: 1px solid var(--line);
+      margin-top: 18px;
+      padding-top: 16px;
+    }
+
+    summary {
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
     }
 
     .subsection {
@@ -1296,6 +1457,13 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       color: var(--muted);
       background: var(--panel-2);
       font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:hover td {
+      background: rgba(95, 183, 255, 0.035);
     }
 
     tr:last-child td {
@@ -1320,16 +1488,47 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       iframe {
         height: 72vh;
       }
+
+      header {
+        position: relative;
+      }
+
+      .brand-row {
+        display: block;
+      }
+
+      .published {
+        white-space: normal;
+      }
+
+      .panel {
+        scroll-margin-top: 16px;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Crypto Launch Intelligence</h1>
-    <div class="subtitle">Live high-upside research board. Research output only, not financial advice, and never a profit guarantee.</div>
+    <div class="header-inner">
+      <div class="brand-row">
+        <div>
+          <div class="eyebrow">Live research desk</div>
+          <h1>Crypto Launch Intelligence</h1>
+          <div class="subtitle">Guarded opportunity research with evidence, route, and execution checks. Research only—never a profit guarantee.</div>
+        </div>
+        <div class="published">Updated ${escapeHtml(generatedAt)}</div>
+      </div>
+      <nav aria-label="Dashboard sections">
+        <a href="#overview">Overview</a>
+        <a href="#research">Research lanes</a>
+        <a href="#system-health">System health</a>
+        <a href="#measured-edge">Measured edge</a>
+        <a href="#report-library">Report library</a>
+      </nav>
+    </div>
   </header>
   <main>
-    <section class="panel hero-panel">
+    <section class="panel hero-panel" id="overview">
       <div class="section-heading">
         <div>
           <h2>Guarded Live Top 10</h2>
@@ -1359,7 +1558,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
     </section>
     ${renderResearchWorthyBoard(researchWorthyBoard)}
     ${renderDailyCapitalSlate(dailyCapital, dailyRecovery, evidenceFunnel)}
-    <section class="panel">
+    <section class="panel" id="research">
       <div class="section-heading">
         <div>
           <h2>High-Upside Scalp</h2>
@@ -1405,7 +1604,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
       </div>
       ${renderScalpCandidateTable(topTenBoard, "Top 10 Current Research")}
     </section>
-    <section class="panel">
+    <section class="panel" id="system-health">
       <h2>Scan Truth</h2>
       <div class="metrics">
         <div class="metric compact"><div class="metric-value">${escapeHtml(dataStarvation.externalDataMissing ?? 0)}</div><div class="metric-label">External Missing</div></div>
@@ -1416,7 +1615,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(engineHealthReport.runtime?.executedEngines ?? 0)}</div><div class="metric-label">Engines Executed</div></div>
       </div>
     </section>
-    <section class="panel">
+    <section class="panel" id="measured-edge">
       <div class="section-heading">
         <div>
           <h2>Measured Edge</h2>
@@ -1444,7 +1643,33 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(edgeAcquisition.preparedWallets ?? 0)}</div><div class="metric-label">Prepared Wallets Observed</div></div>
       </div>
     </section>
-    <div class="toolbar">
+    <section class="panel" id="report-library">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Artifacts &amp; evidence</div>
+          <h2>Report Library</h2>
+          <p>Start with a focused view below, or search the complete publication set when you need the underlying evidence.</p>
+        </div>
+      </div>
+      <div class="quick-links">
+        <a class="quick-link" href="./report.html"><strong>Full dashboard</strong><span>Complete generated analysis and project detail.</span></a>
+        <a class="quick-link" href="./live-core-ranking.json"><strong>Guarded ranking</strong><span>Current candidates after strict qualification gates.</span></a>
+        <a class="quick-link" href="./daily-capital-move.json"><strong>Daily capital slate</strong><span>Today’s most decision-relevant research lane.</span></a>
+        <a class="quick-link" href="./system-readiness.json"><strong>System readiness</strong><span>Pipeline health and trust-state evidence.</span></a>
+        ${
+          copiedFiles.includes("forward-alpha-validation-os.json")
+            ? '<a class="quick-link" href="./forward-alpha-validation-os.json"><strong>Forward alpha validation</strong><span>Multi-horizon evidence and promotion-gate status.</span></a>'
+            : ""
+        }
+      </div>
+      <input class="report-search" id="report-search" type="search" placeholder="Search reports…" aria-label="Search published reports" />
+      <details id="all-reports">
+        <summary>Browse all ${copiedFiles.length - (copiedFiles.includes("report.html") ? 1 : 0)} published artifacts</summary>
+        <div class="links" id="report-links">${links}</div>
+        <p class="empty" id="no-report-results" hidden>No reports match that search.</p>
+      </details>
+    </section>
+    <div class="toolbar legacy-toolbar" hidden>
       <div class="status">Last published: ${generatedAt}</div>
       <div class="actions">
         <a class="button primary" href="./report.html">Open Full Dashboard</a>
@@ -1540,8 +1765,24 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <a class="button" href="./alerts.json">Alerts</a>
       </div>
     </div>
-    <div class="links">${links}</div>
   </main>
+  <script>
+    const reportSearch = document.querySelector("#report-search");
+    const reportDetails = document.querySelector("#all-reports");
+    const reportLinks = [...document.querySelectorAll("[data-report-link]")];
+    const noReportResults = document.querySelector("#no-report-results");
+    reportSearch?.addEventListener("input", () => {
+      const query = reportSearch.value.trim().toLowerCase();
+      let visible = 0;
+      for (const link of reportLinks) {
+        const matches = !query || link.textContent.toLowerCase().includes(query);
+        link.hidden = !matches;
+        if (matches) visible += 1;
+      }
+      noReportResults.hidden = visible !== 0;
+      if (query) reportDetails.open = true;
+    });
+  </script>
 </body>
 </html>
 `.trim();

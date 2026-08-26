@@ -3,6 +3,7 @@
 /data/
 /docs/*
 !/docs/DATA-SOURCE-READINESS.md
+!/docs/CLI-15-FORWARD-ALPHA-VALIDATION.md
 /.test-artifact-backup-*/
 /.env
 /.env.local

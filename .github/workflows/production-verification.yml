@@ -40,6 +40,7 @@ jobs:
           npm run test:alpha-os
           npm run test:market-discovery
           npm run test:future-intelligence
+          npm run test:cli15
           npm run test:edge-adaptive
 
       - name: Existing Provider And Backtest Integrity
@@ -65,6 +66,9 @@ jobs:
           npm run alpha:os
           npm run market:discover
           npm run future:intelligence
+
+      - name: CLI 15.0 Forward Alpha Validation OS
+        run: npm run cli15:validate
 
       - name: CLI 1.0 Forward Edge Verification
         continue-on-error: true
@@ -124,5 +128,8 @@ jobs:
             reports/self-optimizing-research.json
             reports/alpha-memory-graph.json
             reports/market-thesis.json
+            reports/forward-alpha-validation-os.json
+            reports/cli15-promotion-gate.json
+            reports/cli15-multi-horizon-evidence.json
           if-no-files-found: warn
           retention-days: 30
