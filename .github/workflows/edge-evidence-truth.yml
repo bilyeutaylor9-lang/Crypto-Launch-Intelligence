@@ -33,42 +33,14 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
-          path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
+          path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
 
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
@@ -82,6 +54,13 @@ jobs:
           restore-keys: |
             forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
             forward-evidence-${{ runner.os }}-
+
+      - name: Restore Durable Forward Evidence
+        run: npm run forward:evidence:restore
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
 
       - name: Probe Due Frozen Treatment And Control Outcomes
         id: edge_evidence_probe
@@ -106,6 +85,7 @@ jobs:
           IGNITION_CAPITAL_RADAR_MIN_TRANSFER_USD: 5000
 
       - name: Validate Acquisition Health
+        id: acquisition_health
         if: always()
         continue-on-error: true
         env:
@@ -130,43 +110,28 @@ jobs:
         run: npm run edge:research:synthesis
 
       - name: Save Bounded Edge Evidence Memory
-        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
+        if: always()
+        id: state_pack
+        continue-on-error: true
+        run: npm run state:pack -- --require-exact-universe
+
+      - name: Save Canonical Scanner State Bundle
+        if: steps.state_pack.outcome == 'success'
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
-          path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
+          path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Sync Durable Forward Evidence
+        if: always()
+        id: forward_evidence_sync
+        continue-on-error: true
+        run: npm run forward:evidence:sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
 
       - name: Save Append-Only Forward Evidence
         if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
@@ -178,6 +143,12 @@ jobs:
             data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Enforce Acquisition Operational Truth
+        if: always()
+        id: operational_truth
+        continue-on-error: true
+        run: npm run operations:truth -- --scope edge-truth
 
       - name: Upload Edge Evidence Truth Reports
         if: always()
@@ -200,5 +171,25 @@ jobs:
             reports/ignition-genome.json
             reports/edge-research-priority.json
             reports/edge-signal-darwinism.json
+            reports/operational-truth-gate.json
+            reports/forward-evidence-remote-sync.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Enforce Truthful Workflow Result
+        if: always()
+        env:
+          ACQUISITION_HEALTH: ${{ steps.acquisition_health.outcome }}
+          OPERATIONAL_TRUTH: ${{ steps.operational_truth.outcome }}
+          FORWARD_EVIDENCE_SYNC: ${{ steps.forward_evidence_sync.outcome }}
+          STATE_PACK: ${{ steps.state_pack.outcome }}
+        run: |
+          failed=0
+          for check in ACQUISITION_HEALTH OPERATIONAL_TRUTH FORWARD_EVIDENCE_SYNC STATE_PACK; do
+            value="${!check}"
+            if [ "$value" != "success" ]; then
+              echo "::error::$check finished with $value"
+              failed=1
+            fi
+          done
+          exit "$failed"

@@ -22,8 +22,8 @@ export async function runRemotePersistenceAudit(options = {}) {
     } else {
       const started = Date.now();
       const { error } = await supabase.client
-        .from("capital_flow_observations")
-        .select("observation_key")
+        .from("forward_evidence_records")
+        .select("ledger_name,record_id,content_hash")
         .limit(1);
       report = {
         schemaVersion: 1,
@@ -37,6 +37,8 @@ export async function runRemotePersistenceAudit(options = {}) {
           error: error?.message || null,
         },
         destructiveWritePerformed: false,
+        auditedTable: "forward_evidence_records",
+        appendOnlyEvidenceLedger: !error,
       };
     }
   } catch (error) {

@@ -40,7 +40,7 @@ for (const workflowPath of WORKFLOW_PATHS) {
     assert.match(workflow, /run:\s*npm run smoke:scanner/);
     assert.match(
       workflow,
-      /SUPABASE_ENABLED:\s*\$\{\{ vars\.SUPABASE_ENABLED \|\| secrets\.SUPABASE_ENABLED \|\| 'false' \}\}/,
+      /SUPABASE_ENABLED:\s*\$\{\{ vars\.SUPABASE_ENABLED \|\| secrets\.SUPABASE_ENABLED \|\| '(?:false|true)' \}\}/,
     );
     assert.match(
       workflow,
@@ -76,18 +76,30 @@ test("only the live dashboard workflow schedules or runs full scans on main push
   assert.match(live, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
 });
 
-test("live dashboard restores bounded learning and defers final health verdict until deployment", () => {
+test("live dashboard runs shadow capture from the fresh scan and defers final health verdict until deployment", () => {
   const workflow = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
 
   assert.match(workflow, /actions\/cache\/restore@v5/);
   assert.match(workflow, /actions\/cache\/save@v5/);
-  assert.match(workflow, /data\/scan-history\.json\*/);
-  assert.match(workflow, /data\/native-discovery\/checkpoints\.json/);
+  assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
+  assert.match(workflow, /run: npm run state:restore/);
+  assert.match(workflow, /run: npm run state:pack -- --require-exact-universe/);
+  const scan = workflow.indexOf("Run Intelligence Scanner");
+  const shadow = workflow.indexOf("Run Production Shadow From Fresh Scan");
+  const truth = workflow.indexOf("Enforce Fresh Exact Shadow Handoff");
+  assert.ok(shadow > scan);
+  assert.ok(truth > shadow);
+  assert.match(workflow, /run: npm run production:shadow/);
+  assert.match(workflow, /run: npm run operations:truth -- --scope dashboard-shadow/);
+  assert.match(workflow, /IGNITION_EXECUTABLE_QUOTE_ENDPOINT: \$\{\{ secrets\.IGNITION_EXECUTABLE_QUOTE_ENDPOINT \}\}/);
+  assert.match(workflow, /run: npm run forward:evidence:sync/);
   assert.match(workflow, /id:\s*semantic_health/);
   assert.match(workflow, /id:\s*report_contracts/);
   assert.match(workflow, /health:\s*\n\s*name: Verify Scan And Deployment Health/);
   assert.match(workflow, /needs: \[build, deploy\]/);
   assert.match(workflow, /DEPLOY:\s*\$\{\{ needs\.deploy\.result \}\}/);
+  assert.match(workflow, /PRODUCTION_SHADOW:\s*\$\{\{ needs\.build\.outputs\.production_shadow \}\}/);
+  assert.match(workflow, /OPERATIONAL_TRUTH:\s*\$\{\{ needs\.build\.outputs\.operational_truth \}\}/);
 });
 
 test("hourly outcome probe is bounded, exact-only, and never launches a full scan", () => {
@@ -101,39 +113,56 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_MAX_CANDIDATES:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_CONCURRENCY:\s*4/);
-  assert.match(workflow, /data\/scan-history\.json\*/);
-  assert.match(workflow, /data\/outcome-snapshots\.json\*/);
+  assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
+  assert.match(workflow, /run: npm run state:restore/);
+  assert.match(workflow, /run: npm run state:pack -- --require-exact-universe/);
 });
 
-test("learning workflows share one cache signature and never save without an exact universe", () => {
+test("every scanner-learning cache uses one validated canonical artifact", () => {
   const workflowPaths = [
     ".github/workflows/pages-dashboard.yml",
     ".github/workflows/outcome-probe.yml",
     ".github/workflows/edge-evidence-truth.yml",
     ".github/workflows/edge-lab.yml",
+    ".github/workflows/edge-fast-evidence.yml",
+    ".github/workflows/edge-verification-program.yml",
+    ".github/workflows/production-shadow.yml",
+    ".github/workflows/autonomous-alpha-os.yml",
+    ".github/workflows/pages-dashboard.yml",
+    ".github/workflows/future-intelligence-stack.yml",
+    ".github/workflows/market-discovery-os.yml",
+    ".github/workflows/future-intelligence-stack.yml",
   ];
-  let expectedPaths = null;
 
   for (const workflowPath of workflowPaths) {
     const workflow = fs.readFileSync(workflowPath, "utf8");
-    const allCachePaths = [...workflow.matchAll(
-      /uses: actions\/cache\/(?:restore|save)@v5[\s\S]*?path: \|\n((?:\s{12}data\/.*\n)+)/g,
-    )].map((match) => match[1].trim().split("\n").map((line) => line.trim()));
-    const cachePaths = allCachePaths.filter((paths) =>
-      paths.includes("data/edge-candidate-universe.json")
-    );
-
-    assert.equal(cachePaths.length, 2, `${workflowPath} must have one restore and one save path set`);
-    assert.deepEqual(cachePaths[1], cachePaths[0], `${workflowPath} restore/save cache paths drifted`);
-    expectedPaths ??= cachePaths[0];
-    assert.deepEqual(cachePaths[0], expectedPaths, `${workflowPath} cannot share scanner-learning caches`);
-    assert.ok(cachePaths[0].includes("data/edge-candidate-universe.json"));
-    assert.equal(cachePaths[0].includes("data/production-market-observations.jsonl"), false);
-    assert.match(
-      workflow,
-      /if: \$\{\{ always\(\) && hashFiles\('data\/edge-candidate-universe\.json'\) != '' \}\}\n\s+continue-on-error: true\n\s+uses: actions\/cache\/save@v5/,
-    );
+    const scannerBlocks = [...workflow.matchAll(
+      /uses: actions\/cache\/(?:restore|save)@v5[\s\S]*?(?=\n\s{6}- name:|$)/g,
+    )]
+      .map((match) => match[0])
+      .filter((block) => /key: scanner-learning-/.test(block));
+    assert.ok(scannerBlocks.length >= 1, `${workflowPath} must restore canonical scanner state`);
+    for (const block of scannerBlocks) {
+      assert.match(block, /path: \.state\/scanner-learning-bundle\.json\.gz/, `${workflowPath} cache version drifted`);
+    }
+    assert.match(workflow, /run: npm run state:restore/);
   }
+});
+
+test("fast evidence runs after a successful dashboard instead of every five minutes", () => {
+  const workflow = fs.readFileSync(".github/workflows/edge-fast-evidence.yml", "utf8");
+  assert.doesNotMatch(workflow, /\*\/5 \* \* \* \*/);
+  assert.match(workflow, /workflow_run:/);
+  assert.match(workflow, /workflows: \["Live Dashboard"\]/);
+  assert.match(workflow, /workflow_run\.conclusion == 'success'/);
+});
+
+test("edge evidence truth cannot mask acquisition infrastructure failure", () => {
+  const workflow = fs.readFileSync(".github/workflows/edge-evidence-truth.yml", "utf8");
+  assert.match(workflow, /id: acquisition_health/);
+  assert.match(workflow, /run: npm run operations:truth -- --scope edge-truth/);
+  assert.match(workflow, /ACQUISITION_HEALTH: \$\{\{ steps\.acquisition_health\.outcome \}\}/);
+  assert.match(workflow, /OPERATIONAL_TRUTH: \$\{\{ steps\.operational_truth\.outcome \}\}/);
 });
 
 test("forward evidence writers share an isolated exact append-only cache", () => {

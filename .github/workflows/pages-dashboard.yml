@@ -22,6 +22,10 @@ jobs:
     timeout-minutes: 180
     outputs:
       scanner: ${{ steps.scanner.outcome }}
+      production_shadow: ${{ steps.production_shadow.outcome }}
+      operational_truth: ${{ steps.operational_truth.outcome }}
+      state_pack: ${{ steps.state_pack.outcome }}
+      forward_evidence_sync: ${{ steps.forward_evidence_sync.outcome }}
       qualification_microscope: ${{ steps.qualification_microscope.outcome }}
       engine_audit: ${{ steps.engine_audit.outcome }}
       readiness: ${{ steps.readiness.outcome }}
@@ -46,47 +50,40 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Restore Bounded Learning Memory
+      - name: Restore Canonical Scanner State Bundle
         id: learning_cache_restore
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
-          path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
+          path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
+
+      - name: Restore Append-Only Forward Evidence Cache
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
+
+      - name: Restore Durable Forward Evidence
+        run: npm run forward:evidence:restore
+        env:
+          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'true' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
 
       - name: Run Intelligence Scanner
         id: scanner
@@ -146,6 +143,10 @@ jobs:
           IGNITION_RAW_SENSORS_ENABLED: ${{ vars.IGNITION_RAW_SENSORS_ENABLED || 'true' }}
           IGNITION_CHAIN_CAPITAL_RADAR_ENABLED: ${{ vars.IGNITION_CHAIN_CAPITAL_RADAR_ENABLED || 'true' }}
           IGNITION_RAW_SENSOR_MAX_PROJECTS: ${{ vars.IGNITION_RAW_SENSOR_MAX_PROJECTS || '8' }}
+          IGNITION_EXECUTABLE_QUOTE_ENDPOINT: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_ENDPOINT }}
+          IGNITION_EXECUTABLE_QUOTE_BEARER: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_BEARER }}
+          IGNITION_EXECUTABLE_QUOTE_PROVIDER: ${{ vars.IGNITION_EXECUTABLE_QUOTE_PROVIDER }}
+          FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD: ${{ vars.FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD || '100' }}
           ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
           ETHEREUM_WS_URL: ${{ secrets.ETHEREUM_WS_URL }}
           BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
@@ -180,7 +181,7 @@ jobs:
           SOLANA_RAYDIUM_CLMM_PROGRAM: ${{ secrets.SOLANA_RAYDIUM_CLMM_PROGRAM }}
           SOLANA_METEORA_DBC_PROGRAM: ${{ secrets.SOLANA_METEORA_DBC_PROGRAM }}
           SOLANA_METEORA_DLMM_PROGRAM: ${{ secrets.SOLANA_METEORA_DLMM_PROGRAM }}
-          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'false' }}
+          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'true' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
@@ -195,44 +196,58 @@ jobs:
         continue-on-error: true
         run: npm run qualification:microscope
 
-      - name: Save Bounded Learning Memory
-        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
+      - name: Run Production Shadow From Fresh Scan
+        id: production_shadow
+        if: steps.scanner.outcome == 'success'
+        continue-on-error: true
+        run: npm run production:shadow
+        env:
+          IGNITION_EXECUTABLE_QUOTE_ENDPOINT: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_ENDPOINT }}
+          IGNITION_EXECUTABLE_QUOTE_BEARER: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_BEARER }}
+          IGNITION_EXECUTABLE_QUOTE_PROVIDER: ${{ vars.IGNITION_EXECUTABLE_QUOTE_PROVIDER }}
+          FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD: ${{ vars.FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD || '100' }}
+
+      - name: Enforce Fresh Exact Shadow Handoff
+        id: operational_truth
+        if: always()
+        continue-on-error: true
+        run: npm run operations:truth -- --scope dashboard-shadow
+
+      - name: Sync Durable Forward Evidence
+        id: forward_evidence_sync
+        if: always()
+        continue-on-error: true
+        run: npm run forward:evidence:sync
+        env:
+          SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'true' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+
+      - name: Pack Canonical Scanner State Bundle
+        id: state_pack
+        if: steps.scanner.outcome == 'success'
+        continue-on-error: true
+        run: npm run state:pack -- --require-exact-universe
+
+      - name: Save Canonical Scanner State Bundle
+        if: steps.state_pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: .state/scanner-learning-bundle.json.gz
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Append-Only Forward Evidence Cache
+        if: ${{ always() && (hashFiles('data/production-market-observations.jsonl') != '' || hashFiles('data/market-context-observations.jsonl') != '' || hashFiles('data/prospective-edge-cohorts.jsonl') != '') }}
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
-          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Run Full Engine Health Audit
         id: engine_audit
@@ -315,6 +330,10 @@ jobs:
       - name: Enforce truthful final health
         env:
           SCANNER: ${{ needs.build.outputs.scanner }}
+          PRODUCTION_SHADOW: ${{ needs.build.outputs.production_shadow }}
+          OPERATIONAL_TRUTH: ${{ needs.build.outputs.operational_truth }}
+          STATE_PACK: ${{ needs.build.outputs.state_pack }}
+          FORWARD_EVIDENCE_SYNC: ${{ needs.build.outputs.forward_evidence_sync }}
           QUALIFICATION_MICROSCOPE: ${{ needs.build.outputs.qualification_microscope }}
           ENGINE_AUDIT: ${{ needs.build.outputs.engine_audit }}
           READINESS: ${{ needs.build.outputs.readiness }}
@@ -326,7 +345,7 @@ jobs:
           DEPLOY: ${{ needs.deploy.result }}
         run: |
           failed=0
-          for check in SCANNER QUALIFICATION_MICROSCOPE ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
+          for check in SCANNER PRODUCTION_SHADOW OPERATIONAL_TRUTH STATE_PACK FORWARD_EVIDENCE_SYNC QUALIFICATION_MICROSCOPE ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
             value="${!check}"
             if [ "$value" != "success" ]; then
               echo "::error::$check finished with $value"

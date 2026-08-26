@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: future-intelligence-${{ github.ref }}
+  group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -42,7 +42,19 @@ jobs:
           key: future-intelligence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             future-intelligence-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Canonical Scanner State Bundle
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: .state/scanner-learning-bundle.json.gz
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
 
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
@@ -56,6 +68,13 @@ jobs:
           restore-keys: |
             forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
             forward-evidence-${{ runner.os }}-
+
+      - name: Restore Durable Forward Evidence
+        run: npm run forward:evidence:restore
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
 
       - name: Refresh Existing Alpha OS
         continue-on-error: true
@@ -85,10 +104,18 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: |
-            data/market-context-observations.jsonl
             data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Sync Durable Forward Evidence
+        if: always()
+        run: npm run forward:evidence:sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
 
       - name: Save Intelligence Memory
         if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}

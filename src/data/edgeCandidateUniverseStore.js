@@ -184,8 +184,11 @@ export function saveEdgeCandidateUniverse(projects = [], options = {}) {
   const payload = {
     schemaVersion: 1,
     generatedAt: new Date(options.now || Date.now()).toISOString(),
-    scanRunId: projects.find((project) => project?.scanRunId || project?.runId)?.scanRunId || null,
-    codeCommitSha: process.env.GITHUB_SHA || null,
+    scanRunId: projects.find((project) => project?.scanRunId || project?.runId)?.scanRunId ||
+      projects.find((project) => project?.runId)?.runId ||
+      null,
+    workflowRunId: options.workflowRunId ?? process.env.GITHUB_RUN_ID ?? null,
+    codeCommitSha: options.codeCommitSha ?? process.env.GITHUB_SHA ?? null,
     exactCandidates: descriptors.length,
     exactCandidatesWithSourceTimestamp: descriptors.filter((row) => row.sourceObservedAt).length,
     candidates: descriptors,

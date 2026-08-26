@@ -750,6 +750,17 @@ SUPABASE_SYNC_ALPHA_RECEIPTS=true
 
 `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` is required for scanner writes because the scan tables use RLS. `SUPABASE_PUBLISHABLE_KEY` is useful for public dashboard/read clients, but by itself it is not enough for production scan sync.
 
+The same server key backs the immutable `forward_evidence_records` ledger. Scheduled workflows restore that ledger before research and sync new exact observations afterward; GitHub Actions caches are only an acceleration layer. Verify the two directions locally with:
+
+```bash
+npm run forward:evidence:restore
+npm run forward:evidence:sync
+```
+
+For live evidence collection, also configure the `BASE_RPC_URL` and `IGNITION_EXECUTABLE_QUOTE_ENDPOINT` GitHub secrets. The quote endpoint is read-only and must return paired BUY/SELL evidence; the application never submits an order.
+
+If Supabase point-in-time recovery is enabled and tested, record that external fact with the GitHub variables `PRODUCTION_REMOTE_BACKUP_VERIFIED=true`, `PRODUCTION_REMOTE_BACKUP_PROVIDER`, and `PRODUCTION_REMOTE_BACKUP_VERIFIED_AT`. Do not set the attestation until a real restore test has passed.
+
 Check configuration without exposing secrets:
 
 ```bash
