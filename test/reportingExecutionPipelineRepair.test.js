@@ -716,6 +716,12 @@ test("public dashboard validates reports and contains no literal N/A", () => {
     "debug-execution-proof.json": { stageMetadata: { attemptedCandidates: 2, verifiedCandidates: 0 } },
     "debug-stage-health.json": { stageStatus: "COMPLETE", executionChecksVerified: 0, providerFailures: 0 },
     "report.json": { totalProjects: 2, projects: [] },
+    "forward-alpha-validation-os.json": {
+      status: "COLLECTING_EVIDENCE",
+      promotionGate: { status: "HOLD" },
+    },
+    "cli15-promotion-gate.json": { status: "HOLD" },
+    "cli15-multi-horizon-evidence.json": { status: "COLLECTING_EVIDENCE", horizons: [] },
     "engine-audit.json": { auditName: "Engine Implementation Completeness Audit", totalEngines: 144 },
     "engine-health-report.json": {
       status: "OK",
@@ -1083,6 +1089,13 @@ test("public dashboard validates reports and contains no literal N/A", () => {
   assert.ok(html.includes("Top 10 Current Research"));
   assert.ok(html.includes("Scan Truth"));
   assert.ok(html.includes("Measured Edge"));
+  assert.ok(html.includes('aria-label="Dashboard sections"'));
+  assert.ok(html.includes('id="report-library"'));
+  assert.ok(html.includes('id="report-search"'));
+  assert.ok(html.includes('data-report-link'));
+  assert.ok(html.includes("Browse all"));
+  assert.ok(html.includes("Forward alpha validation"));
+  assert.ok(result.copiedFiles.includes("forward-alpha-validation-os.json"));
   assert.ok(html.includes("Resolved Outcomes"));
   assert.ok(html.includes("Avoidance Edge Signals"));
   assert.ok(html.includes("Shadow Hypotheses"));
