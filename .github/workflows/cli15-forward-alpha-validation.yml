@@ -1,0 +1,96 @@
+name: CLI 15 Forward Alpha Validation OS
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli15-forward-alpha-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-forward-alpha:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Append-Only Forward Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            forward-evidence-${{ runner.os }}-
+
+      - name: Restore Executable Canary Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            data/ignition-executable-edge-canary-policy.json
+            data/ignition-executable-edge-canary-tickets.jsonl
+            data/ignition-executable-edge-canary-replays.jsonl
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Source Readiness Evidence
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: reports/data-source-readiness.json
+          key: cli15-source-readiness-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            cli15-source-readiness-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Run CLI 15 Contract And Governance Tests
+        run: npm run test:cli15
+
+      - name: Refresh Source Readiness
+        continue-on-error: true
+        run: npm run sources:readiness
+
+      - name: Build CLI 15 Forward Alpha Verdict
+        run: npm run cli15:validate
+
+      - name: Save Source Readiness Evidence
+        if: ${{ always() && hashFiles('reports/data-source-readiness.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: reports/data-source-readiness.json
+          key: cli15-source-readiness-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload CLI 15 Evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli15-forward-alpha-validation-${{ github.run_id }}
+          path: |
+            reports/forward-alpha-validation-os.json
+            reports/cli15-promotion-gate.json
+            reports/cli15-multi-horizon-evidence.json
+            reports/data-source-readiness.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -63,6 +63,21 @@ npm run edge:verify
 
 `edge:verify` is expected to exit non-zero until real forward sample, outcome-capture, execution-cost, match-quality, time-replication, return, hit-rate, and catastrophic-loss gates pass. Post-outcome control matching is diagnostic-only and cannot issue a certificate. See [`docs/FORWARD-EDGE-AUDIT.md`](docs/FORWARD-EDGE-AUDIT.md) for the full operating contract.
 
+## CLI 15.0 — Forward Alpha Validation OS
+
+CLI 15 turns the CLI 1–14 research stack into a fail-closed forward-proof system. Every new prospective treatment is bound to an immutable prediction contract containing exact chain/token/pool identity, decision and source timestamps, price, predeclared horizons, probabilities, scores, feature snapshot hash, thesis evidence, code/model/config versions, and execution-cost provenance. Later observations cannot rewrite the contract.
+
+The validator matures exact outcomes at 1 hour, 6 hours, 24 hours, 7 days, and 30 days; subtracts frozen execution costs; measures precision-at-K, calibration, drawdown, capture, and regime/narrative/chain performance; and compares the strategy with controls frozen before outcomes. It then emits one verdict: `PROVEN`, `UNPROVEN`, or `DEGRADED`.
+
+```bash
+npm run production:shadow
+npm run outcomes:probe
+npm run cli15:validate
+npm run cli15:report
+```
+
+CLI 15 never authorizes automatic trading or automatic model promotion. A verified result can only become eligible for human review. Integrity damage, forward deterioration, or canary failure triggers a shadow-selection kill switch and rollback to the last verified champion. See [`docs/CLI-15-FORWARD-ALPHA-VALIDATION.md`](docs/CLI-15-FORWARD-ALPHA-VALIDATION.md).
+
 ## Quick Start
 
 Run the full no-key demo:

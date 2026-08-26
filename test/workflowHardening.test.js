@@ -199,13 +199,31 @@ test("future intelligence workflow preserves exact memory and refuses empty cach
   );
 });
 
-test("production verification exercises CLI 3-14 and treats security failure as blocking", () => {
+test("CLI 15 workflow consumes exact evidence without launching or mutating a full scan", () => {
+  const workflow = fs.readFileSync(".github/workflows/cli15-forward-alpha-validation.yml", "utf8");
+
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /group:\s*cli15-forward-alpha-validation-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /data\/production-market-observations\.jsonl/);
+  assert.match(workflow, /data\/prospective-edge-cohorts\.jsonl/);
+  assert.match(workflow, /data\/ignition-executable-edge-canary-tickets\.jsonl/);
+  assert.match(workflow, /run:\s*npm run test:cli15/);
+  assert.match(workflow, /run:\s*npm run cli15:validate/);
+  assert.match(workflow, /reports\/forward-alpha-validation-os\.json/);
+  assert.match(workflow, /reports\/cli15-promotion-gate\.json/);
+  assert.doesNotMatch(workflow, /npm run scan/);
+  assert.doesNotMatch(workflow, /git push|contents:\s*write/);
+});
+
+test("production verification exercises CLI 3-15 and treats security failure as blocking", () => {
   const workflow = fs.readFileSync(".github/workflows/production-verification.yml", "utf8");
 
   assert.match(workflow, /npm run test:alpha-os/);
   assert.match(workflow, /npm run test:market-discovery/);
   assert.match(workflow, /npm run test:future-intelligence/);
   assert.match(workflow, /npm run future:intelligence/);
+  assert.match(workflow, /npm run test:cli15/);
+  assert.match(workflow, /npm run cli15:validate/);
   assert.match(workflow, /- name: Security Audit\n\s+run: npm run production:security/);
   assert.doesNotMatch(workflow, /- name: Security Audit\n\s+continue-on-error: true/);
 });

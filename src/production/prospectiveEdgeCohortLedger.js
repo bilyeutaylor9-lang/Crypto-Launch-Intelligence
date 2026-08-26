@@ -13,7 +13,8 @@ const DEFAULT_MAX_BYTES = 128 * 1024 * 1024;
 const DEFAULT_LIMIT = 250_000;
 
 export const PROSPECTIVE_EDGE_STRATEGY_VERSION = "PRODUCTION_SHADOW_SELECTION_V2";
-export const PROSPECTIVE_EDGE_HORIZONS_HOURS = Object.freeze([24, 168]);
+export const CLI15_PREDICTION_CONTRACT_VERSION = "CLI15_FORWARD_PREDICTION_CONTRACT_V1";
+export const PROSPECTIVE_EDGE_HORIZONS_HOURS = Object.freeze([1, 6, 24, 168, 720]);
 export const PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE = Object.freeze({
   primaryHorizonHours: 24,
   maximumOutcomeToleranceHours: 8,
@@ -131,6 +132,115 @@ function frozenFeatures(row = {}, asOf = null) {
   };
 }
 
+function normalizedProbability(value) {
+  const parsed = firstFinite(value);
+  if (parsed === null) return null;
+  return Number(Math.max(0, Math.min(100, parsed)).toFixed(6));
+}
+
+function stringList(value, limit = 25) {
+  return [...new Set((Array.isArray(value) ? value : [])
+    .map((row) => typeof row === "string" ? row.trim() : String(row?.name || row?.id || "").trim())
+    .filter(Boolean))]
+    .slice(0, Math.max(1, Number(limit || 25)));
+}
+
+export function predictionContractIntegrityHash(contract = {}) {
+  const { contractIntegrityHash: _ignored, ...payload } = contract || {};
+  return stableHash(payload);
+}
+
+export function buildFrozenPredictionContract(row = {}, context = {}) {
+  const identity = strictIdentity(row);
+  const decisionAt = iso(context.decisionAt);
+  const sourceObservedAt = iso(context.sourceObservedAt);
+  if (!identity || !decisionAt || !sourceObservedAt) return null;
+  const features = frozenFeatures(row, sourceObservedAt);
+  const scenario = row.forwardScenario || row.timeToEvent || {};
+  const thesis = row.marketThesis?.thesis || row.thesis || {};
+  const invalidation = row.invalidationPolicy || row.invalidation || {};
+  const horizons = [...new Set((context.outcomeHorizonsHours || PROSPECTIVE_EDGE_HORIZONS_HOURS)
+    .map(Number)
+    .filter((value) => Number.isFinite(value) && value > 0))]
+    .sort((left, right) => left - right);
+  const contract = {
+    schemaVersion: 1,
+    contractVersion: CLI15_PREDICTION_CONTRACT_VERSION,
+    decisionAt,
+    sourceObservedAt,
+    chain: identity.chain,
+    tokenAddress: identity.tokenAddress,
+    poolAddress: identity.poolAddress,
+    identityKey: identity.identityKey,
+    routeKey: identity.routeKey,
+    targetHorizonsHours: horizons,
+    signalPriceUsd: firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd),
+    probabilitiesPct: {
+      plus25: normalizedProbability(
+        row.probability25Pct ??
+        scenario.probability25Pct ??
+        scenario.events?.plus25?.probabilityByHorizon?.["24"] * 100
+      ),
+      plus50: normalizedProbability(
+        row.probability50Pct ??
+        row.expertEnsembleProbability50Pct ??
+        row.expertEnsemble?.probabilityPct ??
+        scenario.probability50Pct ??
+        scenario.events?.plus50?.probabilityByHorizon?.["24"] * 100
+      ),
+      plus100: normalizedProbability(
+        row.probability100Pct ??
+        scenario.probability100Pct ??
+        scenario.events?.twoX?.probabilityByHorizon?.["168"] * 100
+      ),
+      loss20: normalizedProbability(
+        row.probabilityLoss20Pct ??
+        scenario.probabilityLoss20Pct ??
+        scenario.events?.failure20?.probabilityByHorizon?.["24"] * 100
+      ),
+    },
+    confidencePct: normalizedProbability(
+      row.confidencePct ??
+      row.evidenceCoveragePct ??
+      row.expertEnsemble?.confidencePct ??
+      row.forwardScenario?.confidencePct
+    ),
+    scores: {
+      selection: firstFinite(row.portfolioResearchScore, row.combinedResearchScore, row.thesisFitScore),
+      utility: firstFinite(row.utilityScore, row.decisionUtility?.utilityScore),
+      evidenceCoveragePct: firstFinite(row.evidenceCoveragePct, row.evidenceCoverageScore),
+      risk: firstFinite(row.riskScore, row.riskScorePct, row.trapRiskScore),
+    },
+    thesis: {
+      headline: typeof thesis.headline === "string" ? thesis.headline : null,
+      primaryInvalidation: typeof thesis.primaryInvalidation === "string"
+        ? thesis.primaryInvalidation
+        : typeof invalidation.primaryInvalidation === "string"
+          ? invalidation.primaryInvalidation
+          : null,
+      supportingEvidence: stringList(thesis.supportingEvidence || row.verifiedSignals, 25),
+    },
+    verifiedSignals: stringList(row.verifiedSignals, 50),
+    featureSnapshot: features,
+    featureSnapshotHash: stableHash(features),
+    strategyVersion: context.strategyVersion || null,
+    strategyFingerprint: context.strategyFingerprint || null,
+    modelVersion: context.modelVersion || null,
+    featureSchemaVersion: context.featureSchemaVersion || null,
+    codeCommitSha: context.codeCommitSha || null,
+    outcomeKnownAtFreeze: false,
+    futureEvidencePresent: false,
+    exactIdentityVerified: true,
+    shadowOnly: true,
+    automaticTrading: false,
+    automaticPromotion: false,
+  };
+  return {
+    ...contract,
+    contractIntegrityHash: predictionContractIntegrityHash(contract),
+  };
+}
+
 function logDistance(left, right) {
   if (left === null || right === null || left < 0 || right < 0) return null;
   return Math.abs(Math.log1p(left) - Math.log1p(right));
@@ -174,6 +284,13 @@ export function prospectiveControlDistance(treatment = {}, control = {}, options
 export function buildProspectiveStrategyFingerprint(options = {}) {
   const policy = options.evaluationPolicy || {};
   const governance = PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE;
+  const outcomeHorizonsHours = [...new Set([
+    ...(Array.isArray(options.outcomeHorizonsHours)
+      ? options.outcomeHorizonsHours
+      : PROSPECTIVE_EDGE_HORIZONS_HOURS),
+    governance.primaryHorizonHours,
+  ].map(Number).filter((value) => Number.isFinite(value) && value > 0))]
+    .sort((left, right) => left - right);
   const definition = {
     strategyVersion: options.strategyVersion || PROSPECTIVE_EDGE_STRATEGY_VERSION,
     codeCommitSha: String(
@@ -184,6 +301,7 @@ export function buildProspectiveStrategyFingerprint(options = {}) {
     ).trim() || null,
     modelVersion: options.modelVersion || "shadow-v1",
     featureSchemaVersion: options.featureSchemaVersion || "production-feature-v1",
+    predictionContractVersion: options.predictionContractVersion || null,
     configFingerprint: options.configFingerprint || null,
     selectionEngine: "PRODUCTION_SHADOW_DIVERSIFIED_RESEARCH_BUDGET_V2",
     controlPoolDefinition: options.controlPoolDefinition || "SAME_SCORING_PIPELINE_UNSELECTED_V1",
@@ -209,7 +327,7 @@ export function buildProspectiveStrategyFingerprint(options = {}) {
     ),
     treatmentCooldownHours: Math.max(1, Number(options.treatmentCooldownHours || 168)),
     maximumSourceAgeMinutes: Math.max(1, Number(options.maximumSourceAgeMinutes || 90)),
-    outcomeHorizonsHours: options.outcomeHorizonsHours || PROSPECTIVE_EDGE_HORIZONS_HOURS,
+    outcomeHorizonsHours,
     evaluationPolicy: {
       version: "PROSPECTIVE_EDGE_CERTIFICATE_V1",
       primaryHorizonHours: governance.primaryHorizonHours,
@@ -302,6 +420,17 @@ function episodeRecord(row, context, role, parentTreatmentEpisodeId = null, matc
     identity.routeKey,
     parentTreatmentEpisodeId || "ROOT",
   ].join("|")).slice(0, 40);
+  const features = frozenFeatures(row, sourceFreshness.sourceObservedAt);
+  const frozenPrediction = buildFrozenPredictionContract(row, {
+    decisionAt: context.decisionAt,
+    sourceObservedAt: sourceFreshness.sourceObservedAt,
+    outcomeHorizonsHours: context.strategy.definition.outcomeHorizonsHours,
+    strategyVersion: context.strategy.definition.strategyVersion,
+    strategyFingerprint: context.strategy.fingerprint,
+    modelVersion: context.strategy.definition.modelVersion,
+    featureSchemaVersion: context.strategy.definition.featureSchemaVersion,
+    codeCommitSha: context.codeCommitSha,
+  });
 
   return sealProspectiveEdgeEpisode({
     schemaVersion: 1,
@@ -341,7 +470,8 @@ function episodeRecord(row, context, role, parentTreatmentEpisodeId = null, matc
       row.executionCostEvidence?.provenance ||
       row.executionCosts?.provenance ||
       null,
-    frozenFeatures: frozenFeatures(row, sourceFreshness.sourceObservedAt),
+    frozenFeatures: features,
+    frozenPrediction,
     outcomeHorizonsHours: [...context.strategy.definition.outcomeHorizonsHours],
     exactIdentityVerified: true,
     controlsFrozenBeforeOutcomes: true,
@@ -373,7 +503,10 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
   const { decisionAt, sourceObservedAt } = freshness;
   const decisionMs = timestamp(decisionAt);
   const maximumSourceAgeMinutes = freshness.maximumSourceAgeMinutes;
-  const strategy = buildProspectiveStrategyFingerprint(options);
+  const strategy = buildProspectiveStrategyFingerprint({
+    ...options,
+    predictionContractVersion: options.predictionContractVersion || CLI15_PREDICTION_CONTRACT_VERSION,
+  });
   const baseAudit = {
     selectionsAttempted: Array.isArray(selections) ? selections.length : 0,
     universeAttempted: Array.isArray(universeRows) ? universeRows.length : 0,

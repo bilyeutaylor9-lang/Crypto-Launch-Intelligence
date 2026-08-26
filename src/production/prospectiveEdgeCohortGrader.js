@@ -8,7 +8,9 @@ import {
   timestamp,
 } from "./productionMath.js";
 import {
+  CLI15_PREDICTION_CONTRACT_VERSION,
   PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE,
+  predictionContractIntegrityHash,
   prospectiveEpisodeIntegrityHash,
 } from "./prospectiveEdgeCohortLedger.js";
 import { exactMarketObservationIntegrityHash } from "./exactMarketObservationLedger.js";
@@ -56,6 +58,43 @@ function episodeIntegrityFailures(episode = {}, asOfMs, options = {}) {
     !episode.codeCommitSha ||
     episode.codeCommitSha !== episode.strategyDefinition?.codeCommitSha
   ) failures.push("MISSING_OR_MISMATCHED_CODE_VERSION");
+  if (episode.strategyDefinition?.predictionContractVersion === CLI15_PREDICTION_CONTRACT_VERSION) {
+    const contract = episode.frozenPrediction;
+    if (!contract) failures.push("MISSING_CLI15_PREDICTION_CONTRACT");
+    else {
+      if (contract.contractVersion !== CLI15_PREDICTION_CONTRACT_VERSION) failures.push("INVALID_CLI15_PREDICTION_CONTRACT_VERSION");
+      if (
+        !contract.contractIntegrityHash ||
+        contract.contractIntegrityHash !== predictionContractIntegrityHash(contract)
+      ) failures.push("CLI15_PREDICTION_CONTRACT_HASH_MISMATCH");
+      if (
+        contract.identityKey !== episode.identityKey ||
+        contract.routeKey !== episode.routeKey ||
+        contract.decisionAt !== episode.decisionAt ||
+        contract.sourceObservedAt !== episode.sourceObservedAt
+      ) failures.push("CLI15_PREDICTION_CONTRACT_BINDING_MISMATCH");
+      if (
+        contract.strategyFingerprint !== episode.strategyFingerprint ||
+        contract.strategyVersion !== episode.strategyVersion ||
+        contract.codeCommitSha !== episode.codeCommitSha
+      ) failures.push("CLI15_PREDICTION_CONTRACT_VERSION_BINDING_MISMATCH");
+      if (
+        !contract.featureSnapshot ||
+        contract.featureSnapshotHash !== stableHash(contract.featureSnapshot) ||
+        stableHash(contract.featureSnapshot) !== stableHash(episode.frozenFeatures)
+      ) failures.push("CLI15_FEATURE_SNAPSHOT_HASH_MISMATCH");
+      if (
+        stableHash(contract.targetHorizonsHours || []) !== stableHash(episode.outcomeHorizonsHours || [])
+      ) failures.push("CLI15_PREDICTION_HORIZON_MISMATCH");
+      if (
+        contract.outcomeKnownAtFreeze !== false ||
+        contract.futureEvidencePresent !== false ||
+        contract.shadowOnly !== true ||
+        contract.automaticTrading !== false ||
+        contract.automaticPromotion !== false
+      ) failures.push("CLI15_PREDICTION_GOVERNANCE_FAILURE");
+    }
+  }
   if (
     !episode.freezeIntegrityHash ||
     episode.freezeIntegrityHash !== prospectiveEpisodeIntegrityHash(episode)
