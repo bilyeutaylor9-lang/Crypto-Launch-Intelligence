@@ -275,6 +275,9 @@ test("production verification exercises CLI 3-15 and treats security failure as 
   assert.match(workflow, /npm run future:intelligence/);
   assert.match(workflow, /npm run test:cli15/);
   assert.match(workflow, /npm run cli15:validate/);
+  assert.match(workflow, /Verify Production Shadow Fails Closed Without Live Universe/);
+  assert.match(workflow, /if \[ "\$status" -ne 2 \]/);
+  assert.match(workflow, /PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION/);
   assert.match(workflow, /- name: Security Audit\n\s+run: npm run production:security/);
   assert.doesNotMatch(workflow, /- name: Security Audit\n\s+continue-on-error: true/);
 });
