@@ -968,6 +968,9 @@ async function main() {
       progressiveFunnel: true,
       analysisFunnelSelection: buildPipelineStageSelection(researchPlan),
       engineProfile: process.env.PIPELINE_ENGINE_PROFILE,
+      // Prospective V4 captures read-only execution evidence only after the
+      // proof treatment/control identities are frozen in Production Shadow.
+      forwardExecutionCostCapture: { enabled: false },
     });
 
     let results = normalizeForReports(pipelineResults);

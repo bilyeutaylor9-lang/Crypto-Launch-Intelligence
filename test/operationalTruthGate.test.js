@@ -77,12 +77,12 @@ test("shadow-universe preflight defaults to the 90-minute PIT limit", () => {
   assert.ok(report.blockers.includes("EXACT_CANDIDATE_UNIVERSE_STALE"));
 });
 
-test("production shadow writes an explicit blocked report instead of treating a missing universe as empty", () => {
+test("production shadow writes an explicit blocked report instead of treating a missing universe as empty", async () => {
   const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "cli-shadow-preflight-"));
   const priorDirectory = process.cwd();
   try {
     process.chdir(temporaryDirectory);
-    const result = runProductionShadowCycle({
+    const result = await runProductionShadowCycle({
       now,
       observations: [],
       universe: {

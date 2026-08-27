@@ -108,6 +108,7 @@ jobs:
             reports/outcome-capture-health.json
             reports/reproducibility-audit.json
             reports/production-shadow-ranking.json
+            reports/prospective-proof-acquisition.json
             reports/prospective-edge-cohort-capture.json
             reports/prospective-edge-cohort-grade.json
             reports/production-observability.json
