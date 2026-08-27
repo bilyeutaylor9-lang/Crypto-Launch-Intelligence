@@ -261,11 +261,31 @@ function buildObservedRoundTripEvidence(identity, buy, sell, options = {}) {
   };
 }
 
+function quoteAttempt(identity, request, side, context, raw = null, outcome = {}) {
+  return {
+    provider: raw?.provider || context.providerName || null,
+    chain: identity.chain,
+    tokenAddress: identity.tokenAddress,
+    poolAddress: identity.poolAddress,
+    side,
+    requestedNotionalUsd: context.referenceNotionalUsd,
+    capturedAt: quoteCapturedAt(raw || {}) || context.now,
+    success: outcome.success === true,
+    rejectionReason: outcome.reason || null,
+    rawEvidenceHash: raw?.rawEvidenceHash || raw?.route?.rawEvidenceHash || null,
+    routeIdentityVerified: raw?.routeIdentityVerified ?? null,
+    operation: request.operation,
+    quoteOnly: true,
+    transactionSubmissionAllowed: false,
+    orderSubmissionAllowed: false,
+  };
+}
+
 async function captureOne(project = {}, context = {}) {
   const identity = exactIdentity(project);
   const priceUsd = finite(project.priceUsd ?? project.price ?? project.marketData?.priceUsd);
   if (!identity || !identity.poolAddress || priceUsd === null || priceUsd <= 0) {
-    return { eligible: false, reason: "STRICT_IDENTITY_OR_REFERENCE_PRICE_MISSING" };
+    return { eligible: false, reason: "STRICT_IDENTITY_OR_REFERENCE_PRICE_MISSING", attempts: [] };
   }
   const signalObservedAt = project.sourceObservedAt || project.marketObservedAt || project.observedAt || project.scannedAt || context.now;
   const request = {
@@ -281,43 +301,66 @@ async function captureOne(project = {}, context = {}) {
     referencePriceUsd: priceUsd,
     signalObservedAt,
   };
+  const attempts = [];
+  const quoteProvider = context.quoteProviderForProject?.(project) || context.quoteProvider;
+  if (!quoteProvider) {
+    attempts.push(quoteAttempt(identity, request, "BUY", context, null, { reason: "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE" }));
+    return { eligible: false, reason: "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE", attempts };
+  }
+  const providerName = text(quoteProvider.providerName) || context.providerName;
   let rawBuy;
   try {
-    rawBuy = await context.quoteProvider({ ...request, side: "BUY" });
+    rawBuy = await quoteProvider({ ...request, side: "BUY" });
   } catch (error) {
-    return { eligible: false, reason: "BUY_QUOTE_REQUEST_FAILED", error: error.message };
+    attempts.push(quoteAttempt(identity, request, "BUY", context, null, { reason: "BUY_QUOTE_REQUEST_FAILED" }));
+    return { eligible: false, reason: "BUY_QUOTE_REQUEST_FAILED", error: error.message, attempts };
   }
   const rawBuyIdentity = rawQuoteIdentityMatches(rawBuy || {}, identity);
-  if (!rawBuyIdentity.eligible) return rawBuyIdentity;
+  if (!rawBuyIdentity.eligible) {
+    attempts.push(quoteAttempt(identity, request, "BUY", context, rawBuy, { reason: rawBuyIdentity.reason }));
+    return { ...rawBuyIdentity, attempts };
+  }
   const buy = normalizeExecutableQuote(rawBuy || {}, {
     ...request,
     side: "BUY",
-    provider: context.providerName,
+    provider: providerName,
   });
   const buyObservation = observedQuote(rawBuy || {}, buy, context.asOfMs, context.maximumQuoteAgeMs);
-  if (!buyObservation.eligible) return buyObservation;
+  if (!buyObservation.eligible) {
+    attempts.push(quoteAttempt(identity, request, "BUY", context, rawBuy, { reason: buyObservation.reason }));
+    return { ...buyObservation, attempts };
+  }
+  attempts.push(quoteAttempt(identity, request, "BUY", context, rawBuy, { success: true }));
 
   let rawSell;
   try {
-    rawSell = await context.quoteProvider({
+    rawSell = await quoteProvider({
       ...request,
       side: "SELL",
       inputTokenAmount: buy.outputTokenAmount,
     });
   } catch (error) {
-    return { eligible: false, reason: "SELL_QUOTE_REQUEST_FAILED", error: error.message };
+    attempts.push(quoteAttempt(identity, request, "SELL", context, null, { reason: "SELL_QUOTE_REQUEST_FAILED" }));
+    return { eligible: false, reason: "SELL_QUOTE_REQUEST_FAILED", error: error.message, attempts };
   }
   const rawSellIdentity = rawQuoteIdentityMatches(rawSell || {}, identity);
-  if (!rawSellIdentity.eligible) return rawSellIdentity;
+  if (!rawSellIdentity.eligible) {
+    attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { reason: rawSellIdentity.reason }));
+    return { ...rawSellIdentity, attempts };
+  }
   const sell = normalizeExecutableQuote(rawSell || {}, {
     ...request,
     side: "SELL",
     inputTokenAmount: buy.outputTokenAmount,
-    provider: context.providerName,
+    provider: providerName,
   });
   const sellObservation = observedQuote(rawSell || {}, sell, context.asOfMs, context.maximumQuoteAgeMs);
-  if (!sellObservation.eligible) return sellObservation;
-  return buildObservedRoundTripEvidence(identity, buy, sell, context);
+  if (!sellObservation.eligible) {
+    attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { reason: sellObservation.reason }));
+    return { ...sellObservation, attempts };
+  }
+  attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { success: true }));
+  return { ...buildObservedRoundTripEvidence(identity, buy, sell, context), attempts };
 }
 
 function increment(map, key) {
@@ -369,6 +412,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
         accepted: 0,
         rejected: 0,
         rejectionReasons: { INVALID_CAPTURE_TIME: source.length },
+        quoteAttempts: [],
         shadowOnly: true,
         rankingInfluence: false,
         automaticTrading: false,
@@ -376,7 +420,10 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     };
   }
   const quoteProvider = options.quoteProvider || quoteProviderFromEnvironment({ ...options, endpoint });
-  if (!quoteProvider) {
+  const quoteProviderForProject = typeof options.quoteProviderForProject === "function"
+    ? options.quoteProviderForProject
+    : null;
+  if (!quoteProvider && !quoteProviderForProject) {
     return {
       state: "DISABLED_EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE",
       projects: researchOnlyProjects(source, "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE"),
@@ -386,6 +433,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
         accepted: 0,
         rejected: 0,
         rejectionReasons: { EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE: source.length },
+        quoteAttempts: [],
         shadowOnly: true,
         rankingInfluence: false,
         automaticTrading: false,
@@ -397,11 +445,12 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     now,
     asOfMs,
     quoteProvider,
+    quoteProviderForProject,
     providerName:
       text(optionOrEnvironment(options, "providerName", "IGNITION_EXECUTABLE_QUOTE_PROVIDER")) ||
-      text(quoteProvider.providerName) ||
+      text(quoteProvider?.providerName) ||
       "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
-    transport: text(options.transport || quoteProvider.transport) || "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
+    transport: text(options.transport || quoteProvider?.transport) || "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
     referenceNotionalUsd: positive(
       optionOrEnvironment(options, "referenceNotionalUsd", "FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD"),
       DEFAULT_REFERENCE_NOTIONAL_USD,
@@ -422,6 +471,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
   const updates = new Map();
   const captureReasons = new Map();
   const rejectionReasons = {};
+  const quoteAttempts = [];
   let attempted = 0;
   let eligible = 0;
   let accepted = 0;
@@ -434,6 +484,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     attempted += 1;
     eligible += 1;
     const captured = await captureOne(project, context);
+    quoteAttempts.push(...(captured.attempts || []));
     if (!captured.eligible) {
       increment(rejectionReasons, captured.reason || "UNSPECIFIED_CAPTURE_REJECTION");
       captureReasons.set(index, captured.reason || "UNSPECIFIED_CAPTURE_REJECTION");
@@ -483,14 +534,15 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
       endpointConfigured: Boolean(endpoint),
       provider: context.providerName,
       providerTransport: context.transport,
-      keylessProvider: quoteProvider.keyless === true,
-      quoteOnly: quoteProvider.quoteOnly !== false,
+      keylessProvider: quoteProvider?.keyless === true,
+      quoteOnly: quoteProvider?.quoteOnly !== false,
       attempted,
       eligible,
       accepted,
       rejected: attempted - accepted,
       researchOnly: annotatedProjects.filter((project) => project.executionProofEligibility?.state !== "NET_PROOF_ELIGIBLE").length,
       rejectionReasons,
+      quoteAttempts,
       referenceNotionalUsd: context.referenceNotionalUsd,
       maximumQuoteAgeMs: context.maximumQuoteAgeMs,
       maximumPairSkewMs: context.maximumPairSkewMs,

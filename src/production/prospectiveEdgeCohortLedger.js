@@ -321,17 +321,20 @@ export function buildProspectiveMatchabilityIndex(candidates = [], options = {})
   });
   const maximumSourceAgeMinutes = strategy.definition.maximumSourceAgeMinutes;
   const maximumRows = Math.max(1, Number(options.maximumCandidates || 250));
-  const source = (Array.isArray(candidates) ? candidates : []).slice(0, maximumRows);
-  const invalidCandidateCounts = {};
-  const valid = [];
-  for (const candidate of source) {
+  const treatmentSource = (Array.isArray(candidates) ? candidates : []).slice(0, maximumRows);
+  // V4 permits a broad, exact scientific control universe while preserving the
+  // legacy behavior when no distinct control pool is supplied.
+  const controlSource = options.controlCandidates === undefined
+    ? treatmentSource
+    : (Array.isArray(options.controlCandidates) ? options.controlCandidates : []).slice(0, maximumRows);
+  const validate = (rows, counts) => rows.filter((candidate) => {
     if (!strictIdentity(candidate)) {
-      incrementCount(invalidCandidateCounts, "INEXACT_IDENTITY");
-      continue;
+      incrementCount(counts, "INEXACT_IDENTITY");
+      return false;
     }
     if (!(firstFinite(candidate.priceUsd, candidate.price, candidate.marketData?.priceUsd) > 0)) {
-      incrementCount(invalidCandidateCounts, "MISSING_OR_INVALID_PRICE");
-      continue;
+      incrementCount(counts, "MISSING_OR_INVALID_PRICE");
+      return false;
     }
     const state = candidatePointInTimeState(candidate, decisionAt, {
       ...options,
@@ -339,11 +342,17 @@ export function buildProspectiveMatchabilityIndex(candidates = [], options = {})
       maximumSourceAgeMinutes,
     });
     if (state !== "FRESH") {
-      incrementCount(invalidCandidateCounts, state);
-      continue;
+      incrementCount(counts, state);
+      return false;
     }
-    valid.push(candidate);
-  }
+    return true;
+  });
+  const invalidCandidateCounts = {};
+  const invalidControlCandidateCounts = {};
+  const valid = validate(treatmentSource, invalidCandidateCounts);
+  const validControls = options.controlCandidates === undefined
+    ? valid
+    : validate(controlSource, invalidControlCandidateCounts);
 
   const existingEpisodes = Array.isArray(options.existingEpisodes)
     ? options.existingEpisodes
@@ -385,7 +394,7 @@ export function buildProspectiveMatchabilityIndex(candidates = [], options = {})
     }
 
     const eligibleControls = [];
-    for (const control of valid) {
+    for (const control of validControls) {
       const controlIdentity = strictIdentity(control);
       if (controlIdentity.identityKey === identity.identityKey) {
         incrementCount(rejectionCounts, "CONTROL_IS_TREATMENT");
@@ -455,9 +464,12 @@ export function buildProspectiveMatchabilityIndex(candidates = [], options = {})
     strategy,
     entries,
     audit: {
-      candidatesAttempted: source.length,
+      candidatesAttempted: treatmentSource.length,
+      controlCandidatesAttempted: controlSource.length,
       exactFreshCandidates: valid.length,
+      exactFreshControlCandidates: validControls.length,
       invalidCandidateCounts,
+      invalidControlCandidateCounts,
       eligibleTreatmentCount: entries.filter((entry) => entry.diagnostics.treatmentState === "ELIGIBLE" && entry.eligibleControls.length).length,
       unmatchedTreatmentCount: entries.filter((entry) => entry.diagnostics.treatmentState === "ELIGIBLE" && !entry.eligibleControls.length).length,
       aggregateRejections,
@@ -694,6 +706,7 @@ function episodeRecord(row, context, role, parentTreatmentEpisodeId = null, matc
     strategyDefinition: context.strategy.definition,
     runId: context.runId,
     codeCommitSha: context.codeCommitSha,
+    preQuoteSelectionFreezeHash: context.preQuoteSelectionFreezeHash || null,
     chain: identity.chain,
     tokenAddress: identity.tokenAddress,
     poolAddress: identity.poolAddress,
@@ -739,6 +752,79 @@ function latestTreatmentTimes(episodes = [], strategyFingerprint) {
     latest.set(row.identityKey, Math.max(at, latest.get(row.identityKey) || 0));
   }
   return latest;
+}
+
+function selectionFreezePayload(snapshot = {}) {
+  const { selectionFreezeHash: _ignored, ...payload } = snapshot;
+  return payload;
+}
+
+/**
+ * Seals the treatment/control identities selected from PIT evidence before any
+ * execution quote is attempted. The seal contains no price outcome or quote
+ * result, so later route or selection rewrites are detectable.
+ */
+export function freezeProspectiveSelection(selections = [], reservations = [], options = {}) {
+  const decisionAt = iso(options.now || new Date().toISOString());
+  const treatments = (Array.isArray(selections) ? selections : []).flatMap((row, index) => {
+    const identity = strictIdentity(row);
+    if (!identity || !identity.poolAddress) return [];
+    return [{
+      selectionRank: index + 1,
+      identityKey: identity.identityKey,
+      routeKey: identity.routeKey,
+      chain: identity.chain,
+      tokenAddress: identity.tokenAddress,
+      poolAddress: identity.poolAddress,
+      sourceObservedAt: iso(row.sourceObservedAt || row.marketObservedAt),
+      preOutcomeResearchScore: candidateScore(row),
+    }];
+  });
+  const frozenReservations = (Array.isArray(reservations) ? reservations : [])
+    .filter((row) => row?.treatmentRouteKey && row?.controlRouteKey)
+    .map((row) => ({
+      treatmentRouteKey: String(row.treatmentRouteKey),
+      controlRouteKey: String(row.controlRouteKey),
+      distance: finite(row.distance),
+    }))
+    .sort((left, right) =>
+      left.treatmentRouteKey.localeCompare(right.treatmentRouteKey) ||
+      left.controlRouteKey.localeCompare(right.controlRouteKey),
+    );
+  const payload = {
+    schemaVersion: 1,
+    state: "PROSPECTIVE_SELECTION_FROZEN_PRE_QUOTE",
+    decisionAt,
+    strategyFingerprint: String(options.strategyFingerprint || "").trim() || null,
+    treatments,
+    reservations: frozenReservations,
+    quoteAvailabilityInfluencesSelection: false,
+    outcomeFieldsReadDuringSelection: false,
+    automaticTrading: false,
+    automaticPromotion: false,
+  };
+  return { ...payload, selectionFreezeHash: stableHash(payload) };
+}
+
+function validatePreQuoteSelection(snapshot, selections, strategy) {
+  if (!snapshot) return { eligible: true, selectionFreezeHash: null };
+  if (snapshot.selectionFreezeHash !== stableHash(selectionFreezePayload(snapshot))) {
+    return { eligible: false, reason: "PRE_QUOTE_SELECTION_FREEZE_HASH_INVALID" };
+  }
+  if (snapshot.strategyFingerprint && snapshot.strategyFingerprint !== strategy.fingerprint) {
+    return { eligible: false, reason: "PRE_QUOTE_SELECTION_STRATEGY_MISMATCH" };
+  }
+  const frozenRoutes = (snapshot.treatments || []).map((row) => row.routeKey);
+  const selectedRoutes = (Array.isArray(selections) ? selections : [])
+    .map((row) => strictIdentity(row)?.routeKey)
+    .filter(Boolean);
+  if (
+    frozenRoutes.length !== selectedRoutes.length ||
+    frozenRoutes.some((routeKey, index) => routeKey !== selectedRoutes[index])
+  ) {
+    return { eligible: false, reason: "PRE_QUOTE_SELECTION_ROUTE_REWRITE_DETECTED" };
+  }
+  return { eligible: true, selectionFreezeHash: snapshot.selectionFreezeHash };
 }
 
 export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], options = {}) {
@@ -822,6 +908,19 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
     if (exactSelections.length >= strategy.definition.maximumSelections) break;
   }
   const selectedIdentityKeys = new Set(exactSelections.map((row) => strictIdentity(row).identityKey));
+  const preQuoteSelection = validatePreQuoteSelection(
+    options.preQuoteSelection,
+    exactSelections,
+    strategy,
+  );
+  if (!preQuoteSelection.eligible) {
+    return {
+      state: "COHORT_REJECTED_PRE_QUOTE_SELECTION_INTEGRITY",
+      episodes: [],
+      audit: { ...baseAudit, selectionRejectionCounts, preQuoteSelection },
+      strategy,
+    };
+  }
   const selectionFreshnessRejections = [
     "MISSING_ROW_SOURCE_TIMESTAMP",
     "MISSING_POINT_IN_TIME_SOURCE",
@@ -977,6 +1076,7 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
       runId,
       codeCommitSha: strategy.definition.codeCommitSha,
       selectionRank: index + 1,
+      preQuoteSelectionFreezeHash: preQuoteSelection.selectionFreezeHash,
     };
     const treatmentEpisode = episodeRecord(treatment, context, "TREATMENT");
     if (!treatmentEpisode) {
@@ -1039,6 +1139,8 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
       matchingRejectionCounts,
       selectionDiagnostics,
       unmatchedSelections,
+      preQuoteSelectionFreezeHash: preQuoteSelection.selectionFreezeHash,
+      preQuoteSelectionVerified: Boolean(options.preQuoteSelection),
       outcomeFieldsReadDuringFreeze: false,
       controlsSelectedBeforeOutcomes: true,
     },
@@ -1109,4 +1211,6 @@ export const __prospectiveEdgeCohortHooks = {
   frozenFeatures,
   episodeRecord,
   latestTreatmentTimes,
+  selectionFreezePayload,
+  validatePreQuoteSelection,
 };

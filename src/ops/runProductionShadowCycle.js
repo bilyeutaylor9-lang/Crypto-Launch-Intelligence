@@ -20,9 +20,12 @@ import { appendExactMarketObservations, loadExactMarketObservations, toOutcomeSn
 import {
   captureProspectiveEdgeCohort,
   buildProspectiveMatchabilityIndex,
+  freezeProspectiveSelection,
   selectMatchableProspectiveTreatments,
 } from "../production/prospectiveEdgeCohortLedger.js";
 import { strictIdentity } from "../production/productionMath.js";
+import { buildProspectiveProofCandidatePool } from "../production/prospectiveProofCandidatePool.js";
+import { captureForwardProofQuotes } from "../production/forwardQuoteBroker.js";
 import { evaluateOperationalTruth } from "./operationalTruthGate.js";
 
 function readJson(file, fallback = null) {
@@ -73,7 +76,7 @@ export function mergeProductionShadowSourceCandidates(synthesisRows = [], univer
   });
 }
 
-export function runProductionShadowCycle(options = {}) {
+export async function runProductionShadowCycle(options = {}) {
   const now = options.now || new Date().toISOString();
   const manifest = buildProductionRunManifest({
     now,
@@ -185,10 +188,30 @@ export function runProductionShadowCycle(options = {}) {
   });
 
   const synthesis = options.synthesis || runEdgeOpportunitySynthesis({ writeReport: true });
-  const merged = mergeProductionShadowSourceCandidates(
+  const proofPool = buildProspectiveProofCandidatePool(universe.candidates || [], {
+    now,
+    maximumSourceAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
+  });
+  // Synthesis can enrich pre-outcome research scores, but a synthesis-empty
+  // run must not erase the separately admissible scientific observation pool.
+  const synthesisEnrichment = mergeProductionShadowSourceCandidates(
     synthesis.candidates || [],
-    universe.candidates || [],
-  ).map((row) => {
+    proofPool.eligible,
+  );
+  const enrichmentByRoute = new Map(
+    synthesisEnrichment
+      .map((row) => [strictIdentity(row)?.routeKey, row])
+      .filter(([routeKey]) => Boolean(routeKey)),
+  );
+  const merged = proofPool.eligible.map((candidate) => {
+    const identity = strictIdentity(candidate);
+    const enriched = enrichmentByRoute.get(identity?.routeKey) || {};
+    const row = {
+      ...candidate,
+      ...enriched,
+      identityKey: identity?.identityKey || null,
+      prospectiveProofCandidate: candidate.prospectiveProofCandidate,
+    };
     const multi = multiscale.candidates.find((m) => m.identityKey === row.identityKey);
     const conv = convergence.find((m) => m.identityKey === row.identityKey)?.convergence;
     return {
@@ -198,7 +221,7 @@ export function runProductionShadowCycle(options = {}) {
       confidencePct: multi?.averageConfidencePct ?? row.ignitionGenome?.confidencePct ?? 0,
       evidenceCoveragePct: row.research?.diagnostic?.coverage
         ? row.research.diagnostic.coverage * 100
-        : null,
+        : row.evidenceCoveragePct,
     };
   });
 
@@ -220,6 +243,8 @@ export function runProductionShadowCycle(options = {}) {
       maxControls: Number(options.maxProspectiveControls || 3),
       maximumSourceAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
       existingEpisodes: options.prospectiveCohortEpisodes,
+      controlCandidates: proofPool.eligible,
+      controlPoolDefinition: "FRESH_EXACT_SIGNAL_ELIGIBLE_UNIVERSE_V4",
     },
   );
   const diverseMatchableCandidates = diversifyResearchQueue(
@@ -239,7 +264,40 @@ export function runProductionShadowCycle(options = {}) {
     result[reservation.treatmentRouteKey] = controls;
     return result;
   }, {});
-  const shadow = matchableSelection.selected.map((row) => {
+  const preQuoteSelection = freezeProspectiveSelection(
+    matchableSelection.selected,
+    matchableSelection.reservations,
+    { now, strategyFingerprint: matchability.strategy.fingerprint },
+  );
+  const controlByRoute = new Map(
+    proofPool.eligible
+      .map((candidate) => [strictIdentity(candidate)?.routeKey, candidate])
+      .filter(([routeKey]) => Boolean(routeKey)),
+  );
+  const reservedControls = matchableSelection.reservations
+    .map((reservation) => controlByRoute.get(reservation.controlRouteKey))
+    .filter(Boolean);
+  // Quotes are intentionally downstream of the sealed selection. A response
+  // may add execution-cost evidence, but cannot add, remove, or reorder a
+  // treatment/control identity.
+  const quoteBroker = await captureForwardProofQuotes({
+    treatments: matchableSelection.selected,
+    controls: reservedControls,
+    now,
+    ...(options.forwardQuoteBroker || {}),
+  });
+  const quotedByRoute = new Map(
+    quoteBroker.projects
+      .map((candidate) => [strictIdentity(candidate)?.routeKey, candidate])
+      .filter(([routeKey]) => Boolean(routeKey)),
+  );
+  const selectedWithQuotes = matchableSelection.selected.map((candidate) =>
+    quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
+  );
+  const controlPoolWithQuotes = proofPool.eligible.map((candidate) =>
+    quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
+  );
+  const shadow = selectedWithQuotes.map((row) => {
     const multi = row.multiscaleGenome || {};
     const convergence = row.convergence || {};
     const forwardScenario = simulateForwardDistribution(row, { paths: 2048 });
@@ -308,11 +366,18 @@ export function runProductionShadowCycle(options = {}) {
     generatedAt: now,
     runId: manifest.runId,
     candidates: shadow,
+    prospectiveProofPool: {
+      state: proofPool.state,
+      audit: proofPool.audit,
+      eligible: proofPool.eligible.length,
+    },
     matchability: {
       audit: matchability.audit,
       selection: matchableSelection.audit,
       reservations: matchableSelection.reservations,
     },
+    preQuoteSelection,
+    forwardQuoteBroker: quoteBroker.audit,
     researchOnlyUnmatchableCandidates: matchability.entries
       .filter((entry) => entry.diagnostics.treatmentState !== "ELIGIBLE" || !entry.eligibleControls.length)
       .sort((left, right) => right.score - left.score || left.routeKey.localeCompare(right.routeKey))
@@ -342,7 +407,7 @@ export function runProductionShadowCycle(options = {}) {
   writeAtomicJson("reports/production-shadow-ranking.json", shadowReport);
   const prospectiveCohort = captureProspectiveEdgeCohort(
     shadow,
-    matchability.entries.map((entry) => entry.candidate),
+    controlPoolWithQuotes,
     {
       now,
       sourceObservedAt: universe.generatedAt || null,
@@ -351,13 +416,14 @@ export function runProductionShadowCycle(options = {}) {
       modelVersion: manifest.modelVersion,
       featureSchemaVersion: manifest.featureSchemaVersion,
       configFingerprint: manifest.configFingerprint,
-      controlPoolDefinition: "SAME_SCORING_PIPELINE_UNSELECTED_V1",
+      controlPoolDefinition: "FRESH_EXACT_SIGNAL_ELIGIBLE_UNIVERSE_V4",
       requireRowSourceObservedAt: true,
       maximumSelections: 25,
       maxControls: Number(options.maxProspectiveControls || 3),
       maximumSourceAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
       existingEpisodes: options.prospectiveCohortEpisodes,
       reservedControlsByTreatment,
+      preQuoteSelection,
       persist: options.persistProspectiveCohorts !== false,
       file: options.prospectiveCohortFile,
     },
@@ -387,6 +453,43 @@ export function runProductionShadowCycle(options = {}) {
       automaticTrading: false,
       automaticPromotion: false,
     },
+  });
+  writeAtomicJson("reports/prospective-proof-acquisition.json", {
+    schemaVersion: 1,
+    generatedAt: now,
+    runId: manifest.runId,
+    state: prospectiveCohort.state,
+    freshExactCandidates: universe.candidates?.length || 0,
+    signalEligible: proofPool.eligible.length,
+    signalHardRejected: proofPool.audit.countsByState.SIGNAL_HARD_REJECTED || 0,
+    signalResearchOnly: proofPool.audit.countsByState.SIGNAL_RESEARCH_ONLY || 0,
+    treatmentCandidates: merged.length,
+    matchableTreatments: matchability.audit.eligibleTreatmentCount,
+    treatmentsSelected: matchableSelection.audit.treatmentsSelected,
+    controlsReserved: matchableSelection.audit.controlsReserved,
+    treatmentsFrozen: prospectiveCohort.audit.treatmentsFrozen || 0,
+    controlsFrozen: prospectiveCohort.audit.controlsFrozen || 0,
+    identityRejections: (proofPool.audit.countsByReason.INEXACT_CHAIN_TOKEN_POOL_IDENTITY || 0) +
+      (matchability.audit.invalidCandidateCounts.INEXACT_IDENTITY || 0) +
+      (matchability.audit.invalidControlCandidateCounts.INEXACT_IDENTITY || 0),
+    freshnessRejections: Object.entries(proofPool.audit.countsByReason)
+      .filter(([reason]) => /POINT_IN_TIME|STALE/.test(reason))
+      .reduce((sum, [, count]) => sum + count, 0),
+    safetyRejections: proofPool.audit.countsByReason.DETERMINISTIC_SAFETY_OR_IDENTITY_BLOCK || 0,
+    matchRejectionReasons: matchability.audit.aggregateRejections,
+    quoteAttempts: quoteBroker.audit.quoteAttempts,
+    buyQuoteAccepted: quoteBroker.audit.buyQuoteAccepted,
+    sellQuoteAccepted: quoteBroker.audit.sellQuoteAccepted,
+    pairedQuotesAccepted: quoteBroker.audit.pairedQuotesAccepted,
+    quoteRejectionReasons: quoteBroker.audit.quoteRejectionReasons,
+    explicitCostCoveragePct: quoteBroker.audit.explicitCostCoveragePct,
+    netProofEligible: quoteBroker.audit.netProofEligible,
+    researchOnlyMissingCost: quoteBroker.audit.researchOnlyMissingCost,
+    preQuoteSelection,
+    automaticTrading: false,
+    automaticPromotion: false,
+    quoteAvailabilityInfluencesSelection: false,
+    outcomeFieldsReadDuringSelection: false,
   });
   const prospectiveShadowPredictions = prospectiveCohort.episodes
     .filter((episode) => episode.role === "TREATMENT")
@@ -470,7 +573,7 @@ export function runProductionShadowCycle(options = {}) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   try {
-    const result = runProductionShadowCycle();
+    const result = await runProductionShadowCycle();
     console.log(JSON.stringify({
       runId: result.manifest.runId,
       candidates: result.shadowReport.candidates.length,

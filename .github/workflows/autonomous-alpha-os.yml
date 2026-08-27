@@ -165,6 +165,7 @@ jobs:
             reports/model-factory-evaluation.json
             reports/alpha-attribution-forward.json
             reports/prospective-edge-cohort-capture.json
+            reports/prospective-proof-acquisition.json
             reports/prospective-edge-cohort-grade.json
             reports/edge-verification-program.json
             reports/edge-verification-certificate.json

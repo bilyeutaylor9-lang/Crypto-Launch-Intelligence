@@ -30,6 +30,13 @@ function addresses(values = []) {
     .filter((value) => /^0x[0-9a-f]{40}$/.test(value)))];
 }
 
+function textList(values = []) {
+  return [...new Set((Array.isArray(values) ? values : [values])
+    .flat(Infinity)
+    .map((value) => String(value || "").trim())
+    .filter(Boolean))];
+}
+
 function exactIdentity(project = {}) {
   const chain = normalizeChainId(
     project.chain || project.canonicalChain || project.network || project.chainId
@@ -108,6 +115,34 @@ export function buildEdgeCandidateDescriptor(project = {}) {
     ),
     riskScore: finite(project.riskScore ?? project.riskScorePct ?? project.trapRiskScore),
     priceChange24hPct: finite(project.priceChange24hPct ?? project.priceChange?.h24),
+    // Persist only pre-outcome research measures needed to construct a
+    // prospective scientific treatment pool. These are observational fields;
+    // they do not make a candidate live-qualified or execution-ready.
+    portfolioResearchScore: finite(project.portfolioResearchScore),
+    combinedResearchScore: finite(project.combinedResearchScore),
+    researchPriorityScore: finite(project.researchPriorityScore),
+    adaptiveResearchScore: finite(project.adaptiveResearchScore),
+    informationGain: project.informationGain ? {
+      informationGainScore: finite(project.informationGain.informationGainScore),
+      uncertainty: finite(project.informationGain.uncertainty),
+      missingness: finite(project.informationGain.missingness),
+      boundaryProximity: finite(project.informationGain.boundaryProximity),
+      outcomeAmbiguity: finite(project.informationGain.outcomeAmbiguity),
+      estimatedResearchCostUnits: finite(project.informationGain.estimatedResearchCostUnits),
+    } : null,
+    // Deterministic safety and identity blocks are carried into the proof pool
+    // so an exact market observation can never override a known hard block.
+    identityConflict: project.identityConflict === true,
+    chainMismatch: project.chainMismatch === true,
+    contractChainMismatch: project.contractChainMismatch === true,
+    canonicalIdentityHardBlock: project.canonicalIdentityHardBlock === true,
+    honeypotDetected: project.honeypotDetected === true,
+    verifiedScam: project.verifiedScam === true,
+    scamDetected: project.scamDetected === true,
+    sellRestricted: project.sellRestricted === true,
+    deterministicCandidateBlocks: textList(project.deterministicCandidateBlocks),
+    finalBlockingReasons: textList(project.finalBlockingReasons),
+    hardBlockers: textList(project.hardBlockers),
     roundTripExecutionCostBps: finite(
       project.roundTripExecutionCostBps ??
       project.executionAwareEV?.roundTripExecutionCostBps ??
@@ -241,4 +276,4 @@ export function loadEdgeCandidateUniverse(options = {}) {
 }
 
 export const EDGE_CANDIDATE_UNIVERSE_FILE = FILE;
-export const __edgeCandidateUniverseHooks = { exactIdentity, addresses, boundedBuyEvents, isoOrNull };
+export const __edgeCandidateUniverseHooks = { exactIdentity, addresses, textList, boundedBuyEvents, isoOrNull };

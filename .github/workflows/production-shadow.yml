@@ -192,6 +192,7 @@ jobs:
             reports/ignition-genome-multiscale.json
             reports/ignition-genome-convergence.json
             reports/production-shadow-ranking.json
+            reports/prospective-proof-acquisition.json
             reports/prospective-edge-cohort-capture.json
             reports/prospective-edge-cohort-grade.json
             reports/production-observability.json
