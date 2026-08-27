@@ -202,7 +202,6 @@ jobs:
       - name: Run Production Shadow From Fresh Scan
         id: production_shadow
         if: steps.scanner.outcome == 'success'
-        continue-on-error: true
         run: npm run production:shadow
         env:
           IGNITION_EXECUTABLE_QUOTE_ENDPOINT: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_ENDPOINT }}
@@ -213,7 +212,6 @@ jobs:
       - name: Enforce Fresh Exact Shadow Handoff
         id: operational_truth
         if: always()
-        continue-on-error: true
         run: npm run operations:truth -- --scope dashboard-shadow
 
       - name: Sync Durable Forward Evidence

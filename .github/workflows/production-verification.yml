@@ -48,8 +48,17 @@ jobs:
           npm run test:providers
           npm run test:core-backtest
 
-      - name: Production Shadow
-        run: npm run production:shadow
+      - name: Verify Production Shadow Fails Closed Without Live Universe
+        run: |
+          set +e
+          npm run production:shadow
+          status=$?
+          set -e
+          if [ "$status" -ne 2 ]; then
+            echo "Expected the isolated verification runner to reject its unavailable live universe; got exit $status."
+            exit 1
+          fi
+          node --input-type=module -e 'import fs from "node:fs"; const report = JSON.parse(fs.readFileSync("reports/production-shadow-ranking.json", "utf8")); if (report.state !== "PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION" || !report.universePreflight?.blockers?.includes("EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE")) process.exit(1);'
 
       - name: Data Source Readiness
         continue-on-error: true

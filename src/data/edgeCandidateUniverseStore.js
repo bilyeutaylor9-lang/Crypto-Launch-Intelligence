@@ -201,17 +201,33 @@ export function saveEdgeCandidateUniverse(projects = [], options = {}) {
 
 export function loadEdgeCandidateUniverse(options = {}) {
   const file = options.file || FILE;
-  if (!fs.existsSync(file)) return { schemaVersion: 1, candidates: [], exactCandidates: 0 };
+  if (!fs.existsSync(file)) {
+    return {
+      schemaVersion: 1,
+      availabilityState: "EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE",
+      availabilityReason: "FILE_MISSING",
+      candidates: [],
+      exactCandidates: 0,
+    };
+  }
   try {
     const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
     return {
       ...parsed,
+      availabilityState: "EDGE_CANDIDATE_UNIVERSE_AVAILABLE",
+      availabilityReason: null,
       candidates: (Array.isArray(parsed?.candidates) ? parsed.candidates : [])
         .map(buildEdgeCandidateDescriptor)
         .filter(Boolean),
     };
   } catch {
-    return { schemaVersion: 1, candidates: [], exactCandidates: 0 };
+    return {
+      schemaVersion: 1,
+      availabilityState: "EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE",
+      availabilityReason: "FILE_UNREADABLE",
+      candidates: [],
+      exactCandidates: 0,
+    };
   }
 }
 

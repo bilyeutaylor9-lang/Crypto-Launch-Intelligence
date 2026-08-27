@@ -76,6 +76,23 @@ test("only the live dashboard workflow schedules or runs full scans on main push
   assert.match(live, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
 });
 
+test("shadow universe refresh produces a fresh exact handoff before Alpha OS consumes it", () => {
+  const refresh = fs.readFileSync(".github/workflows/shadow-universe-refresh.yml", "utf8");
+  const alpha = fs.readFileSync(".github/workflows/autonomous-alpha-os.yml", "utf8");
+
+  assert.match(refresh, /schedule:/);
+  assert.match(refresh, /run:\s*npm run scan:debug100/);
+  assert.match(refresh, /run:\s*npm run operations:truth -- --scope shadow-universe/);
+  assert.match(refresh, /run:\s*npm run state:pack -- --require-exact-universe/);
+  assert.match(refresh, /cron:\s*"5 \* \* \* \*"/);
+  assert.match(alpha, /cron:\s*"12,42 \* \* \*"/);
+  assert.doesNotMatch(alpha, /cron:\s*"12,42 \* \* \* \*"/);
+  assert.ok(
+    alpha.indexOf("Enforce Fresh Exact Shadow Universe") < alpha.indexOf("Run Production Shadow"),
+  );
+  assert.match(alpha, /data\/edge-candidate-universe\.json/);
+});
+
 test("live dashboard runs shadow capture from the fresh scan and defers final health verdict until deployment", () => {
   const workflow = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
 
@@ -91,6 +108,10 @@ test("live dashboard runs shadow capture from the fresh scan and defers final he
   assert.ok(truth > shadow);
   assert.match(workflow, /run: npm run production:shadow/);
   assert.match(workflow, /run: npm run operations:truth -- --scope dashboard-shadow/);
+  const shadowStep = workflow.slice(shadow, truth);
+  const truthStep = workflow.slice(truth, workflow.indexOf("Sync Durable Forward Evidence"));
+  assert.doesNotMatch(shadowStep, /continue-on-error:\s*true/);
+  assert.doesNotMatch(truthStep, /continue-on-error:\s*true/);
   assert.match(workflow, /DASHBOARD_REQUIRE_LIVE:\s*["']true["']/);
   assert.match(workflow, /IGNITION_EXECUTABLE_QUOTE_ENDPOINT: \$\{\{ secrets\.IGNITION_EXECUTABLE_QUOTE_ENDPOINT \}\}/);
   assert.match(workflow, /run: npm run forward:evidence:sync/);
@@ -254,6 +275,9 @@ test("production verification exercises CLI 3-15 and treats security failure as 
   assert.match(workflow, /npm run future:intelligence/);
   assert.match(workflow, /npm run test:cli15/);
   assert.match(workflow, /npm run cli15:validate/);
+  assert.match(workflow, /Verify Production Shadow Fails Closed Without Live Universe/);
+  assert.match(workflow, /if \[ "\$status" -ne 2 \]/);
+  assert.match(workflow, /PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION/);
   assert.match(workflow, /- name: Security Audit\n\s+run: npm run production:security/);
   assert.doesNotMatch(workflow, /- name: Security Audit\n\s+continue-on-error: true/);
 });

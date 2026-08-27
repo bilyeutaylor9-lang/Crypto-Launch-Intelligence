@@ -3,7 +3,7 @@ name: CLI 5.0 Autonomous Alpha OS
 on:
   workflow_dispatch:
   schedule:
-    - cron: "12,42 * * * *"
+    - cron: "12,42 * * *"
 
 permissions:
   contents: read
@@ -92,6 +92,8 @@ jobs:
       - name: Restore Durable Forward Evidence
         run: npm run forward:evidence:restore
 
+      - name: Enforce Fresh Exact Shadow Universe
+        run: npm run operations:truth -- --scope shadow-universe
 
       - name: Run Production Shadow
         run: npm run production:shadow
@@ -131,6 +133,7 @@ jobs:
             data/project-digital-twins.json
             data/model-factory-challengers.json
             data/autonomous-alpha-experiments.json
+            data/edge-candidate-universe.json
           key: alpha-os-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Append-Only Forward Evidence

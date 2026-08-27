@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import { evaluateOperationalTruth } from "../src/ops/operationalTruthGate.js";
+import { runProductionShadowCycle } from "../src/ops/runProductionShadowCycle.js";
 
 const now = "2026-08-26T12:00:00.000Z";
 const exact = {
@@ -42,6 +46,61 @@ test("operational truth exposes a missing or stale candidate handoff", () => {
     cohort: {},
   }, { now, scope: "production-shadow", maximumUniverseAgeMinutes: 90 });
   assert.ok(stale.blockers.includes("EXACT_CANDIDATE_UNIVERSE_STALE"));
+});
+
+test("shadow-universe preflight fails unavailable input without requiring prior shadow reports", () => {
+  const report = evaluateOperationalTruth({
+    universe: {
+      availabilityState: "EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE",
+      availabilityReason: "FILE_MISSING",
+      candidates: [],
+      exactCandidates: 0,
+    },
+  }, { now, scope: "shadow-universe", maximumUniverseAgeMinutes: 90 });
+
+  assert.equal(report.pass, false);
+  assert.ok(report.blockers.includes("EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE"));
+  assert.ok(report.blockers.includes("EXACT_CANDIDATE_UNIVERSE_TIMESTAMP_INVALID"));
+  assert.ok(!report.blockers.includes("PRODUCTION_SHADOW_REPORT_MISSING"));
+});
+
+test("shadow-universe preflight defaults to the 90-minute PIT limit", () => {
+  const report = evaluateOperationalTruth({
+    universe: {
+      generatedAt: "2026-08-26T10:29:00.000Z",
+      exactCandidates: 1,
+      candidates: [exact],
+    },
+  }, { now, scope: "shadow-universe" });
+
+  assert.equal(report.metrics.maximumUniverseAgeMinutes, 90);
+  assert.ok(report.blockers.includes("EXACT_CANDIDATE_UNIVERSE_STALE"));
+});
+
+test("production shadow writes an explicit blocked report instead of treating a missing universe as empty", () => {
+  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "cli-shadow-preflight-"));
+  const priorDirectory = process.cwd();
+  try {
+    process.chdir(temporaryDirectory);
+    const result = runProductionShadowCycle({
+      now,
+      observations: [],
+      universe: {
+        availabilityState: "EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE",
+        availabilityReason: "FILE_MISSING",
+        candidates: [],
+        exactCandidates: 0,
+      },
+    });
+    const report = JSON.parse(fs.readFileSync("reports/production-shadow-ranking.json", "utf8"));
+
+    assert.equal(result.shadowReport.state, "PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION");
+    assert.equal(report.state, "PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION");
+    assert.ok(report.universePreflight.blockers.includes("EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE"));
+  } finally {
+    process.chdir(priorDirectory);
+    fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
 });
 
 test("operational truth fails broken acquisition but accepts complete negative evidence", () => {

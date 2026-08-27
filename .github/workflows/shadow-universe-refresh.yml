@@ -1,0 +1,67 @@
+name: Shadow Universe Refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-dashboard-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+      COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      COINGECKO_PRO_API_KEY: ${{ secrets.COINGECKO_PRO_API_KEY }}
+      COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+      HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+      SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+      BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Restore Canonical Scanner State Bundle
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: .state/scanner-learning-bundle.json.gz
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
+
+      - name: Refresh Exact Candidate Universe
+        run: npm run scan:debug100
+
+      - name: Enforce Fresh Exact Shadow Universe
+        run: npm run operations:truth -- --scope shadow-universe
+
+      - name: Pack Canonical Scanner State Bundle
+        run: npm run state:pack -- --require-exact-universe
+
+      - name: Save Canonical Scanner State Bundle
+        uses: actions/cache/save@v5
+        with:
+          path: .state/scanner-learning-bundle.json.gz
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
