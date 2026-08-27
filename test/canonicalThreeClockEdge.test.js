@@ -141,3 +141,32 @@ test("Three-Clock report reads full current scan results before generic report c
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("pre-consensus and radar reports retain their full nested evidence after generic compaction", () => {
+  const cwd = process.cwd();
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "full-evidence-reports-"));
+  try {
+    const noisyProject = {
+      ...Object.fromEntries(Array.from({ length: 140 }, (_, index) => [`scannerField${index}`, index])),
+      ...project(),
+      preConsensusBreakoutHunter: { candidateType: "EARLY_LAUNCH", consensusStage: "TECHNICAL_EARLY" },
+      preConsensusTier: "Developing Signal",
+      preBreakoutRadar: { lane: "WATCH", components: { liquidity: 70 } },
+      preBreakoutRadarLane: "WATCH",
+      preBreakoutRadarWatchRank: 1,
+      preBreakoutRadarScore: 70,
+    };
+
+    process.chdir(directory);
+    generateReports([noisyProject], { scanRunId: "full-evidence-reports-test", codeCommitSha: "test-sha" });
+    const consensus = JSON.parse(fs.readFileSync(path.join(directory, "reports", "pre-consensus-breakout-hunter.json"), "utf8"));
+    const radar = JSON.parse(fs.readFileSync(path.join(directory, "reports", "pre-breakout-radar.json"), "utf8"));
+
+    assert.equal(consensus.analyzedProjects, 1);
+    assert.equal(radar.analyzedProjects, 1);
+    assert.equal(radar.watchCount, 1);
+  } finally {
+    process.chdir(cwd);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
