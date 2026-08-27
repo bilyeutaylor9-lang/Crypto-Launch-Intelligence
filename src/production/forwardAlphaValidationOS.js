@@ -10,9 +10,9 @@ import {
   prospectiveEpisodeIntegrityHash,
 } from "./prospectiveEdgeCohortLedger.js";
 import {
-  gradeProspectiveEdgeCohorts,
   resolveProspectiveEpisodeOutcome,
 } from "./prospectiveEdgeCohortGrader.js";
+import { gradeIntegrityScopedProspectiveEdgeCohorts } from "./integrityScopedProspectiveEdgeGrader.js";
 import {
   finite,
   mean,
@@ -610,7 +610,7 @@ export function buildForwardAlphaValidationOS(inputs = {}, options = {}) {
     asOf,
     options.requireObservationLedgerIntegrity !== false,
   );
-  const certificate = inputs.certificate || gradeProspectiveEdgeCohorts(episodes, observations, {
+  const certificate = inputs.certificate || gradeIntegrityScopedProspectiveEdgeCohorts(episodes, inputs.observations || [], {
     asOf,
     requireObservationLedgerIntegrity: options.requireObservationLedgerIntegrity !== false,
   });

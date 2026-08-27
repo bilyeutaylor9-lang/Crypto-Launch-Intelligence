@@ -101,10 +101,43 @@ export function wilsonLowerBound(wins = 0, total = 0, z = 1.96) {
   return Math.max(0, (center - margin) / denom);
 }
 
+// V2 makes object hashes stable across persistence layers such as Postgres
+// JSONB, which are free to reorder object keys. Arrays deliberately retain
+// their declared order because their order carries semantics in contracts and
+// frozen prospective evidence.
+export const STABLE_HASH_ALGORITHM_VERSION = "CANONICAL_JSON_SHA256_V2";
+
+function canonicalValue(value, arrayItem = false) {
+  if (value && typeof value === "object" && typeof value.toJSON === "function") {
+    return canonicalValue(value.toJSON(), arrayItem);
+  }
+  if (value === undefined || typeof value === "function" || typeof value === "symbol") {
+    return arrayItem ? "null" : undefined;
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalValue(item, true) ?? "null").join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.keys(value)
+      .sort()
+      .flatMap((key) => {
+        const encoded = canonicalValue(value[key]);
+        return encoded === undefined ? [] : [[key, encoded]];
+      });
+    return `{${entries.map(([key, encoded]) => `${JSON.stringify(key)}:${encoded}`).join(",")}}`;
+  }
+  const encoded = JSON.stringify(value);
+  return encoded === undefined ? (arrayItem ? "null" : undefined) : encoded;
+}
+
+export function canonicalJson(value) {
+  return canonicalValue(value) ?? "null";
+}
+
 export function stableHash(value) {
   return crypto
     .createHash("sha256")
-    .update(typeof value === "string" ? value : JSON.stringify(value))
+    .update(typeof value === "string" ? value : canonicalJson(value))
     .digest("hex");
 }
 

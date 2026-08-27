@@ -15,6 +15,13 @@ import {
 } from "./prospectiveEdgeCohortLedger.js";
 import { exactMarketObservationIntegrityHash } from "./exactMarketObservationLedger.js";
 
+const ACCEPTED_CONTROL_POOL_DEFINITIONS = new Set([
+  "SAME_SCORING_PIPELINE_UNSELECTED_V1",
+  // V4 is still exact, same-chain, pre-outcome, and matchability-reserved;
+  // it simply draws controls from the broader exact signal pool.
+  "FRESH_EXACT_SIGNAL_ELIGIBLE_UNIVERSE_V4",
+]);
+
 function routeCompatible(episode = {}, observation = {}) {
   const expected = strictIdentity(episode);
   const actual = strictIdentity(observation);
@@ -102,7 +109,7 @@ function episodeIntegrityFailures(episode = {}, asOfMs, options = {}) {
   if (episode.strategyDefinition?.evaluationPolicy?.version !== "PROSPECTIVE_EDGE_CERTIFICATE_V1") {
     failures.push("MISSING_FROZEN_EVALUATION_POLICY");
   }
-  if (episode.strategyDefinition?.controlPoolDefinition !== "SAME_SCORING_PIPELINE_UNSELECTED_V1") {
+  if (!ACCEPTED_CONTROL_POOL_DEFINITIONS.has(episode.strategyDefinition?.controlPoolDefinition)) {
     failures.push("INVALID_CONTROL_POOL_DEFINITION");
   }
   if (episode.strategyDefinition?.candidateSourceTimestampPolicy !== "EXPLICIT_PER_CANDIDATE_SOURCE_TIMESTAMP_REQUIRED_V1") {

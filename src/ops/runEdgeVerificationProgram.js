@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { loadOutcomeSnapshots } from "../learning/outcomeSnapshotStore.js";
 import { loadExactMarketObservations } from "../production/exactMarketObservationLedger.js";
 import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
-import { gradeProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortGrader.js";
+import { gradeIntegrityScopedProspectiveEdgeCohorts } from "../production/integrityScopedProspectiveEdgeGrader.js";
 import { runEdgeVerificationProgram } from "../production/edgeVerificationProgram.js";
 import { resolveSnapshotOutcomes } from "../production/snapshotOutcomeResolver.js";
 import { writeAtomicJson } from "../production/atomicArtifactStore.js";
@@ -35,7 +35,7 @@ export function runEdgeVerificationCycle(options = {}) {
   }
 
   const episodes = options.prospectiveEpisodes || loadProspectiveEdgeCohorts();
-  const report = gradeProspectiveEdgeCohorts(
+  const report = gradeIntegrityScopedProspectiveEdgeCohorts(
     episodes,
     options.prospectiveObservations !== undefined
       ? options.prospectiveObservations
@@ -94,7 +94,15 @@ export function runEdgeVerificationCycle(options = {}) {
     confidenceLevel: current.sequentialInference.confidenceLevel,
     interimSafetyPass: current.interimSafety.pass,
     missingnessWorstCaseSensitivityPass: current.missingnessSensitivity.pass,
-    prospectiveCohortLedgerIntegrityPass: report.inputAudit.prospectiveCohortLedgerIntegrityPass,
+    prospectiveCohortLedgerIntegrityPass: report.inputAudit.currentStrategyPartitionIntegrityPass === true,
+    currentStrategyPartitionIntegrityPass: report.inputAudit.currentStrategyPartitionIntegrityPass,
+    globalHistoricalProspectiveLedgerIntegrityPass:
+      report.inputAudit.globalHistoricalProspectiveLedgerIntegrityPass,
+    historicalObservationLedgerIntegrityPass:
+      report.inputAudit.historicalObservationLedgerIntegrityPass,
+    legacyHashOrderRowsQuarantined: report.inputAudit.legacyHashOrderRowsQuarantined,
+    nonLegacyInvalidRowsObserved: report.inputAudit.nonLegacyInvalidRowsObserved,
+    observationIntegrityRowsQuarantined: report.inputAudit.observationIntegrityRowsQuarantined,
     exactMarketObservationLedgerIntegrityRequired: report.inputAudit.exactMarketObservationLedgerIntegrityRequired,
     exactMarketObservationLedgerIntegrityPass: report.inputAudit.exactMarketObservationLedgerIntegrityPass,
     blockers: current.blockers,
