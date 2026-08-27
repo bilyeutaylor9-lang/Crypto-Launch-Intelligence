@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { loadOutcomeSnapshots } from "../learning/outcomeSnapshotStore.js";
 import { loadExactMarketObservations } from "../production/exactMarketObservationLedger.js";
 import { loadProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortLedger.js";
-import { gradeProspectiveEdgeCohorts } from "../production/prospectiveEdgeCohortGrader.js";
+import { gradeIntegrityScopedProspectiveEdgeCohorts } from "../production/integrityScopedProspectiveEdgeGrader.js";
 import { linkShadowPredictionsToOutcomes } from "../production/shadowOutcomeLinker.js";
 import { resolveSnapshotOutcomes } from "../production/snapshotOutcomeResolver.js";
 import { buildCalibrationReport } from "../production/probabilityCalibrationEngine.js";
@@ -60,7 +60,7 @@ export function runProductionGradeCycle(options = {}) {
   const prospectiveObservations = options.prospectiveObservations !== undefined
     ? options.prospectiveObservations
     : exactObservations;
-  const prospectiveEdge = gradeProspectiveEdgeCohorts(
+  const prospectiveEdge = gradeIntegrityScopedProspectiveEdgeCohorts(
     prospectiveEpisodes,
     prospectiveObservations,
     {

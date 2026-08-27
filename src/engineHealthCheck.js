@@ -270,7 +270,7 @@ async function executeContract(contract = {}, module = {}, sample = {}, options 
   const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
-      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, engineTimeoutMs: timeoutMs }),
+      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, persist: false, engineTimeoutMs: timeoutMs }),
       timeoutMs,
       contract.id
     );
@@ -354,7 +354,7 @@ async function executePipelineUsage(usage = {}, module = {}, sample = {}, option
   const memoryDelta = () => Math.max(0, process.memoryUsage().heapUsed - memoryBefore);
   try {
     const output = await withTimeout(
-      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, engineTimeoutMs: timeoutMs }),
+      () => engine([{ ...sample }], { auditMode: true, saveMemory: false, persist: false, engineTimeoutMs: timeoutMs }),
       timeoutMs,
       usage.stage
     );
