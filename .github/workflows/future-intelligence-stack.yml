@@ -3,7 +3,7 @@ name: CLI 9-14 Future Intelligence Stack
 on:
   workflow_dispatch:
   schedule:
-    - cron: "11,41 * * * *"
+    - cron: "11,41 * * *"
 
 permissions:
   contents: read

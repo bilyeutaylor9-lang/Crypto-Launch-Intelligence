@@ -19,6 +19,7 @@ import { writeAtomicJson, appendJsonlDurable } from "../production/atomicArtifac
 import { appendExactMarketObservations, loadExactMarketObservations, toOutcomeSnapshots } from "../production/exactMarketObservationLedger.js";
 import { captureProspectiveEdgeCohort } from "../production/prospectiveEdgeCohortLedger.js";
 import { strictIdentity } from "../production/productionMath.js";
+import { evaluateOperationalTruth } from "./operationalTruthGate.js";
 
 function readJson(file, fallback = null) {
   try { return JSON.parse(fs.readFileSync(path.resolve(file), "utf8")); }
@@ -84,6 +85,69 @@ export function runProductionShadowCycle(options = {}) {
 
   const observations = options.observations || loadIgnitionTwinObservations({ limit: 20000 });
   const universe = options.universe || loadEdgeCandidateUniverse();
+  const universePreflight = evaluateOperationalTruth(
+    { universe },
+    {
+      now,
+      scope: "shadow-universe",
+      maximumUniverseAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
+    },
+  );
+  if (!universePreflight.pass) {
+    const blockedState = "PRODUCTION_SHADOW_BLOCKED_UNIVERSE_PRECONDITION";
+    const shadowReport = {
+      schemaVersion: 1,
+      generatedAt: now,
+      runId: manifest.runId,
+      state: blockedState,
+      candidates: [],
+      universePreflight,
+      policy: {
+        shadowOnly: true,
+        productionRankingInfluence: false,
+        automaticTrading: false,
+        missingOrStalePointInTimeEvidenceFailsClosed: true,
+      },
+    };
+    const prospectiveCohort = {
+      state: "PROSPECTIVE_COHORT_NOT_CAPTURED_UNIVERSE_PRECONDITION_FAILED",
+      episodes: [],
+      audit: { blockers: universePreflight.blockers },
+      persistence: { file: null, attempted: 0, saved: 0, duplicates: 0, rejectedIntegrity: 0 },
+    };
+    const observability = {
+      schemaVersion: 1,
+      generatedAt: now,
+      state: "BLOCKED",
+      blockers: universePreflight.blockers,
+    };
+    writeAtomicJson("reports/production-shadow-ranking.json", shadowReport);
+    writeAtomicJson("reports/prospective-edge-cohort-capture.json", {
+      schemaVersion: 1,
+      generatedAt: now,
+      state: prospectiveCohort.state,
+      cohortId: null,
+      strategy: null,
+      audit: prospectiveCohort.audit,
+      persistence: prospectiveCohort.persistence,
+      policy: {
+        freshPointInTimeSourceRequired: true,
+        automaticTrading: false,
+        automaticPromotion: false,
+      },
+    });
+    writeAtomicJson("reports/production-observability.json", observability);
+    return {
+      manifest,
+      multiscale: { candidates: [] },
+      convergence: [],
+      shadowReport,
+      observability,
+      marketObservationAudit: { state: "NOT_ATTEMPTED_UNIVERSE_PRECONDITION_FAILED", saved: 0 },
+      prospectiveCohort,
+      universePreflight,
+    };
+  }
   const marketObservationAudit = appendExactMarketObservations(universe.candidates || [], {
     observedAt: universe.generatedAt || null,
     asOf: now,
@@ -333,6 +397,7 @@ export function runProductionShadowCycle(options = {}) {
     observability,
     marketObservationAudit,
     prospectiveCohort,
+    universePreflight,
   };
 }
 
@@ -354,6 +419,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         p100: row.forwardScenario?.probability100Pct || null,
       })),
     }, null, 2));
+    if (result.universePreflight && !result.universePreflight.pass) process.exitCode = 2;
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { strictIdentity } from "../production/productionMath.js";
 import { writeAtomicJson } from "../production/atomicArtifactStore.js";
+import { loadEdgeCandidateUniverse } from "../data/edgeCandidateUniverseStore.js";
 
 function readJson(file) {
   try { return JSON.parse(fs.readFileSync(path.resolve(file), "utf8")); }
@@ -27,11 +28,17 @@ export function evaluateOperationalTruth(sources = {}, options = {}) {
   const universe = sources.universe;
   const universeCandidates = Array.isArray(universe?.candidates) ? universe.candidates : [];
   const universeAgeMinutes = ageMinutes(universe?.generatedAt, now);
-  const maximumUniverseAgeMinutes = Number(options.maximumUniverseAgeMinutes || (scope === "dashboard-shadow" ? 120 : 390));
+  const maximumUniverseAgeMinutes = Number(
+    options.maximumUniverseAgeMinutes
+      || (scope === "dashboard-shadow" ? 120 : scope === "shadow-universe" ? 90 : 390),
+  );
 
-  if (scope === "dashboard-shadow" || scope === "production-shadow") {
+  if (["dashboard-shadow", "production-shadow", "shadow-universe"].includes(scope)) {
     if (!universe || typeof universe !== "object") blockers.push("EXACT_CANDIDATE_UNIVERSE_MISSING");
     else {
+      if (universe.availabilityState === "EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE") {
+        blockers.push("EDGE_CANDIDATE_UNIVERSE_UNAVAILABLE");
+      }
       if (universeAgeMinutes === null) blockers.push("EXACT_CANDIDATE_UNIVERSE_TIMESTAMP_INVALID");
       else if (universeAgeMinutes < -1) blockers.push("EXACT_CANDIDATE_UNIVERSE_FROM_FUTURE");
       else if (universeAgeMinutes > maximumUniverseAgeMinutes) blockers.push("EXACT_CANDIDATE_UNIVERSE_STALE");
@@ -52,8 +59,14 @@ export function evaluateOperationalTruth(sources = {}, options = {}) {
         String(universe.workflowRunId || "") !== String(options.workflowRunId)
       ) blockers.push("CANDIDATE_UNIVERSE_WORKFLOW_RUN_MISMATCH");
     }
-    if (!sources.shadow || typeof sources.shadow !== "object") blockers.push("PRODUCTION_SHADOW_REPORT_MISSING");
-    if (!sources.cohort || typeof sources.cohort !== "object") blockers.push("PROSPECTIVE_COHORT_REPORT_MISSING");
+    if (scope !== "shadow-universe") {
+      if (!sources.shadow || typeof sources.shadow !== "object") {
+        blockers.push("PRODUCTION_SHADOW_REPORT_MISSING");
+      }
+      if (!sources.cohort || typeof sources.cohort !== "object") {
+        blockers.push("PROSPECTIVE_COHORT_REPORT_MISSING");
+      }
+    }
     const shadowCandidates = Array.isArray(sources.shadow?.candidates) ? sources.shadow.candidates : [];
     if (shadowCandidates.some((candidate) => !strictIdentity(candidate))) {
       blockers.push("PRODUCTION_SHADOW_CONTAINS_INEXACT_IDENTITY");
@@ -107,7 +120,7 @@ export function evaluateOperationalTruth(sources = {}, options = {}) {
 export function runOperationalTruthGate(options = {}) {
   const scope = options.scope || "production-shadow";
   const sources = options.sources || {
-    universe: readJson(options.universeFile || "data/edge-candidate-universe.json"),
+    universe: loadEdgeCandidateUniverse({ file: options.universeFile }),
     shadow: readJson(options.shadowFile || "reports/production-shadow-ranking.json"),
     cohort: readJson(options.cohortFile || "reports/prospective-edge-cohort-capture.json"),
     acquisition: readJson(options.acquisitionFile || "reports/acquisition-health-gate.json"),
