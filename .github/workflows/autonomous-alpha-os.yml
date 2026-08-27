@@ -18,9 +18,16 @@ jobs:
     timeout-minutes: 45
     env:
       BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+      IGNITION_EXECUTABLE_QUOTE_ENDPOINT: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_ENDPOINT }}
+      IGNITION_EXECUTABLE_QUOTE_BEARER: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_BEARER }}
+      IGNITION_EXECUTABLE_QUOTE_PROVIDER: ${{ vars.IGNITION_EXECUTABLE_QUOTE_PROVIDER }}
+      FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD: ${{ vars.FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD || '100' }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PRODUCTION_REMOTE_BACKUP_VERIFIED: ${{ vars.PRODUCTION_REMOTE_BACKUP_VERIFIED || 'false' }}
+      PRODUCTION_REMOTE_BACKUP_PROVIDER: ${{ vars.PRODUCTION_REMOTE_BACKUP_PROVIDER }}
+      PRODUCTION_REMOTE_BACKUP_VERIFIED_AT: ${{ vars.PRODUCTION_REMOTE_BACKUP_VERIFIED_AT }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -55,7 +62,19 @@ jobs:
           key: alpha-os-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             alpha-os-${{ runner.os }}-${{ github.ref_name }}-
+
+      - name: Restore Canonical Scanner State Bundle
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: .state/scanner-learning-bundle.json.gz
+          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
 
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
@@ -69,6 +88,10 @@ jobs:
           restore-keys: |
             forward-evidence-${{ runner.os }}-${{ github.ref_name }}-
             forward-evidence-${{ runner.os }}-
+
+      - name: Restore Durable Forward Evidence
+        run: npm run forward:evidence:restore
+
 
       - name: Run Production Shadow
         run: npm run production:shadow
@@ -120,6 +143,10 @@ jobs:
             data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Sync Durable Forward Evidence
+        if: always()
+        run: npm run forward:evidence:sync
 
       - name: Upload Alpha OS Reports
         if: always()

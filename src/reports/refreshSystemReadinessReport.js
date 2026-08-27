@@ -52,6 +52,19 @@ function reportMeta(reportsDir = path.resolve("reports")) {
       highUpside.dataCutoffTimestamp,
       currentReadiness.dataCutoffTimestamp,
     ]),
+    artifactClass: firstPresent([
+      manifest.artifactClass,
+      top10.artifactClass,
+      highUpside.artifactClass,
+      currentReadiness.artifactClass,
+      process.env.ARTIFACT_CLASS,
+    ]),
+    evidenceMode: firstPresent([
+      manifest.evidenceMode,
+      top10.evidenceMode,
+      highUpside.evidenceMode,
+      currentReadiness.evidenceMode,
+    ]),
     scannedProjects: firstPresent([
       top10.projectsAnalyzed,
       highUpside.projectsAnalyzed,

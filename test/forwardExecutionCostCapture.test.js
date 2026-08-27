@@ -44,19 +44,14 @@ function observedQuote(side, overrides = {}) {
   };
 }
 
-test("missing endpoint is inert and leaves candidate execution cost unknown", async () => {
-  let providerCalls = 0;
+test("explicitly disabled free quotes are inert and leave candidate execution cost unknown", async () => {
   const project = candidate();
   const result = await captureForwardExecutionCosts([project], {
     endpoint: "",
-    quoteProvider: async () => {
-      providerCalls += 1;
-      return observedQuote("BUY");
-    },
+    freeProviderQuotesEnabled: false,
   });
 
-  assert.equal(result.state, "DISABLED_NO_EXPLICIT_EXECUTABLE_QUOTE_ENDPOINT");
-  assert.equal(providerCalls, 0);
+  assert.equal(result.state, "DISABLED_EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE");
   assert.strictEqual(result.projects[0], project);
   const descriptor = buildEdgeCandidateDescriptor(result.projects[0]);
   assert.equal(descriptor.roundTripExecutionCostBps, null);

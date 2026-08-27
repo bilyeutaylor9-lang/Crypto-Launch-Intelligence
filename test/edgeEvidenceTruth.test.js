@@ -396,8 +396,9 @@ test("hourly workflow serializes with production scan and runs the full truth cy
   assert.match(workflow, /run:\s*npm run edge:evidence:probe/);
   assert.match(workflow, /run:\s*npm run edge:evidence:truth/);
   assert.match(workflow, /EDGE_EVIDENCE_MAX_REQUESTS:\s*60/);
-  assert.match(workflow, /data\/edge-production-episodes\.jsonl/);
-  assert.match(workflow, /data\/edge-evidence-outcomes\.jsonl/);
+  assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
+  assert.match(workflow, /run:\s*npm run state:restore/);
+  assert.match(workflow, /run:\s*npm run state:pack -- --require-exact-universe/);
   assert.doesNotMatch(workflow, /npm run scan/);
   assert.match(legacyEdgeWorkflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
 });

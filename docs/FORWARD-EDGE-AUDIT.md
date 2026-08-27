@@ -77,6 +77,18 @@ Missingness is also stress-tested rather than assumed benign. Every mature treat
 - Any loaded cohort-ledger integrity failure is fail-closed, including damage attributed to an older strategy; exact-observation integrity is also required on the production certificate path.
 - Alpha Lab challengers require exact post-freeze decisions, fresh point-in-time inputs, post-decision outcomes, experiment-definition integrity, a forward permutation test, and Benjamini-Hochberg correction across prospective validations.
 - Automatic trading and automatic model promotion remain disabled.
+- A challenger cannot become canary-eligible from point estimates alone. It
+  requires frozen forward-only cohorts, ledger integrity, 250 resolved samples,
+  80 unique projects, 30 independent cohorts, 95% outcome capture, distinct
+  immutable strategy fingerprints, and conservative return, hit-rate, and
+  catastrophic-loss confidence bounds. Champion eligibility additionally
+  requires a hashed canary evidence receipt bound to the challenger strategy
+  fingerprint; release remains governed and never automatic.
+- Dashboard-critical reports are covered by a live artifact provenance firewall.
+  Test/demo fixtures, missing run identity, missing commit identity, stale or
+  future cutoffs, cross-commit artifacts, and known fixture identities make the
+  manifest non-publishable as live data. The public fallback is a truthful
+  `NO_LIVE_DATA_PUBLISHED` page, not stale results.
 
 ## Operating commands
 

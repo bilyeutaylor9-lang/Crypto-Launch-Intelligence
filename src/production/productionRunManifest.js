@@ -46,7 +46,10 @@ export function buildProductionRunManifest(options = {}) {
     configFingerprint: stableHash(config),
     config,
     environment: options.environment || process.env.NODE_ENV || "development",
+    artifactClass: options.artifactClass || process.env.ARTIFACT_CLASS || "LIVE_SHADOW",
+    evidenceMode: "SHADOW_RESEARCH_ONLY",
     automaticTrading: false,
+    automaticModelPromotion: false,
   };
 }
 

@@ -89,7 +89,7 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
       area: "candidate-promotion",
       severity: "WARN",
       reason: `Candidate promotion is blocked by ${sourceGaps.routePromotionBlindnessRisk.toLowerCase()} route-identity/quote source coverage.`,
-      nextAction: "Restore DexScreener/GeckoTerminal/CoinGecko pool identity coverage first, then recover Jupiter/0x/CEX buy-sell proof.",
+      nextAction: "Restore DexScreener/GeckoTerminal/DeFiLlama exact identity coverage first, then recover LI.FI keyless or CEX public buy-sell proof; keyed Jupiter/0x remain optional.",
     });
   }
   if (

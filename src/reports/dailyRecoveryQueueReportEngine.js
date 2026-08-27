@@ -109,7 +109,7 @@ function missingItems(project = {}) {
 function sourcePlan(item = "") {
   const text = String(item || "").toLowerCase();
   if (/identity|chain|contract|token|pool|market/.test(text)) return ["DexScreener", "GeckoTerminal", "official website", "block explorer"];
-  if (/route|quote|\bsell\b|\bbuy\b|slippage|depth/.test(text)) return ["Jupiter", "0x", "1inch", "chain-native DEX quote", "CEX order book"];
+  if (/route|quote|\bsell\b|\bbuy\b|slippage|depth/.test(text)) return ["LI.FI keyless quote", "chain-native DEX quote", "CEX public order book", "Jupiter (API key required)", "0x (API key required)"];
   if (/safety|honeypot|tax|blacklist|freeze|authority/.test(text)) return ["GoPlus", "Honeypot.is", "RugCheck", "Sourcify", "Blockscout", "Etherscan V2"];
   if (/utility|roadmap|developer|github|docs|product/.test(text)) return ["GitHub", "official docs", "project website", "package registry"];
   if (/market cap|liquidity|volume|buyer|wallet|holder|flow/.test(text)) return ["CoinGecko", "CoinPaprika", "CoinLore", "GeckoTerminal trades", "native RPC"];

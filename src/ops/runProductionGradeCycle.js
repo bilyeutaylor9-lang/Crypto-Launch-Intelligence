@@ -160,9 +160,15 @@ export function runProductionGradeCycle(options = {}) {
     readJson("reports/champion-baseline.json", null) ||
     { samples: 0, averageReturnPct: 0, plus25HitRate: 0, catastrophicLossRate: 0 };
   const challenger = compareChampionChallenger(championMetrics, challengerMetrics, {
-    minimumSamples: 200,
+    minimumSamples: 250,
+    minimumUniqueProjects: 80,
+    minimumCohorts: 30,
+    minimumCaptureRate: 0.95,
     minimumReturnImprovementPct: 3,
     minimumHitRateImprovement: 0.03,
+    forwardOnly: false,
+    ledgerIntegrityPass: false,
+    frozenBeforeOutcomes: false,
   });
   writeAtomicJson("reports/champion-challenger.json", {
     schemaVersion: 1,

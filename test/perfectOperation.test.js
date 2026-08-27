@@ -105,7 +105,8 @@ test("missing sell proof keeps a strong project research-only and creates recove
   assert.equal(summary.bestCandidate, null);
   assert.equal(summary.status, "NO_VALID_MOVE_TODAY_RESEARCH_ONLY");
   assert.equal(recovery.status, "RECOVERY_ACTIONS_READY");
-  assert.ok(recovery.topRecoveryCandidates[0].targetSources.includes("Jupiter"));
+  assert.ok(recovery.topRecoveryCandidates[0].targetSources.includes("LI.FI keyless quote"));
+  assert.ok(recovery.topRecoveryCandidates[0].targetSources.includes("Jupiter (API key required)"));
 });
 
 test("daily recovery queue excludes malformed aggregate provider rows", () => {

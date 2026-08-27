@@ -424,11 +424,13 @@ export function generateReports(projects = [], meta = {}) {
     sourceRouter,
     dailySourceGaps,
   });
+  sanitizeReportJsonFiles(
+    REQUIRED_REPORT_FILES.filter((fileName) => fileName !== "scan-artifact-manifest.json"),
+  );
+
   const {
     filePath: scanArtifactManifestPath,
   } = writeScanArtifactManifest(meta);
-
-  sanitizeReportJsonFiles(REQUIRED_REPORT_FILES);
 
   return {
     htmlPath,

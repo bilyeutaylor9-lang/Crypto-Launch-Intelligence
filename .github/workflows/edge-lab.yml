@@ -29,42 +29,14 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
-          path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
+          path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-${{ runner.os }}-
+
+      - name: Restore Validated Scanner State
+        run: npm run state:restore
 
       - name: Refresh Lead-Time Outcome Lab
         run: npm run edge:lab
@@ -73,42 +45,17 @@ jobs:
         run: npm run ignition:lab
 
       - name: Save Learning Memory
-        if: ${{ always() && hashFiles('data/edge-candidate-universe.json') != '' }}
+        if: always()
+        id: state_pack
+        continue-on-error: true
+        run: npm run state:pack -- --require-exact-universe
+
+      - name: Save Canonical Scanner State Bundle
+        if: steps.state_pack.outcome == 'success'
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
-          path: |
-            data/*memory*.json*
-            data/scan-history.json*
-            data/market-opportunity-learning.json*
-            data/outcome-snapshots.json*
-            data/point-in-time-observations.json*
-            data/project-observations.jsonl
-            data/project-watchlist.json*
-            data/research-coverage-ledger.json*
-            data/source-router-memory.json*
-            data/universe-ledger.json*
-            data/watchtower-*.json*
-            data/edge-production-episodes.jsonl
-            data/edge-evidence-outcomes.jsonl
-            data/committed-loaded-vacuum-observations.jsonl
-            data/capital-commitment-episodes.jsonl
-            data/capital-path-learning-observations.jsonl
-            data/chain-capital-radar-observations.jsonl
-            data/edge-candidate-universe.json
-            data/prospective-entry-edge-episodes.jsonl
-            data/asymmetric-edge-observations.jsonl
-            data/asymmetric-edge-outcomes.json*
-            data/three-clock-edge-observations.jsonl
-            data/wallet-temporal-fingerprints.jsonl
-            data/ignition-twin-observations.jsonl
-            data/committed-loaded-vacuum-replication-plan.json
-            data/ignition-executable-edge-canary-replays.jsonl
-            data/ignition-executable-edge-canary-tickets.jsonl
-            data/ignition-executable-edge-canary-policy.json
-            data/native-discovery/raw-events.json
-            data/native-discovery/confirmed-events.json
-            data/native-discovery/checkpoints.json
+          path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Upload Edge Lab Reports

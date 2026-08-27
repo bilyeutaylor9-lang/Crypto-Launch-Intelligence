@@ -84,6 +84,10 @@ function quoteSummary(quote = {}) {
     protocolFeeBps: finite(quote.protocolFeeBps),
     gasUsd: finite(quote.gasUsd),
     route: quote.route || null,
+    poolAddress: quote.poolAddress || null,
+    routeIdentityVerified: quote.routeIdentityVerified ?? null,
+    sourceUrl: quote.sourceUrl || null,
+    rawEvidenceHash: quote.rawEvidenceHash || null,
   };
 }
 
@@ -94,6 +98,7 @@ function object(value) {
 function addresses(values = []) {
   return values.flatMap((value) => {
     if (value === null || value === undefined || value === "") return [];
+    if (Array.isArray(value)) return addresses(value);
     if (typeof value === "object") return [value.address, value.tokenAddress, value.contractAddress].filter(Boolean);
     return [value];
   });
@@ -149,8 +154,10 @@ function rawQuoteIdentityMatches(raw = {}, expected = {}) {
     route.poolAddress,
     route.pairAddress,
     route.routePoolAddress,
+    raw.routePoolAddresses,
     route.pool,
     route.pair,
+    route.poolAddresses,
   ]);
   const normalizedPools = poolValues
     .map((value) => normalizePoolAddress(value, expected.chain))
@@ -219,7 +226,7 @@ function buildObservedRoundTripEvidence(identity, buy, sell, options = {}) {
     schemaVersion: 1,
     kind: "PAIRED_EXECUTABLE_QUOTES_V1",
     provider: buy.provider,
-    transport: "IGNITION_EXECUTABLE_QUOTE_ENDPOINT",
+    transport: options.transport || "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
     identityKey: identity.identityKey,
     routeKey: identity.routeKey,
     observedAt,
@@ -326,23 +333,6 @@ function increment(map, key) {
 export async function captureForwardExecutionCosts(projects = [], options = {}) {
   const endpoint = text(optionOrEnvironment(options, "endpoint", "IGNITION_EXECUTABLE_QUOTE_ENDPOINT"));
   const source = Array.isArray(projects) ? projects : [];
-  if (!endpoint) {
-    return {
-      state: "DISABLED_NO_EXPLICIT_EXECUTABLE_QUOTE_ENDPOINT",
-      projects: source,
-      audit: {
-        attempted: 0,
-        eligible: 0,
-        accepted: 0,
-        rejected: 0,
-        rejectionReasons: { NO_EXPLICIT_EXECUTABLE_QUOTE_ENDPOINT: source.length },
-        shadowOnly: true,
-        rankingInfluence: false,
-        automaticTrading: false,
-      },
-    };
-  }
-
   const now = options.now || new Date().toISOString();
   const asOfMs = timestamp(now);
   if (asOfMs === null) {
@@ -361,7 +351,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
       },
     };
   }
-  const quoteProvider = options.quoteProvider || quoteProviderFromEnvironment({ endpoint });
+  const quoteProvider = options.quoteProvider || quoteProviderFromEnvironment({ ...options, endpoint });
   if (!quoteProvider) {
     return {
       state: "DISABLED_EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE",
@@ -383,7 +373,11 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     now,
     asOfMs,
     quoteProvider,
-    providerName: text(optionOrEnvironment(options, "providerName", "IGNITION_EXECUTABLE_QUOTE_PROVIDER")) || "CONFIGURED_EXECUTABLE_QUOTE_ENDPOINT",
+    providerName:
+      text(optionOrEnvironment(options, "providerName", "IGNITION_EXECUTABLE_QUOTE_PROVIDER")) ||
+      text(quoteProvider.providerName) ||
+      "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
+    transport: text(options.transport || quoteProvider.transport) || "READ_ONLY_EXECUTABLE_QUOTE_PROVIDER",
     referenceNotionalUsd: positive(
       optionOrEnvironment(options, "referenceNotionalUsd", "FORWARD_EXECUTION_COST_REFERENCE_NOTIONAL_USD"),
       DEFAULT_REFERENCE_NOTIONAL_USD,
@@ -440,7 +434,11 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
       ? source.map((project, index) => updates.get(index) || project)
       : source,
     audit: {
-      endpointConfigured: true,
+      endpointConfigured: Boolean(endpoint),
+      provider: context.providerName,
+      providerTransport: context.transport,
+      keylessProvider: quoteProvider.keyless === true,
+      quoteOnly: quoteProvider.quoteOnly !== false,
       attempted,
       eligible,
       accepted,

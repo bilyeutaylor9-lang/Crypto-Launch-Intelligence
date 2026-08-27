@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "node:os";
 import path from "path";
 import { ENGINE_REGISTRY } from "./engines/engineRegistry.js";
 import { getEngineContracts } from "./kernel/engineContractManifest.js";
@@ -862,8 +863,33 @@ export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
   return results;
 }
 
+function snapshotAuditDataDirectory() {
+  const dataDir = path.resolve("data");
+  const backupRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cli-engine-audit-data-"));
+  const backupDir = path.join(backupRoot, "data");
+  const existed = fs.existsSync(dataDir);
+  if (existed) fs.cpSync(dataDir, backupDir, { recursive: true });
+  return { dataDir, backupRoot, backupDir, existed };
+}
+
+function restoreAuditDataDirectory(snapshot) {
+  if (fs.existsSync(snapshot.dataDir)) fs.rmSync(snapshot.dataDir, { recursive: true, force: true });
+  if (snapshot.existed) fs.cpSync(snapshot.backupDir, snapshot.dataDir, { recursive: true });
+  fs.rmSync(snapshot.backupRoot, { recursive: true, force: true });
+}
+
 if (process.argv[1]?.includes("engineHealthCheck.js")) {
-  const results = await runEngineHealthCheck({}, { executePipelineActive: process.argv.includes("--full") });
+  const auditDataSnapshot = snapshotAuditDataDirectory();
+  const previousAuditMode = process.env.ENGINE_AUDIT_MODE;
+  let results;
+  try {
+    process.env.ENGINE_AUDIT_MODE = "true";
+    results = await runEngineHealthCheck({}, { executePipelineActive: process.argv.includes("--full") });
+  } finally {
+    restoreAuditDataDirectory(auditDataSnapshot);
+    if (previousAuditMode === undefined) delete process.env.ENGINE_AUDIT_MODE;
+    else process.env.ENGINE_AUDIT_MODE = previousAuditMode;
+  }
   const report = buildEngineHealthReport(results);
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });

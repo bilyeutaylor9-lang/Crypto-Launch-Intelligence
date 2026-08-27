@@ -9,6 +9,7 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   MARKET: [
     { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
     { source: "GeckoTerminal", authority: 80, cost: 1, latencyMs: 1600, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
+    { source: "DeFiLlama Exact Price", authority: 78, cost: 1, latencyMs: 1400, fields: ["priceUsd"] },
     { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "priceUsd"] },
     { source: "CoinPaprika", authority: 72, cost: 1, latencyMs: 1800, fields: ["circulatingMarketCapUsd", "priceUsd"] },
     { source: "CoinLore", authority: 65, cost: 1, latencyMs: 1500, fields: ["circulatingMarketCapUsd", "volume24hUsd", "priceUsd"] },
@@ -44,9 +45,10 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "reputable news sources", authority: 58, cost: 2, latencyMs: 3200, fields: ["liveCatalystEvents"] },
   ],
   EXECUTION: [
-    { source: "Jupiter", authority: 84, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "0x Swap API", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "1inch quote API", authority: 80, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "LI.FI keyless quote", authority: 84, cost: 1, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "Jupiter (API key required)", authority: 84, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "0x Swap API", authority: 82, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "1inch quote API", authority: 80, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
     { source: "Uniswap quote adapters", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
     { source: "Aerodrome", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
     { source: "PancakeSwap", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },

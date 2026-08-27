@@ -182,10 +182,11 @@ export function hasExactRouteIdentity(subject = {}) {
         (subject.marketPair || subject.exchangeAssetId || subject.canonicalExecutionRoute?.marketPair)
     );
   }
+  if (subject.exactIdentityVerified === false || subject.executionProof?.exactIdentityVerified === false) return false;
   return Boolean(
     (subject.chain || subject.chainId || subject.canonicalExecutionRoute?.chain) &&
       (subject.contractAddress || subject.tokenAddress || subject.canonicalExecutionRoute?.contractAddress) &&
-      (subject.poolAddress || subject.pairAddress || subject.canonicalExecutionRoute?.pairAddress || routeType === "AGGREGATOR")
+      (subject.poolAddress || subject.pairAddress || subject.canonicalExecutionRoute?.pairAddress)
   );
 }
 

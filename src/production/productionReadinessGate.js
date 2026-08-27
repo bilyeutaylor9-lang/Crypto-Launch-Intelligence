@@ -22,9 +22,27 @@ export function evaluateProductionReadiness(inputs = {}, options = {}) {
   const restore = inputs.backupRestore?.pass === true;
   const faultInjection = inputs.faultInjection?.pass === true;
   const sourceReadiness = inputs.sourceReadiness || {};
+  const artifactManifest = inputs.artifactManifest || {};
+  const requiredConfidenceGates = ["RETURN_LOWER_BOUND", "HIT_RATE_LOWER_BOUND", "CATASTROPHIC_UPPER_BOUND"];
+  const observedConfidenceGates = requiredConfidenceGates.map((name) =>
+    challenger.gates?.find((gate) => gate.name === name),
+  );
 
   const gates = [
     pass("LIVE_ENVIRONMENT", environment.state === "ENVIRONMENT_READY", environment.state, "ENVIRONMENT_READY"),
+    pass(
+      "LIVE_ARTIFACT_PROVENANCE",
+      artifactManifest.status === "COMPLETE" &&
+        artifactManifest.livePublishable === true &&
+        /^[0-9a-f]{64}$/i.test(artifactManifest.provenanceFingerprint || ""),
+      {
+        status: artifactManifest.status || null,
+        artifactClass: artifactManifest.artifactClass || null,
+        livePublishable: artifactManifest.livePublishable === true,
+        provenanceFingerprint: artifactManifest.provenanceFingerprint || null,
+      },
+      "COMPLETE live-publishable manifest with provenance fingerprint",
+    ),
     pass("REMOTE_PERSISTENCE_READ", remotePersistence.state === "REMOTE_READ_HEALTHY", remotePersistence.state, "REMOTE_READ_HEALTHY"),
     pass("REMOTE_PERSISTENCE_WRITE_CAPABLE", remotePersistence.serverWriteCapable === true, remotePersistence.serverWriteCapable, "true"),
     pass("REMOTE_BACKUP", remoteBackup.pass === true, remoteBackup.state, "REMOTE_BACKUP_ATTESTED"),
@@ -42,8 +60,29 @@ export function evaluateProductionReadiness(inputs = {}, options = {}) {
     pass("FAULT_INJECTION", faultInjection, faultInjection, true),
     pass("DATA_SOURCE_CODE_COVERAGE", sourceReadiness.criticalCodeComplete === true, sourceReadiness.state, "criticalCodeComplete=true"),
     pass("DATA_SOURCE_LIVE_HEALTH", sourceReadiness.liveReady === true, sourceReadiness.state, "DATA_SOURCES_LIVE"),
-    pass("CHALLENGER_FORWARD_SAMPLE", Number(challenger.samples || 0) >= Number(options.minimumForwardSamples || 200), challenger.samples, ">=200"),
+    pass("CHALLENGER_FORWARD_SAMPLE", Number(challenger.samples || 0) >= Number(options.minimumForwardSamples || 250), challenger.samples, ">=250"),
     pass("CHALLENGER_GOVERNANCE", challenger.state === "CHAMPION_ELIGIBLE", challenger.state, "CHAMPION_ELIGIBLE"),
+    pass("CHALLENGER_FORWARD_ONLY", challenger.forwardOnly === true, challenger.forwardOnly, "true"),
+    pass("CHALLENGER_FROZEN_BEFORE_OUTCOMES", challenger.frozenBeforeOutcomes === true, challenger.frozenBeforeOutcomes, "true"),
+    pass("CHALLENGER_LEDGER_INTEGRITY", challenger.ledgerIntegrityPass === true, challenger.ledgerIntegrityPass, "true"),
+    pass(
+      "CHALLENGER_CONFIDENCE_BOUNDS",
+      observedConfidenceGates.every((gate) => gate?.pass === true),
+      challenger.confidenceBounds || null,
+      "all conservative bounds pass",
+    ),
+    pass(
+      "CHALLENGER_CANARY_EVIDENCE",
+      challenger.canaryPassed === true &&
+        Boolean(challenger.canaryEvidenceId) &&
+        /^[0-9a-f]{64}$/i.test(challenger.canaryEvidenceFingerprint || ""),
+      {
+        canaryPassed: challenger.canaryPassed,
+        canaryEvidenceId: challenger.canaryEvidenceId || null,
+        canaryEvidenceFingerprint: challenger.canaryEvidenceFingerprint || null,
+      },
+      "verified canary evidence id and fingerprint",
+    ),
     pass("NO_AUTOMATIC_PROMOTION", challenger.automaticPromotion !== true, challenger.automaticPromotion, "false"),
   ];
 

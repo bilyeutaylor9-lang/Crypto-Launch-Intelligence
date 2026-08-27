@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DASHBOARD_CRITICAL_REPORT_FILES } from "./reportContractValidator.js";
+import { auditArtifactProvenance } from "./artifactProvenanceFirewall.js";
 
 function readArtifact(filePath = "") {
   if (!fs.existsSync(filePath)) return null;
@@ -80,6 +81,7 @@ export function buildScanArtifactManifest(meta = {}, options = {}) {
       bytes: artifact.bytes.length,
       sha256: sha256(artifact.bytes),
       errors: fileErrors,
+      parsed: artifact.parsed,
     });
   }
 
@@ -88,17 +90,35 @@ export function buildScanArtifactManifest(meta = {}, options = {}) {
     errors.push(`dashboard-critical artifacts contain multiple scanRunIds: ${observedScanRunIds.join(", ")}`);
   }
 
+  const provenance = auditArtifactProvenance(
+    {
+      ...meta,
+      scanRunId: expectedScanRunId || observedScanRunIds[0] || null,
+      codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
+      dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
+    },
+    artifacts,
+    options,
+  );
+  errors.push(...provenance.errors);
+
   return {
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     scanRunId: expectedScanRunId || observedScanRunIds[0] || null,
     codeCommitSha: meta.codeCommitSha || process.env.GITHUB_SHA || null,
     dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || null,
+    artifactClass: provenance.artifactClass,
+    evidenceMode: meta.evidenceMode || (provenance.liveClass ? "SHADOW_RESEARCH_ONLY" : provenance.artifactClass),
+    livePublishable: provenance.livePublishable,
+    provenanceFingerprint: provenance.provenanceFingerprint,
+    provenance,
     status: errors.length ? "INCOMPLETE" : "COMPLETE",
     expectedScanRunId: expectedScanRunId || null,
     observedScanRunIds,
     artifactCount: artifacts.length,
     readyArtifactCount: artifacts.filter((item) => item.status === "READY").length,
-    artifacts,
+    artifacts: artifacts.map(({ parsed: _parsed, ...artifact }) => artifact),
     errors,
   };
 }

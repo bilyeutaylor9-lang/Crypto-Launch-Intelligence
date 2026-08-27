@@ -59,13 +59,64 @@ test("expert portfolio weights reliable experts", () => {
   assert.ok(result.probability > 0.5);
 });
 
-test("champion challenger never automatically promotes", () => {
+test("champion challenger stays shadow when only point estimates look better", () => {
   const result = compareChampionChallenger(
     { averageReturnPct: 5, precision: 0.3, catastrophicLossRate: 0.05 },
     { averageReturnPct: 12, precision: 0.4, catastrophicLossRate: 0.04, samples: 300 }
   );
-  assert.equal(result.state, "CANARY_ELIGIBLE");
+  assert.equal(result.state, "SHADOW");
+  assert.ok(result.blockers.includes("FORWARD_ONLY"));
+  assert.ok(result.blockers.includes("RETURN_LOWER_BOUND"));
   assert.equal(result.automaticPromotion, false);
+});
+
+test("champion challenger requires forward cohort integrity and conservative bounds", () => {
+  const champion = {
+    averageReturnPct: 5,
+    plus25HitRate: 0.3,
+    catastrophicLossRate: 0.05,
+    strategyFingerprint: "champion-v1",
+  };
+  const challenger = {
+    averageReturnPct: 12,
+    plus25HitRate: 0.4,
+    catastrophicLossRate: 0.04,
+    samples: 300,
+    uniqueProjects: 100,
+    independentCohorts: 35,
+    outcomeCaptureRate: 0.98,
+    strategyFingerprint: "challenger-v2",
+    validationClass: "FROZEN_PROSPECTIVE_MATCHED_COHORTS_V1",
+    frozenBeforeOutcomes: true,
+    ledgerIntegrityPass: true,
+    confidenceBounds: {
+      returnDeltaLower95Pct: 3.5,
+      hitRateDeltaLower95: 0.04,
+      catastrophicDeltaUpper95: 0.01,
+    },
+  };
+  const canary = compareChampionChallenger(champion, challenger);
+  assert.equal(canary.state, "CANARY_ELIGIBLE");
+  assert.equal(canary.adequate, true);
+  assert.equal(canary.automaticPromotion, false);
+  assert.equal(canary.governedReleaseRequired, true);
+
+  const unverifiedCanary = compareChampionChallenger(champion, challenger, {
+    canaryPassed: true,
+    canaryEvidenceId: "canary-receipt-2026-001",
+  });
+  assert.equal(unverifiedCanary.state, "CANARY_ELIGIBLE");
+
+  const championEligible = compareChampionChallenger(champion, challenger, {
+    canaryEvidence: {
+      id: "canary-receipt-2026-001",
+      status: "PASS",
+      evidenceFingerprint: "c".repeat(64),
+      challengerStrategyFingerprint: "challenger-v2",
+    },
+  });
+  assert.equal(championEligible.state, "CHAMPION_ELIGIBLE");
+  assert.equal(championEligible.automaticPromotion, false);
 });
 
 test("readiness blocks incomplete infrastructure", () => {
@@ -89,6 +140,79 @@ test("readiness blocks incomplete infrastructure", () => {
   });
   assert.equal(report.state, "NOT_PRODUCTION_READY");
   assert.ok(report.blockers.includes("REPRODUCIBILITY"));
+  assert.ok(report.blockers.includes("LIVE_ARTIFACT_PROVENANCE"));
+  assert.ok(report.blockers.includes("CHALLENGER_CONFIDENCE_BOUNDS"));
+});
+
+test("readiness passes only a fully governed live intelligence release", () => {
+  const challenger = compareChampionChallenger(
+    {
+      averageReturnPct: 5,
+      plus25HitRate: 0.3,
+      catastrophicLossRate: 0.05,
+      strategyFingerprint: "champion-v1",
+    },
+    {
+      averageReturnPct: 12,
+      plus25HitRate: 0.4,
+      catastrophicLossRate: 0.04,
+      samples: 300,
+      uniqueProjects: 100,
+      independentCohorts: 35,
+      outcomeCaptureRate: 0.98,
+      strategyFingerprint: "challenger-v2",
+      validationClass: "FROZEN_PROSPECTIVE_MATCHED_COHORTS_V1",
+      frozenBeforeOutcomes: true,
+      ledgerIntegrityPass: true,
+      confidenceBounds: {
+        returnDeltaLower95Pct: 3.5,
+        hitRateDeltaLower95: 0.04,
+        catastrophicDeltaUpper95: 0.01,
+      },
+    },
+    {
+      canaryEvidence: {
+        id: "canary-receipt-2026-001",
+        status: "PASS",
+        evidenceFingerprint: "c".repeat(64),
+        challengerStrategyFingerprint: "challenger-v2",
+      },
+    },
+  );
+  const report = evaluateProductionReadiness({
+    environment: { state: "ENVIRONMENT_READY" },
+    artifactManifest: {
+      status: "COMPLETE",
+      artifactClass: "LIVE_SHADOW",
+      livePublishable: true,
+      provenanceFingerprint: "a".repeat(64),
+    },
+    remotePersistence: { state: "REMOTE_READ_HEALTHY", serverWriteCapable: true },
+    remoteBackup: { pass: true, state: "REMOTE_BACKUP_ATTESTED" },
+    security: { pass: true, state: "SECURITY_AUDIT_PASS" },
+    edgeVerification: { verified: true, edgeState: "VERIFIED_FORWARD_EDGE" },
+    alphaLab: {
+      policy: {
+        prospectiveFreezeRequired: true,
+        discoverySampleCannotValidateSameHypothesis: true,
+        automaticPromotion: false,
+      },
+    },
+    leakageAudit: { status: "PASS" },
+    walkForward: { audit: { status: "PASS" } },
+    observability: { healthScore: 95 },
+    calibration: { state: "CALIBRATED" },
+    challenger,
+    outcomeHealth: { captureRate: 0.99 },
+    identityHealth: { exactIdentityRate: 0.999 },
+    reproducibility: { pass: true },
+    backupRestore: { pass: true },
+    faultInjection: { pass: true },
+    sourceReadiness: { criticalCodeComplete: true, liveReady: true, state: "DATA_SOURCES_LIVE" },
+  });
+  assert.equal(report.state, "PRODUCTION_READY_INTELLIGENCE");
+  assert.deepEqual(report.blockers, []);
+  assert.equal(report.automaticTradingApproved, false);
 });
 
 test("scenario simulator is deterministic under fixed seed", () => {

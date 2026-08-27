@@ -8,6 +8,7 @@ import { routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
+import { extractLiFiRoutePoolAddresses } from "../execution/lifiExecutableQuoteProvider.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -365,8 +366,10 @@ function amountUnits(usd = 25, decimals = 6) {
   return String(Math.max(1, Math.round(Number(usd) * 10 ** decimals)));
 }
 
-function routePlanPool(quote = {}) {
-  return first(array(quote.routePlan).map((step) => step?.swapInfo?.ammKey || step?.swapInfo?.label));
+function routePlanPools(quote = {}, chain = "solana") {
+  return [...new Set(array(quote.routePlan)
+    .map((step) => normalizePoolAddress(step?.swapInfo?.ammKey, chain))
+    .filter(Boolean))];
 }
 
 function priceImpactPct(...quotes) {
@@ -404,6 +407,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
   const chain = chainOf(project);
   const tokenAddress = tokenAddressOf(project);
   if (chain !== "solana") return { adapter: "jupiter", status: "NOT_APPLICABLE", reason: "Project is not on Solana." };
+  if (!options.jupiterApiKey) return { adapter: "jupiter", status: "OPTIONAL_KEY_MISSING", missingKey: "JUPITER_API_KEY", reason: "Jupiter quote API now requires JUPITER_API_KEY and is excluded from keyless mode." };
   if (!tokenAddress) return { adapter: "jupiter", status: "MISSING_IDENTITY", reason: "Solana token mint is missing or invalid." };
 
   const timestamp = quoteTimestamp(options);
@@ -459,6 +463,12 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
   }
 
   const slippage = priceImpactPct(recovered.buy, recovered.sell);
+  const expectedPool = poolAddressOf(project);
+  const buyPools = routePlanPools(recovered.buy);
+  const sellPools = routePlanPools(recovered.sell);
+  const exactPoolObserved = Boolean(
+    expectedPool && buyPools.includes(expectedPool) && sellPools.includes(expectedPool)
+  );
   const route = {
     source: "jupiter",
     provider: "Jupiter",
@@ -468,7 +478,8 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     tokenAddress,
     contractAddress: tokenAddress,
     baseTokenAddress: tokenAddress,
-    poolAddress: poolAddressOf(project) || routePlanPool(recovered.buy) || routePlanPool(recovered.sell) || null,
+    poolAddress: exactPoolObserved ? expectedPool : null,
+    routePoolAddresses: [...new Set([...buyPools, ...sellPools])],
     quoteAsset: recovered.quoteAsset,
     quoteTokenAddress: recovered.quoteAsset === "SOL" ? SOLANA_SOL_MINT : SOLANA_USDC_MINT,
     buyRouteAvailable: true,
@@ -491,6 +502,10 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     status: "SELL_QUOTE_VERIFIED",
     verificationStatus: "PARTIALLY_VERIFIED",
     regionStatus: "UNKNOWN",
+    exactIdentityVerified: exactPoolObserved,
+    identityVerificationState: exactPoolObserved
+      ? "EXACT_CHAIN_CONTRACT_POOL_ATTESTED"
+      : "EXACT_CHAIN_CONTRACT_ONLY_POOL_UNATTESTED",
     executionRecoverySource: "jupiter",
     executionRecoveryFailures: failures,
     buyQuote: { verified: true, timestamp, outAmount: recovered.buy.outAmount, routePlanCount: array(recovered.buy.routePlan).length },
@@ -740,6 +755,12 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
       buy.tool,
       "LI.FI",
     ]));
+    const expectedPool = poolAddressOf(project);
+    const buyPools = extractLiFiRoutePoolAddresses(buy, chain);
+    const sellPools = extractLiFiRoutePoolAddresses(sell, chain);
+    const exactPoolObserved = Boolean(
+      expectedPool && buyPools.includes(expectedPool) && sellPools.includes(expectedPool)
+    );
     const route = {
       source: "lifi",
       provider: "LI.FI",
@@ -751,7 +772,8 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
       tokenAddress,
       contractAddress: tokenAddress,
       baseTokenAddress: tokenAddress,
-      poolAddress: poolAddressOf(project),
+      poolAddress: exactPoolObserved ? expectedPool : null,
+      routePoolAddresses: [...new Set([...buyPools, ...sellPools])],
       quoteAsset: quoteToken.symbol || "USDC",
       quoteTokenAddress: normalizeTokenAddress(buy.action?.fromToken?.address, chain) || quoteToken.address,
       buyRouteAvailable: true,
@@ -774,7 +796,10 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
       status: "SELL_QUOTE_VERIFIED",
       verificationStatus: "PARTIALLY_VERIFIED",
       regionStatus: "UNKNOWN",
-      exactIdentityVerified: true,
+      exactIdentityVerified: exactPoolObserved,
+      identityVerificationState: exactPoolObserved
+        ? "EXACT_CHAIN_CONTRACT_POOL_ATTESTED"
+        : "EXACT_CHAIN_CONTRACT_ONLY_POOL_UNATTESTED",
       executionRecoverySource: "lifi",
       executionRecoveryFailures: [],
       buyQuote: {
@@ -1042,8 +1067,12 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     routeType: bestRoute.routeType || project.canonicalExecutionRoute?.routeType || "UNKNOWN",
     chain: bestRoute.chain || project.canonicalExecutionRoute?.chain || chainOf(project),
     contractAddress: bestRoute.contractAddress || bestRoute.tokenAddress || project.canonicalExecutionRoute?.contractAddress || tokenAddressOf(project),
-    pairAddress: bestRoute.poolAddress || bestRoute.pairAddress || project.canonicalExecutionRoute?.pairAddress || poolAddressOf(project),
-    poolAddress: bestRoute.poolAddress || bestRoute.pairAddress || project.canonicalExecutionRoute?.poolAddress || poolAddressOf(project),
+    pairAddress: Object.hasOwn(bestRoute, "poolAddress")
+      ? bestRoute.poolAddress
+      : bestRoute.pairAddress || project.canonicalExecutionRoute?.pairAddress || poolAddressOf(project),
+    poolAddress: Object.hasOwn(bestRoute, "poolAddress")
+      ? bestRoute.poolAddress
+      : bestRoute.pairAddress || project.canonicalExecutionRoute?.poolAddress || poolAddressOf(project),
     tokenAddress: bestRoute.tokenAddress || bestRoute.contractAddress || project.canonicalExecutionRoute?.tokenAddress || tokenAddressOf(project),
     baseTokenAddress: bestRoute.baseTokenAddress || project.canonicalExecutionRoute?.baseTokenAddress || bestRoute.tokenAddress || tokenAddressOf(project),
     quoteAsset: bestRoute.quoteAsset || project.canonicalExecutionRoute?.quoteAsset || null,
@@ -1053,7 +1082,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     buyQuoteVerified: bestRoute.buyQuoteVerified === true,
     sellQuoteVerified: bestRoute.sellQuoteVerified === true,
     exactIdentityVerified: bestRoute.exactIdentityVerified === true ||
-      Boolean(bestRoute.routeType !== "CEX" && bestRoute.chain && bestRoute.tokenAddress && (bestRoute.poolAddress || bestRoute.routeType === "DEX_AGGREGATOR")),
+      Boolean(bestRoute.routeType !== "CEX" && bestRoute.chain && bestRoute.tokenAddress && bestRoute.poolAddress),
     routeTruthStatus: bestRoute.routeTruthStatus || "SELL_QUOTE_VERIFIED",
     liquidityUsd: bestRoute.liquidityUsd ?? liquidityUsd(project) ?? null,
     orderBookDepthUsd: bestRoute.orderBookDepthUsd ?? project.canonicalExecutionRoute?.orderBookDepthUsd ?? null,
