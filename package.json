@@ -449,7 +449,7 @@
   },
   "homepage": "https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence",
   "dependencies": {
-    "@supabase/server": "^1.4.0",
+    "@supabase/server": "^1.4.1",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "better-sqlite3": "^12.11.1",
