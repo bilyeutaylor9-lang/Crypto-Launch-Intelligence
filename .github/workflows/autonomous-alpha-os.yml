@@ -3,7 +3,7 @@ name: CLI 5.0 Autonomous Alpha OS
 on:
   workflow_dispatch:
   schedule:
-    - cron: "12,42 * * *"
+    - cron: "12,42 * * * *"
 
 permissions:
   contents: read

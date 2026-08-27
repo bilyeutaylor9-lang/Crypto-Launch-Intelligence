@@ -536,41 +536,74 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
   }
 
   const requireRowSourceObservedAt = options.requireRowSourceObservedAt === true;
-  const candidateFreshness = (row) => {
+  const candidateFreshnessState = (row) => {
     const rowSource = row?.sourceObservedAt || row?.marketObservedAt || null;
-    if (requireRowSourceObservedAt && !iso(rowSource)) return false;
-    return evaluateProspectiveSourceFreshness(
+    if (requireRowSourceObservedAt && !iso(rowSource)) return "MISSING_ROW_SOURCE_TIMESTAMP";
+    const rowFreshness = evaluateProspectiveSourceFreshness(
       rowSource || sourceObservedAt,
       decisionAt,
       { maximumSourceAgeMinutes },
-    ).eligible;
+    );
+    return rowFreshness.eligible ? "FRESH" : rowFreshness.state;
   };
+  const increment = (counts, key) => { counts[key] = (counts[key] || 0) + 1; };
 
   const seenSelectionIdentities = new Set();
-  const attemptedExactSelections = (Array.isArray(selections) ? selections : [])
-    .filter((row) => strictIdentity(row) && firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd) > 0);
-  const exactSelections = (Array.isArray(selections) ? selections : [])
-    .filter((row) => {
-      const identity = strictIdentity(row);
-      if (
-        !identity ||
-        seenSelectionIdentities.has(identity.identityKey) ||
-        !(firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd) > 0) ||
-        !candidateFreshness(row)
-      ) return false;
-      seenSelectionIdentities.add(identity.identityKey);
-      return true;
-    })
-    .slice(0, strategy.definition.maximumSelections);
+  const selectionRejectionCounts = {};
+  const exactSelections = [];
+  for (const row of Array.isArray(selections) ? selections : []) {
+    const identity = strictIdentity(row);
+    if (!identity) {
+      increment(selectionRejectionCounts, "INEXACT_IDENTITY");
+      continue;
+    }
+    if (seenSelectionIdentities.has(identity.identityKey)) {
+      increment(selectionRejectionCounts, "DUPLICATE_SELECTION_IDENTITY");
+      continue;
+    }
+    if (!(firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd) > 0)) {
+      increment(selectionRejectionCounts, "MISSING_OR_INVALID_PRICE");
+      continue;
+    }
+    const freshnessState = candidateFreshnessState(row);
+    if (freshnessState !== "FRESH") {
+      increment(selectionRejectionCounts, freshnessState);
+      continue;
+    }
+    seenSelectionIdentities.add(identity.identityKey);
+    exactSelections.push(row);
+    if (exactSelections.length >= strategy.definition.maximumSelections) break;
+  }
   const selectedIdentityKeys = new Set(exactSelections.map((row) => strictIdentity(row).identityKey));
-  const universe = (Array.isArray(universeRows) ? universeRows : [])
-    .filter((row) => {
-      const identity = strictIdentity(row);
-      return identity &&
-        !selectedIdentityKeys.has(identity.identityKey) &&
-        firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd) > 0 &&
-        candidateFreshness(row);
-    });
+  const selectionFreshnessRejections = [
+    "MISSING_ROW_SOURCE_TIMESTAMP",
+    "MISSING_POINT_IN_TIME_SOURCE",
+    "FUTURE_POINT_IN_TIME_SOURCE",
+    "STALE_POINT_IN_TIME_SOURCE",
+  ].reduce((total, key) => total + (selectionRejectionCounts[key] || 0), 0);
+  const controlUniverseRejectionCounts = {};
+  const universe = [];
+  for (const row of Array.isArray(universeRows) ? universeRows : []) {
+    const identity = strictIdentity(row);
+    if (!identity) {
+      increment(controlUniverseRejectionCounts, "INEXACT_IDENTITY");
+      continue;
+    }
+    if (selectedIdentityKeys.has(identity.identityKey)) {
+      increment(controlUniverseRejectionCounts, "SELECTED_AS_TREATMENT");
+      continue;
+    }
+    if (!(firstFinite(row.priceUsd, row.price, row.marketData?.priceUsd) > 0)) {
+      increment(controlUniverseRejectionCounts, "MISSING_OR_INVALID_PRICE");
+      continue;
+    }
+    const freshnessState = candidateFreshnessState(row);
+    if (freshnessState !== "FRESH") {
+      increment(controlUniverseRejectionCounts, freshnessState);
+      continue;
+    }
+    universe.push(row);
+  }
   const existingEpisodes = Array.isArray(options.existingEpisodes)
     ? options.existingEpisodes
     : loadProspectiveEdgeCohorts(options);
@@ -598,6 +631,8 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
   const usedControlIdentities = new Set();
   const episodes = [];
   const unmatchedSelections = [];
+  const matchingRejectionCounts = {};
+  const selectionDiagnostics = [];
   let cooldownSkipped = 0;
   let priorControlSelectionSkipped = 0;
 
@@ -606,30 +641,58 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
     const identity = strictIdentity(treatment);
     if (priorControlIdentities.has(identity.identityKey)) {
       priorControlSelectionSkipped += 1;
+      increment(matchingRejectionCounts, "TREATMENT_PREVIOUSLY_USED_AS_CONTROL");
+      selectionDiagnostics.push({ identityKey: identity.identityKey, selectionRank: index + 1, state: "SKIPPED_PRIOR_CONTROL" });
       continue;
     }
     const priorAt = latestByIdentity.get(identity.identityKey);
     if (priorAt && decisionMs - priorAt < cooldownMs) {
       cooldownSkipped += 1;
+      increment(matchingRejectionCounts, "TREATMENT_COOLDOWN_ACTIVE");
+      selectionDiagnostics.push({ identityKey: identity.identityKey, selectionRank: index + 1, state: "SKIPPED_COOLDOWN" });
       continue;
     }
 
+    const perSelectionRejectionCounts = {};
     const matches = universe
-      .filter((candidate) => {
+      .flatMap((candidate) => {
         const candidateIdentity = strictIdentity(candidate);
-        return candidateIdentity.chain === identity.chain &&
-          !priorEpisodeIdentities.has(candidateIdentity.identityKey) &&
-          !usedControlIdentities.has(candidateIdentity.identityKey);
+        if (candidateIdentity.chain !== identity.chain) {
+          increment(perSelectionRejectionCounts, "CONTROL_DIFFERENT_CHAIN");
+          increment(matchingRejectionCounts, "CONTROL_DIFFERENT_CHAIN");
+          return [];
+        }
+        if (priorEpisodeIdentities.has(candidateIdentity.identityKey)) {
+          increment(perSelectionRejectionCounts, "CONTROL_PREVIOUSLY_USED_BY_STRATEGY");
+          increment(matchingRejectionCounts, "CONTROL_PREVIOUSLY_USED_BY_STRATEGY");
+          return [];
+        }
+        if (usedControlIdentities.has(candidateIdentity.identityKey)) {
+          increment(perSelectionRejectionCounts, "CONTROL_ALREADY_ASSIGNED_IN_COHORT");
+          increment(matchingRejectionCounts, "CONTROL_ALREADY_ASSIGNED_IN_COHORT");
+          return [];
+        }
+        const match = {
+          candidate,
+          ...prospectiveControlDistance(treatment, candidate, { asOf: sourceObservedAt }),
+        };
+        if (match.comparableFeatures < strategy.definition.minimumComparableFeatures) {
+          increment(perSelectionRejectionCounts, "INSUFFICIENT_COMPARABLE_FEATURES");
+          increment(matchingRejectionCounts, "INSUFFICIENT_COMPARABLE_FEATURES");
+          return [];
+        }
+        if (!Number.isFinite(match.distance)) {
+          increment(perSelectionRejectionCounts, "NONFINITE_MATCH_DISTANCE");
+          increment(matchingRejectionCounts, "NONFINITE_MATCH_DISTANCE");
+          return [];
+        }
+        if (match.distance > strategy.definition.maximumControlDistance) {
+          increment(perSelectionRejectionCounts, "MATCH_DISTANCE_EXCEEDS_MAXIMUM");
+          increment(matchingRejectionCounts, "MATCH_DISTANCE_EXCEEDS_MAXIMUM");
+          return [];
+        }
+        return [match];
       })
-      .map((candidate) => ({
-        candidate,
-        ...prospectiveControlDistance(treatment, candidate, { asOf: sourceObservedAt }),
-      }))
-      .filter((row) =>
-        row.comparableFeatures >= strategy.definition.minimumComparableFeatures &&
-        Number.isFinite(row.distance) &&
-        row.distance <= strategy.definition.maximumControlDistance
-      )
       .sort((left, right) =>
         left.distance - right.distance ||
         strictIdentity(left.candidate).identityKey.localeCompare(strictIdentity(right.candidate).identityKey)
@@ -638,6 +701,13 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
 
     if (!matches.length) {
       unmatchedSelections.push(identity.identityKey);
+      selectionDiagnostics.push({
+        identityKey: identity.identityKey,
+        selectionRank: index + 1,
+        state: "NO_ELIGIBLE_CONTROLS",
+        eligibleControlCount: 0,
+        rejectionCounts: perSelectionRejectionCounts,
+      });
       continue;
     }
 
@@ -652,10 +722,15 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
       selectionRank: index + 1,
     };
     const treatmentEpisode = episodeRecord(treatment, context, "TREATMENT");
-    if (!treatmentEpisode) continue;
+    if (!treatmentEpisode) {
+      increment(matchingRejectionCounts, "TREATMENT_EPISODE_INTEGRITY_REJECTED");
+      selectionDiagnostics.push({ identityKey: identity.identityKey, selectionRank: index + 1, state: "TREATMENT_EPISODE_INTEGRITY_REJECTED" });
+      continue;
+    }
     episodes.push(treatmentEpisode);
     latestByIdentity.set(identity.identityKey, decisionMs);
 
+    let controlsFrozenForTreatment = 0;
     for (const match of matches) {
       const controlIdentity = strictIdentity(match.candidate);
       const controlEpisode = episodeRecord(
@@ -665,10 +740,22 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
         treatmentEpisode.episodeId,
         match,
       );
-      if (!controlEpisode) continue;
+      if (!controlEpisode) {
+        increment(matchingRejectionCounts, "CONTROL_EPISODE_INTEGRITY_REJECTED");
+        continue;
+      }
       episodes.push(controlEpisode);
       usedControlIdentities.add(controlIdentity.identityKey);
+      controlsFrozenForTreatment += 1;
     }
+    selectionDiagnostics.push({
+      identityKey: identity.identityKey,
+      selectionRank: index + 1,
+      state: controlsFrozenForTreatment ? "MATCHED" : "CONTROL_EPISODE_INTEGRITY_REJECTED",
+      eligibleControlCount: matches.length,
+      controlsFrozen: controlsFrozenForTreatment,
+      rejectionCounts: perSelectionRejectionCounts,
+    });
   }
 
   const treatments = episodes.filter((row) => row.role === "TREATMENT");
@@ -682,14 +769,18 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
       ...baseAudit,
       sourceAgeMinutes: Number(sourceAgeMinutes.toFixed(4)),
       exactSelections: exactSelections.length,
-      selectionsRejectedForCandidateSourceFreshness: Math.max(0, attemptedExactSelections.length - exactSelections.length),
+      selectionsRejectedForCandidateSourceFreshness: selectionFreshnessRejections,
+      selectionRejectionCounts,
       exactControlUniverse: universe.length,
+      controlUniverseRejectionCounts,
       rowSourceTimestampRequired: requireRowSourceObservedAt,
       treatmentsFrozen: treatments.length,
       controlsFrozen: controls.length,
       cooldownSkipped,
       priorControlSelectionSkipped,
       priorStrategyIdentitiesExcludedFromControlPool: priorEpisodeIdentities.size,
+      matchingRejectionCounts,
+      selectionDiagnostics,
       unmatchedSelections,
       outcomeFieldsReadDuringFreeze: false,
       controlsSelectedBeforeOutcomes: true,
