@@ -85,8 +85,11 @@ test("shadow universe refresh produces a fresh exact handoff before Alpha OS con
   assert.match(refresh, /run:\s*npm run operations:truth -- --scope shadow-universe/);
   assert.match(refresh, /run:\s*npm run state:pack -- --require-exact-universe/);
   assert.match(refresh, /cron:\s*"5 \* \* \* \*"/);
-  assert.match(alpha, /cron:\s*"12,42 \* \* \*"/);
-  assert.doesNotMatch(alpha, /cron:\s*"12,42 \* \* \* \*"/);
+  assert.match(alpha, /cron:\s*"12,42 \* \* \* \*"/);
+  assert.match(
+    fs.readFileSync(".github/workflows/future-intelligence-stack.yml", "utf8"),
+    /cron:\s*"11,41 \* \* \* \*"/,
+  );
   assert.ok(
     alpha.indexOf("Enforce Fresh Exact Shadow Universe") < alpha.indexOf("Run Production Shadow"),
   );

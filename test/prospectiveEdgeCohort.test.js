@@ -310,6 +310,43 @@ test("prospective cohort capture rejects symbol-only selections and controls", (
   assert.deepEqual(result.episodes, []);
 });
 
+test("cohort capture attributes every control-matching rejection without weakening the match policy", () => {
+  const treatment = candidate(1, { sourceObservedAt: "2026-01-01T00:00:00.000Z" });
+  const differentChain = candidate(2, { chain: "ethereum", sourceObservedAt: "2026-01-01T00:00:00.000Z" });
+  const insufficientFeatures = candidate(3, {
+    sourceObservedAt: "2026-01-01T00:00:00.000Z",
+    marketCapUsd: null,
+    liquidityUsd: null,
+    volume24hUsd: null,
+    evidenceCoveragePct: null,
+    riskScore: null,
+    priceChange24hPct: null,
+  });
+  const distant = candidate(4, {
+    sourceObservedAt: "2026-01-01T00:00:00.000Z",
+    marketCapUsd: 1e30,
+    liquidityUsd: 1,
+    volume24hUsd: 1,
+    evidenceCoveragePct: 0,
+    riskScore: 100,
+    priceChange24hPct: 1000,
+    narrative: "unrelated",
+    sector: "unrelated",
+  });
+  const result = freezeProspectiveEdgeCohort(
+    [treatment],
+    [differentChain, insufficientFeatures, distant],
+    freezeOptions({ requireRowSourceObservedAt: true }),
+  );
+
+  assert.equal(result.state, "NO_MATCHABLE_PROSPECTIVE_SELECTIONS");
+  assert.equal(result.audit.treatmentsFrozen, 0);
+  assert.equal(result.audit.matchingRejectionCounts.CONTROL_DIFFERENT_CHAIN, 1);
+  assert.equal(result.audit.matchingRejectionCounts.INSUFFICIENT_COMPARABLE_FEATURES, 1);
+  assert.equal(result.audit.matchingRejectionCounts.MATCH_DISTANCE_EXCEEDS_MAXIMUM, 1);
+  assert.equal(result.audit.selectionDiagnostics[0].state, "NO_ELIGIBLE_CONTROLS");
+});
+
 test("prospective cohort capture rejects an unversioned strategy", () => {
   const priorGitHubSha = process.env.GITHUB_SHA;
   const priorEdgeCodeVersion = process.env.EDGE_CODE_VERSION;
