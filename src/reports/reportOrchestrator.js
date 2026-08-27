@@ -217,10 +217,10 @@ export function generateReports(projects = [], meta = {}) {
   } = writeDiscoveryDecisionReport(projects, meta);
   const {
     filePath: preConsensusBreakoutPath,
-  } = writePreConsensusBreakoutReport(projects);
+  } = writePreConsensusBreakoutReport(fullProjects);
   const {
     filePath: preBreakoutRadarPath,
-  } = writePreBreakoutRadarReport(projects);
+  } = writePreBreakoutRadarReport(fullProjects);
   const {
     filePath: sniperReportPath,
   } = writeSniperReport(projects);
