@@ -125,6 +125,15 @@ export function buildEdgeCandidateDescriptor(project = {}) {
       project.executionCostEvidence?.provenance ||
       project.executionCosts?.provenance ||
       null,
+    executionProofEligibility: project.executionProofEligibility || {
+      schemaVersion: 1,
+      state: "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE",
+      reason: "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE",
+      pairedExecutableQuoteObserved: false,
+      shadowOnly: true,
+      rankingInfluence: false,
+      automaticTrading: false,
+    },
     buyPriceImpactPct: finite(
       project.buyPriceImpactPct ?? project.executionAwareEV?.buyPriceImpactPct
     ),

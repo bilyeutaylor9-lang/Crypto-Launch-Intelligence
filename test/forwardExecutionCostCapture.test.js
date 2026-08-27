@@ -52,11 +52,12 @@ test("explicitly disabled free quotes are inert and leave candidate execution co
   });
 
   assert.equal(result.state, "DISABLED_EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE");
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
   const descriptor = buildEdgeCandidateDescriptor(result.projects[0]);
   assert.equal(descriptor.roundTripExecutionCostBps, null);
   assert.equal(descriptor.executionReferenceSizeUsd, null);
   assert.equal(descriptor.executionCostProvenance, null);
+  assert.equal(result.projects[0].executionProofEligibility.state, "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE");
 });
 
 test("a fresh paired executable quote freezes observed round-trip cost, size, and provenance after scoring", async () => {
@@ -97,11 +98,13 @@ test("a fresh paired executable quote freezes observed round-trip cost, size, an
   assert.equal(captured.executionCostProvenance.exitQuote.quoteId, "SELL-quote-1");
   assert.equal(captured.executionCostCaptureRankingInfluence, false);
   assert.equal(captured.executionCostCaptureAutomaticTrading, false);
+  assert.equal(captured.executionProofEligibility.state, "NET_PROOF_ELIGIBLE");
 
   const descriptor = buildEdgeCandidateDescriptor(captured);
   assert.equal(descriptor.roundTripExecutionCostBps, 180);
   assert.equal(descriptor.executionReferenceSizeUsd, 100);
   assert.equal(descriptor.executionCostProvenance.kind, "PAIRED_EXECUTABLE_QUOTES_V1");
+  assert.equal(descriptor.executionProofEligibility.state, "NET_PROOF_ELIGIBLE");
 });
 
 test("incomplete or unverifiable quote evidence never produces a cost", async () => {
@@ -115,11 +118,12 @@ test("incomplete or unverifiable quote evidence never produces a cost", async ()
   assert.equal(result.state, "NO_PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED");
   assert.equal(result.audit.accepted, 0);
   assert.equal(result.audit.rejectionReasons.MISSING_QUOTE_CAPTURE_TIMESTAMP, 1);
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
   const descriptor = buildEdgeCandidateDescriptor(result.projects[0]);
   assert.equal(descriptor.roundTripExecutionCostBps, null);
   assert.equal(descriptor.executionReferenceSizeUsd, null);
   assert.equal(descriptor.executionCostProvenance, null);
+  assert.equal(result.projects[0].executionProofEligibility.state, "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE");
 });
 
 test("provider failures are contained and leave a candidate without synthetic execution cost", async () => {
@@ -135,7 +139,7 @@ test("provider failures are contained and leave a candidate without synthetic ex
   assert.equal(result.state, "NO_PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED");
   assert.equal(result.audit.accepted, 0);
   assert.equal(result.audit.rejectionReasons.BUY_QUOTE_REQUEST_FAILED, 1);
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
   const descriptor = buildEdgeCandidateDescriptor(result.projects[0]);
   assert.equal(descriptor.roundTripExecutionCostBps, null);
   assert.equal(descriptor.executionReferenceSizeUsd, null);
@@ -156,7 +160,7 @@ test("symbol-only or malformed route identity is never sent to the quote provide
   assert.equal(result.state, "NO_PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED");
   assert.equal(result.audit.attempted, 0);
   assert.equal(providerCalls, 0);
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
 });
 
 test("a quote response with a mismatched identity is rejected before a cost can freeze", async () => {
@@ -174,7 +178,7 @@ test("a quote response with a mismatched identity is rejected before a cost can 
   assert.equal(providerCalls, 1);
   assert.equal(result.audit.accepted, 0);
   assert.equal(result.audit.rejectionReasons.RAW_QUOTE_IDENTITY_MISMATCH, 1);
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
   assert.equal(buildEdgeCandidateDescriptor(result.projects[0]).roundTripExecutionCostBps, null);
 });
 
@@ -192,5 +196,5 @@ test("a quote response without raw chain, token, and pool identity is rejected",
 
   assert.equal(result.audit.accepted, 0);
   assert.equal(result.audit.rejectionReasons.RAW_QUOTE_IDENTITY_MISSING, 1);
-  assert.strictEqual(result.projects[0], project);
+  assert.notStrictEqual(result.projects[0], project);
 });

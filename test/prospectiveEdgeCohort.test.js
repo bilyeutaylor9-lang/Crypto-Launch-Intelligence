@@ -7,9 +7,11 @@ import path from "node:path";
 import {
   appendProspectiveEdgeCohorts,
   buildProspectiveStrategyFingerprint,
+  buildProspectiveMatchabilityIndex,
   freezeProspectiveEdgeCohort,
   loadProspectiveEdgeCohorts,
   prospectiveControlDistance,
+  selectMatchableProspectiveTreatments,
   sealProspectiveEdgeEpisode,
 } from "../src/production/prospectiveEdgeCohortLedger.js";
 import {
@@ -345,6 +347,57 @@ test("cohort capture attributes every control-matching rejection without weakeni
   assert.equal(result.audit.matchingRejectionCounts.INSUFFICIENT_COMPARABLE_FEATURES, 1);
   assert.equal(result.audit.matchingRejectionCounts.MATCH_DISTANCE_EXCEEDS_MAXIMUM, 1);
   assert.equal(result.audit.selectionDiagnostics[0].state, "NO_ELIGIBLE_CONTROLS");
+});
+
+test("matchability-first selection reserves controls before choosing shadow treatments", () => {
+  const at = "2026-01-01T00:00:00.000Z";
+  const treatmentA = candidate(1, { combinedResearchScore: 99, sourceObservedAt: at });
+  const treatmentB = candidate(2, { combinedResearchScore: 98, sourceObservedAt: at });
+  const treatmentC = candidate(3, { combinedResearchScore: 97, sourceObservedAt: at });
+  const onlyControl = candidate(4, { combinedResearchScore: 10, sourceObservedAt: at });
+  const index = buildProspectiveMatchabilityIndex(
+    [treatmentA, treatmentB, treatmentC, onlyControl],
+    freezeOptions({
+      requireRowSourceObservedAt: true,
+      maximumCandidates: 4,
+      maxControls: 1,
+    }),
+  );
+  const selected = selectMatchableProspectiveTreatments(index, {
+    preferredCandidates: [treatmentA, treatmentB],
+    maximumSelections: 2,
+    maxControls: 1,
+  });
+
+  assert.equal(index.audit.eligibleTreatmentCount, 4);
+  assert.equal(selected.selected.length, 2);
+  assert.equal(selected.reservations.length, 2);
+  assert.equal(new Set(selected.reservations.map((row) => row.controlRouteKey)).size, 2);
+  assert.equal(
+    selected.reservations.some((row) => selected.selected.some((candidate) =>
+      `${candidate.chain}:${candidate.tokenAddress}:${candidate.poolAddress}` === row.controlRouteKey,
+    )),
+    false,
+  );
+
+  const reservedControlsByTreatment = Object.fromEntries(selected.selected.map((candidate) => [
+    `${candidate.chain}:${candidate.tokenAddress}:${candidate.poolAddress}`,
+    selected.reservations
+      .filter((reservation) => reservation.treatmentRouteKey === `${candidate.chain}:${candidate.tokenAddress}:${candidate.poolAddress}`)
+      .map((reservation) => reservation.controlRouteKey),
+  ]));
+  const frozen = freezeProspectiveEdgeCohort(
+    selected.selected,
+    [treatmentA, treatmentB, treatmentC, onlyControl],
+    freezeOptions({
+      requireRowSourceObservedAt: true,
+      maxControls: 1,
+      reservedControlsByTreatment,
+    }),
+  );
+  assert.equal(frozen.state, "PROSPECTIVE_EDGE_COHORT_FROZEN");
+  assert.equal(frozen.audit.treatmentsFrozen, 2);
+  assert.equal(frozen.audit.controlsFrozen, 2);
 });
 
 test("prospective cohort capture rejects an unversioned strategy", () => {

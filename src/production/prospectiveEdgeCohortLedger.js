@@ -12,7 +12,7 @@ const FILE = path.resolve("data", "prospective-edge-cohorts.jsonl");
 const DEFAULT_MAX_BYTES = 128 * 1024 * 1024;
 const DEFAULT_LIMIT = 250_000;
 
-export const PROSPECTIVE_EDGE_STRATEGY_VERSION = "PRODUCTION_SHADOW_SELECTION_V2";
+export const PROSPECTIVE_EDGE_STRATEGY_VERSION = "PRODUCTION_SHADOW_MATCHABILITY_FIRST_V3";
 export const CLI15_PREDICTION_CONTRACT_VERSION = "CLI15_FORWARD_PREDICTION_CONTRACT_V1";
 export const PROSPECTIVE_EDGE_HORIZONS_HOURS = Object.freeze([1, 6, 24, 168, 720]);
 export const PROSPECTIVE_EDGE_CERTIFICATE_GOVERNANCE = Object.freeze({
@@ -278,6 +278,253 @@ export function prospectiveControlDistance(treatment = {}, control = {}, options
   return {
     distance: Number((weighted / usedWeight).toFixed(8)),
     comparableFeatures,
+  };
+}
+
+function incrementCount(counts, key) {
+  counts[key] = (counts[key] || 0) + 1;
+}
+
+function candidatePointInTimeState(row, decisionAt, options = {}) {
+  const sourceObservedAt = row?.sourceObservedAt || row?.marketObservedAt || null;
+  if (options.requireRowSourceObservedAt === true && !iso(sourceObservedAt)) {
+    return "MISSING_ROW_SOURCE_TIMESTAMP";
+  }
+  const freshness = evaluateProspectiveSourceFreshness(
+    sourceObservedAt || options.sourceObservedAt,
+    decisionAt,
+    options,
+  );
+  return freshness.eligible ? "FRESH" : freshness.state;
+}
+
+function candidateScore(row = {}) {
+  return finite(
+    row.portfolioResearchScore ??
+    row.combinedResearchScore ??
+    row.researchPriorityScore ??
+    row.informationGain?.informationGainScore,
+  ) ?? 0;
+}
+
+/**
+ * Computes the eligible-control topology before selecting a treatment. This
+ * changes only which shadow candidates are studied; it does not relax the
+ * frozen matching policy or look at outcomes.
+ */
+export function buildProspectiveMatchabilityIndex(candidates = [], options = {}) {
+  const decisionAt = iso(options.now || new Date().toISOString());
+  const sourceObservedAt = iso(options.sourceObservedAt);
+  const strategy = buildProspectiveStrategyFingerprint({
+    ...options,
+    predictionContractVersion: options.predictionContractVersion || CLI15_PREDICTION_CONTRACT_VERSION,
+  });
+  const maximumSourceAgeMinutes = strategy.definition.maximumSourceAgeMinutes;
+  const maximumRows = Math.max(1, Number(options.maximumCandidates || 250));
+  const source = (Array.isArray(candidates) ? candidates : []).slice(0, maximumRows);
+  const invalidCandidateCounts = {};
+  const valid = [];
+  for (const candidate of source) {
+    if (!strictIdentity(candidate)) {
+      incrementCount(invalidCandidateCounts, "INEXACT_IDENTITY");
+      continue;
+    }
+    if (!(firstFinite(candidate.priceUsd, candidate.price, candidate.marketData?.priceUsd) > 0)) {
+      incrementCount(invalidCandidateCounts, "MISSING_OR_INVALID_PRICE");
+      continue;
+    }
+    const state = candidatePointInTimeState(candidate, decisionAt, {
+      ...options,
+      sourceObservedAt,
+      maximumSourceAgeMinutes,
+    });
+    if (state !== "FRESH") {
+      incrementCount(invalidCandidateCounts, state);
+      continue;
+    }
+    valid.push(candidate);
+  }
+
+  const existingEpisodes = Array.isArray(options.existingEpisodes)
+    ? options.existingEpisodes
+    : loadProspectiveEdgeCohorts(options);
+  const latestByIdentity = latestTreatmentTimes(existingEpisodes, strategy.fingerprint);
+  const priorEpisodeIdentities = new Set(
+    existingEpisodes
+      .filter((row) => row.strategyFingerprint === strategy.fingerprint)
+      .map((row) => strictIdentity(row)?.identityKey)
+      .filter(Boolean),
+  );
+  const priorControlIdentities = new Set(
+    existingEpisodes
+      .filter((row) => row.strategyFingerprint === strategy.fingerprint && row.role === "CONTROL_MATCHED")
+      .map((row) => strictIdentity(row)?.identityKey)
+      .filter(Boolean),
+  );
+  const decisionMs = timestamp(decisionAt);
+  const cooldownMs = strategy.definition.treatmentCooldownHours * 3_600_000;
+  const aggregateRejections = {};
+  const entries = valid.map((candidate) => {
+    const identity = strictIdentity(candidate);
+    const rejectionCounts = {};
+    let treatmentState = "ELIGIBLE";
+    if (priorControlIdentities.has(identity.identityKey)) treatmentState = "TREATMENT_PREVIOUSLY_USED_AS_CONTROL";
+    else if (latestByIdentity.has(identity.identityKey) && decisionMs - latestByIdentity.get(identity.identityKey) < cooldownMs) {
+      treatmentState = "TREATMENT_COOLDOWN_ACTIVE";
+    }
+    if (treatmentState !== "ELIGIBLE") {
+      incrementCount(aggregateRejections, treatmentState);
+      return {
+        candidate,
+        identityKey: identity.identityKey,
+        routeKey: identity.routeKey,
+        score: candidateScore(candidate),
+        eligibleControls: [],
+        diagnostics: { treatmentState, rejectionCounts, eligibleControlCount: 0 },
+      };
+    }
+
+    const eligibleControls = [];
+    for (const control of valid) {
+      const controlIdentity = strictIdentity(control);
+      if (controlIdentity.identityKey === identity.identityKey) {
+        incrementCount(rejectionCounts, "CONTROL_IS_TREATMENT");
+        continue;
+      }
+      if (controlIdentity.chain !== identity.chain) {
+        incrementCount(rejectionCounts, "CONTROL_DIFFERENT_CHAIN");
+        continue;
+      }
+      if (priorEpisodeIdentities.has(controlIdentity.identityKey)) {
+        incrementCount(rejectionCounts, "CONTROL_PREVIOUSLY_USED_BY_STRATEGY");
+        continue;
+      }
+      const treatmentSourceMs = timestamp(candidate.sourceObservedAt || candidate.marketObservedAt);
+      const controlSourceMs = timestamp(control.sourceObservedAt || control.marketObservedAt);
+      if (
+        treatmentSourceMs === null ||
+        controlSourceMs === null ||
+        Math.abs(treatmentSourceMs - controlSourceMs) > strategy.definition.maximumControlSourceSkewMinutes * 60_000
+      ) {
+        incrementCount(rejectionCounts, "CONTROL_SOURCE_TIME_SKEW_EXCEEDED");
+        continue;
+      }
+      const match = prospectiveControlDistance(candidate, control, { asOf: sourceObservedAt || decisionAt });
+      if (match.comparableFeatures < strategy.definition.minimumComparableFeatures) {
+        incrementCount(rejectionCounts, "INSUFFICIENT_COMPARABLE_FEATURES");
+        continue;
+      }
+      if (!Number.isFinite(match.distance)) {
+        incrementCount(rejectionCounts, "NONFINITE_MATCH_DISTANCE");
+        continue;
+      }
+      if (match.distance > strategy.definition.maximumControlDistance) {
+        incrementCount(rejectionCounts, "MATCH_DISTANCE_EXCEEDS_MAXIMUM");
+        continue;
+      }
+      eligibleControls.push({ candidate: control, ...match });
+    }
+    for (const [reason, count] of Object.entries(rejectionCounts)) {
+      aggregateRejections[reason] = (aggregateRejections[reason] || 0) + count;
+    }
+    eligibleControls.sort((left, right) =>
+      left.distance - right.distance ||
+      strictIdentity(left.candidate).routeKey.localeCompare(strictIdentity(right.candidate).routeKey),
+    );
+    return {
+      candidate,
+      identityKey: identity.identityKey,
+      routeKey: identity.routeKey,
+      score: candidateScore(candidate),
+      eligibleControls,
+      diagnostics: {
+        treatmentState,
+        rejectionCounts,
+        eligibleControlCount: eligibleControls.length,
+        closestControlDistance: eligibleControls[0]?.distance ?? null,
+        medianControlDistance: eligibleControls.length
+          ? eligibleControls[Math.floor((eligibleControls.length - 1) / 2)].distance
+          : null,
+      },
+    };
+  });
+  return {
+    schemaVersion: 1,
+    decisionAt,
+    sourceObservedAt,
+    strategy,
+    entries,
+    audit: {
+      candidatesAttempted: source.length,
+      exactFreshCandidates: valid.length,
+      invalidCandidateCounts,
+      eligibleTreatmentCount: entries.filter((entry) => entry.diagnostics.treatmentState === "ELIGIBLE" && entry.eligibleControls.length).length,
+      unmatchedTreatmentCount: entries.filter((entry) => entry.diagnostics.treatmentState === "ELIGIBLE" && !entry.eligibleControls.length).length,
+      aggregateRejections,
+      maximumControlDistance: strategy.definition.maximumControlDistance,
+      minimumComparableFeatures: strategy.definition.minimumComparableFeatures,
+      maximumControlSourceSkewMinutes: strategy.definition.maximumControlSourceSkewMinutes,
+    },
+  };
+}
+
+/** Reserves exact controls deterministically before the cohort freezer runs. */
+export function selectMatchableProspectiveTreatments(index = {}, options = {}) {
+  const maximumSelections = Math.max(1, Number(options.maximumSelections || 25));
+  const controlsPerTreatment = Math.max(1, Number(options.maxControls || 3));
+  const preferredRouteKeys = new Map(
+    (Array.isArray(options.preferredCandidates) ? options.preferredCandidates : [])
+      .map((candidate, position) => [strictIdentity(candidate)?.routeKey, position])
+      .filter(([routeKey]) => Boolean(routeKey)),
+  );
+  const entries = [...(Array.isArray(index.entries) ? index.entries : [])]
+    .filter((entry) => entry?.diagnostics?.treatmentState === "ELIGIBLE" && entry.eligibleControls?.length)
+    .sort((left, right) =>
+      (preferredRouteKeys.get(left.routeKey) ?? Number.MAX_SAFE_INTEGER) -
+        (preferredRouteKeys.get(right.routeKey) ?? Number.MAX_SAFE_INTEGER) ||
+      right.score - left.score ||
+      left.routeKey.localeCompare(right.routeKey),
+    );
+  const usedControlIdentityKeys = new Set();
+  const selectedTreatmentIdentityKeys = new Set();
+  const selected = [];
+  const skipped = {};
+  const reservations = [];
+  for (const entry of entries) {
+    if (selected.length >= maximumSelections) break;
+    if (usedControlIdentityKeys.has(entry.identityKey)) {
+      incrementCount(skipped, "TREATMENT_RESERVED_AS_CONTROL");
+      continue;
+    }
+    const controls = entry.eligibleControls
+      .filter((match) => {
+        const identity = strictIdentity(match.candidate);
+        return identity &&
+          !usedControlIdentityKeys.has(identity.identityKey) &&
+          !selectedTreatmentIdentityKeys.has(identity.identityKey);
+      })
+      .slice(0, controlsPerTreatment);
+    if (!controls.length) {
+      incrementCount(skipped, "NO_UNRESERVED_ELIGIBLE_CONTROL");
+      continue;
+    }
+    selected.push(entry.candidate);
+    selectedTreatmentIdentityKeys.add(entry.identityKey);
+    for (const control of controls) {
+      const identity = strictIdentity(control.candidate);
+      usedControlIdentityKeys.add(identity.identityKey);
+      reservations.push({ treatmentRouteKey: entry.routeKey, controlRouteKey: identity.routeKey, distance: control.distance });
+    }
+  }
+  return {
+    selected,
+    reservations,
+    audit: {
+      candidatesWithControls: entries.length,
+      treatmentsSelected: selected.length,
+      controlsReserved: reservations.length,
+      skipped,
+    },
   };
 }
 
@@ -629,6 +876,7 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
     runId,
   ].join("|")).slice(0, 40);
   const usedControlIdentities = new Set();
+  const reservedControlsByTreatment = options.reservedControlsByTreatment || null;
   const episodes = [];
   const unmatchedSelections = [];
   const matchingRejectionCounts = {};
@@ -654,9 +902,18 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
     }
 
     const perSelectionRejectionCounts = {};
+    const reservedControlRouteKeys = reservedControlsByTreatment &&
+      Object.prototype.hasOwnProperty.call(reservedControlsByTreatment, identity.routeKey)
+      ? new Set(reservedControlsByTreatment[identity.routeKey] || [])
+      : null;
     const matches = universe
       .flatMap((candidate) => {
         const candidateIdentity = strictIdentity(candidate);
+        if (reservedControlRouteKeys && !reservedControlRouteKeys.has(candidateIdentity.routeKey)) {
+          increment(perSelectionRejectionCounts, "CONTROL_NOT_RESERVED_BY_MATCHABILITY_PREFLIGHT");
+          increment(matchingRejectionCounts, "CONTROL_NOT_RESERVED_BY_MATCHABILITY_PREFLIGHT");
+          return [];
+        }
         if (candidateIdentity.chain !== identity.chain) {
           increment(perSelectionRejectionCounts, "CONTROL_DIFFERENT_CHAIN");
           increment(matchingRejectionCounts, "CONTROL_DIFFERENT_CHAIN");

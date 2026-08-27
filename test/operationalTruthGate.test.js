@@ -116,3 +116,17 @@ test("operational truth fails broken acquisition but accepts complete negative e
   assert.equal(healthy.pass, true);
   assert.equal(healthy.state, "OPERATIONAL_HEALTHY_NO_EDGE_OR_EVENT");
 });
+
+test("operational truth keeps partial research-only capital coverage out of proof without failing an independent exact-universe path", () => {
+  const report = evaluateOperationalTruth({
+    acquisition: {
+      healthy: true,
+      blockResearchAdvancement: false,
+      capitalEvidenceEligible: false,
+      observationClass: "LIMITED_COVERAGE_EXCLUDED_FROM_PROOF",
+    },
+  }, { now, scope: "edge-truth" });
+  assert.equal(report.pass, true);
+  assert.equal(report.state, "OPERATIONAL_HEALTHY_NO_EDGE_OR_EVENT");
+  assert.ok(report.warnings.includes("CAPITAL_RADAR_EXCLUDED_FROM_PROOF_AND_ATTRIBUTION"));
+});

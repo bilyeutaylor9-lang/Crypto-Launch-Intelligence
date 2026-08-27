@@ -79,7 +79,7 @@ test("missing exact candidate universe is an upstream failure, not no-event", ()
   assert.equal(report.observationClass, "INFRASTRUCTURE_OR_COVERAGE_FAILURE");
 });
 
-test("degraded acquisition blocks research", () => {
+test("unavailable optional capital acquisition is excluded from proof without invalidating independent research", () => {
   const report = buildAcquisitionHealthGate(observed({
     state: "EDGE_ACQUISITION_DEGRADED",
     observedChains: 0,
@@ -88,20 +88,24 @@ test("degraded acquisition blocks research", () => {
     now: "2026-08-20T17:05:00.000Z",
     stepOutcome: "success",
   });
-  assert.ok(report.blockers.includes("CHAIN_ACQUISITION_DEGRADED"));
+  assert.equal(report.blockResearchAdvancement, false);
+  assert.equal(report.capitalEvidenceEligible, false);
+  assert.ok(report.advisories.includes("CAPITAL_RADAR_UNAVAILABLE_RESEARCH_ONLY"));
 });
 
-test("continuity gap blocks research", () => {
+test("continuity gap excludes capital attribution without blocking independent research", () => {
   const report = buildAcquisitionHealthGate(observed({
     continuityGaps: 17,
   }), {
     now: "2026-08-20T17:05:00.000Z",
     stepOutcome: "success",
   });
-  assert.ok(report.blockers.includes("CHAIN_CONTINUITY_GAP"));
+  assert.equal(report.blockResearchAdvancement, false);
+  assert.equal(report.capitalEvidenceEligible, false);
+  assert.ok(report.advisories.includes("CAPITAL_RADAR_PARTIAL_COVERAGE_EXCLUDED_FROM_PROOF"));
 });
 
-test("partial chain continuity blocks research", () => {
+test("partial capital-radar continuity is excluded from proof without blocking independent exact-universe research", () => {
   const report = buildAcquisitionHealthGate(observed({
     observedChains: 2,
     continuousChains: 1,
@@ -109,7 +113,24 @@ test("partial chain continuity blocks research", () => {
     now: "2026-08-20T17:05:00.000Z",
     stepOutcome: "success",
   });
-  assert.ok(report.blockers.includes("CHAIN_COVERAGE_INCOMPLETE"));
+  assert.equal(report.state, "ACQUISITION_HEALTHY_LIMITED_COVERAGE");
+  assert.equal(report.blockResearchAdvancement, false);
+  assert.equal(report.capitalEvidenceEligible, false);
+  assert.equal(report.blockCapitalAttribution, true);
+  assert.ok(report.advisories.includes("CAPITAL_RADAR_PARTIAL_COVERAGE_EXCLUDED_FROM_PROOF"));
+});
+
+test("optional unsupported chains remain research-only rather than failing a healthy supported observation", () => {
+  const report = buildAcquisitionHealthGate(observed({
+    unsupportedChains: 6,
+  }), {
+    now: "2026-08-20T17:05:00.000Z",
+    stepOutcome: "success",
+  });
+  assert.equal(report.healthy, true);
+  assert.equal(report.capitalEvidenceEligible, true);
+  assert.equal(report.blockResearchAdvancement, false);
+  assert.ok(report.advisories.includes("UNSUPPORTED_CHAINS_RESEARCH_ONLY"));
 });
 
 test("stale acquisition report blocks research", () => {
