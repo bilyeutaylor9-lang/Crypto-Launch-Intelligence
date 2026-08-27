@@ -372,16 +372,19 @@ test("live ranking reports preserve scan identity and status accounting", () => 
     {
       scanRunId: "scan_guarded_test",
       codeCommitSha: "abc123",
+      dataCutoffTimestamp: "2026-08-27T12:00:00.000Z",
       guardedLiveRankingPolicy: ranking.policy,
       guardedLiveRankingConfiguration: ranking.configuration,
     },
     { reportDir }
   );
   const report = JSON.parse(fs.readFileSync(paths.liveCoreRankingJsonPath, "utf8"));
+  const microTestReport = JSON.parse(fs.readFileSync(paths.microTestWatchlistPath, "utf8"));
   assert.equal(report.scanRunId, "scan_guarded_test");
   assert.equal(report.projectsAnalyzed, 1);
   assert.equal(report.summary.microTestEligible, 1);
   assert.equal(report.top10[0].legacyRank, 1);
+  assert.equal(microTestReport.dataCutoffTimestamp, "2026-08-27T12:00:00.000Z");
 });
 
 test("live ranking report does not publish an incomplete candidate as a pick", () => {

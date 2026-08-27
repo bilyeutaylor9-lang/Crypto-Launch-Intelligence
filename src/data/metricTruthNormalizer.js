@@ -23,6 +23,7 @@ const SOURCE_CONFIDENCE = {
   cryptocompare: 64,
   defillama: 74,
   "defillama-chain": 68,
+  "defillama-exact-price": 78,
   binance: 72,
   "binance-us": 72,
   coinbase: 76,

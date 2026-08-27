@@ -476,7 +476,7 @@ function promotionBlockerSummary({
     recommendedFixOrder: [
       "Restore route-identity sources: DexScreener and GeckoTerminal first.",
       "Resolve token contract and pool/pair address before quote recovery.",
-      "Recover fresh buy and sell quotes with Jupiter for Solana and 0x or DEX adapters for EVM.",
+      "Recover fresh EVM buy and sell quotes with LI.FI's keyless API; use Jupiter for Solana only when its required API key is configured.",
       "Only then evaluate wallet flow, buyer breadth, utility proof, and final capital-move eligibility.",
     ],
   };

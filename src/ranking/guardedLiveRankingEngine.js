@@ -1377,6 +1377,7 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
         generatedAt: payload.generatedAt,
         scanRunId: payload.scanRunId,
         codeCommitSha: payload.codeCommitSha,
+        dataCutoffTimestamp: payload.dataCutoffTimestamp,
         status: payload.microEligible.length ? "CANDIDATES_AVAILABLE" : "NO_ELIGIBLE_CANDIDATES",
         automaticTradingEnabled: false,
         policy: payload.policy,

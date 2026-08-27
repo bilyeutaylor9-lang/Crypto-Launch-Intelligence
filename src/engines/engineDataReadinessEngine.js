@@ -56,7 +56,7 @@ const SOURCE_HINTS_BY_FIELD = {
   stableExitLiquidityUsd: ["DexScreener", "GeckoTerminal", "execution proof"],
   volume24h: ["DexScreener", "GeckoTerminal", "CoinGecko", "CoinPaprika", "CoinLore", "CEX public tickers"],
   priceUsd: ["CoinGecko", "CoinPaprika", "CoinLore", "DexScreener", "GeckoTerminal", "CEX public tickers"],
-  marketCap: ["CoinGecko", "CoinPaprika", "CoinLore", "CryptoCompare when allowed"],
+  marketCap: ["CoinGecko", "CoinPaprika", "CoinLore", "CryptoCompare only with an API key"],
   fdv: ["CoinGecko", "DexScreener", "GeckoTerminal"],
   circulatingMarketCapUsd: ["CoinGecko", "CoinPaprika", "CoinLore"],
   holders: ["GoPlus", "Blockscout", "chain explorers", "native RPC"],

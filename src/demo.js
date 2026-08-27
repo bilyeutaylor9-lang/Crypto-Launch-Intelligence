@@ -156,11 +156,15 @@ async function main() {
     mode: "demo",
     runId: scanRunId,
     scanRunId,
+    artifactClass: "DEMO",
+    evidenceMode: "DEMO_SYNTHETIC_OR_STATIC",
     startedAt: startedAt.toISOString(),
     completedAt,
     dataCutoffTimestamp: completedAt,
     scannedProjects: results.length,
     analysisFunnel: selectionPlan.report,
+    automaticTradingEnabled: false,
+    automaticModelPromotion: false,
     note: "Generated from built-in research seed projects. No API keys required.",
   });
   const dashboard = publishGithubPagesDashboard();

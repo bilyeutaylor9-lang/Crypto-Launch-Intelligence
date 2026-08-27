@@ -1,7 +1,6 @@
 // src/index.js
 
 import "./config/loadEnv.js";
-import { execFileSync } from "node:child_process";
 import { runDiscoveryManager } from "./discoveryManager.js";
 
 import {
@@ -39,19 +38,12 @@ import { summarizeEvidenceFunnel } from "./kernel/evidenceFunnelSummary.js";
 import { runOutcomeProbe } from "./learning/outcomeProbe.js";
 import { runProductionShadowCycle } from "./ops/runProductionShadowCycle.js";
 import { runProductionGradeCycle } from "./ops/runProductionGradeCycle.js";
+import { resolveCodeCommitSha } from "./production/productionRunManifest.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
 function currentCodeCommitSha() {
-  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim() || null;
-  } catch {
-    return null;
-  }
+  return resolveCodeCommitSha();
 }
 
 /**
@@ -1022,6 +1014,8 @@ async function main() {
       runId: scanRunId,
       scanRunId,
       codeCommitSha: currentCodeCommitSha(),
+      artifactClass: "LIVE_SHADOW",
+      evidenceMode: "SHADOW_RESEARCH_ONLY",
       startedAt: startedAt.toISOString(),
       completedAt,
       dataCutoffTimestamp: completedAt,
@@ -1039,6 +1033,7 @@ async function main() {
       guardedLiveRankingPolicy: guardedLiveRankingMeta.policy,
       guardedLiveRankingConfiguration: guardedLiveRankingMeta.configuration,
       automaticTradingEnabled: false,
+      automaticModelPromotion: false,
       localAIMode: localAI.mode,
       supabaseMemory: summarizeSupabaseMemoryImpact(results, supabaseMemory),
       scannerSemanticHealth,

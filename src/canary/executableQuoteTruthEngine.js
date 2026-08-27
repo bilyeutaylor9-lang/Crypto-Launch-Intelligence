@@ -1,5 +1,6 @@
 
 import { jsonPost } from "../sensors/rpcJsonClient.js";
+import { createLiFiExecutableQuoteProvider } from "../execution/lifiExecutableQuoteProvider.js";
 
 function finite(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -43,7 +44,8 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
     capturedAt &&
     (context.side === "SELL" ? outputUsd !== null : outputTokenAmount !== null || outputUsd !== null) &&
     allInCostBps !== null &&
-    priceImpactBps !== null
+    priceImpactBps !== null &&
+    raw.routeIdentityVerified !== false
   );
   return {
     status: complete ? "EXECUTABLE_QUOTE_OBSERVED" : "EXECUTABLE_QUOTE_INCOMPLETE",
@@ -63,6 +65,10 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
     gasUsd: round(gasUsd, 6),
     allInCostBps: round(allInCostBps, 3),
     route: raw.route || raw.routeSummary || null,
+    poolAddress: lower(raw.poolAddress || raw.route?.poolAddress),
+    routeIdentityVerified: raw.routeIdentityVerified ?? null,
+    sourceUrl: raw.sourceUrl || raw.route?.sourceUrl || null,
+    rawEvidenceHash: raw.rawEvidenceHash || raw.route?.rawEvidenceHash || null,
     provider: raw.provider || context.provider || "UNKNOWN_PROVIDER",
     blockNumber: raw.blockNumber || null,
     capturedAt,
@@ -90,7 +96,7 @@ export function preloadedQuoteProvider(project = {}) {
 
 export function httpExecutableQuoteProvider(endpoint, options = {}) {
   if (!endpoint) return null;
-  return async (request) => {
+  const provider = async (request) => {
     const payload = await jsonPost(endpoint, request, {
       timeoutMs: options.timeoutMs || 6000,
       retries: options.retries ?? 0,
@@ -99,16 +105,30 @@ export function httpExecutableQuoteProvider(endpoint, options = {}) {
     if (payload?.error) throw new Error(payload.error.message || String(payload.error));
     return payload?.quote || payload;
   };
+  provider.providerName = options.providerName || "CONFIGURED_EXECUTABLE_QUOTE_ENDPOINT";
+  provider.transport = "CONFIGURED_EXECUTABLE_QUOTE_ENDPOINT";
+  provider.endpoint = endpoint;
+  provider.quoteOnly = true;
+  return provider;
 }
 
 export function quoteProviderFromEnvironment(options = {}) {
   const endpoint = options.endpoint || process.env.IGNITION_EXECUTABLE_QUOTE_ENDPOINT;
-  if (!endpoint) return null;
-  const headers = {};
-  if (process.env.IGNITION_EXECUTABLE_QUOTE_BEARER) {
-    headers.authorization = `Bearer ${process.env.IGNITION_EXECUTABLE_QUOTE_BEARER}`;
+  if (endpoint) {
+    const headers = {};
+    if (process.env.IGNITION_EXECUTABLE_QUOTE_BEARER) {
+      headers.authorization = `Bearer ${process.env.IGNITION_EXECUTABLE_QUOTE_BEARER}`;
+    }
+    return httpExecutableQuoteProvider(endpoint, {
+      ...options,
+      providerName: options.providerName || process.env.IGNITION_EXECUTABLE_QUOTE_PROVIDER,
+      headers: { ...headers, ...(options.headers || {}) },
+    });
   }
-  return httpExecutableQuoteProvider(endpoint, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+  const freeProviderQuotesEnabled = options.freeProviderQuotesEnabled ??
+    process.env.FREE_PROVIDER_QUOTES_ENABLED !== "false";
+  if (!freeProviderQuotesEnabled) return null;
+  return createLiFiExecutableQuoteProvider(options.lifi || options);
 }
 
 async function requestOne(project, sizeUsd, policy, provider, options = {}) {

@@ -445,12 +445,11 @@ export async function getCoinLoreMoversCandidates(options = {}) {
 export async function getCryptoCompareCandidates(options = {}) {
   const limit = Number(options.limit || 100);
   const freeOnly = options.freeOnly ?? process.env.FREE_ONLY_MODE === "true";
-  const apiKey = freeOnly ? "" : process.env.CRYPTOCOMPARE_API_KEY || "";
-  const allowNoKey = freeOnly || process.env.CRYPTOCOMPARE_ALLOW_NO_KEY === "true";
+  const apiKey = process.env.CRYPTOCOMPARE_API_KEY || "";
 
-  if (!apiKey && !allowNoKey) {
-    return [];
-  }
+  // CryptoCompare's current API contract requires authentication. Do not let
+  // FREE_ONLY_MODE probe an undocumented anonymous path and call it keyless.
+  if (freeOnly || !apiKey) return [];
 
   const params = new URLSearchParams({
     limit: String(limit),
@@ -1123,7 +1122,7 @@ export async function getExpandedMarketDataProviderBatch(options = {}) {
     ["coinlore", () => getCoinLoreCandidates({ limit: budget("coinlore") })],
     ["coinlore-assets", () => getCoinLoreAssetsCandidates({ limit: budget("coinlore-assets") })],
     ["coinlore-movers", () => getCoinLoreMoversCandidates({ limit: budget("coinlore-movers") })],
-    ["cryptocompare", () => getCryptoCompareCandidates({ limit: budget("cryptocompare"), freeOnly })],
+    ["cryptocompare", () => getCryptoCompareCandidates({ limit: budget("cryptocompare"), freeOnly }), false, true],
     ["defillama-yields", () => getDefiLlamaYieldCandidates({ limit: budget("defillama-yields") })],
     ["defillama-stablecoins", () => getDefiLlamaStablecoinCandidates({ limit: budget("defillama-stablecoins") })],
     ["dexscreener-search", () => getDexScreenerSearchCandidates({ limit: budget("dexscreener-search") })],

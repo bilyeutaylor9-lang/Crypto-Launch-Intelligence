@@ -399,7 +399,7 @@ function nextSourcesNeeded(project = {}) {
     "verified pool or market": ["DexScreener", "GeckoTerminal", "DEX aggregator"],
     "executable liquidity": ["DexScreener", "GeckoTerminal", "DEX quote adapter"],
     "circulating market cap": ["CoinGecko", "CoinPaprika", "CoinLore", "supply explorer"],
-    "fresh buy quote and sell route": ["Jupiter", "0x", "1inch", "chain-native DEX quote", "CEX order book"],
+    "fresh buy quote and sell route": ["LI.FI keyless quote", "chain-native DEX quote", "CEX public order book", "Jupiter (API key required)", "0x (API key required)"],
     "free safety proof": ["GoPlus", "RugCheck", "Sourcify", "Blockscout", "Etherscan-compatible explorer"],
     "buyer breadth and wallet flow": ["GeckoTerminal trades", "native RPC", "block explorer"],
     "real utility, roadmap, or developer proof": ["GitHub", "official docs", "project website", "package registry"],
@@ -696,7 +696,7 @@ export function summarizeHottestTenNow(projects = [], meta = {}) {
     ],
     missingInfoRecoverySources: [
       "DexScreener and GeckoTerminal for live pools, liquidity, price, volume, and pair identity.",
-      "Jupiter, 0x, 1inch, and chain-native DEX quote APIs for buy/sell quote confirmation where available.",
+      "LI.FI keyless and chain-native DEX quote APIs for buy/sell confirmation; keyed Jupiter or 0x only when configured.",
       "Blockscout and Etherscan-compatible explorers for contract source, ABI, deployer, holders, and authority evidence.",
       "GoPlus, RugCheck, Sourcify, and explorer bytecode/source checks for free safety evidence.",
       "GitHub, official docs, package registries, and project websites for real-utility and roadmap confirmation.",

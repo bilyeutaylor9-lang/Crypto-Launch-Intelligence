@@ -161,7 +161,11 @@ test("capacity frontier respects fixed impact and all-in cost gates", () => {
 
 test("quote curve fails closed when no executable quote provider exists", async () => {
   const p = policyEnvelope().policy;
-  const out = await collectExecutableQuoteCurve(project(), p, { signalObservedAt: at(0), endpoint: null });
+  const out = await collectExecutableQuoteCurve(project(), p, {
+    signalObservedAt: at(0),
+    endpoint: null,
+    freeProviderQuotesEnabled: false,
+  });
   assert.equal(out.state, "EXECUTABLE_QUOTE_CURVE_UNAVAILABLE");
   assert.ok(out.quotes.every((q) => q.executable === false));
 });

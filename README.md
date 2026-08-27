@@ -78,6 +78,25 @@ npm run cli15:report
 
 CLI 15 never authorizes automatic trading or automatic model promotion. A verified result can only become eligible for human review. Integrity damage, forward deterioration, or canary failure triggers a shadow-selection kill switch and rollback to the last verified champion. See [`docs/CLI-15-FORWARD-ALPHA-VALIDATION.md`](docs/CLI-15-FORWARD-ALPHA-VALIDATION.md).
 
+## Live Artifact Provenance Firewall
+
+Public dashboard publication now fails closed on stale, anonymous, test, demo,
+fixture-contaminated, mixed-run, or mixed-commit artifacts. Every live dashboard
+run requires one scan ID, an immutable commit SHA, a valid current data cutoff,
+matching critical-report provenance, and a SHA-256 manifest fingerprint.
+
+When those requirements fail, GitHub Pages publishes an explicit **NO LIVE DATA**
+status page and removes generated market reports from the publication directory.
+The dashboard build still exits non-zero so CI cannot mistake the safe failure page
+for a healthy scan. Inspect the decision with:
+
+```bash
+npm run artifacts:status
+```
+
+Demo and test artifacts remain usable locally but can never claim live evidence.
+Automatic trading and automatic model promotion remain disabled.
+
 ## Quick Start
 
 Run the full no-key demo:
@@ -203,7 +222,9 @@ The system does not trust one score. It builds a full research case:
 
 - Missing price, liquidity, volume, contract, pool, and route evidence remains `null` or explicitly unavailable. Missing data is never converted into a favorable zero.
 - CoinGecko catalogue identity is preserved when it is enriched with market rows, including platform contracts returned by the free coin-list endpoint.
-- EVM execution recovery requests actual same-chain buy and sell quotes from LI.FI using the exact contract. Solana recovery uses Jupiter, while 0x remains an optional keyed fallback.
+- EVM execution recovery requests actual same-chain buy and sell quotes from LI.FI using the exact contract. Solana Jupiter and EVM 0x recovery run only when their currently required API keys are configured.
+- DeFiLlama exact-price recovery accepts only an exact supported chain and token contract. A ticker alone can never produce a price observation.
+- LI.FI quote responses may prove an exact token route, but only responses that also attest the requested pool can enter the forward execution-cost ledger or satisfy exact route identity.
 - A ticker-derived CEX market such as `SYMBOLUSDT` is never invented. CEX depth can be probed only when discovery supplied an explicit venue and market identity.
 - Research-only entities and aggregate market rows cannot enter route recovery or execution-ready rankings.
 - The scanner never sends a transaction. Route recovery is quote-only research, and every execution claim must retain its provider evidence and timestamp.
@@ -594,11 +615,9 @@ Supported discovery and research sources include:
 - GeckoTerminal
 - CoinGecko
 - CoinPaprika
-- DeFiLlama
+- DeFiLlama protocol, chain, yield, stablecoin, and exact contract-price endpoints
 - LI.FI quote and token APIs for exact-contract EVM execution research
-- CoinCap
 - CoinLore
-- CryptoCompare
 - Binance, KuCoin, Coinbase, Kraken, OKX, Bybit, Gate.io, MEXC, Bitget, HTX, Bitfinex, Bitstamp, Gemini
 - DexScreener latest token profiles
 - DexScreener token boosts
@@ -610,6 +629,8 @@ Supported discovery and research sources include:
 - Native pool event store and checkpointed listener framework
 - Built-in research seed fallback
 - Candidate rescue expansion
+
+The no-key pack excludes providers whose current API contract requires authentication. CoinCap v3, CryptoCompare, Jupiter, and 0x remain supported only as keyed optional sources; they are never probed as anonymous providers in `FREE_ONLY_MODE`.
 
 Wide scan mode targets up to 39,000 free-source candidates:
 
@@ -757,7 +778,7 @@ npm run forward:evidence:restore
 npm run forward:evidence:sync
 ```
 
-For live evidence collection, also configure the `BASE_RPC_URL` and `IGNITION_EXECUTABLE_QUOTE_ENDPOINT` GitHub secrets. The quote endpoint is read-only and must return paired BUY/SELL evidence; the application never submits an order.
+For durable live-chain evidence, configure `BASE_RPC_URL`. Forward EVM quote capture uses LI.FI's keyless read-only API by default; `IGNITION_EXECUTABLE_QUOTE_ENDPOINT` remains an optional override for an operator-controlled adapter. The application never signs or submits an order.
 
 If Supabase point-in-time recovery is enabled and tested, record that external fact with the GitHub variables `PRODUCTION_REMOTE_BACKUP_VERIFIED=true`, `PRODUCTION_REMOTE_BACKUP_PROVIDER`, and `PRODUCTION_REMOTE_BACKUP_VERIFIED_AT`. Do not set the attestation until a real restore test has passed.
 
@@ -1025,12 +1046,14 @@ The institutional defaults are configurable without weakening identity requireme
 export COINGECKO_INCLUDE_COIN_LIST=true
 export EXCLUDE_MEME_CANDIDATES=true
 export LIFI_EXECUTION_RECOVERY_ENABLED=true
+export FREE_PROVIDER_QUOTES_ENABLED=true
+export LIFI_KEYLESS_REQUEST_BUDGET=70
 export EXECUTION_RECOVERY_MAX_CANDIDATES=25
 export EXECUTION_RECOVERY_TRADE_SIZES_USD=100
 export EXECUTION_QUOTE_TAKER_ADDRESS="optional_valid_evm_address_for_quote_context"
 ```
 
-LI.FI works without a key at its public rate limit. `LIFI_API_KEY` is optional and only increases available request capacity. Setting `EXCLUDE_MEME_CANDIDATES=false` admits meme-branded rows to comparative research; public opportunity and execution boards remain utility-first.
+LI.FI works without a key at its public rate limit. `LIFI_API_KEY` is optional and only increases available request capacity. The scanner holds the anonymous path below its documented rate window and treats HTTP 429 or an exhausted local budget as unavailable evidence. Setting `EXCLUDE_MEME_CANDIDATES=false` admits meme-branded rows to comparative research; public opportunity and execution boards remain utility-first.
 
 For the complete OP Mode template, see `.env.example`. GitHub repository secrets can use the same names.
 

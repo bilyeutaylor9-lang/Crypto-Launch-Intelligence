@@ -21,6 +21,7 @@ test("post-audit readiness refresh stamps audits and rebuilds manifest hashes", 
   const meta = {
     generatedAt: "2026-07-31T00:00:00.000Z",
     scanRunId,
+    artifactClass: "TEST",
     codeCommitSha: "abc123",
     dataCutoffTimestamp: "2026-07-31T00:00:00.000Z",
     status: "PASS",

@@ -63,13 +63,25 @@ they are not counted as working data sources.
 
 ## Forward execution-cost evidence
 
-Routine scans can capture a bounded paired BUY→SELL quote only when
-`IGNITION_EXECUTABLE_QUOTE_ENDPOINT` is explicitly configured. Each accepted
-pair must have exact chain/token/pool identity, a recorded provider, fresh
+Routine scans use LI.FI's public read-only quote API by default for bounded EVM
+BUY→SELL capture. `IGNITION_EXECUTABLE_QUOTE_ENDPOINT` can override that path.
+The keyless connector has a local request budget below the public rate window;
+rate limits and provider failures leave evidence unknown. Each accepted pair
+must have exact chain/token/pool identity attested by the response, a recorded provider, fresh
 timestamps, a common reference notional, and explicit all-in costs for both
 sides. The resulting round-trip cost and quote provenance are frozen for
 shadow prospective cohorts only; missing or failed quotes remain `null` and do
 not affect ranking, promotion, or order creation.
+
+DeFiLlama's free current-price endpoint is also wired into targeted recovery.
+It accepts only supported chain plus exact token-contract identifiers and
+retains the endpoint, provider timestamp, raw record, and response hash. It is
+price evidence only and cannot establish liquidity, pool identity, or an
+executable route.
+
+CoinCap v3, CryptoCompare, Jupiter, and 0x are excluded from keyless mode because
+their current API contracts require authentication. Optional keys can enable
+their existing connectors, but a key never counts as a successful health probe.
 
 ## Production gate
 

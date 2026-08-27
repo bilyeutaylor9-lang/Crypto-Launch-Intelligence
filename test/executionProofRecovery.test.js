@@ -97,6 +97,7 @@ test("Solana routes require authority proof but not EVM transfer-tax evidence", 
       missingEvidence: ["fresh buy quote", "fresh sell quote"],
     },
   })], {
+    jupiterApiKey: "test-key",
     fetchJson: jupiterMock(),
     now: () => NOW,
     maxCandidates: 25,
@@ -133,6 +134,7 @@ test("legacy research flags do not suppress route recovery for a live token iden
     tradableCandidate: false,
     projectLifecycleState: "LIVE",
   })], {
+    jupiterApiKey: "test-key",
     fetchJson: jupiterMock(),
     now: () => NOW,
   });
@@ -144,6 +146,7 @@ test("legacy research flags do not suppress route recovery for a live token iden
 
 test("buy quote without sell quote remains research-only", async () => {
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
+    jupiterApiKey: "test-key",
     fetchJson: jupiterMock({ sellSucceeds: false }),
     now: () => NOW,
   });
@@ -270,7 +273,7 @@ test("missing optional 0x key creates an optional source gap, not a fatal candid
   assert.ok(recovered.executionProofRecovery.optionalSourceGaps.some((gap) => gap.missingKey === "ZEROX_API_KEY"));
   assert.equal(sourceGaps.optionalMissingKeyCount, 1);
   assert.equal(sourceGaps.availableCount >= 2, true);
-  assert.equal(sourceGaps.status, "SOURCE_GAPS_FOUND");
+  assert.equal(sourceGaps.status, "SOURCE_HEALTH_OK");
 });
 
 test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async () => {
@@ -292,7 +295,7 @@ test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", asyn
           tool: "aerodrome",
           toolDetails: { name: "Aerodrome" },
           action: { fromToken: { address: quoteToken, symbol: "USDC", decimals: 6 } },
-          estimate: { tool: "aerodrome", toAmount: "5000000000000000000" },
+          estimate: { tool: "aerodrome", toAmount: "5000000000000000000", data: { protocols: [{ poolAddress: EVM_POOL }] } },
         };
       }
       assert.equal(fromToken, EVM_TOKEN.toLowerCase());
@@ -300,7 +303,7 @@ test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", asyn
       return {
         tool: "aerodrome",
         action: { fromToken: { address: EVM_TOKEN, symbol: "EVX", decimals: 18 } },
-        estimate: { tool: "aerodrome", toAmount: "24750000" },
+        estimate: { tool: "aerodrome", toAmount: "24750000", data: { protocols: [{ poolAddress: EVM_POOL }] } },
       };
     },
     now: () => NOW,
@@ -408,6 +411,7 @@ test("recovery respects max candidates and concurrency", async () => {
   ], {
     maxCandidates: 2,
     concurrency: 1,
+    jupiterApiKey: "test-key",
     fetchJson: async (url) => {
       active += 1;
       maxActive = Math.max(maxActive, active);
@@ -427,6 +431,7 @@ test("recovery timeout produces a safe no-route result", async () => {
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
     timeoutMs: 5,
     requestTimeoutMs: 50,
+    jupiterApiKey: "test-key",
     fetchJson: async (_url, init = {}) => {
       await new Promise((resolve, reject) => {
         const timer = setTimeout(resolve, 100);
@@ -447,6 +452,7 @@ test("recovery timeout produces a safe no-route result", async () => {
 
 test("route-universe report re-analyzes recovered routes when canonicalRoutes are absent", async () => {
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
+    jupiterApiKey: "test-key",
     fetchJson: jupiterMock(),
     now: () => NOW,
   });

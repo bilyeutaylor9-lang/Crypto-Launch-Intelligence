@@ -22,7 +22,9 @@ const SOURCE_SETUP = {
   honeypot: { label: "Honeypot.is", envKey: null, free: true, critical: true, improves: "sell restriction and honeypot checks" },
   github: { label: "GitHub", envKey: "GITHUB_TOKEN", optional: true, free: true, critical: true, improves: "developer velocity and repo identity" },
   supabase: { label: "Supabase", envKey: "SUPABASE_SECRET_KEY", alternateEnvKeys: ["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"], improves: "remote memory, outcomes, prior scans" },
-  jupiter: { label: "Jupiter", envKey: "JUPITER_API_KEY", optional: true, free: true, critical: true, improves: "Solana buy/sell quote recovery" },
+  jupiter: { label: "Jupiter", envKey: "JUPITER_API_KEY", optional: true, free: false, critical: true, improves: "Solana buy/sell quote recovery" },
+  lifi: { label: "LI.FI Keyless", envKey: null, optional: true, free: true, critical: true, improves: "exact-contract EVM buy/sell quote recovery" },
+  defillamaexactprice: { label: "DeFiLlama Exact Price", envKey: null, free: true, critical: true, improves: "exact chain-contract price recovery" },
   zerox: { label: "0x Swap API", envKey: "ZEROX_API_KEY", optional: true, critical: true, improves: "EVM buy/sell quote recovery" },
   cexorderbook: { label: "CEX public order books", envKey: null, free: true, critical: true, improves: "spot depth and spread checks" },
 };
@@ -39,6 +41,8 @@ const FREE_BACKBONE_SOURCES = [
   "nativediscoverymesh",
   "github",
   "googlenewsdiscovery",
+  "defillamaexactprice",
+  "lifi",
 ];
 
 const PAID_KEY_UPSIDE_RANK = [
@@ -60,6 +64,7 @@ const ROUTE_IDENTITY_SOURCES = new Set([
 ]);
 
 const EXECUTION_QUOTE_SOURCES = new Set([
+  "lifi",
   "jupiter",
   "zerox",
   "cexorderbook",
@@ -92,6 +97,8 @@ function normalizeSource(value = "") {
   if (key.includes("github")) return "github";
   if (key.includes("supabase")) return "supabase";
   if (key.includes("jupiter")) return "jupiter";
+  if (key.includes("lifi")) return "lifi";
+  if (key.includes("defillamaexactprice")) return "defillamaexactprice";
   if (key.includes("zerox") || key === "0x" || key.includes("0xswap")) return "zerox";
   if (key.includes("orderbook") || key.includes("cex")) return "cexorderbook";
   return key || "unknown";

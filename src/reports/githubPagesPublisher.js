@@ -205,6 +205,79 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#39;");
 }
 
+function enabled(value) {
+  return ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
+}
+
+function removeGeneratedDashboardFiles(docsDir = DOCS_DIR) {
+  const generated = new Set([...PUBLIC_REPORTS, "index.html", "publication-status.json"]);
+  for (const fileName of generated) {
+    const filePath = path.join(docsDir, fileName);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) fs.rmSync(filePath);
+  }
+}
+
+function writeNoLiveDataDashboard(options = {}) {
+  const docsDir = path.resolve(options.docsDir || DOCS_DIR);
+  const manifest = options.manifest || null;
+  const reasons = [
+    ...(manifest?.errors || []),
+    ...(manifest?.provenance?.errors || []),
+    ...(!manifest ? ["Current scan artifact manifest is missing."] : []),
+  ];
+  const uniqueReasons = [...new Set(reasons)].slice(0, 12);
+  const generatedAt = new Date().toISOString();
+  const status = {
+    schemaVersion: 1,
+    generatedAt,
+    state: "NO_LIVE_DATA_PUBLISHED",
+    scanRunId: manifest?.scanRunId || null,
+    codeCommitSha: manifest?.codeCommitSha || process.env.GITHUB_SHA || null,
+    artifactClass: manifest?.artifactClass || "UNKNOWN",
+    livePublishable: false,
+    reasons: uniqueReasons.length ? uniqueReasons : ["Live provenance requirements did not pass."],
+    staleResultsPublished: false,
+    fixtureResultsPublished: false,
+    automaticTrading: false,
+  };
+
+  fs.mkdirSync(docsDir, { recursive: true });
+  removeGeneratedDashboardFiles(docsDir);
+  fs.writeFileSync(path.join(docsDir, "publication-status.json"), JSON.stringify(status, null, 2));
+  fs.writeFileSync(
+    path.join(docsDir, "index.html"),
+    `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crypto Launch Intelligence — No Live Data</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #07111f; color: #e8f0fb; }
+    main { width: min(760px, calc(100% - 40px)); border: 1px solid #263a55; border-radius: 18px; padding: 32px; background: #0d1b2d; box-shadow: 0 24px 80px #0008; }
+    .badge { display: inline-block; padding: 7px 11px; border-radius: 999px; background: #49252b; color: #ffbdc5; font-weight: 700; letter-spacing: .03em; }
+    h1 { margin: 18px 0 10px; font-size: clamp(28px, 5vw, 44px); }
+    p, li { color: #b8c6d9; line-height: 1.6; }
+    code { color: #9fd5ff; }
+    a { color: #7fc6ff; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="badge">NO LIVE DATA PUBLISHED</span>
+    <h1>The latest scan did not clear provenance.</h1>
+    <p>Crypto Launch Intelligence withheld the dashboard instead of displaying stale, test, demo, or unverifiable results.</p>
+    <ul>${status.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
+    <p>Scan: <code>${escapeHtml(status.scanRunId || "unavailable")}</code><br />Commit: <code>${escapeHtml(status.codeCommitSha || "unavailable")}</code></p>
+    <p><a href="https://github.com/bilyeutaylor9-lang/Crypto-Launch-Intelligence/actions/workflows/pages-dashboard.yml">Inspect or rerun the scanner workflow</a></p>
+  </main>
+</body>
+</html>`,
+  );
+  return status;
+}
+
 function formatDashboardNumber(value = "") {
   const number = Number(value);
   if (!Number.isFinite(number)) return value || "0";
@@ -1794,6 +1867,21 @@ export function publishGithubPagesDashboard(options = {}) {
   const reportsDir = path.resolve(options.reportsDir || REPORTS_DIR);
   const docsDir = path.resolve(options.docsDir || DOCS_DIR);
   fs.mkdirSync(docsDir, { recursive: true });
+  const requireLive = options.requireLive ?? enabled(process.env.DASHBOARD_REQUIRE_LIVE);
+  const manifest = readJsonReport("scan-artifact-manifest.json", reportsDir);
+  if (
+    requireLive &&
+    (!manifest || manifest.status !== "COMPLETE" || manifest.livePublishable !== true)
+  ) {
+    const publicationStatus = writeNoLiveDataDashboard({ docsDir, manifest });
+    return {
+      outputDir: docsDir,
+      copiedFiles: ["publication-status.json"],
+      publicationMode: "NO_LIVE_DATA",
+      publicationStatus,
+      urlPath: "docs/index.html",
+    };
+  }
   sanitizeReportJsonFiles(PUBLIC_REPORTS, reportsDir);
   const validation =
     path.resolve(reportsDir) === REPORTS_DIR
@@ -1836,4 +1924,5 @@ export function publishGithubPagesDashboard(options = {}) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const result = publishGithubPagesDashboard();
   console.log(JSON.stringify(result, null, 2));
+  if (result.publicationMode === "NO_LIVE_DATA") process.exitCode = 2;
 }

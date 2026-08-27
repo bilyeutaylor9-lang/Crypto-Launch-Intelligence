@@ -23,6 +23,7 @@ export function runProductionReadiness() {
   const backupRestore = read("reports/backup-restore-audit.json");
   const faultInjection = read("reports/fault-injection-audit.json");
   const sourceReadiness = read("reports/data-source-readiness.json");
+  const artifactManifest = read("reports/scan-artifact-manifest.json");
 
   const report = evaluateProductionReadiness({
     environment,
@@ -43,6 +44,7 @@ export function runProductionReadiness() {
     backupRestore,
     faultInjection,
     sourceReadiness,
+    artifactManifest,
   });
   writeAtomicJson("reports/production-readiness.json", report);
   return report;

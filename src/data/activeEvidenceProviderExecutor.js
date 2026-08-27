@@ -14,6 +14,7 @@ import {
   normalizeCoinGeckoMarket,
 } from "./coinGeckoConnector.js";
 import { getCoinPaprikaTickerById } from "./freeMarketDataConnector.js";
+import { getDefiLlamaExactPrice } from "./defiLlamaExactPriceConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
 import {
   getBlockscoutDeployerEvidence,
@@ -80,6 +81,10 @@ const GECKO_COMPANION_FIELDS = [
   "liquidityUsd",
   "volume24hUsd",
 ];
+
+// DeFiLlama's free contract-price endpoint is an exact token-price fallback.
+// It cannot establish pool liquidity, volume, or execution route truth.
+const DEFILLAMA_EXACT_PRICE_FIELDS = new Set(["priceUsd"]);
 
 const SECURITY_FIELDS = new Set([
   "honeypotDetected",
@@ -299,6 +304,10 @@ function providerFunctions(options = {}) {
       injected.getCoinPaprikaTickerById ||
       options.getCoinPaprikaTickerById ||
       getCoinPaprikaTickerById,
+    getDefiLlamaExactPrice:
+      injected.getDefiLlamaExactPrice ||
+      options.getDefiLlamaExactPrice ||
+      getDefiLlamaExactPrice,
   };
 }
 
@@ -1100,6 +1109,96 @@ async function recoverGeckoPool(project = {}, fields = [], providers = {}, optio
   };
 }
 
+async function recoverDefiLlamaExactPrice(project = {}, fields = [], providers = {}, options = {}, state = {}) {
+  const chain = chainOf(project);
+  const tokenAddress = tokenAddressOf(project, chain);
+  if (!chain || !tokenAddress) {
+    return {
+      observations: [],
+      attempts: [{
+        status: "NOT_APPLICABLE",
+        provider: "defillama-exact-price",
+        reason: "DeFiLlama exact-price recovery requires a supported chain and exact token contract.",
+        durationMs: 0,
+      }],
+    };
+  }
+
+  const attempt = await executeProviderCall(
+    "defillama-exact-price",
+    () => providers.getDefiLlamaExactPrice(
+      { ...project, chain, tokenAddress },
+      {
+        ...(options.defiLlama || {}),
+        timeoutMs:
+          options.providerTimeoutMs ||
+          options.timeoutMs ||
+          process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS ||
+          8_000,
+        now: options.now,
+      },
+    ),
+    options,
+    state,
+    1,
+    chain,
+  );
+  if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
+  const result = attempt.value || {};
+  const resultChain = normalizeChainId(result.chain);
+  const resultToken = normalizeTokenAddress(result.tokenAddress, resultChain);
+  if (
+    result.status !== "EXACT_PRICE_OBSERVED" ||
+    resultChain !== chain ||
+    resultToken !== tokenAddress ||
+    !valueKnown(result.priceUsd)
+  ) {
+    return {
+      observations: [],
+      attempts: [{
+        ...attempt,
+        status: "NO_EXACT_CHAIN_CONTRACT_PRICE",
+        reason: result.reason || "DeFiLlama returned no exact chain-contract price observation.",
+        value: undefined,
+      }],
+    };
+  }
+
+  const confidence = Math.max(0, Math.min(1, numberOrNull(result.confidence) ?? 0.82));
+  const timestamp = result.sourceTimestamp || result.observedAt || new Date().toISOString();
+  const observations = fields
+    .filter((field) => DEFILLAMA_EXACT_PRICE_FIELDS.has(field))
+    .map((field) => observation(
+      field,
+      result.priceUsd,
+      "defillama-exact-price",
+      timestamp,
+      confidence,
+      {
+        observedAt: result.observedAt || null,
+        identityMatchMode: "exact-chain-contract",
+        chain,
+        tokenAddress,
+        providerCoinKey: result.providerCoinKey || null,
+        sourceUrl: result.sourceUrl || null,
+        rawEvidenceHash: result.rawEvidenceHash || null,
+        rawEvidence: result.rawEvidence || null,
+        marketEvidenceOnly: true,
+        executionEvidence: false,
+      },
+    ));
+  return {
+    observations,
+    attempts: [{
+      ...attempt,
+      value: undefined,
+      matchedIdentity: `${chain}:${tokenAddress}`,
+      sourceUrl: result.sourceUrl || null,
+      rawEvidenceHash: result.rawEvidenceHash || null,
+    }],
+  };
+}
+
 function knownSecurityItems(result = {}) {
   return (Array.isArray(result.evidence) ? result.evidence : []).filter(
     (item) => item && item.status !== "UNKNOWN"
@@ -1324,6 +1423,25 @@ export async function executeActiveEvidenceProviderRequests(
   );
   if (geckoFields.length && geckoRequested) {
     const result = await recoverGeckoPool(project, geckoFields, providers, options, executionState);
+    observations.push(...result.observations);
+    attempts.push(...result.attempts);
+  }
+
+  const recoveredMarketFields = new Set(observations.map((item) => item.field));
+  const defiLlamaExactFields = fields.filter(
+    (field) => DEFILLAMA_EXACT_PRICE_FIELDS.has(field) && !recoveredMarketFields.has(field)
+  );
+  if (
+    defiLlamaExactFields.length &&
+    sourceRequested(sources, ["defillama exact", "defillama-exact-price"])
+  ) {
+    const result = await recoverDefiLlamaExactPrice(
+      project,
+      defiLlamaExactFields,
+      providers,
+      options,
+      executionState,
+    );
     observations.push(...result.observations);
     attempts.push(...result.attempts);
   }

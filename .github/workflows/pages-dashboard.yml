@@ -105,6 +105,9 @@ jobs:
           EXECUTION_RECOVERY_MAX_CANDIDATES: ${{ vars.EXECUTION_RECOVERY_MAX_CANDIDATES || '25' }}
           EXECUTION_RECOVERY_TRADE_SIZES_USD: ${{ vars.EXECUTION_RECOVERY_TRADE_SIZES_USD || '100' }}
           LIFI_EXECUTION_RECOVERY_ENABLED: ${{ vars.LIFI_EXECUTION_RECOVERY_ENABLED || 'true' }}
+          FREE_PROVIDER_QUOTES_ENABLED: ${{ vars.FREE_PROVIDER_QUOTES_ENABLED || 'true' }}
+          LIFI_KEYLESS_REQUEST_BUDGET: ${{ vars.LIFI_KEYLESS_REQUEST_BUDGET || '70' }}
+          LIFI_KEYLESS_WINDOW_MS: ${{ vars.LIFI_KEYLESS_WINDOW_MS || '7200000' }}
           LIFI_API_KEY: ${{ secrets.LIFI_API_KEY }}
           LIFI_INTEGRATOR: ${{ vars.LIFI_INTEGRATOR || 'crypto-launch-intel' }}
           JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
@@ -278,6 +281,9 @@ jobs:
         if: always()
         continue-on-error: true
         run: npm run publish:dashboard
+        env:
+          DASHBOARD_REQUIRE_LIVE: "true"
+          DASHBOARD_MAX_ARTIFACT_AGE_HOURS: "12"
 
       - name: Upload Scan Reports And Diagnostics
         id: reports_upload
