@@ -25,6 +25,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install Dependencies
+        run: npm ci
+
       - name: Restore Bounded Learning Memory
         id: learning_cache_restore
         continue-on-error: true

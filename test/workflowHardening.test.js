@@ -131,6 +131,7 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   const workflow = fs.readFileSync(".github/workflows/outcome-probe.yml", "utf8");
 
   assert.match(workflow, /schedule:/);
+  assert.match(workflow, /- name: Install Dependencies\s+run: npm ci/);
   assert.match(workflow, /run:\s*npm run outcomes:probe/);
   assert.doesNotMatch(workflow, /npm run scan/);
   assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
