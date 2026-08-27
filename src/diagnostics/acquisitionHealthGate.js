@@ -63,11 +63,14 @@ export function buildAcquisitionHealthGate(report = null, options = {}) {
   const continuityGaps = finite(report?.continuityGaps) ?? 0;
   const qualifyingTransfers = finite(report?.qualifyingTransfers) ?? 0;
   const fundedRecipients = finite(report?.fundedRecipients) ?? 0;
+  const partialCoverageChains = finite(report?.partialCoverageChains) ?? Math.max(0, observedChains - continuousChains);
+  const unsupportedChains = finite(report?.unsupportedChains) ?? 0;
+  const advisories = [];
 
   if (sourceState === "WAITING_FOR_EXACT_CANDIDATE_UNIVERSE") {
     blockers.push("UPSTREAM_EXACT_CANDIDATE_UNIVERSE_MISSING");
   } else if (sourceState === "EDGE_ACQUISITION_DEGRADED") {
-    blockers.push("CHAIN_ACQUISITION_DEGRADED");
+    advisories.push("CAPITAL_RADAR_UNAVAILABLE_RESEARCH_ONLY");
   } else if (sourceState && sourceState !== "EDGE_ACQUISITION_OBSERVED") {
     blockers.push(`UNRECOGNIZED_ACQUISITION_STATE:${sourceState}`);
   }
@@ -75,21 +78,28 @@ export function buildAcquisitionHealthGate(report = null, options = {}) {
   if (sourceState === "EDGE_ACQUISITION_OBSERVED" && observedChains <= 0) {
     blockers.push("NO_CHAIN_OBSERVATION_CONFIRMED");
   }
-  if (continuityGaps > 0) blockers.push("CHAIN_CONTINUITY_GAP");
-  if (
-    sourceState === "EDGE_ACQUISITION_OBSERVED" &&
-    observedChains > 0 &&
-    continuousChains < observedChains
-  ) {
-    blockers.push("CHAIN_COVERAGE_INCOMPLETE");
+  const capitalEvidenceEligible = sourceState === "EDGE_ACQUISITION_OBSERVED"
+    && observedChains > 0
+    && continuityGaps === 0
+    && continuousChains >= observedChains;
+  if (sourceState === "EDGE_ACQUISITION_OBSERVED" && !capitalEvidenceEligible) {
+    advisories.push("CAPITAL_RADAR_PARTIAL_COVERAGE_EXCLUDED_FROM_PROOF");
   }
+  if (unsupportedChains > 0) advisories.push("UNSUPPORTED_CHAINS_RESEARCH_ONLY");
 
   const dedupedBlockers = unique(blockers);
+  const dedupedAdvisories = unique(advisories);
   let state = "ACQUISITION_HEALTH_UNKNOWN";
   let observationClass = "UNKNOWN";
   if (dedupedBlockers.length) {
     state = "ACQUISITION_FAILED";
     observationClass = "INFRASTRUCTURE_OR_COVERAGE_FAILURE";
+  } else if (sourceState === "EDGE_ACQUISITION_DEGRADED") {
+    state = "ACQUISITION_RESEARCH_SOURCE_UNAVAILABLE";
+    observationClass = "RESEARCH_SOURCE_UNAVAILABLE";
+  } else if (sourceState === "EDGE_ACQUISITION_OBSERVED" && !capitalEvidenceEligible) {
+    state = "ACQUISITION_HEALTHY_LIMITED_COVERAGE";
+    observationClass = "LIMITED_COVERAGE_EXCLUDED_FROM_PROOF";
   } else if (qualifyingTransfers > 0 || fundedRecipients > 0) {
     state = "ACQUISITION_HEALTHY_EVENT_OBSERVED";
     observationClass = "HEALTHY_POSITIVE_EVIDENCE";
@@ -107,7 +117,10 @@ export function buildAcquisitionHealthGate(report = null, options = {}) {
     stepOutcome: stepOutcome || "UNKNOWN",
     healthy: dedupedBlockers.length === 0 && state.startsWith("ACQUISITION_HEALTHY_"),
     blockResearchAdvancement: dedupedBlockers.length > 0,
+    blockCapitalAttribution: !capitalEvidenceEligible,
+    capitalEvidenceEligible,
     blockers: dedupedBlockers,
+    advisories: dedupedAdvisories,
     reportAgeMinutes:
       reportAgeMinutes === null ? null : Number(reportAgeMinutes.toFixed(2)),
     thresholds: { maxReportAgeMinutes: maxAgeMinutes },
@@ -116,6 +129,8 @@ export function buildAcquisitionHealthGate(report = null, options = {}) {
       observedChains,
       continuousChains,
       continuityGaps,
+      partialCoverageChains,
+      unsupportedChains,
       qualifyingTransfers,
       fundedRecipients,
       carriedWallets: finite(report?.carriedWallets) ?? 0,
@@ -130,6 +145,10 @@ export function buildAcquisitionHealthGate(report = null, options = {}) {
         ? "No qualifying capital event was observed under complete coverage. This is healthy negative evidence, not a failure."
         : state === "ACQUISITION_HEALTHY_EVENT_OBSERVED"
           ? "A qualifying capital event was observed under complete coverage."
+          : state === "ACQUISITION_HEALTHY_LIMITED_COVERAGE"
+            ? "Capital-radar coverage was partial, so its observations are excluded from proof and attribution. The exact-universe proof path remains eligible."
+            : state === "ACQUISITION_RESEARCH_SOURCE_UNAVAILABLE"
+              ? "The optional capital-radar source was unavailable. It is excluded from proof and attribution; this does not make an independent exact-universe observation invalid."
           : dedupedBlockers.length
             ? "Research advancement is blocked because the acquisition cycle itself is not trustworthy."
             : "Acquisition health is unknown.",

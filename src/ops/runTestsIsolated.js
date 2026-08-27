@@ -54,7 +54,10 @@ let result;
 try {
   isolateReports();
   console.log(`Test report isolation: ${isolationMode}`);
-  result = spawnSync(process.execPath, ["--test", ...testFiles], {
+  // Test modules share generated data/ and reports/ paths. Running them in a
+  // single worker prevents cross-test artifact races from masquerading as an
+  // engine-health regression.
+  result = spawnSync(process.execPath, ["--test", "--test-concurrency=1", ...testFiles], {
     cwd: rootDir,
     env: process.env,
     stdio: "inherit",

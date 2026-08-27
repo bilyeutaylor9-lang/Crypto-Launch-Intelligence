@@ -72,6 +72,9 @@ export async function runEdgeAcquisitionCycle(options = {}) {
     "OBSERVED_WITH_LOG_CAP",
     "NO_QUALIFYING_FUNDING",
   ].includes(row.status));
+  const partialCoverage = observed.filter((row) => row.coverageComplete !== true);
+  const unsupported = (radar.chains || []).filter((row) => row.status === "UNSUPPORTED_CHAIN");
+  const failed = (radar.chains || []).filter((row) => row.status === "SENSOR_FAILED");
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -79,6 +82,13 @@ export async function runEdgeAcquisitionCycle(options = {}) {
     candidates: projects.length,
     observedChains: observed.length,
     continuousChains: observed.filter((row) => row.coverageComplete).length,
+    partialCoverageChains: partialCoverage.length,
+    unsupportedChains: unsupported.length,
+    failedChains: failed.length,
+    observedChainIds: observed.map((row) => row.chain),
+    partialCoverageChainIds: partialCoverage.map((row) => row.chain),
+    unsupportedChainIds: unsupported.map((row) => row.chain),
+    failedChainIds: failed.map((row) => row.chain),
     continuityGaps: observed.reduce((sum, row) => sum + Number(row.continuityGapBlocks || 0), 0),
     qualifyingTransfers: observed.reduce((sum, row) => sum + Number(row.qualifyingTransferCount || 0), 0),
     fundedRecipients: observed.reduce((sum, row) => sum + Number(row.fundedRecipientCount || 0), 0),
@@ -93,7 +103,7 @@ export async function runEdgeAcquisitionCycle(options = {}) {
     frozenControlEpisodes: commitment.edgeProductionEpisodeCapture?.controls || 0,
     rankingInfluence: false,
     automaticTrading: false,
-    policy: "This cycle closes observation gaps and matures shadow evidence. It cannot change scores, gates, ranking, or create an order.",
+    policy: "This cycle closes observation gaps and matures shadow evidence. Partial or unsupported capital-radar coverage is research-only and excluded from proof/attribution; it cannot change scores, gates, ranking, or create an order.",
   };
   if (options.writeReport !== false) {
     fs.mkdirSync(path.dirname(REPORT_FILE), { recursive: true });

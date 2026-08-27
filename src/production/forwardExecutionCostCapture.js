@@ -324,6 +324,30 @@ function increment(map, key) {
   map[key] = (map[key] || 0) + 1;
 }
 
+function executionProofEligibility(project = {}, reason = null) {
+  const provenance = project.executionCostProvenance || project.executionReality?.provenance || null;
+  const paired = provenance?.kind === "PAIRED_EXECUTABLE_QUOTES_V1" &&
+    finite(project.roundTripExecutionCostBps) !== null &&
+    finite(project.executionReferenceSizeUsd) !== null &&
+    finite(project.executionReferenceSizeUsd) > 0;
+  return {
+    schemaVersion: 1,
+    state: paired ? "NET_PROOF_ELIGIBLE" : "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE",
+    reason: paired ? null : reason || "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE",
+    pairedExecutableQuoteObserved: paired,
+    shadowOnly: true,
+    rankingInfluence: false,
+    automaticTrading: false,
+  };
+}
+
+function researchOnlyProjects(projects = [], reason) {
+  return projects.map((project) => ({
+    ...project,
+    executionProofEligibility: executionProofEligibility(project, reason),
+  }));
+}
+
 /**
  * Captures read-only, paired executable BUY/SELL quotes for a bounded part of
  * the already-ranked universe. It runs after scoring and never feeds a score,
@@ -338,7 +362,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
   if (asOfMs === null) {
     return {
       state: "DISABLED_INVALID_CAPTURE_TIME",
-      projects: source,
+      projects: researchOnlyProjects(source, "INVALID_QUOTE_CAPTURE_TIME"),
       audit: {
         attempted: 0,
         eligible: 0,
@@ -355,7 +379,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
   if (!quoteProvider) {
     return {
       state: "DISABLED_EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE",
-      projects: source,
+      projects: researchOnlyProjects(source, "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE"),
       audit: {
         attempted: 0,
         eligible: 0,
@@ -396,6 +420,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     DEFAULT_MAX_CANDIDATES,
   );
   const updates = new Map();
+  const captureReasons = new Map();
   const rejectionReasons = {};
   let attempted = 0;
   let eligible = 0;
@@ -411,6 +436,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     const captured = await captureOne(project, context);
     if (!captured.eligible) {
       increment(rejectionReasons, captured.reason || "UNSPECIFIED_CAPTURE_REJECTION");
+      captureReasons.set(index, captured.reason || "UNSPECIFIED_CAPTURE_REJECTION");
       continue;
     }
     accepted += 1;
@@ -428,11 +454,31 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
     });
   }
 
+  const annotatedProjects = source.map((project, index) => {
+    const captured = updates.get(index);
+    if (captured) {
+      return {
+        ...captured,
+        executionProofEligibility: executionProofEligibility(captured),
+      };
+    }
+    const identity = exactIdentity(project);
+    const priceUsd = finite(project?.priceUsd ?? project?.price ?? project?.marketData?.priceUsd);
+    const reason = captureReasons.get(index) ||
+      (!identity || !identity.poolAddress || priceUsd === null || priceUsd <= 0
+        ? "STRICT_IDENTITY_OR_REFERENCE_PRICE_MISSING"
+        : attempted >= maxCandidates
+          ? "NOT_QUOTE_SAMPLED_WITHIN_BUDGET"
+          : "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE");
+    return {
+      ...project,
+      executionProofEligibility: executionProofEligibility(project, reason),
+    };
+  });
+
   return {
     state: accepted ? "PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED" : "NO_PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED",
-    projects: updates.size
-      ? source.map((project, index) => updates.get(index) || project)
-      : source,
+    projects: annotatedProjects,
     audit: {
       endpointConfigured: Boolean(endpoint),
       provider: context.providerName,
@@ -443,6 +489,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
       eligible,
       accepted,
       rejected: attempted - accepted,
+      researchOnly: annotatedProjects.filter((project) => project.executionProofEligibility?.state !== "NET_PROOF_ELIGIBLE").length,
       rejectionReasons,
       referenceNotionalUsd: context.referenceNotionalUsd,
       maximumQuoteAgeMs: context.maximumQuoteAgeMs,
@@ -462,4 +509,6 @@ export const __forwardExecutionCostCaptureHooks = {
   sameNotional,
   buildObservedRoundTripEvidence,
   quoteCapturedAt,
+  executionProofEligibility,
+  researchOnlyProjects,
 };

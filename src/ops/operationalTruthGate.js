@@ -78,8 +78,10 @@ export function evaluateOperationalTruth(sources = {}, options = {}) {
   if (scope === "edge-truth") {
     if (!sources.acquisition || typeof sources.acquisition !== "object") {
       blockers.push("ACQUISITION_HEALTH_REPORT_MISSING");
-    } else if (sources.acquisition.blockResearchAdvancement === true || sources.acquisition.healthy !== true) {
+    } else if (sources.acquisition.blockResearchAdvancement === true) {
       blockers.push(...(sources.acquisition.blockers || ["ACQUISITION_NOT_HEALTHY"]));
+    } else if (sources.acquisition.capitalEvidenceEligible === false) {
+      warnings.push("CAPITAL_RADAR_EXCLUDED_FROM_PROOF_AND_ATTRIBUTION");
     } else if (sources.acquisition.observationClass === "HEALTHY_NEGATIVE_EVIDENCE") {
       warnings.push("NO_CAPITAL_EVENT_OBSERVED_UNDER_COMPLETE_COVERAGE");
     }

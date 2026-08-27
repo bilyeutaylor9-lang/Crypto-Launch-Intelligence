@@ -17,7 +17,11 @@ import { buildProductionRunManifest, writeProductionRunManifest } from "../produ
 import { buildProductionObservability } from "../production/productionObservability.js";
 import { writeAtomicJson, appendJsonlDurable } from "../production/atomicArtifactStore.js";
 import { appendExactMarketObservations, loadExactMarketObservations, toOutcomeSnapshots } from "../production/exactMarketObservationLedger.js";
-import { captureProspectiveEdgeCohort } from "../production/prospectiveEdgeCohortLedger.js";
+import {
+  captureProspectiveEdgeCohort,
+  buildProspectiveMatchabilityIndex,
+  selectMatchableProspectiveTreatments,
+} from "../production/prospectiveEdgeCohortLedger.js";
 import { strictIdentity } from "../production/productionMath.js";
 import { evaluateOperationalTruth } from "./operationalTruthGate.js";
 
@@ -61,6 +65,7 @@ export function mergeProductionShadowSourceCandidates(synthesisRows = [], univer
       roundTripExecutionCostBps: sourceCandidate.roundTripExecutionCostBps,
       executionReferenceSizeUsd: sourceCandidate.executionReferenceSizeUsd,
       executionCostProvenance: sourceCandidate.executionCostProvenance,
+      executionProofEligibility: sourceCandidate.executionProofEligibility || null,
       buyPriceImpactPct: sourceCandidate.buyPriceImpactPct,
       sellPriceImpactPct: sourceCandidate.sellPriceImpactPct,
       routeQualityScore: sourceCandidate.routeQualityScore,
@@ -78,6 +83,7 @@ export function runProductionShadowCycle(options = {}) {
     config: {
       genomeWindowsMinutes: options.genomeWindowsMinutes || [15, 60, 360, 1440, 4320],
       researchBudgetUnits: Number(options.researchBudgetUnits || 100),
+      matchabilityCandidateLimit: Number(options.matchabilityCandidateLimit || 250),
       shadowOnly: true,
     },
   });
@@ -199,8 +205,41 @@ export function runProductionShadowCycle(options = {}) {
   const researchBudget = routeResearchBudget(merged, {
     budgetUnits: manifest.config.researchBudgetUnits,
   });
-  const diversified = diversifyResearchQueue(researchBudget.selected, { maxItems: 25 });
-  const shadow = diversified.map((row) => {
+  const matchability = buildProspectiveMatchabilityIndex(
+    researchBudget.ranked,
+    {
+      now,
+      sourceObservedAt: universe.generatedAt || null,
+      codeCommitSha: manifest.codeCommitSha,
+      modelVersion: manifest.modelVersion,
+      featureSchemaVersion: manifest.featureSchemaVersion,
+      configFingerprint: manifest.configFingerprint,
+      requireRowSourceObservedAt: true,
+      maximumCandidates: manifest.config.matchabilityCandidateLimit,
+      maximumSelections: 25,
+      maxControls: Number(options.maxProspectiveControls || 3),
+      maximumSourceAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
+      existingEpisodes: options.prospectiveCohortEpisodes,
+    },
+  );
+  const diverseMatchableCandidates = diversifyResearchQueue(
+    matchability.entries
+      .filter((entry) => entry.diagnostics.treatmentState === "ELIGIBLE" && entry.eligibleControls.length)
+      .map((entry) => entry.candidate),
+    { maxItems: Math.min(100, manifest.config.matchabilityCandidateLimit) },
+  );
+  const matchableSelection = selectMatchableProspectiveTreatments(matchability, {
+    preferredCandidates: diverseMatchableCandidates,
+    maximumSelections: 25,
+    maxControls: Number(options.maxProspectiveControls || 3),
+  });
+  const reservedControlsByTreatment = matchableSelection.reservations.reduce((result, reservation) => {
+    const controls = result[reservation.treatmentRouteKey] || [];
+    controls.push(reservation.controlRouteKey);
+    result[reservation.treatmentRouteKey] = controls;
+    return result;
+  }, {});
+  const shadow = matchableSelection.selected.map((row) => {
     const multi = row.multiscaleGenome || {};
     const convergence = row.convergence || {};
     const forwardScenario = simulateForwardDistribution(row, { paths: 2048 });
@@ -258,6 +297,9 @@ export function runProductionShadowCycle(options = {}) {
       forwardScenario,
       productionInfluence: false,
       shadowOnly: true,
+      proofEligibility: row.executionProofEligibility?.state === "NET_PROOF_ELIGIBLE"
+        ? "NET_PROOF_ELIGIBLE"
+        : "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE",
     };
   });
 
@@ -266,6 +308,30 @@ export function runProductionShadowCycle(options = {}) {
     generatedAt: now,
     runId: manifest.runId,
     candidates: shadow,
+    matchability: {
+      audit: matchability.audit,
+      selection: matchableSelection.audit,
+      reservations: matchableSelection.reservations,
+    },
+    researchOnlyUnmatchableCandidates: matchability.entries
+      .filter((entry) => entry.diagnostics.treatmentState !== "ELIGIBLE" || !entry.eligibleControls.length)
+      .sort((left, right) => right.score - left.score || left.routeKey.localeCompare(right.routeKey))
+      .slice(0, 25)
+      .map((entry) => ({
+        identityKey: entry.identityKey,
+        routeKey: entry.routeKey,
+        chain: entry.candidate.chain,
+        tokenAddress: entry.candidate.tokenAddress,
+        poolAddress: entry.candidate.poolAddress,
+        symbol: entry.candidate.symbol || null,
+        score: entry.score,
+        proofEligibility: entry.candidate.executionProofEligibility?.state || "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE",
+        matchability: entry.diagnostics,
+      })),
+    proofEligibility: {
+      netProofEligible: shadow.filter((row) => row.proofEligibility === "NET_PROOF_ELIGIBLE").length,
+      researchOnlyExecutionEvidenceUnavailable: shadow.filter((row) => row.proofEligibility !== "NET_PROOF_ELIGIBLE").length,
+    },
     policy: {
       shadowOnly: true,
       productionRankingInfluence: false,
@@ -276,7 +342,7 @@ export function runProductionShadowCycle(options = {}) {
   writeAtomicJson("reports/production-shadow-ranking.json", shadowReport);
   const prospectiveCohort = captureProspectiveEdgeCohort(
     shadow,
-    researchBudget.ranked,
+    matchability.entries.map((entry) => entry.candidate),
     {
       now,
       sourceObservedAt: universe.generatedAt || null,
@@ -291,6 +357,7 @@ export function runProductionShadowCycle(options = {}) {
       maxControls: Number(options.maxProspectiveControls || 3),
       maximumSourceAgeMinutes: Number(options.maximumSourceAgeMinutes || 90),
       existingEpisodes: options.prospectiveCohortEpisodes,
+      reservedControlsByTreatment,
       persist: options.persistProspectiveCohorts !== false,
       file: options.prospectiveCohortFile,
     },

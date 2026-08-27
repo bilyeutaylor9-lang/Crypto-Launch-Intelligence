@@ -1,6 +1,7 @@
 /node_modules/
 /reports/
 /data/
+/.state/
 /docs/*
 !/docs/DATA-SOURCE-READINESS.md
 !/docs/CLI-15-FORWARD-ALPHA-VALIDATION.md
