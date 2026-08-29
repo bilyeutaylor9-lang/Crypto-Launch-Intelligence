@@ -60,6 +60,18 @@ jobs:
       - name: Pack Canonical Scanner State Bundle
         run: npm run state:pack -- --require-exact-universe
 
+      - name: Publish Fresh Exact Shadow Universe Handoff
+        uses: actions/upload-artifact@v7
+        with:
+          name: fresh-exact-shadow-universe
+          path: |
+            .state/scanner-learning-bundle.json.gz
+            data/edge-candidate-universe.json
+            reports/operational-truth-gate.json
+            reports/scanner-state-bundle.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Save Canonical Scanner State Bundle
         uses: actions/cache/save@v5
         with:
