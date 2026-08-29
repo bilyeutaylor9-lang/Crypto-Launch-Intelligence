@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "12,42 * * * *"
+  workflow_run:
+    workflows: ["Shadow Universe Refresh"]
+    types: [completed]
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: live-dashboard-scan-${{ github.ref }}
@@ -14,9 +18,15 @@ concurrency:
 
 jobs:
   alpha-os:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      NODE_OPTIONS: --max-old-space-size=4096
       BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
       IGNITION_EXECUTABLE_QUOTE_ENDPOINT: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_ENDPOINT }}
       IGNITION_EXECUTABLE_QUOTE_BEARER: ${{ secrets.IGNITION_EXECUTABLE_QUOTE_BEARER }}
@@ -31,6 +41,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -76,6 +88,62 @@ jobs:
       - name: Restore Validated Scanner State
         run: npm run state:restore
 
+      # Caches are only a performance layer. Alpha OS must obtain its exact
+      # candidate universe from the most recent successful refresh artifact.
+      - name: Restore Fresh Shadow Universe Refresh Artifact
+        id: restore_fresh_universe
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHADOW_REFRESH_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '' }}
+          SHADOW_REFRESH_HEAD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+        run: |
+          set -euo pipefail
+          refresh_run_id="$SHADOW_REFRESH_RUN_ID"
+          if [ -z "$refresh_run_id" ]; then
+            refresh_run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow shadow-universe-refresh.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+          test -n "$refresh_run_id"
+          if [ -z "$SHADOW_REFRESH_HEAD_SHA" ]; then
+            SHADOW_REFRESH_HEAD_SHA="$(gh run view "$refresh_run_id" --repo "$GITHUB_REPOSITORY" --json headSha --jq '.headSha')"
+          fi
+          artifact_root="$RUNNER_TEMP/fresh-shadow-universe"
+          mkdir -p "$artifact_root"
+          gh run download "$refresh_run_id" --repo "$GITHUB_REPOSITORY" --name fresh-exact-shadow-universe --dir "$artifact_root"
+          bundle="$(find "$artifact_root" -type f -name scanner-learning-bundle.json.gz -print -quit)"
+          test -n "$bundle"
+          mkdir -p .state
+          cp "$bundle" .state/scanner-learning-bundle.json.gz
+          printf 'refresh_run_id=%s\n' "$refresh_run_id" >> "$GITHUB_OUTPUT"
+          printf 'refresh_head_sha=%s\n' "$SHADOW_REFRESH_HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Fresh Exact Shadow Universe State
+        if: steps.restore_fresh_universe.outcome == 'success'
+        run: npm run state:restore
+
+      - name: Assert Fresh Exact Shadow Universe Handoff
+        id: fresh_handoff
+        if: steps.restore_fresh_universe.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          npm run shadow:handoff --
+          --source=shadow-universe-refresh-artifact
+          --refresh-workflow-run-id=${{ steps.restore_fresh_universe.outputs.refresh_run_id }}
+          --refresh-workflow-head-sha=${{ steps.restore_fresh_universe.outputs.refresh_head_sha }}
+
+      # A stale or unavailable artifact gets one bounded refresh attempt. The
+      # same 90-minute truth gate is re-run below; this never lowers it.
+      - name: Refresh Exact Candidate Universe Once When Handoff Is Invalid
+        id: refresh_exact_universe
+        if: steps.restore_fresh_universe.outcome != 'success' || steps.fresh_handoff.outcome != 'success'
+        run: |
+          npm run scan:debug100
+          npm run state:pack -- --require-exact-universe
+
+      - name: Assert Fresh Universe After Bounded Refresh
+        if: steps.refresh_exact_universe.outcome == 'success'
+        run: npm run shadow:handoff -- --source=direct-alpha-os-refresh --refresh-attempted
+
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
         uses: actions/cache/restore@v5
@@ -93,6 +161,7 @@ jobs:
         run: npm run forward:evidence:restore
 
       - name: Enforce Fresh Exact Shadow Universe
+        id: exact_universe_truth
         run: npm run operations:truth -- --scope shadow-universe
 
       - name: Run Production Shadow
@@ -118,8 +187,14 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
+          set +e
           npm run production:ops-audit
+          operational_audit_status=$?
           npm run production:readiness
+          readiness_status=$?
+          if [ "$operational_audit_status" -ne 0 ] || [ "$readiness_status" -ne 0 ]; then
+            exit 2
+          fi
 
       - name: Save Alpha OS Memory
         if: always()
@@ -172,5 +247,16 @@ jobs:
             reports/edge-verification-posthoc-diagnostic.json
             reports/autonomous-alpha-lab.json
             reports/production-readiness.json
+            reports/remote-backup-attestation.json
+            reports/production-security-audit.json
+            reports/data-source-readiness.json
+            reports/fresh-shadow-universe-handoff.json
+            reports/operational-truth-gate.json
+            reports/scanner-state-restore.json
+            reports/scanner-state-bundle.json
+            reports/forward-evidence-restore.json
+            reports/forward-evidence-sync.json
+            reports/forward-evidence-verify.json
+            reports/forward-evidence-reconciliation.json
           if-no-files-found: warn
           retention-days: 60
