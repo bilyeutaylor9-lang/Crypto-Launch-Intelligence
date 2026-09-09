@@ -5,9 +5,10 @@ import {
   hoursBetween,
   num,
   pctChange,
-  timestampOf,
 } from "../edge/edgeMath.js";
+import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 import { loadAsymmetricEdgeObservations } from "./asymmetricEdgeObservationStore.js";
+import { assessPriceIdentitySanity, quarantineRecord } from "./priceIdentitySanityGate.js";
 
 const DATA_FILE = path.resolve("data", "asymmetric-edge-outcomes.json");
 const REPORT_FILE = path.resolve("reports", "asymmetric-edge-outcome-lab.json");
@@ -68,14 +69,39 @@ function thresholdOutcome(observation = {}, snapshots = [], horizonHours = 24, o
   };
 }
 
+function saneSnapshotsForObservation(observation, snapshots, options = {}) {
+  const accepted = [];
+  let quarantined = 0;
+  for (const snapshot of snapshots) {
+    const sanity = assessPriceIdentitySanity(observation, snapshot, options.sanityOptions);
+    if (sanity.pass) {
+      accepted.push(snapshot);
+      continue;
+    }
+    quarantined += 1;
+    if (options.quarantine !== false) {
+      quarantineRecord({ observation, snapshot }, sanity, {
+        ...options.quarantineOptions,
+        now: options.now,
+      });
+    }
+  }
+  return { accepted, quarantined };
+}
+
 export function buildLeadTimeOutcomeLab(edgeObservations = [], outcomeSnapshots = [], options = {}) {
   const horizons = (options.horizons || DEFAULT_HORIZONS).map(Number).filter((value) => value > 0);
   const byKey = snapshotMap(outcomeSnapshots);
   const rows = [];
+  let quarantinedSnapshots = 0;
 
   for (const observation of Array.isArray(edgeObservations) ? edgeObservations : []) {
-    const snapshots = byKey.get(observation.identityKey) || [];
-    if (!snapshots.length || num(observation.priceUsd) === null) continue;
+    const matchedSnapshots = byKey.get(observation.identityKey) || [];
+    if (!matchedSnapshots.length || num(observation.priceUsd) === null) continue;
+    const sanity = saneSnapshotsForObservation(observation, matchedSnapshots, options);
+    quarantinedSnapshots += sanity.quarantined;
+    const snapshots = sanity.accepted;
+    if (!snapshots.length) continue;
     const outcomes = Object.fromEntries(
       horizons.map((horizon) => [String(horizon), thresholdOutcome(observation, snapshots, horizon, options)])
     );
@@ -85,6 +111,10 @@ export function buildLeadTimeOutcomeLab(edgeObservations = [], outcomeSnapshots 
       observedAt: observation.observedAt,
       symbol: observation.symbol || null,
       chain: observation.chain || null,
+      tokenAddress: observation.tokenAddress || null,
+      poolAddress: observation.poolAddress || null,
+      scanRunId: observation.scanRunId || null,
+      codeCommitSha: observation.codeCommitSha || null,
       priceUsd: observation.priceUsd,
       productionScore: observation.productionScore,
       projectClockScore: observation.projectClockScore,
@@ -105,25 +135,24 @@ export function buildLeadTimeOutcomeLab(edgeObservations = [], outcomeSnapshots 
 
   const report = {
     schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
+    generatedAt: new Date(options.now ?? Date.now()).toISOString(),
     status: rows.length >= 30 ? "EXPLORATORY_SAMPLE" : "INSUFFICIENT_SAMPLE",
     rows: rows.length,
     uniqueProjects: new Set(rows.map((row) => row.identityKey)).size,
     horizons,
     upsideThresholdPct: Number(options.upsideThresholdPct ?? 25),
     downsideThresholdPct: Number(options.downsideThresholdPct ?? -15),
+    quarantinedSnapshots,
     records: rows,
     warning:
       "Threshold timing is based only on observed future snapshots. An unobserved intra-window move can be missed; this lab never assumes continuous price coverage.",
   };
 
   if (options.persist !== false) {
-    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-    fs.writeFileSync(options.dataFile || DATA_FILE, JSON.stringify(report, null, 2));
+    writeAtomicJson(options.dataFile || DATA_FILE, report);
   }
   if (options.writeReport !== false) {
-    fs.mkdirSync(path.dirname(REPORT_FILE), { recursive: true });
-    fs.writeFileSync(options.reportFile || REPORT_FILE, JSON.stringify({ ...report, records: rows.slice(-500) }, null, 2));
+    writeAtomicJson(options.reportFile || REPORT_FILE, report);
   }
   return report;
 }

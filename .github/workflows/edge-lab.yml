@@ -41,6 +41,9 @@ jobs:
       - name: Refresh Lead-Time Outcome Lab
         run: npm run edge:lab
 
+      - name: Build Evidence Recovery and Alpha Feature Leaderboard
+        run: npm run edge:evidence-recovery
+
       - name: Refresh Ignition Outcome Lab
         run: npm run ignition:lab
 
@@ -65,6 +68,10 @@ jobs:
           name: asymmetric-edge-lab-${{ github.run_id }}
           path: |
             reports/asymmetric-edge-outcome-lab.json
+            reports/evidence-coverage-matrix.json
+            reports/evidence-recovery-plan.json
+            reports/alpha-feature-leaderboard.json
+            reports/missing-evidence-value-of-information.json
             reports/residual-alpha-blindspots.json
             reports/ignition-outcome-lab.json
             reports/committed-loaded-vacuum-evidence-governor.json

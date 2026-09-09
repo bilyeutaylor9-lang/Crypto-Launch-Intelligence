@@ -297,6 +297,7 @@
     "dev": "node --watch src/index.js",
     "edge:suite": "cat reports/asymmetric-edge-suite.json",
     "edge:lab": "node src/learning/leadTimeOutcomeLab.js",
+    "edge:evidence-recovery": "node src/ops/runEvidenceRecoveryAndLeaderboard.js",
     "edge:history": "tail -n 100 data/asymmetric-edge-observations.jsonl",
     "edge:residual": "cat reports/residual-alpha-blindspots.json",
     "ignition:twin": "cat reports/ignition-twin.json",

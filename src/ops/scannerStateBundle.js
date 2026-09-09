@@ -31,6 +31,7 @@ export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/prospective-entry-edge-episodes.jsonl",
   "data/asymmetric-edge-observations.jsonl",
   "data/asymmetric-edge-outcomes.json*",
+  "data/asymmetric-edge-quarantine.jsonl",
   "data/three-clock-edge-observations.jsonl",
   "data/wallet-temporal-fingerprints.jsonl",
   "data/ignition-twin-observations.jsonl",
