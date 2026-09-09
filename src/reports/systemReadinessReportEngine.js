@@ -13,8 +13,9 @@ function readJson(fileName = "", reportsDir = path.resolve("reports")) {
 }
 
 function statusFromFailures(failures = []) {
-  if (failures.some((item) => item.severity === "FAIL")) return "FAIL";
-  if (failures.length) return "DEGRADED";
+  const blocking = failures.filter((item) => item.blocksReadiness !== false);
+  if (blocking.some((item) => item.severity === "FAIL")) return "FAIL";
+  if (blocking.length) return "DEGRADED";
   return "PASS";
 }
 
@@ -22,6 +23,34 @@ function countFailures(value) {
   if (Array.isArray(value)) return value.length;
   if (value && typeof value === "object") return Object.keys(value).length;
   return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+function finding(item = {}, blocksReadiness = true) {
+  return {
+    ...item,
+    blocksReadiness,
+    readinessImpact: blocksReadiness ? "BLOCKING" : "ADVISORY",
+  };
+}
+
+function scannerEvidenceIsHealthy(scannerSemanticHealth = {}, liveCoreRanking = {}) {
+  return (
+    scannerSemanticHealth.readinessClass === "HEALTHY_EVIDENCE" ||
+    scannerSemanticHealth.healthyCoreEvidence === true ||
+    liveCoreRanking.summary?.healthyCoreEvidence === true
+  );
+}
+
+function scannerFoundNoEdgeWithHealthyEvidence(scannerSemanticHealth = {}, liveCoreRanking = {}) {
+  const selectionOutcome =
+    scannerSemanticHealth.selectionOutcome ||
+    liveCoreRanking.summary?.selectionOutcome ||
+    scannerSemanticHealth.status;
+  return (
+    scannerSemanticHealth.status === "NO_EDGE_FOUND" &&
+    scannerEvidenceIsHealthy(scannerSemanticHealth, liveCoreRanking) &&
+    selectionOutcome === "NO_EDGE_FOUND"
+  );
 }
 
 export function summarizeSystemReadiness(meta = {}, options = {}) {
@@ -47,24 +76,26 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
   const highUpsideWatchCount = Number(highUpsideScalp.highUpsideWatchCount || 0);
   const routePendingCount = Number(highUpsideScalp.researchOnlyRouteMissingCount || 0);
   const quarantinedIdentityOrRouteCount = Number(highUpsideScalp.quarantinedIdentityOrRouteCount || 0);
+  const healthyEvidence = scannerEvidenceIsHealthy(scannerSemanticHealth, liveCoreRanking);
+  const healthyNoEdge = scannerFoundNoEdgeWithHealthyEvidence(scannerSemanticHealth, liveCoreRanking);
 
   const failures = [];
   if (validation.status !== "PASS") {
-    failures.push({ area: "reports", severity: "FAIL", reason: "Required report contract validation failed.", nextAction: "Run npm run results:health and fix missing/invalid JSON." });
+    failures.push(finding({ area: "reports", severity: "FAIL", reason: "Required report contract validation failed.", nextAction: "Run npm run results:health and fix missing/invalid JSON." }));
   }
   if (countFailures(engineHealth.failures || engineHealth.failedEngines || engineHealth.enginesFailed || 0) > 0) {
-    failures.push({ area: "engines", severity: "FAIL", reason: "One or more engines failed.", nextAction: "Open engine-health-report.json and fix failed engines before trusting scan output." });
+    failures.push(finding({ area: "engines", severity: "FAIL", reason: "One or more engines failed.", nextAction: "Open engine-health-report.json and fix failed engines before trusting scan output." }));
   }
   if (wholeEngineAudit.status === "FAIL" || wholeEngineAudit.runtimeDataStatus === "FAIL") {
-    failures.push({ area: "whole-engine-audit", severity: "FAIL", reason: "Whole-engine audit found runtime or import failures.", nextAction: "Open whole-engine-audit.json and repair the topRepairQueue." });
+    failures.push(finding({ area: "whole-engine-audit", severity: "FAIL", reason: "Whole-engine audit found runtime or import failures.", nextAction: "Open whole-engine-audit.json and repair the topRepairQueue." }));
   } else if (Number(wholeEngineAudit.summary?.outputMissingEngineCount || 0) > 0) {
-    failures.push({ area: "whole-engine-audit", severity: "WARN", reason: "Some engines are missing runtime outputs.", nextAction: "Open whole-engine-audit.json and repair output-missing engines." });
+    failures.push(finding({ area: "whole-engine-audit", severity: "WARN", reason: "Some engines are missing runtime outputs.", nextAction: "Open whole-engine-audit.json and repair output-missing engines." }));
   }
   if (contractHealth.status && contractHealth.status !== "PASS") {
     const outputContractBroken =
       contractHealth.status === "OUTPUT_CONTRACT_GAPS" ||
       Number(contractHealth.outputContractMismatchProjects || 0) > 0;
-    failures.push({
+    failures.push(finding({
       area: "engine-contracts",
       severity: outputContractBroken ? "FAIL" : "WARN",
       reason: outputContractBroken
@@ -73,68 +104,103 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
       nextAction: outputContractBroken
         ? "Open engine-data-contract-health.json and repair missing engine outputs."
         : "Open engine-data-contract-health.json and daily-recovery-queue.json to recover missing candidate evidence.",
-    });
+    }, outputContractBroken || !healthyEvidence));
   }
   if (dailyCapital.status === "NO_PROJECTS") {
-    failures.push({ area: "daily-capital", severity: "WARN", reason: "No projects reached daily capital evaluation.", nextAction: "Check discovery and pipeline-stage reports." });
+    failures.push(finding({ area: "daily-capital", severity: "WARN", reason: "No projects reached daily capital evaluation.", nextAction: "Check discovery and pipeline-stage reports." }));
   }
   if (dailyCapital.status === "NO_VALID_MOVE_TODAY") {
-    failures.push({ area: "daily-capital", severity: "WARN", reason: "No valid daily capital move today.", nextAction: "Use daily-recovery-queue.json and do not force a pick." });
+    failures.push(finding({ area: "daily-capital", severity: "WARN", reason: "No valid daily capital move today.", nextAction: "Use daily-recovery-queue.json and do not force a pick." }));
   }
   if (Number(sourceGaps.failedCount || 0) + Number(sourceGaps.missingKeyCount || 0) + Number(sourceGaps.rateLimitedCount || 0) > 0) {
-    failures.push({ area: "sources", severity: "WARN", reason: "Provider/source gaps reduce coverage.", nextAction: "Open daily-source-gaps.json and add keys or wait for cooldowns." });
+    const sourceBlindnessBlocksReadiness =
+      sourceGaps.scannerBlindnessRisk === "CRITICAL" ||
+      sourceGaps.scannerBlindnessRisk === "HIGH";
+    const sourceBlocksReadiness =
+      sourceBlindnessBlocksReadiness ||
+      (!healthyEvidence && Number(sourceGaps.blockingGapCount || 0) > 0);
+    failures.push(finding({
+      area: "sources",
+      severity: "WARN",
+      reason: sourceBlocksReadiness
+        ? "Provider/source gaps reduce coverage."
+        : "Provider/source capacity advisories remain, but current scanner source coverage is healthy.",
+      nextAction: sourceBlocksReadiness
+        ? "Open daily-source-gaps.json and add keys or wait for cooldowns."
+        : "Use paid keys and optional probes to improve capacity; do not downgrade a healthy no-edge scan for non-blocking source upside.",
+    }, sourceBlocksReadiness));
   }
   if (["CRITICAL", "HIGH"].includes(sourceGaps.routePromotionBlindnessRisk)) {
-    failures.push({
+    failures.push(finding({
       area: "candidate-promotion",
       severity: "WARN",
       reason: `Candidate promotion is blocked by ${sourceGaps.routePromotionBlindnessRisk.toLowerCase()} route-identity/quote source coverage.`,
       nextAction: "Restore DexScreener/GeckoTerminal/DeFiLlama exact identity coverage first, then recover LI.FI keyless or CEX public buy-sell proof; keyed Jupiter/0x remain optional.",
-    });
+    }));
   }
   if (
     Number(highUpsideScalp.quarantinedIdentityOrRouteCount || 0) > 0 &&
     Number(highUpsideScalp.scalpReadyCount || 0) === 0 &&
     Number(highUpsideScalp.highUpsideWatchCount || 0) === 0
   ) {
-    failures.push({
+    const candidateLaneBlocksReadiness = !healthyEvidence && !healthyNoEdge;
+    failures.push(finding({
       area: "candidate-lanes",
       severity: "WARN",
-      reason: "Research candidates exist, but none reached scalp-ready or high-upside watch because strict identity/route proof is incomplete.",
-      nextAction: "Open high-upside-scalp-research.json and execution-proof-recovery.json; prioritize CONTRACT_MISSING, PAIR_NOT_FOUND, liquidity, and fresh buy/sell quotes.",
-    });
+      reason: candidateLaneBlocksReadiness
+        ? "Research candidates exist, but none reached scalp-ready or high-upside watch because strict identity/route proof is incomplete."
+        : "Strict identity and route gates kept all candidates out of action lanes; current scanner evidence is healthy and no winner was forced.",
+      nextAction: candidateLaneBlocksReadiness
+        ? "Open high-upside-scalp-research.json and execution-proof-recovery.json; prioritize CONTRACT_MISSING, PAIR_NOT_FOUND, liquidity, and fresh buy/sell quotes."
+        : "Keep recovering route and identity proof for research lanes; do not force a winner without full execution proof.",
+    }, candidateLaneBlocksReadiness));
   }
   if (opMode.status && !["READY", "PASS"].includes(opMode.status)) {
-    failures.push({ area: "op-mode", severity: "WARN", reason: `OP Mode status is ${opMode.status}.`, nextAction: "Open op-mode-readiness.json for exact setup gaps." });
+    const opModeBlocksReadiness = !healthyEvidence && opMode.status !== "DEGRADED_BUT_USABLE";
+    failures.push(finding({
+      area: "op-mode",
+      severity: "WARN",
+      reason: `OP Mode status is ${opMode.status}.`,
+      nextAction: opModeBlocksReadiness
+        ? "Open op-mode-readiness.json for exact setup gaps."
+        : "Treat OP Mode gaps as setup advisories when current scanner evidence, reports, routes, and memory are healthy.",
+    }, opModeBlocksReadiness));
   }
   if (
     liveCoreRanking.authoritativeRanking &&
     Number(liveCoreRanking.summary?.microTestEligible || 0) === 0 &&
     Number(liveCoreRanking.summary?.researchWatchlist || 0) === 0
   ) {
-    failures.push({
+    const liveRankingBlocksReadiness = !healthyNoEdge && highUpsideWatchCount === 0;
+    failures.push(finding({
       area: "guarded-live-ranking",
       severity: "WARN",
-      reason: "No project currently passes the evidence-backed live ranking gates.",
-      nextAction: "Open live-core-ranking.json and recover its missing identity, utility, safety, liquidity, buyer, and route evidence; do not force a leader.",
-    });
+      reason: liveRankingBlocksReadiness
+        ? "No project currently passes the evidence-backed live ranking gates."
+        : "No project currently passes action gates, and the scanner correctly classified this as a healthy no-edge result.",
+      nextAction: liveRankingBlocksReadiness
+        ? "Open live-core-ranking.json and recover its missing identity, utility, safety, liquidity, buyer, and route evidence; do not force a leader."
+        : "Keep monitoring recovery lanes; do not force a leader when the semantic outcome is NO_EDGE_FOUND.",
+    }, liveRankingBlocksReadiness));
   }
   if (scannerSemanticHealth.status === "DATA_DEGRADED") {
-    failures.push({
+    failures.push(finding({
       area: "scanner-semantic-health",
       severity: "FAIL",
       reason:
         `Scanner semantic health is DATA_DEGRADED: ${scannerSemanticHealth.insufficientDataCandidates || 0} insufficient-data candidates, ${scannerSemanticHealth.averageEvidenceCoverage || 0}% average evidence coverage.`,
       nextAction: "Run the active evidence recovery pass, inspect data-starvation-root-cause.json, and fix provider/memory/rescue failures before publishing readiness.",
-    });
+    }));
   } else if (scannerSemanticHealth.status === "INSUFFICIENT_EVIDENCE") {
-    failures.push({
+    failures.push(finding({
       area: "scanner-semantic-health",
       severity: "WARN",
       reason: "No edge was selected because evidence remains insufficient, but the scan did not cross the production degradation threshold.",
       nextAction: "Open starvation-rescue-queue.json and data-starvation-by-field.json before expanding research scope.",
-    });
+    }));
   }
+  const blockingFailures = failures.filter((item) => item.blocksReadiness !== false);
+  const readinessAdvisories = failures.filter((item) => item.blocksReadiness === false);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -196,8 +262,11 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     requiredReportCount: requiredFiles.length,
     checkedReportCount: validation.checkedFiles,
     wholeEngineAuditSummary: wholeEngineAudit.summary || {},
+    blockingFindingCount: blockingFailures.length,
+    advisoryFindingCount: readinessAdvisories.length,
+    readinessAdvisories,
     failures,
-    nextFixes: failures.map((item) => item.nextAction).slice(0, 12),
+    nextFixes: blockingFailures.map((item) => item.nextAction).slice(0, 12),
     policy: [
       "A successful scan must publish valid reports, not only finish Node execution.",
       "No daily pick is forced when proof is missing.",

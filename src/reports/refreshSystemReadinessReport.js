@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { writeScanArtifactManifest } from "./scanArtifactManifestReportEngine.js";
 import { writeSystemReadinessReport } from "./systemReadinessReportEngine.js";
+import { resolveCodeCommitSha } from "../production/productionRunManifest.js";
 
 const AUDIT_REPORT_FILES = [
   "engine-health-report.json",
@@ -45,6 +46,7 @@ function reportMeta(reportsDir = path.resolve("reports")) {
       highUpside.codeCommitSha,
       currentReadiness.codeCommitSha,
       process.env.GITHUB_SHA,
+      resolveCodeCommitSha(),
     ]),
     dataCutoffTimestamp: firstPresent([
       manifest.dataCutoffTimestamp,
@@ -53,11 +55,12 @@ function reportMeta(reportsDir = path.resolve("reports")) {
       currentReadiness.dataCutoffTimestamp,
     ]),
     artifactClass: firstPresent([
+      process.env.ARTIFACT_CLASS,
+      process.env.SCAN_ARTIFACT_CLASS,
       manifest.artifactClass,
       top10.artifactClass,
       highUpside.artifactClass,
       currentReadiness.artifactClass,
-      process.env.ARTIFACT_CLASS,
     ]),
     evidenceMode: firstPresent([
       manifest.evidenceMode,

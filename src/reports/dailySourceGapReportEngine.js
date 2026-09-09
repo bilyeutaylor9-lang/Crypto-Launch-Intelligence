@@ -169,6 +169,13 @@ function returnedUsefulData(item = {}) {
   return usefulCount(item) > 0;
 }
 
+function blocksScannerHealth(item = {}) {
+  if (item.optional === true) return false;
+  if (["FAILED", "TIMEOUT", "RATE_LIMITED", "REGION_BLOCKED"].includes(item.status)) return true;
+  if (item.status === "MISSING_KEY" && item.free === true) return true;
+  return false;
+}
+
 function sourceNextAction(item = {}, setup = {}) {
   if (item.status === "AVAILABLE") return "Keep using this source as live source truth.";
   if (item.status === "MISSING_OPTIONAL_KEY") return `Optional: add ${item.missingKey || setup.envKey || "provider key"} to improve coverage.`;
@@ -369,7 +376,6 @@ export function summarizeDailySourceGaps(meta = {}) {
     const priority = { MISSING_KEY: 5, FAILED: 4, TIMEOUT: 4, RATE_LIMITED: 3, REGION_BLOCKED: 2, MISSING_OPTIONAL_KEY: 1, STALE: 1, UNKNOWN: 1, EMPTY: 1, AVAILABLE: 0 };
     return (priority[b.status] || 0) - (priority[a.status] || 0) || b.trustScore - a.trustScore;
   });
-  const fatalGapStatuses = new Set(["MISSING_KEY", "FAILED", "TIMEOUT", "RATE_LIMITED", "REGION_BLOCKED"]);
   const availableCount = sources.filter((item) => item.status === "AVAILABLE").length;
   const workingFreeSourceCount = sources.filter((item) => item.free && item.status === "AVAILABLE").length;
   const workingPaidSourceCount = sources.filter((item) => !item.free && item.status === "AVAILABLE").length;
@@ -386,13 +392,15 @@ export function summarizeDailySourceGaps(meta = {}) {
     routeIdentityUsefulSourceCount,
     executionQuoteSourceAvailableCount,
   });
+  const blockingGapSources = sources.filter(blocksScannerHealth);
+  const advisoryGapSources = sources.filter((item) => item.status !== "AVAILABLE" && !blocksScannerHealth(item));
 
   return {
     generatedAt: new Date().toISOString(),
     scanRunId: meta.scanRunId || meta.runId || process.env.GITHUB_RUN_ID || null,
     codeCommitSha: meta.codeCommitSha || null,
     dataCutoffTimestamp: meta.dataCutoffTimestamp || meta.completedAt || meta.generatedAt || null,
-    status: availableCount === 0 || sources.some((item) => !item.optional && fatalGapStatuses.has(item.status))
+    status: availableCount === 0 || blockingGapSources.length > 0
       ? "SOURCE_GAPS_FOUND"
       : "SOURCE_HEALTH_OK",
     sourceCount: sources.length,
@@ -418,6 +426,9 @@ export function summarizeDailySourceGaps(meta = {}) {
       availableCount === 0
         ? "CRITICAL: scanner has no live source truth. Rankings are research-only and should not be trusted until source coverage is restored."
         : null,
+    blockingGapCount: blockingGapSources.length,
+    advisoryGapCount: advisoryGapSources.length,
+    capacityGapCount: sources.filter((item) => ["MISSING_KEY", "MISSING_OPTIONAL_KEY", "UNKNOWN"].includes(item.status) && !blocksScannerHealth(item)).length,
     missingKeyCount: sources.filter((item) => item.status === "MISSING_KEY").length,
     optionalMissingKeyCount: sources.filter((item) => item.status === "MISSING_OPTIONAL_KEY").length,
     failedCount: sources.filter((item) => item.status === "FAILED").length,
@@ -447,6 +458,18 @@ export function summarizeDailySourceGaps(meta = {}) {
       };
     }),
     sources,
+    blockingGaps: blockingGapSources.slice(0, 12).map((item) => ({
+      source: item.label,
+      status: item.status,
+      nextAction: item.nextAction,
+      improves: item.improves,
+    })),
+    advisoryGaps: advisoryGapSources.slice(0, 12).map((item) => ({
+      source: item.label,
+      status: item.status,
+      nextAction: item.nextAction,
+      improves: item.improves,
+    })),
     topNextActions: sources
       .filter((item) => item.status !== "AVAILABLE")
       .slice(0, 12)

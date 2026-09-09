@@ -401,6 +401,8 @@ test("daily source gaps do not let missing paid keys make the free-mode scanner 
   });
 
   assert.equal(report.missingKeyCount, 3);
+  assert.equal(report.blockingGapCount, 0);
+  assert.equal(report.status, "SOURCE_HEALTH_OK");
   assert.equal(report.workingFreeSourceCount >= 3, true);
   assert.notEqual(report.scannerBlindnessRisk, "CRITICAL");
   assert.ok(report.paidKeyUpsideRank.some((item) => item.missingKey === "BIRDEYE_API_KEY"));
