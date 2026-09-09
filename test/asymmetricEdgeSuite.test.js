@@ -240,8 +240,13 @@ test("residual miner finds systematic under-rated winners", () => {
 });
 
 test("lead-time lab preserves observed threshold ordering", () => {
+  const tokenAddress = "0x1111111111111111111111111111111111111111";
+  const poolAddress = "0x2222222222222222222222222222222222222222";
   const edgeObservations = [{
-    identityKey: "base:0x1",
+    identityKey: `base:${tokenAddress}`,
+    chain: "base",
+    tokenAddress,
+    poolAddress,
     observedAt: "2026-01-01T00:00:00Z",
     priceUsd: 1,
     leadStage: 3,
@@ -249,8 +254,8 @@ test("lead-time lab preserves observed threshold ordering", () => {
     divergenceState: "PRE_CONSENSUS_DIVERGENCE",
   }];
   const snapshots = [
-    { key: "base:0x1", timestamp: "2026-01-01T05:00:00Z", priceUsd: 1.3 },
-    { key: "base:0x1", timestamp: "2026-01-01T10:00:00Z", priceUsd: 0.8 },
+    { key: `base:${tokenAddress}`, chain: "base", tokenAddress, poolAddress, timestamp: "2026-01-01T05:00:00Z", priceUsd: 1.3 },
+    { key: `base:${tokenAddress}`, chain: "base", tokenAddress, poolAddress, timestamp: "2026-01-01T10:00:00Z", priceUsd: 0.8 },
   ];
   const lab = buildLeadTimeOutcomeLab(edgeObservations, snapshots, { persist: false, writeReport: false, horizons: [24] });
   assert.equal(lab.records[0].outcomes["24"].firstThreshold, "UPSIDE");
