@@ -457,6 +457,7 @@ test("default outcome-probe memory loads immutable prospective-entry episodes an
   assert.equal(report.prospectiveEntryEdgeDuePredictions, 1);
   assert.equal(report.duePredictions, 1);
   assert.equal(report.outcomesByHorizon[`${trial.horizonHours}h`], 1);
+  assert.equal(report.maturedObservationsByHorizon[`${trial.horizonHours}h`], 1);
   assert.equal(report.rankingInfluence, false);
   assert.equal(report.automaticTrading, false);
   assert.equal(report.automaticPromotion, false);

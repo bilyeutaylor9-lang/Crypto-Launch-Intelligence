@@ -4,21 +4,31 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "20 * * * *"
+  workflow_run:
+    workflows: ["Edge Fast Evidence"]
+    types: [completed]
 
 permissions:
   contents: read
 
 concurrency:
-  group: live-dashboard-scan-${{ github.ref }}
+  group: exact-outcome-probe-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   probe:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -56,6 +66,7 @@ jobs:
             forward-evidence-${{ runner.os }}-
 
       - name: Restore Durable Forward Evidence
+        id: forward_evidence_restore
         run: npm run forward:evidence:restore
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -84,11 +95,32 @@ jobs:
 
       - name: Sync Durable Forward Evidence
         if: always()
+        id: forward_evidence_sync
         run: npm run forward:evidence:sync
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+
+      - name: Verify Durable Outcome Evidence
+        if: always()
+        id: forward_evidence_verify
+        run: npm run forward:evidence:verify
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+
+      - name: Build Outcome Collection Health Report
+        if: always()
+        id: outcome_collection_health
+        run: npm run outcomes:health
+        env:
+          OUTCOME_COLLECTION_MAX_AGE_MINUTES: 180
+          OUTCOME_PROBE_STEP_OUTCOME: ${{ steps.outcome_probe.outcome }}
+          FORWARD_EVIDENCE_RESTORE_STEP_OUTCOME: ${{ steps.forward_evidence_restore.outcome }}
+          FORWARD_EVIDENCE_SYNC_STEP_OUTCOME: ${{ steps.forward_evidence_sync.outcome }}
+          FORWARD_EVIDENCE_VERIFY_STEP_OUTCOME: ${{ steps.forward_evidence_verify.outcome }}
 
       - name: Save Bounded Learning Memory
         if: always()
@@ -109,6 +141,11 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: outcome-probe-${{ github.run_id }}
-          path: reports/outcome-probe.json
+          path: |
+            reports/outcome-probe.json
+            reports/outcome-collection-health.json
+            reports/forward-evidence-restore.json
+            reports/forward-evidence-sync.json
+            reports/forward-evidence-verify.json
           if-no-files-found: ignore
           retention-days: 14

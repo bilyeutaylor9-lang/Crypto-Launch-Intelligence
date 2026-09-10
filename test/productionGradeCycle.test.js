@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import { resolveSnapshotOutcomes } from "../src/production/snapshotOutcomeResolver.js";
 import { linkShadowPredictionsToOutcomes } from "../src/production/shadowOutcomeLinker.js";
@@ -125,4 +128,28 @@ test("security audit fails closed when dependency audit is unavailable", () => {
   assert.equal(report.state, "SECURITY_AUDIT_INCOMPLETE");
   assert.equal(report.pass, false);
   assert.equal(report.dependencyAudit.complete, false);
+});
+
+test("security audit detects known OpenAI key formats without flagging market identifiers", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cli-security-audit-"));
+  try {
+    const data = path.join(root, "data");
+    fs.mkdirSync(data, { recursive: true });
+    fs.writeFileSync(path.join(data, "sample.json"), JSON.stringify({
+      legacy: `sk-${"a".repeat(48)}`,
+      project: `sk-proj-${"b".repeat(30)}`,
+      marketIdentifier: `sk-market-token-${"c".repeat(30)}`,
+    }));
+    const report = runProductionSecurityAudit({
+      root,
+      scanRoots: ["data"],
+      writeReport: false,
+      runDependencyAudit: cleanDependencyAudit,
+    });
+
+    assert.equal(report.state, "SECURITY_AUDIT_FAILED");
+    assert.equal(report.secretFindings.filter((finding) => finding.pattern === "OPENAI_KEY").length, 1);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

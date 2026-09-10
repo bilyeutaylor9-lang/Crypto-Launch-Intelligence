@@ -626,6 +626,19 @@ async function runOutcomeProbeUnlocked(options = {}) {
         ]
       )
     ),
+    maturedObservationsByHorizon: Object.fromEntries(
+      parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS).map(
+        (horizon) => [
+          `${horizon}h`,
+          results.reduce(
+            (sum, result) => sum + (result.status === "OBSERVED"
+              ? result.candidate.duePredictions.filter((item) => item.horizonHours === horizon).length
+              : 0),
+            0,
+          ),
+        ]
+      )
+    ),
     results: results.map((result) => ({
       key: result.candidate.key,
       status: result.status,

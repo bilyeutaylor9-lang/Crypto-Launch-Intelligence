@@ -4,7 +4,10 @@ import { spawnSync } from "node:child_process";
 import { writeAtomicJson } from "./atomicArtifactStore.js";
 
 const SECRET_PATTERNS = Object.freeze([
-  { name: "OPENAI_KEY", re: /\bsk-[A-Za-z0-9_-]{20,}\b/g },
+  // OpenAI's current project/admin key formats can contain separators, while
+  // legacy keys are a long alphanumeric string. Do not treat arbitrary market
+  // identifiers beginning with `sk-` as credentials.
+  { name: "OPENAI_KEY", re: /\b(?:sk-(?:proj|admin)-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{32,})\b/g },
   { name: "GITHUB_PAT", re: /\bgh[pousr]_[A-Za-z0-9]{20,}\b/g },
   { name: "PRIVATE_KEY", re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g },
   { name: "SUPABASE_JWTISH", re: /\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/g },

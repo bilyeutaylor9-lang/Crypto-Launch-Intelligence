@@ -84,14 +84,28 @@ test("shadow universe refresh produces a fresh exact handoff before Alpha OS con
   assert.match(refresh, /run:\s*npm run scan:debug100/);
   assert.match(refresh, /run:\s*npm run operations:truth -- --scope shadow-universe/);
   assert.match(refresh, /run:\s*npm run state:pack -- --require-exact-universe/);
+  assert.match(refresh, /name:\s*fresh-exact-shadow-universe/);
+  assert.match(refresh, /Publish Fresh Exact Shadow Universe Handoff/);
   assert.match(refresh, /cron:\s*"5 \* \* \* \*"/);
   assert.match(alpha, /cron:\s*"12,42 \* \* \* \*"/);
+  assert.match(alpha, /workflow_run:/);
+  assert.match(alpha, /workflows: \["Shadow Universe Refresh"\]/);
+  assert.match(alpha, /actions:\s*read/);
+  assert.match(alpha, /github\.event\.workflow_run\.head_sha/);
+  assert.match(alpha, /gh run download/);
+  assert.match(alpha, /name fresh-exact-shadow-universe/);
+  assert.match(alpha, /Refresh Exact Candidate Universe Once When Handoff Is Invalid/);
+  assert.match(alpha, /run:\s*npm run shadow:handoff/);
+  assert.match(alpha, /--refresh-attempted/);
   assert.match(
     fs.readFileSync(".github/workflows/future-intelligence-stack.yml", "utf8"),
     /cron:\s*"11,41 \* \* \* \*"/,
   );
   assert.ok(
     alpha.indexOf("Enforce Fresh Exact Shadow Universe") < alpha.indexOf("Run Production Shadow"),
+  );
+  assert.ok(
+    alpha.indexOf("Restore Fresh Shadow Universe Refresh Artifact") < alpha.indexOf("Enforce Fresh Exact Shadow Universe"),
   );
   assert.match(alpha, /data\/edge-candidate-universe\.json/);
 });
@@ -127,14 +141,19 @@ test("live dashboard runs shadow capture from the fresh scan and defers final he
   assert.match(workflow, /OPERATIONAL_TRUTH:\s*\$\{\{ needs\.build\.outputs\.operational_truth \}\}/);
 });
 
-test("hourly outcome probe is bounded, exact-only, and never launches a full scan", () => {
+test("hourly outcome probe is independently locked, exact-only, and never launches a full scan", () => {
   const workflow = fs.readFileSync(".github/workflows/outcome-probe.yml", "utf8");
 
   assert.match(workflow, /schedule:/);
+  assert.match(workflow, /workflow_run:/);
+  assert.match(workflow, /workflows: \["Edge Fast Evidence"\]/);
+  assert.match(workflow, /github\.event\.workflow_run\.conclusion == 'success'/);
+  assert.match(workflow, /github\.event\.workflow_run\.head_branch == 'main'/);
+  assert.match(workflow, /ref: \$\{\{ github\.event_name == 'workflow_run' && github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/);
   assert.match(workflow, /- name: Install Dependencies\s+run: npm ci/);
   assert.match(workflow, /run:\s*npm run outcomes:probe/);
   assert.doesNotMatch(workflow, /npm run scan/);
-  assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /group:\s*exact-outcome-probe-\$\{\{ github\.ref \}\}/);
   assert.match(workflow, /cancel-in-progress:\s*false/);
   assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_MAX_CANDIDATES:\s*120/);
@@ -142,6 +161,22 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
   assert.match(workflow, /run: npm run state:restore/);
   assert.match(workflow, /run: npm run state:pack -- --require-exact-universe/);
+  assert.match(workflow, /run:\s*npm run forward:evidence:verify/);
+  assert.match(workflow, /run:\s*npm run outcomes:health/);
+  assert.match(workflow, /OUTCOME_PROBE_STEP_OUTCOME:/);
+  assert.match(workflow, /FORWARD_EVIDENCE_VERIFY_STEP_OUTCOME:/);
+});
+
+test("outcome collection watchdog makes a missing probe run visible", () => {
+  const workflow = fs.readFileSync(".github/workflows/outcome-collection-watchdog.yml", "utf8");
+
+  assert.match(workflow, /name: Outcome Collection Watchdog/);
+  assert.match(workflow, /cron:\s*"5,35 \* \* \* \*"/);
+  assert.match(workflow, /actions:\s*read/);
+  assert.match(workflow, /group:\s*outcome-collection-watchdog-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /run:\s*npm run outcomes:watchdog/);
+  assert.match(workflow, /OUTCOME_PROBE_MAX_AGE_MINUTES:\s*180/);
+  assert.match(workflow, /reports\/outcome-collection-watchdog\.json/);
 });
 
 test("every scanner-learning cache uses one validated canonical artifact", () => {
@@ -214,7 +249,10 @@ test("forward evidence writers share an isolated exact append-only cache", () =>
     assert.deepEqual(paths[0], expectedPaths);
     assert.deepEqual(paths[1], expectedPaths);
     assert.match(workflow, /key: forward-evidence-\$\{\{ runner\.os \}\}-\$\{\{ github\.ref_name \}\}-\$\{\{ github\.run_id \}\}/);
-    assert.match(workflow, /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/);
+    const expectedGroup = workflowPath.endsWith("outcome-probe.yml")
+      ? /group:\s*exact-outcome-probe-\$\{\{ github\.ref \}\}/
+      : /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/;
+    assert.match(workflow, expectedGroup);
   }
 });
 

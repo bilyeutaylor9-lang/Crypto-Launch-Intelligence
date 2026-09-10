@@ -90,6 +90,47 @@ function validateRows(rows = []) {
   return byId;
 }
 
+/**
+ * Keep physical JSONL row counts separate from their immutable logical record
+ * counts. A duplicate line with the same canonical identity is not a remote
+ * conflict, but it must be visible instead of making a 6019-vs-6018 sync look
+ * healthy by accident.
+ */
+export function reconcileForwardEvidenceRows(localRows = [], remoteRows = []) {
+  const localById = validateRows(localRows);
+  const remoteById = validateRows(remoteRows);
+  const localOnly = [];
+  const remoteOnly = [];
+
+  for (const key of localById.keys()) if (!remoteById.has(key)) localOnly.push(key);
+  for (const key of remoteById.keys()) if (!localById.has(key)) remoteOnly.push(key);
+
+  const localDuplicateRecordCount = Math.max(0, localRows.length - localById.size);
+  const remoteDuplicateRecordCount = Math.max(0, remoteRows.length - remoteById.size);
+  const reconciliationRequired =
+    localDuplicateRecordCount > 0 ||
+    remoteDuplicateRecordCount > 0 ||
+    localOnly.length > 0 ||
+    remoteOnly.length > 0;
+
+  return {
+    state: reconciliationRequired
+      ? "FORWARD_EVIDENCE_RECONCILIATION_REQUIRED"
+      : "FORWARD_EVIDENCE_RECONCILED",
+    reconciled: !reconciliationRequired,
+    localPhysicalRecords: localRows.length,
+    localUniqueRecords: localById.size,
+    remotePhysicalRecords: remoteRows.length,
+    remoteUniqueRecords: remoteById.size,
+    localDuplicateRecordCount,
+    remoteDuplicateRecordCount,
+    localOnlyRecordCount: localOnly.length,
+    remoteOnlyRecordCount: remoteOnly.length,
+    localOnlyRecords: localOnly.slice(0, 100),
+    remoteOnlyRecords: remoteOnly.slice(0, 100),
+  };
+}
+
 function writeJsonlAtomic(file, records) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const temp = `${file}.${process.pid}.${Date.now()}.tmp`;
@@ -125,7 +166,13 @@ export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
       restored += missing.length;
     }
   }
-  return { localRecords: localRows.length, remoteRecords: remoteRows.length, restored };
+  const reconciledLocalRows = loadLocalForwardEvidence({ root });
+  return {
+    localRecords: reconciledLocalRows.length,
+    remoteRecords: remoteRows.length,
+    restored,
+    reconciliation: reconcileForwardEvidenceRows(reconciledLocalRows, remoteRows),
+  };
 }
 
 async function fetchRemoteRows(client, pageSize = 1000) {
@@ -167,7 +214,8 @@ export async function syncForwardEvidence(options = {}) {
   mergeForwardEvidenceRows(remoteRows, options);
   const localRows = loadLocalForwardEvidence(options);
   const remoteById = validateRows(remoteRows);
-  const pending = localRows.filter((row) => {
+  const localById = validateRows(localRows);
+  const pending = [...localById.values()].filter((row) => {
     const remote = remoteById.get(`${row.ledger_name}:${row.record_id}`);
     if (remote && remote.content_hash !== row.content_hash) {
       throw new Error(`Immutable forward-evidence conflict: ${row.ledger_name}:${row.record_id}`);
@@ -183,12 +231,57 @@ export async function syncForwardEvidence(options = {}) {
       });
     if (error) throw new Error(`Remote forward-evidence write failed: ${error.message}`);
   }
+  const remoteRowsAfterSync = await fetchRemoteRows(backend.client, options.pageSize);
   return {
     schemaVersion: 1,
     state: "REMOTE_FORWARD_EVIDENCE_SYNCED",
     localRecords: localRows.length,
     remoteRecordsBeforeSync: remoteRows.length,
+    remoteRecordsAfterSync: remoteRowsAfterSync.length,
     uploaded: pending.length,
+    reconciliation: reconcileForwardEvidenceRows(localRows, remoteRowsAfterSync),
+  };
+}
+
+/**
+ * Read back the append-only remote ledger after a sync. This deliberately
+ * performs no writes: it proves that every local immutable row is present
+ * remotely with the same identity and canonical content hash.
+ */
+export async function verifyForwardEvidence(options = {}) {
+  const backend = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
+  if (!backend.client) {
+    return {
+      schemaVersion: 1,
+      state: "REMOTE_FORWARD_EVIDENCE_NOT_CONFIGURED",
+      verified: false,
+      reason: backend.reason,
+    };
+  }
+
+  const remoteRows = await fetchRemoteRows(backend.client, options.pageSize);
+  const localRows = loadLocalForwardEvidence(options);
+  const remoteById = validateRows(remoteRows);
+  const localById = validateRows(localRows);
+  const missingRemoteRecords = [];
+
+  for (const [key, local] of localById) {
+    const remote = remoteById.get(key);
+    if (!remote || remote.content_hash !== local.content_hash) missingRemoteRecords.push(key);
+  }
+
+  return {
+    schemaVersion: 1,
+    state: missingRemoteRecords.length
+      ? "REMOTE_FORWARD_EVIDENCE_VERIFICATION_FAILED"
+      : "REMOTE_FORWARD_EVIDENCE_VERIFIED",
+    verified: missingRemoteRecords.length === 0,
+    localRecords: localRows.length,
+    remoteRecords: remoteRows.length,
+    missingRemoteRecords: missingRemoteRecords.slice(0, 100),
+    missingRemoteRecordCount: missingRemoteRecords.length,
+    reconciliation: reconcileForwardEvidenceRows(localRows, remoteRows),
+    appendOnlyIntegrityPass: true,
   };
 }
 
@@ -197,9 +290,24 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
   try {
     const result = command === "sync"
       ? await syncForwardEvidence(options)
-      : await restoreForwardEvidence(options);
+      : command === "verify"
+        ? await verifyForwardEvidence(options)
+        : await restoreForwardEvidence(options);
     const report = { ...result, generatedAt: now };
-    if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+    if (options.writeReport !== false) {
+      writeAtomicJson(`reports/forward-evidence-${command}.json`, report);
+      // Retain the historical report path for existing workflow artifacts and
+      // dashboard integrations while command-specific reports provide an
+      // auditable restore/sync/verify trail.
+      writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+      if (report.reconciliation) {
+        writeAtomicJson("reports/forward-evidence-reconciliation.json", {
+          ...report.reconciliation,
+          generatedAt: now,
+          command,
+        });
+      }
+    }
     return report;
   } catch (error) {
     const report = {
@@ -208,7 +316,10 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
       state: "REMOTE_FORWARD_EVIDENCE_FAILED",
       error: error?.message || String(error),
     };
-    if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+    if (options.writeReport !== false) {
+      writeAtomicJson(`reports/forward-evidence-${command}.json`, report);
+      writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+    }
     return report;
   }
 }
