@@ -44,10 +44,10 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: .state/scanner-learning-bundle.json.gz
-          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
-            scanner-learning-${{ runner.os }}-
+            scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-
+            scanner-learning-v2-${{ runner.os }}-
 
       - name: Restore Validated Scanner State
         run: npm run state:restore
@@ -149,7 +149,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: .state/scanner-learning-bundle.json.gz
-          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Production Shadow Memory
         if: always()
