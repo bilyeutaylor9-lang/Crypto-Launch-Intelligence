@@ -8,6 +8,7 @@ import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 export const SCANNER_STATE_BUNDLE_FILE = ".state/scanner-learning-bundle.json.gz";
 const BUNDLE_V2_MAGIC = Buffer.from("CLI_SCANNER_STATE_V2\0", "utf8");
 const COPY_CHUNK_BYTES = 1024 * 1024;
+const DEFAULT_MAX_UNCOMPRESSED_BYTES = 512 * 1024 * 1024;
 export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/*memory*.json*",
   "data/scan-history.json*",
@@ -345,6 +346,20 @@ export function packScannerState(options = {}) {
   const candidateUniverse = entries.find((entry) => entry.path === "data/edge-candidate-universe.json");
   if (options.requireExactUniverse && !candidateUniverse) {
     throw new Error("Refusing to publish scanner state without data/edge-candidate-universe.json.");
+  }
+  const maximumUncompressedBytes = Number(
+    options.maxUncompressedBytes ??
+      process.env.SCANNER_STATE_MAX_UNCOMPRESSED_BYTES ??
+      DEFAULT_MAX_UNCOMPRESSED_BYTES
+  );
+  if (!Number.isSafeInteger(maximumUncompressedBytes) || maximumUncompressedBytes <= 0) {
+    throw new Error("SCANNER_STATE_MAX_UNCOMPRESSED_BYTES must be a positive integer.");
+  }
+  const uncompressedBytes = files.reduce((total, relative) => total + fs.statSync(resolveInsideRoot(root, relative)).size, 0);
+  if (uncompressedBytes > maximumUncompressedBytes) {
+    throw new Error(
+      `Refusing to publish scanner state above the ${maximumUncompressedBytes}-byte limit: ${uncompressedBytes} bytes.`
+    );
   }
   const bundle = {
     schemaVersion: 2,

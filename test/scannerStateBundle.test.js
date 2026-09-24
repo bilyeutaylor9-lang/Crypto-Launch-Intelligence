@@ -81,6 +81,22 @@ test("scanner state bundle refuses to publish without the exact universe", () =>
   }
 });
 
+test("scanner state bundle refuses oversized learned state before compression", () => {
+  const root = tempRoot();
+  try {
+    fs.mkdirSync(path.join(root, "data"), { recursive: true });
+    fs.writeFileSync(path.join(root, "data", "edge-candidate-universe.json"), "{}\n");
+    fs.writeFileSync(path.join(root, "data", "outcome-snapshots.json"), "123456789\n");
+    assert.throws(
+      () => packScannerState({ root, writeReport: false, requireExactUniverse: true, maxUncompressedBytes: 4 }),
+      /above the 4-byte limit/,
+    );
+    assert.equal(fs.existsSync(path.join(root, ".state", "scanner-learning-bundle.json.gz")), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner state restore rejects a corrupted bundle before writing files", () => {
   const root = tempRoot();
   try {
