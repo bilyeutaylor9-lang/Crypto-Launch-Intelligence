@@ -128,17 +128,23 @@ export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
   return { localRecords: localRows.length, remoteRecords: remoteRows.length, restored };
 }
 
-async function fetchRemoteRows(client, pageSize = 1000) {
+async function fetchRemoteRows(client, pageSize = 250) {
   const rows = [];
-  for (let start = 0; ; start += pageSize) {
-    const { data, error } = await client
-      .from("forward_evidence_records")
-      .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
-      .order("created_at", { ascending: true })
-      .range(start, start + pageSize - 1);
-    if (error) throw new Error(`Remote forward-evidence read failed: ${error.message}`);
-    rows.push(...(data || []));
-    if (!data || data.length < pageSize) break;
+  // Page each ledger independently so PostgREST can use the ledger-prefixed
+  // index. A global created_at sort forces a large remote table scan and can
+  // hit Supabase's statement timeout before the first page is returned.
+  for (const ledgerName of Object.keys(FORWARD_EVIDENCE_LEDGERS)) {
+    for (let start = 0; ; start += pageSize) {
+      const { data, error } = await client
+        .from("forward_evidence_records")
+        .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
+        .eq("ledger_name", ledgerName)
+        .order("created_at", { ascending: true })
+        .range(start, start + pageSize - 1);
+      if (error) throw new Error(`Remote forward-evidence read failed: ${error.message}`);
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
   }
   return rows;
 }
@@ -148,7 +154,10 @@ export async function restoreForwardEvidence(options = {}) {
   if (!backend.client) {
     return { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_NOT_CONFIGURED", restored: 0, reason: backend.reason };
   }
-  const rows = await fetchRemoteRows(backend.client, options.pageSize);
+  const rows = await fetchRemoteRows(
+    backend.client,
+    options.pageSize || process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE || 250
+  );
   const merged = mergeForwardEvidenceRows(rows, options);
   return { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_RESTORED", ...merged };
 }
@@ -163,7 +172,10 @@ export async function syncForwardEvidence(options = {}) {
       reason: backend.reason,
     };
   }
-  const remoteRows = await fetchRemoteRows(backend.client, options.pageSize);
+  const remoteRows = await fetchRemoteRows(
+    backend.client,
+    options.pageSize || process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE || 250
+  );
   mergeForwardEvidenceRows(remoteRows, options);
   const localRows = loadLocalForwardEvidence(options);
   const remoteById = validateRows(remoteRows);
@@ -220,4 +232,5 @@ export const __forwardEvidenceRemoteHooks = {
   observedAt,
   parseJsonl,
   validateRows,
+  fetchRemoteRows,
 };

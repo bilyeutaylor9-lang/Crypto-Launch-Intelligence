@@ -72,3 +72,40 @@ test("forward evidence loader fails closed on malformed JSONL", () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("remote reads page each ledger through the indexed ledger key", async () => {
+  const calls = [];
+  const client = {
+    from(table) {
+      assert.equal(table, "forward_evidence_records");
+      const query = {
+        select(fields) {
+          assert.match(fields, /ledger_name/);
+          return query;
+        },
+        eq(column, value) {
+          calls.push({ column, value });
+          return query;
+        },
+        order(column, options) {
+          assert.equal(column, "created_at");
+          assert.deepEqual(options, { ascending: true });
+          return query;
+        },
+        async range(start, end) {
+          assert.equal(end - start + 1, 2);
+          return { data: [], error: null };
+        },
+      };
+      return query;
+    },
+  };
+
+  const rows = await __forwardEvidenceRemoteHooks.fetchRemoteRows(client, 2);
+  assert.deepEqual(rows, []);
+  assert.deepEqual(calls.map((call) => call.value), Object.keys({
+    "production-market-observations": true,
+    "market-context-observations": true,
+    "prospective-edge-cohorts": true,
+  }));
+});
