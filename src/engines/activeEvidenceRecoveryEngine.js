@@ -317,6 +317,12 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
         projectIndex,
         priority: candidatePriority(project, projectIndex) + valueOfInformationPriority,
         executionPriority: executionPriority(project, projectIndex) + valueOfInformationPriority,
+        coreRecoveryPriority:
+          num(project.dataStarvationBlockingResearchCount) > 0 ||
+          project.coreDataStarved === true ||
+          (Array.isArray(project.coreMissingEvidence) && project.coreMissingEvidence.length > 0)
+            ? 1
+            : 0,
         items,
       };
     })
@@ -348,7 +354,12 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
           .slice(0, maxFieldsPerCandidate),
       }))
       .filter((candidate) => candidate.entries.length)
-      .sort((a, b) => b[scoreKey] - a[scoreKey])
+      .sort((a, b) => {
+        if (wave !== "WAVE3" && b.coreRecoveryPriority !== a.coreRecoveryPriority) {
+          return b.coreRecoveryPriority - a.coreRecoveryPriority;
+        }
+        return b[scoreKey] - a[scoreKey];
+      })
       .slice(0, waveLimits[wave]);
   }
   return { waves, waveLimits, deepEvaluatedCandidates: eligible.length };
