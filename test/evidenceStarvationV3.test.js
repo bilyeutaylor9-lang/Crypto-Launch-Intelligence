@@ -405,6 +405,29 @@ test("wave 2 only includes the configured top value-of-information candidates", 
   assert.deepEqual(result.waves.WAVE2.map((item) => item.project.symbol), ["W4", "W3"]);
 });
 
+test("wave 1 prioritizes recoverable core blockers over advisory value of information", () => {
+  const candidates = [
+    {
+      symbol: "ADVISORY_HIGH_VOI",
+      valueOfInformationScore: 100,
+      targetedEnrichmentPlan: {
+        items: [{ canonicalField: "priceUsd", recoverable: true, valueOfInformationScore: 100, targetSources: [{ source: "DexScreener" }] }],
+      },
+    },
+    {
+      symbol: "CORE_DEPLOYER_GAP",
+      coreDataStarved: true,
+      dataStarvationBlockingResearchCount: 1,
+      targetedEnrichmentPlan: {
+        items: [{ canonicalField: "deployer", recoverable: true, valueOfInformationScore: 0.1, targetSources: [{ source: "block explorers" }] }],
+      },
+    },
+  ];
+
+  const result = buildActiveEvidenceRecoveryWaves(candidates, { wave1Max: 1 });
+  assert.deepEqual(result.waves.WAVE1.map((item) => item.project.symbol), ["CORE_DEPLOYER_GAP"]);
+});
+
 test("wave 3 only includes the configured top execution candidates", () => {
   const candidates = Array.from({ length: 5 }, (_, index) => ({
     symbol: `E${index}`,
