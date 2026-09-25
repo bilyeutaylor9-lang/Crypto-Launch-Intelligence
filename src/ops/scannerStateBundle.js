@@ -8,7 +8,9 @@ import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 export const SCANNER_STATE_BUNDLE_FILE = ".state/scanner-learning-bundle.json.gz";
 const BUNDLE_V2_MAGIC = Buffer.from("CLI_SCANNER_STATE_V2\0", "utf8");
 const COPY_CHUNK_BYTES = 1024 * 1024;
-const DEFAULT_MAX_UNCOMPRESSED_BYTES = 512 * 1024 * 1024;
+// Keep the full append-only evidence state available to the next run while
+// leaving a bounded guard against an accidentally unbounded cache artifact.
+const DEFAULT_MAX_UNCOMPRESSED_BYTES = 768 * 1024 * 1024;
 export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/*memory*.json*",
   "data/scan-history.json*",

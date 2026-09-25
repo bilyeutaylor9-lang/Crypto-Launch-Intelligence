@@ -97,6 +97,19 @@ test("scanner state bundle refuses oversized learned state before compression", 
   }
 });
 
+test("scanner state bundle default ceiling retains the expanded evidence cache", () => {
+  const root = tempRoot();
+  try {
+    fs.mkdirSync(path.join(root, "data"), { recursive: true });
+    fs.writeFileSync(path.join(root, "data", "edge-candidate-universe.json"), "{}\n");
+    const packed = packScannerState({ root, writeReport: false, requireExactUniverse: true });
+    assert.equal(packed.state, "SCANNER_STATE_PACKED");
+    assert.equal(packed.exactUniverseIncluded, true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner state restore rejects a corrupted bundle before writing files", () => {
   const root = tempRoot();
   try {
