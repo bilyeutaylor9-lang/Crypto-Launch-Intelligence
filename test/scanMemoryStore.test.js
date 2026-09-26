@@ -117,3 +117,30 @@ test("scan memory loader prefers bounded sidecar tail over oversized legacy JSON
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("append-only memory sidecars retain a bounded newest tail", () => {
+  const previousMax = process.env.MEMORY_SIDECAR_MAX_MB;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "scan-memory-retention-"));
+  const legacyPath = path.join(dir, "scan-history.json");
+
+  process.env.MEMORY_SIDECAR_MAX_MB = "1";
+  try {
+    const result = appendMemorySidecar(
+      legacyPath,
+      Array.from({ length: 200 }, (_, index) => ({
+        id: `project-${index}`,
+        payload: "x".repeat(12_000),
+      })),
+      { recordType: "scan-history" },
+    );
+
+    assert.equal(result.sidecarTrimmed, true);
+    assert.ok(result.sidecarBytes <= 1 * 1024 * 1024);
+    const loaded = loadScanMemoryFromFile(legacyPath, { useCache: false, limit: 5 });
+    assert.equal(loaded.at(-1).id, "project-199");
+  } finally {
+    if (previousMax === undefined) delete process.env.MEMORY_SIDECAR_MAX_MB;
+    else process.env.MEMORY_SIDECAR_MAX_MB = previousMax;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -23,6 +23,38 @@ export function memoryRewriteLimitBytes(env = process.env) {
   return Math.max(1, mb) * 1024 * 1024;
 }
 
+export function memorySidecarMaxBytes(env = process.env) {
+  const mb = num(env.MEMORY_SIDECAR_MAX_MB || 64);
+  return Math.max(1, mb) * 1024 * 1024;
+}
+
+function trimMemorySidecar(filePath = "", env = process.env) {
+  const maxBytes = memorySidecarMaxBytes(env);
+  const size = memoryFileSizeBytes(filePath);
+  if (size <= maxBytes) return { trimmed: false, bytes: size };
+
+  const retainedBytes = Math.max(1, Math.floor(maxBytes * 0.9));
+  const start = Math.max(0, size - retainedBytes);
+  const fd = fs.openSync(filePath, "r");
+  let buffer;
+  try {
+    buffer = Buffer.allocUnsafe(size - start);
+    fs.readSync(fd, buffer, 0, buffer.length, start);
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  let content = buffer.toString("utf8");
+  if (start > 0) {
+    const firstNewline = content.indexOf("\n");
+    content = firstNewline >= 0 ? content.slice(firstNewline + 1) : "";
+  }
+  const temporary = `${filePath}.${process.pid}.${Date.now()}.trim.tmp`;
+  fs.writeFileSync(temporary, content.endsWith("\n") ? content : `${content}\n`);
+  fs.renameSync(temporary, filePath);
+  return { trimmed: true, bytes: memoryFileSizeBytes(filePath) };
+}
+
 export function shouldUseAppendOnlyMemory(filePath = "", options = {}) {
   const env = options.env || process.env;
   if (boolEnv(env.MEMORY_FORCE_JSON_REWRITE, false)) return false;
@@ -63,6 +95,7 @@ export function appendMemorySidecar(filePath = "", records = [], metadata = {}) 
   );
 
   fs.appendFileSync(sidecarPath, `${lines.join("\n")}\n`);
+  const retention = trimMemorySidecar(sidecarPath, metadata.env || process.env);
 
   return {
     mode: "append-only-sidecar",
@@ -70,6 +103,8 @@ export function appendMemorySidecar(filePath = "", records = [], metadata = {}) 
     file: sidecarPath,
     legacyFilePreserved: filePath,
     legacyFileBytes: memoryFileSizeBytes(filePath),
+    sidecarBytes: retention.bytes,
+    sidecarTrimmed: retention.trimmed,
   };
 }
 
