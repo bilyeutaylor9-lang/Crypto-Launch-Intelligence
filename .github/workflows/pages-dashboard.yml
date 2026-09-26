@@ -78,6 +78,9 @@ jobs:
             forward-evidence-${{ runner.os }}-
 
       - name: Restore Durable Forward Evidence
+        # Remote learning continuity is valuable but must not prevent a fresh
+        # exact scan from collecting current evidence when Supabase is slow.
+        continue-on-error: true
         run: npm run forward:evidence:restore
         env:
           SUPABASE_ENABLED: ${{ vars.SUPABASE_ENABLED || secrets.SUPABASE_ENABLED || 'true' }}

@@ -118,6 +118,11 @@ test("live dashboard runs shadow capture from the fresh scan and defers final he
   assert.match(workflow, /DASHBOARD_REQUIRE_LIVE:\s*["']true["']/);
   assert.match(workflow, /IGNITION_EXECUTABLE_QUOTE_ENDPOINT: \$\{\{ secrets\.IGNITION_EXECUTABLE_QUOTE_ENDPOINT \}\}/);
   assert.match(workflow, /run: npm run forward:evidence:sync/);
+  const forwardRestore = workflow.slice(
+    workflow.indexOf("Restore Durable Forward Evidence"),
+    workflow.indexOf("Run Intelligence Scanner"),
+  );
+  assert.match(forwardRestore, /continue-on-error:\s*true/);
   assert.match(workflow, /id:\s*semantic_health/);
   assert.match(workflow, /id:\s*report_contracts/);
   assert.match(workflow, /health:\s*\n\s*name: Verify Scan And Deployment Health/);
