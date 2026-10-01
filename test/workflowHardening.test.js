@@ -128,6 +128,13 @@ test("live dashboard runs shadow capture from the fresh scan and defers final he
   assert.match(workflow, /health:\s*\n\s*name: Verify Scan And Deployment Health/);
   assert.match(workflow, /needs: \[build, deploy\]/);
   assert.match(workflow, /DEPLOY:\s*\$\{\{ needs\.deploy\.result \}\}/);
+  const health = workflow.slice(workflow.indexOf("Enforce truthful final health"));
+  assert.doesNotMatch(
+    health,
+    /for check in [^\n]*FORWARD_EVIDENCE_SYNC/,
+    "remote learning sync must remain a warning, not a current-scan blocker",
+  );
+  assert.match(health, /FORWARD_EVIDENCE_SYNC.*current-scan health remains authoritative/);
   assert.match(workflow, /PRODUCTION_SHADOW:\s*\$\{\{ needs\.build\.outputs\.production_shadow \}\}/);
   assert.match(workflow, /OPERATIONAL_TRUTH:\s*\$\{\{ needs\.build\.outputs\.operational_truth \}\}/);
 });

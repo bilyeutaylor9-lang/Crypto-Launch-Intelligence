@@ -352,13 +352,16 @@ jobs:
           DEPLOY: ${{ needs.deploy.result }}
         run: |
           failed=0
-          for check in SCANNER PRODUCTION_SHADOW OPERATIONAL_TRUTH STATE_PACK FORWARD_EVIDENCE_SYNC QUALIFICATION_MICROSCOPE ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
+          for check in SCANNER PRODUCTION_SHADOW OPERATIONAL_TRUTH STATE_PACK QUALIFICATION_MICROSCOPE ENGINE_AUDIT READINESS SEMANTIC_HEALTH REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT; do
             value="${!check}"
             if [ "$value" != "success" ]; then
               echo "::error::$check finished with $value"
               failed=1
             fi
           done
+          if [ "$FORWARD_EVIDENCE_SYNC" != "success" ]; then
+            echo "::warning::FORWARD_EVIDENCE_SYNC finished with $FORWARD_EVIDENCE_SYNC; current-scan health remains authoritative and remote learning continuity will retry on the next run."
+          fi
           if [ "$DEPLOY" != "success" ]; then
             echo "::error::DEPLOY finished with $DEPLOY"
             failed=1
