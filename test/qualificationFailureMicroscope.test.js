@@ -67,6 +67,14 @@ test("fully proven candidate passes both lanes", () => {
   assert.equal(row.mechanismGates.SUPPLY_SELLER.status, "PASS");
 });
 
+test("production report rows without deepEvaluationState are counted when only the deferred tail is marked", () => {
+  const evaluated = baseProject({ deepEvaluationState: undefined, finalSelectionQualified: false, finalSelectionState: "INSUFFICIENT_DATA" });
+  const deferred = baseProject({ deepEvaluationState: "DEFERRED_BEFORE_DEEP", finalSelectionQualified: false });
+  const report = buildQualificationFailureMicroscope([evaluated, deferred]);
+  assert.equal(report.sourceCandidates, 2);
+  assert.equal(report.deepEvaluated, 1);
+});
+
 test("unknown access remains UNKNOWN and never becomes pass", () => {
   const p = baseProject({
     finalSelectionState: "INSUFFICIENT_DATA",
