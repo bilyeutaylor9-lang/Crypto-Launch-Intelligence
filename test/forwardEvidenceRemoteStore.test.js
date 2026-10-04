@@ -88,8 +88,8 @@ test("remote reads page each ledger through the indexed ledger key", async () =>
           return query;
         },
         order(column, options) {
-          assert.equal(column, "created_at");
-          assert.deepEqual(options, { ascending: true });
+          assert.equal(column, "observed_at");
+          assert.deepEqual(options, { ascending: true, nullsFirst: false });
           return query;
         },
         async range(start, end) {

@@ -130,16 +130,17 @@ export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
 
 async function fetchRemoteRows(client, pageSize = 250) {
   const rows = [];
-  // Page each ledger independently so PostgREST can use the ledger-prefixed
-  // index. A global created_at sort forces a large remote table scan and can
-  // hit Supabase's statement timeout before the first page is returned.
+  // Page each ledger independently using the migration's composite
+  // (ledger_name, observed_at, created_at) index. Sorting by created_at alone
+  // forces a scan of the growing append-only table and can hit Supabase's
+  // statement timeout before the first page is returned.
   for (const ledgerName of Object.keys(FORWARD_EVIDENCE_LEDGERS)) {
     for (let start = 0; ; start += pageSize) {
       const { data, error } = await client
         .from("forward_evidence_records")
         .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
         .eq("ledger_name", ledgerName)
-        .order("created_at", { ascending: true })
+        .order("observed_at", { ascending: true, nullsFirst: false })
         .range(start, start + pageSize - 1);
       if (error) throw new Error(`Remote forward-evidence read failed: ${error.message}`);
       rows.push(...(data || []));

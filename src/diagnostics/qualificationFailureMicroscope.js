@@ -679,13 +679,17 @@ function extractProjects(payload = {}) {
 }
 
 function deepEvaluatedProjects(projects = []) {
-  const progressive = projects.some((project) =>
-    ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(
-      upper(project.deepEvaluationState)
-    )
+  const states = projects.map((project) => upper(project.deepEvaluationState));
+  const progressive = states.some((state) =>
+    ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(state)
   );
   if (!progressive) return projects;
-  return projects.filter((project) => upper(project.deepEvaluationState) === "DEEP_EVALUATED");
+  return projects.filter((project, index) =>
+    states[index] === "DEEP_EVALUATED" ||
+    // The production report projection uses DEFERRED_BEFORE_DEEP only for
+    // the deferred tail. A missing state on a non-deferred row is evaluated.
+    (!states[index] && states[index] !== "DEFERRED_BEFORE_DEEP")
+  );
 }
 
 function verifiedRouteDeath(row = {}) {
