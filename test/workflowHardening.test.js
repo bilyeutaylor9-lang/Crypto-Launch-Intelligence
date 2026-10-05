@@ -182,6 +182,8 @@ test("every scanner-learning cache uses one validated canonical artifact", () =>
     assert.ok(scannerBlocks.length >= 1, `${workflowPath} must restore canonical scanner state`);
     for (const block of scannerBlocks) {
       assert.match(block, /path: \.state\/scanner-learning-bundle\.json\.gz/, `${workflowPath} cache version drifted`);
+      assert.match(block, /key: scanner-learning-v2-/, `${workflowPath} must use the bounded v2 state cache`);
+      assert.doesNotMatch(block, /key: scanner-learning-\$\{\{/, `${workflowPath} must not restore the legacy unbounded cache`);
     }
     assert.match(workflow, /run: npm run state:restore/);
   }

@@ -50,10 +50,10 @@ jobs:
             data/ignition-executable-edge-canary-policy.json
             data/ignition-executable-edge-canary-tickets.jsonl
             data/ignition-executable-edge-canary-replays.jsonl
-          key: scanner-learning-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: cli15-canary-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            scanner-learning-${{ runner.os }}-${{ github.ref_name }}-
-            scanner-learning-${{ runner.os }}-
+            cli15-canary-evidence-${{ runner.os }}-${{ github.ref_name }}-
+            cli15-canary-evidence-${{ runner.os }}-
 
       - name: Restore Source Readiness Evidence
         continue-on-error: true
