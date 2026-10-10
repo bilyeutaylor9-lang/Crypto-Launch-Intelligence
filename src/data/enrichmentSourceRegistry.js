@@ -26,7 +26,7 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   WALLETS: [
     { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h", "buyVolumeUsd", "sellVolumeUsd", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
     { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "wallet-history database", authority: 76, cost: 0.25, latencyMs: 200, fields: ["walletParticipationHistory", "smartWallets", "trackedWallets"] },
+    { source: "wallet-history database", authority: 76, cost: 0, latencyMs: 200, fields: ["walletParticipationHistory"] },
   ],
   DEPLOYER: [
     { source: "native RPC", authority: 88, cost: 2, latencyMs: 2500, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "nativeLifecycle", "priorDeployments"] },
