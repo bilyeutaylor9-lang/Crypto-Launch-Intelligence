@@ -82,6 +82,7 @@ test("wrong chain, foreign token, malformed logs and out-of-range evidence remai
 test("RPC fallback actually promotes raw companions with provenance but not smart labels", async () => {
   const proof = await getRpcWalletEvidence(project, options({}));
   const result = await executeActiveEvidenceProviderRequests(project, [{ field: "smartWallets" }], {
+    walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "UNKNOWN" }), getRpcWalletEvidence: async () => proof },
   });
   assert.ok(result.observations.some((item) => item.field === "wallets" && item.source === "rpc-wallets"));
@@ -92,12 +93,14 @@ test("fallback cannot exceed the shared request budget or accept foreign proof",
   let calls = 0;
   const state = createActiveEvidenceExecutionState({ maxProviderRequests: 5 });
   await executeActiveEvidenceProviderRequests(project, [{ field: "wallets" }], {
+    walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "UNKNOWN" }), getRpcWalletEvidence: async () => { calls++; return {}; } },
   }, state);
   assert.equal(calls, 0);
   assert.equal(state.requestsUsed, 3);
   const proof = await getRpcWalletEvidence(project, options({}));
   const result = await executeActiveEvidenceProviderRequests(project, [{ field: "wallets" }], {
+    walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "UNKNOWN" }), getRpcWalletEvidence: async () => ({ ...proof, tokenAddress: WALLET }) },
   });
   assert.equal(result.observations.length, 0);
@@ -106,6 +109,7 @@ test("fallback cannot exceed the shared request budget or accept foreign proof",
 test("usable explorer participation does not trigger redundant RPC hydration", async () => {
   let calls = 0;
   const result = await executeActiveEvidenceProviderRequests(project, [{ field: "wallets" }], {
+    walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "EVIDENCE_AVAILABLE", chain: "base", tokenAddress: TOKEN, wallets: [WALLET] }),
       getRpcWalletEvidence: async () => { calls++; return {}; } },
   });
@@ -116,7 +120,7 @@ test("usable explorer participation does not trigger redundant RPC hydration", a
 test("wallet transport failures open the existing chain-scoped circuit", async () => {
   let rpcCalls = 0;
   const state = createActiveEvidenceExecutionState({ maxProviderRequests: 30, circuitFailureThreshold: 1 });
-  const opts = { circuitFailureThreshold: 1, providers: {
+  const opts = { walletHistory: false, circuitFailureThreshold: 1, providers: {
     getBlockscoutWalletEvidence: async () => ({ status: "UNKNOWN", providerFailure: true }),
     getRpcWalletEvidence: async () => { rpcCalls++; return { status: "UNKNOWN", providerFailure: true }; },
   } };
@@ -128,6 +132,7 @@ test("wallet transport failures open the existing chain-scoped circuit", async (
 test("holder-only explorer proof cannot prevent recovery of requested transaction evidence", async () => {
   const proof = await getRpcWalletEvidence(project, options({}));
   const result = await executeActiveEvidenceProviderRequests(project, [{ field: "walletTransactions" }], {
+    walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "EVIDENCE_AVAILABLE", chain: "base", tokenAddress: TOKEN,
       wallets: [TOKEN, WALLET], holderAddresses: [WALLET] }), getRpcWalletEvidence: async () => proof },
   });
