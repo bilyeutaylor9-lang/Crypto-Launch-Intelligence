@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
+import { spawnSync } from "node:child_process";
 
 import {
   __scannerStateBundleHooks,
@@ -16,6 +17,50 @@ import {
 function tempRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "scanner-state-test-"));
 }
+
+test("canonical state preserves provider cache bytes and original freshness boundaries", () => {
+  const root = tempRoot();
+  const cacheFile = path.join(root, "data", "security-evidence-cache.json");
+  const address = "0x1111111111111111111111111111111111111111";
+  const staleAddress = "0x2222222222222222222222222222222222222222";
+  const unknownAddress = "0x3333333333333333333333333333333333333333";
+  const now = Date.now();
+  const ttl = 6 * 60 * 60 * 1000;
+  const observedAt = new Date(now).toISOString();
+  const proof = { provider: "goplus", chain: "base", address, observedAt,
+    creatorAddress: "0x4444444444444444444444444444444444444444",
+    status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true };
+  const bytes = JSON.stringify({
+    [`goplus:base:${address}`]: { cachedAtMs: now, value: proof },
+    [`goplus:base:${staleAddress}`]: { cachedAtMs: now - ttl - 1000, value: { ...proof, address: staleAddress } },
+    [`goplus:base:${unknownAddress}`]: { cachedAtMs: now, value: { status: "UNKNOWN", confidence: 0, observedAt } },
+  });
+  try {
+    fs.mkdirSync(path.join(root, "data"), { recursive: true });
+    fs.writeFileSync(cacheFile, bytes);
+    packScannerState({ root, writeReport: false });
+    fs.rmSync(path.join(root, "data"), { recursive: true });
+    const restored = restoreScannerState({ root, writeReport: false });
+    assert.equal(restored.restored, 1);
+    assert.equal(fs.readFileSync(cacheFile, "utf8"), bytes);
+    const moduleUrl = new URL("../src/data/security/securityEvidenceUtils.js", import.meta.url).href;
+    const script = `const {getCachedSecurityEvidence:read}=await import(${JSON.stringify(moduleUrl)});
+      console.log(JSON.stringify({fresh:read("goplus","8453",${JSON.stringify(address)},${ttl}),
+        stale:read("goplus","base",${JSON.stringify(staleAddress)},${ttl}),
+        unknown:read("goplus","base",${JSON.stringify(unknownAddress)},${ttl}),
+        wrongChain:read("goplus","ethereum",${JSON.stringify(address)},${ttl})}));`;
+    const child = spawnSync(process.execPath, ["--input-type=module", "-e", script], { cwd: root, encoding: "utf8" });
+    assert.equal(child.status, 0, child.stderr);
+    const result = JSON.parse(child.stdout);
+    assert.deepEqual(result.fresh, proof);
+    assert.equal(result.fresh.observedAt, observedAt);
+    assert.equal(result.stale, null);
+    assert.equal(result.wrongChain, null);
+    assert.deepEqual(result.unknown, { status: "UNKNOWN", confidence: 0, observedAt });
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("scanner state bundle restores exact bytes from one canonical cache artifact", () => {
   const root = tempRoot();

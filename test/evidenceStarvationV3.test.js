@@ -15,6 +15,7 @@ import {
 } from "../src/engines/activeEvidenceRecoveryEngine.js";
 import {
   createActiveEvidenceExecutionState,
+  resolveActiveEvidenceRequestBudget,
   executeActiveEvidenceProviderRequests,
 } from "../src/data/activeEvidenceProviderExecutor.js";
 import {
@@ -22,7 +23,8 @@ import {
 } from "../src/data/blockscoutWalletConnector.js";
 import { analyzeSmartWallets } from "../src/engines/smartWalletEngine.js";
 import { fieldApplicability } from "../src/engines/dataStarvationRootCauseEngine.js";
-import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
+import { hasVerifiedExecutionRoute, summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
+import { buildQualificationFailureMicroscope } from "../src/diagnostics/qualificationFailureMicroscope.js";
 import { emptyExecutionLabel } from "../src/reports/githubPagesPublisher.js";
 import { buildScannerSemanticHealth } from "../src/index.js";
 import { getBlockscoutDeployerEvidence } from "../src/data/security/blockscoutConnector.js";
@@ -747,6 +749,61 @@ test("provider request budget is enforced", async () => {
   assert.equal(second.attempts[0].status, "REQUEST_BUDGET_EXHAUSTED");
 });
 
+test("zero and invalid provider budgets fail closed rather than enabling default or unlimited requests", async () => {
+  for (const budget of [0, -1, NaN, Infinity, "invalid", "", false, {}, [], Number.MAX_SAFE_INTEGER + 1]) {
+    let calls = 0;
+    const state = createActiveEvidenceExecutionState({ maxProviderRequests: budget, maxRequests: 10 });
+    assert.equal(state.maxRequests, 0);
+    const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+      [request("poolAddress", "DexScreener")],
+      { providers: { getTokenPairs: async () => { calls++; return []; } } }, state);
+    assert.equal(calls, 0);
+    assert.equal(state.requestsUsed, 0);
+    assert.equal(result.attempts[0].status, "REQUEST_BUDGET_EXHAUSTED");
+  }
+  assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: "2" }), 2);
+  assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: 1.9 }), 1);
+});
+
+test("batch recovery preserves a zero request budget and unsuccessful diagnostics", async () => {
+  let calls = 0;
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([{
+    chain: "base", tokenAddress: TOKEN, deepEvaluationState: "DEEP_EVALUATED",
+    targetedEnrichmentPlan: { items: [{ field: "poolAddress", canonicalField: "poolAddress", recoverable: true,
+      targetSources: [{ source: "DexScreener" }] }] },
+  }], { maxProviderRequests: 0, providers: { getTokenPairs: async () => { calls++; return []; } } });
+  assert.equal(calls, 0);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestBudget, 0);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 0);
+  assert.equal(result.activeEvidenceRecoveryStatus, "NO_RECOVERY");
+  assert.ok(result.activeEvidenceRecovery.providerAttempts.some((attempt) => attempt.status === "REQUEST_BUDGET_EXHAUSTED"));
+});
+
+test("provider budgets preserve legacy environment aliases and explicit option precedence", () => {
+  const names = ["ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS", "ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS",
+    "ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS"];
+  const previous = names.map((name) => process.env[name]);
+  try {
+    for (const name of names) delete process.env[name];
+    assert.equal(resolveActiveEvidenceRequestBudget({}, 2000), 2000);
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS = "9";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 9);
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS = "3";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 3);
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS = "0";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 0);
+    assert.equal(resolveActiveEvidenceRequestBudget({ maxRequests: 2 }), 2);
+    assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: 0, maxRequests: 2 }), 0);
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS = "invalid";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 0);
+  } finally {
+    names.forEach((name, index) => {
+      if (previous[index] === undefined) delete process.env[name];
+      else process.env[name] = previous[index];
+    });
+  }
+});
+
 test("provider circuit breaker opens after repeated failures", async () => {
   const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 2 });
   const options = { providers: { getTokenPairs: async () => { throw new Error("provider down"); } } };
@@ -809,6 +866,24 @@ test("deferred candidates are excluded from recovery and starvation denominators
   assert.equal(summary.deepDeferred, 1);
   assert.equal(summary.deepEvaluated, 1);
   assert.equal(summary.coreDataStarved, 0);
+});
+
+test("current partial execution proof prevents stale flags from inflating verified routes", () => {
+  const project = {
+    chain: "base", tokenAddress: TOKEN, deepEvaluationState: "DEEP_EVALUATED",
+    liveExecutionReady: true, executionReady: true, executionProofVerified: true,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProof: { routeTruthStatus: "ORDER_BOOK_DEPTH_VERIFIED", liveExecutionReady: false },
+  };
+  assert.equal(hasVerifiedExecutionRoute(project), false);
+  assert.equal(summarizeEvidenceFunnel([project]).verifiedRoutes, 0);
+  assert.equal(buildQualificationFailureMicroscope([project]).verifiedRouteCandidates, 0);
+  const verified = { ...project, liveExecutionReady: false,
+    executionProof: { routeTruthStatus: "LIVE_EXECUTION_READY", liveExecutionReady: true } };
+  assert.equal(hasVerifiedExecutionRoute(verified), true);
+  assert.equal(summarizeEvidenceFunnel([verified]).verifiedRoutes, 1);
+  assert.equal(buildQualificationFailureMicroscope([verified]).verifiedRouteCandidates, 1);
+  assert.equal(hasVerifiedExecutionRoute({ liveExecutionReady: true }), true);
 });
 
 test("dashboard funnel cannot double-count deferred candidates as needing recovery", () => {
@@ -889,7 +964,7 @@ test("healthy core evidence with no qualified token returns NO_EDGE_FOUND", () =
   assert.equal(health.healthyCoreEvidence, true);
 });
 
-test("Blockscout wallet transfers become buys only with exact pool identity", () => {
+test("exact pool identity identifies token movement but does not prove a buy", () => {
   const transfer = {
     token: { address_hash: TOKEN, decimals: 0 },
     from: { hash: POOL },
@@ -907,8 +982,11 @@ test("Blockscout wallet transfers become buys only with exact pool identity", ()
     { priceUsd: 2 },
     { tokenAddress: TOKEN, now: new Date("2026-08-12T01:00:00.000Z") }
   );
-  assert.equal(exact.uniqueBuyers24h, 1);
-  assert.equal(exact.buyVolumeUsd, 10);
+  assert.equal(exact.uniqueBuyers24h, null);
+  assert.equal(exact.walletTransactions[0].direction, "TRANSFER");
+  assert.equal(exact.walletTransactions[0].poolMovement, "POOL_OUTFLOW");
+  assert.equal(exact.buyVolumeUsd, null);
+  assert.equal(exact.walletTransactions[0].estimatedCurrentValueUsd, 10);
   assert.equal(unknownPool.uniqueBuyers24h, null);
   assert.equal(unknownPool.walletTransactions[0].direction, "TRANSFER");
 });

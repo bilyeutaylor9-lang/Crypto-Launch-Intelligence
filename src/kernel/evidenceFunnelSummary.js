@@ -46,6 +46,12 @@ export function advisoryEvidenceState(project = {}) {
 }
 
 export function hasVerifiedExecutionRoute(project = {}) {
+  const proof = project.executionProof;
+  if (proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length) {
+    const proofState = String(proof.routeTruthStatus || proof.executionProofState || proof.executionStatus || "").toUpperCase();
+    // The current producer's result outranks flags retained from an earlier recovery pass.
+    return proof.liveExecutionReady === true || proofState === "LIVE_EXECUTION_READY";
+  }
   const state = String(
     project.routeTruthStatus ||
       project.executionProofState ||

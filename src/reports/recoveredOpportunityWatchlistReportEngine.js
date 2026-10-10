@@ -1,5 +1,33 @@
 import fs from "fs";
 import path from "path";
+import { normalizeChainId, classifyAddressState } from "../identity/strictIdentityValidators.js";
+
+function deepCandidates(projects = []) {
+  return projects.filter((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP" &&
+    project.activeEvidenceRecoveryStatus !== "DEFERRED_BEFORE_DEEP");
+}
+
+export function summarizeRecoveryOutcomes(projects = []) {
+  const evaluated = deepCandidates(projects);
+  const recovered = new Set();
+  evaluated.forEach((project, index) => {
+    if (!["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus) &&
+      project.starvationRecoveryResult !== "RECOVERED") return;
+    const chain = normalizeChainId(project.chain || project.canonicalAliases?.chain);
+    const address = chain ? classifyAddressState(project.tokenAddress || project.contractAddress, chain).normalized : null;
+    const pool = chain ? classifyAddressState(project.poolAddress || project.pairAddress, chain).normalized : null;
+    // Unresolved rows remain separate observations; a symbol is never an identity.
+    recovered.add(chain && address ? JSON.stringify([chain, address, pool]) : `row:${index}`);
+  });
+  return {
+    recoveredThisScan: recovered.size,
+    fullyRecoveredThisScan: evaluated.filter((project) => project.activeEvidenceRecoveryStatus === "RECOVERED").length,
+    partiallyRecoveredThisScan: evaluated.filter((project) => project.activeEvidenceRecoveryStatus === "PARTIAL_RECOVERY").length,
+    promotedToAdvancedResearch: evaluated.filter((project) => project.promotedToAdvancedResearch === true).length,
+    promotedToDeepResearch: evaluated.filter((project) => project.promotedToDeepResearch === true).length,
+    stillUnresolved: evaluated.filter((project) => (project.dataStarvationMissingEvidence || []).some((item) => item.recoverable)).length,
+  };
+}
 
 function writeJson(fileName = "", payload = {}) {
   const reportsDir = path.resolve("reports");
@@ -29,18 +57,38 @@ export function summarizeEvidenceHydration(projects = []) {
   return summary ? { ...summary } : null;
 }
 
+export function summarizeRecoveryAttempts(projects = []) {
+  return projects.filter((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP" &&
+    ["RECOVERED", "PARTIAL_RECOVERY", "NO_RECOVERY"].includes(project.activeEvidenceRecoveryStatus))
+    .map((project) => ({
+      symbol: project.symbol || "UNKNOWN",
+      name: project.name || project.projectName || "Unknown",
+      chain: project.chain || project.canonicalAliases?.chain || null,
+      tokenAddress: project.tokenAddress || project.contractAddress || null,
+      poolAddress: project.poolAddress || project.pairAddress || null,
+      canonicalId: project.canonicalId || null,
+      progressivePipelineIdentityKey: project.progressivePipelineIdentityKey || null,
+      status: project.activeEvidenceRecoveryStatus,
+      waves: project.activeEvidenceRecovery?.waves || [],
+      attemptedFields: project.activeEvidenceRecovery?.attemptedFields || [],
+      recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
+      unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
+      attempts: project.activeEvidenceRecovery?.attempts || [],
+      providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
+    }));
+}
+
 export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = {}) {
   const evidenceHydration = summarizeEvidenceHydration(projects);
-  const activelyRecovered = projects.filter((project) =>
-    ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)
-  );
-  const watchlist = projects
+  const watchlist = deepCandidates(projects)
     .filter((project) => project.starvationRescueEligible || project.dataStarvationStatus === "RECOVERABLE_GAPS")
     .sort((a, b) => (b.starvationRescueScore || b.earlyAsymmetryResearchPriorityScore || 0) - (a.starvationRescueScore || a.earlyAsymmetryResearchPriorityScore || 0))
     .slice(0, 250)
     .map((project) => ({
       symbol: project.symbol || "UNKNOWN",
       chain: project.chain || project.canonicalAliases?.chain || null,
+      tokenAddress: project.tokenAddress || project.contractAddress || null,
+      poolAddress: project.poolAddress || project.pairAddress || null,
       rescueLane: project.rescueLane || null,
       researchPriority: project.earlyAsymmetryResearchPriorityScore || 0,
       valueOfInformation: project.valueOfInformationScore || 0,
@@ -53,32 +101,12 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
       recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
       researchOnly: true,
     }));
-  const recoveryResults = activelyRecovered.map((project) => ({
-    symbol: project.symbol || "UNKNOWN",
-    name: project.name || project.projectName || "Unknown",
-    chain: project.chain || project.canonicalAliases?.chain || null,
-    tokenAddress: project.tokenAddress || project.contractAddress || null,
-    poolAddress: project.poolAddress || project.pairAddress || null,
-    status: project.activeEvidenceRecoveryStatus,
-    recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
-    unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
-    providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
-  }));
+  const recoveryResults = summarizeRecoveryAttempts(projects);
   const report = {
     ...meta(projects, extra),
     status: watchlist.length ? "WATCHLIST_READY" : "NO_RECOVERABLE_OPPORTUNITIES",
     evidenceHydration,
-    recoveredThisScan: new Set([
-      ...activelyRecovered.map((project) => project.progressivePipelineIdentityKey || project.canonicalId || project.symbol),
-      ...projects
-        .filter((project) => project.starvationRecoveryResult === "RECOVERED")
-        .map((project) => project.progressivePipelineIdentityKey || project.canonicalId || project.symbol),
-    ].filter(Boolean)).size,
-    fullyRecoveredThisScan: projects.filter((project) => project.activeEvidenceRecoveryStatus === "RECOVERED").length,
-    partiallyRecoveredThisScan: projects.filter((project) => project.activeEvidenceRecoveryStatus === "PARTIAL_RECOVERY").length,
-    promotedToAdvancedResearch: projects.filter((project) => project.promotedToAdvancedResearch === true).length,
-    promotedToDeepResearch: projects.filter((project) => project.promotedToDeepResearch === true).length,
-    stillUnresolved: projects.filter((project) => (project.dataStarvationMissingEvidence || []).some((item) => item.recoverable)).length,
+    ...summarizeRecoveryOutcomes(projects),
     watchlist,
   };
   const filePath = writeJson("recovered-opportunity-watchlist.json", report);

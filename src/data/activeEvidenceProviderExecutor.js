@@ -29,6 +29,8 @@ import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
+import { getRpcWalletEvidence } from "./rpcWalletEvidenceConnector.js";
+import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
 import {
   normalizeChainId,
@@ -306,6 +308,9 @@ function providerFunctions(options = {}) {
       injected.getWalletEvidence ||
       options.getBlockscoutWalletEvidence ||
       getBlockscoutWalletEvidence,
+    getRpcWalletEvidence: injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence,
+    useRpcWalletFallback: Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
+      !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence),
     getCoinGeckoMarketsByIds:
       injected.getCoinGeckoMarketsByIds ||
       options.getCoinGeckoMarketsByIds ||
@@ -321,19 +326,21 @@ function providerFunctions(options = {}) {
   };
 }
 
+export function resolveActiveEvidenceRequestBudget(options = {}, defaultBudget = 500) {
+  const raw = options.maxProviderRequests ?? options.maxRequests ??
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS ??
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS ??
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS ?? defaultBudget;
+  if (typeof raw !== "number" && typeof raw !== "string") return 0;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER
+    ? Math.floor(value) : 0;
+}
+
 export function createActiveEvidenceExecutionState(options = {}) {
   const now = options.now || Date.now;
   const timeBudgetMs = Number(options.timeBudgetMs);
-  const maxRequests = Math.max(
-    1,
-    Number(
-      options.maxProviderRequests ||
-      options.maxRequests ||
-        process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS ||
-        process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS ||
-        500
-    )
-  );
+  const maxRequests = resolveActiveEvidenceRequestBudget(options);
   const circuitFailureThreshold = Math.max(
     1,
     Number(
@@ -908,31 +915,90 @@ export async function recoverWalletEvidence(
     Math.max(1, Number(options.walletProviderRequestCost || 3)),
     evm.chain
   );
-  if (attempt.status !== "SUCCESS") {
-    return { observations: [], attempts: [attempt], projectPatch: {} };
-  }
   const result = attempt.value || {};
-  if (result.status !== "EVIDENCE_AVAILABLE") {
-    return {
-      observations: [],
-      attempts: [{ ...attempt, status: result.status || "UNKNOWN", value: undefined }],
-      projectPatch: { blockscoutWalletEvidence: result },
-    };
-  }
   const timestamp = result.observedAt || new Date().toISOString();
-  const observations = [...new Set(fields)]
+  const exactResult = (!result.chain || normalizeChainId(result.chain) === evm.chain) &&
+    (!result.tokenAddress || lower(result.tokenAddress) === lower(evm.tokenAddress));
+  const companionFields = ["wallets", "holderAddresses", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory"];
+  const observations = attempt.status === "SUCCESS" && result.status === "EVIDENCE_AVAILABLE" && exactResult ? [...new Set([...fields, ...companionFields])]
     .map((field) => observation(field, result[field], "blockscout-wallets", timestamp, 0.82, {
       chain: evm.chain,
       tokenAddress: evm.tokenAddress,
       poolAddress: result.poolAddress || null,
       exactPoolIdentity: result.exactPoolIdentity === true,
     }))
-    .filter((item) => valueKnown(item.value));
+    .filter((item) => valueKnown(item.value)) : [];
+  const attempts = [{ ...attempt, value: undefined }];
+  let rpcResult = null;
+  const rpcFields = ["wallets", "walletTransactions", "walletParticipationHistory"];
+  const missingRpcField = fields.some((field) => rpcFields.includes(field) &&
+    !observations.some((item) => item.field === field));
+  if (providers.useRpcWalletFallback && (missingRpcField || !observations.some((item) => companionFields.includes(item.field)))) {
+    const rpcAttempt = await executeProviderCall("rpc-wallets",
+      () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
+      options, state, 3, evm.chain);
+    attempts.push({ ...rpcAttempt, value: undefined });
+    rpcResult = rpcAttempt.value;
+    if (rpcAttempt.status === "SUCCESS" && rpcResult?.status === "EVIDENCE_AVAILABLE" &&
+      rpcResult.exactTokenIdentity === true && normalizeChainId(rpcResult.chain) === evm.chain &&
+      lower(rpcResult.tokenAddress) === lower(evm.tokenAddress)) {
+      for (const field of rpcFields) {
+        if (valueKnown(rpcResult[field]) && !observations.some((item) => item.field === field)) observations.push(observation(field, rpcResult[field], "rpc-wallets",
+          rpcResult.observedAt, confidenceFraction(rpcResult.confidence), { chain: evm.chain,
+            tokenAddress: evm.tokenAddress, transferCoverage: rpcResult.transferCoverage }));
+      }
+    }
+  }
   return {
     observations,
-    attempts: [{ ...attempt, value: undefined }],
-    projectPatch: { blockscoutWalletEvidence: result },
+    attempts,
+    projectPatch: { blockscoutWalletEvidence: result, ...(rpcResult ? { rpcWalletEvidence: rpcResult } : {}) },
   };
+}
+
+async function recoverWalletEvidenceWithHistory(project, fields, providers, options, state) {
+  if (options.walletHistory === false) return recoverWalletEvidence(project, fields, providers, options, state);
+  const historyOptions = options.walletHistory || {};
+  const identity = { ...project, chain: chainOf(project), tokenAddress: tokenAddressOf(project) };
+  const attempts = [];
+  if (!state.walletHistoryRecords) {
+    try { state.walletHistoryRecords = loadWalletParticipationHistory(historyOptions); }
+    catch (error) {
+      state.walletHistoryRecords = [];
+      attempts.push({ provider: "wallet-history database", status: "MEMORY_READ_FAILED", reason: error.message, requestCost: 0 });
+    }
+  }
+  let history = walletParticipationHistoryFor(identity, { ...historyOptions, records: state.walletHistoryRecords });
+  const historyEvidence = (rows) => rows.length ? observation("walletParticipationHistory", rows,
+    "wallet-history database", rows.map((row) => row.sourceTimestamp).sort().at(-1), Math.min(...rows.map((row) => row.confidence)),
+    { chain: identity.chain, tokenAddress: identity.tokenAddress, historicalOnly: true,
+      verificationStatus: "VERIFIED_HISTORICAL_RAW_OBSERVATION" }) : null;
+  let historyObservation = historyEvidence(history);
+  if (historyObservation) attempts.push({ provider: "wallet-history database", status: "LOCAL_EVIDENCE_AVAILABLE", requestCost: 0 });
+  const liveFields = fields.filter((field) => field !== "walletParticipationHistory" || !historyObservation);
+  const result = liveFields.length ? await recoverWalletEvidence(project, liveFields, providers, options, state)
+    : { observations: [], attempts: [], projectPatch: {} };
+  for (const evidence of [result.projectPatch?.blockscoutWalletEvidence, result.projectPatch?.rpcWalletEvidence]) {
+    if (!evidence) continue;
+    const raw = normalizeWalletParticipationObservation(identity, evidence, historyOptions);
+    if (!raw) continue;
+    state.walletHistoryRecords.push(raw);
+    state.walletHistoryRecords = state.walletHistoryRecords.slice(-5000);
+    try {
+      appendWalletParticipationHistory(identity, evidence, historyOptions);
+    } catch (error) {
+      attempts.push({ provider: "wallet-history database", status: "MEMORY_WRITE_FAILED", reason: error.message, requestCost: 0 });
+    }
+  }
+  history = walletParticipationHistoryFor(identity, { ...historyOptions, records: state.walletHistoryRecords });
+  historyObservation = historyEvidence(history);
+  return { ...result, attempts: [...attempts, ...result.attempts],
+    observations: [...result.observations.filter((item) => item.field !== "walletParticipationHistory"),
+      ...(historyObservation ? [historyObservation] : [])],
+    projectPatch: { ...result.projectPatch, ...(history.length ? { walletHistory: {
+      chain: identity.chain, tokenAddress: identity.tokenAddress, historicalOnly: true,
+      walletParticipationHistory: history, smartWallets: null,
+    } } : {}) } };
 }
 
 function rawDexPairs(payload) {
@@ -1650,10 +1716,10 @@ export async function executeActiveEvidenceProviderRequests(
   }
   if (
     walletFields.length &&
-    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "supabase"])
+    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase"])
   ) {
     parallel.push(
-      recoverWalletEvidence(project, walletFields, providers, options, executionState).then((result) => ({
+      recoverWalletEvidenceWithHistory(project, walletFields, providers, options, executionState).then((result) => ({
         kind: "wallets",
         result,
       }))

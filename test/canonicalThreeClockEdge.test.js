@@ -155,16 +155,29 @@ test("pre-consensus and radar reports retain their full nested evidence after ge
       preBreakoutRadarLane: "WATCH",
       preBreakoutRadarWatchRank: 1,
       preBreakoutRadarScore: 70,
+      candidateProofState: {
+        identity: {
+          status: "VERIFIED",
+          exactIdentityVerified: true,
+          chain: "base",
+          tokenAddress: "0x0000000000000000000000000000000000000001",
+          poolAddress: "0x0000000000000000000000000000000000000101",
+        },
+      },
     };
 
     process.chdir(directory);
     generateReports([noisyProject], { scanRunId: "full-evidence-reports-test", codeCommitSha: "test-sha" });
     const consensus = JSON.parse(fs.readFileSync(path.join(directory, "reports", "pre-consensus-breakout-hunter.json"), "utf8"));
     const radar = JSON.parse(fs.readFileSync(path.join(directory, "reports", "pre-breakout-radar.json"), "utf8"));
+    const microscope = JSON.parse(fs.readFileSync(path.join(directory, "reports", "qualification-failure-microscope.json"), "utf8"));
 
     assert.equal(consensus.analyzedProjects, 1);
     assert.equal(radar.analyzedProjects, 1);
     assert.equal(radar.watchCount, 1);
+    assert.equal(microscope.sourceMode, "FULL_SCAN");
+    assert.equal(microscope.scanRunId, "full-evidence-reports-test");
+    assert.equal(microscope.productionGateCounts.IDENTITY.pass, 1);
   } finally {
     process.chdir(cwd);
     fs.rmSync(directory, { recursive: true, force: true });

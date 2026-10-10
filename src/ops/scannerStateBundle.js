@@ -14,9 +14,11 @@ const DEFAULT_MAX_UNCOMPRESSED_BYTES = 768 * 1024 * 1024;
 export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/*memory*.json*",
   "data/scan-history.json*",
+  "data/wallet-participation-history.jsonl",
   "data/market-opportunity-learning.json*",
   "data/outcome-snapshots.json*",
   "data/point-in-time-observations.json*",
+  "data/security-evidence-cache.json",
   "data/project-observations.jsonl",
   "data/project-watchlist.json*",
   "data/research-coverage-ledger.json*",
