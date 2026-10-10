@@ -26,7 +26,7 @@ import {
 } from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
 import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
-import { getCachedSecurityEvidence } from "./security/securityEvidenceUtils.js";
+import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
@@ -1370,6 +1370,16 @@ function securityObservations(items = [], fields = [], identity = {}, result = {
     .filter(Boolean);
 }
 
+function securityEvidencePatch(items = []) {
+  items = [...new Set(items)];
+  const summary = summarizeSecurityEvidence(items);
+  return {
+    freeSecurityEvidence: { evidence: items, summary },
+    securityEvidence: items,
+    securityEvidenceSummary: summary,
+  };
+}
+
 async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
   const chain = chainOf(project);
   const tokenAddress = tokenAddressOf(project, chain);
@@ -1391,7 +1401,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     project.goplusDeployerEvidence,
   ].filter(Boolean) }).filter((item) =>
     normalizeChainId(item.chain) === chain &&
-    lower(item.address || item.tokenAddress) === lower(tokenAddress) &&
+    normalizeTokenAddress(item.address || item.tokenAddress, chain) === tokenAddress &&
     (!lower(item.provider).includes("goplus") || item.responseIdentityVerified === true)
   );
   const identity = { chain, tokenAddress };
@@ -1400,7 +1410,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     return {
       observations: localObservations,
       attempts: [{ status: "LOCAL_EVIDENCE_AVAILABLE", provider: "existing-security-evidence", durationMs: 0, reason: null }],
-      projectPatch: {},
+      projectPatch: securityEvidencePatch(existing),
     };
   }
   const attempt = await executeProviderCall(
@@ -1416,7 +1426,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     providers.defaultFreeSecurityProvider && chain !== "solana" ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
   );
   if (attempt.status !== "SUCCESS") {
-    return { observations: localObservations, attempts: [attempt], projectPatch: {} };
+    return { observations: localObservations, attempts: [attempt], projectPatch: existing.length ? securityEvidencePatch(existing) : {} };
   }
 
   const result = attempt.value || {};
@@ -1426,11 +1436,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
   return {
     observations,
     attempts: [{ ...attempt, value: undefined, providers: result.summary?.knownProviders || [] }],
-    projectPatch: {
-      freeSecurityEvidence: result,
-      securityEvidence: result.evidence || [],
-      securityEvidenceSummary: result.summary || null,
-    },
+    projectPatch: securityEvidencePatch([...existing, ...(Array.isArray(result.evidence) ? result.evidence : items)]),
   };
 }
 
@@ -1596,6 +1602,17 @@ export async function executeActiveEvidenceProviderRequests(
     observations.push(...result.observations);
     attempts.push(...result.attempts);
     projectPatch = { ...projectPatch, ...result.projectPatch };
+    const companion = projectPatch.goplusDeployerEvidence;
+    if (companion?.responseIdentityVerified === true && companion.status !== "UNKNOWN") {
+      const identity = { chain: chainOf(project), tokenAddress: tokenAddressOf(project, chainOf(project)) };
+      const existing = knownSecurityItems({ evidence: project.securityEvidence || [] }).filter((item) =>
+        normalizeChainId(item.chain) === identity.chain &&
+        normalizeTokenAddress(item.address || item.tokenAddress, identity.chain) === identity.tokenAddress
+      );
+      const items = [...existing, companion];
+      observations.push(...securityObservations(items, [...SECURITY_FIELDS], identity));
+      projectPatch = { ...projectPatch, ...securityEvidencePatch(items) };
+    }
   }
   if (
     walletFields.length &&

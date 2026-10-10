@@ -75,11 +75,11 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,338 tests passed on the final code, including identity, cooldown, pacing,
+- 1,343 tests passed, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
 - JavaScript syntax checks passed for 711 files after the alias cache was added.
 - Typecheck and focused provider/recovery regression tests passed.
-- The final bounded scanner smoke check passed in a separate checkout: 44 deep
+- The earlier bounded scanner smoke check passed in a separate checkout: 44 deep
   candidates, 18 deferred, 92% core coverage, 1 core-starved (2.27%), 2 verified
   routes, zero qualified candidates, and NO_EDGE_FOUND. Readiness and required
   report contracts passed. Reports do not race with test-runner isolation.
@@ -124,3 +124,26 @@ remain below the pipeline stage deadline.
 
 Final regressions also require case-sensitive Solana mint matching while keeping
 EVM address matching case-insensitive, and reject zero-address creator proof.
+
+## Safety consumer repair
+
+Local security reuse previously promoted individual fields without rebuilding the
+summary read by Contract Authority Risk. Recovery now rebuilds that summary for
+cached proof, including when an external fallback fails. Exact GoPlus creator
+records also forward their observed companion safety fields without another HTTP
+request. Duplicate references are removed; missing flags are not manufactured.
+
+Source verification alone cannot establish clean GoPlus contract safety. Missing
+honeypot, owner/transfer controls, mint/proxy/blacklist checks, or buy/sell tax
+observations remain explicit unknown checks. UNKNOWN and incomplete evidence
+cannot receive a clean safety score; observed dangers retain blocking pressure.
+Solana cache keys and local security reuse preserve case-sensitive mint identity.
+Focused regression validation passed 68 tests after these final refinements.
+The 500-deep live acquisition run is still being inspected; no final coverage
+claim is recorded until its artifact exists.
+
+Alias resolution now creates exact and normalized alias lookup sets once per
+field resolution instead of normalizing the same registry repeatedly for every
+candidate path. The sets are local to the call, so registry mutations cannot
+reuse stale lookups. Regression coverage compares the original classification
+rules across exact, nested, punctuation-normalized, and provider aliases.

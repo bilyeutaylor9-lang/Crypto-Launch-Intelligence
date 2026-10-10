@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { normalizeAliasText, compactAliasText, fieldNameFromPath } from "../src/data/semanticAliasNormalizer.js";
+import { collectAliasCandidates } from "../src/data/canonicalAliasResolver.js";
+import { aliasesForCanonicalField } from "../src/data/canonicalFieldAliasRegistry.js";
 
 function originalNormalization(value = "") {
   return String(value ?? "").normalize("NFKC").trim().toLowerCase()
@@ -18,6 +20,30 @@ test("cached alias transforms preserve normalization and path semantics", () => 
       assert.equal(compactAliasText(value), normalized.replace(/[^a-z0-9]+/g, ""));
       const path = String(value || "");
       assert.equal(fieldNameFromPath(value), path.split(".").filter(Boolean).at(-1) || path);
+    }
+  }
+});
+
+test("indexed alias comparisons preserve exact, structural and punctuation matching", () => {
+  const aliases = aliasesForCanonicalField("circulatingMarketCapUsd");
+  const comparable = (value) => String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
+  const paths = [...aliases, "nested.MARKET_CAP", "MARKET-CAP", "market_cap", "metrics.market_cap_usd"];
+  for (const provider of ["unknown", "dexscreener"]) {
+    const records = collectAliasCandidates({}, "circulatingMarketCapUsd", {
+      sourceProvider: provider, resolvedChain: "base",
+      _semanticFields: paths.map((sourcePath) => ({ sourcePath, sourceField: fieldNameFromPath(sourcePath), rawValue: 123 })),
+    });
+    for (const sourcePath of paths) {
+      const exact = aliases.some((alias) => alias === sourcePath);
+      const explicit = aliases.some((alias) => comparable(alias) === comparable(sourcePath) ||
+        comparable(alias) === comparable(fieldNameFromPath(sourcePath)));
+      const expected = exact && sourcePath.includes(".") ? "STRUCTURAL_ALIAS" : exact ?
+        provider === "unknown" ? "EXACT_ALIAS" : "PROVIDER_ALIAS" : explicit ?
+          sourcePath.includes(".") ? "STRUCTURAL_ALIAS" : "EXACT_ALIAS" : null;
+      const record = records.find((item) => item.sourcePath === sourcePath);
+      assert.ok(record);
+      assert.equal(record.normalizationRule.split(":")[0], expected);
+      assert.equal(record.canonicalValue, 123);
     }
   }
 });

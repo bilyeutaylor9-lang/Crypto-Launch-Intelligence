@@ -97,7 +97,7 @@ function safetyProofFields(summary = null, evidence = []) {
   };
   return {
     testedChecks: [...new Set(testedChecks)],
-    unknownChecks: summary?.unknownProviders || [],
+    unknownChecks: [...new Set([...(summary?.unknownProviders || []), ...(summary?.unknownChecks || [])])],
     deterministicBlocks: [
       ...(summary?.malicious ? ["Verified malicious-token evidence."] : []),
       ...(summary?.honeypot ? ["Verified honeypot evidence."] : []),
@@ -121,20 +121,23 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     evidence = collected.evidence;
   }
 
-  if (!summary) {
-    const score = 58;
-    const safetyStatus = safetyProofStatus(null, score);
+  if (!summary || summary.status === "UNKNOWN" || (summary.unknownChecks?.length && !summary.malicious && !summary.honeypot)) {
+    const observedRisk = summary?.status !== "UNKNOWN" && summary
+      ? riskPoints(summary).reduce((sum, item) => sum + item.points, 0) + Math.max(0, 40 - num(summary.confidence)) * 0.35
+      : 0;
+    const score = Math.round(clamp(Math.max(58, observedRisk)));
+    const safetyStatus = score >= 80 ? "SAFETY_BLOCKED" : summary && summary.status !== "UNKNOWN" ? "SAFETY_PARTIAL" : "SAFETY_UNKNOWN";
     return {
       ...project,
       securityEvidence: evidence,
-      securityEvidenceSummary: null,
-      securityEvidenceStatus: "UNKNOWN",
+      securityEvidenceSummary: summary || null,
+      securityEvidenceStatus: summary?.status || "UNKNOWN",
       safetyProofStatus: safetyStatus,
       safetyProofLane: safetyStatus,
-      ...safetyProofFields(null, evidence),
+      ...safetyProofFields(summary, evidence),
       contractAuthorityRiskScore: score,
-      contractAuthoritySafetyScore: 42,
-      contractAuthorityVerdict: "SECURITY_UNKNOWN_REVIEW",
+      contractAuthoritySafetyScore: 100 - score,
+      contractAuthorityVerdict: score >= 80 ? "BLOCK_CONTRACT_RISK" : "SECURITY_UNKNOWN_REVIEW",
       contractSafetyVerified: false,
       riskFlags: [
         ...(project.riskFlags || []),
@@ -181,9 +184,9 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     contractAuthorityRiskScore: riskScore,
     contractAuthoritySafetyScore: safetyScore,
     contractAuthorityVerdict: verdict,
-    contractSafetyVerified: summary.status !== "UNKNOWN" && summary.verifiedSource === true && riskScore < 60,
+    contractSafetyVerified: summary.status !== "UNKNOWN" && safetyStatus !== "SAFETY_BLOCKED" && summary.verifiedSource === true && riskScore < 60,
     riskFlags: [
-      ...(project.riskFlags || []),
+      ...(project.riskFlags || []).filter((flag) => flag !== "Contract authority evidence missing"),
       ...(riskScore >= 60 ? ["High contract authority risk"] : []),
       ...(summary.status === "UNKNOWN" ? ["Contract authority evidence missing"] : []),
     ],

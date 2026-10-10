@@ -520,6 +520,21 @@ test("creator and security recovery share one exact GoPlus observation", async (
   assert.equal(state.requestsUsed, 1);
   assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.value, false);
   assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.tokenAddress, TOKEN);
+  assert.deepEqual(result.projectPatch.securityEvidenceSummary.knownProviders, ["goplus"]);
+  assert.ok(result.projectPatch.securityEvidenceSummary.unknownChecks.includes("goplus.is_mintable"));
+});
+
+test("creator-only recovery forwards actual companion safety proof without another provider request", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN }, [request("creator", "security providers")],
+    { providers: { getGoPlusDeployerEvidence: async () => ({ provider: "goplus",
+      status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true, chain: "base", address: TOKEN,
+      creatorAddress: CREATOR, honeypot: false, raw: { is_honeypot: "0" } }) } }, state
+  );
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.value, false);
+  assert.ok(result.projectPatch.securityEvidenceSummary.unknownChecks.length > 0);
 });
 
 test("an absent GoPlus safety flag cannot be recovered as a clean negative", async () => {

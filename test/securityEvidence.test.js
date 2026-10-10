@@ -13,7 +13,7 @@ import {
 import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEvidenceConnector.js";
 import { getGoPlusSecurityEvidence, normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
-import { summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
+import { cacheKey, summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
 import { createGoPlusRequestLimiter } from "../src/data/security/goplusRequestLimiter.js";
 import {
   analyzeContractAuthorityRisk,
@@ -301,6 +301,7 @@ test("contract authority risk blocks malicious or honeypot evidence", async () =
   const securityEvidenceSummary = summarizeSecurityEvidence([
     {
       provider: "goplus",
+      responseIdentityVerified: true,
       status: "EVIDENCE_AVAILABLE",
       verifiedSource: true,
       malicious: true,
@@ -319,6 +320,37 @@ test("contract authority risk blocks malicious or honeypot evidence", async () =
   assert.equal(result.contractAuthorityVerdict, "BLOCK_CONTRACT_RISK");
   assert.equal(result.contractSafetyVerified, false);
   assert.ok(result.contractAuthorityRiskScore >= 80);
+});
+
+test("UNKNOWN and incomplete verified-source evidence cannot produce clean contract safety", async () => {
+  for (const item of [
+    { provider: "goplus", status: "UNKNOWN", verifiedSource: true },
+    { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+      verifiedSource: true, confidence: 90, raw: { is_open_source: "1" } },
+  ]) {
+    const summary = summarizeSecurityEvidence([item]);
+    const result = await analyzeContractAuthorityRisk({ securityEvidenceSummary: summary });
+    assert.equal(result.contractSafetyVerified, false);
+    assert.equal(result.contractAuthoritySafetyScore, 42);
+    assert.notEqual(result.safetyProofStatus, "SAFETY_VERIFIED_CLEAN");
+  }
+});
+
+test("complete observed safety checks retain clean qualification", async () => {
+  const raw = Object.fromEntries(["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance", "buy_tax", "sell_tax"].map((key) => [key, "0"]));
+  raw.is_open_source = "1";
+  const summary = summarizeSecurityEvidence([{ provider: "goplus", status: "EVIDENCE_AVAILABLE",
+    responseIdentityVerified: true, verifiedSource: true, confidence: 90, raw }]);
+  const result = await analyzeContractAuthorityRisk({ securityEvidenceSummary: summary,
+    riskFlags: ["Contract authority evidence missing", "Unrelated observed danger"] });
+  assert.equal(result.contractSafetyVerified, true);
+  assert.equal(result.safetyProofStatus, "SAFETY_VERIFIED_CLEAN");
+  assert.deepEqual(result.riskFlags, ["Unrelated observed danger"]);
+});
+
+test("security cache keys preserve Solana case and normalize EVM case", () => {
+  assert.notEqual(cacheKey("goplus", "solana", "AbCd"), cacheKey("goplus", "solana", "abcd"));
+  assert.equal(cacheKey("goplus", "base", "0xABCD"), cacheKey("goplus", "base", "0xabcd"));
 });
 
 test("contract authority safety recovery is priority bounded and de-duplicated", async () => {

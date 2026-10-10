@@ -166,20 +166,21 @@ function comparable(value = "") {
   return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
 }
 
-function isExplicitAlias(sourcePath = "", sourceField = "", aliases = []) {
+function isExplicitAlias(sourcePath = "", sourceField = "", aliases = [], aliasIndex = null) {
   const pathComparable = comparable(sourcePath);
   const fieldComparable = comparable(sourceField);
+  if (aliasIndex) return aliasIndex.comparable.has(pathComparable) || aliasIndex.comparable.has(fieldComparable);
   return aliases.some((alias) => {
     const aliasComparable = comparable(alias);
     return aliasComparable === pathComparable || aliasComparable === fieldComparable;
   });
 }
 
-function confidenceTypeForPath(sourcePath = "", aliases = [], provider = "unknown") {
-  const exact = aliases.some((alias) => alias === sourcePath);
+function confidenceTypeForPath(sourcePath = "", aliases = [], provider = "unknown", aliasIndex = null) {
+  const exact = aliasIndex ? aliasIndex.exact.has(sourcePath) : aliases.some((alias) => alias === sourcePath);
   if (exact && sourcePath.includes(".")) return "STRUCTURAL_ALIAS";
   if (exact) return provider === "unknown" ? "EXACT_ALIAS" : "PROVIDER_ALIAS";
-  if (isExplicitAlias(sourcePath, fieldNameFromPath(sourcePath), aliases)) {
+  if (isExplicitAlias(sourcePath, fieldNameFromPath(sourcePath), aliases, aliasIndex)) {
     return sourcePath.includes(".") ? "STRUCTURAL_ALIAS" : "EXACT_ALIAS";
   }
   return null;
@@ -363,6 +364,7 @@ function normalizeValue(value, canonicalField, project, options = {}) {
 
 export function collectAliasCandidates(project = {}, canonicalField = "", options = {}) {
   const aliases = aliasesForCanonicalField(canonicalField);
+  const aliasIndex = { exact: new Set(aliases), comparable: new Set(aliases.map(comparable)) };
   const provider = inferProvider(project, options);
   const profile = providerProfile(provider);
   const resolvedChain = canonicalField === "chain"
@@ -381,7 +383,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
       sourcePath,
       sourceField: fieldNameFromPath(sourcePath),
       rawValue: getPath(project, sourcePath),
-      confidenceType: confidenceTypeForPath(sourcePath, aliases, provider) || "EXACT_ALIAS",
+      confidenceType: confidenceTypeForPath(sourcePath, aliases, provider, aliasIndex) || "EXACT_ALIAS",
     }))
     .filter((candidate) => hasRawValue(candidate.rawValue));
 
@@ -392,7 +394,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
     : semanticFields
         .filter((candidate) => !explicitPaths.has(candidate.sourcePath) && hasRawValue(candidate.rawValue))
         .map((candidate) => {
-          const direct = confidenceTypeForPath(candidate.sourcePath, aliases, provider);
+          const direct = confidenceTypeForPath(candidate.sourcePath, aliases, provider, aliasIndex);
           if (direct) return { ...candidate, confidenceType: direct };
           const fuzzy = fuzzyAliasMatch(candidate.sourceField, canonicalField);
           if (fuzzy.matched) {
