@@ -20,8 +20,9 @@ percentages, fractional sample counts and boolean cluster labels are missing.
 
 On base d6d74406: four new regressions plus existing semantics/asymmetry tests
 passed (17 tests); the full isolated suite passed 1,361 tests with zero failures
-or skips; syntax checks passed 714 JavaScript files; typecheck passed. Any
-subsequent base update requires a fresh validation run before publishing.
+or skips; syntax checks passed 714 JavaScript files; typecheck passed.
+After normally merging main 4c599ac3, final combined validation passed 1,374
+tests with zero failures/skips, all 715 JavaScript syntax checks, and typecheck.
 
 ## New production acquisition evidence
 
