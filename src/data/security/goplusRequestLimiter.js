@@ -8,9 +8,11 @@ export function createGoPlusRequestLimiter(options = {}) {
   let queue = Promise.resolve();
   async function waitForSlot(options = {}) {
     const deadlineAt = options.deadlineAt ?? Number.POSITIVE_INFINITY;
+    if (options.waitForCooldown === false && blockedUntil > now()) return false;
     const slot = queue.then(async () => {
       let delay;
       while ((delay = Math.max(nextRequestAt, blockedUntil) - now()) > 0) {
+        if (options.waitForCooldown === false && blockedUntil > now()) return false;
         const remaining = deadlineAt - now();
         if (remaining <= 0) return false;
         await sleep(Math.min(delay, remaining));
@@ -25,6 +27,7 @@ export function createGoPlusRequestLimiter(options = {}) {
   waitForSlot.defer = (ms = 61000) => {
     blockedUntil = Math.max(blockedUntil, now() + ms);
   };
+  waitForSlot.cooldownUntil = () => blockedUntil;
   return waitForSlot;
 }
 
