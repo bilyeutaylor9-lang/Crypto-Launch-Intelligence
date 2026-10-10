@@ -8,7 +8,7 @@ import { routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
-import { extractLiFiRoutePoolAddresses } from "../execution/lifiExecutableQuoteProvider.js";
+import { extractLiFiRoutePoolAddresses, fetchLiFiJson, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -98,6 +98,7 @@ function resolveOptions(options = {}) {
       .slice(0, 23) || "crypto-launch-intel",
     executionQuoteTakerAddress: options.executionQuoteTakerAddress ?? env.EXECUTION_QUOTE_TAKER_ADDRESS ?? DEFAULT_EVM_QUOTE_ADDRESS,
     lifiTokenCache: options.lifiTokenCache || new Map(),
+    lifiRateBudget: options.lifiRateBudget || options.rateBudget,
     fetchJson: options.fetchJson || defaultFetchJson,
     now: options.now || (() => new Date()),
   };
@@ -122,7 +123,16 @@ async function defaultFetchJson(url, init = {}) {
       signal: controller.signal,
       headers: init.headers || {},
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status} ${url}`);
+    if (!response.ok) {
+      const error = new Error(`HTTP ${response.status} ${url}`);
+      error.status = response.status;
+      error.retryAfter = response.headers.get("retry-after");
+      if (response.status === 429) {
+        const payload = await response.json().catch(() => null);
+        error.providerMessage = clean(payload?.message);
+      }
+      throw error;
+    }
     return await response.json();
   } finally {
     clearTimeout(timer);
@@ -636,7 +646,8 @@ async function resolveLiFiQuoteToken(chain = "", options = {}, signal = null) {
   const url = new URL("https://li.quest/v1/token");
   url.searchParams.set("chain", String(definition.chainId));
   url.searchParams.set("token", "USDC");
-  const token = await options.fetchJson(url.toString(), {
+  const token = await fetchLiFiJson(url.toString(), {
+    fetchJson: options.fetchJson, apiKey: options.lifiApiKey, rateBudget: options.lifiRateBudget, now: options.now,
     headers: lifiHeaders(options),
     timeoutMs: options.requestTimeoutMs,
     signal,
@@ -644,7 +655,8 @@ async function resolveLiFiQuoteToken(chain = "", options = {}, signal = null) {
   });
   const address = normalizeTokenAddress(token?.address, chain);
   const decimals = Number(token?.decimals);
-  const resolved = address && Number.isInteger(decimals) && decimals >= 0 && decimals <= 36
+  const resolved = normalizeChainId(token?.chainId) === chain && token?.decimals !== null &&
+    token?.decimals !== undefined && token?.decimals !== "" && address && Number.isInteger(decimals) && decimals >= 0 && decimals <= 36
     ? { chainId: definition.chainId, address, decimals, symbol: token.symbol || "USDC" }
     : null;
   options.lifiTokenCache.set(definition.chainId, resolved);
@@ -666,7 +678,8 @@ async function fetchLiFiQuote({ chainId, fromToken, toToken, fromAmount, options
   url.searchParams.set("slippage", "0.01");
   url.searchParams.set("skipSimulation", "true");
   url.searchParams.set("integrator", options.lifiIntegrator);
-  return options.fetchJson(url.toString(), {
+  return fetchLiFiJson(url.toString(), {
+    fetchJson: options.fetchJson, apiKey: options.lifiApiKey, rateBudget: options.lifiRateBudget, now: options.now,
     headers: lifiHeaders(options),
     timeoutMs: options.requestTimeoutMs,
     signal,
@@ -732,6 +745,8 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
     if (!validLiFiQuote(buy)) {
       return { adapter: "lifi", status: "NO_BUY_QUOTE", buyQuoteVerified: false, sellQuoteVerified: false };
     }
+    verifyActionIdentity(buy, { chain, side: "BUY", tokenAddress,
+      quoteTokenAddress: normalizeTokenAddress(quoteToken.address, chain), fromAmount: buyInputAmount });
     const sellAmount = String(lifiOutAmount(buy));
     const sell = await fetchLiFiQuote({
       chainId: quoteToken.chainId,
@@ -744,6 +759,8 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
     if (!validLiFiQuote(sell)) {
       return { adapter: "lifi", status: "NO_SELL_QUOTE", buyQuoteVerified: true, sellQuoteVerified: false };
     }
+    verifyActionIdentity(sell, { chain, side: "SELL", tokenAddress,
+      quoteTokenAddress: normalizeTokenAddress(quoteToken.address, chain), fromAmount: sellAmount });
 
     const slippage = quotedRoundTripSlippagePct(buyInputAmount, lifiOutAmount(sell));
     if (slippage === null) {
@@ -817,7 +834,8 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
     };
     return { adapter: "lifi", status: "ROUTE_RECOVERED", route, failures: [] };
   } catch (error) {
-    return { adapter: "lifi", status: "PROVIDER_FAILED", failures: [errorMessage(error, "LI.FI quote failed")] };
+    return { adapter: "lifi", status: "PROVIDER_FAILED", providerFailureCode: error?.code || null,
+      retryAt: error?.retryAt || null, failures: [errorMessage(error, "LI.FI quote failed")] };
   }
 }
 

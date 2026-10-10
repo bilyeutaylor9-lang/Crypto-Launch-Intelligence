@@ -26,6 +26,7 @@ const sharedKeylessBudget = {
   windowStartedAtMs: 0,
   requests: 0,
 };
+const authenticatedBudgets = new Map();
 
 function text(value = "") {
   return String(value ?? "").trim();
@@ -76,14 +77,18 @@ function atomicFromDecimal(value, decimals) {
 }
 
 function sumUsd(rows = []) {
-  return (Array.isArray(rows) ? rows : []).reduce((sum, row) => sum + (finite(row?.amountUSD) || 0), 0);
+  if (!Array.isArray(rows)) return null;
+  const values = rows.map((row) => finite(row?.amountUSD));
+  if (values.some((value) => value === null || value < 0)) return null;
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return Number.isFinite(total) ? total : null;
 }
 
 function nonNegativeBps(inputUsd, outputUsd, gasUsd = 0) {
   const input = finite(inputUsd);
   const output = finite(outputUsd);
-  const gas = finite(gasUsd) || 0;
-  if (input === null || input <= 0 || output === null) return null;
+  const gas = finite(gasUsd);
+  if (input === null || input <= 0 || output === null || gas === null || gas < 0) return null;
   const bps = ((input - (output - gas)) / input) * 10_000;
   return Number.isFinite(bps) && bps >= 0 ? Number(bps.toFixed(3)) : null;
 }
@@ -91,7 +96,7 @@ function nonNegativeBps(inputUsd, outputUsd, gasUsd = 0) {
 function tokenIdentity(token = {}, chain = null) {
   const tokenChain = normalizeChainId(token.chainId || chain);
   const address = normalizeTokenAddress(token.address, tokenChain);
-  const decimals = Number(token.decimals);
+  const decimals = finite(token.decimals);
   if (!tokenChain || !address || !Number.isInteger(decimals) || decimals < 0 || decimals > 36) return null;
   return {
     chain: tokenChain,
@@ -130,16 +135,29 @@ export function extractLiFiRoutePoolAddresses(payload = {}, chain = null) {
 }
 
 function requestBudget(options = {}) {
-  return options.rateBudget || sharedKeylessBudget;
+  if (options.rateBudget) return options.rateBudget;
+  if (!options.apiKey) return sharedKeylessBudget;
+  const key = crypto.createHash("sha256").update(String(options.apiKey)).digest("hex");
+  if (!authenticatedBudgets.has(key)) {
+    if (authenticatedBudgets.size >= 100) authenticatedBudgets.delete(authenticatedBudgets.keys().next().value);
+    authenticatedBudgets.set(key, { windowStartedAtMs: 0, requests: 0 });
+  }
+  return authenticatedBudgets.get(key);
 }
 
 function consumeKeylessBudget(options = {}) {
-  if (options.apiKey) return;
   const nowMs = currentDate(options).getTime();
-  const windowMs = Math.max(60_000, Number(options.keylessWindowMs || process.env.LIFI_KEYLESS_WINDOW_MS || DEFAULT_KEYLESS_WINDOW_MS));
-  const maximum = Math.max(1, Number(options.keylessRequestBudget || process.env.LIFI_KEYLESS_REQUEST_BUDGET || DEFAULT_KEYLESS_REQUEST_BUDGET));
+  const windowMs = Math.max(60_000, finite(options.keylessWindowMs ?? process.env.LIFI_KEYLESS_WINDOW_MS) ?? DEFAULT_KEYLESS_WINDOW_MS);
+  const maximum = Math.max(1, Math.floor(finite(options.keylessRequestBudget ?? process.env.LIFI_KEYLESS_REQUEST_BUDGET) ?? DEFAULT_KEYLESS_REQUEST_BUDGET));
   const budget = requestBudget(options);
-  if (!budget.windowStartedAtMs || nowMs - budget.windowStartedAtMs >= windowMs) {
+  if (budget.cooldownUntilMs > nowMs) {
+    const error = new Error("LI.FI provider cooldown is still active.");
+    error.code = "RATE_LIMITED";
+    error.retryAt = new Date(budget.cooldownUntilMs).toISOString();
+    throw error;
+  }
+  if (options.apiKey) return;
+  if (budget.windowStartedAtMs === undefined || budget.windowStartedAtMs === null || nowMs - budget.windowStartedAtMs >= windowMs) {
     budget.windowStartedAtMs = nowMs;
     budget.requests = 0;
   }
@@ -152,22 +170,49 @@ function consumeKeylessBudget(options = {}) {
   budget.requests += 1;
 }
 
-async function fetchLiFiJson(url, options = {}) {
+export async function fetchLiFiJson(url, options = {}) {
+  if (options.signal?.aborted) throw new Error("LI.FI request aborted before start.");
   consumeKeylessBudget(options);
-  if (options.fetchJson) return options.fetchJson(url, { headers: options.headers || {}, adapter: "lifi-keyless-forward" });
   const controller = new AbortController();
+  const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
   const timeout = setTimeout(() => controller.abort(), Math.max(500, Number(options.timeoutMs || 8_000)));
   try {
+    if (options.fetchJson) return await options.fetchJson(url, { headers: options.headers || {},
+      adapter: options.adapter || "lifi-keyless-forward", timeoutMs: options.timeoutMs, signal });
     const response = await (options.fetchImpl || fetch)(url, {
       headers: options.headers || {},
-      signal: controller.signal,
+      signal,
     });
     if (!response.ok) {
       const error = new Error(`LI.FI request failed: HTTP ${response.status}`);
       error.code = response.status === 429 ? "RATE_LIMITED" : `HTTP_${response.status}`;
+      error.retryAfter = response.headers?.get("retry-after");
+      if (response.status === 429 && typeof response.json === "function") {
+        const payload = await response.json().catch(() => null);
+        error.providerMessage = text(payload?.message);
+      }
       throw error;
     }
-    return response.json();
+    return await response.json();
+  } catch (error) {
+    if (error?.code === "RATE_LIMITED" || error?.status === 429 || /HTTP 429\b/.test(error?.message || "")) {
+      const nowMs = currentDate(options).getTime();
+      const header = text(error.retryAfter);
+      const seconds = /^\d+$/.test(header) ? Number(header) : null;
+      const messageDelay = /retry in ([0-9]+(?:\.[0-9]+)?)\s*(seconds?|minutes?|hours?)\b/i.exec(error.providerMessage || "");
+      const messageSeconds = messageDelay ? Number(messageDelay[1]) *
+        (/hour/i.test(messageDelay[2]) ? 3_600 : /minute/i.test(messageDelay[2]) ? 60 : 1) : null;
+      const declaredRetry = seconds !== null ? nowMs + seconds * 1_000 : Date.parse(header || error.retryAt || "");
+      const retryMs = Number.isFinite(declaredRetry) ? declaredRetry :
+        messageSeconds !== null ? nowMs + messageSeconds * 1_000 : null;
+      const fallbackMs = Math.max(60_000, finite(options.keylessWindowMs ?? process.env.LIFI_KEYLESS_WINDOW_MS) ?? DEFAULT_KEYLESS_WINDOW_MS);
+      const budget = requestBudget(options);
+      budget.cooldownUntilMs = Math.max(budget.cooldownUntilMs || 0,
+        retryMs !== null && Number.isFinite(retryMs) && retryMs > nowMs && retryMs <= 8.64e15 ? retryMs : nowMs + fallbackMs);
+      error.retryAt = new Date(budget.cooldownUntilMs).toISOString();
+      error.code = "RATE_LIMITED";
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
@@ -184,7 +229,7 @@ async function resolveQuoteToken(chain, options = {}) {
   url.searchParams.set("chain", String(definition.chainId));
   url.searchParams.set("token", "USDC");
   const raw = await fetchLiFiJson(url.toString(), options);
-  const token = tokenIdentity(raw, chain);
+  const token = normalizeChainId(raw?.chainId) === chain ? tokenIdentity(raw, chain) : null;
   const resolved = token ? { ...token, priceUsd: token.priceUsd || 1 } : null;
   options.tokenCache.set(cacheKey, resolved);
   return resolved;
@@ -192,7 +237,7 @@ async function resolveQuoteToken(chain, options = {}) {
 
 async function resolveTargetToken(chain, address, payload, side, options = {}) {
   const actionToken = side === "BUY" ? payload?.action?.toToken : payload?.action?.fromToken;
-  const actionIdentity = tokenIdentity(actionToken, chain);
+  const actionIdentity = normalizeChainId(actionToken?.chainId) === chain ? tokenIdentity(actionToken, chain) : null;
   if (actionIdentity?.address === address) {
     options.tokenCache.set(`${chain}:${address}`, actionIdentity);
     return actionIdentity;
@@ -205,15 +250,23 @@ async function resolveTargetToken(chain, address, payload, side, options = {}) {
   url.searchParams.set("chain", String(definition.chainId));
   url.searchParams.set("token", address);
   const raw = await fetchLiFiJson(url.toString(), options);
-  const token = tokenIdentity(raw, chain);
+  const token = normalizeChainId(raw?.chainId) === chain ? tokenIdentity(raw, chain) : null;
   const resolved = token?.address === address ? token : null;
   options.tokenCache.set(cacheKey, resolved);
   return resolved;
 }
 
-function verifyActionIdentity(payload = {}, expected = {}) {
-  const fromToken = tokenIdentity(payload.action?.fromToken, expected.chain);
-  const toToken = tokenIdentity(payload.action?.toToken, expected.chain);
+export function verifyActionIdentity(payload = {}, expected = {}) {
+  const action = payload.action || {};
+  const fromChain = normalizeChainId(action.fromToken?.chainId ?? action.fromChainId);
+  const toChain = normalizeChainId(action.toToken?.chainId ?? action.toChainId);
+  if (!fromChain || !toChain || fromChain !== expected.chain || toChain !== expected.chain ||
+    (action.fromChainId !== undefined && normalizeChainId(action.fromChainId) !== fromChain) ||
+    (action.toChainId !== undefined && normalizeChainId(action.toChainId) !== toChain)) {
+    throw new Error("LI.FI quote response does not attest the requested chain identity.");
+  }
+  const fromToken = tokenIdentity({ ...action.fromToken, chainId: fromChain });
+  const toToken = tokenIdentity({ ...action.toToken, chainId: toChain });
   if (!fromToken || !toToken || fromToken.chain !== expected.chain || toToken.chain !== expected.chain) {
     throw new Error("LI.FI quote response is missing exact same-chain token identity.");
   }
@@ -224,6 +277,14 @@ function verifyActionIdentity(payload = {}, expected = {}) {
   } else if (fromToken.address !== expected.tokenAddress || toToken.address !== expected.quoteTokenAddress) {
     throw new Error("LI.FI SELL quote response identity does not match the requested contracts.");
   }
+  if (expected.fromAmount !== undefined && (!/^\d+$/.test(String(action.fromAmount ?? "")) ||
+    BigInt(action.fromAmount) !== BigInt(expected.fromAmount))) {
+    throw new Error("LI.FI quote input amount does not match the requested size.");
+  }
+  if (expected.fromAmount !== undefined && payload.estimate?.fromAmount !== undefined &&
+    (!/^\d+$/.test(String(payload.estimate.fromAmount)) || BigInt(payload.estimate.fromAmount) !== BigInt(expected.fromAmount))) {
+    throw new Error("LI.FI estimate input amount contradicts the requested size.");
+  }
   return { fromToken, toToken };
 }
 
@@ -233,19 +294,19 @@ function normalizeLiFiQuote(payload = {}, request = {}, identity = {}, tokens = 
   const toAmountAtomic = payload.estimate?.toAmount;
   const inputTokenAmount = decimalFromAtomic(fromAmountAtomic, fromToken.decimals);
   const outputTokenAmount = decimalFromAtomic(toAmountAtomic, toToken.decimals);
-  const inputPriceUsd = fromToken.priceUsd ?? (request.side === "SELL" ? finite(request.referencePriceUsd) : 1);
-  const outputPriceUsd = toToken.priceUsd ?? (request.side === "BUY" ? finite(request.referencePriceUsd) : 1);
+  const inputPriceUsd = fromToken.priceUsd;
+  const outputPriceUsd = toToken.priceUsd;
   const inputUsd = finite(payload.estimate?.fromAmountUSD) ?? (
     inputTokenAmount !== null && inputPriceUsd !== null ? inputTokenAmount * inputPriceUsd : null
   );
   const outputUsd = finite(payload.estimate?.toAmountUSD) ?? (
     outputTokenAmount !== null && outputPriceUsd !== null ? outputTokenAmount * outputPriceUsd : null
   );
-  const gasUsd = sumUsd(payload.estimate?.gasCosts);
-  const protocolFeeUsd = sumUsd(payload.estimate?.feeCosts);
+  const gasUsd = sumUsd(payload.estimate?.gasCosts ?? null);
+  const protocolFeeUsd = sumUsd(payload.estimate?.feeCosts ?? null);
   const priceImpactBps = nonNegativeBps(inputUsd, outputUsd, 0);
-  const allInCostBps = nonNegativeBps(inputUsd, outputUsd, gasUsd);
-  const protocolFeeBps = inputUsd && inputUsd > 0
+  const allInCostBps = protocolFeeUsd !== null ? nonNegativeBps(inputUsd, outputUsd, gasUsd) : null;
+  const protocolFeeBps = inputUsd && inputUsd > 0 && protocolFeeUsd !== null
     ? Number(((protocolFeeUsd / inputUsd) * 10_000).toFixed(3))
     : null;
   const pools = extractLiFiRoutePoolAddresses(payload, identity.chain);
@@ -372,6 +433,7 @@ export function createLiFiExecutableQuoteProvider(factoryOptions = {}) {
       chain,
       tokenAddress,
       quoteTokenAddress: quoteToken.address,
+      fromAmount,
     });
     if (side === "BUY") tokenCache.set(`${chain}:${tokenAddress}`, tokens.toToken);
     return normalizeLiFiQuote(payload, { ...request, side }, {
