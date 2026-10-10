@@ -227,7 +227,7 @@ const ENGINE_TIMEOUT_DEFAULTS_MS = {
   "AI Research Commander": 30_000,
   "Autonomous Alpha Investigator": 30_000,
   "Execution Proof Recovery": 300_000,
-  "Active Evidence Recovery": 600_000,
+  "Active Evidence Recovery": 1_500_000,
   "Contract Authority Risk": 180_000,
   "Capital Flow Observation": 45_000,
   "Ignition Raw Sensors (opt-in, read-only)": 60_000,

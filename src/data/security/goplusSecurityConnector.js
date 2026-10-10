@@ -11,6 +11,7 @@ import {
   tokenAddress,
   unknownSecurityEvidence,
 } from "./securityEvidenceUtils.js";
+import { waitForGoPlusRequestSlot } from "./goplusRequestLimiter.js";
 
 const GOPLUS_BASE_URL = "https://api.gopluslabs.io/api/v1";
 const GOPLUS_PROVIDER = "goplus";
@@ -25,11 +26,11 @@ function firstResult(raw = {}, address = "") {
   const result = raw.result || raw.data || raw;
   if (!result || typeof result !== "object") return null;
   const normalized = lower(address);
+  if (!normalized) return null;
   return (
     result[normalized] ||
     result[address] ||
     result[Object.keys(result).find((key) => lower(key) === normalized)] ||
-    result[Object.keys(result)[0]] ||
     null
   );
 }
@@ -81,6 +82,7 @@ export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
     observedAt: new Date().toISOString(),
     chain: meta.chain || null,
     address: address || null,
+    responseIdentityVerified: true,
     verifiedSource,
     proxy,
     ownerRisk,
@@ -132,18 +134,29 @@ export async function getGoPlusSecurityEvidence(project = {}, options = {}) {
   if (!endpoint.url) return unknownSecurityEvidence(GOPLUS_PROVIDER, endpoint.reason);
 
   const cached = options.useCache === false ? null : getCachedSecurityEvidence(GOPLUS_PROVIDER, endpoint.chain, address, options.cacheTtlMs);
-  if (cached) return cached;
+  if (cached?.responseIdentityVerified === true) return cached;
 
   try {
+    if (!options.goPlusRequestSlotReserved) await waitForGoPlusRequestSlot();
     const headers = {};
     if (process.env.GOPLUS_API_KEY) headers.authorization = `Bearer ${process.env.GOPLUS_API_KEY}`;
     const raw = await fetchJson(endpoint.url, {
       timeoutMs: options.timeoutMs,
       headers,
     });
+    if (!Object.keys(raw.result || {}).length && /rate|too many|limit|unauthoriz|forbidden/i.test(String(raw.message || ""))) {
+      const error = new Error(`GoPlus rejected the request: ${raw.message}`);
+      if (/rate|too many|limit/i.test(String(raw.message))) error.status = 429;
+      throw error;
+    }
     const evidence = normalizeGoPlusTokenSecurity(raw, { chain: endpoint.chain, address });
     return options.useCache === false ? evidence : setCachedSecurityEvidence(GOPLUS_PROVIDER, endpoint.chain, address, evidence);
   } catch (error) {
-    return unknownSecurityEvidence(GOPLUS_PROVIDER, `GoPlus request failed: ${error.message}`, error);
+    const rateLimited = error.status === 429;
+    if (rateLimited) (options.goPlusRateLimiter || waitForGoPlusRequestSlot).defer();
+    return {
+      ...unknownSecurityEvidence(GOPLUS_PROVIDER, `GoPlus request failed: ${error.message}`, error),
+      ...(rateLimited ? { rateLimited: true } : {}),
+    };
   }
 }

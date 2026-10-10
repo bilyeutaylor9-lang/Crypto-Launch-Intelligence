@@ -25,6 +25,7 @@ import {
   getEtherscanV2SecurityEvidence,
 } from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
+import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
@@ -259,6 +260,7 @@ function providerFunctions(options = {}) {
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
       getFreeSecurityEvidence,
+    defaultFreeSecurityProvider: !injected.getFreeSecurityEvidence && !options.getFreeSecurityEvidence,
     getBlockscoutDeployerEvidence:
       injected.getBlockscoutDeployerEvidence ||
       injected.getDeployerEvidence ||
@@ -284,6 +286,8 @@ function providerFunctions(options = {}) {
           options.getGoPlusDeployerEvidence
       ) || !customDeployerProvider,
     preferGoPlusDeployer: !customDeployerProvider && !customSourcifyProvider,
+    defaultGoPlusDeployerProvider:
+      !injected.getGoPlusDeployerEvidence && !injected.getGoPlusSecurityEvidence && !options.getGoPlusDeployerEvidence,
     getBlockscoutSecurityEvidence:
       injected.getBlockscoutSecurityEvidence ||
       options.getBlockscoutSecurityEvidence ||
@@ -367,7 +371,8 @@ async function executeProviderCall(
   options = {},
   state = {},
   cost = 1,
-  circuitScope = null
+  circuitScope = null,
+  beforeOperation = null
 ) {
   const health = providerState(state, provider, circuitScope);
   if (health.circuitOpen) {
@@ -389,6 +394,14 @@ async function executeProviderCall(
       reason: "Active evidence provider request budget exhausted.",
       durationMs: 0,
     };
+  }
+
+  if (beforeOperation) {
+    await beforeOperation();
+    // Another queued operation may have exhausted the budget or opened the circuit.
+    if (health.circuitOpen || state.requestsUsed + cost > state.maxRequests) {
+      return executeProviderCall(provider, operation, options, state, cost, circuitScope);
+    }
   }
 
   state.requestsUsed += cost;
@@ -416,6 +429,16 @@ async function executeProviderCall(
         );
       }),
     ]);
+    if (value?.providerFailure === true && value.rateLimited === true) {
+      health.rateLimitResponses = (health.rateLimitResponses || 0) + 1;
+      return {
+        status: "RATE_LIMITED",
+        provider,
+        value: null,
+        reason: value.warnings?.[0] || "Provider rate limit reached; later calls wait for quota recovery.",
+        durationMs: Date.now() - startedAt,
+      };
+    }
     if (value?.providerFailure === true) {
       throw new Error(value.warnings?.[0] || `${provider} acquisition failed`);
     }
@@ -520,6 +543,7 @@ function existingDeployerEvidence(project = {}, identity = {}) {
   return candidates.find(
     (item) =>
       item.status !== "UNKNOWN" &&
+      (!lower(item.provider || item.source).includes("goplus") || item.responseIdentityVerified === true) &&
       normalizeChainId(item.chain) === identity.chain &&
       lower(item.address || item.tokenAddress) === lower(identity.tokenAddress) &&
       exactDeployerResult(item, identity)
@@ -583,12 +607,13 @@ export async function recoverDeployerEvidence(
         "goplus-deployer",
         () => providers.getGoPlusDeployerEvidence(
           { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, useCache: options.useCache }
+          { ...options, useCache: options.useCache, goPlusRequestSlotReserved: providers.defaultGoPlusDeployerProvider }
         ),
         options,
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
-        evm.chain
+        evm.chain,
+        providers.defaultGoPlusDeployerProvider ? waitForGoPlusRequestSlot : null
       );
       goplusResult = goplusAttempt.value || {};
       if (goplusAttempt.status === "SUCCESS" && exactDeployerResult(goplusResult, evm)) {
@@ -670,12 +695,13 @@ export async function recoverDeployerEvidence(
         "goplus-deployer",
         () => providers.getGoPlusDeployerEvidence(
           { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, useCache: options.useCache }
+          { ...options, useCache: options.useCache, goPlusRequestSlotReserved: providers.defaultGoPlusDeployerProvider }
         ),
         options,
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
-        evm.chain
+        evm.chain,
+        providers.defaultGoPlusDeployerProvider ? waitForGoPlusRequestSlot : null
       );
       goplusResult = goplusAttempt.value || {};
       if (
@@ -1244,6 +1270,18 @@ function knownSecurityItems(result = {}) {
 
 function securitySourceEligible(item = {}, field = "") {
   const provider = lower(item.provider);
+  if (provider.includes("goplus") && item.raw) {
+    const rawFields = {
+      contractVerified: ["is_open_source"],
+      honeypotDetected: ["is_honeypot"],
+      mintAuthorityEnabled: ["is_mintable"],
+      blacklistEnabled: ["is_blacklisted", "cannot_sell_all", "slippage_modifiable"],
+      sellRestricted: ["is_blacklisted", "cannot_sell_all", "slippage_modifiable"],
+    }[field];
+    if (rawFields && !rawFields.every((key) => ["0", "1", 0, 1, true, false].includes(item.raw[key]))) {
+      if (!rawFields.some((key) => ["1", 1, true].includes(item.raw[key]))) return false;
+    }
+  }
   if (field === "contractVerified") return Object.hasOwn(item, "verifiedSource");
   if (["honeypotDetected", "sellRestricted", "blacklistEnabled", "buyTaxPct", "sellTaxPct", "holderCount"].includes(field)) {
     return provider.includes("goplus") || provider.includes("solana") || provider.includes("rugcheck");
@@ -1278,39 +1316,8 @@ function securityValue(items = [], field = "") {
   }
 }
 
-async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
-  const chain = chainOf(project);
-  const tokenAddress = tokenAddressOf(project, chain);
-  if (!chain || !tokenAddress) {
-    return {
-      observations: [],
-      attempts: [{
-        status: "NOT_APPLICABLE",
-        provider: "free-security",
-        reason: "Security recovery requires exact chain and token identity.",
-        durationMs: 0,
-      }],
-      projectPatch: {},
-    };
-  }
-  const attempt = await executeProviderCall(
-    "free-security",
-    () => providers.getFreeSecurityEvidence(
-      { ...project, chain, tokenAddress, contractAddress: project.contractAddress || tokenAddress },
-      options.securityEvidence || options
-    ),
-    options,
-    state,
-    Math.max(1, Number(options.securityProviderRequestCost || 4)),
-    chain
-  );
-  if (attempt.status !== "SUCCESS") {
-    return { observations: [], attempts: [attempt], projectPatch: {} };
-  }
-
-  const result = attempt.value || {};
-  const items = knownSecurityItems(result);
-  const observations = fields
+function securityObservations(items = [], fields = [], identity = {}, result = {}) {
+  return fields
     .map((field) => {
       const capable = items.filter((item) => securitySourceEligible(item, field));
       const value = securityValue(items, field);
@@ -1327,10 +1334,65 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
         value,
         lower(sourceItem.provider || "free-security"),
         sourceItem.observedAt || result.observedAt || new Date().toISOString(),
-        Math.max(0, Math.min(1, Number(sourceItem.confidence || result.summary?.confidence || 0) / 100))
+        confidenceFraction(sourceItem.confidence || result.summary?.confidence || 0, 0),
+        identity
       );
     })
     .filter(Boolean);
+}
+
+async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
+  const chain = chainOf(project);
+  const tokenAddress = tokenAddressOf(project, chain);
+  if (!chain || !tokenAddress) {
+    return {
+      observations: [],
+      attempts: [{
+        status: "NOT_APPLICABLE",
+        provider: "free-security",
+        reason: "Security recovery requires exact chain and token identity.",
+        durationMs: 0,
+      }],
+      projectPatch: {},
+    };
+  }
+  const existing = knownSecurityItems({ evidence: [
+    ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
+    ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
+    project.goplusDeployerEvidence,
+  ].filter(Boolean) }).filter((item) =>
+    normalizeChainId(item.chain) === chain &&
+    lower(item.address || item.tokenAddress) === lower(tokenAddress) &&
+    (!lower(item.provider).includes("goplus") || item.responseIdentityVerified === true)
+  );
+  const identity = { chain, tokenAddress };
+  const localObservations = securityObservations(existing, fields, identity);
+  if (localObservations.length === fields.length) {
+    return {
+      observations: localObservations,
+      attempts: [{ status: "LOCAL_EVIDENCE_AVAILABLE", provider: "existing-security-evidence", durationMs: 0, reason: null }],
+      projectPatch: {},
+    };
+  }
+  const attempt = await executeProviderCall(
+    "free-security",
+    () => providers.getFreeSecurityEvidence(
+      { ...project, chain, tokenAddress, contractAddress: project.contractAddress || tokenAddress },
+      { ...(options.securityEvidence || options), goPlusRequestSlotReserved: providers.defaultFreeSecurityProvider && chain !== "solana" }
+    ),
+    options,
+    state,
+    Math.max(1, Number(options.securityProviderRequestCost || 4)),
+    chain,
+    providers.defaultFreeSecurityProvider && chain !== "solana" ? waitForGoPlusRequestSlot : null
+  );
+  if (attempt.status !== "SUCCESS") {
+    return { observations: localObservations, attempts: [attempt], projectPatch: {} };
+  }
+
+  const result = attempt.value || {};
+  const items = knownSecurityItems(result);
+  const observations = securityObservations([...existing, ...items], fields, identity, result);
 
   return {
     observations,
@@ -1501,12 +1563,10 @@ export async function executeActiveEvidenceProviderRequests(
     deployerFields.length &&
     sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer", "native rpc", "security providers"])
   ) {
-    parallel.push(
-      recoverDeployerEvidence(project, deployerFields, providers, options, executionState).then((result) => ({
-        kind: "deployer",
-        result,
-      }))
-    );
+    const result = await recoverDeployerEvidence(project, deployerFields, providers, options, executionState);
+    observations.push(...result.observations);
+    attempts.push(...result.attempts);
+    projectPatch = { ...projectPatch, ...result.projectPatch };
   }
   if (
     walletFields.length &&
@@ -1524,7 +1584,7 @@ export async function executeActiveEvidenceProviderRequests(
     sourceRequested(sources, ["goplus", "sourcify", "blockscout", "rugcheck", "explorer", "chain rpc"])
   ) {
     parallel.push(
-      recoverSecurity(project, securityFields, providers, options, executionState).then((result) => ({
+      recoverSecurity({ ...project, ...projectPatch }, securityFields, providers, options, executionState).then((result) => ({
         kind: "security",
         result,
       }))

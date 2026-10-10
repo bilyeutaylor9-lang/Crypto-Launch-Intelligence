@@ -69,6 +69,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          GOPLUS_API_KEY: ${{ secrets.GOPLUS_API_KEY }}
+          GOPLUS_REQUEST_INTERVAL_MS: ${{ vars.GOPLUS_REQUEST_INTERVAL_MS || '2100' }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}

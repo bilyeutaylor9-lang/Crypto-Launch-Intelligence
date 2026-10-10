@@ -11,9 +11,10 @@ import {
   normalizeEtherscanV2SecurityEvidence,
 } from "../src/data/security/etherscanV2Connector.js";
 import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEvidenceConnector.js";
-import { normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
+import { getGoPlusSecurityEvidence, normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
 import { summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
+import { createGoPlusRequestLimiter } from "../src/data/security/goplusRequestLimiter.js";
 import {
   analyzeContractAuthorityRisk,
   analyzeContractAuthorityRiskBatch,
@@ -48,6 +49,42 @@ test("GoPlus normalizer flags honeypot, mint, blacklist, and high tax risks", ()
   assert.equal(result.highTaxRisk, true);
   assert.equal(result.verifiedSource, true);
   assert.ok(result.riskFindings.length >= 4);
+});
+
+test("GoPlus request pacing reserves distinct slots across simultaneous callers", async () => {
+  const delays = [];
+  let now = 1000;
+  const limiter = createGoPlusRequestLimiter({ now: () => now, sleep: async (ms) => { delays.push(ms); now += ms; } });
+  await Promise.all([limiter(), limiter(), limiter()]);
+  assert.deepEqual(delays, [2100, 2100]);
+  limiter.defer();
+  await limiter();
+  assert.equal(delays.at(-1), 61000);
+});
+
+test("GoPlus API-level rate rejection remains a provider failure", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => ({
+    ok: true, json: async () => ({ code: 4029, message: "Too many requests", result: {} }),
+  }));
+  const result = await getGoPlusSecurityEvidence(
+    { chain: "base", tokenAddress: "0x1111111111111111111111111111111111111111" },
+    { useCache: false, goPlusRequestSlotReserved: true, goPlusRateLimiter: { defer() {} } }
+  );
+  assert.equal(result.status, "UNKNOWN");
+  assert.equal(result.providerFailure, true);
+  assert.equal(result.rateLimited, true);
+  assert.notEqual(result.verifiedSource, true);
+});
+
+test("GoPlus never promotes another contract's creator or safety record", () => {
+  const requested = "0x1111111111111111111111111111111111111111";
+  const other = "0x2222222222222222222222222222222222222222";
+  const raw = { result: { [other]: { creator_address: other, is_open_source: "1", is_honeypot: "0" } } };
+  const mismatch = normalizeGoPlusTokenSecurity(raw, { chain: "base", address: requested });
+  assert.equal(mismatch.status, "UNKNOWN");
+  assert.equal(mismatch.creatorAddress, undefined);
+  assert.notEqual(mismatch.verifiedSource, true);
+  assert.equal(normalizeGoPlusTokenSecurity(raw, { chain: "base" }).status, "UNKNOWN");
 });
 
 test("Sourcify normalizer treats exact matches as verified source evidence", () => {
