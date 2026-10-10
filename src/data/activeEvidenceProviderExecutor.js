@@ -420,11 +420,18 @@ async function executeProviderCall(
   }
 
   if (beforeOperation) {
-    await beforeOperation();
+    const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
     if (health.circuitOpen || state.requestsUsed + cost > state.maxRequests ||
         (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
       return executeProviderCall(provider, operation, options, state, cost, circuitScope);
+    }
+    if (slotReserved === false) {
+      health.skipped += 1;
+      const retryAtMs = (options.goPlusRateLimiter || waitForGoPlusRequestSlot).cooldownUntil?.();
+      return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
+        retryAt: Number.isFinite(retryAtMs) ? new Date(retryAtMs).toISOString() : null,
+        reason: "Provider cooldown active; independent recovery fallbacks remain available." };
     }
   }
 
@@ -664,7 +671,7 @@ export async function recoverDeployerEvidence(
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
         evm.chain,
-        providers.defaultGoPlusDeployerProvider ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
+        providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
       );
       goplusResult = goplusAttempt.value || {};
       if (goplusAttempt.status === "SUCCESS" && exactDeployerResult(goplusResult, evm)) {
@@ -752,7 +759,7 @@ export async function recoverDeployerEvidence(
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
         evm.chain,
-        providers.defaultGoPlusDeployerProvider ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
+        providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
       );
       goplusResult = goplusAttempt.value || {};
       if (
@@ -1435,17 +1442,22 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
       projectPatch: securityEvidencePatch(existing),
     };
   }
+  let goPlusCooldownSkipped = false;
   const attempt = await executeProviderCall(
     "free-security",
     () => providers.getFreeSecurityEvidence(
       { ...project, chain, tokenAddress, contractAddress: project.contractAddress || tokenAddress },
-      { ...(options.securityEvidence || options), goPlusRequestSlotReserved: providers.defaultFreeSecurityProvider && chain !== "solana" }
+      { ...(options.securityEvidence || options), goPlusRequestSlotReserved: providers.defaultFreeSecurityProvider && chain !== "solana",
+        goPlusCooldownSkipped }
     ),
     options,
     state,
     Math.max(1, Number(options.securityProviderRequestCost || 4)),
     chain,
-    providers.defaultFreeSecurityProvider && chain !== "solana" ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
+    providers.defaultFreeSecurityProvider && chain !== "solana" ? async () => {
+      goPlusCooldownSkipped = !await (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false });
+      return true;
+    } : null
   );
   if (attempt.status !== "SUCCESS") {
     return { observations: localObservations, attempts: [attempt], projectPatch: existing.length ? securityEvidencePatch(existing) : {} };
