@@ -3,7 +3,8 @@ import path from "path";
 import { spawnSync } from "child_process";
 
 const ROOTS = ["src", "test"];
-const SKIP_DIRS = new Set(["node_modules", "reports", "data", "docs", ".git"]);
+// Runtime artifacts are outside ROOTS; nested data/report folders are source.
+const SKIP_DIRS = new Set(["node_modules", ".git"]);
 
 function collectJsFiles(dir = "") {
   if (!fs.existsSync(dir)) return [];
