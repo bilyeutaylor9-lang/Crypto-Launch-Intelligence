@@ -29,6 +29,7 @@ import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
+import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
 import {
   normalizeChainId,
@@ -935,6 +936,51 @@ export async function recoverWalletEvidence(
   };
 }
 
+async function recoverWalletEvidenceWithHistory(project, fields, providers, options, state) {
+  if (options.walletHistory === false) return recoverWalletEvidence(project, fields, providers, options, state);
+  const historyOptions = options.walletHistory || {};
+  const identity = { ...project, chain: chainOf(project), tokenAddress: tokenAddressOf(project) };
+  const attempts = [];
+  if (!state.walletHistoryRecords) {
+    try { state.walletHistoryRecords = loadWalletParticipationHistory(historyOptions); }
+    catch (error) {
+      state.walletHistoryRecords = [];
+      attempts.push({ provider: "wallet-history database", status: "MEMORY_READ_FAILED", reason: error.message, requestCost: 0 });
+    }
+  }
+  let history = walletParticipationHistoryFor(identity, { ...historyOptions, records: state.walletHistoryRecords });
+  const historyEvidence = (rows) => rows.length ? observation("walletParticipationHistory", rows,
+    "wallet-history database", rows.map((row) => row.sourceTimestamp).sort().at(-1), Math.min(...rows.map((row) => row.confidence)),
+    { chain: identity.chain, tokenAddress: identity.tokenAddress, historicalOnly: true,
+      verificationStatus: "VERIFIED_HISTORICAL_RAW_OBSERVATION" }) : null;
+  let historyObservation = historyEvidence(history);
+  if (historyObservation) attempts.push({ provider: "wallet-history database", status: "LOCAL_EVIDENCE_AVAILABLE", requestCost: 0 });
+  const liveFields = fields.filter((field) => field !== "walletParticipationHistory" || !historyObservation);
+  const result = liveFields.length ? await recoverWalletEvidence(project, liveFields, providers, options, state)
+    : { observations: [], attempts: [], projectPatch: {} };
+  for (const evidence of [result.projectPatch?.blockscoutWalletEvidence, result.projectPatch?.rpcWalletEvidence]) {
+    if (!evidence) continue;
+    const raw = normalizeWalletParticipationObservation(identity, evidence, historyOptions);
+    if (!raw) continue;
+    state.walletHistoryRecords.push(raw);
+    state.walletHistoryRecords = state.walletHistoryRecords.slice(-5000);
+    try {
+      appendWalletParticipationHistory(identity, evidence, historyOptions);
+    } catch (error) {
+      attempts.push({ provider: "wallet-history database", status: "MEMORY_WRITE_FAILED", reason: error.message, requestCost: 0 });
+    }
+  }
+  history = walletParticipationHistoryFor(identity, { ...historyOptions, records: state.walletHistoryRecords });
+  historyObservation = historyEvidence(history);
+  return { ...result, attempts: [...attempts, ...result.attempts],
+    observations: [...result.observations.filter((item) => item.field !== "walletParticipationHistory"),
+      ...(historyObservation ? [historyObservation] : [])],
+    projectPatch: { ...result.projectPatch, ...(history.length ? { walletHistory: {
+      chain: identity.chain, tokenAddress: identity.tokenAddress, historicalOnly: true,
+      walletParticipationHistory: history, smartWallets: null,
+    } } : {}) } };
+}
+
 function rawDexPairs(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.pairs)) return payload.pairs;
@@ -1650,10 +1696,10 @@ export async function executeActiveEvidenceProviderRequests(
   }
   if (
     walletFields.length &&
-    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "supabase"])
+    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase"])
   ) {
     parallel.push(
-      recoverWalletEvidence(project, walletFields, providers, options, executionState).then((result) => ({
+      recoverWalletEvidenceWithHistory(project, walletFields, providers, options, executionState).then((result) => ({
         kind: "wallets",
         result,
       }))
