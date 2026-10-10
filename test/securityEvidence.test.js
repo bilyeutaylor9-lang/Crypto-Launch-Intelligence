@@ -11,16 +11,55 @@ import {
   normalizeEtherscanV2SecurityEvidence,
 } from "../src/data/security/etherscanV2Connector.js";
 import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEvidenceConnector.js";
-import { normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
+import { getGoPlusSecurityEvidence, normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
-import { summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
+import { boolFlag, cacheKey, summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
+import { createGoPlusRequestLimiter } from "../src/data/security/goplusRequestLimiter.js";
 import {
   analyzeContractAuthorityRisk,
   analyzeContractAuthorityRiskBatch,
 } from "../src/engines/contractAuthorityRiskEngine.js";
 import { analyzeLiquidityControlRisk } from "../src/engines/liquidityControlRiskEngine.js";
+import { buildCandidateProofState } from "../src/kernel/candidateTruthState.js";
 
 const ADDRESS = "0x1111111111111111111111111111111111111111";
+
+test("provider placeholder flags remain unknown rather than clean negatives", () => {
+  for (const value of [null, undefined, "", "null", "undefined", "none", "UNKNOWN", " NULL "]) {
+    assert.equal(boolFlag(value), null);
+    const summary = summarizeSecurityEvidence([{ provider: "goplus", status: "EVIDENCE_AVAILABLE",
+      responseIdentityVerified: true, raw: { is_honeypot: value } }]);
+    assert.ok(summary.unknownChecks.includes("goplus.is_honeypot"));
+    assert.ok(!summary.testedChecks.includes("goplus.is_honeypot"));
+    const proof = buildCandidateProofState({ instantSafetyStatus: "PASS", securityEvidenceSummary: summary });
+    assert.notEqual(proof.safety.status, "VERIFIED_SAFE");
+  }
+  for (const value of [false, 0, "0", "false", "no"]) assert.equal(boolFlag(value), false);
+  for (const value of [true, 1, "1", "true", "yes"]) assert.equal(boolFlag(value), true);
+});
+
+test("GoPlus response identity preserves Solana case and EVM case-insensitivity", () => {
+  const mint = "So11111111111111111111111111111111111111112";
+  const record = { is_open_source: "1", is_honeypot: "0" };
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [mint.toLowerCase()]: record } },
+    { chain: "solana", address: mint }).status, "UNKNOWN");
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [mint]: record } },
+    { chain: "solana", address: mint }).responseIdentityVerified, true);
+  const evm = `0x${"ab".repeat(20)}`;
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [evm.toUpperCase()]: record } },
+    { chain: "base", address: evm }).responseIdentityVerified, true);
+});
+
+test("GoPlus quota waits stop at the recovery deadline without spending a slot", async () => {
+  let now = 0;
+  const limiter = createGoPlusRequestLimiter({ now: () => now, sleep: async (ms) => { now += ms; } });
+  assert.equal(await limiter(), true);
+  limiter.defer();
+  assert.equal(await limiter({ deadlineAt: 100 }), false);
+  assert.equal(now, 100);
+  assert.equal(await limiter(), true);
+  assert.equal(now, 61000);
+});
 
 test("GoPlus normalizer flags honeypot, mint, blacklist, and high tax risks", () => {
   const result = normalizeGoPlusTokenSecurity(
@@ -48,6 +87,42 @@ test("GoPlus normalizer flags honeypot, mint, blacklist, and high tax risks", ()
   assert.equal(result.highTaxRisk, true);
   assert.equal(result.verifiedSource, true);
   assert.ok(result.riskFindings.length >= 4);
+});
+
+test("GoPlus request pacing reserves distinct slots across simultaneous callers", async () => {
+  const delays = [];
+  let now = 1000;
+  const limiter = createGoPlusRequestLimiter({ now: () => now, sleep: async (ms) => { delays.push(ms); now += ms; } });
+  await Promise.all([limiter(), limiter(), limiter()]);
+  assert.deepEqual(delays, [2100, 2100]);
+  limiter.defer();
+  await limiter();
+  assert.equal(delays.at(-1), 61000);
+});
+
+test("GoPlus API-level rate rejection remains a provider failure", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => ({
+    ok: true, json: async () => ({ code: 4029, message: "Too many requests", result: {} }),
+  }));
+  const result = await getGoPlusSecurityEvidence(
+    { chain: "base", tokenAddress: "0x1111111111111111111111111111111111111111" },
+    { useCache: false, goPlusRequestSlotReserved: true, goPlusRateLimiter: { defer() {} } }
+  );
+  assert.equal(result.status, "UNKNOWN");
+  assert.equal(result.providerFailure, true);
+  assert.equal(result.rateLimited, true);
+  assert.notEqual(result.verifiedSource, true);
+});
+
+test("GoPlus never promotes another contract's creator or safety record", () => {
+  const requested = "0x1111111111111111111111111111111111111111";
+  const other = "0x2222222222222222222222222222222222222222";
+  const raw = { result: { [other]: { creator_address: other, is_open_source: "1", is_honeypot: "0" } } };
+  const mismatch = normalizeGoPlusTokenSecurity(raw, { chain: "base", address: requested });
+  assert.equal(mismatch.status, "UNKNOWN");
+  assert.equal(mismatch.creatorAddress, undefined);
+  assert.notEqual(mismatch.verifiedSource, true);
+  assert.equal(normalizeGoPlusTokenSecurity(raw, { chain: "base" }).status, "UNKNOWN");
 });
 
 test("Sourcify normalizer treats exact matches as verified source evidence", () => {
@@ -241,6 +316,7 @@ test("contract authority risk blocks malicious or honeypot evidence", async () =
   const securityEvidenceSummary = summarizeSecurityEvidence([
     {
       provider: "goplus",
+      responseIdentityVerified: true,
       status: "EVIDENCE_AVAILABLE",
       verifiedSource: true,
       malicious: true,
@@ -259,6 +335,55 @@ test("contract authority risk blocks malicious or honeypot evidence", async () =
   assert.equal(result.contractAuthorityVerdict, "BLOCK_CONTRACT_RISK");
   assert.equal(result.contractSafetyVerified, false);
   assert.ok(result.contractAuthorityRiskScore >= 80);
+});
+
+test("UNKNOWN and incomplete verified-source evidence cannot produce clean contract safety", async () => {
+  for (const item of [
+    { provider: "goplus", status: "UNKNOWN", verifiedSource: true },
+    { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+      verifiedSource: true, confidence: 90, raw: { is_open_source: "1" } },
+  ]) {
+    const summary = summarizeSecurityEvidence([item]);
+    const result = await analyzeContractAuthorityRisk({ securityEvidenceSummary: summary });
+    assert.equal(result.contractSafetyVerified, false);
+    assert.equal(result.contractAuthoritySafetyScore, 42);
+    assert.notEqual(result.safetyProofStatus, "SAFETY_VERIFIED_CLEAN");
+  }
+});
+
+test("complete observed safety checks retain clean qualification", async () => {
+  const raw = Object.fromEntries(["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance", "buy_tax", "sell_tax"].map((key) => [key, "0"]));
+  raw.is_open_source = "1";
+  const summary = summarizeSecurityEvidence([{ provider: "goplus", status: "EVIDENCE_AVAILABLE",
+    responseIdentityVerified: true, verifiedSource: true, confidence: 90, raw }]);
+  const result = await analyzeContractAuthorityRisk({ securityEvidenceSummary: summary,
+    riskFlags: ["Contract authority evidence missing", "Unrelated observed danger"] });
+  assert.equal(result.contractSafetyVerified, true);
+  assert.equal(result.safetyProofStatus, "SAFETY_VERIFIED_CLEAN");
+  assert.deepEqual(result.riskFlags, ["Unrelated observed danger"]);
+});
+
+test("security cache keys preserve Solana case and normalize EVM case", () => {
+  assert.notEqual(cacheKey("goplus", "solana", "AbCd"), cacheKey("goplus", "solana", "abcd"));
+  assert.equal(cacheKey("goplus", "base", "0xABCD"), cacheKey("goplus", "base", "0xabcd"));
+});
+
+test("safety trace contains observed check names rather than whole provider payloads", () => {
+  const evidence = { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+    chain: "ethereum", address: "0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206",
+    raw: { is_honeypot: "0", holders: [{ address: ADDRESS }] } };
+  const summary = summarizeSecurityEvidence([evidence]);
+  const proof = buildCandidateProofState({ securityEvidence: [evidence], securityEvidenceSummary: summary });
+  assert.deepEqual(proof.safety.testedChecks, ["goplus.is_honeypot"]);
+  assert.ok(!JSON.stringify(proof.safety.testedChecks).includes(ADDRESS));
+  assert.equal(evidence.raw.holders[0].address, ADDRESS);
+});
+
+test("instant safety PASS cannot override unknown contract safety checks", () => {
+  const proof = buildCandidateProofState({ instantSafetyStatus: "PASS", securityEvidenceSources: ["goplus"],
+    testedChecks: ["goplus.is_honeypot"], unknownChecks: ["goplus.is_mintable"] });
+  assert.equal(proof.safety.status, "PARTIAL");
+  assert.deepEqual(proof.safety.unknownChecks, ["goplus.is_mintable"]);
 });
 
 test("contract authority safety recovery is priority bounded and de-duplicated", async () => {

@@ -88,6 +88,7 @@ export async function getSourcifySecurityEvidence(project = {}, options = {}) {
     const evidence = normalizeSourcifyContract(raw, { chain, address });
     return options.useCache === false ? evidence : setCachedSecurityEvidence(SOURCIFY_PROVIDER, chain, address, evidence);
   } catch (error) {
-    return unknownSecurityEvidence(SOURCIFY_PROVIDER, `Sourcify request failed: ${error.message}`);
+    // An unverified contract is a healthy negative lookup, not a provider outage.
+    return unknownSecurityEvidence(SOURCIFY_PROVIDER, `Sourcify request failed: ${error.message}`, error.status === 404 ? null : error);
   }
 }

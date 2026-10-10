@@ -77,7 +77,7 @@ export function boolFlag(value) {
   if (value === false || value === 0) return false;
   const normalized = lower(value);
   if (["1", "true", "yes", "verified", "exact_match", "match"].includes(normalized)) return true;
-  if (["0", "false", "no", "none", "null", "undefined"].includes(normalized)) return false;
+  if (["0", "false", "no"].includes(normalized)) return false;
   return null;
 }
 
@@ -107,7 +107,8 @@ function writeCache(cache = {}) {
 }
 
 export function cacheKey(provider = "", chain = "", address = "") {
-  return `${provider}:${chainKey(chain)}:${lower(address)}`;
+  const normalizedChain = chainKey(chain);
+  return `${provider}:${normalizedChain}:${normalizedChain === "solana" ? String(address).trim() : lower(address)}`;
 }
 
 export function getCachedSecurityEvidence(provider = "", chain = "", address = "", ttlMs = DEFAULT_TTL_MS) {
@@ -157,7 +158,7 @@ export async function fetchJson(url = "", options = {}) {
   }
 }
 
-export function unknownSecurityEvidence(provider = "unknown", reason = "Security evidence unavailable.") {
+export function unknownSecurityEvidence(provider = "unknown", reason = "Security evidence unavailable.", error = null) {
   return {
     provider,
     status: "UNKNOWN",
@@ -166,15 +167,27 @@ export function unknownSecurityEvidence(provider = "unknown", reason = "Security
     warnings: [reason],
     confidence: 0,
     raw: null,
+    ...(error && error.status !== 404 ? { providerFailure: true, httpStatus: error.status || null } : {}),
   };
 }
 
 export function summarizeSecurityEvidence(evidence = []) {
   const items = (Array.isArray(evidence) ? evidence : []).filter(Boolean);
-  const known = items.filter((item) => item.status !== "UNKNOWN");
+  const known = items.filter((item) => item.status !== "UNKNOWN" &&
+    (item.provider !== "goplus" || item.responseIdentityVerified === true));
   const riskFindings = [...new Set(items.flatMap((item) => item.riskFindings || []))];
   const warnings = [...new Set(items.flatMap((item) => item.warnings || []))];
-  const verifiedSource = items.some((item) => item.verifiedSource === true);
+  const verifiedSource = known.some((item) => item.verifiedSource === true);
+  const goPlusItems = known.filter((item) => item.provider === "goplus");
+  const requiredChecks = ["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance"];
+  const unknownChecks = goPlusItems.length ? requiredChecks
+    .filter((field) => !goPlusItems.some((item) => boolFlag(item.raw?.[field]) !== null))
+    .map((field) => `goplus.${field}`) : [];
+  if (goPlusItems.length) {
+    for (const field of ["buy_tax", "sell_tax"]) {
+      if (!goPlusItems.some((item) => numeric(item.raw?.[field]) !== null)) unknownChecks.push(`goplus.${field}`);
+    }
+  }
   const malicious = items.some((item) => item.malicious === true);
   const honeypot = items.some((item) => item.honeypot === true);
   const proxy = items.some((item) => item.proxy === true);
@@ -191,7 +204,8 @@ export function summarizeSecurityEvidence(evidence = []) {
     status: known.length ? (riskFindings.length ? "RISK_REVIEW" : "EVIDENCE_AVAILABLE") : "UNKNOWN",
     providers: items.map((item) => item.provider),
     knownProviders: known.map((item) => item.provider),
-    unknownProviders: items.filter((item) => item.status === "UNKNOWN").map((item) => item.provider),
+    unknownProviders: items.filter((item) => !known.includes(item)).map((item) => item.provider),
+    unknownChecks,
     verifiedSource,
     malicious,
     honeypot,
@@ -204,7 +218,11 @@ export function summarizeSecurityEvidence(evidence = []) {
     riskFindings,
     warnings,
     confidence,
-    testedChecks: [...new Set(known.flatMap((item) => item.testedChecks || []))],
+    testedChecks: [...new Set([
+      ...known.flatMap((item) => item.testedChecks || []),
+      ...requiredChecks.filter((field) => goPlusItems.some((item) => boolFlag(item.raw?.[field]) !== null)).map((field) => `goplus.${field}`),
+      ...["buy_tax", "sell_tax"].filter((field) => goPlusItems.some((item) => numeric(item.raw?.[field]) !== null)).map((field) => `goplus.${field}`),
+    ])],
     sourceTimestamps: Object.fromEntries(
       items
         .filter((item) => item.provider && item.observedAt)

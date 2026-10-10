@@ -23,7 +23,14 @@ function meta(projects = [], extra = {}) {
   };
 }
 
+export function summarizeEvidenceHydration(projects = []) {
+  const summary = projects.find((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP" &&
+    project.activeEvidenceRecovery?.batchSummary)?.activeEvidenceRecovery.batchSummary;
+  return summary ? { ...summary } : null;
+}
+
 export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = {}) {
+  const evidenceHydration = summarizeEvidenceHydration(projects);
   const activelyRecovered = projects.filter((project) =>
     ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)
   );
@@ -60,6 +67,7 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
   const report = {
     ...meta(projects, extra),
     status: watchlist.length ? "WATCHLIST_READY" : "NO_RECOVERABLE_OPPORTUNITIES",
+    evidenceHydration,
     recoveredThisScan: new Set([
       ...activelyRecovered.map((project) => project.progressivePipelineIdentityKey || project.canonicalId || project.symbol),
       ...projects
@@ -76,6 +84,7 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
   const filePath = writeJson("recovered-opportunity-watchlist.json", report);
   const recoveryPath = writeJson("starvation-recovery-results.json", {
     ...meta(projects, extra),
+    evidenceHydration,
     recoveredThisScan: report.recoveredThisScan,
     fullyRecoveredThisScan: report.fullyRecoveredThisScan,
     partiallyRecoveredThisScan: report.partiallyRecoveredThisScan,

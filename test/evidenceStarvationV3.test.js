@@ -25,11 +25,68 @@ import { fieldApplicability } from "../src/engines/dataStarvationRootCauseEngine
 import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
 import { emptyExecutionLabel } from "../src/reports/githubPagesPublisher.js";
 import { buildScannerSemanticHealth } from "../src/index.js";
+import { getBlockscoutDeployerEvidence } from "../src/data/security/blockscoutConnector.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
 const CREATOR = "0x3333333333333333333333333333333333333333";
 const BUYER = "0x4444444444444444444444444444444444444444";
+
+test("exact persistent creator cache is reused before exhausted provider budgets", async (t) => {
+  t.mock.method(globalThis, "fetch", () => { throw new Error("cached proof must not trigger HTTP"); });
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1, timeBudgetMs: 0 });
+  state.requestsUsed = 1;
+  const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+    [request("creatorAddress", "block explorers")], {
+      readCachedSecurityEvidence: (source) => source === "goplus" ? {
+        provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+        chain: "base", address: TOKEN, creatorAddress: CREATOR,
+        observedAt: new Date().toISOString(), confidence: 80,
+      } : null,
+    }, state);
+  assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.value, CREATOR);
+  assert.equal(result.attempts[0].status, "LOCAL_EVIDENCE_AVAILABLE");
+  assert.equal(state.requestsUsed, 1);
+});
+
+test("persistent creator cache cannot override exact identity or legacy proof rejection", async () => {
+  for (const patch of [{ address: POOL }, { chain: "ethereum" }, { responseIdentityVerified: false }, { creatorAddress: `0x${"0".repeat(40)}` }]) {
+    const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+      [request("creatorAddress", "block explorers")], {
+        timeBudgetMs: 0,
+        readCachedSecurityEvidence: (source) => source === "goplus" ? {
+          provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+          chain: "base", address: TOKEN, creatorAddress: CREATOR, ...patch,
+        } : null,
+      });
+    assert.equal(result.observations.length, 0);
+    assert.ok(result.attempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
+  }
+});
+
+test("recovery deadline retains completed proof and reports unattempted evidence unknown", async () => {
+  let now = 0;
+  let calls = 0;
+  const projects = [TOKEN, POOL].map((tokenAddress) => ({
+    chain: "base", tokenAddress,
+    targetedEnrichmentPlan: { items: [{ canonicalField: "creatorAddress", recoverable: true }] },
+  }));
+  const result = await analyzeActiveEvidenceRecoveryBatch(projects, {
+    now: () => now, timeBudgetMs: 10, concurrency: 1,
+    providers: { getDeployerEvidence: async (project) => {
+      calls += 1;
+      now = 11;
+      return { chain: project.chain, address: project.tokenAddress, creatorAddress: CREATOR };
+    } },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[1].creatorAddress, undefined);
+  assert.ok(result[1].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
+  assert.equal(result[1].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
+  assert.ok(result[1].activeEvidenceRecovery.unrecoveredFields.includes("creatorAddress"));
+  assert.equal(result[1].activeEvidenceRecovery.batchSummary.deepEvaluatedCandidates, 2);
+});
 
 function request(field, source) {
   return {
@@ -129,6 +186,113 @@ test("unknown Blockscout creator remains null", async () => {
     { providers: { getDeployerEvidence: async () => ({ creatorAddress: null, confidence: 0 }) } }
   );
   assert.equal(result.observations.length, 0);
+});
+
+test("cheap exact GoPlus creator proof completes recovery within one request", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creator", "security providers")],
+    { providers: { getGoPlusDeployerEvidence: async () => ({
+      chain: "bsc", address: TOKEN, creatorAddress: CREATOR,
+      status: "EVIDENCE_AVAILABLE", provider: "goplus",
+    }) } },
+    state
+  );
+  assert.equal(result.observations.find((item) => item.field === "creator")?.value, CREATOR);
+  assert.equal(state.requestsUsed, 1);
+  assert.deepEqual(result.attempts.map((item) => item.provider), ["goplus-deployer"]);
+});
+
+test("GoPlus queue time does not consume the HTTP recovery timeout", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => ({ ok: true, json: async () => ({
+    result: { [TOKEN]: { creator_address: CREATOR, is_open_source: "1" } },
+  }) }));
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 2 });
+  const results = await Promise.all([0, 1].map(() => executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN }, [request("creator", "security providers")],
+    { useCache: false, providerTimeoutMs: 250 }, state
+  )));
+  assert.equal(state.requestsUsed, 2);
+  for (const result of results) {
+    assert.equal(result.observations.find((item) => item.field === "creator")?.value, CREATOR);
+    assert.equal(result.attempts[0].status, "SUCCESS");
+  }
+});
+
+test("GoPlus queued requests recheck the shared budget before issuing HTTP calls", async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    calls += 1;
+    return { ok: true, json: async () => ({ result: { [TOKEN]: { creator_address: CREATOR } } }) };
+  });
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const results = await Promise.all([0, 1].map(() => executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN }, [request("creator", "security providers")],
+    { useCache: false, providerTimeoutMs: 250 }, state
+  )));
+  assert.equal(calls, 1);
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(results.filter((result) => result.attempts[0].status === "REQUEST_BUDGET_EXHAUSTED").length, 1);
+});
+
+test("Blockscout HTTP failures returned as UNKNOWN still open the provider circuit", async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    calls += 1;
+    return { ok: false, status: 403, statusText: "Forbidden" };
+  });
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  const options = { useCache: false, providers: { getDeployerEvidence: getBlockscoutDeployerEvidence } };
+  const project = { chain: "base", tokenAddress: TOKEN };
+  const first = await executeActiveEvidenceProviderRequests(project, [request("creator", "block explorers")], options, state);
+  const second = await executeActiveEvidenceProviderRequests(project, [request("creator", "block explorers")], options, state);
+  assert.equal(first.attempts[0].status, "FAILED");
+  assert.equal(second.attempts[0].status, "CIRCUIT_OPEN");
+  assert.equal(calls, 2);
+  assert.equal(first.observations.length, 0);
+  assert.equal(second.observations.length, 0);
+});
+
+test("healthy missing creator lookup does not open a provider circuit", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  const options = { providers: { getDeployerEvidence: async () => ({ status: "UNKNOWN", creatorAddress: null }) } };
+  for (let i = 0; i < 2; i += 1) {
+    const result = await executeActiveEvidenceProviderRequests(
+      { chain: "base", tokenAddress: TOKEN }, [request("creator", "block explorers")], options, state
+    );
+    assert.equal(result.attempts[0].status, "SUCCESS");
+    assert.equal(result.observations.length, 0);
+  }
+});
+
+test("temporary GoPlus rate limits do not permanently open the creator circuit", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  const options = { providers: {
+    getDeployerEvidence: async () => ({}),
+    getGoPlusDeployerEvidence: async () => ({ status: "UNKNOWN", providerFailure: true, rateLimited: true, warnings: ["quota reached"] }),
+  } };
+  for (let i = 0; i < 2; i += 1) {
+    const result = await executeActiveEvidenceProviderRequests(
+      { chain: "base", tokenAddress: TOKEN }, [request("creator", "security providers")], options, state
+    );
+    assert.equal(result.attempts.find((attempt) => attempt.provider === "goplus-deployer")?.status, "RATE_LIMITED");
+    assert.equal(result.observations.length, 0);
+  }
+  assert.equal(state.providers.get("goplus-deployer:base").circuitOpen, false);
+});
+
+test("Blockscout contract-not-found responses preserve a healthy provider circuit", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => ({ ok: false, status: 404, statusText: "Not Found" }));
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  for (let i = 0; i < 2; i += 1) {
+    const result = await executeActiveEvidenceProviderRequests(
+      { chain: "base", tokenAddress: TOKEN }, [request("creator", "block explorers")],
+      { useCache: false, providers: { getDeployerEvidence: getBlockscoutDeployerEvidence } }, state
+    );
+    assert.equal(result.attempts[0].status, "SUCCESS");
+    assert.equal(result.observations.length, 0);
+  }
 });
 
 test("active recovery invokes the deployer provider path", async () => {
@@ -240,6 +404,7 @@ test("deployer recovery reuses exact existing security evidence without a provid
       tokenAddress: TOKEN,
       securityEvidence: [{
         provider: "goplus",
+        responseIdentityVerified: true,
         status: "EVIDENCE_AVAILABLE",
         chain: "bsc",
         address: TOKEN,
@@ -254,6 +419,61 @@ test("deployer recovery reuses exact existing security evidence without a provid
   assert.equal(calls, 0);
   assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.value, CREATOR);
   assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.source, "goplus");
+});
+
+test("deployer recovery reuses exact cached Sourcify and Etherscan creator evidence", async () => {
+  for (const [field, provider] of [
+    ["sourcifyDeployerEvidence", "sourcify-v2"],
+    ["etherscanDeployerEvidence", "etherscan-v2"],
+  ]) {
+    let calls = 0;
+    const result = await executeActiveEvidenceProviderRequests(
+      {
+        chain: "base",
+        tokenAddress: TOKEN,
+        [field]: {
+          provider,
+          status: "EVIDENCE_AVAILABLE",
+          chain: "base",
+          address: TOKEN,
+          creatorAddress: CREATOR,
+          observedAt: "2026-08-12T00:00:00.000Z",
+        },
+      },
+      [request("creatorAddress", "block explorers")],
+      { providers: { getDeployerEvidence: async () => { calls += 1; return {}; } } }
+    );
+    assert.equal(calls, 0);
+    assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.value, CREATOR);
+    assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.source, provider);
+  }
+});
+
+test("deployer recovery does not reuse cached creator without exact identity", async () => {
+  for (const cached of [
+    { chain: "base", address: BUYER },
+    { chain: "ethereum", address: TOKEN },
+    { chain: null, address: TOKEN },
+  ]) {
+    const result = await executeActiveEvidenceProviderRequests(
+      {
+        chain: "base",
+        tokenAddress: TOKEN,
+        sourcifyDeployerEvidence: {
+          provider: "sourcify-v2",
+          status: "EVIDENCE_AVAILABLE",
+          creatorAddress: CREATOR,
+          ...cached,
+        },
+      },
+      [request("creatorAddress", "block explorers")],
+      {
+        maxProviderRequests: 1,
+        providers: { getDeployerEvidence: async () => ({ creatorAddress: null }) },
+      }
+    );
+    assert.equal(result.observations.length, 0);
+  }
 });
 
 test("deployer recovery rejects existing creator evidence for a different contract", async () => {
@@ -276,6 +496,71 @@ test("deployer recovery rejects existing creator evidence for a different contra
     }
   );
   assert.equal(result.observations.length, 0);
+});
+
+test("creator and security recovery share one exact GoPlus observation", async () => {
+  let creatorCalls = 0;
+  let securityCalls = 0;
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creator", "security providers"), request("honeypotDetected", "GoPlus")],
+    { providers: {
+      getGoPlusDeployerEvidence: async () => {
+        creatorCalls += 1;
+        return { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+          chain: "bsc", address: TOKEN, creatorAddress: CREATOR, honeypot: false,
+          raw: { is_honeypot: "0" }, confidence: 78 };
+      },
+      getFreeSecurityEvidence: async () => { securityCalls += 1; return {}; },
+    } }, state
+  );
+  assert.equal(creatorCalls, 1);
+  assert.equal(securityCalls, 0);
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.value, false);
+  assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.tokenAddress, TOKEN);
+  assert.deepEqual(result.projectPatch.securityEvidenceSummary.knownProviders, ["goplus"]);
+  assert.ok(result.projectPatch.securityEvidenceSummary.unknownChecks.includes("goplus.is_mintable"));
+});
+
+test("creator-only recovery forwards actual companion safety proof without another provider request", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN }, [request("creator", "security providers")],
+    { providers: { getGoPlusDeployerEvidence: async () => ({ provider: "goplus",
+      status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true, chain: "base", address: TOKEN,
+      creatorAddress: CREATOR, honeypot: false, raw: { is_honeypot: "0" } }) } }, state
+  );
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(result.observations.find((item) => item.field === "honeypotDetected")?.value, false);
+  assert.ok(result.projectPatch.securityEvidenceSummary.unknownChecks.length > 0);
+});
+
+test("an absent GoPlus safety flag cannot be recovered as a clean negative", async () => {
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creator", "security providers"), request("honeypotDetected", "GoPlus")],
+    { maxProviderRequests: 1, providers: {
+      getGoPlusDeployerEvidence: async () => ({ provider: "goplus", status: "EVIDENCE_AVAILABLE",
+        responseIdentityVerified: true, chain: "bsc", address: TOKEN,
+        creatorAddress: CREATOR, honeypot: false, raw: { is_open_source: "1" } }),
+      getFreeSecurityEvidence: async () => { throw new Error("No budget should remain"); },
+    } }
+  );
+  assert.equal(result.observations.some((item) => item.field === "honeypotDetected"), false);
+});
+
+test("legacy GoPlus creator caches without response identity proof are refreshed", async () => {
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "base", tokenAddress: TOKEN, goplusDeployerEvidence: {
+      provider: "goplus", status: "EVIDENCE_AVAILABLE", chain: "base", address: TOKEN, creatorAddress: CREATOR,
+    } },
+    [request("creator", "block explorers")],
+    { maxProviderRequests: 1, providers: { getDeployerEvidence: async () => ({ creatorAddress: null }) } }
+  );
+  assert.equal(result.observations.length, 0);
+  assert.notEqual(result.attempts[0].status, "LOCAL_EVIDENCE_AVAILABLE");
 });
 
 test("active recovery invokes the wallet provider path", async () => {
@@ -426,6 +711,17 @@ test("wave 1 prioritizes recoverable core blockers over advisory value of inform
 
   const result = buildActiveEvidenceRecoveryWaves(candidates, { wave1Max: 1 });
   assert.deepEqual(result.waves.WAVE1.map((item) => item.project.symbol), ["CORE_DEPLOYER_GAP"]);
+});
+
+test("candidate field limits preserve core creator recovery ahead of advisory market fields", () => {
+  const result = buildActiveEvidenceRecoveryWaves([{
+    chain: "base", tokenAddress: TOKEN,
+    targetedEnrichmentPlan: { items: [
+      { canonicalField: "priceUsd", recoverable: true, evidenceClass: "ADVISORY", valueOfInformationScore: 99 },
+      { canonicalField: "creator", recoverable: true, evidenceClass: "CORE", valueOfInformationScore: 0.1 },
+    ] },
+  }], { maxFieldsPerCandidate: 1 });
+  assert.deepEqual(result.waves.WAVE1[0].entries.map((entry) => entry.field), ["creator"]);
 });
 
 test("wave 3 only includes the configured top execution candidates", () => {

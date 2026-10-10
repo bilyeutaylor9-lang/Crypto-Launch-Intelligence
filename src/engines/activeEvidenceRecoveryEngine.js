@@ -344,13 +344,14 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
               family: sourceFamilyForField(field),
               wave,
               item,
+              coreEvidence: item.evidenceClass === "CORE" || item.blockingResearch === true || item.blockingExecution === true,
               requestCost: Math.max(1, item.estimatedRequests || item.targetSources?.length || 1),
               score:
                 num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100 +
                 candidate[scoreKey],
             };
           })
-          .sort((a, b) => b.score - a.score)
+          .sort((a, b) => Number(b.coreEvidence) - Number(a.coreEvidence) || b.score - a.score)
           .slice(0, maxFieldsPerCandidate),
       }))
       .filter((candidate) => candidate.entries.length)
@@ -375,6 +376,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
   const executionState = createActiveEvidenceExecutionState({
     ...options,
     maxProviderRequests: maxRequests,
+    timeBudgetMs: options.timeBudgetMs ?? process.env.ACTIVE_EVIDENCE_RECOVERY_TIME_BUDGET_MS ?? 23 * 60 * 1000,
   });
   const concurrency = Math.max(
     1,
@@ -548,6 +550,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     selectedWaveCounts,
     providerRequestsUsed: providerExecution.requestsUsed,
     providerRequestBudget: providerExecution.maxRequests,
+    timeBudgetExceeded: providerExecution.timeBudgetExceeded,
+    timeBudgetSkippedCalls: providerExecution.timeBudgetSkippedCalls,
     recoveredFieldsByFamily,
     unresolvedFieldsByFamily,
   };
