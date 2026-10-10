@@ -101,7 +101,7 @@ test("wrong chain, foreign token, malformed logs and out-of-range evidence remai
 });
 test("RPC fallback actually promotes raw companions with provenance but not smart labels", async () => {
   const proof = await getRpcWalletEvidence(project, options({}));
-  const result = await executeActiveEvidenceProviderRequests(project, [{ field: "smartWallets" }], {
+  const result = await executeActiveEvidenceProviderRequests(project, [{ field: "wallets" }], {
     walletHistory: false,
     providers: { getBlockscoutWalletEvidence: async () => ({ status: "UNKNOWN" }), getRpcWalletEvidence: async () => proof },
   });

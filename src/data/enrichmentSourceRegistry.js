@@ -7,10 +7,10 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "official project links", authority: 64, cost: 2, latencyMs: 3000, fields: ["website", "githubRepo"] },
   ],
   MARKET: [
-    { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
+    { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd", "circulatingMarketCapUsd", "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "buyTransactions24h", "sellTransactions24h"] },
     { source: "GeckoTerminal", authority: 80, cost: 1, latencyMs: 1600, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
     { source: "DeFiLlama Exact Price", authority: 78, cost: 1, latencyMs: 1400, fields: ["priceUsd"] },
-    { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "priceUsd"] },
+    { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "volume24hUsd", "priceUsd"] },
     { source: "CoinPaprika", authority: 72, cost: 1, latencyMs: 1800, fields: ["circulatingMarketCapUsd", "priceUsd"] },
     { source: "CoinLore", authority: 65, cost: 1, latencyMs: 1500, fields: ["circulatingMarketCapUsd", "volume24hUsd", "priceUsd"] },
     { source: "CEX public tickers", authority: 68, cost: 1, latencyMs: 1700, fields: ["volume24hUsd", "marketPair"] },
@@ -24,8 +24,8 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "Etherscan-compatible explorers", authority: 78, cost: 1, latencyMs: 1800, fields: ["contractVerified", "ownerRenounced", "buyTaxPct", "sellTaxPct"] },
   ],
   WALLETS: [
-    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h", "buyVolumeUsd", "sellVolumeUsd", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
+    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "block explorers", authority: 78, cost: 3, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "walletTransactions", "walletParticipationHistory"] },
     { source: "wallet-history database", authority: 76, cost: 0, latencyMs: 200, fields: ["walletParticipationHistory"] },
   ],
   DEPLOYER: [
@@ -73,8 +73,8 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   stableExitLiquidityUsd: "MARKET",
   volume24hUsd: "MARKET",
   uniqueBuyers24h: "WALLETS",
-  buyTransactions24h: "WALLETS",
-  sellTransactions24h: "WALLETS",
+  buyTransactions24h: "MARKET",
+  sellTransactions24h: "MARKET",
   holderCount: "WALLETS",
   holderAddresses: "WALLETS",
   wallets: "WALLETS",
@@ -112,11 +112,11 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   reusedBytecodeRisk: "DEPLOYER",
   fundingSourceRisk: "DEPLOYER",
   githubRepo: "DEVELOPMENT",
-  developerActivityScore: "DEVELOPMENT",
+  developerActivityScore: "DERIVED",
   commits30d: "DEVELOPMENT",
   contributors30d: "DEVELOPMENT",
   roadmap: "CATALYSTS",
-  catalystScore: "CATALYSTS",
+  catalystScore: "DERIVED",
   liveCatalystEvents: "CATALYSTS",
   honeypotDetected: "SECURITY",
   sellRestricted: "SECURITY",
@@ -174,7 +174,7 @@ export function sourceFamilyForField(field = "") {
 
 export function sourcesForField(field = "") {
   const family = sourceFamilyForField(field);
-  return ENRICHMENT_SOURCE_REGISTRY[family] || [];
+  return (ENRICHMENT_SOURCE_REGISTRY[family] || []).filter((source) => source.fields.includes(field));
 }
 
 export function recoveryDispositionForField(field = "", options = {}) {

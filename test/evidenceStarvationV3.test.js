@@ -569,18 +569,19 @@ test("active recovery invokes the wallet provider path", async () => {
   let calls = 0;
   const result = await executeActiveEvidenceProviderRequests(
     { chain: "base", tokenAddress: TOKEN, poolAddress: POOL },
-    [request("uniqueBuyers24h", "block explorers")],
+    [request("wallets", "block explorers")],
     {
+      walletHistory: false,
       providers: {
         getWalletEvidence: async () => {
           calls += 1;
-          return { status: "EVIDENCE_AVAILABLE", uniqueBuyers24h: 3, observedAt: "2026-08-12T00:00:00.000Z", exactPoolIdentity: true, poolAddress: POOL };
+          return { status: "EVIDENCE_AVAILABLE", wallets: [BUYER], observedAt: "2026-08-12T00:00:00.000Z", exactPoolIdentity: true, poolAddress: POOL };
         },
       },
     }
   );
   assert.equal(calls, 1);
-  assert.equal(result.observations[0].value, 3);
+  assert.deepEqual(result.observations.find((item) => item.field === "wallets")?.value, [BUYER]);
 });
 
 test("derived fields are never sent to external providers", async () => {
@@ -684,7 +685,7 @@ test("wave 2 only includes the configured top value-of-information candidates", 
     symbol: `W${index}`,
     valueOfInformationScore: index,
     targetedEnrichmentPlan: {
-      items: [{ canonicalField: "uniqueBuyers24h", recoverable: true, valueOfInformationScore: index, targetSources: [{ source: "block explorers" }] }],
+      items: [{ canonicalField: "wallets", recoverable: true, valueOfInformationScore: index, targetSources: [{ source: "block explorers" }] }],
     },
   }));
   const result = buildActiveEvidenceRecoveryWaves(candidates, { wave2Max: 2 });
@@ -853,7 +854,8 @@ test("provider circuit breakers are isolated by chain", async () => {
 
 test("recovered evidence triggers only dependent engine reruns", () => {
   assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["WALLETS"]), true);
-  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["MARKET"]), false);
+  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["MARKET"]), true);
+  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["EXECUTION"]), false);
   assert.equal(shouldRerunEngineForEvidenceFamilies("Active Liquidity Truth", ["MARKET"]), true);
 });
 

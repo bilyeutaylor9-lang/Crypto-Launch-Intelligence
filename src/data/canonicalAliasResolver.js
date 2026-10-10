@@ -83,6 +83,11 @@ const NUMERIC_FIELDS = new Set([
 ]);
 const UNSAFE_TOKEN_LIQUIDITY_CONTEXT = /\b(protocol|staking|lending|treasury|bridge|chain|app|application|total)\b/i;
 const MARKET_PAIR_SEPARATORS = /[/:_\-\s]/;
+const UNIQUE_PARTICIPANT_FIELDS = new Set(["uniqueBuyers24h", "uniqueSellers24h"]);
+
+function transactionCountSource(sourcePath = "") {
+  return /(?:^|[._])(?:txns|transactions|trades|swaps)(?:[._]|$)|(?:^|\.)(?:buys|sells|buyTransactions24h|sellTransactions24h)$/i.test(String(sourcePath));
+}
 
 function hasOwn(object = {}, key = "") {
   return Object.prototype.hasOwnProperty.call(object, key);
@@ -297,6 +302,16 @@ function normalizeValue(value, canonicalField, project, options = {}) {
   if (NUMERIC_FIELDS.has(canonicalField)) {
     const sourcePath = String(options.sourcePath || "");
     const sourceField = String(options.sourceField || "");
+    const priorProvenance = project.canonicalAliasProvenance?.[sourcePath] || fieldProvenance(project, sourcePath);
+    if (UNIQUE_PARTICIPANT_FIELDS.has(canonicalField) &&
+      (transactionCountSource(sourcePath) || transactionCountSource(priorProvenance.sourcePath))) {
+      return {
+        value: null,
+        validationStatus: "REJECTED_ALIAS",
+        normalizationRule: "transactions-are-not-unique-participants",
+        validationReason: "Trade counts do not establish distinct buyer or seller addresses.",
+      };
+    }
     const provider = inferProvider(project, options);
     const profile = providerProfile(provider);
     if (
@@ -503,8 +518,15 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
 
 export function applyCanonicalAliases(project = {}, options = {}) {
   const resolution = resolveCanonicalAliases(project, options);
+  const sanitized = { ...project };
+  for (const field of UNIQUE_PARTICIPANT_FIELDS) {
+    const priorProvenance = project.canonicalAliasProvenance?.[field] || fieldProvenance(project, field);
+    if (transactionCountSource(priorProvenance.sourcePath) && Object.hasOwn(resolution.resolved, field)) {
+      sanitized[field] = resolution.resolved[field];
+    }
+  }
   return {
-    ...project,
+    ...sanitized,
     ...Object.fromEntries(
       Object.entries(resolution.resolved).filter(([, value]) => value !== null && value !== undefined && value !== "")
     ),

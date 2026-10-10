@@ -129,7 +129,7 @@ function analyzeHolderQuality(project = {}) {
     "pool.lpCount",
     "dexPair.liquidityProviders",
   ]);
-  const uniqueBuyers24h = firstNumber(project, ["uniqueBuyers24h", "buyers24h", "txns.h24.buys"]);
+  const uniqueBuyers24h = firstNumber(project, ["uniqueBuyers24h", "buyers24h"]);
   const uniqueBuyers30d = firstNumber(project, ["uniqueBuyers30d", "buyers30d"]);
   const activeHolders30d = firstNumber(project, ["activeHolders30d", "activeWallets30d"]);
   const activeHolders90d = firstNumber(project, ["activeHolders90d", "activeWallets90d"]);

@@ -16,6 +16,7 @@ import {
 import { getCoinPaprikaTickerById } from "./freeMarketDataConnector.js";
 import { getDefiLlamaExactPrice } from "./defiLlamaExactPriceConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
+import { securityHolderObservations } from "./security/securityWalletEvidence.js";
 import {
   getBlockscoutDeployerEvidence,
   getBlockscoutSecurityEvidence,
@@ -128,23 +129,8 @@ const WALLET_RAW_FIELDS = new Set([
   "wallets",
   "holderAddresses",
   "holderCount",
-  "buyerAddresses",
-  "sellerAddresses",
   "walletTransactions",
   "walletParticipationHistory",
-  "uniqueBuyers24h",
-  "buyTransactions24h",
-  "sellTransactions24h",
-  "buyVolumeUsd",
-  "sellVolumeUsd",
-  "smartWalletBuys24h",
-  "smartWalletSells24h",
-  "smartWalletBuyVolumeUsd",
-  "smartWalletSellVolumeUsd",
-  "smartWalletBuyCount",
-  "smartWalletSellCount",
-  "smartWallets",
-  "trackedWallets",
 ]);
 
 function text(value = "") {
@@ -1392,6 +1378,18 @@ function knownSecurityItems(result = {}) {
   );
 }
 
+function securityIdentityMatches(item = {}, identity = {}, allowUnknown = false) {
+  if (!item || typeof item !== "object") return false;
+  if (allowUnknown && item.status === "UNKNOWN") {
+    return (!item.chain || normalizeChainId(item.chain) === identity.chain) &&
+      (!(item.address || item.tokenAddress) ||
+        normalizeTokenAddress(item.address || item.tokenAddress, identity.chain) === identity.tokenAddress);
+  }
+  return normalizeChainId(item.chain) === identity.chain &&
+    normalizeTokenAddress(item.address || item.tokenAddress, identity.chain) === identity.tokenAddress &&
+    (!lower(item.provider).includes("goplus") || item.responseIdentityVerified === true);
+}
+
 function securitySourceEligible(item = {}, field = "") {
   const provider = lower(item.provider);
   if (provider.includes("goplus") && item.raw) {
@@ -1441,6 +1439,7 @@ function securityValue(items = [], field = "") {
 }
 
 function securityObservations(items = [], fields = [], identity = {}, result = {}) {
+  items = items.filter((item) => securityIdentityMatches(item, identity));
   return fields
     .map((field) => {
       const capable = items.filter((item) => securitySourceEligible(item, field));
@@ -1530,13 +1529,18 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
   }
 
   const result = attempt.value || {};
-  const items = knownSecurityItems(result);
-  const observations = securityObservations([...existing, ...items], fields, identity, result);
+  const items = knownSecurityItems(result).filter((item) => securityIdentityMatches(item, identity));
+  const observations = [
+    ...securityObservations([...existing, ...items], fields, identity, result),
+    ...securityHolderObservations(project, [...existing, ...items], options.securityEvidence || options),
+  ];
 
   return {
     observations,
     attempts: [{ ...attempt, value: undefined, providers: result.summary?.knownProviders || [] }],
-    projectPatch: securityEvidencePatch([...existing, ...(Array.isArray(result.evidence) ? result.evidence : items)]),
+    projectPatch: securityEvidencePatch([...existing,
+      ...(Array.isArray(result.evidence) ? result.evidence : items)
+        .filter((item) => securityIdentityMatches(item, identity, true))]),
   };
 }
 
@@ -1637,7 +1641,11 @@ export async function executeActiveEvidenceProviderRequests(
   const fields = [...new Set((Array.isArray(requests) ? requests : []).map(fieldOf).filter(Boolean))];
   const sources = targetSourceNames(requests);
   const attempts = [];
-  const observations = [];
+  const observations = securityHolderObservations(project, [
+    ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
+    ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
+    project.goplusDeployerEvidence,
+  ], options);
   let projectPatch = {};
 
   const dexFields = fields.filter((field) => DEX_FIELDS.has(field));
@@ -1711,15 +1719,16 @@ export async function executeActiveEvidenceProviderRequests(
       );
       const items = [...existing, companion];
       observations.push(...securityObservations(items, [...SECURITY_FIELDS], identity));
+      observations.push(...securityHolderObservations(project, items, options));
       projectPatch = { ...projectPatch, ...securityEvidencePatch(items) };
     }
   }
   if (
-    walletFields.length &&
+    walletFields.some((field) => !observations.some((item) => item.field === field)) &&
     sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase"])
   ) {
     parallel.push(
-      recoverWalletEvidenceWithHistory(project, walletFields, providers, options, executionState).then((result) => ({
+      recoverWalletEvidenceWithHistory(project, walletFields.filter((field) => !observations.some((item) => item.field === field)), providers, options, executionState).then((result) => ({
         kind: "wallets",
         result,
       }))

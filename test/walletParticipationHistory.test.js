@@ -171,9 +171,9 @@ test("historical participation cannot satisfy fresh buyer counts, volume or smar
   const result = await executeActiveEvidenceProviderRequests(PROJECT,
     [request("uniqueBuyers24h"), request("smartWalletBuys24h"), request("buyVolumeUsd")],
     { walletHistory: historyOptions, providers: { getWalletEvidence: async () => { calls += 1; return { status: "UNKNOWN" }; } } });
-  assert.equal(calls, 1);
-  assert.deepEqual(result.observations.map((row) => row.field), ["walletParticipationHistory"]);
-  assert.equal(result.projectPatch.walletHistory.smartWallets, null);
+  assert.equal(calls, 0);
+  assert.deepEqual(result.observations, []);
+  assert.equal(result.projectPatch.walletHistory, undefined);
 });
 
 test("history-only recovery uses no external provider even when request budget cannot fit a wallet call", async (t) => {

@@ -272,8 +272,7 @@ function planItems(project = {}) {
   for (const item of items) {
     const field = item?.canonicalField || item?.field;
     if (!field || item.recoverable === false) continue;
-    const recoveryDisposition = item.recoveryDisposition ||
-      recoveryDispositionForField(field, {
+    const recoveryDisposition = recoveryDispositionForField(field, {
         applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
       });
     if (recoveryDisposition !== "RAW_RECOVERABLE") continue;

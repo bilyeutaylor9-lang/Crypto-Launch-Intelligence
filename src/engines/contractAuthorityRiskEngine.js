@@ -5,6 +5,7 @@ import {
   summarizeSecurityEvidence,
   tokenAddress,
 } from "../data/security/securityEvidenceUtils.js";
+import { securityWalletEvidencePatch } from "../data/security/securityWalletEvidence.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -120,6 +121,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     summary = collected.summary;
     evidence = collected.evidence;
   }
+  const walletPatch = securityWalletEvidencePatch(project, evidence, options.securityEvidence || options);
 
   if (!summary || summary.status === "UNKNOWN" || (summary.unknownChecks?.length && !summary.malicious && !summary.honeypot)) {
     const observedRisk = summary?.status !== "UNKNOWN" && summary
@@ -129,6 +131,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     const safetyStatus = score >= 80 ? "SAFETY_BLOCKED" : summary && summary.status !== "UNKNOWN" ? "SAFETY_PARTIAL" : "SAFETY_UNKNOWN";
     return {
       ...project,
+      ...walletPatch,
       securityEvidence: evidence,
       securityEvidenceSummary: summary || null,
       securityEvidenceStatus: summary?.status || "UNKNOWN",
@@ -175,6 +178,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
 
   return {
     ...project,
+    ...walletPatch,
     securityEvidence: evidence,
     securityEvidenceSummary: summary,
     securityEvidenceStatus: summary.status || "UNKNOWN",

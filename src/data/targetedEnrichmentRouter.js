@@ -28,10 +28,10 @@ export function estimateValueOfInformation(item = {}) {
 export function routeMissingEvidence(item = {}, options = {}) {
   const field = item.canonicalField || item.field || "";
   const family = sourceFamilyForField(field);
-  const recoveryDisposition = recoveryDispositionForField(field, {
+  let recoveryDisposition = recoveryDispositionForField(field, {
     applicability: item.applicability,
   });
-  const sources = sourcesForField(field)
+  const sources = (recoveryDisposition === "RAW_RECOVERABLE" ? sourcesForField(field) : [])
     .filter((source) => options.freeOnly === false || source.free !== false)
     .map((source) => ({
       ...source,
@@ -43,6 +43,9 @@ export function routeMissingEvidence(item = {}, options = {}) {
       }),
     }))
     .sort((a, b) => b.valueOfInformation - a.valueOfInformation || b.authority - a.authority);
+  if (recoveryDisposition === "RAW_RECOVERABLE" && !sources.length) {
+    recoveryDisposition = "UNAVAILABLE_WITH_CURRENT_PROVIDERS";
+  }
 
   return {
     field,
