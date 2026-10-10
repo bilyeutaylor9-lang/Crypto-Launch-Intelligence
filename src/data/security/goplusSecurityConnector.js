@@ -22,11 +22,12 @@ function pct(value) {
   return number <= 1 ? number * 100 : number;
 }
 
-function firstResult(raw = {}, address = "") {
+function firstResult(raw = {}, address = "", chain = "") {
   const result = raw.result || raw.data || raw;
   if (!result || typeof result !== "object") return null;
   const normalized = lower(address);
   if (!normalized) return null;
+  if (chainKey(chain) === "solana") return result[address] || null;
   return (
     result[normalized] ||
     result[address] ||
@@ -37,7 +38,7 @@ function firstResult(raw = {}, address = "") {
 
 export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
   const address = meta.address || "";
-  const item = firstResult(raw, address);
+  const item = firstResult(raw, address, meta.chain);
 
   if (!item || typeof item !== "object") {
     return unknownSecurityEvidence(GOPLUS_PROVIDER, "GoPlus returned no token security record.");

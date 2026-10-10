@@ -376,6 +376,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
   const executionState = createActiveEvidenceExecutionState({
     ...options,
     maxProviderRequests: maxRequests,
+    timeBudgetMs: options.timeBudgetMs ?? process.env.ACTIVE_EVIDENCE_RECOVERY_TIME_BUDGET_MS ?? 23 * 60 * 1000,
   });
   const concurrency = Math.max(
     1,
@@ -549,6 +550,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     selectedWaveCounts,
     providerRequestsUsed: providerExecution.requestsUsed,
     providerRequestBudget: providerExecution.maxRequests,
+    timeBudgetExceeded: providerExecution.timeBudgetExceeded,
+    timeBudgetSkippedCalls: providerExecution.timeBudgetSkippedCalls,
     recoveredFieldsByFamily,
     unresolvedFieldsByFamily,
   };

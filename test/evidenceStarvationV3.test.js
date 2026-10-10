@@ -32,6 +32,62 @@ const POOL = "0x2222222222222222222222222222222222222222";
 const CREATOR = "0x3333333333333333333333333333333333333333";
 const BUYER = "0x4444444444444444444444444444444444444444";
 
+test("exact persistent creator cache is reused before exhausted provider budgets", async (t) => {
+  t.mock.method(globalThis, "fetch", () => { throw new Error("cached proof must not trigger HTTP"); });
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1, timeBudgetMs: 0 });
+  state.requestsUsed = 1;
+  const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+    [request("creatorAddress", "block explorers")], {
+      readCachedSecurityEvidence: (source) => source === "goplus" ? {
+        provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+        chain: "base", address: TOKEN, creatorAddress: CREATOR,
+        observedAt: new Date().toISOString(), confidence: 80,
+      } : null,
+    }, state);
+  assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.value, CREATOR);
+  assert.equal(result.attempts[0].status, "LOCAL_EVIDENCE_AVAILABLE");
+  assert.equal(state.requestsUsed, 1);
+});
+
+test("persistent creator cache cannot override exact identity or legacy proof rejection", async () => {
+  for (const patch of [{ address: POOL }, { chain: "ethereum" }, { responseIdentityVerified: false }, { creatorAddress: `0x${"0".repeat(40)}` }]) {
+    const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+      [request("creatorAddress", "block explorers")], {
+        timeBudgetMs: 0,
+        readCachedSecurityEvidence: (source) => source === "goplus" ? {
+          provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+          chain: "base", address: TOKEN, creatorAddress: CREATOR, ...patch,
+        } : null,
+      });
+    assert.equal(result.observations.length, 0);
+    assert.ok(result.attempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
+  }
+});
+
+test("recovery deadline retains completed proof and reports unattempted evidence unknown", async () => {
+  let now = 0;
+  let calls = 0;
+  const projects = [TOKEN, POOL].map((tokenAddress) => ({
+    chain: "base", tokenAddress,
+    targetedEnrichmentPlan: { items: [{ canonicalField: "creatorAddress", recoverable: true }] },
+  }));
+  const result = await analyzeActiveEvidenceRecoveryBatch(projects, {
+    now: () => now, timeBudgetMs: 10, concurrency: 1,
+    providers: { getDeployerEvidence: async (project) => {
+      calls += 1;
+      now = 11;
+      return { chain: project.chain, address: project.tokenAddress, creatorAddress: CREATOR };
+    } },
+  });
+  assert.equal(calls, 1);
+  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[1].creatorAddress, undefined);
+  assert.ok(result[1].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
+  assert.equal(result[1].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
+  assert.ok(result[1].activeEvidenceRecovery.unrecoveredFields.includes("creatorAddress"));
+  assert.equal(result[1].activeEvidenceRecovery.batchSummary.deepEvaluatedCandidates, 2);
+});
+
 function request(field, source) {
   return {
     field,

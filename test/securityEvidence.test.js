@@ -23,6 +23,29 @@ import { analyzeLiquidityControlRisk } from "../src/engines/liquidityControlRisk
 
 const ADDRESS = "0x1111111111111111111111111111111111111111";
 
+test("GoPlus response identity preserves Solana case and EVM case-insensitivity", () => {
+  const mint = "So11111111111111111111111111111111111111112";
+  const record = { is_open_source: "1", is_honeypot: "0" };
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [mint.toLowerCase()]: record } },
+    { chain: "solana", address: mint }).status, "UNKNOWN");
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [mint]: record } },
+    { chain: "solana", address: mint }).responseIdentityVerified, true);
+  const evm = `0x${"ab".repeat(20)}`;
+  assert.equal(normalizeGoPlusTokenSecurity({ result: { [evm.toUpperCase()]: record } },
+    { chain: "base", address: evm }).responseIdentityVerified, true);
+});
+
+test("GoPlus quota waits stop at the recovery deadline without spending a slot", async () => {
+  let now = 0;
+  const limiter = createGoPlusRequestLimiter({ now: () => now, sleep: async (ms) => { now += ms; } });
+  assert.equal(await limiter(), true);
+  limiter.defer();
+  assert.equal(await limiter({ deadlineAt: 100 }), false);
+  assert.equal(now, 100);
+  assert.equal(await limiter(), true);
+  assert.equal(now, 61000);
+});
+
 test("GoPlus normalizer flags honeypot, mint, blacklist, and high tax risks", () => {
   const result = normalizeGoPlusTokenSecurity(
     {

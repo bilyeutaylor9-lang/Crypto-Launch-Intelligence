@@ -26,6 +26,7 @@ import {
 } from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
 import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
+import { getCachedSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import {
@@ -318,6 +319,8 @@ function providerFunctions(options = {}) {
 }
 
 export function createActiveEvidenceExecutionState(options = {}) {
+  const now = options.now || Date.now;
+  const timeBudgetMs = Number(options.timeBudgetMs);
   const maxRequests = Math.max(
     1,
     Number(
@@ -338,6 +341,11 @@ export function createActiveEvidenceExecutionState(options = {}) {
   );
 
   return {
+    now,
+    deadlineAt: options.deadlineAt ?? (Number.isFinite(timeBudgetMs) && timeBudgetMs >= 0
+      ? now() + timeBudgetMs : Number.POSITIVE_INFINITY),
+    timeBudgetExceeded: false,
+    timeBudgetSkippedCalls: 0,
     maxRequests,
     requestsUsed: 0,
     concurrency: Math.max(
@@ -375,6 +383,18 @@ async function executeProviderCall(
   beforeOperation = null
 ) {
   const health = providerState(state, provider, circuitScope);
+  if ((state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
+    health.skipped += 1;
+    state.timeBudgetExceeded = true;
+    state.timeBudgetSkippedCalls = (state.timeBudgetSkippedCalls || 0) + 1;
+    return {
+      status: "TIME_BUDGET_EXHAUSTED",
+      provider,
+      value: null,
+      reason: "Recovery time budget exhausted; missing evidence remains unknown.",
+      durationMs: 0,
+    };
+  }
   if (health.circuitOpen) {
     health.skipped += 1;
     return {
@@ -399,7 +419,8 @@ async function executeProviderCall(
   if (beforeOperation) {
     await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (health.circuitOpen || state.requestsUsed + cost > state.maxRequests) {
+    if (health.circuitOpen || state.requestsUsed + cost > state.maxRequests ||
+        (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
       return executeProviderCall(provider, operation, options, state, cost, circuitScope);
     }
   }
@@ -490,7 +511,7 @@ function solanaIdentity(project = {}) {
 
 function deployerValue(result = {}, field = "") {
   const rawCreator = lower(result.creatorAddress || result.contractCreator);
-  const creator = /^0x[0-9a-f]{40}$/.test(rawCreator) ? rawCreator : null;
+  const creator = /^0x[0-9a-f]{40}$/.test(rawCreator) && !/^0x0{40}$/.test(rawCreator) ? rawCreator : null;
   switch (field) {
     case "creatorAddress":
     case "deployerAddress":
@@ -585,7 +606,15 @@ export async function recoverDeployerEvidence(
 ) {
   const evm = evmIdentity(project);
   if (evm.exact) {
-    const existing = existingDeployerEvidence(project, evm);
+    let existing = existingDeployerEvidence(project, evm);
+    if (!existing && providers.preferGoPlusDeployer && providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
+      const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
+      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2"]) {
+        const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
+        existing = existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm);
+        if (existing) break;
+      }
+    }
     if (existing) {
       const source = existing.provider || existing.source || "existing-security-evidence";
       return {
@@ -596,7 +625,7 @@ export async function recoverDeployerEvidence(
           reason: null,
           durationMs: 0,
         }],
-        projectPatch: {},
+        projectPatch: lower(source).includes("goplus") ? { goplusDeployerEvidence: existing } : {},
       };
     }
 
@@ -613,7 +642,7 @@ export async function recoverDeployerEvidence(
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
         evm.chain,
-        providers.defaultGoPlusDeployerProvider ? waitForGoPlusRequestSlot : null
+        providers.defaultGoPlusDeployerProvider ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
       );
       goplusResult = goplusAttempt.value || {};
       if (goplusAttempt.status === "SUCCESS" && exactDeployerResult(goplusResult, evm)) {
@@ -701,7 +730,7 @@ export async function recoverDeployerEvidence(
         state,
         Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
         evm.chain,
-        providers.defaultGoPlusDeployerProvider ? waitForGoPlusRequestSlot : null
+        providers.defaultGoPlusDeployerProvider ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
       );
       goplusResult = goplusAttempt.value || {};
       if (
@@ -1384,7 +1413,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     state,
     Math.max(1, Number(options.securityProviderRequestCost || 4)),
     chain,
-    providers.defaultFreeSecurityProvider && chain !== "solana" ? waitForGoPlusRequestSlot : null
+    providers.defaultFreeSecurityProvider && chain !== "solana" ? () => waitForGoPlusRequestSlot({ deadlineAt: state.deadlineAt }) : null
   );
   if (attempt.status !== "SUCCESS") {
     return { observations: localObservations, attempts: [attempt], projectPatch: {} };
@@ -1638,6 +1667,8 @@ export function summarizeActiveEvidenceExecutionState(state = {}) {
   return {
     maxRequests: state.maxRequests || 0,
     requestsUsed: state.requestsUsed || 0,
+    timeBudgetExceeded: state.timeBudgetExceeded === true,
+    timeBudgetSkippedCalls: state.timeBudgetSkippedCalls || 0,
     providers: [...(state.providers?.values?.() || [])].map((provider) => ({ ...provider })),
   };
 }

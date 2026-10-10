@@ -75,7 +75,7 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,333 tests passed on the final code, including identity, cooldown, pacing,
+- 1,338 tests passed on the final code, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
 - JavaScript syntax checks passed for 711 files after the alias cache was added.
 - Typecheck and focused provider/recovery regression tests passed.
@@ -90,11 +90,37 @@ The full-size local scan discovered 29,077 assets and selected 500 deep candidat
 Its readiness audit was CPU-bound in semantic alias normalization and field-path
 conversion. A short CPU profile confirmed those pure string operations dominated
 the samples. Their results are now memoized in bounded 4,096-entry caches; strings
-longer than 1,024 characters are not retained. Provider values, observations, and
-identity decisions are not cached by this optimization.
+longer than 1,024 characters are not retained. Only deterministic text conversions
+are reused; provider observations and identity decisions are not reused by this
+optimization.
 
 A 200,000-iteration repeated-field benchmark took 640 ms before and 25 ms with the
 cache, with the same checksum. This is not an end-to-end scan speedup claim.
 Regression tests compare the original transformations with the cached outputs,
 including empty inputs, Unicode normalization, eviction, and mutable objects.
 The old full scan was stopped and restarted with this change for final validation.
+
+## Full-size timeout and repair
+
+The subsequent 500-deep-candidate scan failed in Active Evidence Recovery at its
+25-minute outer deadline. No final coverage or qualification result is claimed
+for that failed run. Its failure artifact is preserved locally at
+`/tmp/cli-full-scan-timeout-20261010.json`.
+
+Persistent exact creator records were still reached only through provider
+scheduling, consuming quota waits and request allocation for cached proof. The
+standard executor now checks the existing security cache before scheduling;
+chain, contract, creator validity, freshness, and GoPlus response-identity proof
+remain mandatory. Custom provider behavior and explicit cache bypass are retained.
+
+Recovery also has a default 23-minute internal acquisition budget, below the
+unchanged 25-minute outer guard. Quota waits respect that deadline. Expired calls
+are reported as TIME_BUDGET_EXHAUSTED and spend no requests; completed observations
+are retained. Unresolved candidates stay in the deep denominator, and final
+readiness and qualification gates still evaluate their missing evidence. A time
+budget cannot manufacture CORE_EVIDENCE_READY or a qualified pick. The internal
+budget can be configured with ACTIVE_EVIDENCE_RECOVERY_TIME_BUDGET_MS and must
+remain below the pipeline stage deadline.
+
+Final regressions also require case-sensitive Solana mint matching while keeping
+EVM address matching case-insensitive, and reject zero-address creator proof.
