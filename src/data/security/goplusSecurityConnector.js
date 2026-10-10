@@ -144,6 +144,6 @@ export async function getGoPlusSecurityEvidence(project = {}, options = {}) {
     const evidence = normalizeGoPlusTokenSecurity(raw, { chain: endpoint.chain, address });
     return options.useCache === false ? evidence : setCachedSecurityEvidence(GOPLUS_PROVIDER, endpoint.chain, address, evidence);
   } catch (error) {
-    return unknownSecurityEvidence(GOPLUS_PROVIDER, `GoPlus request failed: ${error.message}`);
+    return unknownSecurityEvidence(GOPLUS_PROVIDER, `GoPlus request failed: ${error.message}`, error);
   }
 }

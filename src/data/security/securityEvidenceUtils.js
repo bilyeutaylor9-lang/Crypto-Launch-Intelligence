@@ -157,7 +157,7 @@ export async function fetchJson(url = "", options = {}) {
   }
 }
 
-export function unknownSecurityEvidence(provider = "unknown", reason = "Security evidence unavailable.") {
+export function unknownSecurityEvidence(provider = "unknown", reason = "Security evidence unavailable.", error = null) {
   return {
     provider,
     status: "UNKNOWN",
@@ -166,6 +166,7 @@ export function unknownSecurityEvidence(provider = "unknown", reason = "Security
     warnings: [reason],
     confidence: 0,
     raw: null,
+    ...(error && error.status !== 404 ? { providerFailure: true, httpStatus: error.status || null } : {}),
   };
 }
 

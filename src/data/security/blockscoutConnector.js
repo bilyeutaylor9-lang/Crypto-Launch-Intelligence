@@ -149,13 +149,14 @@ export async function getBlockscoutSecurityEvidence(project = {}, options = {}) 
     if (contractResult.status === "rejected" && addressResult.status === "rejected") {
       return unknownSecurityEvidence(
         BLOCKSCOUT_PROVIDER,
-        `Blockscout requests failed: ${contractResult.reason?.message || addressResult.reason?.message || "unknown"}`
+        `Blockscout requests failed: ${contractResult.reason?.message || addressResult.reason?.message || "unknown"}`,
+        contractResult.reason || addressResult.reason
       );
     }
 
     return options.useCache === false ? evidence : setCachedSecurityEvidence(BLOCKSCOUT_PROVIDER, chain, address, evidence);
   } catch (error) {
-    return unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, `Blockscout request failed: ${error.message}`);
+    return unknownSecurityEvidence(BLOCKSCOUT_PROVIDER, `Blockscout request failed: ${error.message}`, error);
   }
 }
 
@@ -216,7 +217,8 @@ export async function getBlockscoutDeployerEvidence(project = {}, options = {}) 
     return {
       ...unknownSecurityEvidence(
         BLOCKSCOUT_DEPLOYER_PROVIDER,
-        `Blockscout deployer request failed: ${error.message}`
+        `Blockscout deployer request failed: ${error.message}`,
+        error
       ),
       chain,
       address,

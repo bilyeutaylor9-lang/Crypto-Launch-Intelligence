@@ -344,13 +344,14 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
               family: sourceFamilyForField(field),
               wave,
               item,
+              coreEvidence: item.evidenceClass === "CORE" || item.blockingResearch === true || item.blockingExecution === true,
               requestCost: Math.max(1, item.estimatedRequests || item.targetSources?.length || 1),
               score:
                 num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100 +
                 candidate[scoreKey],
             };
           })
-          .sort((a, b) => b.score - a.score)
+          .sort((a, b) => Number(b.coreEvidence) - Number(a.coreEvidence) || b.score - a.score)
           .slice(0, maxFieldsPerCandidate),
       }))
       .filter((candidate) => candidate.entries.length)

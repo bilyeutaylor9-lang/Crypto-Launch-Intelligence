@@ -25,6 +25,7 @@ import { fieldApplicability } from "../src/engines/dataStarvationRootCauseEngine
 import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
 import { emptyExecutionLabel } from "../src/reports/githubPagesPublisher.js";
 import { buildScannerSemanticHealth } from "../src/index.js";
+import { getBlockscoutDeployerEvidence } from "../src/data/security/blockscoutConnector.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -129,6 +130,65 @@ test("unknown Blockscout creator remains null", async () => {
     { providers: { getDeployerEvidence: async () => ({ creatorAddress: null, confidence: 0 }) } }
   );
   assert.equal(result.observations.length, 0);
+});
+
+test("cheap exact GoPlus creator proof completes recovery within one request", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1 });
+  const result = await executeActiveEvidenceProviderRequests(
+    { chain: "bsc", tokenAddress: TOKEN },
+    [request("creator", "security providers")],
+    { providers: { getGoPlusDeployerEvidence: async () => ({
+      chain: "bsc", address: TOKEN, creatorAddress: CREATOR,
+      status: "EVIDENCE_AVAILABLE", provider: "goplus",
+    }) } },
+    state
+  );
+  assert.equal(result.observations.find((item) => item.field === "creator")?.value, CREATOR);
+  assert.equal(state.requestsUsed, 1);
+  assert.deepEqual(result.attempts.map((item) => item.provider), ["goplus-deployer"]);
+});
+
+test("Blockscout HTTP failures returned as UNKNOWN still open the provider circuit", async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    calls += 1;
+    return { ok: false, status: 403, statusText: "Forbidden" };
+  });
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  const options = { useCache: false, providers: { getDeployerEvidence: getBlockscoutDeployerEvidence } };
+  const project = { chain: "base", tokenAddress: TOKEN };
+  const first = await executeActiveEvidenceProviderRequests(project, [request("creator", "block explorers")], options, state);
+  const second = await executeActiveEvidenceProviderRequests(project, [request("creator", "block explorers")], options, state);
+  assert.equal(first.attempts[0].status, "FAILED");
+  assert.equal(second.attempts[0].status, "CIRCUIT_OPEN");
+  assert.equal(calls, 2);
+  assert.equal(first.observations.length, 0);
+  assert.equal(second.observations.length, 0);
+});
+
+test("healthy missing creator lookup does not open a provider circuit", async () => {
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  const options = { providers: { getDeployerEvidence: async () => ({ status: "UNKNOWN", creatorAddress: null }) } };
+  for (let i = 0; i < 2; i += 1) {
+    const result = await executeActiveEvidenceProviderRequests(
+      { chain: "base", tokenAddress: TOKEN }, [request("creator", "block explorers")], options, state
+    );
+    assert.equal(result.attempts[0].status, "SUCCESS");
+    assert.equal(result.observations.length, 0);
+  }
+});
+
+test("Blockscout contract-not-found responses preserve a healthy provider circuit", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => ({ ok: false, status: 404, statusText: "Not Found" }));
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 10, circuitFailureThreshold: 1 });
+  for (let i = 0; i < 2; i += 1) {
+    const result = await executeActiveEvidenceProviderRequests(
+      { chain: "base", tokenAddress: TOKEN }, [request("creator", "block explorers")],
+      { useCache: false, providers: { getDeployerEvidence: getBlockscoutDeployerEvidence } }, state
+    );
+    assert.equal(result.attempts[0].status, "SUCCESS");
+    assert.equal(result.observations.length, 0);
+  }
 });
 
 test("active recovery invokes the deployer provider path", async () => {
@@ -481,6 +541,17 @@ test("wave 1 prioritizes recoverable core blockers over advisory value of inform
 
   const result = buildActiveEvidenceRecoveryWaves(candidates, { wave1Max: 1 });
   assert.deepEqual(result.waves.WAVE1.map((item) => item.project.symbol), ["CORE_DEPLOYER_GAP"]);
+});
+
+test("candidate field limits preserve core creator recovery ahead of advisory market fields", () => {
+  const result = buildActiveEvidenceRecoveryWaves([{
+    chain: "base", tokenAddress: TOKEN,
+    targetedEnrichmentPlan: { items: [
+      { canonicalField: "priceUsd", recoverable: true, evidenceClass: "ADVISORY", valueOfInformationScore: 99 },
+      { canonicalField: "creator", recoverable: true, evidenceClass: "CORE", valueOfInformationScore: 0.1 },
+    ] },
+  }], { maxFieldsPerCandidate: 1 });
+  assert.deepEqual(result.waves.WAVE1[0].entries.map((entry) => entry.field), ["creator"]);
 });
 
 test("wave 3 only includes the configured top execution candidates", () => {

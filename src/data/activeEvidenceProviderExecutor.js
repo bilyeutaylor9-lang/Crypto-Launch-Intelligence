@@ -264,6 +264,7 @@ function providerFunctions(options = {}) {
       injected.getDeployerEvidence ||
       options.getBlockscoutDeployerEvidence ||
       getBlockscoutDeployerEvidence,
+    blockscoutDeployerRequestCost: customDeployerProvider ? 1 : 2,
     getSourcifyDeployerEvidence:
       injected.getSourcifyDeployerEvidence ||
       injected.getSourcifySecurityEvidence ||
@@ -282,6 +283,7 @@ function providerFunctions(options = {}) {
           injected.getGoPlusSecurityEvidence ||
           options.getGoPlusDeployerEvidence
       ) || !customDeployerProvider,
+    preferGoPlusDeployer: !customDeployerProvider && !customSourcifyProvider,
     getBlockscoutSecurityEvidence:
       injected.getBlockscoutSecurityEvidence ||
       options.getBlockscoutSecurityEvidence ||
@@ -414,6 +416,9 @@ async function executeProviderCall(
         );
       }),
     ]);
+    if (value?.providerFailure === true) {
+      throw new Error(value.warnings?.[0] || `${provider} acquisition failed`);
+    }
     health.successes += 1;
     return {
       status: "SUCCESS",
@@ -571,6 +576,30 @@ export async function recoverDeployerEvidence(
       };
     }
 
+    let goplusAttempt = null;
+    let goplusResult = {};
+    if (providers.preferGoPlusDeployer) {
+      goplusAttempt = await executeProviderCall(
+        "goplus-deployer",
+        () => providers.getGoPlusDeployerEvidence(
+          { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+          { ...options, useCache: options.useCache }
+        ),
+        options,
+        state,
+        Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
+        evm.chain
+      );
+      goplusResult = goplusAttempt.value || {};
+      if (goplusAttempt.status === "SUCCESS" && exactDeployerResult(goplusResult, evm)) {
+        return {
+          observations: deployerObservations(goplusResult, fields, evm, "goplus"),
+          attempts: [{ ...goplusAttempt, value: undefined }],
+          projectPatch: { goplusDeployerEvidence: goplusResult },
+        };
+      }
+    }
+
     let sourcifyAttempt = null;
     let sourcifyResult = {};
     if (providers.useSourcifyDeployerFallback) {
@@ -597,7 +626,10 @@ export async function recoverDeployerEvidence(
             evm,
             "sourcify-v2"
           ),
-          attempts: [{ ...sourcifyAttempt, value: undefined }],
+          attempts: [
+            ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
+            { ...sourcifyAttempt, value: undefined },
+          ],
           projectPatch: { sourcifyDeployerEvidence: sourcifyResult },
         };
       }
@@ -611,7 +643,7 @@ export async function recoverDeployerEvidence(
       ),
       options,
       state,
-      Math.max(1, Number(options.deployerProviderRequestCost || 1)),
+      Math.max(1, Number(options.deployerProviderRequestCost || providers.blockscoutDeployerRequestCost || 2)),
       evm.chain
     );
     const blockscoutResult = blockscoutAttempt.value || {};
@@ -622,6 +654,7 @@ export async function recoverDeployerEvidence(
       return {
         observations: deployerObservations(blockscoutResult, fields, evm, "blockscout"),
         attempts: [
+          ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
           ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
           { ...blockscoutAttempt, value: undefined },
         ],
@@ -632,9 +665,7 @@ export async function recoverDeployerEvidence(
       };
     }
 
-    let goplusAttempt = null;
-    let goplusResult = {};
-    if (providers.useGoPlusDeployerFallback) {
+    if (providers.useGoPlusDeployerFallback && !goplusAttempt) {
       goplusAttempt = await executeProviderCall(
         "goplus-deployer",
         () => providers.getGoPlusDeployerEvidence(
