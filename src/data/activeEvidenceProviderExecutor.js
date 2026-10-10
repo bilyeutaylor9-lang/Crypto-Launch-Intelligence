@@ -509,9 +509,15 @@ function existingDeployerEvidence(project = {}, identity = {}) {
       : []),
     project.blockscoutDeployerEvidence,
     project.goplusDeployerEvidence,
+    project.sourcifyDeployerEvidence,
+    project.etherscanDeployerEvidence,
   ].filter(Boolean);
   return candidates.find(
-    (item) => item.status !== "UNKNOWN" && exactDeployerResult(item, identity)
+    (item) =>
+      item.status !== "UNKNOWN" &&
+      normalizeChainId(item.chain) === identity.chain &&
+      lower(item.address || item.tokenAddress) === lower(identity.tokenAddress) &&
+      exactDeployerResult(item, identity)
   ) || null;
 }
 

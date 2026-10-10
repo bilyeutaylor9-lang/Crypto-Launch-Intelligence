@@ -256,6 +256,61 @@ test("deployer recovery reuses exact existing security evidence without a provid
   assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.source, "goplus");
 });
 
+test("deployer recovery reuses exact cached Sourcify and Etherscan creator evidence", async () => {
+  for (const [field, provider] of [
+    ["sourcifyDeployerEvidence", "sourcify-v2"],
+    ["etherscanDeployerEvidence", "etherscan-v2"],
+  ]) {
+    let calls = 0;
+    const result = await executeActiveEvidenceProviderRequests(
+      {
+        chain: "base",
+        tokenAddress: TOKEN,
+        [field]: {
+          provider,
+          status: "EVIDENCE_AVAILABLE",
+          chain: "base",
+          address: TOKEN,
+          creatorAddress: CREATOR,
+          observedAt: "2026-08-12T00:00:00.000Z",
+        },
+      },
+      [request("creatorAddress", "block explorers")],
+      { providers: { getDeployerEvidence: async () => { calls += 1; return {}; } } }
+    );
+    assert.equal(calls, 0);
+    assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.value, CREATOR);
+    assert.equal(result.observations.find((item) => item.field === "creatorAddress")?.source, provider);
+  }
+});
+
+test("deployer recovery does not reuse cached creator without exact identity", async () => {
+  for (const cached of [
+    { chain: "base", address: BUYER },
+    { chain: "ethereum", address: TOKEN },
+    { chain: null, address: TOKEN },
+  ]) {
+    const result = await executeActiveEvidenceProviderRequests(
+      {
+        chain: "base",
+        tokenAddress: TOKEN,
+        sourcifyDeployerEvidence: {
+          provider: "sourcify-v2",
+          status: "EVIDENCE_AVAILABLE",
+          creatorAddress: CREATOR,
+          ...cached,
+        },
+      },
+      [request("creatorAddress", "block explorers")],
+      {
+        maxProviderRequests: 1,
+        providers: { getDeployerEvidence: async () => ({ creatorAddress: null }) },
+      }
+    );
+    assert.equal(result.observations.length, 0);
+  }
+});
+
 test("deployer recovery rejects existing creator evidence for a different contract", async () => {
   const result = await executeActiveEvidenceProviderRequests(
     {
