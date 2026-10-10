@@ -208,3 +208,25 @@ Candidate safety also retains unknown contract checks: an Instant Safety PASS
 cannot override incomplete contract proof. Regressions cover both cases and keep
 actual fixture candidate identities rejected. Follow-up validation is required
 before claiming a publishable final artifact.
+
+## Placeholder safety hardening and bounded validation
+
+The final parser audit found that string placeholders `null`, `undefined` and
+`none` were treated as false security flags. They now remain UNKNOWN. Regression
+coverage verifies they cannot populate testedChecks or produce VERIFIED_SAFE,
+even when an earlier Instant Safety status is PASS. Observed true and false flags
+remain unchanged. All 1,349 tests and 20 load tests pass after this repair.
+
+The 7cf498b0 bounded smoke completed: 64 standard candidates, 47 deep evaluated,
+17 deferred, 47 core ready, zero core starved, 92% core and 89% advisory coverage.
+All 61 report contracts and the scanner smoke check pass. The full engine audit
+executed 205 engines without failures, timeouts or ordering findings. The TEST
+artifact manifest is COMPLETE with zero fixture findings; this is not a claim
+that a TEST artifact can publish as live. System readiness still flags missing
+route/quote identity coverage, with zero verified routes and zero qualified
+candidates. Its semantic outcome is NO_EDGE_FOUND.
+
+The separate large live scan uses source SHA 7cf498b0, before the placeholder
+parser refinement. Replaying its 581 cached real security records through both
+parser versions yields identical summaries; none of those records contains the
+affected placeholders. Fresh final artifacts must still be inspected separately.

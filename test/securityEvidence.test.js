@@ -13,7 +13,7 @@ import {
 import { getFreeSecurityEvidence } from "../src/data/security/freeSecurityEvidenceConnector.js";
 import { getGoPlusSecurityEvidence, normalizeGoPlusTokenSecurity } from "../src/data/security/goplusSecurityConnector.js";
 import { normalizeSourcifyContract } from "../src/data/security/sourcifyV2Connector.js";
-import { cacheKey, summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
+import { boolFlag, cacheKey, summarizeSecurityEvidence } from "../src/data/security/securityEvidenceUtils.js";
 import { createGoPlusRequestLimiter } from "../src/data/security/goplusRequestLimiter.js";
 import {
   analyzeContractAuthorityRisk,
@@ -23,6 +23,20 @@ import { analyzeLiquidityControlRisk } from "../src/engines/liquidityControlRisk
 import { buildCandidateProofState } from "../src/kernel/candidateTruthState.js";
 
 const ADDRESS = "0x1111111111111111111111111111111111111111";
+
+test("provider placeholder flags remain unknown rather than clean negatives", () => {
+  for (const value of [null, undefined, "", "null", "undefined", "none", "UNKNOWN", " NULL "]) {
+    assert.equal(boolFlag(value), null);
+    const summary = summarizeSecurityEvidence([{ provider: "goplus", status: "EVIDENCE_AVAILABLE",
+      responseIdentityVerified: true, raw: { is_honeypot: value } }]);
+    assert.ok(summary.unknownChecks.includes("goplus.is_honeypot"));
+    assert.ok(!summary.testedChecks.includes("goplus.is_honeypot"));
+    const proof = buildCandidateProofState({ instantSafetyStatus: "PASS", securityEvidenceSummary: summary });
+    assert.notEqual(proof.safety.status, "VERIFIED_SAFE");
+  }
+  for (const value of [false, 0, "0", "false", "no"]) assert.equal(boolFlag(value), false);
+  for (const value of [true, 1, "1", "true", "yes"]) assert.equal(boolFlag(value), true);
+});
 
 test("GoPlus response identity preserves Solana case and EVM case-insensitivity", () => {
   const mint = "So11111111111111111111111111111111111111112";

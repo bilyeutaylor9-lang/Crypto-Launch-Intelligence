@@ -77,7 +77,7 @@ export function boolFlag(value) {
   if (value === false || value === 0) return false;
   const normalized = lower(value);
   if (["1", "true", "yes", "verified", "exact_match", "match"].includes(normalized)) return true;
-  if (["0", "false", "no", "none", "null", "undefined"].includes(normalized)) return false;
+  if (["0", "false", "no"].includes(normalized)) return false;
   return null;
 }
 
