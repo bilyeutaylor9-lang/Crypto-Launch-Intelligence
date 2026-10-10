@@ -197,6 +197,11 @@ export function isEntityResearchOnlyCandidate(project = {}) {
 }
 
 function safetyState(project = {}) {
+  const unknownChecks = [...new Set([
+    ...array(project.securityEvidenceMissingFields),
+    ...array(project.unknownChecks),
+    ...array(project.securityEvidenceSummary?.unknownChecks),
+  ])];
   const deterministicBlocks = deterministicCandidateBlocks(project);
   const declared = upper(first([
     project.safetyProofStatus,
@@ -207,16 +212,20 @@ function safetyState(project = {}) {
     return {
       status: "BLOCKED",
       deterministicBlocks,
-      unknownChecks: array(project.securityEvidenceMissingFields),
+      unknownChecks,
     };
   }
 
   const securityEvidence = array(project.securityEvidence);
-  const testedChecks = array(project.securityEvidence?.checks).length
-    ? array(project.securityEvidence.checks)
-    : securityEvidence.length
-      ? securityEvidence
-      : array(project.safetyTestedChecks);
+  const testedChecks = [...new Set([
+    ...array(project.securityEvidence?.checks),
+    ...array(project.testedChecks),
+    ...array(project.safetyTestedChecks),
+    ...array(project.securityEvidenceSummary?.testedChecks),
+    ...securityEvidence,
+    ...securityEvidence.flatMap((item) => array(item?.testedChecks)),
+  ].map((check) => typeof check === "string" ? check : check?.name || check?.check || check?.id)
+    .filter((check) => typeof check === "string" && check.trim()))];
   const sourceCount = new Set([
     ...array(project.securityEvidenceSources),
     ...array(project.securityEvidenceSummary?.knownProviders),
@@ -242,10 +251,10 @@ function safetyState(project = {}) {
     project.honeypotDetected === false
   );
   return {
-    status: explicitlyClean && (testedChecks.length > 0 || sourceCount > 0) ? "VERIFIED_SAFE" : partial ? "PARTIAL" : "UNKNOWN",
+    status: explicitlyClean && !unknownChecks.length && (testedChecks.length > 0 || sourceCount > 0) ? "VERIFIED_SAFE" : partial ? "PARTIAL" : "UNKNOWN",
     deterministicBlocks: [],
     testedChecks,
-    unknownChecks: array(project.securityEvidenceMissingFields),
+    unknownChecks,
     sourceCount,
     provenance: [
       ...new Set([

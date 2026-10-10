@@ -75,7 +75,7 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,346 tests passed, including identity, cooldown, pacing,
+- 1,348 tests passed, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
 - JavaScript syntax checks passed for 712 files after the report regressions were added.
 - Typecheck and focused provider/recovery regression tests passed.
@@ -176,3 +176,35 @@ required-group readiness threshold as the readiness engine. Missing groups remai
 visible in CORE_EVIDENCE_PARTIAL; no trading gate or positive score is relaxed.
 Regression tests compare both audits for measured zero, partial and missing core
 evidence. Final full-scan agreement is checked separately below when available.
+
+## Final acquisition scan and publication trace finding
+
+The SHA-stamped e6aabacc scan completed with 29,075 discovered, 2,341 standard,
+500 deep evaluated, 1,841 deferred, 486 core ready, 14 core starved (2.8%),
+92% core coverage and 91% advisory coverage. Both readiness and root-cause audits
+counted exactly 14 core-starved candidates. There were 13 deterministic blocks,
+zero verified routes and zero qualified candidates: NO_EDGE_FOUND, not a pick.
+The 14 remaining core gaps were the creator/deployer/lifecycle required-any group.
+
+Hydration attempted 495 candidates, charged 539/2,000 request-budget units,
+and did not expire its deadline. Wave selections were 495 cheap, 150 VOI and
+zero execution-proof candidates. Recovered fields by family: DEPLOYER 1,977,
+SECURITY 2,243, WALLETS 468. Unresolved: DEPLOYER 328, WALLETS 600. The recovery
+report counted 494 recovered candidates. These counters are measurements from
+`/tmp/cli-final-validation-20261010/reports/starvation-recovery-results.json`.
+The production baseline had 3,816 standard, 3,316 deferred, 500 deep, 378 core
+ready, 122 core starved, 4 verified routes and zero qualified candidates. Its
+remote memory and RPC/provider availability differed from this local scan;
+route counts and runtime are not controlled same-environment comparisons.
+
+The publication firewall refused the local artifact because a safety trace put
+entire GoPlus provider records under testedChecks. NEXO's raw holder list includes
+addresses with repeated 1/2/3 digits used by test fixtures. A fresh exact-contract
+GoPlus lookup at 2026-10-10T08:06:23Z returned those same real holder records;
+this was not local test data. Raw evidence stays in the security cache. Safety
+traces now contain only named checks and source provenance, not raw provider
+payloads masquerading as checks. The fixture firewall itself is unchanged.
+Candidate safety also retains unknown contract checks: an Instant Safety PASS
+cannot override incomplete contract proof. Regressions cover both cases and keep
+actual fixture candidate identities rejected. Follow-up validation is required
+before claiming a publishable final artifact.

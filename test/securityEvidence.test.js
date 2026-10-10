@@ -20,6 +20,7 @@ import {
   analyzeContractAuthorityRiskBatch,
 } from "../src/engines/contractAuthorityRiskEngine.js";
 import { analyzeLiquidityControlRisk } from "../src/engines/liquidityControlRiskEngine.js";
+import { buildCandidateProofState } from "../src/kernel/candidateTruthState.js";
 
 const ADDRESS = "0x1111111111111111111111111111111111111111";
 
@@ -351,6 +352,24 @@ test("complete observed safety checks retain clean qualification", async () => {
 test("security cache keys preserve Solana case and normalize EVM case", () => {
   assert.notEqual(cacheKey("goplus", "solana", "AbCd"), cacheKey("goplus", "solana", "abcd"));
   assert.equal(cacheKey("goplus", "base", "0xABCD"), cacheKey("goplus", "base", "0xabcd"));
+});
+
+test("safety trace contains observed check names rather than whole provider payloads", () => {
+  const evidence = { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+    chain: "ethereum", address: "0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206",
+    raw: { is_honeypot: "0", holders: [{ address: ADDRESS }] } };
+  const summary = summarizeSecurityEvidence([evidence]);
+  const proof = buildCandidateProofState({ securityEvidence: [evidence], securityEvidenceSummary: summary });
+  assert.deepEqual(proof.safety.testedChecks, ["goplus.is_honeypot"]);
+  assert.ok(!JSON.stringify(proof.safety.testedChecks).includes(ADDRESS));
+  assert.equal(evidence.raw.holders[0].address, ADDRESS);
+});
+
+test("instant safety PASS cannot override unknown contract safety checks", () => {
+  const proof = buildCandidateProofState({ instantSafetyStatus: "PASS", securityEvidenceSources: ["goplus"],
+    testedChecks: ["goplus.is_honeypot"], unknownChecks: ["goplus.is_mintable"] });
+  assert.equal(proof.safety.status, "PARTIAL");
+  assert.deepEqual(proof.safety.unknownChecks, ["goplus.is_mintable"]);
 });
 
 test("contract authority safety recovery is priority bounded and de-duplicated", async () => {

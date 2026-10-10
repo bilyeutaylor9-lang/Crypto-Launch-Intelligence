@@ -218,7 +218,11 @@ export function summarizeSecurityEvidence(evidence = []) {
     riskFindings,
     warnings,
     confidence,
-    testedChecks: [...new Set(known.flatMap((item) => item.testedChecks || []))],
+    testedChecks: [...new Set([
+      ...known.flatMap((item) => item.testedChecks || []),
+      ...requiredChecks.filter((field) => goPlusItems.some((item) => boolFlag(item.raw?.[field]) !== null)).map((field) => `goplus.${field}`),
+      ...["buy_tax", "sell_tax"].filter((field) => goPlusItems.some((item) => numeric(item.raw?.[field]) !== null)).map((field) => `goplus.${field}`),
+    ])],
     sourceTimestamps: Object.fromEntries(
       items
         .filter((item) => item.provider && item.observedAt)
