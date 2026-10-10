@@ -33,7 +33,7 @@ test("canonical state preserves provider cache bytes and original freshness boun
   const bytes = JSON.stringify({
     [`goplus:base:${address}`]: { cachedAtMs: now, value: proof },
     [`goplus:base:${staleAddress}`]: { cachedAtMs: now - ttl - 1000, value: { ...proof, address: staleAddress } },
-    [`goplus:base:${unknownAddress}`]: { cachedAtMs: now, value: { status: "UNKNOWN", confidence: 0 } },
+    [`goplus:base:${unknownAddress}`]: { cachedAtMs: now, value: { status: "UNKNOWN", confidence: 0, observedAt } },
   });
   try {
     fs.mkdirSync(path.join(root, "data"), { recursive: true });
@@ -56,7 +56,7 @@ test("canonical state preserves provider cache bytes and original freshness boun
     assert.equal(result.fresh.observedAt, observedAt);
     assert.equal(result.stale, null);
     assert.equal(result.wrongChain, null);
-    assert.deepEqual(result.unknown, { status: "UNKNOWN", confidence: 0 });
+    assert.deepEqual(result.unknown, { status: "UNKNOWN", confidence: 0, observedAt });
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

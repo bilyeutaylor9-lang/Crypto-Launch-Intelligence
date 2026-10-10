@@ -79,3 +79,61 @@ test("malformed cache roots and records fail closed without breaking recovery", 
   fs.writeFileSync("data/security-evidence-cache.json", "{broken");
   assert.equal(read(), null);
 `));
+
+test("unchanged security cache is parsed once and returned evidence is mutation-isolated", () => fixture(`
+  const value = {status:"EVIDENCE_AVAILABLE", observedAt, confidence:0.7, raw:{creatorAddress:address}};
+  write({cachedAtMs:now, value});
+  const original = fs.readFileSync;
+  let reads = 0;
+  fs.readFileSync = function(file, ...args) {
+    if(String(file).endsWith("security-evidence-cache.json")) reads++;
+    return original.call(this,file,...args);
+  };
+  const returned = read();
+  returned.raw.creatorAddress = "foreign";
+  returned.confidence = 1;
+  for(let i=0;i<20;i++) assert.deepEqual(read(), value);
+  assert.equal(reads, 1);
+`));
+
+test("memoized security evidence still expires when the file is unchanged", () => fixture(`
+  write({cachedAtMs:now, value:{status:"EVIDENCE_AVAILABLE", observedAt}});
+  assert.equal(read().status, "EVIDENCE_AVAILABLE");
+  Date.now = () => now+6*60*60*1000+1;
+  assert.equal(read(), null);
+`));
+
+test("external overwrite, replacement, deletion and malformed cache invalidate prior evidence", () => fixture(`
+  const file = "data/security-evidence-cache.json";
+  write({cachedAtMs:now, value:{status:"UNKNOWN", observedAt, marker:"FIRST"}});
+  assert.equal(read().marker, "FIRST");
+  const stat = fs.statSync(file);
+  write({cachedAtMs:now, value:{status:"UNKNOWN", observedAt, marker:"OTHER"}});
+  fs.utimesSync(file,stat.atime,stat.mtime);
+  assert.equal(read().marker, "OTHER");
+  fs.writeFileSync(file+".replacement",JSON.stringify({[key]:{cachedAtMs:now,value:{status:"UNKNOWN",observedAt,marker:"REPLACED"}}}));
+  fs.renameSync(file+".replacement",file);
+  assert.equal(read().marker, "REPLACED");
+  fs.unlinkSync(file);
+  assert.equal(read(), null);
+  write({cachedAtMs:now, value:{status:"UNKNOWN",observedAt,marker:"RESTORED"}});
+  assert.equal(read().marker,"RESTORED");
+  fs.writeFileSync(file,"{broken");
+  assert.equal(read(),null);
+`));
+
+test("cache writes reload persisted values and failed writes cannot alter memoized proof", () => fixture(`
+  const old = {status:"UNKNOWN", observedAt, creatorAddress:null};
+  write({cachedAtMs:now,value:old});
+  assert.deepEqual(read(),old);
+  const original = fs.writeFileSync;
+  fs.writeFileSync = () => {throw new Error("disk failure");};
+  assert.throws(() => setCachedSecurityEvidence("blockscout","base",address,
+    {status:"EVIDENCE_AVAILABLE", observedAt, creatorAddress:address}),/disk failure/);
+  fs.writeFileSync = original;
+  assert.deepEqual(read(),old);
+  const next = {status:"EVIDENCE_AVAILABLE", observedAt, creatorAddress:address};
+  setCachedSecurityEvidence("blockscout","base",address,next);
+  next.creatorAddress = "foreign";
+  assert.equal(read().creatorAddress,address);
+`));

@@ -4,11 +4,36 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { summarizeRecoveryAttempts } from "../src/reports/recoveredOpportunityWatchlistReportEngine.js";
+import { summarizeRecoveryAttempts, summarizeRecoveryOutcomes } from "../src/reports/recoveredOpportunityWatchlistReportEngine.js";
 import { summarizeDataStarvation } from "../src/reports/dataStarvationRootCauseReportEngine.js";
 
 const tokenAddress = "0x1111111111111111111111111111111111111111";
 const poolAddress = "0x2222222222222222222222222222222222222222";
+
+test("recovery counters exclude deferred candidates even with stale rescue flags", () => {
+  const stale = { ...candidate("RECOVERED"), deepEvaluationState: "DEFERRED_BEFORE_DEEP",
+    starvationRecoveryResult: "RECOVERED", promotedToAdvancedResearch: true,
+    promotedToDeepResearch: true, dataStarvationMissingEvidence: [{ recoverable: true }] };
+  assert.deepEqual(summarizeRecoveryOutcomes([stale, candidate("NO_RECOVERY")]), {
+    recoveredThisScan: 0, fullyRecoveredThisScan: 0, partiallyRecoveredThisScan: 0,
+    promotedToAdvancedResearch: 0, promotedToDeepResearch: 0, stillUnresolved: 0,
+  });
+});
+
+test("recovered identities distinguish matching symbols and preserve exact chain and pool", () => {
+  const base = { ...candidate("RECOVERED"), symbol: "DUP", tokenAddress: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
+  const alias = { ...base, chain: "Base", tokenAddress: base.tokenAddress.toUpperCase().replace("0X", "0x") };
+  assert.equal(summarizeRecoveryOutcomes([base, alias]).recoveredThisScan, 1);
+  assert.equal(summarizeRecoveryOutcomes([base, { ...base, tokenAddress: poolAddress }]).recoveredThisScan, 2);
+  assert.equal(summarizeRecoveryOutcomes([base, { ...base, chain: "arbitrum" }]).recoveredThisScan, 2);
+  assert.equal(summarizeRecoveryOutcomes([base, { ...base, poolAddress: tokenAddress }]).recoveredThisScan, 2);
+  assert.equal(summarizeRecoveryOutcomes([
+    { symbol: "DUP", activeEvidenceRecoveryStatus: "PARTIAL_RECOVERY" },
+    { symbol: "DUP", activeEvidenceRecoveryStatus: "PARTIAL_RECOVERY" },
+  ]).recoveredThisScan, 2);
+  const solana = { ...base, chain: "solana", poolAddress: null, tokenAddress: "A".repeat(32) };
+  assert.equal(summarizeRecoveryOutcomes([solana, { ...solana, tokenAddress: "a".repeat(32) }]).recoveredThisScan, 2);
+});
 
 function candidate(status) {
   return { chain: "base", tokenAddress, poolAddress, deepEvaluationState: "DEEP_EVALUATED",
@@ -65,7 +90,9 @@ test("published recovery artifact includes failed attempts without promoting the
     const moduleUrl = new URL("../src/reports/recoveredOpportunityWatchlistReportEngine.js", import.meta.url).href;
     const result = spawnSync(process.execPath, ["--input-type=module", "-e",
       `import { writeRecoveredOpportunityWatchlistReport } from ${JSON.stringify(moduleUrl)};
-       writeRecoveredOpportunityWatchlistReport(${JSON.stringify([candidate("NO_RECOVERY"), candidate("NOT_SELECTED")])});`],
+       writeRecoveredOpportunityWatchlistReport(${JSON.stringify([candidate("NO_RECOVERY"), candidate("NOT_SELECTED"),
+         { ...candidate("RECOVERED"), deepEvaluationState: "DEFERRED_BEFORE_DEEP", starvationRescueEligible: true,
+           dataStarvationStatus: "RECOVERABLE_GAPS", dataStarvationMissingEvidence: [{ recoverable: true }] }])});`],
     { cwd: dir, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
     const artifact = JSON.parse(fs.readFileSync(path.join(dir, "reports/starvation-recovery-results.json"), "utf8"));
@@ -73,6 +100,8 @@ test("published recovery artifact includes failed attempts without promoting the
     assert.equal(artifact.recoveryResults.length, 1);
     assert.equal(artifact.recoveryResults[0].status, "NO_RECOVERY");
     assert.equal(artifact.recoveredThisScan, 0);
+    assert.equal(artifact.fullyRecoveredThisScan, 0);
+    assert.equal(artifact.stillUnresolved, 0);
     assert.equal(watchlist.status, "NO_RECOVERABLE_OPPORTUNITIES");
     assert.deepEqual(watchlist.watchlist, []);
   } finally {

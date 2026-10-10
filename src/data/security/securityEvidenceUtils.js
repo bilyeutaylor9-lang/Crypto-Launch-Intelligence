@@ -4,6 +4,7 @@ import path from "path";
 const DATA_DIR = path.resolve("data");
 const CACHE_FILE = path.join(DATA_DIR, "security-evidence-cache.json");
 const DEFAULT_TTL_MS = Number(process.env.SECURITY_EVIDENCE_CACHE_TTL_MS || 6 * 60 * 60 * 1000);
+let cacheSnapshot = null;
 
 export const EVM_CHAIN_IDS = {
   ethereum: "1",
@@ -93,17 +94,23 @@ export function ensureDataDir() {
 
 function readCache() {
   ensureDataDir();
-  if (!fs.existsSync(CACHE_FILE)) return {};
   try {
+    const stat = fs.statSync(CACHE_FILE, { bigint: true });
+    const signature = [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].join(":");
+    if (cacheSnapshot?.signature === signature) return cacheSnapshot.cache;
     const cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
-    return cache && typeof cache === "object" && !Array.isArray(cache) ? cache : {};
+    const normalized = cache && typeof cache === "object" && !Array.isArray(cache) ? cache : {};
+    cacheSnapshot = { signature, cache: normalized };
+    return normalized;
   } catch {
+    cacheSnapshot = null;
     return {};
   }
 }
 
 function writeCache(cache = {}) {
   ensureDataDir();
+  cacheSnapshot = null;
   fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
 }
 
@@ -126,11 +133,11 @@ export function getCachedSecurityEvidence(provider = "", chain = "", address = "
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const observedAtMs = typeof value.observedAt === "string" ? Date.parse(value.observedAt) : NaN;
   if (!Number.isFinite(observedAtMs) || observedAtMs > now || now - observedAtMs > ttlMs) return null;
-  return value;
+  return structuredClone(value);
 }
 
 export function setCachedSecurityEvidence(provider = "", chain = "", address = "", value = {}) {
-  const cache = readCache();
+  const cache = { ...readCache() };
   cache[cacheKey(provider, chain, address)] = {
     cachedAt: new Date().toISOString(),
     cachedAtMs: Date.now(),
