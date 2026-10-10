@@ -13,7 +13,8 @@ for (const workflowPath of WORKFLOW_PATHS) {
     const workflow = fs.readFileSync(workflowPath, "utf8");
 
     assert.match(workflow, /concurrency:/);
-    assert.match(workflow, /cancel-in-progress:\s*true/);
+    assert.match(workflow, /cancel-in-progress:\s*false/);
+    assert.match(workflow, /queue:\s*max/);
     assert.match(workflow, /timeout-minutes:\s*180/);
     assert.match(workflow, /NODE_OPTIONS:\s*--max-old-space-size=8192/);
     assert.match(workflow, /run:\s*npm run scan:free-max/);
@@ -52,6 +53,37 @@ for (const workflowPath of WORKFLOW_PATHS) {
     );
   });
 }
+
+test("every shared scanner-state workflow preserves an in-flight production run", () => {
+  const files = fs.readdirSync(".github/workflows").filter((name) => name.endsWith(".yml"));
+  const writers = files.map((file) => ({
+    file,
+    workflow: fs.readFileSync(`.github/workflows/${file}`, "utf8"),
+  })).filter(({ workflow }) => /group:\s*live-dashboard-scan-\$\{\{ github\.ref \}\}/.test(workflow));
+  assert.ok(writers.length >= 11, "all shared scanner-state workflows must remain serialized");
+  for (const { file, workflow } of writers) {
+    assert.match(workflow, /cancel-in-progress:\s*false/, `${file} must not cancel an active scanner-state writer`);
+    assert.match(workflow, /queue:\s*max/, `${file} must preserve multiple pending evidence runs`);
+    assert.doesNotMatch(workflow, /cancel-in-progress:\s*true/);
+  }
+});
+
+test("failed fresh dashboard builds cannot deploy an old docs artifact", () => {
+  const workflow = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
+  const upload = workflow.slice(workflow.indexOf("- name: Upload Dashboard"), workflow.indexOf("\n  deploy:"));
+  assert.match(upload, /if:.*steps\.scanner\.outcome == 'success'/);
+  assert.match(upload, /if:.*steps\.report_contracts\.outcome == 'success'/);
+  assert.match(upload, /if:.*steps\.dashboard_build\.outcome == 'success'/);
+  const deploy = workflow.slice(workflow.indexOf("\n  deploy:"), workflow.indexOf("\n  health:"));
+  for (const step of ["scanner", "report_contracts", "dashboard_build", "dashboard_artifact"]) {
+    assert.match(deploy, new RegExp(`if:.*needs\\.build\\.outputs\\.${step} == 'success'`));
+  }
+  const reports = workflow.slice(workflow.indexOf("- name: Upload Scan Reports And Diagnostics"), workflow.indexOf("- name: Configure Pages"));
+  assert.match(reports, /if: always\(\)/);
+  const health = workflow.slice(workflow.indexOf("Enforce truthful final health"));
+  assert.match(health, /for check in SCANNER .*REPORT_CONTRACTS DASHBOARD_BUILD REPORTS_UPLOAD DASHBOARD_ARTIFACT/);
+  assert.match(health, /exit "\$failed"/);
+});
 
 test("all GitHub workflows use Node 24-safe action versions", () => {
   const workflowDir = ".github/workflows";
