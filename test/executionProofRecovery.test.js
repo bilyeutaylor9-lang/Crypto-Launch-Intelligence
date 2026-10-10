@@ -294,7 +294,9 @@ test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", asyn
         return {
           tool: "aerodrome",
           toolDetails: { name: "Aerodrome" },
-          action: { fromToken: { address: quoteToken, symbol: "USDC", decimals: 6 } },
+          action: { fromAmount: parsed.searchParams.get("fromAmount"),
+            fromToken: { chainId: 8453, address: quoteToken, symbol: "USDC", decimals: 6 },
+            toToken: { chainId: 8453, address: EVM_TOKEN, decimals: 18 } },
           estimate: { tool: "aerodrome", toAmount: "5000000000000000000", data: { protocols: [{ poolAddress: EVM_POOL }] } },
         };
       }
@@ -302,7 +304,9 @@ test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", asyn
       assert.equal(parsed.searchParams.get("fromAmount"), "5000000000000000000");
       return {
         tool: "aerodrome",
-        action: { fromToken: { address: EVM_TOKEN, symbol: "EVX", decimals: 18 } },
+        action: { fromAmount: parsed.searchParams.get("fromAmount"),
+          fromToken: { chainId: 8453, address: EVM_TOKEN, symbol: "EVX", decimals: 18 },
+          toToken: { chainId: 8453, address: quoteToken, decimals: 6 } },
         estimate: { tool: "aerodrome", toAmount: "24750000", data: { protocols: [{ poolAddress: EVM_POOL }] } },
       };
     },
