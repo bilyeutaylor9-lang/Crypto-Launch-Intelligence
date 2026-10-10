@@ -326,19 +326,21 @@ function providerFunctions(options = {}) {
   };
 }
 
+export function resolveActiveEvidenceRequestBudget(options = {}, defaultBudget = 500) {
+  const raw = options.maxProviderRequests ?? options.maxRequests ??
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS ??
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS ??
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS ?? defaultBudget;
+  if (typeof raw !== "number" && typeof raw !== "string") return 0;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER
+    ? Math.floor(value) : 0;
+}
+
 export function createActiveEvidenceExecutionState(options = {}) {
   const now = options.now || Date.now;
   const timeBudgetMs = Number(options.timeBudgetMs);
-  const maxRequests = Math.max(
-    1,
-    Number(
-      options.maxProviderRequests ||
-      options.maxRequests ||
-        process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS ||
-        process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS ||
-        500
-    )
-  );
+  const maxRequests = resolveActiveEvidenceRequestBudget(options);
   const circuitFailureThreshold = Math.max(
     1,
     Number(

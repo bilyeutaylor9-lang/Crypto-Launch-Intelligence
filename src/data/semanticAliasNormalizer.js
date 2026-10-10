@@ -439,6 +439,9 @@ export function semanticAliasTermsForField(canonicalField = "") {
   return TYPO_ALIAS_MAP[canonicalField] || [];
 }
 
+const fuzzyMatchCaches = new Map();
+const FUZZY_MATCH_CACHE_LIMIT = 2048;
+
 export function fuzzyAliasMatch(sourceName = "", canonicalField = "") {
   if (PROTECTED_FUZZY_FIELDS.has(canonicalField)) {
     return { matched: false, reason: "identity-critical-fuzzy-disabled" };
@@ -446,16 +449,34 @@ export function fuzzyAliasMatch(sourceName = "", canonicalField = "") {
   const terms = semanticAliasTermsForField(canonicalField);
   const source = compactAliasText(sourceName);
   if (!source || !terms.length) return { matched: false, reason: "no-fuzzy-terms" };
+  let cache = null;
+  if (typeof canonicalField === "string" && source.length <= 256 && terms.every((term) => typeof term === "string")) {
+    let state = fuzzyMatchCaches.get(canonicalField);
+    // The public vocabulary accessor returns arrays; invalidate if a caller changes one.
+    if (!state || state.terms.length !== terms.length || terms.some((term, index) => state.terms[index] !== term)) {
+      state = { terms: [...terms], matches: new Map() };
+      fuzzyMatchCaches.set(canonicalField, state);
+    }
+    cache = state.matches;
+    if (cache.has(source)) return { ...cache.get(source) };
+  }
+  const remember = (result) => {
+    if (cache) {
+      if (cache.size >= FUZZY_MATCH_CACHE_LIMIT) cache.delete(cache.keys().next().value);
+      cache.set(source, Object.freeze({ ...result }));
+    }
+    return result;
+  };
   for (const term of terms) {
     const target = compactAliasText(term);
-    if (source === target) return { matched: true, confidenceType: "SEMANTIC_ALIAS", matchedTerm: term };
+    if (source === target) return remember({ matched: true, confidenceType: "SEMANTIC_ALIAS", matchedTerm: term });
     const distance = levenshtein(source, target);
     const maxDistance = target.length <= 5 ? 1 : 2;
     if (distance > 0 && distance <= maxDistance) {
-      return { matched: true, confidenceType: "FUZZY_ALIAS", matchedTerm: term, distance };
+      return remember({ matched: true, confidenceType: "FUZZY_ALIAS", matchedTerm: term, distance });
     }
   }
-  return { matched: false, reason: "no-safe-fuzzy-match" };
+  return remember({ matched: false, reason: "no-safe-fuzzy-match" });
 }
 
 export function detectResearchPhraseTags(text = "") {

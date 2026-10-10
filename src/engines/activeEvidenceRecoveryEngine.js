@@ -6,6 +6,7 @@ import {
 } from "../identity/strictIdentityValidators.js";
 import {
   createActiveEvidenceExecutionState,
+  resolveActiveEvidenceRequestBudget,
   executeActiveEvidenceProviderRequests,
   mapWithBoundedConcurrency,
   summarizeActiveEvidenceExecutionState,
@@ -369,10 +370,7 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
 export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
   const hydration = buildActiveEvidenceRecoveryWaves(safeProjects, options);
-  const maxRequests = Math.max(
-    1,
-    Number(options.maxProviderRequests || options.maxRequests || process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS || process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS || 2000)
-  );
+  const maxRequests = resolveActiveEvidenceRequestBudget(options, 2000);
   const executionState = createActiveEvidenceExecutionState({
     ...options,
     maxProviderRequests: maxRequests,

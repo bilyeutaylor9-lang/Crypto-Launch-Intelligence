@@ -30,9 +30,29 @@ test("missing transfers cannot become measured zero daily or smart-wallet activi
 });
 test("complete empty transfer response is distinct from missing coverage", () => {
   const result = normalizeBlockscoutWalletEvidence({ transfers: { items: [] } }, {}, meta);
-  assert.equal(result.buyTransactions24h, 0);
+  assert.equal(result.buyTransactions24h, null);
+  assert.equal(result.transferCoverage.observedTransfers24h, 0);
   assert.equal(result.transferCoverage.complete24h, true);
   assert.equal(result.status, "EVIDENCE_AVAILABLE");
+});
+test("pool liquidity movements cannot manufacture buyers or smart-wallet trades", () => {
+  const event = { token: { address_hash: TOKEN, decimals: 0 }, from: POOL, to: WALLET,
+    transaction_hash: `0x${"a".repeat(64)}`, value: "5", timestamp: "2026-10-10T09:00:00Z" };
+  const result = normalizeBlockscoutWalletEvidence({ transfers: { items: [event, { ...event, from: WALLET, to: POOL }] } },
+    { trackedWallets: [WALLET], smartWallets: [WALLET] }, meta);
+  assert.deepEqual(result.wallets, [WALLET]);
+  assert.equal(result.transferCoverage.observedTransfers24h, 2);
+  assert.equal(result.tradeCoverage.status, "UNKNOWN");
+  assert.deepEqual(result.walletTransactions.map((item) => item.poolMovement), ["POOL_OUTFLOW", "POOL_INFLOW"]);
+  for (const item of result.walletTransactions) {
+    assert.equal(item.direction, "TRANSFER");
+    assert.equal(item.participant, null);
+    assert.equal(item.smartWallet, null);
+  }
+  for (const field of ["buyerAddresses", "sellerAddresses", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h",
+    "smartWallets", "trackedWallets", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyCount", "smartWalletSellCount"]) {
+    assert.equal(result[field], null);
+  }
 });
 test("pagination or invalid event times cannot manufacture complete daily totals", () => {
   const transfer = { token: { address_hash: TOKEN }, from: POOL, to: WALLET,

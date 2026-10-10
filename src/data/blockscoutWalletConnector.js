@@ -63,30 +63,11 @@ function timestampOf(item = {}) {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 }
 
-function knownWalletLabels(project = {}) {
-  const values = [
-    ...(Array.isArray(project.smartWallets) ? project.smartWallets : []),
-    ...(Array.isArray(project.trackedWallets) ? project.trackedWallets : []),
-    ...(Array.isArray(project.walletHistory?.smartWallets)
-      ? project.walletHistory.smartWallets
-      : []),
-    ...(Array.isArray(project.walletParticipationHistory)
-      ? project.walletParticipationHistory.filter((item) => item?.smartWallet === true)
-      : []),
-  ];
-  return new Set(
-    values
-      .map((value) => addressOf(value?.address || value?.wallet || value))
-      .filter(Boolean)
-  );
-}
-
 function normalizeTransfers(payload = {}, project = {}, meta = {}) {
   const tokenAddress = lower(meta.tokenAddress);
   const poolAddress = lower(meta.poolAddress);
   const priceUsd = numberOrNull(project.priceUsd ?? project.price ?? project.marketData?.priceUsd);
   const nowMs = meta.now instanceof Date ? meta.now.getTime() : Date.now();
-  const smartWalletLabels = knownWalletLabels(project);
   const transactions = [];
 
   for (const item of Array.isArray(payload?.items) ? payload.items : []) {
@@ -98,23 +79,21 @@ function normalizeTransfers(payload = {}, project = {}, meta = {}) {
     const timestampMs = timestamp ? Date.parse(timestamp) : null;
     if (timestampMs !== null && (timestampMs > nowMs || nowMs - timestampMs > 24 * 60 * 60 * 1000)) continue;
     const amount = transferAmount(item);
-    const direction = poolAddress && from === poolAddress
-      ? "BUY"
-      : poolAddress && to === poolAddress
-        ? "SELL"
-        : "TRANSFER";
-    const participant = direction === "BUY" ? to : direction === "SELL" ? from : null;
+    const poolMovement = poolAddress && from === poolAddress
+      ? "POOL_OUTFLOW"
+      : poolAddress && to === poolAddress ? "POOL_INFLOW" : null;
     transactions.push({
       transactionHash: lower(item.transaction_hash || item.transaction?.hash),
       timestamp,
       from,
       to,
-      participant,
-      direction,
+      participant: null,
+      direction: "TRANSFER",
+      poolMovement,
       tokenAmount: amount,
       volumeUsd: null,
       estimatedCurrentValueUsd: amount !== null && priceUsd !== null ? amount * priceUsd : null,
-      smartWallet: participant ? smartWalletLabels.has(participant) : false,
+      smartWallet: null,
     });
   }
 
@@ -139,20 +118,10 @@ export function normalizeBlockscoutWalletEvidence(
   });
   const holderItems = Array.isArray(raw.holders?.items) ? raw.holders.items : [];
   const holderAddresses = uniqueAddresses(holderItems.map((item) => addressOf(item.address)));
-  const buyers = transfers.filter((item) => item.direction === "BUY");
-  const sellers = transfers.filter((item) => item.direction === "SELL");
-  const buyerAddresses = uniqueAddresses(buyers.map((item) => item.participant));
-  const sellerAddresses = uniqueAddresses(sellers.map((item) => item.participant));
   const wallets = uniqueAddresses([
     ...holderAddresses,
-    ...buyerAddresses,
-    ...sellerAddresses,
-  ]);
-  const smartBuys = buyers.filter((item) => item.smartWallet);
-  const smartSells = sellers.filter((item) => item.smartWallet);
-  const labeledWallets = knownWalletLabels(project);
-  const participatingSmartWallets = wallets.filter((wallet) => labeledWallets.has(wallet));
-  const labelsPresent = labeledWallets.size > 0;
+    ...transfers.flatMap((item) => [item.from, item.to]),
+  ]).filter((address) => address !== poolAddress && address !== `0x${"0".repeat(40)}`);
   const transferItems = Array.isArray(raw.transfers?.items) ? raw.transfers.items : null;
   const nowMs = meta.now instanceof Date ? meta.now.getTime() : Date.now();
   const cutoff = nowMs - 24 * 60 * 60 * 1000;
@@ -185,44 +154,31 @@ export function normalizeBlockscoutWalletEvidence(
     holderCount,
     holderAddresses,
     wallets,
-    buyerAddresses,
-    sellerAddresses,
+    buyerAddresses: null,
+    sellerAddresses: null,
     walletTransactions: transfers,
     walletParticipationHistory: transfers,
-    transferCoverage: { available: transferItems !== null, complete24h: completeDailyTransfers },
-    uniqueBuyers24h: poolAddress && completeDailyTransfers ? buyerAddresses.length : null,
-    buyTransactions24h: poolAddress && completeDailyTransfers ? buyers.length : null,
-    sellTransactions24h: poolAddress && completeDailyTransfers ? sellers.length : null,
-    buyVolumeUsd:
-      poolAddress && completeDailyTransfers && buyers.length && buyers.every((item) => item.volumeUsd !== null)
-        ? buyers.reduce((sum, item) => sum + item.volumeUsd, 0)
-        : null,
-    sellVolumeUsd:
-      poolAddress && completeDailyTransfers && sellers.length && sellers.every((item) => item.volumeUsd !== null)
-        ? sellers.reduce((sum, item) => sum + item.volumeUsd, 0)
-        : null,
-    smartWalletBuys24h: labelsPresent && completeDailyTransfers ? smartBuys.length : null,
-    smartWalletSells24h: labelsPresent && completeDailyTransfers ? smartSells.length : null,
-    smartWalletBuyCount: labelsPresent && completeDailyTransfers ? smartBuys.length : null,
-    smartWalletSellCount: labelsPresent && completeDailyTransfers ? smartSells.length : null,
-    smartWallets: labelsPresent && wallets.length ? participatingSmartWallets : null,
-    trackedWallets: labelsPresent && wallets.length ? participatingSmartWallets : null,
-    smartWalletBuyVolumeUsd:
-      labelsPresent && completeDailyTransfers && smartBuys.length && smartBuys.every((item) => item.volumeUsd !== null)
-        ? smartBuys.reduce((sum, item) => sum + item.volumeUsd, 0)
-        : null,
-    smartWalletSellVolumeUsd:
-      labelsPresent && completeDailyTransfers && smartSells.length && smartSells.every((item) => item.volumeUsd !== null)
-        ? smartSells.reduce((sum, item) => sum + item.volumeUsd, 0)
-        : null,
+    transferCoverage: { available: transferItems !== null, complete24h: completeDailyTransfers,
+      observedTransfers24h: completeDailyTransfers ? transfers.length : null },
+    // Pool transfers also occur during liquidity changes, fees and donations.
+    tradeCoverage: { available: false, status: "UNKNOWN" },
+    uniqueBuyers24h: null,
+    buyTransactions24h: null,
+    sellTransactions24h: null,
+    buyVolumeUsd: null,
+    sellVolumeUsd: null,
+    smartWalletBuys24h: null,
+    smartWalletSells24h: null,
+    smartWalletBuyCount: null,
+    smartWalletSellCount: null,
+    smartWallets: null,
+    trackedWallets: null,
+    smartWalletBuyVolumeUsd: null,
+    smartWalletSellVolumeUsd: null,
     warnings: [
       ...(!completeDailyTransfers ? ["Transfer coverage is missing or incomplete; daily activity remains unknown."] : []),
-      ...(!poolAddress
-        ? ["Exact pool identity is missing; transfers were not classified as buys or sells."]
-        : []),
-      ...(!labelsPresent
-        ? ["No persistent wallet labels were available; smart-wallet fields remain unknown."]
-        : []),
+      "Token transfers do not prove swaps; buyer, seller and trade totals remain unknown.",
+      "Transfer normalization does not verify historical smart-wallet labels.",
     ],
   };
 }
