@@ -58,7 +58,10 @@ function clean(value = "") {
 }
 
 function values(project = {}, fields = []) {
-  return fields.map((field) => canonicalValue(project, field));
+  return fields.map((field) => {
+    const direct = String(field).split(".").reduce((value, part) => value?.[part], project);
+    return hasValue(direct) ? direct : canonicalValue(project, field);
+  });
 }
 
 function providerStatus(project = {}, field = "") {
@@ -331,21 +334,29 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   const missing = [];
   const notApplicable = [];
   const satisfied = [];
+  let coreDataStarved = false;
 
   for (const contract of contracts) {
+    let requiredGroups = 0;
+    let satisfiedGroups = 0;
     for (const group of contract.inputContract?.requiredAny || []) {
+      requiredGroups += 1;
       const fields = Array.isArray(group) ? group : [group].filter(Boolean);
       const canonicalFields = [...new Set(fields.map((field) => canonicalFieldForAlias(field) || field))];
       const applicableFields = canonicalFields.filter((field) => fieldApplicability(aliased, field, contract).status !== "NOT_APPLICABLE");
       const groupValues = applicableFields.length ? values(aliased, applicableFields) : [];
       if (!applicableFields.length) {
+        satisfiedGroups += 1;
         notApplicable.push(...canonicalFields.map((field) => missingRecord(aliased, field, contract, now, producers)));
       } else if (groupValues.some(hasValue)) {
+        satisfiedGroups += 1;
         satisfied.push({ engineId: contract.id, fields: applicableFields });
       } else {
         missing.push(...applicableFields.map((field) => missingRecord(aliased, field, contract, now, producers)));
       }
     }
+    if ((contract.affectsFinalDecision || contract.canBlockCandidate) && requiredGroups &&
+      satisfiedGroups / requiredGroups < 0.5) coreDataStarved = true;
   }
 
   const unresolvedEvidence = [...missing, ...notApplicable].map((item) => {
@@ -388,8 +399,10 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   return {
     ...aliased,
     dataStarvationStatus:
-      coreMissingEvidence.length
+      coreDataStarved
         ? "CORE_DATA_STARVED"
+        : coreMissingEvidence.length
+          ? "CORE_EVIDENCE_PARTIAL"
         : advisoryMissingEvidence.length
           ? "ADVISORY_DATA_GAPS"
           : "ENOUGH_EVIDENCE_TO_RANK",
@@ -397,7 +410,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
     dataStarvationMissingEvidence: mergedMissing,
     coreMissingEvidence,
     advisoryMissingEvidence,
-    coreDataStarved: coreMissingEvidence.length > 0,
+    coreDataStarved,
     advisoryDataGaps: advisoryMissingEvidence.length > 0,
     dataStarvationBlockingResearchCount: blockingResearch.length,
     dataStarvationBlockingExecutionCount: blockingExecution.length,

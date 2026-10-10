@@ -75,7 +75,7 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,345 tests passed, including identity, cooldown, pacing,
+- 1,346 tests passed, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
 - JavaScript syntax checks passed for 712 files after the report regressions were added.
 - Typecheck and focused provider/recovery regression tests passed.
@@ -166,3 +166,13 @@ Recovery report builders now retain the engine's batch-level hydration counters:
 selected wave counts, request budget/usage, deadline skips, and recovered and
 unresolved fields by family. Missing measurements stay null, not invented zero
 request costs, and deferred candidates cannot supply a batch summary.
+
+The completed acquisition run also exposed a reporting disagreement: final
+readiness counted 19 core-starved candidates, while root-cause diagnostics counted
+42. The latter allowed a null alias resolution to shadow observed raw zeros and
+called any missing core group starvation even when the engine had partial inputs.
+Root-cause classification now retains measured direct inputs and uses the same
+required-group readiness threshold as the readiness engine. Missing groups remain
+visible in CORE_EVIDENCE_PARTIAL; no trading gate or positive score is relaxed.
+Regression tests compare both audits for measured zero, partial and missing core
+evidence. Final full-scan agreement is checked separately below when available.
