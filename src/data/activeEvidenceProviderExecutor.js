@@ -29,6 +29,7 @@ import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
+import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -250,6 +251,8 @@ function providerFunctions(options = {}) {
       options.getEtherscanV2SecurityEvidence
   );
   return {
+    getBaseB20LifecycleEvidence: injected.getBaseB20LifecycleEvidence || options.getBaseB20LifecycleEvidence || getBaseB20LifecycleEvidence,
+    useBaseB20Lifecycle: Boolean(injected.getBaseB20LifecycleEvidence || options.getBaseB20LifecycleEvidence) || (!customDeployerProvider && !customSourcifyProvider),
     getTokenPairs: injected.getTokenPairs || options.getTokenPairs || getTokenPairs,
     getPairByAddress: injected.getPairByAddress || options.getPairByAddress || getPairByAddress,
     searchDexPairs: injected.searchDexPairs || options.searchDexPairs || searchDexPairs,
@@ -530,6 +533,8 @@ function deployerValue(result = {}, field = "") {
       return numberOrNull(result.priorDeployments);
     case "deployerHistory":
       return result.deployerHistory || null;
+    case "nativeLifecycle":
+      return isVerifiedBaseB20Evidence(result) ? result.nativeLifecycle : null;
     default:
       return null;
   }
@@ -542,7 +547,7 @@ function confidenceFraction(value, fallback = 0.8) {
 }
 
 function exactDeployerResult(result = {}, identity = {}) {
-  if (!deployerValue(result, "creatorAddress")) return false;
+  if (!deployerValue(result, "creatorAddress") && !isVerifiedBaseB20Evidence(result)) return false;
   const resultChain = result.chain ? normalizeChainId(result.chain) : null;
   const resultAddress = lower(result.address || result.tokenAddress);
   if (resultChain && resultChain !== identity.chain) return false;
@@ -560,6 +565,7 @@ function existingDeployerEvidence(project = {}, identity = {}) {
     project.goplusDeployerEvidence,
     project.sourcifyDeployerEvidence,
     project.etherscanDeployerEvidence,
+    project.baseB20LifecycleEvidence,
   ].filter(Boolean);
   return candidates.find(
     (item) =>
@@ -583,6 +589,7 @@ function deployerObservations(result = {}, fields = [], identity = {}, source = 
     "walletAgeDays",
     "priorDeployments",
     "deployerHistory",
+    "nativeLifecycle",
   ];
   const timestamp = result.observedAt || result.sourceTimestamp || new Date().toISOString();
   return [...new Set([...fields, ...companionFields])]
@@ -609,7 +616,7 @@ export async function recoverDeployerEvidence(
     let existing = existingDeployerEvidence(project, evm);
     if (!existing && providers.preferGoPlusDeployer && providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
       const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
-      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2"]) {
+      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2", "base-b20-native"]) {
         const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
         existing = existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm);
         if (existing) break;
@@ -627,6 +634,21 @@ export async function recoverDeployerEvidence(
         }],
         projectPatch: lower(source).includes("goplus") ? { goplusDeployerEvidence: existing } : {},
       };
+    }
+
+    if (providers.useBaseB20Lifecycle && isBaseB20Candidate({ chain: evm.chain, tokenAddress: evm.tokenAddress })) {
+      const attempt = await executeProviderCall("base-b20-native",
+        () => providers.getBaseB20LifecycleEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
+        options, state, 4, evm.chain);
+      const result = attempt.value || {};
+      if (attempt.status === "SUCCESS" && isVerifiedBaseB20Evidence(result) && result.address === evm.tokenAddress) {
+        return { observations: deployerObservations(result, fields, evm, "base-b20-native"),
+          attempts: [{ ...attempt, value: undefined }], projectPatch: { baseB20LifecycleEvidence: result } };
+      }
+      const fallback = await recoverDeployerEvidence(project, fields,
+        { ...providers, useBaseB20Lifecycle: false }, options, state);
+      return { ...fallback, attempts: [{ ...attempt, value: undefined }, ...fallback.attempts],
+        projectPatch: { baseB20LifecycleEvidence: result, ...fallback.projectPatch } };
     }
 
     let goplusAttempt = null;
