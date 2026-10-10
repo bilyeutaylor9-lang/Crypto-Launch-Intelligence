@@ -908,7 +908,8 @@ test("Blockscout wallet transfers become buys only with exact pool identity", ()
     { tokenAddress: TOKEN, now: new Date("2026-08-12T01:00:00.000Z") }
   );
   assert.equal(exact.uniqueBuyers24h, 1);
-  assert.equal(exact.buyVolumeUsd, 10);
+  assert.equal(exact.buyVolumeUsd, null);
+  assert.equal(exact.walletTransactions[0].estimatedCurrentValueUsd, 10);
   assert.equal(unknownPool.uniqueBuyers24h, null);
   assert.equal(unknownPool.walletTransactions[0].direction, "TRANSFER");
 });
