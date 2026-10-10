@@ -29,6 +29,7 @@ import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
+import { getRpcWalletEvidence } from "./rpcWalletEvidenceConnector.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
 import {
   normalizeChainId,
@@ -306,6 +307,9 @@ function providerFunctions(options = {}) {
       injected.getWalletEvidence ||
       options.getBlockscoutWalletEvidence ||
       getBlockscoutWalletEvidence,
+    getRpcWalletEvidence: injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence,
+    useRpcWalletFallback: Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
+      !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence),
     getCoinGeckoMarketsByIds:
       injected.getCoinGeckoMarketsByIds ||
       options.getCoinGeckoMarketsByIds ||
@@ -901,30 +905,44 @@ export async function recoverWalletEvidence(
     Math.max(1, Number(options.walletProviderRequestCost || 3)),
     evm.chain
   );
-  if (attempt.status !== "SUCCESS") {
-    return { observations: [], attempts: [attempt], projectPatch: {} };
-  }
   const result = attempt.value || {};
-  if (result.status !== "EVIDENCE_AVAILABLE") {
-    return {
-      observations: [],
-      attempts: [{ ...attempt, status: result.status || "UNKNOWN", value: undefined }],
-      projectPatch: { blockscoutWalletEvidence: result },
-    };
-  }
   const timestamp = result.observedAt || new Date().toISOString();
-  const observations = [...new Set(fields)]
+  const exactResult = (!result.chain || normalizeChainId(result.chain) === evm.chain) &&
+    (!result.tokenAddress || lower(result.tokenAddress) === lower(evm.tokenAddress));
+  const companionFields = ["wallets", "holderAddresses", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory"];
+  const observations = attempt.status === "SUCCESS" && result.status === "EVIDENCE_AVAILABLE" && exactResult ? [...new Set([...fields, ...companionFields])]
     .map((field) => observation(field, result[field], "blockscout-wallets", timestamp, 0.82, {
       chain: evm.chain,
       tokenAddress: evm.tokenAddress,
       poolAddress: result.poolAddress || null,
       exactPoolIdentity: result.exactPoolIdentity === true,
     }))
-    .filter((item) => valueKnown(item.value));
+    .filter((item) => valueKnown(item.value)) : [];
+  const attempts = [{ ...attempt, value: undefined }];
+  let rpcResult = null;
+  const rpcFields = ["wallets", "walletTransactions", "walletParticipationHistory"];
+  const missingRpcField = fields.some((field) => rpcFields.includes(field) &&
+    !observations.some((item) => item.field === field));
+  if (providers.useRpcWalletFallback && (missingRpcField || !observations.some((item) => companionFields.includes(item.field)))) {
+    const rpcAttempt = await executeProviderCall("rpc-wallets",
+      () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
+      options, state, 3, evm.chain);
+    attempts.push({ ...rpcAttempt, value: undefined });
+    rpcResult = rpcAttempt.value;
+    if (rpcAttempt.status === "SUCCESS" && rpcResult?.status === "EVIDENCE_AVAILABLE" &&
+      rpcResult.exactTokenIdentity === true && normalizeChainId(rpcResult.chain) === evm.chain &&
+      lower(rpcResult.tokenAddress) === lower(evm.tokenAddress)) {
+      for (const field of rpcFields) {
+        if (valueKnown(rpcResult[field]) && !observations.some((item) => item.field === field)) observations.push(observation(field, rpcResult[field], "rpc-wallets",
+          rpcResult.observedAt, confidenceFraction(rpcResult.confidence), { chain: evm.chain,
+            tokenAddress: evm.tokenAddress, transferCoverage: rpcResult.transferCoverage }));
+      }
+    }
+  }
   return {
     observations,
-    attempts: [{ ...attempt, value: undefined }],
-    projectPatch: { blockscoutWalletEvidence: result },
+    attempts,
+    projectPatch: { blockscoutWalletEvidence: result, ...(rpcResult ? { rpcWalletEvidence: rpcResult } : {}) },
   };
 }
 
