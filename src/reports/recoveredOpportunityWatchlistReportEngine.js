@@ -29,6 +29,27 @@ export function summarizeEvidenceHydration(projects = []) {
   return summary ? { ...summary } : null;
 }
 
+export function summarizeRecoveryAttempts(projects = []) {
+  return projects.filter((project) => project.deepEvaluationState !== "DEFERRED_BEFORE_DEEP" &&
+    ["RECOVERED", "PARTIAL_RECOVERY", "NO_RECOVERY"].includes(project.activeEvidenceRecoveryStatus))
+    .map((project) => ({
+      symbol: project.symbol || "UNKNOWN",
+      name: project.name || project.projectName || "Unknown",
+      chain: project.chain || project.canonicalAliases?.chain || null,
+      tokenAddress: project.tokenAddress || project.contractAddress || null,
+      poolAddress: project.poolAddress || project.pairAddress || null,
+      canonicalId: project.canonicalId || null,
+      progressivePipelineIdentityKey: project.progressivePipelineIdentityKey || null,
+      status: project.activeEvidenceRecoveryStatus,
+      waves: project.activeEvidenceRecovery?.waves || [],
+      attemptedFields: project.activeEvidenceRecovery?.attemptedFields || [],
+      recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
+      unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
+      attempts: project.activeEvidenceRecovery?.attempts || [],
+      providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
+    }));
+}
+
 export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = {}) {
   const evidenceHydration = summarizeEvidenceHydration(projects);
   const activelyRecovered = projects.filter((project) =>
@@ -53,17 +74,7 @@ export function writeRecoveredOpportunityWatchlistReport(projects = [], extra = 
       recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
       researchOnly: true,
     }));
-  const recoveryResults = activelyRecovered.map((project) => ({
-    symbol: project.symbol || "UNKNOWN",
-    name: project.name || project.projectName || "Unknown",
-    chain: project.chain || project.canonicalAliases?.chain || null,
-    tokenAddress: project.tokenAddress || project.contractAddress || null,
-    poolAddress: project.poolAddress || project.pairAddress || null,
-    status: project.activeEvidenceRecoveryStatus,
-    recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
-    unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
-    providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
-  }));
+  const recoveryResults = summarizeRecoveryAttempts(projects);
   const report = {
     ...meta(projects, extra),
     status: watchlist.length ? "WATCHLIST_READY" : "NO_RECOVERABLE_OPPORTUNITIES",
