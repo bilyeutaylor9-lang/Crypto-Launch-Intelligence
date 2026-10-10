@@ -137,6 +137,11 @@ export async function getGoPlusSecurityEvidence(project = {}, options = {}) {
   const cached = options.useCache === false ? null : getCachedSecurityEvidence(GOPLUS_PROVIDER, endpoint.chain, address, options.cacheTtlMs);
   if (cached?.responseIdentityVerified === true) return cached;
 
+  if (options.goPlusCooldownSkipped === true) {
+    return { ...unknownSecurityEvidence(GOPLUS_PROVIDER, "GoPlus cooldown active; independent explorer evidence remains available."),
+      providerCooldown: true };
+  }
+
   try {
     if (!options.goPlusRequestSlotReserved) await waitForGoPlusRequestSlot();
     const headers = {};
