@@ -17,6 +17,7 @@ export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/market-opportunity-learning.json*",
   "data/outcome-snapshots.json*",
   "data/point-in-time-observations.json*",
+  "data/security-evidence-cache.json",
   "data/project-observations.jsonl",
   "data/project-watchlist.json*",
   "data/research-coverage-ledger.json*",
