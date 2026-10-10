@@ -300,24 +300,44 @@ export const WRAPPED_ASSET_RELATIONS = Object.freeze({
   USDC_E: "USDC",
 });
 
-export function normalizeAliasText(value = "") {
-  return String(value ?? "")
+function memoizeAliasStringTransform(transform) {
+  const cache = new Map();
+  return (text) => {
+    if (cache.has(text)) return cache.get(text);
+    const result = transform(text);
+    // Bound process-wide caches; provider payloads can contain arbitrary text.
+    if (text.length <= 1024) {
+      if (cache.size >= 4096) cache.delete(cache.keys().next().value);
+      cache.set(text, result);
+    }
+    return result;
+  };
+}
+
+const normalizeAliasString = memoizeAliasStringTransform((text) => text
     .normalize("NFKC")
     .trim()
     .toLowerCase()
     .replace(/[._/:-]+/g, " ")
     .replace(/[$,()[\]{}]+/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim());
+const compactNormalizedAlias = memoizeAliasStringTransform((text) => text.replace(/[^a-z0-9]+/g, ""));
+const fieldNameFromStringPath = memoizeAliasStringTransform((text) => {
+  const parts = text.split(".").filter(Boolean);
+  return parts.at(-1) || text;
+});
+
+export function normalizeAliasText(value = "") {
+  return normalizeAliasString(String(value ?? ""));
 }
 
 export function compactAliasText(value = "") {
-  return normalizeAliasText(value).replace(/[^a-z0-9]+/g, "");
+  return compactNormalizedAlias(normalizeAliasText(value));
 }
 
 export function fieldNameFromPath(path = "") {
-  const parts = String(path || "").split(".").filter(Boolean);
-  return parts.at(-1) || String(path || "");
+  return fieldNameFromStringPath(String(path || ""));
 }
 
 export function parentPath(path = "") {

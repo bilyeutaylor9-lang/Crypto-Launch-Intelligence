@@ -75,11 +75,26 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,331 tests passed on the final code, including identity, cooldown, pacing,
+- 1,333 tests passed on the final code, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
-- JavaScript syntax checks are rerun after the final limiter module is added.
+- JavaScript syntax checks passed for 711 files after the alias cache was added.
 - Typecheck and focused provider/recovery regression tests passed.
-- The bounded scanner smoke check passed in a separate checkout: 45 deep
-  candidates, 18 deferred, 92% core coverage, 5 core-starved (11.11%), 5 verified
+- The final bounded scanner smoke check passed in a separate checkout: 44 deep
+  candidates, 18 deferred, 92% core coverage, 1 core-starved (2.27%), 2 verified
   routes, zero qualified candidates, and NO_EDGE_FOUND. Readiness and required
   report contracts passed. Reports do not race with test-runner isolation.
+
+## Full-universe performance finding
+
+The full-size local scan discovered 29,077 assets and selected 500 deep candidates.
+Its readiness audit was CPU-bound in semantic alias normalization and field-path
+conversion. A short CPU profile confirmed those pure string operations dominated
+the samples. Their results are now memoized in bounded 4,096-entry caches; strings
+longer than 1,024 characters are not retained. Provider values, observations, and
+identity decisions are not cached by this optimization.
+
+A 200,000-iteration repeated-field benchmark took 640 ms before and 25 ms with the
+cache, with the same checksum. This is not an end-to-end scan speedup claim.
+Regression tests compare the original transformations with the cached outputs,
+including empty inputs, Unicode normalization, eviction, and mutable objects.
+The old full scan was stopped and restarted with this change for final validation.
