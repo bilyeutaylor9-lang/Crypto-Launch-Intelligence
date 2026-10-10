@@ -75,9 +75,9 @@ https://github.com/blockscout/docs/blob/main/base-api.mdx.
 
 ## Checks
 
-- 1,343 tests passed, including identity, cooldown, pacing,
+- 1,345 tests passed, including identity, cooldown, pacing,
   shared-budget, proof-reuse, and missing-safety-flag regressions.
-- JavaScript syntax checks passed for 711 files after the alias cache was added.
+- JavaScript syntax checks passed for 712 files after the report regressions were added.
 - Typecheck and focused provider/recovery regression tests passed.
 - The earlier bounded scanner smoke check passed in a separate checkout: 44 deep
   candidates, 18 deferred, 92% core coverage, 1 core-starved (2.27%), 2 verified
@@ -139,11 +139,30 @@ observations remain explicit unknown checks. UNKNOWN and incomplete evidence
 cannot receive a clean safety score; observed dangers retain blocking pressure.
 Solana cache keys and local security reuse preserve case-sensitive mint identity.
 Focused regression validation passed 68 tests after these final refinements.
-The 500-deep live acquisition run is still being inspected; no final coverage
-claim is recorded until its artifact exists.
+The acquisition repair completed a live 500-deep scan before the final safety
+consumer refinements: 29,076 discovered, 2,343 standard, 1,843 deep deferred,
+481 core ready, 19 core starved (3.8%), 92% core coverage and 88% advisory
+coverage. Recovery promoted evidence for 476 candidates. There were no failed
+pipeline engines, zero verified routes, zero qualified candidates, and
+NO_EDGE_FOUND. The saved production baseline was 122/500 core starved (24.4%)
+and 91% core coverage. These are different live universes, not a controlled
+same-token comparison. Artifacts are retained in
+`/tmp/cli-recovery-smoke-20261010/reports`.
+
+All required report contracts and the full engine audit passed. The local run
+did not initially stamp a code SHA, so the provenance firewall correctly refused
+live publication; refreshing it as a TEST artifact passed. The final validation
+run stamps the actual checked-out Git SHA rather than weakening this firewall.
+The final safety consumer changes require a separate full scan before an updated
+final-head coverage claim can be made.
 
 Alias resolution now creates exact and normalized alias lookup sets once per
 field resolution instead of normalizing the same registry repeatedly for every
 candidate path. The sets are local to the call, so registry mutations cannot
 reuse stale lookups. Regression coverage compares the original classification
 rules across exact, nested, punctuation-normalized, and provider aliases.
+
+Recovery report builders now retain the engine's batch-level hydration counters:
+selected wave counts, request budget/usage, deadline skips, and recovered and
+unresolved fields by family. Missing measurements stay null, not invented zero
+request costs, and deferred candidates cannot supply a batch summary.
