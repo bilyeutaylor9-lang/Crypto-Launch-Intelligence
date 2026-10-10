@@ -12,6 +12,7 @@ permissions:
 concurrency:
   group: live-dashboard-scan-${{ github.ref }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   fast-evidence:
