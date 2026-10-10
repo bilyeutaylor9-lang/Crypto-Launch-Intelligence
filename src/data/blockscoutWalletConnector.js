@@ -53,7 +53,7 @@ function transferAmount(item = {}) {
   const decimals = numberOrNull(
     first([item.total?.decimals, item.token?.decimals, item.decimals])
   );
-  if (decimals === null || decimals < 0) return raw;
+  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) return null;
   return raw / 10 ** decimals;
 }
 
@@ -96,7 +96,7 @@ function normalizeTransfers(payload = {}, project = {}, meta = {}) {
     const to = addressOf(item.to);
     const timestamp = timestampOf(item);
     const timestampMs = timestamp ? Date.parse(timestamp) : null;
-    if (timestampMs && nowMs - timestampMs > 24 * 60 * 60 * 1000) continue;
+    if (timestampMs !== null && (timestampMs > nowMs || nowMs - timestampMs > 24 * 60 * 60 * 1000)) continue;
     const amount = transferAmount(item);
     const direction = poolAddress && from === poolAddress
       ? "BUY"
@@ -112,7 +112,8 @@ function normalizeTransfers(payload = {}, project = {}, meta = {}) {
       participant,
       direction,
       tokenAmount: amount,
-      volumeUsd: amount !== null && priceUsd !== null ? amount * priceUsd : null,
+      volumeUsd: null,
+      estimatedCurrentValueUsd: amount !== null && priceUsd !== null ? amount * priceUsd : null,
       smartWallet: participant ? smartWalletLabels.has(participant) : false,
     });
   }
@@ -152,6 +153,15 @@ export function normalizeBlockscoutWalletEvidence(
   const labeledWallets = knownWalletLabels(project);
   const participatingSmartWallets = wallets.filter((wallet) => labeledWallets.has(wallet));
   const labelsPresent = labeledWallets.size > 0;
+  const transferItems = Array.isArray(raw.transfers?.items) ? raw.transfers.items : null;
+  const nowMs = meta.now instanceof Date ? meta.now.getTime() : Date.now();
+  const cutoff = nowMs - 24 * 60 * 60 * 1000;
+  const timestamps = (transferItems || []).map(timestampOf);
+  const validTimestamps = timestamps.every((value) => value && Date.parse(value) <= nowMs) &&
+    (transferItems || []).every((item) => tokenAddressOfTransfer(item) === tokenAddress &&
+      isEvmAddress(addressOf(item.from)) && isEvmAddress(addressOf(item.to)));
+  const completeDailyTransfers = transferItems !== null && validTimestamps &&
+    (!raw.transfers.next_page_params || timestamps.some((value) => Date.parse(value) <= cutoff));
   const holderCount = numberOrNull(
     first([
       raw.token?.holders_count,
@@ -163,7 +173,7 @@ export function normalizeBlockscoutWalletEvidence(
   return {
     provider: "blockscout-wallets",
     status:
-      transfers.length || holderAddresses.length || holderCount !== null
+      transfers.length || holderAddresses.length || holderCount !== null || completeDailyTransfers
         ? "EVIDENCE_AVAILABLE"
         : "UNKNOWN",
     observedAt: meta.observedAt || new Date().toISOString(),
@@ -179,32 +189,34 @@ export function normalizeBlockscoutWalletEvidence(
     sellerAddresses,
     walletTransactions: transfers,
     walletParticipationHistory: transfers,
-    uniqueBuyers24h: poolAddress ? buyerAddresses.length : null,
-    buyTransactions24h: poolAddress ? buyers.length : null,
-    sellTransactions24h: poolAddress ? sellers.length : null,
+    transferCoverage: { available: transferItems !== null, complete24h: completeDailyTransfers },
+    uniqueBuyers24h: poolAddress && completeDailyTransfers ? buyerAddresses.length : null,
+    buyTransactions24h: poolAddress && completeDailyTransfers ? buyers.length : null,
+    sellTransactions24h: poolAddress && completeDailyTransfers ? sellers.length : null,
     buyVolumeUsd:
-      poolAddress && buyers.length && buyers.every((item) => item.volumeUsd !== null)
+      poolAddress && completeDailyTransfers && buyers.length && buyers.every((item) => item.volumeUsd !== null)
         ? buyers.reduce((sum, item) => sum + item.volumeUsd, 0)
         : null,
     sellVolumeUsd:
-      poolAddress && sellers.length && sellers.every((item) => item.volumeUsd !== null)
+      poolAddress && completeDailyTransfers && sellers.length && sellers.every((item) => item.volumeUsd !== null)
         ? sellers.reduce((sum, item) => sum + item.volumeUsd, 0)
         : null,
-    smartWalletBuys24h: labelsPresent ? smartBuys.length : null,
-    smartWalletSells24h: labelsPresent ? smartSells.length : null,
-    smartWalletBuyCount: labelsPresent ? smartBuys.length : null,
-    smartWalletSellCount: labelsPresent ? smartSells.length : null,
-    smartWallets: labelsPresent ? participatingSmartWallets : null,
-    trackedWallets: labelsPresent ? participatingSmartWallets : null,
+    smartWalletBuys24h: labelsPresent && completeDailyTransfers ? smartBuys.length : null,
+    smartWalletSells24h: labelsPresent && completeDailyTransfers ? smartSells.length : null,
+    smartWalletBuyCount: labelsPresent && completeDailyTransfers ? smartBuys.length : null,
+    smartWalletSellCount: labelsPresent && completeDailyTransfers ? smartSells.length : null,
+    smartWallets: labelsPresent && wallets.length ? participatingSmartWallets : null,
+    trackedWallets: labelsPresent && wallets.length ? participatingSmartWallets : null,
     smartWalletBuyVolumeUsd:
-      labelsPresent && smartBuys.length && smartBuys.every((item) => item.volumeUsd !== null)
+      labelsPresent && completeDailyTransfers && smartBuys.length && smartBuys.every((item) => item.volumeUsd !== null)
         ? smartBuys.reduce((sum, item) => sum + item.volumeUsd, 0)
         : null,
     smartWalletSellVolumeUsd:
-      labelsPresent && smartSells.length && smartSells.every((item) => item.volumeUsd !== null)
+      labelsPresent && completeDailyTransfers && smartSells.length && smartSells.every((item) => item.volumeUsd !== null)
         ? smartSells.reduce((sum, item) => sum + item.volumeUsd, 0)
         : null,
     warnings: [
+      ...(!completeDailyTransfers ? ["Transfer coverage is missing or incomplete; daily activity remains unknown."] : []),
       ...(!poolAddress
         ? ["Exact pool identity is missing; transfers were not classified as buys or sells."]
         : []),
@@ -258,14 +270,18 @@ export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
   });
   return {
     ...result,
+    providerFailure: [transfers, holders, token].every((item) => item.status === "rejected"),
     warnings: [
-      ...(result.warnings || []),
       ...(transfers.status === "rejected"
         ? [`Blockscout transfer request failed: ${transfers.reason?.message || "unknown"}`]
         : []),
       ...(holders.status === "rejected"
         ? [`Blockscout holder request failed: ${holders.reason?.message || "unknown"}`]
         : []),
+      ...(token.status === "rejected"
+        ? [`Blockscout token request failed: ${token.reason?.message || "unknown"}`]
+        : []),
+      ...(result.warnings || []),
     ],
   };
 }
