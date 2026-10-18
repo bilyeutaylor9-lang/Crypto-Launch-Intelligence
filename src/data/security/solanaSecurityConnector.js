@@ -2,8 +2,84 @@ import {
   chainKey,
   clean,
   fetchJson as defaultFetchJson,
+  getCachedSecurityEvidence,
+  setCachedSecurityEvidence,
   tokenAddress,
 } from "./securityEvidenceUtils.js";
+import { normalizeChainId, normalizeTokenAddress, normalizeWalletAddress } from "../../identity/strictIdentityValidators.js";
+
+const FULL_PROVIDER = "rugcheck-solana-full";
+const TOKEN_PROGRAMS = new Set([
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+]);
+
+function exactSolanaMint(project) {
+  const chain = normalizeChainId(project.chain || project.canonicalChain || project.network);
+  if (chain !== "solana") return null;
+  const mint = normalizeTokenAddress(tokenAddress(project), chain);
+  const chains = [project.chain, project.canonicalChain, project.network].map(normalizeChainId).filter(Boolean);
+  const addresses = [project.tokenAddress, project.contractAddress, project.address]
+    .map((value) => normalizeTokenAddress(value, chain)).filter(Boolean);
+  return mint && chains.every((value) => value === chain) && addresses.every((value) => value === mint) ? mint : null;
+}
+
+export function normalizeRugCheckFullReport(report = {}, project = {}, options = {}) {
+  const mint = exactSolanaMint(project);
+  const observedAt = options.observedAt || new Date().toISOString();
+  const unknown = { provider: FULL_PROVIDER, status: "UNKNOWN", chain: "solana", address: mint,
+    observedAt, responseIdentityVerified: false, warnings: ["Exact Solana mint and token program must match the full report."], raw: null };
+  if (!mint || report?.mint !== mint || !TOKEN_PROGRAMS.has(report.tokenProgram)) return unknown;
+  const holders = (Array.isArray(report.topHolders) ? report.topHolders : []).slice(0, 100).flatMap((item) => {
+    const owner = normalizeWalletAddress(item?.owner, "solana");
+    const account = normalizeTokenAddress(item?.address, "solana");
+    const amount = item?.amount;
+    const positive = typeof amount === "string" && /^\d+$/.test(amount) ? BigInt(amount) > 0n
+      : typeof amount === "number" && Number.isFinite(amount) && amount > 0;
+    if (!owner || !account || !positive || owner === account || owner === mint || TOKEN_PROGRAMS.has(owner) || owner === "11111111111111111111111111111111") return [];
+    return [{ accountAddress: account, ownerAddress: owner, positiveBalanceReported: true,
+      tokenAmountRaw: typeof amount === "string" ? amount : Number.isSafeInteger(amount) ? String(amount) : null,
+      balancePrecisionVerified: typeof amount === "string" || Number.isSafeInteger(amount) }];
+  });
+  const authorityKnown = (key) => Object.hasOwn(report, key) &&
+    (report[key] === null || Boolean(normalizeWalletAddress(report[key], "solana")));
+  return { provider: FULL_PROVIDER, schemaVersion: 1, status: "EVIDENCE_AVAILABLE",
+    chain: "solana", address: mint, tokenAddress: mint, observedAt, sourceTimestamp: observedAt,
+    responseIdentityVerified: true, confidence: 0.78, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
+    identityVerifiedOnChain: false, holderSampleOnly: true, completeHolderCoverage: false,
+    snapshotTimestampVerified: false, sourceTimestampMeaning: "PROVIDER_RECEIPT_TIME_NOT_CHAIN_SNAPSHOT_TIME",
+    providerReportDetectedAt: typeof report.detectedAt === "string" ? report.detectedAt : null,
+    wallets: [...new Set(holders.map((item) => item.ownerAddress))],
+    holderAddresses: [...new Set(holders.map((item) => item.ownerAddress))], solanaHolderAccounts: holders,
+    holderCount: Number.isSafeInteger(report.totalHolders) && report.totalHolders >= 0 ? report.totalHolders : null,
+    securityReportComplete: Array.isArray(report.risks) && typeof report.rugged === "boolean" && authorityKnown("mintAuthority") && authorityKnown("freezeAuthority"),
+    raw: { mint, tokenProgram: report.tokenProgram, topHolders: holders, risks: array(report.risks),
+      rugged: typeof report.rugged === "boolean" ? report.rugged : null,
+      score: typeof report.score === "number" && Number.isFinite(report.score) ? report.score : null,
+      mintAuthority: report.mintAuthority, freezeAuthority: report.freezeAuthority },
+    warnings: ["Holder-owner sample only; no daily buyers, smart labels, complete holder census or fresh chain snapshot is proven."] };
+}
+
+export async function getRugCheckFullTokenEvidence(project = {}, options = {}) {
+  const mint = exactSolanaMint(project);
+  const unknown = (reason, providerFailure = false) => ({ provider: FULL_PROVIDER, status: "UNKNOWN", chain: "solana",
+    address: mint, observedAt: new Date().toISOString(), responseIdentityVerified: false, providerFailure, warnings: [reason], raw: null });
+  if (!mint) return unknown("Exact, nonconflicting Solana mint identity is required.");
+  if (options.useCache !== false) {
+    const cached = getCachedSecurityEvidence(FULL_PROVIDER, "solana", mint, options.cacheTtlMs);
+    if (cached?.schemaVersion === 1 && cached.responseIdentityVerified === true && cached.chain === "solana" && cached.address === mint && cached.raw?.mint === mint) return cached;
+  }
+  try {
+    const fetchJson = options.fetchJson || defaultFetchJson;
+    const baseUrl = options.rugCheckBaseUrl || process.env.RUGCHECK_API_BASE_URL || "https://api.rugcheck.xyz/v1";
+    const report = await fetchJson(`${baseUrl}/tokens/${encodeURIComponent(mint)}/report`, {
+      timeoutMs: options.timeoutMs, headers: { accept: "application/json" },
+    });
+    const evidence = normalizeRugCheckFullReport(report, project);
+    return options.useCache === false || evidence.status === "UNKNOWN" ? evidence
+      : setCachedSecurityEvidence(FULL_PROVIDER, "solana", mint, evidence);
+  } catch (error) { return unknown(error.message || "Full RugCheck report failed.", true); }
+}
 
 function array(value) {
   return Array.isArray(value) ? value : [];
@@ -30,7 +106,11 @@ async function rpcMintEvidence(project = {}, options = {}) {
   });
   const value = response?.result?.value;
   const info = value?.data?.parsed?.info;
-  if (!value || !info) throw new Error("Solana RPC did not return parsed mint-account data.");
+  if (!value || !info || value.data.parsed.type !== "mint" || !TOKEN_PROGRAMS.has(value.owner) ||
+    !Object.hasOwn(info, "mintAuthority") || !Object.hasOwn(info, "freezeAuthority") ||
+    ![info.mintAuthority, info.freezeAuthority].every((authority) => authority === null || Boolean(normalizeWalletAddress(authority, "solana")))) {
+    throw new Error("Solana RPC did not return a verified parsed SPL mint-account shape.");
+  }
   const mintAuthority = info.mintAuthority ?? null;
   const freezeAuthority = info.freezeAuthority ?? null;
   return {
@@ -45,28 +125,25 @@ async function rpcMintEvidence(project = {}, options = {}) {
 }
 
 async function rugCheckEvidence(project = {}, options = {}) {
-  const mint = tokenAddress(project);
-  const fetchJson = options.fetchJson || defaultFetchJson;
-  const baseUrl = options.rugCheckBaseUrl || process.env.RUGCHECK_API_BASE_URL || "https://api.rugcheck.xyz/v1";
-  const report = await fetchJson(`${baseUrl}/tokens/${encodeURIComponent(mint)}/report/summary`, {
-    timeoutMs: options.timeoutMs,
-    headers: { accept: "application/json" },
-  });
+  const evidence = await getRugCheckFullTokenEvidence(project, options);
+  if (evidence.status === "UNKNOWN" || evidence.securityReportComplete !== true) throw new Error("Full RugCheck security fields or exact mint identity are missing.");
+  const report = evidence.raw;
   const risks = array(report?.risks);
   const text = risks.map(riskText).join(" ").toLowerCase();
   return {
-    score: Number.isFinite(Number(report?.score)) ? Number(report.score) : null,
+    score: typeof report?.score === "number" && Number.isFinite(report.score) ? report.score : null,
     rugged: report?.rugged === true,
     risks,
-    mintRisk: /mint authority|mintable|unlimited mint/.test(text),
-    freezeRisk: /freeze authority|freezable/.test(text),
+    mintRisk: Boolean(report.mintAuthority) || /mint authority|mintable|unlimited mint/.test(text),
+    freezeRisk: Boolean(report.freezeAuthority) || /freeze authority|freezable/.test(text),
     blacklistRisk: /blacklist|denylist|transfer restriction/.test(text),
+    holderEvidence: evidence,
   };
 }
 
 export async function getSolanaSecurityEvidence(project = {}, options = {}) {
   const chain = chainKey(project.chain || project.canonicalChain || project.network);
-  const mint = tokenAddress(project);
+  const mint = exactSolanaMint(project);
   const observedAt = new Date().toISOString();
   if (chain !== "solana") {
     return {
@@ -131,6 +208,9 @@ export async function getSolanaSecurityEvidence(project = {}, options = {}) {
   return {
     provider: "solana-rpc-rugcheck",
     status: riskFindings.length ? "RISK_REVIEW" : "EVIDENCE_AVAILABLE",
+    chain: "solana",
+    address: mint,
+    responseIdentityVerified: Boolean(rpc || rugCheck?.holderEvidence.responseIdentityVerified),
     observedAt,
     verifiedSource: Boolean(rpc),
     identityVerifiedOnChain: Boolean(rpc),
@@ -151,7 +231,7 @@ export async function getSolanaSecurityEvidence(project = {}, options = {}) {
     raw: {
       rpc,
       rugCheck: rugCheck
-        ? { score: rugCheck.score, rugged: rugCheck.rugged, riskCount: rugCheck.risks.length }
+        ? { score: rugCheck.score, rugged: rugCheck.rugged, riskCount: rugCheck.risks.length, holderEvidence: rugCheck.holderEvidence }
         : null,
     },
   };

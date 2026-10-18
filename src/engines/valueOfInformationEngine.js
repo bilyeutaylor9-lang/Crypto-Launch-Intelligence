@@ -9,7 +9,7 @@ export function analyzeValueOfInformation(project = {}, options = {}) {
       valueOfInformationScore: estimateValueOfInformation(item),
     }))
     .sort((a, b) => b.valueOfInformationScore - a.valueOfInformationScore);
-  const plan = buildTargetedEnrichmentPlan(items, options);
+  const plan = buildTargetedEnrichmentPlan(items, { ...options, chain: project.chain || project.canonicalChain || project.network });
 
   return {
     ...project,

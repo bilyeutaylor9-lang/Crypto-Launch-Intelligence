@@ -1,3 +1,5 @@
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
+
 export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   IDENTITY: [
     { source: "DexScreener", authority: 82, cost: 1, latencyMs: 1200, fields: ["tokenAddress", "poolAddress", "chain"] },
@@ -24,8 +26,9 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "Etherscan-compatible explorers", authority: 78, cost: 1, latencyMs: 1800, fields: ["contractVerified", "ownerRenounced", "buyTaxPct", "sellTaxPct"] },
   ],
   WALLETS: [
-    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
-    { source: "block explorers", authority: 78, cost: 3, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "RugCheck", chains: ["solana"], authority: 78, cost: 1, latencyMs: 2500, fields: ["wallets", "holderAddresses", "holderCount"] },
+    { source: "chain RPC", chainKinds: ["evm"], authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "block explorers", chainKinds: ["evm"], authority: 78, cost: 3, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "walletTransactions", "walletParticipationHistory"] },
     { source: "wallet-history database", authority: 76, cost: 0, latencyMs: 200, fields: ["walletParticipationHistory"] },
   ],
   DEPLOYER: [
@@ -172,16 +175,19 @@ export function sourceFamilyForField(field = "") {
   return "UNKNOWN";
 }
 
-export function sourcesForField(field = "") {
+export function sourcesForField(field = "", options = {}) {
   const family = sourceFamilyForField(field);
-  return (ENRICHMENT_SOURCE_REGISTRY[family] || []).filter((source) => source.fields.includes(field));
+  const chain = normalizeChainId(options.chain);
+  return (ENRICHMENT_SOURCE_REGISTRY[family] || []).filter((source) => source.fields.includes(field) &&
+    (!options.chain || ((!source.chains || source.chains.includes(chain)) &&
+      (!source.chainKinds || source.chainKinds.includes(chainKind(chain))))));
 }
 
 export function recoveryDispositionForField(field = "", options = {}) {
   if (options.applicability === "NOT_APPLICABLE") return "NOT_APPLICABLE";
   const family = sourceFamilyForField(field);
   if (family === "DERIVED") return "DERIVED_RECOMPUTE";
-  return sourcesForField(field).length
+  return sourcesForField(field, options).length
     ? "RAW_RECOVERABLE"
     : "UNAVAILABLE_WITH_CURRENT_PROVIDERS";
 }

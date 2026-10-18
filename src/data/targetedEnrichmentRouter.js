@@ -30,8 +30,9 @@ export function routeMissingEvidence(item = {}, options = {}) {
   const family = sourceFamilyForField(field);
   let recoveryDisposition = recoveryDispositionForField(field, {
     applicability: item.applicability,
+    chain: options.chain || item.chain,
   });
-  const sources = (recoveryDisposition === "RAW_RECOVERABLE" ? sourcesForField(field) : [])
+  const sources = (recoveryDisposition === "RAW_RECOVERABLE" ? sourcesForField(field, { chain: options.chain || item.chain }) : [])
     .filter((source) => options.freeOnly === false || source.free !== false)
     .map((source) => ({
       ...source,

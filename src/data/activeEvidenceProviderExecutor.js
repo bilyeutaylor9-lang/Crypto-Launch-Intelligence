@@ -16,6 +16,7 @@ import {
 import { getCoinPaprikaTickerById } from "./freeMarketDataConnector.js";
 import { getDefiLlamaExactPrice } from "./defiLlamaExactPriceConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
+import { getRugCheckFullTokenEvidence } from "./security/solanaSecurityConnector.js";
 import { securityHolderObservations } from "./security/securityWalletEvidence.js";
 import {
   getBlockscoutDeployerEvidence,
@@ -295,6 +296,7 @@ function providerFunctions(options = {}) {
       options.getBlockscoutWalletEvidence ||
       getBlockscoutWalletEvidence,
     getRpcWalletEvidence: injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence,
+    getSolanaWalletEvidence: injected.getSolanaWalletEvidence || options.getSolanaWalletEvidence || getRugCheckFullTokenEvidence,
     useRpcWalletFallback: Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
       !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence),
     getCoinGeckoMarketsByIds:
@@ -872,6 +874,34 @@ export async function recoverWalletEvidence(
   options = {},
   state = createActiveEvidenceExecutionState(options)
 ) {
+  if (chainOf(project) === "solana") {
+    const tokenAddress = tokenAddressOf(project, "solana");
+    const capableFields = ["wallets", "holderAddresses", "holderCount"];
+    if (!tokenAddress || !fields.some((field) => capableFields.includes(field))) return {
+      observations: [], attempts: [{ provider: "rugcheck-solana-full", status: "NOT_APPLICABLE", durationMs: 0,
+        reason: "Exact Solana mint and supported holder-owner fields are required." }], projectPatch: {},
+    };
+    const localItems = [project.solanaWalletEvidence,
+      ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : [])].filter(Boolean);
+    if (options.useCache !== false) {
+      const cached = (options.readCachedSecurityEvidence || getCachedSecurityEvidence)("rugcheck-solana-full", "solana", tokenAddress, options.cacheTtlMs);
+      if (cached) localItems.push(cached);
+    }
+    const local = securityHolderObservations(project, localItems, options);
+    if (fields.every((field) => local.some((item) => item.field === field))) return {
+      observations: local, attempts: [{ provider: "rugcheck-solana-full", status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0 }], projectPatch: {},
+    };
+    const attempt = await executeProviderCall("rugcheck-solana-full",
+      () => providers.getSolanaWalletEvidence({ ...project, chain: "solana", tokenAddress }, options), options, state, 1, "solana");
+    const result = attempt.value || {};
+    const observations = securityHolderObservations(project, [result], options);
+    if (observations.length && fields.includes("holderCount") && Number.isSafeInteger(result.holderCount) && result.holderCount >= 0) {
+      observations.push({ ...observations[0], field: "holderCount", value: result.holderCount, holderSampleOnly: false,
+        holderCountSemantics: "PROVIDER_REPORTED_COUNT_NOT_SAMPLE_COUNT" });
+    }
+    return { observations: [...local, ...observations], attempts: [{ ...attempt, value: undefined }],
+      projectPatch: result.status === "EVIDENCE_AVAILABLE" && observations.length ? { solanaWalletEvidence: result } : {} };
+  }
   const evm = evmIdentity(project);
   if (!evm.exact) {
     return {
@@ -1725,7 +1755,7 @@ export async function executeActiveEvidenceProviderRequests(
   }
   if (
     walletFields.some((field) => !observations.some((item) => item.field === field)) &&
-    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase"])
+    sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase", "rugcheck"])
   ) {
     parallel.push(
       recoverWalletEvidenceWithHistory(project, walletFields.filter((field) => !observations.some((item) => item.field === field)), providers, options, executionState).then((result) => ({

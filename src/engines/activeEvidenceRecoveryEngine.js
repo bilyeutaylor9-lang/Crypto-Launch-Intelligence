@@ -274,6 +274,7 @@ function planItems(project = {}) {
     if (!field || item.recoverable === false) continue;
     const recoveryDisposition = recoveryDispositionForField(field, {
         applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
+        chain: chainOf(project),
       });
     if (recoveryDisposition !== "RAW_RECOVERABLE") continue;
     const current = bestByField.get(field);

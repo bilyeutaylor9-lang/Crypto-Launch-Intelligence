@@ -229,6 +229,7 @@ test("Solana safety recovery uses mint authority checks without EVM source field
       poolAddress: SOL_POOL,
     },
     {
+      useCache: false,
       fetchJson: async (_url, init = {}) => {
         if (init.method === "POST") {
           return {
@@ -237,6 +238,7 @@ test("Solana safety recovery uses mint authority checks without EVM source field
                 owner: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                 data: {
                   parsed: {
+                    type: "mint",
                     info: {
                       mintAuthority: null,
                       freezeAuthority: null,
@@ -249,7 +251,8 @@ test("Solana safety recovery uses mint authority checks without EVM source field
             },
           };
         }
-        return { score: 1, rugged: false, risks: [] };
+        return { mint: SOL_TOKEN, tokenProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          mintAuthority: null, freezeAuthority: null, score: 1, rugged: false, risks: [] };
       },
     }
   );
