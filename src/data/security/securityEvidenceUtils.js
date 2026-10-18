@@ -76,9 +76,16 @@ export function isEvmAddress(address = "") {
 export function boolFlag(value) {
   if (value === true || value === 1) return true;
   if (value === false || value === 0) return false;
+  if (typeof value !== "string") return null;
   const normalized = lower(value);
   if (["1", "true", "yes", "verified", "exact_match", "match"].includes(normalized)) return true;
   if (["0", "false", "no"].includes(normalized)) return false;
+  return null;
+}
+
+export function goPlusBoolFlag(value) {
+  if ([true, 1, "1"].includes(value)) return true;
+  if ([false, 0, "0"].includes(value)) return false;
   return null;
 }
 
@@ -86,6 +93,19 @@ export function numeric(value) {
   if (value === null || value === undefined || value === "") return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+export function goPlusTaxPct(value) {
+  if (typeof value !== "number" &&
+      (typeof value !== "string" || !/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(value.trim()))) return null;
+  const fraction = Number(value);
+  return Number.isFinite(fraction) && fraction >= 0 && fraction <= 1 ? fraction * 100 : null;
+}
+
+export function nonnegativeSafeInteger(value) {
+  if (typeof value !== "number" && (typeof value !== "string" || !/^\d+$/.test(value.trim()))) return null;
+  const count = Number(value);
+  return Number.isSafeInteger(count) && count >= 0 ? count : null;
 }
 
 export function ensureDataDir() {
@@ -197,11 +217,11 @@ export function summarizeSecurityEvidence(evidence = []) {
   const goPlusItems = known.filter((item) => item.provider === "goplus");
   const requiredChecks = ["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance"];
   const unknownChecks = goPlusItems.length ? requiredChecks
-    .filter((field) => !goPlusItems.some((item) => boolFlag(item.raw?.[field]) !== null))
+    .filter((field) => !goPlusItems.some((item) => goPlusBoolFlag(item.raw?.[field]) !== null))
     .map((field) => `goplus.${field}`) : [];
   if (goPlusItems.length) {
     for (const field of ["buy_tax", "sell_tax"]) {
-      if (!goPlusItems.some((item) => numeric(item.raw?.[field]) !== null)) unknownChecks.push(`goplus.${field}`);
+      if (!goPlusItems.some((item) => goPlusTaxPct(item.raw?.[field]) !== null)) unknownChecks.push(`goplus.${field}`);
     }
   }
   const malicious = items.some((item) => item.malicious === true);

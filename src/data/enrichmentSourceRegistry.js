@@ -1,5 +1,7 @@
 import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
 
+export const GOPLUS_WALLET_CHAINS = Object.freeze(["ethereum", "optimism", "bsc", "polygon", "arbitrum", "avalanche", "base"]);
+
 export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   IDENTITY: [
     { source: "DexScreener", authority: 82, cost: 1, latencyMs: 1200, fields: ["tokenAddress", "poolAddress", "chain"] },
@@ -27,6 +29,7 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   ],
   WALLETS: [
     { source: "RugCheck", chains: ["solana"], authority: 78, cost: 1, latencyMs: 2500, fields: ["wallets", "holderAddresses", "holderCount"] },
+    { source: "GoPlus", chains: GOPLUS_WALLET_CHAINS, authority: 80, cost: 1, latencyMs: 2000, fields: ["wallets", "holderAddresses"] },
     { source: "chain RPC", chainKinds: ["evm"], authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
     { source: "block explorers", chainKinds: ["evm"], authority: 78, cost: 3, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "walletTransactions", "walletParticipationHistory"] },
     { source: "wallet-history database", authority: 76, cost: 0, latencyMs: 200, fields: ["walletParticipationHistory"] },

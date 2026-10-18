@@ -1,5 +1,69 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 GoPlus Wallet Acquisition
+
+Inspection of scan_1792298173233 at 467c081d9c8aad4c3d0d7912e3f9edc6588c5429
+found another genuine acquisition omission: wallet-only gaps went to explorer
+and RPC recovery but never requested the already-supported GoPlus holder
+payload when creator/source evidence was already known. A quiet BSC token had
+no participants in either the 256-block scanner window or a bounded 1000-block
+probe, but a fresh exact-token GoPlus request returned 7269 reported holders
+and ten listed holder addresses. The unchanged zero-seed balance probe was not
+proof that the token had no holders.
+
+The wallet source registry and executor now offer GoPlus for raw EVM wallet/
+holder addresses on its seven already-supported chains. The cheap one-request
+holder path precedes explorer/RPC recovery for selected hydration candidates.
+Exact identity, response verification, original timestamp, confidence and
+sample-coverage gates are reused. Sufficient local or newly acquired evidence
+avoids redundant later requests. Unsupported transaction/smart-label requests
+and Solana/unsupported EVM chains do not use this path. Every actual GoPlus
+operation shares the existing request budget, global limiter/cooldown, deadline
+and provider circuit. Explicit GoPlus wallet opt-out and custom wallet/RPC
+provider injection remain usable.
+
+Holder acquisition completes before dependent security recovery so genuine
+risks in the same payload survive into security recomputation and do not get
+overwritten by an older source-only summary. It never sets final execution or
+qualification. Raw owner samples are explicitly provider-reported, not fresh
+chain snapshots or proven EOAs; transaction counts, independent buyers and
+smart-wallet labels are not manufactured.
+
+A specialist repaired zero/negative/malformed holder-balance acceptance while
+preserving optional provider-listed-holder semantics. Integrating safety
+companions also exposed unsafe numeric/boolean coercion: nonprimitive flags
+and malformed taxes/counts could become favorable false/zero values. GoPlus
+now requires binary flags, nonnegative decimal tax fractions within [0,1],
+safe integer holder counts and consistent raw/normalized companion values.
+Missing or invalid safety checks remain unknown. Explicit observed zero tax
+and 0.01 -> 1% conversion remain supported. These integrity changes are not
+relaxed gates or positive defaults.
+
+The initial wallet-only regression set failed six of eight tests on the old
+code. The integrated wallet/security/limiter/RPC focused suite passes 87 tests.
+A bounded actual-executor capability probe of one exact previously starved BSC
+contract recovered ten holder addresses and nine non-pool participant addresses
+in one request, including applicable raw safety companions. It used cache-off
+and history-off settings, persisted nothing, and did not prove scanner-wide
+coverage or an edge. An independent indexed sample supplied two address query
+seeds; five real existing-RPC methods proved positive balanceOf values for both
+at one exact canonical block hash. No indexer profit/buy/sell tags were promoted,
+and no new paid/indexer dependency was added to the production scanner.
+
+The remaining Solana sample reports only the pool itself as a holder owner,
+which is correctly excluded from generic wallets. Fresh capability probes
+verified mainnet genesis at both existing public endpoints, but actual holder
+enumeration still failed HTTP403/429. This limitation is not repaired by symbol
+matching or EVM-style creator/tax inference. The method returns token accounts,
+not automatically wallet owners: [Solana getTokenLargestAccounts](https://solana.com/docs/rpc/http/gettokenlargestaccounts).
+
+Final integrated code validation: 1715/1715 tests pass with zero failures or
+skips, 916 JavaScript files pass syntax checks, entrypoint syntax/typecheck and
+21 load tests pass. Fresh npm ci reports zero vulnerabilities. All 215 live
+runtime files retain their original hashes and identical file set after the
+full suite and separate load command. This does not prove complete live
+acquisition, exact execution routes, profitable edge, or deployment readiness.
+
 ## October 18 Bounded Wallet Endpoint Recovery
 
 The latest clean production-style scan before this layer is

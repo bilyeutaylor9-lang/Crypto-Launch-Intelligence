@@ -1,5 +1,16 @@
 import { normalizeChainId, normalizeTokenAddress, normalizeWalletAddress } from "../../identity/strictIdentityValidators.js";
 
+function hasEligibleGoPlusHolderBalance(holder) {
+  if (!holder || typeof holder !== "object" || Array.isArray(holder)) return false;
+  if (!Object.hasOwn(holder, "balance")) return true;
+  const { balance } = holder;
+  if (typeof balance === "number") return Number.isFinite(balance) && balance > 0;
+  if (typeof balance !== "string") return false;
+  // Inspect decimal digits directly so provider amounts cannot underflow or overflow.
+  const decimal = balance.trim();
+  return /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(decimal) && /[1-9]/.test(decimal);
+}
+
 function solanaHolderObservations(project, items, options, tokenAddress) {
   const now = options.now ? new Date(typeof options.now === "function" ? options.now() : options.now).getTime() : Date.now();
   const maxAgeMs = Number(options.cacheTtlMs ?? process.env.SECURITY_EVIDENCE_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
@@ -47,7 +58,7 @@ export function securityHolderObservations(project = {}, items = [], options = {
     const timestamp = typeof item.observedAt === "string" ? Date.parse(item.observedAt) : NaN;
     if (!Number.isFinite(timestamp) || timestamp <= 0 || timestamp > now || now - timestamp > maxAgeMs) continue;
     if (!Array.isArray(item.raw?.holders)) continue;
-    const addresses = [...new Set(item.raw.holders.map((holder) => typeof holder?.address === "string"
+    const addresses = [...new Set(item.raw.holders.filter(hasEligibleGoPlusHolderBalance).map((holder) => typeof holder?.address === "string"
       ? holder.address.trim().toLowerCase() : null).filter((address) => /^0x[0-9a-f]{40}$/.test(address || "") && !/^0x0{40}$/.test(address)))];
     if (!addresses.length) continue;
     const confidence = typeof item.confidence === "number" && Number.isFinite(item.confidence)
