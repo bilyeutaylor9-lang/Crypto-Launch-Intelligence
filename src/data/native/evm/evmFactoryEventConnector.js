@@ -1,5 +1,6 @@
 import { NativePoolAdapter, NATIVE_EVENT_TYPES, normalizeNativeEvent } from "../NativePoolAdapter.js";
 import { getNativeProtocolConfigs } from "../nativePoolConfig.js";
+import { EvmContractDeploymentAdapter } from "./evmContractDeploymentConnector.js";
 import {
   getNativeCheckpoints,
   recordNativeEvents,
@@ -260,9 +261,14 @@ export class EvmFactoryEventAdapter extends NativePoolAdapter {
 }
 
 export function createEvmFactoryAdapters(options = {}) {
-  return getNativeProtocolConfigs(options)
+  const configs = getNativeProtocolConfigs(options);
+  const deployment = getNativeProtocolConfigs({ ...options, chains: "multi-evm" })
+    .find((config) => config.family === "evm-deployment");
+  if (deployment?.configured && !configs.some((config) => config.id === deployment.id)) configs.push(deployment);
+  return configs
     .filter((config) => config.family === "evm-factory" || config.family === "evm-deployment")
-    .map((config) => new EvmFactoryEventAdapter(config));
+    .map((config) => config.family === "evm-deployment"
+      ? new EvmContractDeploymentAdapter(config) : new EvmFactoryEventAdapter(config));
 }
 
 async function mapWithConcurrency(items = [], concurrency = 6, worker = async (item) => item) {
@@ -282,19 +288,21 @@ async function mapWithConcurrency(items = [], concurrency = 6, worker = async (i
 export async function getEvmFactoryEventCandidates(options = {}) {
   const adapters = createEvmFactoryAdapters(options);
   const logsByProtocol = options.logsByProtocol || {};
-  const checkpoints = options.checkpoints || getNativeCheckpoints();
+  const checkpoints = options.checkpoints || (options.persist === false ? {} : getNativeCheckpoints());
   const outcomes = await mapWithConcurrency(
     adapters,
     options.concurrency || process.env.NATIVE_DISCOVERY_PROTOCOL_CONCURRENCY || 6,
     async (adapter) => {
       try {
         const hasProvidedLogs = Array.isArray(logsByProtocol[adapter.config.id]);
+        const deployment = adapter.config.family === "evm-deployment";
         const checkpointBlock = Number(checkpoints[adapter.config.id]?.blockNumber);
         const backfillOptions = {
           ...options,
           collect: options.collect !== false,
-          ...(hasProvidedLogs ? { logs: logsByProtocol[adapter.config.id] } : {}),
-          ...(!hasProvidedLogs && options.fromBlock == null && Number.isFinite(checkpointBlock)
+          ...(hasProvidedLogs && !deployment ? { logs: logsByProtocol[adapter.config.id] } : {}),
+          ...(deployment ? { checkpoint: checkpoints[adapter.config.id] } : {}),
+          ...(!deployment && !hasProvidedLogs && options.fromBlock == null && Number.isFinite(checkpointBlock)
             ? { fromBlock: checkpointBlock + 1 }
             : {}),
         };
@@ -313,10 +321,17 @@ export async function getEvmFactoryEventCandidates(options = {}) {
             rpcUrl: result.rpcUrl,
             rpcAttempts: result.rpcAttempts,
             reason: result.reason,
+            ...(deployment ? {
+              chain: result.chain, chainId: result.chainId, partial: result.partial,
+              incompleteBlock: result.incompleteBlock, targetToBlock: result.targetToBlock,
+              requests: result.requests, blocksRead: result.blocksRead,
+              blocksCompleted: result.blocksCompleted, receiptsRead: result.receiptsRead,
+              limits: result.limits, limitReason: result.limitReason,
+            } : {}),
           },
         };
       } catch (error) {
-        recordNativeDeadLetter({
+        if (options.persist !== false) recordNativeDeadLetter({
           source: adapter.config.id,
           error: error.message,
           stage: "evm-factory-backfill",

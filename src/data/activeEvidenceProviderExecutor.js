@@ -32,8 +32,11 @@ import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import { getRpcWalletEvidence } from "./rpcWalletEvidenceConnector.js";
+import { jsonRpc } from "../sensors/rpcJsonClient.js";
 import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
+import { loadNativeEvents } from "./native/nativeEventStore.js";
+import { nativeContractDeployerEvidence } from "./native/evm/evmContractDeploymentConnector.js";
 import { analyzeExecutionProofRecoveryBatch } from "../engines/executionProofRecoveryEngine.js";
 import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
 import {
@@ -314,9 +317,10 @@ function providerFunctions(options = {}) {
       options.getBlockscoutWalletEvidence ||
       getBlockscoutWalletEvidence,
     getRpcWalletEvidence: injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence,
+    defaultRpcWalletProvider: (injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence) === getRpcWalletEvidence,
     getSolanaWalletEvidence: injected.getSolanaWalletEvidence || options.getSolanaWalletEvidence || getRugCheckFullTokenEvidence,
-    useRpcWalletFallback: Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
-      !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence),
+    useRpcWalletFallback: options.useRpcWalletFallback ?? (Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
+      !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence)),
     getCoinGeckoMarketsByIds:
       injected.getCoinGeckoMarketsByIds ||
       options.getCoinGeckoMarketsByIds ||
@@ -591,6 +595,7 @@ function existingDeployerEvidence(project = {}, identity = {}) {
     project.sourcifyDeployerEvidence,
     project.etherscanDeployerEvidence,
     project.baseB20LifecycleEvidence,
+    project.nativeContractDeploymentEvidence,
   ].filter(Boolean);
   return candidates.find(
     (item) =>
@@ -624,7 +629,8 @@ function deployerObservations(result = {}, fields = [], identity = {}, source = 
       source,
       timestamp,
       confidenceFraction(result.confidence),
-      { chain: identity.chain, tokenAddress: identity.tokenAddress }
+      { chain: identity.chain, tokenAddress: identity.tokenAddress,
+        sourceProvenance: result.provenance, finalityStatus: result.provenance?.finalityStatus }
     ))
     .filter((item) => valueKnown(item.value));
 }
@@ -659,6 +665,36 @@ export async function recoverDeployerEvidence(
         }],
         projectPatch: lower(source).includes("goplus") ? { goplusDeployerEvidence: existing } : {},
       };
+    }
+
+    if (Array.isArray(options.nativeDeploymentEvents) ||
+        (options.useCache !== false && options.nativeDeploymentHistory !== false &&
+          (providers.preferGoPlusDeployer || typeof options.loadNativeDeploymentEvents === "function"))) {
+      if (!state.nativeDeploymentEventsByIdentity) {
+        const index = new Map();
+        let records = [];
+        try {
+          records = Array.isArray(options.nativeDeploymentEvents) ? options.nativeDeploymentEvents
+            : (options.loadNativeDeploymentEvents || loadNativeEvents)({ includeRaw: true, eventType: "CONTRACT_DEPLOYED", limit: 10000 });
+        } catch (error) {
+          state.nativeDeploymentMemoryFailure = error?.message || "Native deployment history is unreadable.";
+        }
+        for (const event of (Array.isArray(records) ? records : []).slice(-10000)) {
+          const chain = normalizeChainId(event?.chain);
+          const address = normalizeTokenAddress(event?.raw?.contractAddress, chain);
+          if (!chain || !address) continue;
+          const key = `${chain}:${address}`;
+          if (!index.has(key)) index.set(key, []);
+          index.get(key).push(event);
+        }
+        state.nativeDeploymentEventsByIdentity = index;
+      }
+      const native = nativeContractDeployerEvidence(project,
+        state.nativeDeploymentEventsByIdentity.get(`${evm.chain}:${evm.tokenAddress}`) || []);
+      if (native) return { observations: deployerObservations(native, fields, evm, native.provider),
+        attempts: [{ provider: native.provider, status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0, requestCost: 0,
+          reason: "Exact stored top-level creation receipt; token kind, safety, reputation and chain finality remain unverified." }],
+        projectPatch: { nativeContractDeploymentEvidence: native } };
     }
 
     if (providers.useBaseB20Lifecycle && isBaseB20Candidate({ chain: evm.chain, tokenAddress: evm.tokenAddress })) {
@@ -969,22 +1005,56 @@ export async function recoverWalletEvidence(
     .filter((item) => valueKnown(item.value)) : [];
   const attempts = [{ ...attempt, value: undefined }];
   let rpcResult = null;
-  const rpcFields = ["wallets", "walletTransactions", "walletParticipationHistory"];
+  const rpcFields = ["wallets", "holderAddresses", "walletTransactions", "walletParticipationHistory"];
   const missingRpcField = fields.some((field) => rpcFields.includes(field) &&
     !observations.some((item) => item.field === field));
   if (providers.useRpcWalletFallback && (missingRpcField || !observations.some((item) => companionFields.includes(item.field)))) {
-    const rpcAttempt = await executeProviderCall("rpc-wallets",
-      () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
-      options, state, 3, evm.chain);
-    attempts.push({ ...rpcAttempt, value: undefined });
-    rpcResult = rpcAttempt.value;
-    if (rpcAttempt.status === "SUCCESS" && rpcResult?.status === "EVIDENCE_AVAILABLE" &&
+    if (providers.defaultRpcWalletProvider) {
+      if (state.requestsUsed + 3 > state.maxRequests) {
+        attempts.push({ provider: "rpc-wallets", status: "REQUEST_BUDGET_EXHAUSTED", family: "WALLETS",
+          durationMs: 0, reason: "At least three RPC requests are required to pin chain, block and transfer evidence." });
+      } else {
+        const transport = options.jsonRpc || jsonRpc;
+        const boundedRpc = async (url, method, params, rpcOptions) => {
+          const call = await executeProviderCall("rpc-wallets", async () => {
+            const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
+            const value = await transport(url, method, params, { ...rpcOptions, retries: 0,
+              timeoutMs: Math.max(1, Math.min(rpcOptions.timeoutMs, remaining,
+                Number(options.providerTimeoutMs || 8000))) });
+            if ((state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
+              state.timeBudgetExceeded = true;
+              throw new Error("Wallet RPC response arrived after the recovery deadline.");
+            }
+            return value;
+          }, options, state, 1, evm.chain);
+          attempts.push({ ...call, value: undefined, family: "WALLETS", rpcMethod: method });
+          if (call.status !== "SUCCESS") throw new Error(call.reason || call.status);
+          return call.value;
+        };
+        rpcResult = await providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+          { ...options, jsonRpc: boundedRpc });
+      }
+    } else {
+      const rpcAttempt = await executeProviderCall("rpc-wallets",
+        () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
+        options, state, 3, evm.chain);
+      attempts.push({ ...rpcAttempt, value: undefined });
+      rpcResult = rpcAttempt.value;
+    }
+    if (rpcResult) attempts.push({ provider: "rpc-wallets", family: "WALLETS", resultType: "EVIDENCE", requestCost: 0,
+      status: rpcResult.status === "EVIDENCE_AVAILABLE" ? "RAW_EVIDENCE_AVAILABLE" : "NO_VERIFIED_WALLET_EVIDENCE",
+      durationMs: 0, reason: rpcResult.warnings?.[0] || null });
+    if (rpcResult?.status === "EVIDENCE_AVAILABLE" &&
       rpcResult.exactTokenIdentity === true && normalizeChainId(rpcResult.chain) === evm.chain &&
       lower(rpcResult.tokenAddress) === lower(evm.tokenAddress)) {
       for (const field of rpcFields) {
         if (valueKnown(rpcResult[field]) && !observations.some((item) => item.field === field)) observations.push(observation(field, rpcResult[field], "rpc-wallets",
-          rpcResult.observedAt, confidenceFraction(rpcResult.confidence), { chain: evm.chain,
-            tokenAddress: evm.tokenAddress, transferCoverage: rpcResult.transferCoverage }));
+          rpcResult.sourceTimestamp || rpcResult.observedAt, confidenceFraction(rpcResult.confidence), { chain: evm.chain,
+            tokenAddress: evm.tokenAddress, transferCoverage: rpcResult.transferCoverage,
+            holderCoverage: rpcResult.holderCoverage, holderBalanceEvidence: rpcResult.holderBalanceEvidence,
+            holderSampleOnly: rpcResult.holderBalanceEvidence?.length > 0,
+            completeHolderCoverage: false, buyerClassificationAvailable: false,
+            sourceTimestampMeaning: "PINNED_BLOCK_OR_TRANSFER_WINDOW_HEAD_NOT_INDIVIDUAL_TRADE_TIME" }));
       }
     }
   }
@@ -2018,6 +2088,8 @@ export async function executeActiveEvidenceProviderRequests(
     const result = await recoverDeployerEvidence(project, deployerFields, providers, options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
+    if (executionState.nativeDeploymentMemoryFailure) attempts.push({ provider: "native-contract-deployment",
+      status: "MEMORY_READ_FAILED", durationMs: 0, requestCost: 0, reason: executionState.nativeDeploymentMemoryFailure });
     projectPatch = { ...projectPatch, ...result.projectPatch };
     const companion = projectPatch.goplusDeployerEvidence;
     if (companion?.responseIdentityVerified === true && companion.status !== "UNKNOWN") {

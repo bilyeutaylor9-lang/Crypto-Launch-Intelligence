@@ -226,6 +226,62 @@ declared local cooldown, without presenting a disabled quote adapter as working
 execution proof. Subsequent regenerated-report and exact-head CI observations
 are recorded in PR56 as well as the durable local validation logs.
 
+### Quiet-Token Holders And Native Creator Receipts
+
+The remaining core-starved live tokens had real deployed code but no observed
+transfers in the bounded recent RPC window. A quiet window does not prove that
+a token has no holders. RPC recovery now optionally checks at most two known
+account seeds (hard maximum three), using exact-token balanceOf at the pinned
+block. Only positive, well-formed balances become raw holder samples. Address
+labels alone, zero balances, malformed responses and failed calls prove nothing.
+Samples preserve block number/hash/time and raw integer balances, with account
+type and role UNKNOWN. They do not establish a holder census, trade activity,
+daily buyers, smart-wallet labels or bullish scores. Invalid lookback settings
+are rejected before RPC rather than accidentally expanding to genesis.
+
+Default wallet recovery now accounts for each actual chain/block/log/balance RPC
+method against the shared request budget, deadline and chain circuit. Explicitly
+injecting that same default connector cannot bypass accounting. Response time
+does not replace the pinned block's source time. A one-block capability probe,
+explicitly not a production scan, verified a positive Base BASE-token holder
+sample at block 52750865 using seven total provider request units. It recovered
+only wallets and holderAddresses; it did not qualify the token.
+A second live capability probe at block 52751411 used four actual RPC methods
+and verified the same positive balance with canonical block-hash pinning.
+Missing or invalid hashes prevent balance probing; there is no silent fallback
+to an unpinned call. A separate two-block live deployment probe completed four
+requests with no creations, a valid empty observation rather than fabricated
+creator evidence. Neither probe persisted data or established full-scan coverage.
+
+The configured RPC-only generic deployment lane previously used a factory-log
+adapter that required an absent factory/topic. A dedicated bounded full-block
+and receipt collector now records only successful exact top-level creations.
+Defaults cap collection at four blocks, sixteen receipts, thirty-two requests
+and eight seconds. Chain, transaction, receipt, block and sender identities must
+agree; incomplete blocks cannot advance checkpoints. Factory/internal CREATE
+senders are not inferred. Generic CONTRACT_DEPLOYED records remain quarantined,
+unfinalized raw evidence, never token/pool candidates or verified safety proof.
+Stored exact receipts can hydrate creator aliases and deployment metadata with
+zero network budget. Missing, conflicting, foreign or future metadata is rejected.
+No wallet age, prior deployment count, token certification or safety is invented.
+
+Native evidence storage now fails closed on corrupt or wrong-shaped existing
+JSON instead of silently replacing it with an empty ledger. Writes use the
+existing atomic replacement helper; failed replacement preserves prior bytes.
+Unrelated user checkouts, existing records, safety gates and trading settings
+are not changed. These repairs do not clear external provider quotas or establish
+working two-way quotes. Full integrated validation and a fresh source-pinned
+production-style scan must be evaluated separately from capability probes.
+
+The integrated repair suite passes 1620 tests with zero failures, skips or
+cancellations. All 905 JavaScript files pass the canonical syntax command;
+the entrypoint syntax/typecheck and 21 load tests pass. Fifty focused new-layer
+tests cover canonical hash pinning, per-method budgets, quiet-token UNKNOWN
+semantics, exact creator reuse, bounded receipt collection and evidence-store
+integrity. The specialist's independent scoped review found no further blocker
+in the generic collector/helper. These code results are not production readiness
+or proof that external services can supply missing final decision evidence.
+
 ## October 14 Handoff Reconciliation
 
 The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.

@@ -192,7 +192,10 @@ function normalizedPoolFromLifecycle(lifecycle = {}) {
 }
 
 export function buildNativeLifecycle(events = []) {
-  const normalized = (Array.isArray(events) ? events : [events]).filter(Boolean).map((event) => normalizeNativeEvent(event));
+  const supplied = (Array.isArray(events) ? events : [events]).filter(Boolean);
+  const normalized = supplied.filter((event) => event.eventType !== NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED)
+    .map((event) => normalizeNativeEvent(event));
+  if (!normalized.length && supplied.length) return null;
   const sorted = normalized.sort((a, b) => String(a.timestamp || "").localeCompare(String(b.timestamp || "")));
   const first = sorted[0] || {};
   const latest = sorted.at(-1) || {};
@@ -239,6 +242,10 @@ export function buildNativeLifecycle(events = []) {
 }
 
 export function nativeCandidateFromLifecycle(lifecycle = {}) {
+  if (!lifecycle || !(lifecycle.tokenAddress || lifecycle.baseToken || lifecycle.poolAddress) ||
+      lifecycle.eventType === NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED ||
+      lifecycle.protocol === "contract-deployment-radar" ||
+      (lifecycle.events?.length && lifecycle.events.every((event) => event.eventType === NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED))) return null;
   const token = lifecycle.tokenAddress || lifecycle.baseToken || lifecycle.poolAddress || lifecycle.projectId || "unknown";
   const shortToken = token && token !== "unknown" ? token.slice(0, 8).toUpperCase() : "NATIVE";
   const liquidity = lifecycle.liquidityState || {};
@@ -371,14 +378,20 @@ export async function runNativeDiscoveryMesh(options = {}) {
   const events = [...storedEvents, ...providedEvents, ...connectorEvents];
 
   if (options.persist !== false && providedEvents.length) {
-    recordNativeEvents(providedEvents, { confirmed: Boolean(options.confirmed) });
+    const contracts = providedEvents.filter((event) => event.eventType === NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED);
+    const lifecycleEvents = providedEvents.filter((event) => event.eventType !== NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED);
+    if (contracts.length) recordNativeEvents(contracts, { confirmed: false, finalized: false });
+    if (lifecycleEvents.length) recordNativeEvents(lifecycleEvents, { confirmed: Boolean(options.confirmed) });
   }
-  const lifecycles = [...groupEvents(events).values()]
+  const contractEvents = events.filter((event) => event.eventType === NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED);
+  const lifecycleEvents = events.filter((event) => event.eventType !== NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED);
+  const lifecycles = [...groupEvents(lifecycleEvents).values()]
     .map((group) => buildNativeLifecycle(group))
-    .filter((lifecycle) => lifecycle.tokenAddress || lifecycle.poolAddress)
+    .filter((lifecycle) => lifecycle && (lifecycle.tokenAddress || lifecycle.poolAddress))
     .sort((a, b) => num(b.nativeDiscoveryScore) - num(a.nativeDiscoveryScore));
   const candidates = lifecycles
     .map((lifecycle) => nativeCandidateFromLifecycle(lifecycle))
+    .filter(Boolean)
     .filter((candidate) => num(candidate.nativeDiscoveryScore) >= num(options.minScore || process.env.NATIVE_DISCOVERY_MIN_SCORE || 0))
     .slice(0, num(options.limit || process.env.NATIVE_DISCOVERY_LIMIT || 500) || undefined);
   const summary = summarizeNativeDiscoveryMesh({ candidates, lifecycles, eventCount: events.length });
@@ -386,10 +399,13 @@ export async function runNativeDiscoveryMesh(options = {}) {
   return {
     candidates,
     lifecycles,
+    contractEvents,
     report: {
       ...summary,
       eventCount: events.length,
-      storedEventSummary: summarizeNativeEventStore(),
+      genericContractEventCount: contractEvents.length,
+      lifecycleEventCount: lifecycleEvents.length,
+      storedEventSummary: options.skipStore && options.persist === false ? null : summarizeNativeEventStore(),
       protocolCoverage: summarizeNativeProtocolCoverage(options),
       connectorReports,
     },

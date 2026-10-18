@@ -2,7 +2,7 @@ import { resolveNativeRpcUrl } from "./native/nativePoolConfig.js";
 import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 import { EVM_CHAIN_IDS } from "./security/securityEvidenceUtils.js";
 import { jsonRpc } from "../sensors/rpcJsonClient.js";
-import { ERC20_TRANSFER_TOPIC, addressFromTopic, hexNumber } from "../sensors/evmAbi.js";
+import { ERC20_TRANSFER_TOPIC, addressFromTopic, encodeAddressWord, hexNumber } from "../sensors/evmAbi.js";
 
 const ZERO = `0x${"0".repeat(40)}`;
 const WORD = /^0x[0-9a-f]{64}$/i;
@@ -20,6 +20,8 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
   const unknown = (reason, providerFailure = false) => ({ provider: "rpc-wallets", status: "UNKNOWN",
     chain, tokenAddress, observedAt: new Date().toISOString(), providerFailure, warnings: [reason] });
   if (!chainId || !tokenAddress || !rpcUrl) return unknown("Exact supported EVM identity and RPC are required.");
+  const requestedLookback = Number(options.walletRpcLookbackBlocks ?? 256);
+  if (!Number.isSafeInteger(requestedLookback) || requestedLookback <= 0) return unknown("Wallet RPC lookback must be a positive safe integer.");
   const rpc = options.jsonRpc || jsonRpc;
   const rpcOptions = { timeoutMs: options.timeoutMs || 5_000, retries: 0 };
   try {
@@ -30,7 +32,8 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
     const toBlock = Number(BigInt(block.number));
     const observedBlockTimestamp = Number(BigInt(block.timestamp));
     if (!Number.isSafeInteger(toBlock) || toBlock <= 0 || !Number.isSafeInteger(observedBlockTimestamp) || observedBlockTimestamp <= 0) return unknown("Invalid observation block.");
-    const lookback = Math.max(1, Math.min(1_000, Number(options.walletRpcLookbackBlocks || 256)));
+    if (observedBlockTimestamp > Date.now() / 1000 + 120) return unknown("Observation block timestamp is in the future.");
+    const lookback = Math.min(1000, requestedLookback);
     const fromBlock = Math.max(0, toBlock - Math.floor(lookback) + 1);
     const logs = await rpc(rpcUrl, "eth_getLogs", [{ address: tokenAddress,
       fromBlock: hexNumber(fromBlock), toBlock: block.number, topics: [ERC20_TRANSFER_TOPIC] }], rpcOptions);
@@ -57,15 +60,57 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
         blockNumber: number, timestamp: null, from, to, tokenAmountRaw: BigInt(log.data).toString(),
         tokenAddress, direction: "TRANSFER", smartWallet: null });
     }
+    const holderBalanceEvidence = [];
+    const warnings = [];
+    let balanceProbes = 0;
+    let balanceResponsesReceived = 0;
+    if (!wallets.size) {
+      const blockHash = HASH.test(block.hash || "") && !/^0x0{64}$/i.test(block.hash)
+        ? block.hash.toLowerCase() : null;
+      const configuredMax = Number(options.walletRpcMaxBalanceProbes ?? 2);
+      const maxProbes = blockHash && Number.isSafeInteger(configuredMax) && configuredMax >= 0 ? Math.min(3, configuredMax) : 0;
+      if (!blockHash) warnings.push("Missing exact block hash; no seeded holder balance proof was attempted.");
+      // These addresses are query seeds, not proof of their role or token ownership.
+      const seeds = [...new Set([
+        ...(Array.isArray(options.walletRpcHolderSeeds) ? options.walletRpcHolderSeeds : []),
+        ...(Array.isArray(project.holderAddresses) ? project.holderAddresses : []),
+        project.deployerAddress, project.creatorAddress, project.deployer, project.creator, project.ownerAddress,
+      ].map((value) => normalizeTokenAddress(typeof value === "string" ? value : value?.address, chain))
+        .filter((address) => address && !excluded.has(address)))].slice(0, maxProbes);
+      for (const address of seeds) {
+        balanceProbes++;
+        try {
+          const balance = await rpc(rpcUrl, "eth_call", [{ to: tokenAddress,
+            data: "0x70a08231" + encodeAddressWord(address) }, { blockHash, requireCanonical: true }], rpcOptions);
+          balanceResponsesReceived++;
+          if (!WORD.test(balance || "")) {
+            warnings.push("A seeded balanceOf response was malformed; ownership remains unknown.");
+            continue;
+          }
+          if (BigInt(balance) === 0n) continue;
+          wallets.add(address);
+          holderBalanceEvidence.push({ address, tokenAddress, chain, balanceRaw: BigInt(balance).toString(),
+            observedBlockNumber: toBlock, observedBlockTimestamp,
+            blockHash,
+            method: "balanceOf", accountType: "UNKNOWN", role: "UNKNOWN" });
+        } catch {
+          warnings.push("A seeded balanceOf request failed; no ownership was inferred from its address label.");
+        }
+      }
+    }
     const observedAt = new Date().toISOString();
-    return { provider: "rpc-wallets", status: transactions.length ? "EVIDENCE_AVAILABLE" : "UNKNOWN",
-      chain, tokenAddress, exactTokenIdentity: true, observedAt, sourceTimestamp: observedAt,
+    const sourceTimestamp = new Date(observedBlockTimestamp * 1000).toISOString();
+    return { provider: "rpc-wallets", status: transactions.length || holderBalanceEvidence.length ? "EVIDENCE_AVAILABLE" : "UNKNOWN",
+      chain, tokenAddress, exactTokenIdentity: true, observedAt, sourceTimestamp,
       confidence: 0.85, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
       wallets: [...wallets], walletTransactions: transactions, walletParticipationHistory: transactions,
+      holderAddresses: holderBalanceEvidence.map((item) => item.address), holderBalanceEvidence,
+      holderCount: null, holderCoverage: { sampled: true, complete: false, balanceProbeAttempts: balanceProbes, balanceResponsesReceived,
+        semantics: "CONTRACT_REPORTED_POSITIVE_BALANCES_AT_PINNED_BLOCK_NOT_HOLDER_CENSUS" },
       transferCoverage: { fromBlock, toBlock, observedBlockTimestamp, complete24h: false, sampled: true },
       uniqueBuyers24h: null, buyTransactions24h: null, sellTransactions24h: null,
       smartWallets: null, trackedWallets: null,
-      warnings: ["Bounded raw transfer participation only; no complete daily totals, holder census, trade classification or smart-wallet labels are established."] };
+      warnings: [...warnings, "Bounded transfer participation and positive balance samples only; no complete daily totals, holder census, trade classification, creator role or smart-wallet labels are established."] };
   } catch (error) {
     return unknown(error?.message || "Wallet RPC failed.", true);
   }
