@@ -3,6 +3,7 @@ import {
   hasVerifiedBuyQuote,
   hasVerifiedSellQuote,
   isLiveExecutionReady,
+  routeQuoteAgeSeconds,
   routeQuoteFresh,
 } from "../execution/routeTruthV2.js";
 
@@ -122,6 +123,11 @@ function priceUsd(project = {}) {
   );
 }
 
+function quoteTimestampFor(project = {}) {
+  return first([project.quoteTimestamp, project.executionQuoteTimestamp, project.canonicalExecutionRoute?.quoteTimestamp,
+    project.executionProofRecoveryRoute?.quoteTimestamp, project.proofOfAlphaExecutionTwin?.quote?.timestamp]);
+}
+
 function quoteAgeSeconds(project = {}) {
   const explicit = first([
     project.quoteAgeSeconds,
@@ -131,19 +137,7 @@ function quoteAgeSeconds(project = {}) {
     project.proofOfAlphaExecutionTwin?.quote?.ageSeconds,
     project.proofOfAlphaExecutionTwin?.quoteAgeSeconds,
   ]);
-  if (explicit !== undefined && explicit !== null && explicit !== "") return num(explicit);
-
-  const timestamp = first([
-    project.quoteTimestamp,
-    project.executionQuoteTimestamp,
-    project.canonicalExecutionRoute?.quoteTimestamp,
-    project.proofOfAlphaExecutionTwin?.quote?.timestamp,
-    project.marketData?.updatedAt,
-    project.updatedAt,
-    project.lastUpdatedAt,
-  ]);
-  const parsed = timestamp ? Date.parse(timestamp) : NaN;
-  return Number.isFinite(parsed) ? Math.max(0, Math.round((Date.now() - parsed) / 1000)) : null;
+  return routeQuoteAgeSeconds({ quoteAgeSeconds: explicit, quoteTimestamp: quoteTimestampFor(project) });
 }
 
 function slippageFor(liquidity = 0, orderSize = 100, observed = null) {
@@ -537,6 +531,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const volume = volume24hUsd(project);
   const price = priceUsd(project);
   const quoteAge = quoteAgeSeconds(project);
+  const quoteTimestamp = quoteTimestampFor(project);
   const outage = providerUnavailable(project, routes);
   const buyRouteAvailable = routes.some((route) => route.buy);
   const sellRouteAvailable = routes.some((route) => route.sell) && !sellRouteConfirmedUnavailable(project, routes);
@@ -748,6 +743,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     honeypotEvidence: project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 ? "DETECTED" : null,
     transferTaxEvidence: project.transferTaxEvidence || project.taxEvidence || null,
     quoteFreshnessSeconds: quoteAge,
+    ...(quoteTimestamp ? { quoteTimestamp } : {}),
     supportingSources: [...new Set(supportingSources)],
     failureReasons: [...new Set(failureReasons)],
   };

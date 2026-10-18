@@ -77,7 +77,8 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   };
 }
 
-test("Solana routes require authority proof but not EVM transfer-tax evidence", async () => {
+test("Solana routes require authority proof but not EVM transfer-tax evidence", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject({
     securityEvidence: [{
       provider: "solana-rpc-rugcheck",
@@ -276,7 +277,8 @@ test("missing optional 0x key creates an optional source gap, not a fatal candid
   assert.equal(sourceGaps.status, "SOURCE_HEALTH_OK");
 });
 
-test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async () => {
+test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const quoteToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
   const [recovered] = await analyzeExecutionProofRecoveryBatch([evmProject({
     source: "dexscreener",
@@ -345,7 +347,8 @@ test("symbol-only candidates never probe CEX books or impersonate listed assets"
   assert.equal(requests, 0);
 });
 
-test("provider-verified CEX markets can recover book depth without proving token contract identity", async () => {
+test("provider-verified CEX markets can recover book depth without proving token contract identity", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const [recovered] = await analyzeExecutionProofRecoveryBatch([{
     symbol: "BOOK",
     name: "Book Only",

@@ -2,6 +2,7 @@ const LIVE_READY_STATUS = "LIVE_EXECUTION_READY";
 const STALE_STATUSES = new Set(["STALE", "STALE_QUOTE"]);
 const HARD_BLOCK_STATUSES = new Set(["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH", "REJECTED"]);
 const VERIFIED_DEPTH_SOURCES = new Set(["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"]);
+const NEGATIVE_QUOTE_STATUS = /(?:^|[^A-Z])(?:UNKNOWN|UNVERIFIED|UNCONFIRMED|UNSUCCESSFUL|FAILED|FAILURE|ERROR|MISSING|REJECTED|BLOCKED|UNAVAILABLE|INVALID|INCOMPLETE|UNPROVEN|UNSAFE|PENDING|UNCHECKED|UNTESTED|DEFERRED|STALE|NOT|NO|NEVER)(?:$|[^A-Z])/;
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -46,14 +47,14 @@ function hasVerifiedDepthSource(subject = {}) {
 
 function verifiedStatus(value = "") {
   const status = upper(value);
-  if (!status || status.includes("PARTIAL") || status.includes("DETECTED") || status.includes("OBSERVED")) return false;
-  return ["VERIFIED", "CONFIRMED", "PASSED", "SUCCESS", "SUCCESSFUL", "LIVE", "READY", LIVE_READY_STATUS].some((term) =>
-    status.includes(term)
-  );
+  if (!status || NEGATIVE_QUOTE_STATUS.test(status) || status.includes("PARTIAL") || status.includes("DETECTED") || status.includes("OBSERVED")) return false;
+  return /(?:^|[^A-Z])(?:VERIFIED|CONFIRMED|PASSED|SUCCESS|SUCCESSFUL|LIVE|READY)(?:$|[^A-Z])/.test(status);
 }
 
 function quoteObjectVerified(object = {}) {
   if (!object || typeof object !== "object") return false;
+  if ([object.verified, object.quoteVerified, object.liveQuoteVerified].includes(false) ||
+    [object.status, object.verificationStatus, object.routeTruthStatus].some((value) => NEGATIVE_QUOTE_STATUS.test(upper(value)))) return false;
   return Boolean(
     object.verified === true ||
       object.quoteVerified === true ||
@@ -66,14 +67,25 @@ function quoteObjectVerified(object = {}) {
 
 export function routeQuoteAgeSeconds(subject = {}) {
   const proof = currentProof(subject);
+  const timestamp = proof && Object.hasOwn(proof, "quoteTimestamp") ? proof.quoteTimestamp : first([
+    subject.quoteTimestamp, subject.executionQuoteTimestamp, subject.buyQuote?.timestamp,
+    subject.sellQuote?.timestamp, subject.quote?.timestamp, subject.executionProofRecoveryRoute?.quoteTimestamp,
+    subject.canonicalExecutionRoute?.quoteTimestamp,
+  ]);
+  const timestampSupplied = Boolean(timestamp) || Boolean(proof && Object.hasOwn(proof, "quoteTimestamp"));
+  const parsed = timestamp ? Date.parse(timestamp) : NaN;
+  const timestampAge = Number.isFinite(parsed) && parsed <= Date.now()
+    ? Math.round((Date.now() - parsed) / 1000) : null;
+  const ageWithTimestamp = (age) => timestampSupplied && timestampAge === null ? null
+    : age === null ? timestampAge : Math.max(age, timestampAge ?? 0);
   if (proof && ["quoteFreshnessSeconds", "quoteAgeSeconds"].some((field) => Object.hasOwn(proof, field))) {
     const age = Object.hasOwn(proof, "quoteFreshnessSeconds") ? proof.quoteFreshnessSeconds : proof.quoteAgeSeconds;
-    return (typeof age === "number" || (typeof age === "string" && age.trim() !== "")) &&
-      Number.isFinite(Number(age)) && Number(age) >= 0 ? Number(age) : null;
+    if ((typeof age !== "number" && (typeof age !== "string" || age.trim() === "")) ||
+      !Number.isFinite(Number(age)) || Number(age) < 0) return null;
+    return ageWithTimestamp(Number(age));
   }
   if (proof && Object.hasOwn(proof, "quoteTimestamp")) {
-    const timestamp = proof.quoteTimestamp ? Date.parse(proof.quoteTimestamp) : NaN;
-    return Number.isFinite(timestamp) ? Math.max(0, Math.round((Date.now() - timestamp) / 1000)) : null;
+    return timestampAge;
   }
   const explicit = first([
     subject.quoteAgeSeconds,
@@ -84,23 +96,12 @@ export function routeQuoteAgeSeconds(subject = {}) {
     subject.quote?.ageSeconds,
     subject.executionProof?.quoteFreshnessSeconds,
     subject.executionProof?.quoteAgeSeconds,
+    subject.executionProofRecoveryRoute?.quoteAgeSeconds,
     subject.canonicalExecutionRoute?.quoteAgeSeconds,
   ]);
-  if (explicit !== null && Number.isFinite(Number(explicit))) return Math.max(0, Number(explicit));
-
-  const timestamp = first([
-    subject.quoteTimestamp,
-    subject.executionQuoteTimestamp,
-    subject.buyQuote?.timestamp,
-    subject.sellQuote?.timestamp,
-    subject.quote?.timestamp,
-    subject.executionProof?.quoteTimestamp,
-    subject.canonicalExecutionRoute?.quoteTimestamp,
-    subject.updatedAt,
-    subject.marketData?.updatedAt,
-  ]);
-  const parsed = timestamp ? Date.parse(timestamp) : NaN;
-  return Number.isFinite(parsed) ? Math.max(0, Math.round((Date.now() - parsed) / 1000)) : null;
+  if (explicit !== null && (typeof explicit === "number" || (typeof explicit === "string" && explicit.trim() !== "")) &&
+    Number.isFinite(Number(explicit)) && Number(explicit) >= 0) return ageWithTimestamp(Number(explicit));
+  return timestampSupplied ? timestampAge : null;
 }
 
 export function routeQuoteFresh(subject = {}, maxAgeSeconds = 3600) {

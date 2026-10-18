@@ -16,6 +16,20 @@ test("fresh complete execution proof remains ready across consumers", () => {
   assert.equal(attachCandidateTruthState(project).executionReadinessState, "READY");
 });
 
+test("negative or unknown quote status text cannot match positive verified and ready substrings", () => {
+  for (const status of ["UNVERIFIED", "NOT_VERIFIED", "UNCONFIRMED", "UNSUCCESSFUL", "NOT_READY",
+    "UNKNOWN", "PENDING_VERIFIED", "BUY_QUOTE_FAILED", "NEVER_VERIFIED"]) {
+    assert.equal(hasVerifiedBuyQuote({ buyQuote: { status } }), false, status);
+    assert.equal(hasVerifiedSellQuote({ sellQuote: { status } }), false, status);
+    assert.equal(hasVerifiedBuyQuote({ buyQuote: { verified: true, status } }), false, status);
+  }
+  assert.equal(hasVerifiedBuyQuote({ buyQuote: { status: "ALREADY" } }), false);
+  for (const status of ["VERIFIED", "BUY_QUOTE_VERIFIED", "SUCCESS", "CONFIRMED"]) {
+    assert.equal(hasVerifiedBuyQuote({ buyQuote: { status } }), true, status);
+  }
+  assert.equal(hasVerifiedBuyQuote({ buyQuote: { verified: false, status: "VERIFIED" } }), false);
+});
+
 test("current negative tax proof cannot be overruled by retained live route flags", () => {
   const project = decisionCompleteProject({ buyTaxPct: undefined, sellTaxPct: undefined });
   assert.equal(project.executionProofState, "TRANSFER_TAX_EVIDENCE_REQUIRED");
@@ -81,6 +95,26 @@ test("fresh producer evidence can recover a candidate with a previous negative p
   assert.equal(recovered.executionProofState, "LIVE_EXECUTION_READY");
   assert.equal(isLiveExecutionReady(recovered), true);
   assert.equal(attachCandidateTruthState(recovered).executionReadinessState, "READY");
+});
+
+test("cached quote age cannot freeze freshness while an old or future timestamp disagrees", () => {
+  const base = decisionCompleteProject();
+  const old = new Date(Date.now() - 7200000).toISOString();
+  const cached = { ...base, quoteAgeSeconds: 0, quoteTimestamp: old,
+    executionProof: { ...base.executionProof, quoteFreshnessSeconds: 0, quoteTimestamp: old } };
+  assert.ok(routeQuoteAgeSeconds(cached) >= 7200);
+  assert.equal(isLiveExecutionReady(cached), false);
+  const recomputed = analyzeExecutionProof(cached);
+  assert.ok(recomputed.executionProof.quoteFreshnessSeconds >= 7200);
+  assert.equal(recomputed.liveExecutionReady, false);
+  const refreshed = analyzeExecutionProof({ ...cached, quoteTimestamp: new Date().toISOString() });
+  assert.equal(refreshed.liveExecutionReady, true);
+  for (const timestamp of [new Date(Date.now() + 7200000).toISOString(), "invalid", null]) {
+    assert.equal(isLiveExecutionReady({ ...base, executionProof: { ...base.executionProof,
+      quoteFreshnessSeconds: 0, quoteTimestamp: timestamp } }), false);
+  }
+  assert.equal(routeQuoteAgeSeconds({ updatedAt: new Date().toISOString(),
+    marketData: { updatedAt: new Date().toISOString() } }), null);
 });
 
 test("healthy input coverage without decision proof is not healthy no-edge evidence", () => {
