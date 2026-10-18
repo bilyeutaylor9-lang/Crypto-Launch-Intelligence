@@ -52,6 +52,7 @@ async function runWorker(scenario) {
   const { planResearchQueue, buildScannerSemanticHealth } = await import("../index.js");
   const { runIntelligencePipeline } = await import("../intelligencePipeline.js");
   const { buildGuardedLiveRanking } = await import("../ranking/guardedLiveRankingEngine.js");
+  const { revalidateExecutionPublicationBoundary } = await import("../execution/executionPublicationBoundary.js");
   const { decisionProofAssessment } = await import("../kernel/evidenceFunnelSummary.js");
   const { generateReports } = await import("../reports/reportOrchestrator.js");
   const { refreshSystemReadinessReport } = await import("../reports/refreshSystemReadinessReport.js");
@@ -70,7 +71,7 @@ async function runWorker(scenario) {
     }
   }
   const plan = planResearchQueue(fixture.projects, { limit: fixture.projects.length, history: {}, runSequence: 1 });
-  const results = await runIntelligencePipeline(plan.selected, {
+  let results = await runIntelligencePipeline(plan.selected, {
     scanRunId: FIXTURE_RUN_ID, engineProfile: "full", saveMemory: false, freeOnly: true,
     strictFinalSelectionIntegrity: true, strictSniperIntegrity: true,
     localAI: { mode: "OFF", enabled: false }, webResearchAgent: { limit: 0 },
@@ -79,6 +80,7 @@ async function runWorker(scenario) {
     activeEvidenceRecovery: { wave1Max: 0, wave2Max: 0, wave3Max: scenario === "expired-proof" ? 0 : 1,
       maxProviderRequests: 2, useCache: false, walletHistory: false, executionRecovery: fixture.executionRecovery },
   });
+  results = revalidateExecutionPublicationBoundary(results);
   const ranked = buildGuardedLiveRanking(results, { scanRunId: FIXTURE_RUN_ID, dataCutoffTimestamp: FIXTURE_TIME }).ranked;
   const semantic = buildScannerSemanticHealth(ranked, { discovery: fixture.discovery });
   const meta = { scanRunId: FIXTURE_RUN_ID, runId: FIXTURE_RUN_ID, mode: "offline-smoke",

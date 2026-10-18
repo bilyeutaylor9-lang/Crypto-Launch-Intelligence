@@ -1159,6 +1159,9 @@ export async function runEngine(name, engine, projects, options = {}) {
       attachEngineDataContractAudit(normalized, preflight, postflight),
       record
     );
+    if (process.env.PIPELINE_ENGINE_TIMINGS === "true") {
+      console.log(`[Pipeline Timing] ${name}: ${Date.now() - startedAt}ms`);
+    }
     return nextProjects;
   } catch (error) {
     if (error.engineResult?.criticality === "REQUIRED") throw error;

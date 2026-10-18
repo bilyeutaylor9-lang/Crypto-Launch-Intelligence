@@ -133,12 +133,14 @@ function inferProvider(project = {}, options = {}, sourcePath = "") {
   return provider;
 }
 
-function flattenObject(object = {}, prefix = "", output = []) {
+function flattenObject(object = {}, prefix = "", output = [], ignoredRoots = null) {
   if (!object || typeof object !== "object" || Array.isArray(object)) return output;
   for (const [key, value] of Object.entries(object)) {
+    const root = !prefix && ignoredRoots ? key.split(".")[0] : "";
+    if (/^[A-Za-z]+$/.test(root) && ignoredRoots?.has(root.toLowerCase())) continue;
     const path = prefix ? `${prefix}.${key}` : key;
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      flattenObject(value, path, output);
+      flattenObject(value, path, output, ignoredRoots);
     } else {
       output.push({ sourcePath: path, sourceField: key, rawValue: value });
     }
@@ -146,21 +148,16 @@ function flattenObject(object = {}, prefix = "", output = []) {
   return output;
 }
 
+const DEFAULT_SEMANTIC_IGNORED_ROOTS = Object.freeze([
+  "engineResults", "fieldProvenance", "canonicalAliasProvenance", "aliasResolutionAudit",
+  "aliasResolutionConflicts", "canonicalAliasConflicts", "canonicalAliases", "engineDataContractHealth",
+  "engineDataReadiness", "dataStarvation", "targetedEnrichmentPlan", "starvationRecoveryPlan",
+  "valueOfInformationItems", "baselineDeviation", "baselineDeviationVector", "modelDiagnostics",
+  "scoreBreakdown", "dataConfidenceBreakdown",
+]);
+const ignoredSemanticRoots = new Set(DEFAULT_SEMANTIC_IGNORED_ROOTS.map(root => root.toLowerCase()));
 const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
-  /^engineResults(\.|$)/i,
-  /^fieldProvenance(\.|$)/i,
-  /^canonicalAliasProvenance(\.|$)/i,
-  /^aliasResolutionAudit(\.|$)/i,
-  /^aliasResolutionConflicts(\.|$)/i,
-  /^canonicalAliasConflicts(\.|$)/i,
-  /^canonicalAliases(\.|$)/i,
-  /^engineDataContractHealth(\.|$)/i,
-  /^engineDataReadiness(\.|$)/i,
-  /^dataStarvation(\.|$)/i,
-  /^targetedEnrichmentPlan(\.|$)/i,
-  /^starvationRecoveryPlan(\.|$)/i,
-  /^valueOfInformationItems(\.|$)/i,
-  /^(?:baselineDeviation|baselineDeviationVector|modelDiagnostics|scoreBreakdown|dataConfidenceBreakdown)(\.|$)/i,
+  ...DEFAULT_SEMANTIC_IGNORED_ROOTS.map(root => new RegExp(`^${root}(\\.|$)`, "i")),
   /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
   /\.(engineName|engineVersion|criticality|warningCount)$/i,
 ]);
@@ -170,7 +167,10 @@ function semanticScanFields(project = {}, options = {}) {
   const maxFields = Number.isFinite(Number(options.semanticScanMaxFields))
     ? Math.max(0, Number(options.semanticScanMaxFields))
     : 1200;
-  const flattened = flattenObject(project).filter((item) =>
+  // Default root exclusions apply to the entire subtree, so do not enumerate
+  // thousands of audit/provenance leaves only to discard them afterward.
+  const ignoredRoots = ignores === DEFAULT_SEMANTIC_SCAN_IGNORES ? ignoredSemanticRoots : null;
+  const flattened = flattenObject(project, "", [], ignoredRoots).filter((item) =>
     !ignores.some((pattern) => pattern.test(String(item.sourcePath || "")))
   );
   return maxFields ? flattened.slice(0, maxFields) : flattened;

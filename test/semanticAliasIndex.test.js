@@ -61,6 +61,59 @@ const base = {
   fieldProvenance: {"raw.liqudity": {source: "blockscout", sourceTimestamp: "2026-10-18T09:59:00.000Z"}},
 };
 
+const legacyDefaultIgnores = [
+  /^engineResults(\.|$)/i, /^fieldProvenance(\.|$)/i, /^canonicalAliasProvenance(\.|$)/i,
+  /^aliasResolutionAudit(\.|$)/i, /^aliasResolutionConflicts(\.|$)/i,
+  /^canonicalAliasConflicts(\.|$)/i, /^canonicalAliases(\.|$)/i,
+  /^engineDataContractHealth(\.|$)/i, /^engineDataReadiness(\.|$)/i,
+  /^dataStarvation(\.|$)/i, /^targetedEnrichmentPlan(\.|$)/i,
+  /^starvationRecoveryPlan(\.|$)/i, /^valueOfInformationItems(\.|$)/i,
+  /^(?:baselineDeviation|baselineDeviationVector|modelDiagnostics|scoreBreakdown|dataConfidenceBreakdown)(\.|$)/i,
+  /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
+  /\.(engineName|engineVersion|criticality|warningCount)$/i,
+];
+
+test("default semantic scans never traverse already-ignored metadata branches", () => {
+  let visited = 0;
+  const metadata = {};
+  for (let i = 0; i < 5000; i++) Object.defineProperty(metadata, `ignored${i}`, {
+    enumerable: true, get() { visited++; return i; },
+  });
+  const result = resolveCanonicalAliases({...base, engineResults: metadata}, {fields: allFields});
+  assert.equal(visited, 0);
+  assert.equal(result.resolved.tokenAddress, base.contractAddress);
+});
+
+test("metadata pruning preserves default legacy matching, ordering and scan caps", () => {
+  const project = {...base};
+  const ignored = ["engineResults", "fieldProvenance", "canonicalAliasProvenance", "aliasResolutionAudit",
+    "aliasResolutionConflicts", "canonicalAliasConflicts", "canonicalAliases", "engineDataContractHealth",
+    "engineDataReadiness", "dataStarvation", "targetedEnrichmentPlan", "starvationRecoveryPlan",
+    "valueOfInformationItems", "baselineDeviation", "baselineDeviationVector", "modelDiagnostics",
+    "scoreBreakdown", "dataConfidenceBreakdown"];
+  for (const [index, root] of ignored.entries()) {
+    project[root] = {liquidity: 9_000_000 + index, nested: {market_cap: 20_000_000}};
+    project[root.toUpperCase() + ".literal"] = {liquidity: 100_000_000};
+    project[root + "Extra"] = {liquidity: index + 20};
+  }
+  project[".engineResults"] = {liquidity: 50};
+  project["raw.engineName"] = {liquidity: 60};
+  project["scoreBrea\u212Adown"] = {liquidity: 777};
+  for (const maximum of [0, 1, 10, 1200]) {
+    const options = {fields: allFields, semanticScanMaxFields: maximum};
+    assert.deepEqual(resolveCanonicalAliases(project, options), resolveCanonicalAliases(project, {
+      ...options, semanticScanIgnores: legacyDefaultIgnores,
+    }));
+  }
+});
+
+test("custom semantic ignore policies retain their original traversal behavior", () => {
+  const project = {chain: "base", modelDiagnostics: {liquidity: 1234}};
+  assert.equal(resolveCanonicalAliases(project, {fields: ["liquidityUsd"]}).resolved.liquidityUsd, null);
+  assert.equal(resolveCanonicalAliases(project, {fields: ["liquidityUsd"], semanticScanIgnores: []})
+    .resolved.liquidityUsd, 1234);
+});
+
 test("semantic index preserves complete legacy winners, conflicts, ordering and provenance", () => {
   for (const sourceProvider of ["unknown", "dexscreener", "native rpc", "unrecognized-provider"]) {
     for (const semanticScanMaxFields of [0, 1, 8, 1200]) {

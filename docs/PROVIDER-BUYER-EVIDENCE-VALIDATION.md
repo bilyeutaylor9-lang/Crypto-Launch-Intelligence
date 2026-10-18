@@ -1,5 +1,59 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Publication-Time Proof Expiry
+
+Clean bb0d0c5c scan_1792322858542 completed its intelligence snapshot at
+11:31:49.576Z, after starting at 11:27:38.542Z. Discovery reached 10000;
+1409 standard candidates produced 127 deep and 1282 deferred rows. Core/advisory
+contract-input coverage remained 92%/90%, with zero core-starved or partial rows.
+Recovery retained all 127 records, selected 44/111/50 wave memberships and used
+340/2000 request units without deadline exhaustion. Recovered families were
+WALLETS 302, DEPLOYER 162, SECURITY 297, EXECUTION 32, IDENTITY 9 and MARKET 9.
+
+Raydium made 46 successful HTTP requests and recovered four genuine paired
+quotes; original issue times were 11:31:15-17Z and deadlines 11:31:45-47Z.
+Their strict execution proof was computed at 11:31:20Z, while still fresh.
+The final cutoff was about 32 seconds after acquisition: only 2-4 seconds past
+expiry, versus about 90 seconds in the prior scan. Different live universes
+make this an observation, not a controlled provider-cost or latency benchmark.
+
+Strict final consumers correctly reported zero verified routes, zero qualified
+picks, 126 unresolved decisions and DATA_DEGRADED. However, three root
+liveExecutionReady flags and all four nested proof flags still reflected the
+earlier fresh state. The stronger manual publication invariant failed despite
+all current GitHub checks being green. The merge was withheld; this is not a
+healthy no-edge result, and quote lifetime must not be extended to hide it.
+
+The remaining alias traversal walked entire audit/provenance metadata branches
+that its existing default policy discarded afterward. Default root exclusions
+now prune those subtrees before traversal, without changing leaf order, caps,
+custom ignore policies or matching rules. A structural regression fails on
+bb0d0c5c by visiting 5000 ignored getters and passes with zero visits after the
+repair. Differential checks retain legacy default behavior, including literal
+dotted keys, mixed case, Unicode lookalikes and eligible similarly named roots.
+
+Publication also needs a monotonic revalidation boundary after slow processing:
+current negative or expired proof must demote cached live/qualification flags,
+never invent evidence, refresh provider clocks or promote a previously negative
+candidate. The original raw observations and timestamps remain historical truth.
+Fresh route evidence must remain separate from final candidate qualification.
+The boundary is now wired before authoritative ranking and the existing real
+snapshot cutoff; prospective capture and alpha-truth persistence still run
+afterward, preserving causal independence. Raw legs, quote IDs, timestamps,
+expiry bounds and authority snapshots remain unchanged. Current execution and
+selection positives are demoted only; deferred candidates are not evaluated.
+An additional regression catches and demotes a cached verified-safe candidate
+summary when current evidence supplies a safety veto. Thirty-eight focused
+tests pass. Opt-in PIPELINE_ENGINE_TIMINGS=true logs full engine durations
+without changing default output or provider budgets. Integrated validation now
+passes all 1981 tests with zero failures/skips, 952 JavaScript syntax checks,
+entrypoint typecheck, all 21 load tests and the full offline scanner smoke.
+A fresh dependency install reports zero vulnerabilities. The suite's frozen
+original data/report/dashboard input backup and restored output match across
+all 228 files; this source validation document is updated afterward. Another
+clean source-pinned live scan is still required before calling the publication
+defect repaired. No landing approval has been requested for the failed bb0d head.
+
 ## October 18 Offline Verification Boundary
 
 CI's former deterministic smoke actually ran live discovery and provider

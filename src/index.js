@@ -10,6 +10,7 @@ import {
 
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
+import { revalidateExecutionPublicationBoundary } from "./execution/executionPublicationBoundary.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -997,6 +998,7 @@ async function main() {
 
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
+    results = revalidateExecutionPublicationBoundary(results);
     let guardedLiveRanking = buildGuardedLiveRanking(results, {
       env: process.env,
       scanRunId,
