@@ -72,6 +72,9 @@ function validateRows(rows = []) {
     if (!Object.hasOwn(FORWARD_EVIDENCE_LEDGERS, row?.ledger_name)) {
       throw new Error(`Unknown remote forward-evidence ledger: ${row?.ledger_name}`);
     }
+    if (!row.record_json || typeof row.record_json !== "object" || Array.isArray(row.record_json)) {
+      throw new Error(`Remote forward-evidence record must be an object: ${row.ledger_name}/${row.record_id}`);
+    }
     const expectedHash = hashRecord(row?.record_json);
     if (expectedHash !== row?.content_hash) {
       throw new Error(`Remote forward-evidence hash mismatch: ${row?.ledger_name}/${row?.record_id}`);
@@ -128,26 +131,109 @@ export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
   return { localRecords: localRows.length, remoteRecords: remoteRows.length, restored };
 }
 
-async function fetchRemoteRows(client, pageSize = 250) {
-  const rows = [];
-  // Page each ledger independently using the migration's composite
-  // (ledger_name, observed_at, created_at) index. Sorting by created_at alone
-  // forces a scan of the growing append-only table and can hit Supabase's
-  // statement timeout before the first page is returned.
+async function readRemotePage(query, pageSize) {
+  const { data, error } = await query;
+  if (error) throw new Error(`Remote forward-evidence read failed: ${error.message}`);
+  if (!Array.isArray(data) || data.length > pageSize) {
+    throw new Error("Remote forward-evidence read failed: invalid page");
+  }
+  return data;
+}
+
+function recordIdQueryBytes(id) {
+  // Budget for URLSearchParams encoding, IN-list quotes and a separator.
+  return new URLSearchParams({ record_id: id }).toString().length + 9;
+}
+
+async function fetchRemoteRows(client, pageSize = 250, localRows = []) {
+  const size = typeof pageSize === "number" || typeof pageSize === "string" ? Number(pageSize) : NaN;
+  if (!Number.isSafeInteger(size) || size <= 0) {
+    throw new Error("Invalid forward-evidence page size: expected a positive safe integer");
+  }
+  pageSize = Math.min(size, 1000);
+  const localById = validateRows(localRows);
+  const index = new Map();
+  const rowsById = new Map();
+
+  // The composite primary key gives each ledger a unique, indexed cursor.
+  // Scan every ID, including historical additions; timestamps are not cursors.
   for (const ledgerName of Object.keys(FORWARD_EVIDENCE_LEDGERS)) {
-    for (let start = 0; ; start += pageSize) {
-      const { data, error } = await client
+    let afterId = null;
+    for (;;) {
+      let query = client
+        .from("forward_evidence_records")
+        .select("ledger_name,record_id,content_hash")
+        .eq("ledger_name", ledgerName)
+        .order("record_id", { ascending: true });
+      if (afterId !== null) query = query.gt("record_id", afterId);
+      const data = await readRemotePage(query.range(0, pageSize - 1), pageSize);
+      if (!data.length) break;
+      for (const row of data) {
+        if (row?.ledger_name !== ledgerName || typeof row.record_id !== "string" || !row.record_id ||
+            typeof row.content_hash !== "string" || !/^[0-9a-f]{64}$/.test(row.content_hash)) {
+          throw new Error(`Remote forward-evidence read failed: invalid index row for ${ledgerName}`);
+        }
+        if (recordIdQueryBytes(row.record_id) + 512 > 6000) {
+          throw new Error(`Remote forward-evidence record ID exceeds request byte limit: ${ledgerName}`);
+        }
+        const key = `${row.ledger_name}:${row.record_id}`;
+        const previous = index.get(key) || localById.get(key);
+        if (previous && previous.content_hash !== row.content_hash) {
+          throw new Error(`Immutable forward-evidence conflict: ${key}`);
+        }
+        if (index.has(key)) {
+          throw new Error(`Remote forward-evidence read failed: duplicate index row ${key}`);
+        }
+        index.set(key, row);
+        if (localById.has(key)) rowsById.set(key, localById.get(key));
+      }
+      afterId = data.at(-1).record_id;
+    }
+  }
+
+  // Exact local hashes already prove immutable bodies. Download only absent IDs,
+  // and validate every response against the index before allowing any merge.
+  for (const ledgerName of Object.keys(FORWARD_EVIDENCE_LEDGERS)) {
+    const missing = [...index.values()].filter((row) =>
+      row.ledger_name === ledgerName && !rowsById.has(`${row.ledger_name}:${row.record_id}`)
+    );
+    for (let start = 0; start < missing.length;) {
+      const batch = [];
+      // Leave room for the endpoint and fixed query fields as well as IDs.
+      let requestBytes = 512;
+      while (start < missing.length && batch.length < Math.min(pageSize, 50)) {
+        const bytes = recordIdQueryBytes(missing[start].record_id);
+        if (requestBytes + bytes > 6000) break;
+        batch.push(missing[start++]);
+        requestBytes += bytes;
+      }
+      const requested = new Map(batch.map((row) => [`${row.ledger_name}:${row.record_id}`, row]));
+      const data = await readRemotePage(client
         .from("forward_evidence_records")
         .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
         .eq("ledger_name", ledgerName)
-        .order("observed_at", { ascending: true, nullsFirst: false })
-        .range(start, start + pageSize - 1);
-      if (error) throw new Error(`Remote forward-evidence read failed: ${error.message}`);
-      rows.push(...(data || []));
-      if (!data || data.length < pageSize) break;
+        .in("record_id", batch.map((row) => row.record_id))
+        .order("record_id", { ascending: true })
+        .range(0, batch.length - 1), batch.length);
+      const fetched = validateRows(data);
+      if (fetched.size !== data.length) {
+        throw new Error("Remote forward-evidence read failed: duplicate body row");
+      }
+      for (const [key, row] of fetched) {
+        const expected = requested.get(key);
+        if (!expected || row.content_hash !== expected.content_hash) {
+          throw new Error(`Remote forward-evidence index/body mismatch: ${key}`);
+        }
+        rowsById.set(key, row);
+      }
+      for (const key of requested.keys()) {
+        if (!fetched.has(key)) {
+          throw new Error(`Remote forward-evidence missing body: ${key}`);
+        }
+      }
     }
   }
-  return rows;
+  return [...index.keys()].map((key) => rowsById.get(key));
 }
 
 export async function restoreForwardEvidence(options = {}) {
@@ -157,7 +243,8 @@ export async function restoreForwardEvidence(options = {}) {
   }
   const rows = await fetchRemoteRows(
     backend.client,
-    options.pageSize || process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE || 250
+    options.pageSize ?? process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE ?? 250,
+    loadLocalForwardEvidence(options)
   );
   const merged = mergeForwardEvidenceRows(rows, options);
   return { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_RESTORED", ...merged };
@@ -175,7 +262,8 @@ export async function syncForwardEvidence(options = {}) {
   }
   const remoteRows = await fetchRemoteRows(
     backend.client,
-    options.pageSize || process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE || 250
+    options.pageSize ?? process.env.SUPABASE_FORWARD_EVIDENCE_PAGE_SIZE ?? 250,
+    loadLocalForwardEvidence(options)
   );
   mergeForwardEvidenceRows(remoteRows, options);
   const localRows = loadLocalForwardEvidence(options);
