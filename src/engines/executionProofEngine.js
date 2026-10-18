@@ -1,8 +1,10 @@
 import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
+import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 import {
   hasVerifiedBuyQuote,
   hasVerifiedSellQuote,
   isLiveExecutionReady,
+  observedRouteSlippagePct,
   routeQuoteAgeSeconds,
   routeQuoteFresh,
 } from "../execution/routeTruthV2.js";
@@ -422,19 +424,26 @@ function solanaAuthorityProof(project = {}) {
     : Array.isArray(project.freeSecurityEvidence?.evidence)
       ? project.freeSecurityEvidence.evidence
       : [];
-  const known = evidence.filter((item) => item && item.status !== "UNKNOWN");
-  const tested = known.filter((item) => {
-    const checks = (item.testedChecks || []).join(" ").toLowerCase();
-    return checks.includes("mint authority") && checks.includes("freeze authority");
-  });
-  const provenance = project.fieldProvenance || {};
-  const explicitMint =
-    typeof project.mintAuthorityEnabled === "boolean" &&
-    Boolean(provenance.mintAuthorityEnabled?.source || provenance.mintAuthorityEnabled?.verificationStatus);
-  const explicitFreeze =
-    typeof project.freezeAuthorityEnabled === "boolean" &&
-    Boolean(provenance.freezeAuthorityEnabled?.source || provenance.freezeAuthorityEnabled?.verificationStatus);
-  const verified = tested.length > 0 || (explicitMint && explicitFreeze);
+  const chains = [chainOf(project), project.chain, project.chainId, project.canonicalChain, project.network]
+    .filter((value) => value !== undefined && value !== null && value !== "");
+  const mint = normalizeTokenAddress(addressOf(project), "solana");
+  const addresses = [addressOf(project), project.tokenAddress, project.contractAddress,
+    project.canonicalAddress, project.finalContractAddress]
+    .filter((value) => value !== undefined && value !== null && value !== "");
+  const exactIdentity = mint && chains.length && chains.every((value) => normalizeChainId(value) === "solana") &&
+    addresses.every((value) => normalizeTokenAddress(value, "solana") === mint);
+  const now = Date.now();
+  const tested = exactIdentity ? evidence.filter((item) => {
+    const checks = (Array.isArray(item?.testedChecks) ? item.testedChecks : []).filter((check) => typeof check === "string").join(" ").toLowerCase();
+    const stamp = typeof item?.sourceTimestamp === "string" ? Date.parse(item.sourceTimestamp) : NaN;
+    return ["EVIDENCE_AVAILABLE", "RISK_REVIEW"].includes(item?.status) &&
+      normalizeChainId(item.chain) === "solana" && normalizeTokenAddress(item.address || item.tokenAddress, "solana") === mint &&
+      item.responseIdentityVerified === true && item.identityVerifiedOnChain === true && item.snapshotTimestampVerified === true &&
+      typeof item.mintRisk === "boolean" && typeof item.freezeRisk === "boolean" &&
+      Number.isFinite(stamp) && stamp <= now && now - stamp <= 300_000 &&
+      checks.includes("mint authority") && checks.includes("freeze authority");
+  }) : [];
+  const verified = tested.length > 0;
   const clean = verified &&
     project.mintAuthorityEnabled !== true &&
     project.freezeAuthorityEnabled !== true &&
@@ -443,6 +452,7 @@ function solanaAuthorityProof(project = {}) {
     verified,
     clean,
     sources: tested.map((item) => item.provider).filter(Boolean),
+    sourceTimestamp: tested.map((item) => item.sourceTimestamp).sort()[0] || null,
   };
 }
 
@@ -535,23 +545,9 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const outage = providerUnavailable(project, routes);
   const buyRouteAvailable = routes.some((route) => route.buy);
   const sellRouteAvailable = routes.some((route) => route.sell) && !sellRouteConfirmedUnavailable(project, routes);
-  const observedSlippage = first([
-    project.estimatedRoundTripSlippagePct,
-    project.estimatedSlippagePct,
-    project.slippagePct,
-    project.executionSlippagePct,
-    project.canonicalExecutionRoute?.estimatedRoundTripSlippagePct,
-    project.canonicalExecutionRoute?.estimatedSlippagePct,
-    project.canonicalExecutionRoute?.observedSlippagePct,
-    project.executionProofRecoveryRoute?.estimatedRoundTripSlippagePct,
-    project.executionProofRecoveryRoute?.estimatedSlippagePct,
-    project.executionProofRecoveryRoute?.slippagePct,
-    project.proofOfAlphaExecutionTwinSlippagePct,
-    project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
-    project.smallCapHunter?.execution?.slippagePct,
-  ]);
+  const observedSlippage = observedRouteSlippagePct({ ...project, executionProof: undefined });
   const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
-  const observedSlippageVerified = observedSlippage !== null && observedSlippage !== undefined && Number.isFinite(Number(observedSlippage));
+  const observedSlippageVerified = observedSlippage !== null;
   const routeKind = routeKindFor(project, routes);
   const routeType = routeTypeFor(project, routes);
   const chainVerified = routeKind === "CEX"
@@ -620,6 +616,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     authorityEvidenceRequired: routeKind === "SOLANA",
     authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
     authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
+    authorityEvidenceSourceTimestamp: routeKind === "SOLANA" ? authorityProof.sourceTimestamp : null,
   };
   const liveReady = Boolean(
     safetyVerified &&
@@ -738,6 +735,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
     authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
     authorityEvidenceSources: authorityProof.sources,
+    authorityEvidenceSourceTimestamp: routeKind === "SOLANA" ? authorityProof.sourceTimestamp : null,
     userAccessEvidenceRequired: routeKind === "CEX",
     userAccessVerified: routeKind !== "CEX" || accessVerified,
     honeypotEvidence: project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 ? "DETECTED" : null,

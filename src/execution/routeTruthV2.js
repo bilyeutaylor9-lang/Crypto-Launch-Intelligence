@@ -3,6 +3,7 @@ const STALE_STATUSES = new Set(["STALE", "STALE_QUOTE"]);
 const HARD_BLOCK_STATUSES = new Set(["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH", "REJECTED"]);
 const VERIFIED_DEPTH_SOURCES = new Set(["LIVE-BUY-SELL-QUOTE", "PUBLIC-ORDER-BOOK", "LIVE-QUOTE", "ORDER-BOOK"]);
 const NEGATIVE_QUOTE_STATUS = /(?:^|[^A-Z])(?:UNKNOWN|UNVERIFIED|UNCONFIRMED|UNSUCCESSFUL|FAILED|FAILURE|ERROR|MISSING|REJECTED|BLOCKED|UNAVAILABLE|INVALID|INCOMPLETE|UNPROVEN|UNSAFE|PENDING|UNCHECKED|UNTESTED|DEFERRED|STALE|NOT|NO|NEVER)(?:$|[^A-Z])/;
+const SLIPPAGE_FIELDS = ["estimatedRoundTripSlippagePct", "estimatedSlippagePct", "observedSlippagePct", "slippagePct", "executionSlippagePct"];
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -176,35 +177,41 @@ export function hasVerifiedRouteDepth(subject = {}) {
   );
 }
 
-export function hasVerifiedRouteSlippage(subject = {}) {
+function sourceSlippagePct(source = {}) {
+  if (source.slippageIsHeuristic === true || source.slippageVerified === false) return null;
+  const value = first(SLIPPAGE_FIELDS.map((field) => source[field]));
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^\+?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return null;
+  const measured = Number(value);
+  if (!Number.isFinite(measured) || measured < 0) return null;
+  if (typeof value === "string" && measured === 0 && /[1-9]/.test(value.split(/[eE]/)[0])) return null;
+  return measured;
+}
+
+export function observedRouteSlippagePct(subject = {}) {
   const proof = currentProof(subject);
-  if (proof?.slippageIsHeuristic === true || proof?.slippageVerified === false) return false;
-  const proofFields = ["estimatedRoundTripSlippagePct", "estimatedSlippagePct", "observedSlippagePct"];
-  if (proof && proofFields.some((field) => Object.hasOwn(proof, field))) {
-    const value = first(proofFields.map((field) => proof[field]));
-    return value !== null && Number.isFinite(Number(value));
+  if (proof && (proof.slippageIsHeuristic === true || proof.slippageVerified === false ||
+      SLIPPAGE_FIELDS.some((field) => Object.hasOwn(proof, field)))) return sourceSlippagePct(proof);
+  if (subject.slippageIsHeuristic === true || subject.slippageVerified === false) return null;
+  for (const source of [subject, subject.canonicalExecutionRoute, subject.executionProofRecoveryRoute]) {
+    if (source && SLIPPAGE_FIELDS.some((field) => source[field] !== undefined && source[field] !== null && source[field] !== "")) {
+      return sourceSlippagePct(source);
+    }
   }
-  const value = first([
-    subject.estimatedRoundTripSlippagePct,
-    subject.estimatedSlippagePct,
-    subject.slippagePct,
-    subject.executionSlippagePct,
-    subject.executionProof?.estimatedRoundTripSlippagePct,
-    subject.executionProof?.estimatedSlippagePct,
-    subject.executionProof?.observedSlippagePct,
-    subject.canonicalExecutionRoute?.estimatedRoundTripSlippagePct,
-    subject.canonicalExecutionRoute?.estimatedSlippagePct,
-    subject.canonicalExecutionRoute?.observedSlippagePct,
-  ]);
-  if (value === null || !Number.isFinite(Number(value))) return false;
-  if (
-    subject.slippageIsHeuristic === true ||
-    subject.executionProof?.slippageIsHeuristic === true ||
-    subject.canonicalExecutionRoute?.slippageIsHeuristic === true
-  ) {
-    return false;
-  }
-  return true;
+  return null;
+}
+
+export function hasVerifiedRouteSlippage(subject = {}) {
+  return observedRouteSlippagePct(subject) !== null;
+}
+
+export function hasFreshTokenAuthorityEvidence(subject = {}) {
+  const proof = currentProof(subject) || subject;
+  if (proof.authorityEvidenceRequired !== true) return true;
+  if (proof.authorityEvidenceVerified !== true || typeof proof.authorityEvidenceSourceTimestamp !== "string") return false;
+  const stamp = Date.parse(proof.authorityEvidenceSourceTimestamp);
+  const now = Date.now();
+  return Number.isFinite(stamp) && stamp > 0 && stamp <= now && now - stamp <= 300_000;
 }
 
 export function hasExactRouteIdentity(subject = {}) {
@@ -260,7 +267,7 @@ export function isLiveExecutionReady(subject = {}, options = {}) {
   ) return false;
   if (
     requirements.authorityEvidenceRequired === true &&
-    (requirements.authorityEvidenceVerified !== true || requirements.authoritySafetyClean !== true)
+    (!hasFreshTokenAuthorityEvidence(subject) || requirements.authoritySafetyClean !== true)
   ) return false;
 
   return Boolean(

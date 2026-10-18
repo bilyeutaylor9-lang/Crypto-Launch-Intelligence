@@ -20,6 +20,7 @@ function candidate(proof = {}) {
       authorityEvidenceRequired: true,
       authorityEvidenceVerified: true,
       authoritySafetyClean: false,
+      authorityEvidenceSourceTimestamp: new Date().toISOString(),
       buyQuoteVerified: false,
       sellQuoteVerified: false,
       liveExecutionReady: false,

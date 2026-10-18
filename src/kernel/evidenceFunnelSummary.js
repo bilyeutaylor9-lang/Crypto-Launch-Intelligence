@@ -1,4 +1,4 @@
-import { hasVerifiedBuyQuote, hasVerifiedSellQuote, hasVerifiedRouteDepth, hasVerifiedRouteSlippage,
+import { hasFreshTokenAuthorityEvidence, hasVerifiedBuyQuote, hasVerifiedSellQuote, hasVerifiedRouteDepth, hasVerifiedRouteSlippage,
   isLiveExecutionReady, routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { buildCandidateProofState, deterministicCandidateBlocks } from "./candidateTruthState.js";
 
@@ -88,7 +88,7 @@ export function decisionProofAssessment(project = {}) {
   if (!hasVerifiedRouteSlippage(project)) missingFields.push("VERIFIED_SLIPPAGE");
   if (proof.transferTaxEvidenceRequired === true && proof.transferTaxEvidenceVerified !== true) missingFields.push("TRANSFER_TAX");
   if (proof.authorityEvidenceRequired === true &&
-    (proof.authorityEvidenceVerified !== true || proof.authoritySafetyClean !== true)) missingFields.push("TOKEN_AUTHORITY");
+    (!hasFreshTokenAuthorityEvidence(project) || proof.authoritySafetyClean !== true)) missingFields.push("TOKEN_AUTHORITY");
   if (proof.userAccessEvidenceRequired === true && proof.userAccessVerified !== true) missingFields.push("USER_ACCESS");
   if (!isLiveExecutionReady(project) && !missingFields.length) missingFields.push("LIVE_EXECUTION_PROOF");
   return { conclusivelyRejected: false, missingFields };

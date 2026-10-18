@@ -1,5 +1,83 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Observed Cost And Security Consumption
+
+Inspection of the preserved dc12a0b2 scan found 90/133 deep proofs labeled
+nonheuristic slippage even though all 133 lacked buy and sell quotes. AUT's
+1.5% value matched the liquidity-based $100 heuristic. A regression reproduced
+the path: Route Accessibility copied executionProof.estimatedSlippage100 into
+a normalized route without its heuristic label, then the next execution-proof
+pass treated it as observed. Shared strict slippage selection now excludes
+paper-twin/small-cap simulations, preserves heuristic/negative proof semantics,
+rejects coercible/negative/hexadecimal/underflow values and retains an actual
+measured zero through both normalizers. The first integrated slippage layer
+passed 1823 tests; six new regressions failed before repair.
+
+The security specialist reproduced three additional defects from real retained
+evidence. Blockscout's proxy_type and implementations[].address_hash were lost;
+Instant Safety did not consume recovered mintAuthorityEnabled (or the parallel
+freezeAuthorityEnabled); and an existing UNKNOWN/partial summary suppressed
+bounded collection. Proxy parsing now validates implementation addresses.
+Connector cache hits re-parse retained raw risk immediately without changing
+receipt/source timestamps, source-verification flags or cache files. UNKNOWN,
+bad-identity and malformed records remain untrusted. Canonical mint/freeze true
+values now impose existing restrictions without clearing older danger flags.
+
+Contract Authority recovery now selects unresolved or stale summaries under
+the existing limits, exact-identity deduplication and concurrency. Solana case
+is preserved, conflicting identities and deferred candidates cannot acquire,
+and existing supported Blockscout-only chains remain eligible. Complete fresh
+summaries avoid collection. Missing, malformed, future and stale observation
+times cannot establish current verified safety. Failed refreshes retain old
+risk/time metadata plus an unresolved refresh marker; an explorer response
+cannot silently clear previously required unconfirmed security checks. Six of
+seven new collection regressions failed before repair. The existing positive
+security fixture now supplies its exact identity and original observation time
+rather than relying on a timestamp-free clean flag.
+
+The final authority consumer also accepted any nonempty source label on two
+scalar booleans, or old/foreign check labels, as Solana authority proof. It now
+requires exact nonconflicting mint identity, verified on-chain identity and
+snapshot flags, both typed authority risks, both actual checks and a nonfuture
+chain source timestamp no older than 300 seconds. That original time is retained
+in the execution proof; current consumers and recovery assessment age it rather
+than freezing old positive flags. Fresh active authorities stay verified unsafe,
+not clean or missing. Four new consumer regressions failed before repair.
+The positive Solana quote fixture was strengthened with actual proof metadata.
+The combined parent consumer/planner/cost/collection set passes 65 tests; the
+specialist's 37 focused risk/cache tests pass. The first integrated run exposed
+one older positive authority fixture without an observation timestamp; its
+metadata was strengthened, and all 1874 tests then passed. An additional actual
+recovery/rerun regression caught obsolete root missing-cost markers from this
+in-progress layer; those markers were removed, while normalized route markers
+remain. Fresh exact provider observations can now replace unknown cost without
+overriding safety, identity, tax or final-selection gates. The 38-test active
+execution/cost suite passes, including the demonstrated pre-repair failure.
+Final integrated validation passes all 1875 tests without failures, skips or
+cancellations, 21 load tests, entrypoint typecheck and 934-file syntax validation.
+The two final changed JavaScript files were directly syntax-checked again.
+The post-test runtime comparison found only the six previously intentional
+audit/readiness outputs changed from the preserved live pre-audit snapshot;
+data and the other reports retain their original hashes. A new clean-source
+production scan, not these fixtures, must establish the acquisition result.
+
+After the recorded LI.FI window elapsed naturally, one bounded exact-identity
+probe at 2026-10-18T08:40:04.704Z returned a quote again. Its payload contained
+no exact pool attestation; no transaction was submitted and no route promoted.
+The preexisting accounting object reset only through its normal elapsed-window
+logic, not a manual reset. This consumed 1/70 requests in the new local window,
+leaving at most 69 for a subsequent scan through 2026-10-18T10:40:04.706Z.
+This was a dirty repair probe based on dc12a0b2, not a production validation.
+
+The specialist's raw audit also verified genuine provider limitations: 17 of
+the 24 remaining non-rejected safety gaps lack cannot_sell_all, six of those
+also lack valid tax observations, six others have broader missing checks and
+one lacks attached safety evidence. cannot_buy is not evidence of unrestricted
+selling. Those absent observations remain UNKNOWN. A future pool-constrained
+on-chain quoting route is an acquisition hypothesis, not an implemented edge;
+it must independently prove exact pool, live prices, safety and net execution
+cost before any prospective matched-control profitability test can mature.
+
 ## October 18 Known Rejection And Shared Proof
 
 The source-stable cf3d0b43 wide scan, scan_1792309913834, reached 10000

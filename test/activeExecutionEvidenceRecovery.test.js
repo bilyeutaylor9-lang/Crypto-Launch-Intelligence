@@ -8,6 +8,7 @@ import {
 } from "../src/data/activeEvidenceProviderExecutor.js";
 import { analyzeCanonicalExecutionRoute } from "../src/engines/canonicalExecutionRouteEngine.js";
 import { analyzeExecutionProof } from "../src/engines/executionProofEngine.js";
+import { analyzeRouteAccessibility } from "../src/engines/routeAccessibilityEngine.js";
 import { summarizeExecutionProofRecovery } from "../src/reports/executionProofRecoveryReportEngine.js";
 
 const NOW = new Date("2026-10-17T12:00:00.000Z");
@@ -119,6 +120,20 @@ test("budget zero makes no HTTP call; budget one cannot send SELL or promote a t
     assert.ok(result.attempts.some((item) => item.status === "REQUEST_BUDGET_EXHAUSTED"));
     unresolved(result);
   }
+});
+
+test("fresh exact provider observations replace an earlier unknown cost after dependent reruns", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
+  const initial = analyzeRouteAccessibility(analyzeExecutionProof(project({ buyTaxPct: 0, sellTaxPct: 0 })));
+  assert.equal(initial.executionProof.slippageIsHeuristic, true);
+  const result = await execute(initial, options(async (url) => lifiQuote(url)));
+  const updated = { ...initial, ...result.projectPatch,
+    ...Object.fromEntries(result.observations.map((item) => [item.field, item.value])) };
+  const rerun = analyzeExecutionProof(analyzeCanonicalExecutionRoute(updated));
+  assert.equal(rerun.executionProof.observedSlippagePct, 1);
+  assert.equal(rerun.executionProof.slippageIsHeuristic, false);
+  assert.equal(rerun.liveExecutionReady, true);
+  assert.equal(rerun.finalSelectionQualified, initial.finalSelectionQualified);
 });
 
 test("execution recovery reporting reconciles budgeted Wave3 work without changing producer history", async (t) => {

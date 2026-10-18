@@ -109,7 +109,8 @@ test("authority recovery requires a current missing proof, not a safety-only or 
   for (const proof of [undefined, {}, "[repeated data omitted from report]",
     { authorityEvidenceRequired: false, safetyVerified: false },
     { authorityEvidenceRequired: false, transferTaxEvidenceRequired: true, transferTaxEvidenceVerified: false },
-    { authorityEvidenceRequired: true, authorityEvidenceVerified: true, authoritySafetyClean: true },
+    { authorityEvidenceRequired: true, authorityEvidenceVerified: true, authoritySafetyClean: true,
+      authorityEvidenceSourceTimestamp: new Date().toISOString() },
     { authorityEvidenceRequired: true, authorityEvidenceVerified: true, authoritySafetyClean: false }]) {
     assert.deepEqual(planned(candidate({ executionProof: proof })), []);
   }

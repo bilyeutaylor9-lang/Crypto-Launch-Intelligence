@@ -6,6 +6,7 @@ import {
 import {
   hasVerifiedBuyQuote,
   hasVerifiedSellQuote,
+  observedRouteSlippagePct,
   routeQuoteAgeSeconds,
 } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
@@ -403,6 +404,8 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   const sellBlocked = project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || /honeypot|cannot sell|sell unavailable|transfer blocked/.test(statusText);
   const buyRouteAvailable = Boolean(buyQuoteVerified || explicitBuy);
   const sellRouteAvailable = Boolean(!sellBlocked && (sellQuoteVerified || explicitSell));
+  const observedSlippage = observedRouteSlippagePct({ ...project, executionProof: undefined }) ??
+    routes.map((route) => observedRouteSlippagePct(route)).find((value) => value !== null) ?? null;
   const unavailable = providerUnavailable(project, routes);
   const marketPair = routeMarketPair(project, routes);
   const exactIdentity = routeType === "CEX"
@@ -488,17 +491,8 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     quoteTimestamp: quoteTimestamp(project, routes) || null,
     quoteAgeSeconds,
     lastVerifiedAt: quoteTimestamp(project, routes) || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
-    estimatedRoundTripSlippagePct: first([
-      project.estimatedRoundTripSlippagePct,
-      project.executionProof?.estimatedRoundTripSlippagePct,
-      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedRoundTripSlippagePct,
-      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedSlippagePct,
-    ]) || null,
-    slippageIsHeuristic: Boolean(
-      project.slippageIsHeuristic === true ||
-        project.executionProof?.slippageIsHeuristic === true ||
-        routes.some((route) => route.slippageIsHeuristic === true)
-    ),
+    estimatedRoundTripSlippagePct: observedSlippage,
+    slippageIsHeuristic: observedSlippage === null,
     regionStatus: first([project.regionStatus, routes.find((route) => route.regionStatus)?.regionStatus]) || null,
     marketPair: marketPair || null,
     supportingSources: supporting,

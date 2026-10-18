@@ -355,8 +355,9 @@ test("complete observed safety checks retain clean qualification", async () => {
   const raw = Object.fromEntries(["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance", "buy_tax", "sell_tax"].map((key) => [key, "0"]));
   raw.is_open_source = "1";
   const summary = summarizeSecurityEvidence([{ provider: "goplus", status: "EVIDENCE_AVAILABLE",
-    responseIdentityVerified: true, verifiedSource: true, confidence: 90, raw }]);
-  const result = await analyzeContractAuthorityRisk({ securityEvidenceSummary: summary,
+    responseIdentityVerified: true, verifiedSource: true, confidence: 90, raw,
+    chain: "base", address: ADDRESS, observedAt: new Date().toISOString() }]);
+  const result = await analyzeContractAuthorityRisk({ chain: "base", tokenAddress: ADDRESS, securityEvidenceSummary: summary,
     riskFlags: ["Contract authority evidence missing", "Unrelated observed danger"] });
   assert.equal(result.contractSafetyVerified, true);
   assert.equal(result.safetyProofStatus, "SAFETY_VERIFIED_CLEAN");

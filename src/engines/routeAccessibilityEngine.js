@@ -3,6 +3,7 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import { observedRouteSlippagePct } from "../execution/routeTruthV2.js";
 
 const DEFAULT_CEX_VENUES = [
   "Coinbase",
@@ -530,7 +531,8 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
   const liquidityUsd = num(rawRoute.liquidityUsd || rawRoute.dexLiquidityUsd || project.canonicalExecutionRoute?.liquidityUsd || project.dexLiquidityUsd || project.liquidityUsd || project.liquidity);
   const orderBookDepthUsd = num(rawRoute.orderBookDepthUsd || rawRoute.orderBookDepth || project.cexOrderBookDepthUsd || project.orderBookDepthUsd);
   const estimatedPriceImpactPct = rawRoute.estimatedPriceImpactPct ?? rawRoute.priceImpactPct ?? null;
-  const estimatedRoundTripSlippagePct = rawRoute.estimatedRoundTripSlippagePct ?? rawRoute.estimatedSlippagePct ?? rawRoute.slippagePct ?? project.executionProof?.estimatedSlippage100 ?? null;
+  const estimatedRoundTripSlippagePct = observedRouteSlippagePct(rawRoute) ??
+    (canonical ? observedRouteSlippagePct({ executionProof: project.executionProof }) : null);
   const estimatedGasUsd = rawRoute.estimatedGasUsd ?? rawRoute.gasUsd ?? null;
   const estimatedFeesUsd = rawRoute.estimatedFeesUsd ?? rawRoute.feesUsd ?? null;
   const totalRouteCostUsd = num(estimatedGasUsd) + num(estimatedFeesUsd) + num(rawRoute.bridgeFeeUsd);
@@ -607,6 +609,8 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
     estimatedGasUsd,
     estimatedPriceImpactPct,
     estimatedRoundTripSlippagePct,
+    slippageIsHeuristic: estimatedRoundTripSlippagePct === null,
+    slippageVerified: estimatedRoundTripSlippagePct !== null,
     liquidityUsd: liquidityUsd || null,
     orderBookDepthUsd: orderBookDepthUsd || null,
     exchange: routeType === "CEX" ? venue : null,
