@@ -1,5 +1,154 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 17 Repair And Independent Audit
+
+The persistent repair checkout now restores the Solana full-report holder-owner
+acquisition path, rather than relying on the removed temporary checkout.
+It verifies exact mint/program identity, separates owner addresses from token
+accounts, preserves original provider timestamps, and explicitly does not prove
+fresh chain snapshots, daily buyers or smart-wallet labels. Existing security
+payloads are reused before bounded provider requests. Solana wallet routing no
+longer schedules EVM-only collectors. Non-mint RPC responses, malformed authority
+fields and incomplete security reports cannot establish clean security. Raw
+active mint/freeze authorities remain risks even without provider risk labels.
+
+Discovery-ledger promotion now means deep-research selection, not final
+qualification. Final qualification requires retained Final Selection Integrity
+producer proof and passing invariants. Legacy discovery-only qualification flags
+are excluded from current totals/report rows without rewriting old observations.
+
+An independent specialist reproduced two additional bugs: retained live route
+flags could override current negative execution proof, and healthy raw-input
+coverage could disguise missing decision-critical proof as NO_EDGE_FOUND.
+Shared readiness consumers now honor current nested quote, identity, freshness,
+depth, slippage, safety, tax, authority and access proof. Producer recomputation
+does not reuse its previous derived proof as the new readiness result. Real new
+observations can therefore recover an earlier rejection. Null/partial tax
+values and empty evidence objects cannot verify transfer taxes.
+
+The canonical funnel separately reports healthyDecisionEvidence,
+unresolvedDecisionEvidence, decisionProofMissingFields, decisionEvidenceComplete
+and conclusivelyRejected. Input availability is not final decision proof.
+Unresolved identity/safety/execution requirements yield DATA_DEGRADED; conclusive
+rejections do not require irrelevant downstream proof, and optional advisory
+gaps alone do not degrade complete decision evidence. Current negative proof
+also prevents retained qualification flags from inflating the final pick count.
+
+Before the shared execution/semantic fixes, live scan scan_1792282654230 had
+62 standard / 46 deep / 16 deferred candidates, 91% core / 89% advisory input
+coverage, 44 core-ready / 0 partial / 2 starved. Recovery attempted 30 candidates,
+selected 22/30/0 wave candidates and used 48/2000 request units, without deadline
+skips. Recovered fields were DEPLOYER82 / SECURITY111 / WALLETS78; unresolved
+attempted fields DEPLOYER47 / WALLETS3. The discovery ledger correctly counted
+94 promoted deep-queue entries and zero final-qualified entries.
+
+That run's smoke passed under the old coverage-only health semantics, despite
+zero routes/picks and first unknowns BUY_QUOTE24 / SAFETY14 / IDENTITY4 /
+USER_ACCESS4. It is a baseline exposing the semantic defect, not evidence of a
+production-ready scanner. Complete post-fix tests and fresh live proof coverage
+must be inspected before any deployment claim. No profitable edge is established.
+
+### Test Data Isolation And Clean Baseline
+
+The original test runner restored reports but did not isolate data. A mocked
+Solana security response was found in the live security cache. Both directories
+are now isolated and restored on success and failure, with backups retained on
+restoration error. The affected direct fixture explicitly disables its cache.
+The new worktree's mixed generated data was preserved, not deleted, in sibling
+directory cli-validation-mixed-data-20261017 before a clean-data live run.
+The unrelated original user checkout was not modified. SHA-256 comparisons
+confirmed all 25 genuine data files were restored byte-for-byte after a full run.
+
+Clean scan scan_1792283690260 had 61 standard / 43 deep / 18 deferred candidates,
+91% core / 89% advisory input coverage and 43 ready / 0 partial / 0 starved.
+Recovery attempted 26 candidates, selected 14/26/0 waves, used 28/2000 request
+units and had no deadline skips. Recovered fields: DEPLOYER59 / WALLETS64 /
+SECURITY74; unresolved attempted fields: DEPLOYER28. It had zero verified routes,
+zero qualified picks, one conclusive rejection and 42 unresolved decision-proof
+cases. Missing proof counts overlap: BUY_QUOTE42 / SELL_QUOTE42 /
+QUOTE_FRESHNESS42 / VERIFIED_SLIPPAGE31 / SAFETY18 / TOKEN_AUTHORITY12 /
+IDENTITY2 / TRANSFER_TAX2. Report contracts passed and manifest completed, but
+readiness refresh and scanner smoke correctly failed with DATA_DEGRADED.
+
+### Budgeted Execution Acquisition
+
+Further inspection found that the active executor had no EXECUTION handler,
+and contract-input completeness left Wave3 empty despite missing quote proof.
+It now reuses the existing quote-recovery adapters with a shared-budget wrapper
+around every actual HTTP request, including BUY, SELL and quote-token lookup.
+Promotion verifies exact response chain, contract and the known pool on both
+legs, or an explicit CEX venue market. Unattested pools, incomplete responses,
+unknown measurements and failed providers remain unresolved. Every promoted raw
+observation retains provenance; no final readiness or qualification is forged.
+
+Normal pipeline quote collection is deferred to Wave3 instead of occurring
+before hydration or through unbudgeted post-recovery retries. Missing quote,
+freshness, depth and slippage proof seeds fresh raw recovery for the top execution
+candidates. Already-complete quotes, conclusive rejections and deferred projects
+do not receive unnecessary plans. The registry advertises implemented adapters
+only, with chain/route applicability and configured-key requirements.
+Candidate-specific 400/404/422 no-quote responses do not trip a shared provider
+outage circuit; authentication, rate-limit, timeout and service failures retain
+their safeguards. Recovery reporting reconciles the budgeted work without
+rewriting the original deferral record or treating raw quotes as final approval.
+
+Cached quote ages now increase with their actual timestamp. A stored zero age
+cannot make an old quote permanently fresh; future/invalid timestamps remain
+unknown, and market-data update time is not quote time. Negative labels such as
+UNVERIFIED, NOT_VERIFIED and NOT_READY cannot match positive status substrings.
+
+The deterministic scale replay covers 500 deep plus 3500 deferred fixtures,
+50 selected Wave3 candidates, a hard 60 mocked HTTP request budget and 30 exact
+two-way raw route recoveries. Deferred entries are not attempted or counted as
+starved. Missing final proof still yields zero qualified picks and DATA_DEGRADED.
+The official load command passes 21 tests. This is component/load validation,
+not live 500-candidate or full-pipeline evidence of a trading edge.
+
+The first four repair commits through 053c2bc1 were pushed normally to
+codex/evidence-recovery-audit-20261014; PR55 and main remain unchanged.
+Local and repository secret-name checks found no configured JUPITER_API_KEY,
+ZEROX_API_KEY or LIFI_API_KEY. BASE_RPC_URL is configured in Actions but absent
+locally. No secret values were read or printed. Solana keyed quote acquisition
+cannot be claimed working until its credential is configured. Keyless EVM and
+public CEX paths remain available subject to actual provider proof/quotas.
+
+The completed local code suite passes 1523 tests with zero failures, skips or
+cancellations; syntax passes all 899 JavaScript files, typecheck's entrypoint
+syntax check passes, and the load command passes 21 tests. Execution acquisition
+is committed at d9f5b172 and freshness/status truth at 08c4c57f. The larger live
+production-style validation remains required; unit and component evidence must
+not be represented as proof that all 500 real candidates can be hydrated.
+
+## October 14 Handoff Reconciliation
+
+The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.
+The saved remote checkpoint remains
+`b4b218bfaf9e5fd8fdfacaa0853d30ca93b5c968`. A clean persistent repair
+checkout was restored on `codex/evidence-recovery-audit-20261014` without
+modifying the unrelated original checkout.
+
+GitHub currently reports PR55 OPEN at
+`1b255c97a9d8fa17b34968b805fe54a59b61bf11`,
+with the three original build/verify checks successful and optional preview
+skipped. Main remains `994dcd64e95e0ffe4cfd264699eadaf73f6061ab`.
+Repository permissions report push access; git remote reads and authenticated
+API reads succeeded. Actual write transport has not been retested here.
+The branch-protection endpoint returned "Branch not protected" (404), and
+the repository ruleset listing was empty. No protection was changed.
+
+The supplied handoff's commit `7d10373` is absent from this local object
+database. Its named ZIP was not found in Downloads or Documents/Codex.
+Its test and load-test claims have not been reproduced. Prior uncommitted
+Solana holder fixes and their temporary test logs are not present in the
+restored checkpoint; they must be recovered from an artifact or reimplemented
+and revalidated. Do not claim those changes are pushed or deployed.
+
+Exact verified PR55 head:
+`1b255c97a9d8fa17b34968b805fe54a59b61bf11`.
+PR55 remains unmerged. Full live 500-candidate acquisition, current final-gate
+proof coverage, fresh CI for subsequent fixes and a profitable edge remain
+unproven. Preserve UNKNOWN evidence and all safety/identity/execution gates.
+
 ## Scope
 
 This follow-up is based on PR55 head
