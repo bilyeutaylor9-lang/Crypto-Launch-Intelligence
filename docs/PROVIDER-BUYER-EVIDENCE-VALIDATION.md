@@ -112,12 +112,87 @@ locally. No secret values were read or printed. Solana keyed quote acquisition
 cannot be claimed working until its credential is configured. Keyless EVM and
 public CEX paths remain available subject to actual provider proof/quotas.
 
-The completed local code suite passes 1523 tests with zero failures, skips or
+The pre-diagnostics checkpoint code suite passed 1523 tests with zero failures, skips or
 cancellations; syntax passes all 899 JavaScript files, typecheck's entrypoint
 syntax check passes, and the load command passes 21 tests. Execution acquisition
 is committed at d9f5b172 and freshness/status truth at 08c4c57f. The larger live
 production-style validation remains required; unit and component evidence must
 not be represented as proof that all 500 real candidates can be hydrated.
+
+### Larger Live Validation And Current External Blockers
+
+Live scan scan_1792287637331 completed at source revision 6dd0ffe4. It targeted
+2000 discovery / 1000 standard / 500 deep candidates but actually produced
+291 standard / 124 deep / 167 deferred. Eligibility rules were not relaxed to
+fill the requested universe. This is not a completed live 500-deep validation.
+
+Core input coverage was 90%, advisory coverage 89%, with 103 core-ready,
+zero partial and 21 core-starved candidates (16.94% of deep). The remaining
+core gaps were wallet/holder evidence in 21 and creator/lifecycle evidence in
+13 overlapping candidates. All 105 selected Wave2 candidates were within its
+150-candidate limit; selected waves were 51 / 105 / 50. Recovery used 301 of
+2000 request units with no deadline skips. Recovered field counts by family:
+IDENTITY3 / MARKET3 / WALLETS191 / DEPLOYER169 / SECURITY126. Unresolved attempted
+fields: MARKET2 / DEPLOYER127 / EXECUTION200 / WALLETS42. These are field counts,
+not unique candidate counts or a controlled provider-cost benchmark.
+
+The requested aggregate core-input targets were met on this observed universe,
+but final decision proof was not: zero verified routes, zero fully qualified,
+one conclusive rejection and 123 unresolved decision-proof cases. Missing proof
+counts overlap: BUY_QUOTE123 / SELL_QUOTE123 / QUOTE_FRESHNESS123 /
+VERIFIED_SLIPPAGE101 / SAFETY94 / TOKEN_AUTHORITY55 / TRANSFER_TAX31 / IDENTITY11 /
+ROUTE_DEPTH4. DATA_DEGRADED is correct, not NO_EDGE_FOUND. Report contracts passed,
+artifact manifest completed and engine audit exited successfully; readiness
+refresh and scanner smoke failed. No final gate was lowered to change this.
+
+A subsequent bounded five-candidate quote probe used seven actual HTTP calls
+and recovered no accepted raw route. LI.FI returned candidate-specific 404s,
+one two-way response lacking required exact-pool attestation, then HTTP429 with
+a declared two-hour cooldown. Further calls in that probe respected cooldown.
+No new keyless probe should ignore that declared limit. Quote diagnostics now
+retain adapter statuses, missing-key names, budget/cooldown reasons and actual
+HTTP counts separately from unrelated wallet/deployer requests. A provider's
+unattested route cannot be reported as an accepted recovery.
+
+GitHub scheduled runs on main still fail independently of these local repairs.
+Run39086599464 (Edge Evidence Truth) explicitly reports Supabase
+exceed_egress_quota during durable forward-evidence restore. Run39086741674
+(Autonomous Alpha OS) also fails restore and sync. This is a restricted external
+service, not missing Git write permission. Billing, spend caps and project
+configuration were not changed; failures and promotion guards remain enforced.
+The current restriction needs account-side resolution or the provider's quota
+reset. Repeated full-ledger downloads have been repaired to reduce future egress,
+not represented as a way to clear an already applied service restriction.
+
+Forward-evidence restore/sync now pages the immutable ID/hash index using the
+existing composite primary key. Exact locally validated bodies are reused;
+only missing bodies are downloaded in batches capped at 50 IDs and a
+conservative 6000-byte request budget. Historical/undated additions are not
+skipped through a time-window shortcut. Conflicts, corrupt/missing bodies,
+malformed pages and provider query failures still fail closed before appending
+or uploading. Public restore/sync counts remain intact. Thirty-two focused tests
+include real Supabase SDK request encoding through an injected offline transport.
+No live database success is claimed while the service remains restricted.
+
+The larger scan also selected 12 Wave3 candidates that its executor then rejected
+for missing/conflicting fixed identity. Wave allocation now shares that exact
+identity check, preserves visible identity-deferral counts/reasons and refreshes
+later waves after earlier hydration. A pool recovered in Wave1 can therefore
+become eligible in Wave3 without relaxing identity. An explicit CEX route cannot
+fall back to DEX probes when its supported venue/market is missing. Regression
+fixtures prove invalid identities do not consume a capped execution slot and
+newly hydrated exact pools do receive the subsequent bounded quote requests.
+These allocation changes are deterministic regression proof, not a newer live
+production result replacing scan_1792287637331.
+
+Final integrated source validation through 6626873e passes 1569 tests with zero
+failures, skips or cancellations, syntax checks across all 900 JavaScript files,
+the entrypoint syntax/typecheck and 21 load tests. The combined focused repair
+suite passes 84 tests. SHA-256 comparison after the full isolated suite confirmed
+all 214 protected live data/report files restored byte-for-byte with the same
+scan ID. Live report contracts still pass. The quote/wave repairs are committed
+at 5a08e65e and low-egress immutable sync at 6626873e. Fresh GitHub checks are
+required for publication; no prior PR's green checks authorize this new head.
 
 ## October 14 Handoff Reconciliation
 
