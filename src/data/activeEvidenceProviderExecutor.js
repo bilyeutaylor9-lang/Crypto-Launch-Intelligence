@@ -31,7 +31,7 @@ import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
-import { getRpcWalletEvidence } from "./rpcWalletEvidenceConnector.js";
+import { getRpcWalletEvidence, walletRpcEndpointId } from "./rpcWalletEvidenceConnector.js";
 import { jsonRpc } from "../sensors/rpcJsonClient.js";
 import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
@@ -1016,6 +1016,8 @@ export async function recoverWalletEvidence(
       } else {
         const transport = options.jsonRpc || jsonRpc;
         const boundedRpc = async (url, method, params, rpcOptions) => {
+          const endpointId = walletRpcEndpointId(url);
+          const circuitScope = options.rpcUrl && !options.rpcUrls?.length ? evm.chain : `${evm.chain}:${endpointId}`;
           const call = await executeProviderCall("rpc-wallets", async () => {
             const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
             const value = await transport(url, method, params, { ...rpcOptions, retries: 0,
@@ -1026,9 +1028,13 @@ export async function recoverWalletEvidence(
               throw new Error("Wallet RPC response arrived after the recovery deadline.");
             }
             return value;
-          }, options, state, 1, evm.chain);
-          attempts.push({ ...call, value: undefined, family: "WALLETS", rpcMethod: method });
-          if (call.status !== "SUCCESS") throw new Error(call.reason || call.status);
+          }, options, state, 1, circuitScope);
+          attempts.push({ ...call, value: undefined, family: "WALLETS", rpcMethod: method, rpcEndpointId: endpointId });
+          if (call.status !== "SUCCESS") {
+            const error = new Error(call.reason || call.status);
+            error.code = call.status;
+            throw error;
+          }
           return call.value;
         };
         rpcResult = await providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
@@ -1052,6 +1058,7 @@ export async function recoverWalletEvidence(
           rpcResult.sourceTimestamp || rpcResult.observedAt, confidenceFraction(rpcResult.confidence), { chain: evm.chain,
             tokenAddress: evm.tokenAddress, transferCoverage: rpcResult.transferCoverage,
             holderCoverage: rpcResult.holderCoverage, holderBalanceEvidence: rpcResult.holderBalanceEvidence,
+            rpcEndpointId: rpcResult.rpcEndpointId, rpcEndpointAttempts: rpcResult.rpcEndpointAttempts,
             holderSampleOnly: rpcResult.holderBalanceEvidence?.length > 0,
             completeHolderCoverage: false, buyerClassificationAvailable: false,
             sourceTimestampMeaning: "PINNED_BLOCK_OR_TRANSFER_WINDOW_HEAD_NOT_INDIVIDUAL_TRADE_TIME" }));

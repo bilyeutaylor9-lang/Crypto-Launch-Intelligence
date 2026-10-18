@@ -16,7 +16,7 @@ function fixture(overrides = {}, calls = []) {
   return async (url, method, params) => {
     calls.push({ method, params });
     if (overrides[method] instanceof Error) throw overrides[method];
-    return overrides[method] ?? { eth_chainId: "0x2105", eth_getBlockByNumber: { number: "0x100", timestamp: "0x10000" }, eth_getLogs: [log] }[method];
+    return overrides[method] ?? { eth_chainId: "0x2105", eth_getBlockByNumber: { number: "0x100", timestamp: `0x${Math.floor(Date.now() / 1000).toString(16)}` }, eth_getLogs: [log] }[method];
   };
 }
 const options = (overrides, calls) => ({ rpcUrl: "https://rpc.invalid", jsonRpc: fixture(overrides, calls) });

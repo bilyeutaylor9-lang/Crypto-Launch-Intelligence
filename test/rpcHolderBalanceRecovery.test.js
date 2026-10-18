@@ -12,7 +12,7 @@ const POOL = "0x2222222222222222222222222222222222222222";
 const ACCOUNT = "0x3333333333333333333333333333333333333333";
 const OTHER = "0x4444444444444444444444444444444444444444";
 const HASH = `0x${"a".repeat(64)}`;
-const TIMESTAMP = 1792288800;
+const TIMESTAMP = Math.floor(Date.now() / 1000);
 const BLOCK = { number: "0x100", timestamp: `0x${TIMESTAMP.toString(16)}`, hash: HASH };
 const BALANCE = 2n ** 240n + 123n;
 const WORD = (number) => `0x${BigInt(number).toString(16).padStart(64, "0")}`;

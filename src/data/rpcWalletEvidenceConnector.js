@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { resolveNativeRpcUrl } from "./native/nativePoolConfig.js";
 import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 import { EVM_CHAIN_IDS } from "./security/securityEvidenceUtils.js";
@@ -10,7 +11,33 @@ const ADDRESS_TOPIC = /^0x0{24}[0-9a-f]{40}$/i;
 const HASH = /^0x[0-9a-f]{64}$/i;
 const HEX = /^0x[0-9a-f]+$/i;
 
+export function walletRpcEndpointId(url) {
+  return createHash("sha256").update(String(url)).digest("hex");
+}
+
 export async function getRpcWalletEvidence(project = {}, options = {}) {
+  const chain = normalizeChainId(project.chain || project.chainId || project.network);
+  const explicitUrls = [options.rpcUrl, ...(Array.isArray(options.rpcUrls) ? options.rpcUrls : [])]
+    .filter((url) => typeof url === "string" && url.trim()).map((url) => url.trim());
+  const resolved = explicitUrls.length ? explicitUrls : resolveNativeRpcUrl({ chain }, options).rpcUrls;
+  const configuredMax = Number(options.walletRpcMaxEndpoints ?? 2);
+  const maxEndpoints = Number.isSafeInteger(configuredMax) && configuredMax > 0 ? Math.min(2, configuredMax) : 1;
+  const urls = [...new Set(resolved)].slice(0, maxEndpoints);
+  if (!urls.length) return getRpcWalletEvidenceFromEndpoint(project, options);
+  const attempts = [];
+  let result;
+  for (const rpcUrl of urls) {
+    // Restart the entire chain/block observation; never splice evidence across RPC endpoints.
+    result = await getRpcWalletEvidenceFromEndpoint(project, { ...options, rpcUrl });
+    attempts.push({ endpointId: walletRpcEndpointId(rpcUrl), status: result.status,
+      providerFailure: result.providerFailure === true, providerFailureCode: result.providerFailureCode || null });
+    if (result.providerFailure !== true ||
+        ["REQUEST_BUDGET_EXHAUSTED", "TIME_BUDGET_EXHAUSTED"].includes(result.providerFailureCode)) break;
+  }
+  return { ...result, rpcEndpointId: attempts.at(-1).endpointId, rpcEndpointAttempts: attempts };
+}
+
+async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
   const chain = normalizeChainId(project.chain || project.chainId || project.network);
   const tokenAddress = normalizeTokenAddress(project.tokenAddress || project.contractAddress, chain);
   const poolAddress = normalizeTokenAddress(project.poolAddress || project.pairAddress, chain);
@@ -22,6 +49,8 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
   if (!chainId || !tokenAddress || !rpcUrl) return unknown("Exact supported EVM identity and RPC are required.");
   const requestedLookback = Number(options.walletRpcLookbackBlocks ?? 256);
   if (!Number.isSafeInteger(requestedLookback) || requestedLookback <= 0) return unknown("Wallet RPC lookback must be a positive safe integer.");
+  const maxHeadAgeSeconds = Number(options.walletRpcMaxHeadAgeSeconds ?? 300);
+  if (!Number.isSafeInteger(maxHeadAgeSeconds) || maxHeadAgeSeconds <= 0) return unknown("Wallet RPC head age limit must be a positive safe integer.");
   const rpc = options.jsonRpc || jsonRpc;
   const rpcOptions = { timeoutMs: options.timeoutMs || 5_000, retries: 0 };
   try {
@@ -32,7 +61,12 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
     const toBlock = Number(BigInt(block.number));
     const observedBlockTimestamp = Number(BigInt(block.timestamp));
     if (!Number.isSafeInteger(toBlock) || toBlock <= 0 || !Number.isSafeInteger(observedBlockTimestamp) || observedBlockTimestamp <= 0) return unknown("Invalid observation block.");
-    if (observedBlockTimestamp > Date.now() / 1000 + 120) return unknown("Observation block timestamp is in the future.");
+    const nowMs = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+    if (!Number.isFinite(nowMs)) return unknown("Observation clock is invalid.");
+    if (observedBlockTimestamp > nowMs / 1000 + 120) return unknown("Observation block timestamp is in the future.");
+    if (nowMs / 1000 - observedBlockTimestamp > maxHeadAgeSeconds) return {
+      ...unknown("RPC head is stale; no current wallet observation was established.", true), providerFailureCode: "STALE_RPC_HEAD",
+    };
     const lookback = Math.min(1000, requestedLookback);
     const fromBlock = Math.max(0, toBlock - Math.floor(lookback) + 1);
     const logs = await rpc(rpcUrl, "eth_getLogs", [{ address: tokenAddress,
@@ -64,6 +98,8 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
     const warnings = [];
     let balanceProbes = 0;
     let balanceResponsesReceived = 0;
+    let balanceFailures = 0;
+    let balanceFailureCode = null;
     if (!wallets.size) {
       const blockHash = HASH.test(block.hash || "") && !/^0x0{64}$/i.test(block.hash)
         ? block.hash.toLowerCase() : null;
@@ -93,14 +129,18 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
             observedBlockNumber: toBlock, observedBlockTimestamp,
             blockHash,
             method: "balanceOf", accountType: "UNKNOWN", role: "UNKNOWN" });
-        } catch {
+        } catch (error) {
+          balanceFailures++;
+          balanceFailureCode = error?.code || null;
           warnings.push("A seeded balanceOf request failed; no ownership was inferred from its address label.");
         }
       }
     }
     const observedAt = new Date().toISOString();
     const sourceTimestamp = new Date(observedBlockTimestamp * 1000).toISOString();
+    const providerFailure = !transactions.length && !holderBalanceEvidence.length && balanceFailures > 0 && balanceResponsesReceived === 0;
     return { provider: "rpc-wallets", status: transactions.length || holderBalanceEvidence.length ? "EVIDENCE_AVAILABLE" : "UNKNOWN",
+      providerFailure, providerFailureCode: providerFailure ? balanceFailureCode : null,
       chain, tokenAddress, exactTokenIdentity: true, observedAt, sourceTimestamp,
       confidence: 0.85, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
       wallets: [...wallets], walletTransactions: transactions, walletParticipationHistory: transactions,
@@ -112,6 +152,7 @@ export async function getRpcWalletEvidence(project = {}, options = {}) {
       smartWallets: null, trackedWallets: null,
       warnings: [...warnings, "Bounded transfer participation and positive balance samples only; no complete daily totals, holder census, trade classification, creator role or smart-wallet labels are established."] };
   } catch (error) {
-    return unknown(error?.message || "Wallet RPC failed.", true);
+    return { ...unknown(error?.message || "Wallet RPC failed.", true),
+      providerFailureCode: error?.code || null };
   }
 }

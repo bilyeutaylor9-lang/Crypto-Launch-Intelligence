@@ -1,5 +1,83 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Bounded Wallet Endpoint Recovery
+
+The latest clean production-style scan before this layer is
+scan_1792296821703 at c34132799e076a1171c528b8921ca7180c936ddf. It evaluated
+277 standard / 115 deep / 162 deferred candidates, with 91% core / 89% advisory
+input coverage, 109 core-ready / zero partial / six core-starved candidates.
+Recovery attempted 96 candidates, selected 48/96/36 waves and spent 124/2000
+request units without deadline skips. Recovered fields were DEPLOYER211 /
+SECURITY188 / WALLETS215; unresolved attempted fields DEPLOYER97 /
+EXECUTION144 / WALLETS12. It made 70 actual execution HTTP requests and accepted
+zero routes. LI.FI reported 28 identity/pool-unattested outcomes and eight
+provider failures; its 70-request local keyless allowance was respected.
+The 0x fallback reported eight missing-key outcomes. One candidate was
+conclusively rejected and 114 retained unresolved final-decision proof.
+
+Each of the three previously contaminated advisory reports was regenerated
+from 277 real pipeline inputs, without the synthetic Engine Audit Sample.
+The repaired full audit passed all 205 engines (51 standalone), and a full
+before/after digest found all 211 non-audit data/report files unchanged.
+Only the four intended audit summaries were excluded. Report contracts passed,
+manifest COMPLETE; readiness refresh and scanner smoke still failed correctly
+with DATA_DEGRADED. Exact-head CI passed Node22 and Production Verification,
+but Node24 failed at live readiness. This is not deployment or edge proof.
+
+The new wallet recovery layer fixes an unused existing capability: the
+connector selected only the first configured RPC URL, even though native
+configuration already supplies a secondary Base endpoint. It now tries at
+most two distinct configured/existing endpoints, after transport failure or an
+unhealthy stale head.
+Each attempt re-verifies the exact chain and restarts the complete pinned
+observation; results from different endpoints are never combined. Empty logs,
+malformed observations and proven zero balances do not trigger opportunistic
+sampling. Failed balance transports may retry a new complete observation, but
+cannot manufacture ownership. Explicit endpoints and public-fallback opt-out
+are preserved. Every real method remains charged to the shared request budget
+and deadline, with endpoint-scoped circuits for multi-endpoint recovery.
+Endpoint provenance uses a SHA-256 identifier, not a credential-bearing URL.
+
+A further offline reproduction accepted a node head dated 1970 as current
+EVIDENCE_AVAILABLE. Wallet snapshots now require a valid observation clock and
+a head no more than 300 seconds old by default (the positive safe-integer
+`walletRpcMaxHeadAgeSeconds` option can set the bound). Stale heads are rejected
+before transfer or balance requests and may use the existing fresh fallback.
+Historical fixture heads were made current while preserving the exact block,
+balance, request-budget and original provenance assertions. The dedicated
+regression proves stale heads cannot promote wallets; source timestamps are
+never refreshed to conceal old observations. The integrated wallet/history
+suite now passes 82 tests after this repair.
+
+Final integrated validation for this layer: npm ci succeeds with zero reported
+vulnerabilities; all 1693 tests pass without failures or skips, all 913
+JavaScript files pass syntax validation, the entrypoint syntax/typecheck passes,
+and all 21 load tests pass. Hashes and file sets for all 215 runtime artifacts
+remain unchanged after the complete suite and the separate load command.
+These checks do not establish final live proof or authorize a red PR to merge.
+
+The initial nine endpoint regressions failed eight assertions on the old code.
+The repaired endpoint/holder suite passes 28 tests, including independent
+fallback chain verification, pinned balance hashes, strict two-endpoint caps,
+global budgets, circuit independence and deadline exhaustion. A bounded live
+capability probe of one previously starved exact Base token recovered raw
+participation from two addresses in three RPC calls. The primary endpoint had
+recovered by probe time, so this establishes current source capability, not
+live failover or full-scanner improvement. It persisted no evidence and
+verified no daily buyers, smart wallets, final execution or profitable edge.
+
+The wallet-evidence specialist also reproduced unsafe explorer normalization:
+missing/conflicting transfer token identities, invalid holder addresses or
+reported balances, coerced amounts/counts, invalid/future times and malformed
+pagination could survive as usable observations. The connector now rejects
+conflicting identities and malformed rows, uses strict unsigned-unit/count
+parsing, leaves unknown quantities null, and requires valid ordered coverage
+before reporting a complete day. Twenty-four new offline regressions pass.
+Transfers remain transfers, not swaps, independently funded buyers or smart
+wallets. This integrity repair may correctly remove malformed evidence rather
+than cosmetically raise availability. The integrated explorer/RPC suite passes
+65 tests with no failures or skips.
+
 ## October 17 Repair And Independent Audit
 
 The persistent repair checkout now restores the Solana full-report holder-owner

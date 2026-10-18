@@ -136,7 +136,7 @@ test("actual RPC fallback persists pinned transfers and replays them without pro
     getRpcWalletEvidence: (project) => getRpcWalletEvidence(project, { rpcUrl: "https://rpc.invalid",
       jsonRpc: async (url, method) => {
         rpcCalls.push(method);
-        return { eth_chainId: "0x2105", eth_getBlockByNumber: { number: "0x100", timestamp: "0x10000" },
+        return { eth_chainId: "0x2105", eth_getBlockByNumber: { number: "0x100", timestamp: `0x${Math.floor(Date.now() / 1000).toString(16)}` },
           eth_getLogs: [{ address: TOKEN, transactionHash: HASH, blockNumber: "0x100", logIndex: "0x0",
             data: `0x${"0".repeat(63)}5`, topics: [ERC20_TRANSFER_TOPIC,
               `0x${encodeAddressWord(POOL)}`, `0x${encodeAddressWord(WALLET)}`] }] }[method];
