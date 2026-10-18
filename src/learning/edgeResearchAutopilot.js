@@ -15,9 +15,9 @@ export function buildEdgeResearchAutopilot(inputs = {}, options = {}) {
     state = "AUTOPILOT_ACQUISITION_HEALTH_BLOCKED";
   } else if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") {
     state = "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED";
-  } else if (outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE") {
+  } else if (health.state === "AUTOPILOT_EVIDENCE_HEALTHY" && outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE") {
     state = "AUTOPILOT_VERIFIED_EDGE_REVIEW";
-  } else if (prospectiveEntryEdge.state === "VERIFIED_PROSPECTIVE_ENTRY_EDGE") {
+  } else if (health.state === "AUTOPILOT_EVIDENCE_HEALTHY" && prospectiveEntryEdge.state === "VERIFIED_PROSPECTIVE_ENTRY_EDGE") {
     state = "AUTOPILOT_VERIFIED_ENTRY_EDGE_REVIEW";
   } else if (health.state === "AUTOPILOT_EVIDENCE_HEALTHY") {
     state = "AUTOPILOT_RESEARCH_ACTIVE";

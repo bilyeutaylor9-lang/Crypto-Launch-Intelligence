@@ -2,13 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { median } from "../edge/edgeMath.js";
-import { EDGE_PRODUCTION_HORIZONS } from "./edgeProductionEpisodeStore.js";
-import { findExactEdgeOutcome } from "./edgeEvidenceHealthGovernor.js";
+import { actualEdgeFreezeCaptured, EDGE_PRODUCTION_HORIZONS, frozenEdgeCostEvidence, prepareEdgeEpisodes } from "./edgeProductionEpisodeStore.js";
+import { edgeAsOfMs } from "./matchedControlSelector.js";
+import { buildEdgeEvidenceHealth, findExactEdgeOutcome } from "./edgeEvidenceHealthGovernor.js";
 
 const REPORT_FILE = path.resolve("reports", "edge-evidence-outcome-lab.json");
 
 function finite(value) {
-  if (value === null || value === undefined || value === "") return null;
+  if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -40,8 +41,8 @@ function returnPct(entry, exit) {
     : null;
 }
 
-function episodeHorizonOutcome(episode = {}, outcomes = [], horizonHours) {
-  const observation = findExactEdgeOutcome(episode, horizonHours, outcomes);
+function episodeHorizonOutcome(episode = {}, outcomes = [], horizonHours, options = {}) {
+  const observation = findExactEdgeOutcome(episode, horizonHours, outcomes, options);
   if (!observation) {
     return {
       state: "OUTCOME_UNKNOWN",
@@ -52,7 +53,8 @@ function episodeHorizonOutcome(episode = {}, outcomes = [], horizonHours) {
     };
   }
   const grossReturnPct = returnPct(episode.signalPriceUsd, observation.priceUsd);
-  const costBps = finite(episode.frozenRoundTripExecutionCostBps);
+  const cost = frozenEdgeCostEvidence(episode, options);
+  const costBps = cost.costBps;
   return {
     state: costBps === null ? "GROSS_OUTCOME_ONLY_EXECUTION_COST_UNKNOWN" : "NET_OUTCOME_RESOLVED",
     horizonHours,
@@ -61,6 +63,10 @@ function episodeHorizonOutcome(episode = {}, outcomes = [], horizonHours) {
     observedAt: observation.observedAt,
     grossReturnPct: round(grossReturnPct),
     frozenRoundTripExecutionCostBps: costBps,
+    executionCostUnknownReason: cost.reason,
+    executionCostLimitation: cost.limitation || null,
+    returnMeasurementBasis: "FIXED_HORIZON_MARK_PRICE_WITH_MODELED_FROZEN_PAIRED_QUOTE_COST",
+    realizedTradingPnl: false,
     netReturnPct: costBps === null || grossReturnPct === null
       ? null
       : round(grossReturnPct - costBps / 100),
@@ -68,9 +74,9 @@ function episodeHorizonOutcome(episode = {}, outcomes = [], horizonHours) {
   };
 }
 
-export function resolveTerminal168Outcome(episode = {}, outcomes = []) {
+export function resolveTerminal168Outcome(episode = {}, outcomes = [], options = {}) {
   const path = EDGE_PRODUCTION_HORIZONS
-    .map((hours) => episodeHorizonOutcome(episode, outcomes, hours))
+    .map((hours) => episodeHorizonOutcome(episode, outcomes, hours, options))
     .filter((row) => row.observed)
     .sort((left, right) => timestamp(left.observedAt) - timestamp(right.observedAt));
   const upside = path.find((row) => row.grossReturnPct >= 25) || null;
@@ -89,27 +95,31 @@ export function resolveTerminal168Outcome(episode = {}, outcomes = []) {
     state = "NO_HIT_WITH_TERMINAL_168H_OBSERVATION";
   }
   return {
-    state,
-    plus25BeforeMinus15,
+    state: "UNKNOWN_INTRAPERIOD_PATH_UNOBSERVED",
+    plus25BeforeMinus15: null,
+    pathEvidenceStatus: "CONTINUOUS_OR_EXPLICIT_BARRIER_PATH_PROOF_UNAVAILABLE",
+    observedCheckpointState: state,
+    observedCheckpointPlus25BeforeMinus15: plus25BeforeMinus15,
     terminal168Observed: Boolean(terminal),
-    firstUpsideObservedAt: upside?.observedAt || null,
-    firstDownsideObservedAt: downside?.observedAt || null,
-    pathObservations: path.length,
+    observedCheckpointFirstUpsideAt: upside?.observedAt || null,
+    observedCheckpointFirstDownsideAt: downside?.observedAt || null,
+    observedCheckpointCount: path.length,
   };
 }
 
-function episodeRecord(episode = {}, outcomes = []) {
+function episodeRecord(episode = {}, outcomes = [], options = {}) {
   return {
     episode,
     outcomes: Object.fromEntries(EDGE_PRODUCTION_HORIZONS.map((hours) => [
       `${hours}h`,
-      episodeHorizonOutcome(episode, outcomes, hours),
+      episodeHorizonOutcome(episode, outcomes, hours, options),
     ])),
-    terminal168: resolveTerminal168Outcome(episode, outcomes),
+    terminal168: resolveTerminal168Outcome(episode, outcomes, options),
+    freezeTimeProvenanceStatus: actualEdgeFreezeCaptured(episode) ? "ACTUAL_FREEZE_TIME_CAPTURED" : "LEGACY_FREEZE_TIME_UNPROVEN",
   };
 }
 
-function matchedPairs(records = [], horizonHours) {
+function matchedPairs(records = [], horizonHours, options = {}) {
   const treatments = records.filter((row) => row.episode.role === "TREATMENT");
   const controls = records.filter((row) => String(row.episode.role).startsWith("CONTROL_"));
   const key = `${horizonHours}h`;
@@ -117,10 +127,24 @@ function matchedPairs(records = [], horizonHours) {
   for (const treatment of treatments) {
     const treatedReturn = finite(treatment.outcomes[key]?.netReturnPct);
     if (treatedReturn === null) continue;
-    const matched = controls.filter((row) =>
+    const treatmentAt = timestamp(treatment.episode.signalObservedAt);
+    const maximumAgeMs = Math.max(0.25, Number(options.maxControlAgeHours || 2)) * 3_600_000;
+    const eligible = controls.filter((row) =>
       row.episode.parentTreatmentEpisodeId === treatment.episode.episodeId &&
+      row.episode.identityKey !== treatment.episode.identityKey &&
+      timestamp(row.episode.frozenAt) <= timestamp(treatment.episode.frozenAt) &&
+      timestamp(row.episode.signalObservedAt) <= treatmentAt &&
+      treatmentAt - timestamp(row.episode.signalObservedAt) <= maximumAgeMs &&
+      (!(treatment.episode.codeCommitSha || row.episode.codeCommitSha) || treatment.episode.codeCommitSha === row.episode.codeCommitSha) &&
+      (!(treatment.episode.signalDefinitionVersion || row.episode.signalDefinitionVersion) || treatment.episode.signalDefinitionVersion === row.episode.signalDefinitionVersion) &&
       finite(row.outcomes[key]?.netReturnPct) !== null
     );
+    const uniqueControls = new Map();
+    for (const row of eligible) {
+      const prior = uniqueControls.get(row.episode.identityKey);
+      if (!prior || timestamp(row.episode.signalObservedAt) > timestamp(prior.episode.signalObservedAt)) uniqueControls.set(row.episode.identityKey, row);
+    }
+    const matched = [...uniqueControls.values()];
     const controlReturns = matched.map((row) => row.outcomes[key].netReturnPct);
     if (!controlReturns.length) continue;
     const controlMedianNetReturnPct = median(controlReturns);
@@ -182,7 +206,7 @@ function summarizeHorizon(records = [], horizonHours, options = {}) {
   const controls = records.filter((row) => String(row.episode.role).startsWith("CONTROL_"));
   const treatedNet = treatments.map((row) => row.outcomes[key]?.netReturnPct).filter((value) => finite(value) !== null);
   const controlNet = controls.map((row) => row.outcomes[key]?.netReturnPct).filter((value) => finite(value) !== null);
-  const pairs = matchedPairs(records, horizonHours);
+  const pairs = matchedPairs(records, horizonHours, options);
   const bootstrap = clusteredBootstrap(pairs, options);
   return {
     horizonHours,
@@ -210,7 +234,8 @@ function verificationDecision(summary = {}, health = {}, options = {}) {
   const minMatchedNetLiftPct = Number(options.minMatchedNetLiftPct || 3);
   const dates = (summary.pairs || []).map((row) => timestamp(row.treatmentObservedAt)).filter(Boolean);
   const spanDays = dates.length > 1 ? (Math.max(...dates) - Math.min(...dates)) / 86_400_000 : 0;
-  if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") blockers.push("EVIDENCE_COVERAGE_BLOCKED");
+  if (health.state !== "AUTOPILOT_EVIDENCE_HEALTHY") blockers.push(
+    health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED" ? "EVIDENCE_COVERAGE_BLOCKED" : "EVIDENCE_HEALTH_NOT_HEALTHY");
   if (summary.matchedPairs < minMatchedPairs) blockers.push("NEED_MORE_MATCHED_168H_PAIRS");
   if (summary.uniqueTreatmentProjects < minUniqueProjects) blockers.push("NEED_MORE_UNIQUE_TREATMENT_PROJECTS");
   if (spanDays < minSpanDays) blockers.push("NEED_LONGER_OUT_OF_SAMPLE_SPAN");
@@ -230,21 +255,32 @@ function verificationDecision(summary = {}, health = {}, options = {}) {
 }
 
 export function buildEdgeEvidenceOutcomeLab(episodes = [], outcomes = [], health = {}, options = {}) {
-  const records = (Array.isArray(episodes) ? episodes : []).map((episode) => episodeRecord(episode, outcomes));
+  const now = edgeAsOfMs(options);
+  const prepared = prepareEdgeEpisodes(episodes, { now });
+  const records = prepared.episodes.map((episode) => episodeRecord(episode, outcomes, { ...options, now }));
   const byHorizon = Object.fromEntries(EDGE_PRODUCTION_HORIZONS.map((hours) => [
     `${hours}h`,
     summarizeHorizon(records, hours, options),
   ]));
-  const verification = verificationDecision(byHorizon["168h"], health, options);
+  const cohortHealth = buildEdgeEvidenceHealth(episodes, outcomes, { now });
+  const effectiveHealth = { state:
+    health?.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED" || cohortHealth.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED"
+      ? "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED"
+      : health?.state === "AUTOPILOT_EVIDENCE_HEALTHY" && cohortHealth.state === "AUTOPILOT_EVIDENCE_HEALTHY"
+        ? "AUTOPILOT_EVIDENCE_HEALTHY" : "AUTOPILOT_EVIDENCE_WARMING" };
+  const verification = verificationDecision(byHorizon["168h"], effectiveHealth, options);
   const treatmentTerminal = records.filter((row) => row.episode.role === "TREATMENT");
   const unknownTerminal = treatmentTerminal.filter((row) => row.terminal168.plus25BeforeMinus15 === null).length;
   return {
     schemaVersion: 1,
-    generatedAt: new Date(options.now || Date.now()).toISOString(),
-    state: health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED"
+    generatedAt: new Date(now).toISOString(),
+    state: effectiveHealth.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED"
       ? "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED"
       : verification.state,
-    evidenceHealthState: health.state || "UNKNOWN",
+    evidenceHealthState: effectiveHealth.state,
+    suppliedEvidenceHealthState: health?.state || "UNKNOWN",
+    cohortEvidenceHealthState: cohortHealth.state,
+    integrity: prepared.integrity,
     episodes: records.length,
     treatments: treatmentTerminal.length,
     controls: records.length - treatmentTerminal.length,
@@ -259,11 +295,14 @@ export function buildEdgeEvidenceOutcomeLab(episodes = [], outcomes = [], health
     byHorizon,
     verification,
     records: records.slice(-5000),
-    missingOutcomePolicy: "A_NO_HIT_LABEL_REQUIRES_AN_EXACT_TERMINAL_168H_OBSERVATION_OR_AN_ACTUAL_DOWNSIDE_THRESHOLD_OBSERVATION",
+    missingOutcomePolicy: "MISSING_OUTCOMES_AND_UNOBSERVED_INTRAPERIOD_BARRIER_PATHS_REMAIN_UNKNOWN; TERMINAL_MARK_PRICES_DO_NOT_PROVE_NO_HIT",
     hypothesisChanged: false,
     rankingInfluence: false,
     scoringInfluence: false,
     automaticProductionPromotion: false,
+    executionCostPolicy: "Only identity-bound, pre-signal PAIRED_EXECUTABLE_QUOTES_V1 costs with an actual recorded freeze time produce net outcomes; legacy and unproven estimates remain gross-only.",
+    returnMeasurementBasis: "FIXED_HORIZON_MARK_PRICE_WITH_MODELED_FROZEN_PAIRED_QUOTE_COST_NOT_REALIZED_TRADING_PNL",
+    realizedTradingPnl: false,
   };
 }
 

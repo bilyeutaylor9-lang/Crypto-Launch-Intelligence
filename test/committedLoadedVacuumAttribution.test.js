@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { baseMarketFixtureIdentity } from "./helpers/baseMarketFixtureIdentity.js";
 
 import { buildCommittedLoadedVacuumObservation } from "../src/learning/committedLoadedVacuumObservationStore.js";
 import { buildCommittedLoadedVacuumAttribution, buildAttributionDataset, __committedLoadedVacuumAttributionHooks } from "../src/learning/committedLoadedVacuumAttributionLab.js";
@@ -9,7 +10,7 @@ function observation(i, overrides = {}) {
   return {
     schemaVersion: 2,
     signalDefinitionVersion: "V10_COMMITTED_LOADED_VACUUM_V1",
-    identityKey: `base:token-${i}`,
+    ...baseMarketFixtureIdentity(`token-${i}`),
     observedAt: at(i),
     scanRunId: `scan-${i}`,
     codeCommitSha: "abc",
@@ -118,7 +119,9 @@ test("outcome dataset uses only strictly future threshold-ordered outcomes", () 
 
 test("walk-forward excludes projects already seen in training by default", () => {
   const { observations, snapshots } = synthetic(70);
-  observations[50] = { ...observations[50], identityKey: observations[0].identityKey };
+  const priorKey = observations[50].identityKey;
+  observations[50] = { ...observations[50], identityKey: observations[0].identityKey, tokenAddress: observations[0].tokenAddress };
+  for (const snapshot of snapshots) if (snapshot.key === priorKey) snapshot.key = observations[0].identityKey;
   const data = buildAttributionDataset(observations, snapshots);
   const walk = __committedLoadedVacuumAttributionHooks.expandingWalkForward(data, { minTrainRows: 40, foldSize: 15 });
   const trainedIds = new Set(data.slice(0, 40).map((r) => r.observation.identityKey));

@@ -328,6 +328,93 @@ The preceding live metrics remain pinned to 86e9b927, not this timer repair.
 Subsequent exact-source live results and exact-head CI observations are retained
 in PR56; a passing code suite does not clear its external readiness blockers.
 
+### Audit Artifact Integrity And Research Experiments
+
+A subsequent audit found another contamination path in engine:audit:full, not
+the isolated test runner. The audit executed the synthetic Engine Audit Sample
+and restored raw data, but replaced three live advisory reports with AUDIT rows:
+asymmetric-edge-suite.json, ignition-twin.json and three-clock-edge.json. The
+full pre-repair report directory is preserved in sibling directory
+cli-engine-audit-contaminated-reports-20261018. Passing schemas and a complete
+manifest did not detect those synthetic advisory rows. Earlier canonical funnel
+measurements remain source-pinned, but these overwritten reports cannot be used
+as evidence of real market coverage or a trading edge.
+
+The public engine audit API and CLI now execute fixtures in a disposable worker
+before engine imports capture data/report paths. Low-level fixture execution is
+guarded against use in a live caller directory. API callers receive results
+without fixture writes; the CLI builds only the three intended audit summaries
+(including the whole-audit Markdown rendering) against real caller reports.
+Worker failures retain diagnostics without replacing live evidence. Focused
+tests preserve caller file hashes and reject accidental direct fixture execution.
+The local HTML report now uses the canonical deep funnel for recovery counts,
+separates verified routes from qualified picks, and rejects stale qualification
+flags over current negative proof. Deferred and merely selected projects cannot
+inflate recovery, route or qualification counts.
+
+Research validity review reproduced duplicate-sample inflation, self-controls
+through conflicting identity aliases, future observations, null-as-zero control
+matching, stale same-scan controls and negative/unproven modeled costs. These
+are synthetic counterexamples, not real profitable results. Missing or warming
+evidence health must not permit a nominal verified label to advance research.
+Sparse horizon snapshots do not prove intraperiod stop/target-touch order.
+Frozen-cost returns are research estimates, not realized trading P&L.
+
+The repaired research path deduplicates at storage and consumption boundaries,
+rejects conflicting immutable content, canonicalizes supported chain identities,
+and keeps Base-only episode applicability explicit. Symbol-only control fixtures
+were replaced with deterministic exact contract identities; statistical,
+purging, age, version and replication assertions remain active. Future and
+invalid observations cannot inflate coverage. New episodes record actual
+freeze time; materially delayed or legacy freezes and unproven/negative costs
+cannot certify net evidence. Existing history is retained, not rewritten into
+prospective proof. Sparse checkpoints have separate diagnostics; they cannot
+establish actual stop/target-touch ordering. Nominal verified labels cannot
+override UNKNOWN, warming or blocked health in research consumers.
+
+Fresh npm ci passed with zero reported vulnerabilities. The integrated source
+suite passes 1656 tests with zero failures, skips or cancellations; all 911
+JavaScript files pass syntax validation, the entrypoint syntax/typecheck passes,
+and 21 load tests pass. SHA-256 comparisons across all 215 protected runtime
+files confirm the complete suite and direct load command leave original data
+and reports byte-for-byte unchanged. Targeted integrated research/report/audit
+tests pass 129 cases, with an additional malformed-price coverage regression
+also passing. A preview generated from the actual saved 119-deep universe shows
+118 recovery candidates, 164 deferred, 6 core-starved and zero verified routes;
+it is not another production scan. Browser rendering of the local file was
+unavailable under the tool URL policy, so no visual screenshot proof is claimed.
+Clean production regeneration and exact-head CI observations are recorded in
+PR56 separately; no passing code test establishes a profitable edge.
+
+Three proposed experiments use existing frozen fields and remain research-only:
+
+1. Arrival plus vacuum: test sixHourExpectedArrivalToIgnitionRatio >= 1 only
+   when supplyVacuumSupported is actually true. Match same-window controls with
+   observed weaker arrival and the same vacuum state. Primary outcome: matched
+   24h return; falsify if held-out lift is nonpositive or the no-vacuum placebo
+   performs equally well. Funding/approval/actual-buy evidence must remain
+   distinct; missing arrival is not a negative observation.
+2. Exhaustion plus replacement: test sellerExhaustionScore >= 60 jointly with
+   buyerReplacementScore >= 60 against each mechanism alone, stratified by
+   observed marginalSellerInventoryBurnPct. Primary outcome: incremental
+   matched 72h return; falsify if the conjunction adds no held-out value.
+   Transfer counts cannot stand in for resolved buyers or confirmed sells.
+3. Pressure release plus convexity: test pressureWithoutMovement across
+   predeclared liquidityConvexityIndex strata, matching liquidity, volume,
+   regime and prior price change. Primary outcome: matched 24h return;
+   falsify if the apparent lift disappears after those controls or costs.
+
+Before collecting outcomes, freeze each definition, exact chain/token/pool,
+entry time, exclusions, control recipe, primary horizon and all attempted variants.
+Retain 6h/24h/72h/168h observations; missing observations stay UNKNOWN. Use unique
+canonical projects and project-clustered uncertainty, then an untouched
+chronological confirmation cohort. Costs without usable evidence permit gross
+research only. Existing production gates and minimum verification requirements
+are not lowered, and no strategy is automatically promoted. Record the complete
+search history: choosing the best of many backtests can create false discoveries,
+and an extensively reused holdout is not independent confirmation. See the
+authors' [Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf).
+
 ## October 14 Handoff Reconciliation
 
 The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.

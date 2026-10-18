@@ -37,7 +37,7 @@ const RESEARCH_TARGETS = Object.freeze({
 });
 
 function targetFor(health = {}, autopsy = {}, contrast = {}) {
-  if (health.state === "AUTOPILOT_EVIDENCE_COVERAGE_BLOCKED") return RESEARCH_TARGETS.EVIDENCE_COVERAGE;
+  if (health.state !== "AUTOPILOT_EVIDENCE_HEALTHY") return RESEARCH_TARGETS.EVIDENCE_COVERAGE;
   const leading = autopsy.leadingObservedFailureMechanism;
   if (leading && RESEARCH_TARGETS[leading]) return RESEARCH_TARGETS[leading];
   const contrastKey = contrast.strongestObservedContrast?.key;
@@ -56,7 +56,7 @@ export function buildEdgeDiscoveryLoop(inputs = {}, options = {}) {
   return {
     schemaVersion: 1,
     generatedAt: new Date(options.now || Date.now()).toISOString(),
-    state: outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE"
+    state: health.state === "AUTOPILOT_EVIDENCE_HEALTHY" && outcomeLab.verification?.state === "VERIFIED_MATCHED_NET_EDGE"
       ? "EDGE_VERIFIED_NO_HYPOTHESIS_MUTATION"
       : "NEXT_MECHANISM_EXPERIMENT_DEFINED",
     currentHypothesis: "COMMITTED_LOADED_VACUUM_SHADOW",

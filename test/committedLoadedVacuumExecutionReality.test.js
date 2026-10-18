@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { baseMarketFixtureIdentity } from "./helpers/baseMarketFixtureIdentity.js";
 
 import { buildCommittedLoadedVacuumObservation, __committedLoadedVacuumObservationHooks } from "../src/learning/committedLoadedVacuumObservationStore.js";
 import { buildCommittedLoadedVacuumExecutionReality, resolveNetExecutionOutcome, PRE_REGISTERED_COST_MULTIPLIERS, __committedLoadedVacuumExecutionRealityHooks } from "../src/learning/committedLoadedVacuumExecutionRealityLab.js";
@@ -10,7 +11,7 @@ function obs(id, day, overrides = {}) {
   return {
     schemaVersion: 3,
     signalDefinitionVersion: "V10_COMMITTED_LOADED_VACUUM_V1",
-    identityKey: `base:${id}`,
+    ...baseMarketFixtureIdentity(id),
     observedAt: at(day),
     scanRunId: `scan-${day}`,
     codeCommitSha: "abc",

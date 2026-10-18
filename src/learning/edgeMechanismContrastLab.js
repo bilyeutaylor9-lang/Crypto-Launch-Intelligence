@@ -2,11 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { median } from "../edge/edgeMath.js";
+import { frozenEdgeCostEvidence, normalizeEdgeEpisode, prepareEdgeEpisodes } from "./edgeProductionEpisodeStore.js";
+import { deduplicateEdgeRecords, edgeAsOfMs } from "./matchedControlSelector.js";
 
 const REPORT_FILE = path.resolve("reports", "edge-mechanism-contrast.json");
 
 function finite(value) {
-  if (value === null || value === undefined || value === "") return null;
+  if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -66,6 +68,8 @@ function contrastFor(records = [], mechanism = {}, options = {}) {
   const strongMedian = median(strong.map((row) => row.netReturnPct));
   const weakMedian = median(weak.map((row) => row.netReturnPct));
   const mature = strong.length >= minPerSide && weak.length >= minPerSide &&
+    new Set(strong.map((row) => row.identityKey)).size >= minPerSide &&
+    new Set(weak.map((row) => row.identityKey)).size >= minPerSide &&
     new Set(rows.map((row) => row.identityKey)).size >= Number(options.minMechanismUniqueProjects || 15);
   return {
     key: mechanism.key,
@@ -75,6 +79,8 @@ function contrastFor(records = [], mechanism = {}, options = {}) {
     uniqueProjects: new Set(rows.map((row) => row.identityKey)).size,
     strongSamples: strong.length,
     weakSamples: weak.length,
+    strongUniqueProjects: new Set(strong.map((row) => row.identityKey)).size,
+    weakUniqueProjects: new Set(weak.map((row) => row.identityKey)).size,
     strongMedianNet168hReturnPct: round(strongMedian),
     weakMedianNet168hReturnPct: round(weakMedian),
     strongMinusWeakMedianNet168hPct: strongMedian === null || weakMedian === null
@@ -86,7 +92,26 @@ function contrastFor(records = [], mechanism = {}, options = {}) {
 }
 
 export function buildEdgeMechanismContrast(outcomeLab = {}, options = {}) {
-  const treatments = (outcomeLab.records || []).filter((record) => record.episode?.role === "TREATMENT");
+  const now = edgeAsOfMs(options);
+  const unique = deduplicateEdgeRecords(outcomeLab.records || [], (record) => record?.episode?.episodeId);
+  const prepared = prepareEdgeEpisodes(unique.rows.map((record) => record.episode), { now });
+  const eligibleIds = new Set(prepared.episodes.map((episode) => episode.episodeId));
+  const treatments = unique.rows.flatMap((record) => {
+    if (!eligibleIds.has(record.episode.episodeId)) return [];
+    const episode = normalizeEdgeEpisode(record.episode, { now });
+    if (!episode || episode.role !== "TREATMENT") return [];
+    const terminal = record.outcomes?.["168h"];
+    const cost = frozenEdgeCostEvidence(episode, { now }).costBps;
+    const target = Date.parse(episode.signalObservedAt) + 168 * 3_600_000;
+    const observed = Date.parse(terminal?.observedAt || "");
+    const gross = finite(terminal?.grossReturnPct), net = finite(terminal?.netReturnPct);
+    if (cost === null || gross === null || net === null || terminal.state !== "NET_OUTCOME_RESOLVED" || terminal.observed !== true ||
+        !Number.isFinite(observed) || observed < target || observed > target + 24 * 3_600_000 || observed > now ||
+        Date.parse(episode.frozenAt) > target || Date.parse(terminal.targetAt) !== target ||
+        terminal.observationId !== `${episode.episodeId}:168h` ||
+        finite(terminal.frozenRoundTripExecutionCostBps) !== cost || Math.abs(net - (gross - cost / 100)) > 0.00011) return [];
+    return [{ ...record, episode }];
+  });
   const contrasts = MECHANISMS.map((mechanism) => contrastFor(treatments, mechanism, options));
   const mature = contrasts.filter((row) => row.state === "MECHANISM_CONTRAST_OBSERVED");
   const strongest = [...mature]
@@ -94,9 +119,11 @@ export function buildEdgeMechanismContrast(outcomeLab = {}, options = {}) {
     .sort((left, right) => Math.abs(right.strongMinusWeakMedianNet168hPct) - Math.abs(left.strongMinusWeakMedianNet168hPct))[0] || null;
   return {
     schemaVersion: 1,
-    generatedAt: new Date(options.now || Date.now()).toISOString(),
+    generatedAt: new Date(now).toISOString(),
     state: mature.length ? "MECHANISM_CONTRASTS_AVAILABLE" : "MECHANISM_CONTRASTS_COLLECTING",
     treatmentRecords: treatments.length,
+    integrity: { ...prepared.integrity, duplicateRecords: unique.duplicates,
+      conflictingEpisodeIds: [...new Set([...unique.conflicts, ...prepared.integrity.conflictingEpisodeIds])] },
     contrasts,
     strongestObservedContrast: strongest,
     policy: "Contrasts use exact terminal 168h net outcomes and frozen features only. They diagnose mechanisms; they do not alter the alpha hypothesis, ranking, or selection.",
