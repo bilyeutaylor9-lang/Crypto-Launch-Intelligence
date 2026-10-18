@@ -1,6 +1,7 @@
 import { canonicalValue } from "../data/canonicalAliasResolver.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
+import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -387,7 +388,8 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
   for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
     const scoreKey = wave === "WAVE3" ? "executionPriority" : "priority";
     waves[wave] = eligible
-      .filter((candidate) => wave !== "WAVE3" || hasExactExecutionRecoveryIdentity(candidate.project))
+      .filter((candidate) => wave !== "WAVE3" ||
+        (hasExactExecutionRecoveryIdentity(candidate.project) && !hasKnownTransferRestriction(candidate.project)))
       .map((candidate) => ({
         ...candidate,
         entries: candidate.items

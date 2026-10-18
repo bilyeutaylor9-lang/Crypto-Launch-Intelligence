@@ -4,7 +4,7 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
-import { routeQuoteFresh } from "../execution/routeTruthV2.js";
+import { hasKnownTransferRestriction, routeQuoteFresh } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
@@ -301,7 +301,7 @@ function hardBlocked(project = {}) {
   return Boolean(
     project.honeypotDetected === true ||
       project.verifiedScam === true ||
-      project.sellRestricted === true ||
+      hasKnownTransferRestriction(project) ||
       project.identityConflict === true ||
       project.canonicalIdentityHardBlock === true ||
       upper(project.instantSafetyStatus) === "CRITICAL" ||

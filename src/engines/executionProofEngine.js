@@ -2,6 +2,7 @@ import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCove
 import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 import {
   hasVerifiedBuyQuote,
+  hasKnownTransferRestriction,
   hasVerifiedSellQuote,
   isLiveExecutionReady,
   observedRouteSlippagePct,
@@ -280,6 +281,7 @@ function providerUnavailable(project = {}, routes = []) {
 }
 
 function sellRouteConfirmedUnavailable(project = {}, routes = []) {
+  if (hasKnownTransferRestriction(project)) return true;
   const text = lower([
     project.sellRouteStatus,
     project.executionSellStatus,

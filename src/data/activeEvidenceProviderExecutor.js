@@ -42,6 +42,7 @@ import { loadNativeEvents } from "./native/nativeEventStore.js";
 import { nativeContractDeployerEvidence } from "./native/evm/evmContractDeploymentConnector.js";
 import { analyzeExecutionProofRecoveryBatch, verifyDirectQuoteIdentity } from "../engines/executionProofRecoveryEngine.js";
 import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
+import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -2026,6 +2027,8 @@ export async function recoverExecutionEvidence(
   const market = exactExecutionMarket(project);
   if (!hasExactExecutionRecoveryIdentity(project)) return empty([{ provider: "execution-proof-recovery", status: "MISSING_OR_CONFLICTING_IDENTITY",
     durationMs: 0, reason: "Execution recovery requires an exact chain, contract and known pool, or an exact CEX venue market." }]);
+  if (hasKnownTransferRestriction(project)) return empty([{ provider: "execution-proof-recovery", status: "SAFETY_BLOCKED",
+    durationMs: 0, reason: "Observed transfer restrictions block live quote recovery." }]);
 
   // The batch owns adapter selection and safety gates; its candidate qualification output is never merged.
   // executionRecovery is primary; executionProofRecovery is a compatibility alias for injected batch options.

@@ -1,5 +1,57 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Canonical Transfer Restriction
+
+The clean a78885d6 production run, scan_1792314123231, reached 10000
+discoveries, 1420 standard / 131 deep and 1289 deferred candidates. Core and
+advisory coverage remained 92%/90%, with zero core-starved/partial candidates.
+All 131 deep execution-proof roots remained objects. The cost repair removed
+the false measured-slippage claims: zero unquoted rows now claim an observed
+cost, versus 90/133 in the previous live universe. All 84 applicable Solana
+authority proofs retain an original fresh snapshot time; none was unverified.
+The actual AGENT wallet proof, event time, source/alias provenance and false
+current-holding semantics remain inspectable. Different universes are not a
+controlled profitability comparison.
+
+Recovery attempted 115 candidates, selected waves 50/115/35 and used 341/2000
+request units without deadline exhaustion. Recovered IDENTITY/MARKET/WALLETS/
+SECURITY/DEPLOYER fields were 9/9/283/321/186; unresolved MARKET/WALLETS/
+DEPLOYER/EXECUTION were 6/7/95/140. Actual quote recovery made 69 LI.FI HTTP
+requests: 63 successes and six 404 responses, with no rate limits. Twenty-nine
+candidate pairs lacked required pool attestation; no route was promoted.
+Together with the one prior diagnostic this exhausts 70/70 local requests;
+no further local LI.FI calls are permitted before 2026-10-18T11:12:00Z.
+Later validation must disable both execution and free forward quote calls,
+not reset the quota. Provider reachability is not exact execution proof.
+
+The run remains DATA_DEGRADED with 129 unresolved final decisions, 33 safety
+gaps, seven tax gaps, 11 identity gaps and 25 depth gaps; quote/freshness/cost
+proof is missing on all 129 non-rejected rows. Zero routes and picks are honest.
+All 205 engines executed in the post-run audit; the 217-file hash comparison
+changed only its four declared outputs. Report health/contracts pass, while
+strict readiness and scanner smoke fail. Exact-head Node22 and Production
+Verification pass; Node24 passes code checks/tests but fails live readiness.
+The original live artifacts are archived without source-version relabeling.
+
+A separate in-memory zero-provider regression at exact a78885d6 then proved
+canonical blacklistEnabled:true/sellRestricted:true could be ignored by Instant
+Safety and execution consumers, returning PASS/LIVE_EXECUTION_READY despite a
+known restriction. A shared strict boolean restriction policy now overrides
+stale positive proof across current readiness, proof production, candidate
+truth, Wave3 selection, direct recovery and standalone recovery. Instant Safety
+uses the existing critical blacklist/transfer restrictions. Unknown canonical
+values cannot establish a safety pass, and false values do not erase legacy
+danger. Known rejected candidates need no irrelevant execution quotes.
+
+Five of six initial regressions failed before repair; the separate standalone
+recovery regression also failed before repair. The combined focused safety,
+current-proof, execution/recovery and cache suite passes 102 tests. Integrated
+validation passes 1882 full tests without failures/skips/cancellations, 21 load
+tests, all 935 JavaScript syntax checks and entrypoint typecheck. The runtime
+comparison retains the exact 217-file set, with no additions/deletions and only
+the six known audit/readiness writer outputs changed since the prior pre-audit
+snapshot. A fresh source-pinned run remains required for this final layer.
+
 ## October 18 Observed Cost And Security Consumption
 
 Inspection of the preserved dc12a0b2 scan found 90/133 deep proofs labeled

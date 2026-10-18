@@ -1,5 +1,6 @@
 import {
   hasExactRouteIdentity,
+  hasKnownTransferRestriction,
   hasVerifiedBuyQuote,
   hasVerifiedRouteDepth,
   hasVerifiedRouteSlippage,
@@ -107,6 +108,8 @@ export function deterministicCandidateBlocks(project = {}) {
       ? ["Verified scam or honeypot evidence."]
       : []),
     ...(project.sellRestricted === true ? ["Confirmed sell restriction."] : []),
+    ...(project.sellRestricted !== true && hasKnownTransferRestriction(project)
+      ? ["Verified blacklist or transfer-control risk."] : []),
     ...(project.executionProof?.authorityEvidenceRequired === true &&
         project.executionProof?.authorityEvidenceVerified === true &&
         project.executionProof?.authoritySafetyClean === false

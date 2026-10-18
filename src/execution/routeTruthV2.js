@@ -250,7 +250,13 @@ function routeRegionAllowsExecution(subject = {}) {
   return true;
 }
 
+export function hasKnownTransferRestriction(subject = {}) {
+  return [subject.sellRestricted, subject.blacklistEnabled, subject.hiddenTransferRestriction,
+    subject.transferRestricted, subject.blacklistAuthority, subject.canBlacklist].some((value) => value === true);
+}
+
 export function isLiveExecutionReady(subject = {}, options = {}) {
+  if (hasKnownTransferRestriction(subject)) return false;
   const maxAgeSeconds = options.maxAgeSeconds ?? 3600;
   const status = upper(subject.routeTruthStatus || subject.executionProofState || subject.executionStatus || subject.status);
   const proofStatus = upper(subject.executionProof?.routeTruthStatus || subject.executionProof?.executionProofState || subject.executionProof?.executionStatus);
