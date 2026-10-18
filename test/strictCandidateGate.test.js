@@ -74,6 +74,7 @@ test("SOL on Base/BSC does not merge with native SOL and is quarantined without 
     name: "Solana",
     symbol: "SOL",
     chain: "solana",
+    tokenAddress: "So11111111111111111111111111111111111111112",
   });
   const imitationSol = resolveStrictCandidateGate(verifiedCandidate({
     name: "Solana",
@@ -222,7 +223,8 @@ test("established native assets stay in market benchmark lane", () => {
     { symbol: "SOL", chain: "solana" },
     { symbol: "BTC", chain: "bitcoin" },
   ]) {
-    const gate = resolveStrictCandidateGate(asset);
+    const gate = resolveStrictCandidateGate({ ...asset, exchangeAssetId: `kraken:${asset.symbol}`,
+      marketPair: `${asset.symbol}-USD`, source: "kraken", exchange: "Kraken", listingVerified: true });
     assert.equal(gate.strictCandidateLane, "MARKET_BENCHMARK");
     assert.equal(gate.strictRankEligible, false);
   }

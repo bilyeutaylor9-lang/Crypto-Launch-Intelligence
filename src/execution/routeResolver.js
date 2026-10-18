@@ -1,4 +1,5 @@
 import { SUPPORTED_CHAIN_REGISTRY } from "../data/chainAliasRegistry.js";
+import { normalizeVenue, venueType } from "../data/venueVocabularyRegistry.js";
 import {
   hasVerifiedBuyQuote,
   hasVerifiedRouteDepth,
@@ -124,7 +125,7 @@ const SUPPORTED_ROUTE_VENUES = new Set([
   "upbit",
   "velodrome",
   "zero_x",
-]);
+].map(normalizeVenue));
 
 function clean(value = "") {
   return String(value ?? "").trim();
@@ -136,6 +137,11 @@ function upper(value = "") {
 
 function lower(value = "") {
   return clean(value).toLowerCase();
+}
+
+function venueKey(value = "") {
+  const normalized = normalizeVenue(value);
+  return normalized === "li.fi" ? "lifi" : normalized;
 }
 
 function num(value = 0) {
@@ -284,16 +290,79 @@ function inferQuoteTokenAddress(project = {}, chain = null) {
   return mapped ? normalizeTokenAddress(mapped, normalizedChain) : null;
 }
 
+function exactVenueEvidence(project, route) {
+  const chain = inferChain(project);
+  const token = inferTokenAddress(project, chain);
+  const pool = inferPairAddress(project, chain);
+  const agree = (values, normalize, expected) => {
+    const supplied = values.filter((value) => value !== undefined && value !== null && value !== "");
+    return supplied.length > 0 && supplied.every((value) => normalize(value) === expected);
+  };
+  const chains = (item) => [item.chain, item.chainId, item.canonicalChain, item.network, item.finalChain, item.normalizedChain];
+  const tokens = (item) => [item.tokenAddress, item.contractAddress, item.canonicalAddress,
+    item.finalContractAddress, item.verifiedContractAddress, item.baseTokenAddress, item.baseToken?.address];
+  const pools = (item) => [item.poolAddress, item.pairAddress, item.primaryTradablePool,
+    item.finalPairAddress, item.verifiedPairAddress, item.pair?.address];
+  if (!chain || !token || !agree(chains(project), normalizeChainId, chain) ||
+      !agree(chains(route), normalizeChainId, chain) ||
+      !agree(tokens(project), (value) => normalizeTokenAddress(value, chain), token) ||
+      !agree(tokens(route), (value) => normalizeTokenAddress(value, chain), token)) return false;
+  if (route.exactIdentityVerified !== true || route.buyQuoteVerified !== true || route.sellQuoteVerified !== true ||
+      [route.status, route.executionStatus, route.verificationStatus].some((value) =>
+        /REJECT|FAIL|UNKNOWN|UNVERIFIED|UNAVAILABLE|INVALID|BLOCKED/i.test(clean(value))) ||
+      !routeQuoteFresh(route, 3600)) return false;
+  if (upper(route.routeType) === "CEX") {
+    return Boolean(project.marketPair && route.marketPair && upper(project.marketPair) === upper(route.marketPair));
+  }
+  if (!pool || !agree(pools(project), (value) => normalizePoolAddress(value, chain), pool) ||
+      !agree(pools(route), (value) => normalizePoolAddress(value, chain), pool)) return false;
+  const buy = route.buyQuote;
+  const sell = route.sellQuote;
+  const quoteToken = normalizeTokenAddress(buy?.inputMint || buy?.fromToken?.address, chain) ||
+    inferQuoteTokenAddress(route, chain);
+  // Recovery adapters validate both raw legs before emitting this compact attestation.
+  const compactAttestation = route.identityVerificationState === "EXACT_CHAIN_CONTRACT_POOL_ATTESTED" &&
+    route.quoteVerified === true && lower(route.source) === lower(route.executionRecoverySource) &&
+    ["jupiter", "0x", "lifi"].includes(lower(route.source)) &&
+    venueKey(route.venue) === venueKey(route.source) &&
+    array(route.routePoolAddresses).some((value) => normalizePoolAddress(value, chain) === pool);
+  const legMatches = (leg, from, to) => {
+    if (leg?.verified !== true || !from || !to || from === to) return false;
+    const addressMatches = (values, expected) => values.some((value) => value !== undefined && value !== null && value !== "")
+      ? agree(values, (value) => normalizeTokenAddress(value, chain), expected) : compactAttestation;
+    const legPools = [leg.poolAddress, leg.pairAddress, ...array(leg.routePoolAddresses)].filter(Boolean);
+    return addressMatches([leg.inputMint, leg.fromToken?.address], from) &&
+      addressMatches([leg.outputMint, leg.toToken?.address], to) &&
+      (legPools.length ? legPools.some((value) => normalizePoolAddress(value, chain) === pool) : compactAttestation);
+  };
+  return legMatches(buy, quoteToken, token) && legMatches(sell, token, quoteToken);
+}
+
 function inferVenue(project = {}) {
-  return first([
+  const observed = first([
     project.dexName,
     project.dex,
     project.venue,
     project.exchange,
     project.marketData?.dex,
     project.rawCandidate?.dex,
-    firstRouteValue(project, ["dexName", "venue", "exchange", "source"]),
   ]);
+  if (observed && !["token-profile", "token-boost"].includes(lower(observed))) return observed;
+
+  // A discovery label is not a venue. Only current exact route evidence can replace it.
+  const proof = project.executionProof;
+  const candidates = proof ? [proof] : [project.executionProofRecoveryRoute, project.canonicalExecutionRoute];
+  for (const route of candidates.filter((value) => value && typeof value === "object")) {
+    const venue = first([route.venue, route.dexName, route.exchange]);
+    if (!venueSupported(venue) || !exactVenueEvidence(project, route)) continue;
+    const conflictingVenue = routeObjects(project).some((other) => {
+      const otherVenue = first([other.venue, other.dexName, other.exchange]);
+      return other !== route && other.quoteTimestamp === route.quoteTimestamp &&
+        exactVenueEvidence(project, other) && otherVenue && venueKey(otherVenue) !== venueKey(venue);
+    });
+    if (!conflictingVenue) return venue;
+  }
+  return observed;
 }
 
 function inferRouteType(project = {}) {
@@ -301,21 +370,23 @@ function inferRouteType(project = {}) {
   if (raw === "DEX_AGGREGATOR" || raw === "AGGREGATOR") return "AGGREGATOR";
   if (raw === "CEX") return "CEX";
   if (raw === "DEX") return "DEX";
-  const venue = lower(inferVenue(project));
-  if (["coinbase", "kraken", "binance", "binance.us", "gemini", "okx", "bybit", "kucoin", "gate", "mexc", "bitget", "crypto.com", "htx", "upbit", "bithumb"].some((item) => venue.includes(item))) {
+  const venue = venueKey(inferVenue(project));
+  if (venueType(venue) === "cex") {
     return "CEX";
   }
-  if (["jupiter", "li.fi", "lifi", "1inch", "paraswap", "matcha", "0x", "zero_x"].some((item) => venue.includes(item))) {
+  if (["jupiter", "lifi", "oneinch", "paraswap", "zero_x"].includes(venue)) {
     return "AGGREGATOR";
   }
   return raw || "DEX";
 }
 
 function venueSupported(value = "") {
-  const normalized = lower(value).replace(/\s+/g, " ");
+  const normalized = normalizeVenue(value);
   if (!normalized) return false;
   if (SUPPORTED_ROUTE_VENUES.has(normalized)) return true;
-  return [...SUPPORTED_ROUTE_VENUES].some((venue) => normalized.includes(venue));
+  const versioned = lower(value).match(/^(.+?)[ _-]v[1-4](?:\.\d+)?$/);
+  return Boolean(versioned && venueType(versioned[1]) !== "cex" &&
+    SUPPORTED_ROUTE_VENUES.has(normalizeVenue(versioned[1])));
 }
 
 function inferProvenance(project = {}) {
@@ -397,7 +468,7 @@ function routeRegionVerified(project = {}, routeType = null) {
 export function resolveStrictCandidateGate(project = {}) {
   const normalizedChain = inferChain(project);
   const chainId = canonicalChainId(normalizedChain);
-  const nativeVariant = classifyNativeAssetVariant({ ...project, chain: normalizedChain || project.chain });
+  const nativeVariant = classifyNativeAssetVariant({ ...project, chain: project.chain || normalizedChain });
   const tokenAddress = inferTokenAddress(project, normalizedChain);
   const canonicalId = buildStrictCanonicalId(normalizedChain, tokenAddress);
   const pairAddress = inferPairAddress(project, normalizedChain);
