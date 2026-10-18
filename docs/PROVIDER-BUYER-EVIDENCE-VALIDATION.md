@@ -282,6 +282,37 @@ integrity. The specialist's independent scoped review found no further blocker
 in the generic collector/helper. These code results are not production readiness
 or proof that external services can supply missing final decision evidence.
 
+Fresh production-style scan scan_1792292524266 at exact code revision
+86e9b9272027f0b232cd0de9acb61a01097838e8 targeted 2000 discovery, 1000 standard
+and 500 deep candidates. Its observed universe was 283 standard / 119 deep /
+164 deferred, not live 500-deep proof. Core/advisory input coverage was 91%/89%,
+with 113 core-ready / 0 partial / 6 core-starved (5.04%). The preceding clean
+523c72a7 run had 117 deep / 163 deferred, 91%/89% coverage and 9 core-starved
+(7.69%). Different universes, cache warmth and provider conditions preclude a
+controlled performance or cost attribution. All six remaining severe core gaps
+were wallet/holder raw inputs; the new probe cannot invent addresses or trades.
+
+Recovery attempted 101 candidates, selected waves 49/101/36 and used 69/2000
+provider request units without deadline skips. Recovered field counts were
+IDENTITY3 / MARKET3 / WALLETS225 / DEPLOYER211 / SECURITY188; unresolved attempted
+fields were MARKET2 / DEPLOYER97 / EXECUTION144 / WALLETS12. Twelve fixed-identity
+deferrals remained visible. LI.FI was disabled only locally to respect its prior
+cooldown, and 0x reported its missing optional key for all 36 execution plans.
+Zero quote HTTP requests, zero accepted routes and zero qualified picks were
+reported honestly. One candidate was conclusively rejected; 118 still lacked
+final decision proof. Overlapping gaps were BUY_QUOTE118 / SELL_QUOTE118 /
+QUOTE_FRESHNESS118 / VERIFIED_SLIPPAGE84 / SAFETY85 / TOKEN_AUTHORITY53 /
+TRANSFER_TAX21 / IDENTITY11 / ROUTE_DEPTH7. DATA_DEGRADED remains correct.
+
+The full engine audit and report contracts passed; artifact manifest COMPLETE.
+Readiness refresh and scanner smoke failed. The smaller canonical scan:smoke
+also failed at readiness despite 42 deep candidates with zero core starvation.
+The real pipeline trace confirms Utility Quality before FINAL readiness and
+affected-family reruns, including Wallet Cluster100 and Deployer Reputation48.
+Fresh GitHub checks at 86e9b927 passed build22 and Production Verification but
+build24 failed live readiness (run39092048939). No unresolved review threads were
+reported. PR56 remains open and unmerged; no failing check was weakened or skipped.
+
 ## October 14 Handoff Reconciliation
 
 The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.
