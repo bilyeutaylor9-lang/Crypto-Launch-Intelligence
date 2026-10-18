@@ -194,6 +194,38 @@ scan ID. Live report contracts still pass. The quote/wave repairs are committed
 at 5a08e65e and low-egress immutable sync at 6626873e. Fresh GitHub checks are
 required for publication; no prior PR's green checks authorize this new head.
 
+PR56 was published at 9e5479aa without merging main. Its first GitHub observation
+passed Node22 and Production Verification, while Node24 failed the live scanner
+readiness step with report contracts PASS and manifest COMPLETE. This is an
+observed decision-evidence failure, not a unit-test failure to hide or skip.
+
+A subsequent CEX dispatch regression reproduced an unnecessary LI.FI call before
+an exact Coinbase market request when the candidate retained on-chain aliases.
+Explicit CEX recovery now uses only the supported exchange-market path; absent
+venue/market identity cannot fall back to DEX probes. Its focused test fails on
+the prior behavior and passes with one Coinbase request and no DEX requests.
+
+The targeted execution-recovery report test also wrote fixture audit reports to
+the checkout when invoked directly outside npm test. It now uses a temporary
+working directory with cleanup. The primary scan report and raw data stayed
+unchanged, but 23 secondary reports were identified as test outputs and must not
+be presented as fresh production evidence. Those report artifacts will be
+preserved separately and regenerated from a real scanner run. The earlier
+214-file full-suite restoration result remains specific to that checkpoint,
+not a guarantee about later unisolated test commands. The report writer captures
+its directory at import time, so that test now loads it after entering its
+temporary directory. A sequential SHA-256 before/after probe across all 214
+runtime files confirms the focused test changes none of them.
+
+The final code suite through cfed59ee passes 1570 tests without failures, skips
+or cancellations, and the canonical syntax command passes all 900 JavaScript
+files. Exchange dispatch is fixed at 07377034; direct report-test isolation is
+fixed at cfed59ee. The larger full-provider scan above remains source-pinned to
+6dd0ffe4. Any subsequent live regeneration must explicitly respect LI.FI's
+declared local cooldown, without presenting a disabled quote adapter as working
+execution proof. Subsequent regenerated-report and exact-head CI observations
+are recorded in PR56 as well as the durable local validation logs.
+
 ## October 14 Handoff Reconciliation
 
 The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.
