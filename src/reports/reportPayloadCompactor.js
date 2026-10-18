@@ -5,6 +5,21 @@ const DEFAULT_REPORT_STRING_LIMIT = 1_500;
 const DEFAULT_REPORT_DEPTH_LIMIT = 4;
 const DISCOVERY_SAMPLE_LIMIT = 50;
 
+// A finite scalar projection must precede wallet/provenance graphs in every writer.
+export const REPORT_DECISION_SCALAR_FIELDS = Object.freeze([
+  "name", "symbol", "chain", "chainId", "tokenAddress", "contractAddress", "poolAddress", "pairAddress",
+  "tokenName", "dexName", "dex", "venue", "exchange", "routeType", "source", "provider",
+  "sourceTimestamp", "observedAt", "scannedAt", "dataCutoffTimestamp",
+  "pipelineScore", "score", "opportunityScore", "guardedLiveScore", "liveScore", "riskScore",
+  "researchScore", "executionScore", "finalDecisionScore", "finalIdentityState",
+  "finalSelectionState", "finalSelectionQualified", "finalIntegrityScore", "finalIntegrityVerdict",
+  "liveActionStatus", "liveExecutionReady", "liveRankingModel", "liveRankingAuthoritative", "scoringPrimaryModel",
+  "utilityQualityScore", "realUtilityScore", "realUtilityQualified", "utilityClassification", "memeOnlySpeculative",
+  "legacyProductionScore", "legacyPipelineScore", "legacyFinalSelectionState", "legacyFinalSelectionQualified",
+  "legacyFinalDecisionScore", "legacyFinalIntegrityScore", "legacyFinalIntegrityVerdict", "legacyFinalAuthorityEngine",
+  "legacyFinalIntegritySource", "finalIntegrityPipelineScore", "finalIntegrityScoreSource", "finalAuthorityEngine",
+]);
+
 const HEAVY_FIELD_PATTERNS = [
   /^raw$/i,
   /rawCandidate/i,
@@ -179,6 +194,9 @@ const DECISION_FIELDS = [
   "legacyPipelineScore",
   "legacyRank",
   "legacyFinalSelectionState",
+  "legacyFinalBlockingReasons",
+  "legacyFinalWarningReasons",
+  "legacyFinalSelectionReasons",
   "scoringPrimaryModel",
   "microTestPlan",
   "riskScore",
@@ -188,6 +206,7 @@ const DECISION_FIELDS = [
   "finalIntegrityVerdict",
   "finalBlockingReasons",
   "finalWarningReasons",
+  "finalSelectionReasons",
   "vNextScore",
   "vNextRank",
   "vNextSafetyState",
@@ -303,6 +322,7 @@ const EVIDENCE_FIELDS = [
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
+  ...REPORT_DECISION_SCALAR_FIELDS,
   // Derived snapshots can share these objects; retain the authoritative roots first.
   "executionProof",
   "canonicalExecutionRoute",

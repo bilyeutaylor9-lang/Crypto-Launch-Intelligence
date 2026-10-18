@@ -371,6 +371,80 @@ const TOP10_RECOMPUTED_OR_RAW_FIELDS = new Set([
   "researchWarnings",
 ]);
 
+function proofScalars(fields) {
+  return Object.fromEntries(fields.map(field => [field, true]));
+}
+
+const PROOF_TOKEN_SCHEMA = proofScalars(["address", "symbol", "chain", "chainId"]);
+const PROOF_QUOTE_SCHEMA = {
+  ...proofScalars([
+    "verified", "quoteVerified", "liveQuoteVerified", "status", "verificationStatus", "routeTruthStatus",
+    "timestamp", "expiresAt", "quoteTimestamp", "quoteExpiresAt", "ageSeconds", "quoteId",
+    "inputMint", "outputMint", "inputAmount", "outAmount", "otherAmountThreshold", "poolAddress", "pairAddress",
+  ]),
+  fromToken: PROOF_TOKEN_SCHEMA,
+  toToken: PROOF_TOKEN_SCHEMA,
+  routePoolAddresses: [true],
+};
+const TOP10_EXECUTION_PROOF_SCHEMA = {
+  ...proofScalars([
+    "executionStatus", "executionProofState", "routeTruthStatus", "status", "verificationStatus",
+    "chain", "chainId", "canonicalChain", "network", "finalChain", "normalizedChain",
+    "tokenAddress", "contractAddress", "canonicalAddress", "finalContractAddress", "verifiedContractAddress",
+    "baseTokenAddress", "quoteTokenAddress", "poolAddress", "pairAddress", "primaryTradablePool",
+    "finalPairAddress", "verifiedPairAddress", "venue", "dexName", "exchange", "routeType", "routeKind",
+    "exactIdentityVerified", "buyQuoteVerified", "sellQuoteVerified", "quoteVerified", "liveQuoteVerified",
+    "liveBuyQuoteVerified", "liveSellQuoteVerified", "liveExecutionReady", "safetyVerified",
+    "quoteTimestamp", "executionQuoteTimestamp", "quoteExpiresAt", "quoteFreshnessSeconds",
+    "quoteAgeSeconds", "executionQuoteAgeSeconds", "verifiedAt", "lastVerifiedAt",
+    "depthVerified", "orderBookDepthVerified", "slippageVerified", "slippageIsHeuristic",
+    "authorityEvidenceRequired", "authorityEvidenceVerified", "authoritySafetyClean", "authorityEvidenceSourceTimestamp",
+    "transferTaxEvidenceRequired", "transferTaxEvidenceVerified", "userAccessEvidenceRequired", "userAccessVerified",
+    "regionStatus", "regionAvailability", "marketPair", "exchangeAssetId", "identityVerificationState",
+    "source", "provider", "executionRecoverySource", "sourceTimestamp", "confidence",
+    "liquidityUsd", "volume24hUsd", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "executableDepthUsd",
+    "verifiedTradeSizeUsd", "verifiedDepthSource", "depthVerificationSource", "observedSlippagePct",
+    "estimatedRoundTripSlippagePct", "estimatedSlippagePct", "slippagePct", "executionSlippagePct",
+    "routeExecutionReadiness", "finalProjectExecutionReadiness", "executionProofActionability",
+    "buyRouteAvailable", "sellRouteAvailable", "chainVerified", "contractVerified", "poolRequired", "poolVerified",
+    "price", "estimatedSlippage25", "estimatedSlippage100", "estimatedSlippage500", "estimatedSlippage1000",
+  ]),
+  buyQuote: PROOF_QUOTE_SCHEMA,
+  sellQuote: PROOF_QUOTE_SCHEMA,
+  quote: { ...PROOF_QUOTE_SCHEMA, buy: PROOF_QUOTE_SCHEMA, sell: PROOF_QUOTE_SCHEMA },
+  quotes: { buy: PROOF_QUOTE_SCHEMA, sell: PROOF_QUOTE_SCHEMA },
+  quoteAsset: PROOF_TOKEN_SCHEMA,
+  baseToken: PROOF_TOKEN_SCHEMA,
+  pair: proofScalars(["address"]),
+  routePoolAddresses: [true],
+  authorityEvidenceSources: [true],
+  supportingSources: [true],
+  failureReasons: [true],
+};
+
+// Keep only normalized proof branches. The old generic key slice could discard
+// late negative controls, expiry and paired attestations from the current producer.
+function compactTop10ExecutionProof(value, schema = TOP10_EXECUTION_PROOF_SCHEMA, depth = 0, state = { nodes: 256 }) {
+  if (value === null || typeof value !== "object" || value instanceof Date) {
+    return compactValueForReport(value, { stringLimit: 1_000 });
+  }
+  if (depth >= 4 || schema === true || state.nodes-- <= 0) return "[nested data omitted from report]";
+  if (Array.isArray(schema)) {
+    if (!Array.isArray(value)) return "[invalid proof array omitted from report]";
+    const output = value.slice(0, 8).map(item => compactTop10ExecutionProof(item, schema[0], depth + 1, state));
+    if (value.length > 8) output.push(`[${value.length - 8} additional items omitted from report]`);
+    return output;
+  }
+  if (Array.isArray(value)) return "[invalid proof object omitted from report]";
+  const output = {};
+  for (const field of Object.keys(schema)) {
+    if (Object.hasOwn(value, field)) output[field] = compactTop10ExecutionProof(value[field], schema[field], depth + 1, state);
+  }
+  const omitted = Object.keys(value).length - Object.keys(output).length;
+  if (omitted > 0) output.reportCompactionOmittedKeys = omitted;
+  return output;
+}
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -1155,6 +1229,10 @@ function copyCandidateInputProject(project = {}) {
     if (value === undefined) continue;
 
     if (TOP10_RECOMPUTED_OR_RAW_FIELDS.has(field)) {
+      continue;
+    }
+    if (field === "executionProof") {
+      copy[field] = compactTop10ExecutionProof(value);
       continue;
     }
     if (field === "sniperEvidenceFamilyList") {

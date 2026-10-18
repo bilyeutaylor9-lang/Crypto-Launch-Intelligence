@@ -97,8 +97,8 @@ function importedBlockers(project = {}) {
   ].filter(Boolean).map(String))];
 }
 
-export function deterministicCandidateBlocks(project = {}) {
-  const explicit = importedBlockers(project).filter((reason) =>
+export function deterministicCandidateBlocks(project = {}, options = {}) {
+  const explicit = options?.includeImported === false ? [] : importedBlockers(project).filter((reason) =>
     DETERMINISTIC_BLOCK_PATTERNS.some((pattern) => pattern.test(reason))
   );
   return [...new Set([

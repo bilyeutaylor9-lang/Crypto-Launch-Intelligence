@@ -98,11 +98,13 @@ test("snapshot and reader results are immutable detached canonical summary clone
 
 test("a final policy rejection does not erase independently verified historical route evidence", () => {
   const blocked = {...project(), finalSelectionState: "BLOCKED", riskScore: 99};
-  const summary = {...scanSummary(), deterministicallyBlocked: 1, conclusivelyRejected: 1, decisionEvidenceComplete: 0};
+  const summary = scanSummary();
   const {meta} = capture([blocked], summary);
   const frozen = getFrozenEvidenceFunnel([blocked], meta);
   assert.equal(frozen.verifiedRoutes, 1);
   assert.equal(frozen.fullyQualified, 0);
+  assert.equal(frozen.conclusivelyRejected, 0);
+  assert.equal(frozen.decisionEvidenceComplete, 1);
   assert.equal(isLiveExecutionReady(blocked), false);
 });
 

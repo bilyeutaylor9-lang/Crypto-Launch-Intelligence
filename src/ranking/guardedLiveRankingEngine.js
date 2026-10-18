@@ -752,6 +752,18 @@ export function buildMicroTestPlan(project, options = {}) {
 
 function scoreCandidate(project, policy, options = {}) {
   const env = options.env || process.env;
+  const hasCanonicalOrigin = project.legacyFinalIntegritySource === "PRE_GUARDED_CANONICAL_PASS";
+  const canonicalFinal = hasCanonicalOrigin ? {
+    finalSelectionState: project.legacyFinalSelectionState,
+    finalSelectionQualified: project.legacyFinalSelectionQualified,
+    finalDecisionScore: project.legacyFinalDecisionScore,
+    finalIntegrityScore: project.legacyFinalIntegrityScore,
+    finalIntegrityVerdict: project.legacyFinalIntegrityVerdict,
+    finalBlockingReasons: project.legacyFinalBlockingReasons,
+    finalWarningReasons: project.legacyFinalWarningReasons,
+    finalSelectionReasons: project.legacyFinalSelectionReasons,
+    finalAuthorityEngine: project.legacyFinalAuthorityEngine,
+  } : project;
   const adapted = adaptForCoreModels(project, options);
   const baseline = scoreCoreBaseline(adapted.project, {
     minimumFamilies: Number(env.LIVE_RANKING_MIN_BASELINE_FAMILIES || 4),
@@ -762,7 +774,7 @@ function scoreCandidate(project, policy, options = {}) {
     minimumCoverage: Number(env.LIVE_RANKING_MIN_INSTITUTIONAL_COVERAGE || 0.6),
   });
   const execution = strictExecution(adapted.project, env);
-  const legacyProductionScore = productionScore(project);
+  const legacyProductionScore = hasCanonicalOrigin ? numberOrNull(project.legacyPipelineScore) : productionScore(project);
   const core = { baseline, institutional, legacyProductionScore };
   core.evidencePenalizedProductionScore = evidencePenalizedProduction(
     adapted.project,
@@ -819,9 +831,12 @@ function scoreCandidate(project, policy, options = {}) {
   }
 
   let finalIntegrity = null;
+  let finalIntegrityClock = null;
   let finalQualificationDenied = false;
   if (liveActionStatus === "MICRO_TEST_ELIGIBLE") {
+    const startedAt = Date.now();
     finalIntegrity = analyzeFinalSelectionIntegrity({...adapted.project, pipelineScore: selectedScore});
+    if (Date.now() === startedAt) finalIntegrityClock = startedAt;
     finalQualificationDenied = (Object.hasOwn(project, "finalSelectionQualified") && project.finalSelectionQualified !== true) ||
       ["BLOCKED", "IDENTITY_CONFLICT", "UNKNOWN", "INSUFFICIENT_DATA"].includes(project.finalSelectionState) ||
       finalIntegrity.finalSelectionQualified !== true;
@@ -839,6 +854,36 @@ function scoreCandidate(project, policy, options = {}) {
     liveScore *= 0.88;
   }
   liveScore = liveScore === null ? 0 : Number(clamp(liveScore).toFixed(4));
+
+  const canonicalBlockingReasons = array(canonicalFinal.finalBlockingReasons);
+  const previousStates = [canonicalFinal.finalSelectionState, project.finalSelectionState];
+  const canonicalHardState = previousStates.includes("IDENTITY_CONFLICT") ? "IDENTITY_CONFLICT"
+    : previousStates.includes("BLOCKED") || canonicalBlockingReasons.length ? "BLOCKED" : null;
+  let hardSelectionState = [canonicalHardState, finalQualificationDenied ? finalIntegrity?.finalSelectionState : null].includes("IDENTITY_CONFLICT")
+    ? "IDENTITY_CONFLICT"
+    : canonicalHardState || (liveActionStatus === "BLOCKED" ? "BLOCKED" : null);
+  if (liveActionStatus !== "DEEP_DEFERRED" && hardSelectionState) {
+    liveActionStatus = "BLOCKED";
+    liveScore = Math.min(20, liveScore);
+  }
+
+  // Deferred rows have no new integrity assessment. Reuse an eligible assessment
+  // only within this call, at an identical score and unchanged wall-clock instant.
+  const deferred = liveActionStatus === "DEEP_DEFERRED";
+  let publishedIntegrity = deferred ? null
+    : finalIntegrity && selectedScore === liveScore && finalIntegrityClock === Date.now() ? finalIntegrity
+      : analyzeFinalSelectionIntegrity({ ...adapted.project, pipelineScore: liveScore });
+  if (liveActionStatus === "MICRO_TEST_ELIGIBLE" && publishedIntegrity.finalSelectionQualified !== true) {
+    finalQualificationDenied = true;
+    hardSelectionState = ["BLOCKED", "IDENTITY_CONFLICT"].includes(publishedIntegrity.finalSelectionState)
+      ? publishedIntegrity.finalSelectionState : null;
+    liveActionStatus = hardSelectionState ? "BLOCKED" : "RESEARCH_WATCHLIST";
+    const blockedScore = Math.min(20, liveScore);
+    if (hardSelectionState && blockedScore !== liveScore) {
+      liveScore = blockedScore;
+      publishedIntegrity = analyzeFinalSelectionIntegrity({ ...adapted.project, pipelineScore: liveScore });
+    }
+  }
 
   const missingEvidence = unique([
     ...array(baseline.missingComponents),
@@ -862,22 +907,55 @@ function scoreCandidate(project, policy, options = {}) {
     BLOCKED: "BLOCKED",
     DEEP_DEFERRED: "DEFERRED_BEFORE_DEEP",
   }[liveActionStatus];
-  const finalSelectionState = finalQualificationDenied
-    ? (finalIntegrity.finalSelectionQualified !== true ? finalIntegrity.finalSelectionState
+  const finalSelectionState = liveActionStatus === "DEEP_DEFERRED" ? rankedSelectionState
+    : hardSelectionState || (finalQualificationDenied
+    ? (publishedIntegrity.finalSelectionQualified !== true ? publishedIntegrity.finalSelectionState
       : project.finalSelectionState && project.finalSelectionState !== "QUALIFIED"
         ? project.finalSelectionState : "RESEARCH_ONLY")
-    : rankedSelectionState;
+    : rankedSelectionState);
+  const finalBlockingReasons = unique([
+    ...(["BLOCKED", "IDENTITY_CONFLICT"].includes(finalSelectionState) ? array(publishedIntegrity?.finalBlockingReasons) : []),
+    ...execution.blocks,
+    ...canonicalBlockingReasons.map(reason =>
+      `Canonical pre-guarded pass (pipeline score ${legacyProductionScore ?? "unknown"}): ${reason}`),
+  ]);
+  const finalWarningReasons = unique([
+    ...array(publishedIntegrity?.finalWarningReasons),
+    ...(!["BLOCKED", "IDENTITY_CONFLICT"].includes(finalSelectionState)
+      ? array(publishedIntegrity?.finalBlockingReasons).map(reason => `Final integrity at guarded score: ${reason}`) : []),
+    ...(liveActionStatus !== "MICRO_TEST_ELIGIBLE"
+      ? missingEvidence.map(field => `Guarded live ranking requires ${field}.`) : []),
+    ...(finalQualificationDenied ? ["Canonical final qualification has not passed."] : []),
+  ]);
+  const finalIntegrityVerdict = {
+    QUALIFIED: "Qualified Final Candidate",
+    IDENTITY_CONFLICT: "Identity Conflict - Blocked",
+    BLOCKED: "Blocked By Final Integrity",
+    INSUFFICIENT_DATA: "Research Only - Insufficient Data",
+    RESEARCH_ONLY: "Research Only - Not Actionable",
+    UNKNOWN: "Research Only - Qualification Unknown",
+    DEFERRED_BEFORE_DEEP: "Deferred Before Deep Evaluation",
+  }[finalSelectionState] || "Research Only - Qualification Unknown";
   const scored = {
     ...adapted.project,
     legacyProductionScore,
     legacyPipelineScore: legacyProductionScore,
-    legacyFinalSelectionState: project.finalSelectionState || null,
+    legacyFinalSelectionState: canonicalFinal.finalSelectionState || null,
+    legacyFinalSelectionQualified: canonicalFinal.finalSelectionQualified ?? null,
+    legacyFinalDecisionScore: canonicalFinal.finalDecisionScore ?? null,
+    legacyFinalIntegrityScore: canonicalFinal.finalIntegrityScore ?? null,
+    legacyFinalIntegrityVerdict: canonicalFinal.finalIntegrityVerdict ?? null,
+    legacyFinalBlockingReasons: canonicalBlockingReasons,
+    legacyFinalWarningReasons: array(canonicalFinal.finalWarningReasons),
+    legacyFinalSelectionReasons: array(canonicalFinal.finalSelectionReasons),
+    legacyFinalAuthorityEngine: canonicalFinal.finalAuthorityEngine ?? null,
+    legacyFinalIntegritySource: "PRE_GUARDED_CANONICAL_PASS",
     guardedLiveScore: liveScore,
     liveScore,
     liveRankingModel: selected.model,
     liveRankingCoverage: Number(evidenceCoverage.toFixed(4)),
     liveActionStatus,
-    liveExecutionReady: execution.ready,
+    liveExecutionReady: execution.ready && publishedIntegrity?.executionRouteAvailable !== false,
     liveRankingAuthoritative: true,
     liveRankingUnprovenCanary: selected.model.includes("UNPROVEN"),
     liveRankingDisplayEligible: displayIdentity.eligible,
@@ -886,14 +964,15 @@ function scoreCandidate(project, policy, options = {}) {
     liveRankingMissingEvidence: missingEvidence,
     liveRankingBlocks: execution.blocks,
     liveRankingGateReasons: unique([...execution.gateReasons,
-      ...(finalQualificationDenied ? [...finalIntegrity.finalBlockingReasons, ...finalIntegrity.finalWarningReasons,
-        "Current final qualification has not passed."] : [])]),
-    ...(finalQualificationDenied && finalIntegrity.finalSelectionQualified !== true ? {
-      finalBlockingReasons: finalIntegrity.finalBlockingReasons,
-      finalWarningReasons: finalIntegrity.finalWarningReasons,
-      finalSelectionReasons: finalIntegrity.finalSelectionReasons,
-      finalIntegrityVerdict: finalIntegrity.finalIntegrityVerdict,
-    } : {}),
+      ...(liveActionStatus !== "MICRO_TEST_ELIGIBLE" ? [...finalBlockingReasons, ...finalWarningReasons] : [])]),
+    finalBlockingReasons,
+    finalWarningReasons,
+    finalSelectionReasons: liveActionStatus === "MICRO_TEST_ELIGIBLE" ? publishedIntegrity.finalSelectionReasons : [],
+    finalIntegrityVerdict,
+    finalIntegrityScore: publishedIntegrity?.finalIntegrityScore ?? null,
+    finalIntegrityPipelineScore: publishedIntegrity ? liveScore : null,
+    finalIntegrityScoreSource: deferred ? "NOT_REEVALUATED_DEFERRED" : "FINAL_SELECTION_INTEGRITY_AT_GUARDED_SCORE",
+    finalAuthorityEngine: "Guarded Live Ranking",
     liveRankingTrace: {
       selectedModel: selected.model,
       selectedRawScore: selectedScore,
@@ -915,6 +994,7 @@ function scoreCandidate(project, policy, options = {}) {
     pipelineScore: liveScore,
     opportunityScore: liveScore,
     score: liveScore,
+    finalDecisionScore: liveScore,
     pipelineTier: tierFor(liveActionStatus, liveScore),
     tier: tierFor(liveActionStatus, liveScore),
     confidence:

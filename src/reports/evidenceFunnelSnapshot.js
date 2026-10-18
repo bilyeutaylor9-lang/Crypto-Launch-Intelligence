@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { advisoryEvidenceState, coreEvidenceState } from "../kernel/evidenceFunnelSummary.js";
+import { advisoryEvidenceState, coreEvidenceState, hasConclusiveDecisionBlock } from "../kernel/evidenceFunnelSummary.js";
 import { deterministicCandidateBlocks } from "../kernel/candidateTruthState.js";
 import { hasVerifiedRouteDepth, hasVerifiedRouteSlippage } from "../execution/routeTruthV2.js";
 
@@ -238,10 +238,9 @@ function validSummary(summary, rows, cutoff) {
   const states = ["CORE_EVIDENCE_READY", "CORE_EVIDENCE_PARTIAL", "CORE_DATA_STARVED", "CORE_EVIDENCE_UNKNOWN"];
   if (["coreEvidenceReady", "coreEvidencePartial", "coreDataStarved", "coreEvidenceUnknown"].some((key, index) =>
     s[key] !== deep.filter(({ project }) => coreEvidenceState(project) === states[index]).length)) return false;
-  if (s.advisoryDataGaps !== deep.filter(({ project }) => advisoryEvidenceState(project) === "ADVISORY_DATA_GAPS").length ||
-    s.deterministicallyBlocked !== deep.filter(({ project, blocks }) => project.finalSelectionState === "BLOCKED" || blocks.length).length) return false;
-  const rejected = deep.filter(({ project: p, blocks }) => blocks.length || ["BLOCKED", "IDENTITY_CONFLICT"].includes(upper(p.finalSelectionState)) ||
-    REJECTED.has(upper(p.executionProof?.executionStatus || p.executionProof?.executionProofState))).length;
+  if (s.advisoryDataGaps !== deep.filter(({ project }) => advisoryEvidenceState(project) === "ADVISORY_DATA_GAPS").length) return false;
+  const rejected = deep.filter(({ project }) => hasConclusiveDecisionBlock(project)).length;
+  if (s.deterministicallyBlocked !== rejected) return false;
   if (s.conclusivelyRejected !== rejected || s.decisionEvidenceComplete + rejected + s.unresolvedDecisionEvidence !== n) return false;
   const proofBound = deep.filter((row) => positiveProofBound(row, cutoff));
   const qualifiedBound = proofBound.filter(({ project: p }) =>

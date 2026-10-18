@@ -169,10 +169,10 @@ test("deferred and conclusively rejected candidates make no authority collector 
     candidate({ deepEvaluationState: "DEFERRED_BEFORE_DEEP" }),
     candidate({ deepEvaluationDeferred: true }),
     candidate({ deepEvaluationSelected: false }),
-    candidate({ finalSelectionState: "BLOCKED" }),
-    candidate({ finalSelectionState: "IDENTITY_CONFLICT" }),
+    candidate({ finalSelectionState: "BLOCKED", honeypotDetected: true }),
+    candidate({ finalSelectionState: "IDENTITY_CONFLICT", canonicalIdentityHardBlock: true }),
     candidate({ verifiedScam: true }),
-    candidate({ executionProof: { ...candidate().executionProof, executionStatus: "REJECTED" } }),
+    candidate({ executionProof: { ...candidate().executionProof, executionStatus: "CONTRACT_MISMATCH" } }),
     candidate({ executionProof: { ...candidate().executionProof,
       authorityEvidenceVerified: true, authoritySafetyClean: false } }),
   ];
@@ -180,6 +180,23 @@ test("deferred and conclusively rejected candidates make no authority collector 
   assert.equal(calls, 0);
   assert.equal(result[0].activeEvidenceRecoveryStatus, "DEFERRED_BEFORE_DEEP");
   assert.equal(result[0].activeEvidenceRecovery.batchSummary.selectedWaveCounts.WAVE2, 0);
+});
+
+test("bare denials with unknown authority proof still receive selected raw recovery", async () => {
+  let calls = 0;
+  const projects = [candidate({ finalSelectionState: "BLOCKED" }),
+    candidate({ finalSelectionState: "IDENTITY_CONFLICT" }),
+    candidate({ executionProof: { ...candidate().executionProof, executionStatus: "REJECTED" } })];
+  const recovered = await analyzeActiveEvidenceRecoveryBatch(projects, options(async (project) => {
+    calls++;
+    return { evidence: [securityEvidence(project)] };
+  }));
+  assert.equal(calls, 3);
+  for (const [index, project] of recovered.entries()) {
+    assert.equal(project.securityEvidence[0].responseIdentityVerified, true);
+    assert.equal(project.securityEvidence[0].address, MINT);
+    assertNotPromoted(project, projects[index]);
+  }
 });
 
 test("an existing scalar cannot suppress invocation of the paired collector", async () => {

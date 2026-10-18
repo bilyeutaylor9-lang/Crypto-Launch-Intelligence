@@ -68,13 +68,17 @@ export function hasVerifiedExecutionRoute(project = {}) {
   );
 }
 
-export function decisionProofAssessment(project = {}) {
-  const state = String(project.finalSelectionState || "").toUpperCase();
+export function hasConclusiveDecisionBlock(project = {}) {
   const proof = project.executionProof || {};
   const proofStatus = String(proof.executionStatus || proof.executionProofState || "").toUpperCase();
-  const conclusivelyRejected = ["BLOCKED", "IDENTITY_CONFLICT"].includes(state) ||
-    deterministicCandidateBlocks(project).length > 0 ||
-    ["CONTRACT_MISMATCH", "CHAIN_MISMATCH", "HONEYPOT_RISK", "REJECTED"].includes(proofStatus);
+  // Selection denials and prose can reflect unknown inputs, not resolved proof.
+  return deterministicCandidateBlocks(project, { includeImported: false }).length > 0 ||
+    ["CONTRACT_MISMATCH", "CHAIN_MISMATCH", "HONEYPOT_RISK"].includes(proofStatus);
+}
+
+export function decisionProofAssessment(project = {}) {
+  const proof = project.executionProof || {};
+  const conclusivelyRejected = hasConclusiveDecisionBlock(project);
   if (conclusivelyRejected) return { conclusivelyRejected: true, missingFields: [] };
   const snapshot = buildCandidateProofState(project);
   const missingFields = [];
@@ -98,15 +102,15 @@ export function attachCandidateEvidenceState(project = {}) {
   const coreState = coreEvidenceState(project);
   const advisoryState = advisoryEvidenceState(project);
   const finalState = String(project.finalSelectionState || "").toUpperCase();
-  const deterministicBlocked =
-    finalState === "BLOCKED" || deterministicCandidateBlocks(project).length > 0;
+  const selectionBlocked =
+    ["BLOCKED", "IDENTITY_CONFLICT"].includes(finalState) || deterministicCandidateBlocks(project).length > 0;
   const proof = project.executionProof;
   const hasCurrentProof = proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length > 0;
   const qualified = (finalState === "QUALIFIED" || project.finalSelectionQualified === true) &&
-    !deterministicBlocked && (!hasCurrentProof || isLiveExecutionReady(project));
+    !selectionBlocked && (!hasCurrentProof || isLiveExecutionReady(project));
   const candidateEvidenceState = qualified
     ? "QUALIFIED"
-    : deterministicBlocked
+    : selectionBlocked
       ? "FINAL_BLOCKED"
       : coreState;
 
@@ -147,11 +151,6 @@ export function summarizeEvidenceFunnel(projects = []) {
   const fullyQualified = deepProjects.filter(
     (project) => project.candidateEvidenceState === "QUALIFIED"
   ).length;
-  const deterministicallyBlocked = deepProjects.filter(
-    (project) =>
-      project.finalSelectionState === "BLOCKED" ||
-      deterministicCandidateBlocks(project).length > 0
-  ).length;
   const coreEvidenceCoveragePct = average(
     deepProjects.map((project) =>
       project.coreEvidenceCoveragePct ??
@@ -168,6 +167,7 @@ export function summarizeEvidenceFunnel(projects = []) {
     ? Math.round((coreDataStarved / deepProjects.length) * 10_000) / 100
     : 0;
   const decisions = deepProjects.map((project) => ({ project, ...decisionProofAssessment(project) }));
+  const deterministicallyBlocked = decisions.filter((item) => item.conclusivelyRejected).length;
   const unresolvedDecisionEvidence = decisions.filter((item) => item.missingFields.length > 0).length;
   const decisionProofMissingFields = {};
   for (const item of decisions) for (const field of item.missingFields) {
