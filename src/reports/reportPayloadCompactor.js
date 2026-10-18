@@ -32,6 +32,84 @@ const HEAVY_FIELD_PATTERNS = [
   /^institutionalDataProvenance$/i,
 ];
 
+function scalarReportFields(fields = []) {
+  return Object.fromEntries(fields.map((field) => [field, true]));
+}
+
+const WALLET_EVENT_SCHEMA = scalarReportFields([
+  "tokenAddress", "poolAddress", "chain", "signature", "transactionHash", "timestamp",
+  "slot", "blockNumber", "logIndex", "accountAddress", "ownerAddress", "address", "from", "to",
+  "direction", "role", "accountType", "tradeClassification", "participant", "smartWallet",
+  "currentHoldingVerified", "tokenAmountBeforeRaw", "tokenAmountAfterRaw", "tokenDeltaRaw",
+  "tokenAmountRaw", "tokenAmount", "decimals", "tokenProgram", "poolMovement", "volumeUsd",
+  "estimatedCurrentValueUsd", "balanceRaw", "observedBlockNumber", "observedBlockTimestamp",
+  "blockHash", "method", "source", "provider", "sourceTimestamp", "confidence", "verificationStatus",
+]);
+
+const WALLET_SAMPLE_SCHEMAS = {
+  wallets: [true],
+  holderAddresses: [true],
+  walletTransactions: [WALLET_EVENT_SCHEMA],
+  walletParticipationHistory: [WALLET_EVENT_SCHEMA],
+  holderBalanceEvidence: [WALLET_EVENT_SCHEMA],
+};
+const WALLET_SAMPLE_FIELDS = Object.keys(WALLET_SAMPLE_SCHEMAS);
+const WALLET_COVERAGE_SCHEMA = scalarReportFields([
+  "sampled", "complete", "complete24h", "available", "status", "semantics", "observedSlot",
+  "observedBlockTimestamp", "fromTimestamp", "toTimestamp", "fromBlock", "toBlock",
+  "observedTransfers24h", "balanceProbeAttempts", "balanceResponsesReceived",
+]);
+const WALLET_METADATA_SCHEMA = {
+  ...scalarReportFields([
+    "chain", "tokenAddress", "poolAddress", "address", "exactTokenIdentity", "exactPoolIdentity",
+    "provider", "source", "sourceProvider", "confidence", "verificationStatus", "validationStatus",
+    "status", "observedAt", "sourceTimestamp", "timestamp", "sourceTimestampMeaning",
+    "holderSampleOnly", "completeHolderCoverage", "buyerClassificationAvailable", "currentHoldingVerified",
+    "identityVerifiedOnChain", "snapshotTimestampVerified", "providerReportDetectedAt",
+    "holderAddressSemantics", "acquisitionMode", "recoveryRun", "genesisHash", "rpcEndpointId",
+    "providerFailure", "providerFailureCode",
+  ]),
+  transferCoverage: WALLET_COVERAGE_SCHEMA,
+  holderCoverage: WALLET_COVERAGE_SCHEMA,
+  tradeCoverage: WALLET_COVERAGE_SCHEMA,
+  warnings: [true],
+  rpcEndpointAttempts: [scalarReportFields(["endpointId", "status", "providerFailure", "providerFailureCode"])],
+};
+const WALLET_PROOF_SCHEMA = {
+  ...WALLET_METADATA_SCHEMA,
+  ...WALLET_SAMPLE_SCHEMAS,
+  ...scalarReportFields([
+    "holderCount", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h", "buyVolumeUsd",
+    "sellVolumeUsd", "buyerAddresses", "sellerAddresses", "smartWallets", "trackedWallets",
+    "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyCount", "smartWalletSellCount",
+    "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd",
+  ]),
+};
+const WALLET_REPORT_SCHEMAS = {
+  ...WALLET_SAMPLE_SCHEMAS,
+  blockscoutWalletEvidence: WALLET_PROOF_SCHEMA,
+  rpcWalletEvidence: WALLET_PROOF_SCHEMA,
+  solanaRpcWalletEvidence: WALLET_PROOF_SCHEMA,
+};
+const WALLET_ALIAS_METADATA_SCHEMA = scalarReportFields([
+  "field", "canonicalField", "originalField", "originalPath", "sourceField", "sourcePath",
+  "providerFieldName", "detectedAlias", "unitBefore", "unitAfter", "sourceUnit", "canonicalUnit",
+  "conversionApplied", "normalizationRule", "validationReason", "conflictStatus", "parsedMarketPair",
+]);
+const WALLET_PROVENANCE_SCHEMAS = Object.fromEntries(WALLET_SAMPLE_FIELDS.map((field) => [field, {
+  ...WALLET_METADATA_SCHEMA,
+  ...WALLET_ALIAS_METADATA_SCHEMA,
+  value: WALLET_SAMPLE_SCHEMAS[field],
+  originalValue: WALLET_SAMPLE_SCHEMAS[field],
+  rawValue: WALLET_SAMPLE_SCHEMAS[field],
+  canonicalValue: WALLET_SAMPLE_SCHEMAS[field],
+  resolvedValue: WALLET_SAMPLE_SCHEMAS[field],
+  holderBalanceEvidence: WALLET_SAMPLE_SCHEMAS.holderBalanceEvidence,
+  alternativesConsidered: [true],
+  rejectedAlternatives: [true],
+  conflicts: [{ ...WALLET_METADATA_SCHEMA, ...WALLET_ALIAS_METADATA_SCHEMA }],
+}]));
+
 const IDENTITY_FIELDS = [
   "name",
   "symbol",
@@ -199,6 +277,8 @@ const EVIDENCE_FIELDS = [
   "sourceTruthStatus",
   "sourceTruthVerdict",
   "fieldProvenance",
+  "canonicalAliasProvenance",
+  ...Object.keys(WALLET_REPORT_SCHEMAS),
   "activeEvidenceRecovery",
   "activeEvidenceRecoveryStatus",
   "activeRecoveryStatus",
@@ -274,6 +354,49 @@ function orderedKeys(value = {}, topLevel = false, limits = {}) {
   return [...priority, ...remaining.slice(0, limits.objectKeyLimit)];
 }
 
+// Only normalized wallet fields are admitted. Absolute depth and ordinary report
+// limits still apply; copying each schema branch keeps shared samples auditable.
+function compactWalletValueForReport(value, limits, depth, schema) {
+  const primitive = compactPrimitive(value, limits);
+  if (primitive !== undefined) return primitive;
+  if (depth >= limits.depthLimit || schema === true) return "[nested data omitted from report]";
+
+  if (Array.isArray(value) && Array.isArray(schema)) {
+    const limit = Math.min(value.length, limits.arrayLimit);
+    const output = value.slice(0, limit).map((item) => compactWalletValueForReport(item, limits, depth + 1, schema[0]));
+    if (value.length > limit) output.push(`[${value.length - limit} additional items omitted from report]`);
+    return output;
+  }
+  if (Array.isArray(value) || Array.isArray(schema)) return "[nested data omitted from report]";
+
+  const output = {};
+  const keys = Object.keys(schema).filter((key) => Object.hasOwn(value, key)).slice(0, limits.objectKeyLimit);
+  for (const key of keys) output[key] = compactWalletValueForReport(value[key], limits, depth + 1, schema[key]);
+  const omittedKeyCount = Object.keys(value).length - keys.length;
+  if (omittedKeyCount > 0) output.reportCompactionOmittedKeys = omittedKeyCount;
+  return output;
+}
+
+function compactWalletProvenanceForReport(value, options, state, depth, key) {
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      depth >= state.limits.depthLimit) {
+    return compactValueForReport(value, options, state, depth, key);
+  }
+  const keys = Object.keys(value);
+  const priority = WALLET_SAMPLE_FIELDS.filter((field) => Object.hasOwn(value, field));
+  if (!priority.length) return compactValueForReport(value, options, state, depth, key);
+  state.seen.add(value);
+  const selected = [...priority, ...keys.filter((field) => !priority.includes(field))].slice(0, state.limits.objectKeyLimit);
+  const output = {};
+  for (const field of selected) {
+    output[field] = Object.hasOwn(WALLET_PROVENANCE_SCHEMAS, field)
+      ? compactWalletValueForReport(value[field], state.limits, depth + 1, WALLET_PROVENANCE_SCHEMAS[field])
+      : compactValueForReport(value[field], options, state, depth + 1, field);
+  }
+  if (keys.length > selected.length) output.reportCompactionOmittedKeys = keys.length - selected.length;
+  return output;
+}
+
 export function compactValueForReport(value, options = {}, state = null, depth = 0, key = "", topLevel = false) {
   const limits = state?.limits || reportLimits(options);
   if (shouldOmitHeavyField(key) && value !== null && value !== undefined) {
@@ -307,7 +430,13 @@ export function compactValueForReport(value, options = {}, state = null, depth =
 
   const output = {};
   for (const childKey of orderedKeys(value, topLevel, limits)) {
-    output[childKey] = compactValueForReport(value[childKey], options, localState, depth + 1, childKey);
+    if (topLevel && Object.hasOwn(WALLET_REPORT_SCHEMAS, childKey)) {
+      output[childKey] = compactWalletValueForReport(value[childKey], limits, depth + 1, WALLET_REPORT_SCHEMAS[childKey]);
+    } else if (topLevel && ["fieldProvenance", "canonicalAliasProvenance"].includes(childKey)) {
+      output[childKey] = compactWalletProvenanceForReport(value[childKey], options, localState, depth + 1, childKey);
+    } else {
+      output[childKey] = compactValueForReport(value[childKey], options, localState, depth + 1, childKey);
+    }
   }
   const omittedKeyCount = Object.keys(value).length - Object.keys(output).length;
   if (omittedKeyCount > 0) output.reportCompactionOmittedKeys = omittedKeyCount;

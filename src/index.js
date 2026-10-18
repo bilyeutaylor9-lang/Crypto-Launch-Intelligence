@@ -38,7 +38,7 @@ import { summarizeEvidenceFunnel } from "./kernel/evidenceFunnelSummary.js";
 import { runOutcomeProbe } from "./learning/outcomeProbe.js";
 import { runProductionShadowCycle } from "./ops/runProductionShadowCycle.js";
 import { runProductionGradeCycle } from "./ops/runProductionGradeCycle.js";
-import { resolveCodeCommitSha } from "./production/productionRunManifest.js";
+import { buildScanCodeProvenance, resolveCodeCommitSha } from "./production/productionRunManifest.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -912,6 +912,7 @@ async function main() {
   try {
     const startedAt = new Date();
     const scanRunId = `scan_${startedAt.getTime()}`;
+    const codeCommitShaAtStart = currentCodeCommitSha();
 
     printBanner();
 
@@ -1019,7 +1020,7 @@ async function main() {
     let reportMeta = {
       runId: scanRunId,
       scanRunId,
-      codeCommitSha: currentCodeCommitSha(),
+      ...buildScanCodeProvenance(codeCommitShaAtStart, currentCodeCommitSha()),
       artifactClass: "LIVE_SHADOW",
       evidenceMode: "SHADOW_RESEARCH_ONLY",
       startedAt: startedAt.toISOString(),

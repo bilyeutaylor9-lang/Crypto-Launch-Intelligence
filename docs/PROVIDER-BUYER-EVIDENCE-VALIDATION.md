@@ -1,5 +1,68 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Quote Money And Proof Retention
+
+The next audit reproduced a genuine quote-money defect without provider calls:
+coercible arrays/booleans could become zero gas, positive notional, or one
+decimal. Five of six new numeric regression cases failed before repair.
+LI.FI now accepts only finite decimal numbers/text for money and decimal
+metadata, rejects nonzero decimal strings that underflow to zero, and requires
+bounded unsigned uint256 decimal strings for atomic quote quantities. Both
+legacy recovery and forward quote capture share this identity/amount validator.
+An optional estimate input must agree with the actual action input; malformed
+output quantities cannot attest a quote. A positive notional rounding to zero
+atomic units cannot initiate a quote. Explicit observed zero and existing
+empty observed fee lists retain their meaning; unknown fees remain unknown.
+No quote, fee, route, pool, safety or qualification gate is weakened.
+
+The generic report compactor previously discarded the recovered Solana wallet
+list, alias provenance and raw normalized RPC proof while retaining names of
+recovered fields. It now retains bounded normalized wallet samples and
+provenance across the existing wallet sources, including exact mint/pool,
+original observation/event timestamps, confidence, validation status, sampled
+coverage and UNKNOWN/false semantics. Shared sample references no longer
+erase a later proof branch. Existing absolute depth, string, array and object
+bounds remain; unbounded raw provider bodies are not admitted. Tests cover
+the real executor shape, key pressure, enormous samples, nonmutation, conflicts,
+and the actual JSON writer after both serialization passes. A historical owner
+whose final balance is zero remains historical participation, not a current
+holder, buyer, EOA, smart wallet or execution proof.
+
+The local codeCommitSha:null finding was reclassified after source inspection:
+the existing resolver deliberately refuses a dirty checkout, and preserved
+untracked generated folders made it dirty. That safeguard is retained. The
+215 original preserved file hashes were unchanged; a distinct additional
+universe-ledger copy had materialized. Both directories, all 216 files and a
+fresh preservation manifest were retained outside the Git checkout at
+../cli-preserved-runtime-copies-20261018-0612, with identical before/after
+hashes. Nothing was discarded or merged into live memory. The initial archive
+attempt stopped without changes when the extra file was detected. Existing
+canonical data/reports were untouched. Old null headers were not retroactively
+relabeled with a commit.
+
+Provenance lookup now supports isolated cwd/environment testing without
+changing its dirty/untracked/no-Git policy. The scanner also records source
+state at start and end: codeCommitSha is present only when both resolved
+versions match. A source change, dirty state or unavailable identity cannot
+label the run with a later commit; explicit diagnostic start/end/status fields
+explain the uncertainty. Real temporary-Git tests cover clean, dirty,
+untracked, unavailable and commit-changed-during-run cases. No bypass of the
+clean-source requirement was added.
+
+Integrated validation passes 1771 tests without failures, skips or cancellations,
+924 JavaScript syntax checks and entrypoint syntax/typecheck; 21 load tests
+pass, including the 500-deep / 3500-deferred deterministic fixture. The final
+focused cost/provenance/report set passes 29 tests and the provenance-only
+wording follow-up passes five. Fresh npm ci reports zero vulnerabilities.
+All 216 canonical runtime files retain identical hashes and file sets after
+the full tests/load sequence. These are code/integrity checks, not evidence
+of profitable edge or successful live pool-attested execution.
+
+The prior run scan_1792302847311 used tracked source at b6ae9e17 and achieved
+0/113 core-starved, 91% core / 90% advisory coverage, but its strict artifact
+commit metadata remained null and final health remained DATA_DEGRADED. It is
+not retroactively claimed as provenance-complete or a profitable edge.
+
 ## October 18 Solana Transaction-Owner Recovery
 
 Fresh exact-token inspection of the last Solana wallet gap confirmed that
