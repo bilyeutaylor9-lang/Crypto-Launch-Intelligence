@@ -1,5 +1,94 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Offline Verification Boundary
+
+CI's former deterministic smoke actually ran live discovery and provider
+recovery. Node24 therefore failed strict readiness depending on current source
+availability, even though install, build, syntax and all unit tests passed.
+The unchanged live chain remains available as scan:smoke:live. scan:smoke now
+uses an isolated temporary child with TEST/OFFLINE_FIXTURE provenance from the
+start, a fixed fixture clock, no operator credentials and a network-denial
+ledger inherited by audit workers. Swallowed network failures still fail.
+
+The harness runs actual raw security parsers, bounded paired-quote recovery,
+the full engine profile, guarded ranking, all default required reports, all
+205 engine audits, strict master readiness, contract and artifact-manifest
+checks. It cannot accept precomputed final proof/readiness fields. Two fresh
+runs produce identical semantic decisions: one verified route, healthy
+NO_EDGE_FOUND, no qualified token. Missing/expired quotes, unsafe evidence,
+malformed reports and forbidden network attempts cannot pass. TEST reports
+remain non-live and cannot be published as live evidence.
+
+Local integrated validation passes all 1965 tests with zero failures or skips,
+949 JavaScript syntax checks, entrypoint typecheck, all 21 load tests and the
+canonical offline smoke. The load fixture includes 500 deep and 3500 deferred
+candidates with strict wave/request limits and zero forced picks. A clean
+dependency install reports zero vulnerabilities. All 226 preserved data,
+report and dashboard files outside this validation document remain unchanged
+across the complete suite; this source document was updated afterward. These
+are local Node26 results; fresh Node22/24 CI and a clean source-pinned live scan
+remain separate checks. Offline PASS never changes live DATA_DEGRADED into PASS,
+extends a quote's lifetime or establishes a profitable trading edge.
+
+## October 18 Final Audit Critical Path
+
+Clean b7e7d0f0 scan_1792320576369 completed at 10:56:04.956Z, with 9210
+discoveries, 1541 standard / 126 deep / 1415 deferred candidates, 92% core and
+90% advisory contract-input coverage, and zero core-starved/partial candidates.
+All 126 recovery records survived both phases; WAVE1/2/3 membership was
+46/110/50 with 327/2000 request units and no deadline exhaustion. Recovered
+families were WALLETS 303, DEPLOYER 170, SECURITY 302, EXECUTION 32, IDENTITY 9
+and MARKET 9. No companion observation remained in an UNKNOWN family bucket.
+
+Raydium made 47 actual HTTP requests, all successful at the transport level,
+and recovered four exact paired quotes. Other outcomes remained legitimate
+no-buy/no-sell routes or unproven pool identity. LI.FI made zero requests and
+the missing optional Jupiter/0x keys did not consume HTTP budget. These counts
+are not a controlled provider-cost comparison with the prior live universe.
+
+The scheduling repair was necessary but insufficient: the four original
+30-second deadlines expired 61-63 seconds before final evaluation. There were
+zero verified routes, zero qualified picks, 125 unresolved final proofs and
+semantic DATA_DEGRADED. All expired routes were non-live and unqualified.
+Report contracts and all 205 engine audits passed, and only the four declared
+audit artifacts changed across the 217-file preservation check. Strict live
+readiness and scanner smoke correctly failed. This is not a healthy no-edge
+result or proof of profitable alpha.
+
+The remaining final-audit alias matching repeatedly compared each field against
+the entire semantic leaf set. Alias resolution now indexes the same leaf set
+once, retaining its existing ignore patterns and cap, then visits exact and
+fuzzy matches in their original order. Per-resolution provider caches do not
+survive a new evidence observation or vocabulary update. No evidence value,
+source time, conflict, confidence, applicability or gate changes.
+
+Differential tests compare every resolved value, provenance record, rejected
+alternative, conflict and ordering with the original standalone full-scan
+collector. Cases include false/zero/UNKNOWN, all registered fields, scan caps,
+literal dotted keys, empty path components, token-equals-pool rejection and
+mutable provider vocabulary. A 1123-leaf/325-field fixture measured about 482ms
+for the reference scan versus 17ms indexed in one local run; this is a component
+measurement, not a production-latency guarantee. The focused alias/readiness
+suite passes 34 tests. Another clean source-pinned scan must establish final
+quote freshness; expiration must never be repaired by extending provider TTL.
+
+The full-profile offline integration also exposed a report-only deterministic
+simulation replay that attempted to spread a later engine's evidence envelope
+as an array. The replay now ignores non-array message history on its private
+input copy; the original raw envelope and simulator score inputs are unchanged.
+Three regressions prove envelope/provenance preservation, unchanged replay
+results and continued rejection of invalid simulator output. This is diagnostic
+robustness, not acceptance of UNKNOWN evidence or proof of a market edge.
+
+The same integration proved a genuinely healthy no-edge case with one verified
+route, complete decision evidence and no qualified token. A general optional
+provider route-capacity warning still blocked master readiness for that case.
+It now remains visible as an advisory only when current evidence is healthy
+and decision completeness is explicitly true. Missing, false or contradictory
+decision proof retains the blocking warning. Regression checks retain FAIL for
+the real 92%-core/125-unresolved degraded shape. No candidate qualification,
+identity, authority, safety, liquidity or execution requirement was changed.
+
 ## October 18 Late Execution Hydration
 
 The clean e6ce5a7a scan, scan_1792317799166, proved the new free acquisition path

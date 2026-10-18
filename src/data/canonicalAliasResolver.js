@@ -22,6 +22,7 @@ import {
   IDENTITY_CRITICAL_FIELDS,
   parseMarketPair,
   parentPath,
+  semanticAliasTermsForField,
 } from "./semanticAliasNormalizer.js";
 
 const ADDRESS_FIELDS = new Set(["tokenAddress", "poolAddress"]);
@@ -124,7 +125,12 @@ function inferProvider(project = {}, options = {}, sourcePath = "") {
   const provenance = sourcePath ? fieldProvenance(project, sourcePath) : {};
   const observedSource = [provenance.source, provenance.sourceProvider, provenance.provider]
     .find((value) => typeof value === "string" && value.trim());
-  return canonicalProviderId(observedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown");
+  const source = observedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown";
+  const cache = typeof source === "string" ? options._providerIds : null;
+  if (cache?.has(source)) return cache.get(source);
+  const provider = canonicalProviderId(source);
+  cache?.set(source, provider);
+  return provider;
 }
 
 function flattenObject(object = {}, prefix = "", output = []) {
@@ -172,6 +178,32 @@ function semanticScanFields(project = {}, options = {}) {
 
 function comparable(value = "") {
   return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
+}
+
+function indexSemanticFields(fields = []) {
+  const index = new Map();
+  fields.forEach((candidate, position) => {
+    for (const key of new Set([comparable(candidate.sourcePath), comparable(fieldNameFromPath(candidate.sourcePath))])) {
+      if (!index.has(key)) index.set(key, []);
+      index.get(key).push(position);
+    }
+  });
+  return index;
+}
+
+function indexedSemanticCandidates(fields, index, aliases, canonicalField) {
+  const positions = new Set();
+  for (const alias of aliases) {
+    for (const position of index.get(comparable(alias)) || []) positions.add(position);
+  }
+  if (semanticAliasTermsForField(canonicalField).length) {
+    fields.forEach((candidate, position) => {
+      if (!positions.has(position) && hasRawValue(candidate.rawValue) &&
+        fuzzyAliasMatch(candidate.sourceField, canonicalField).matched) positions.add(position);
+    });
+  }
+  // Conflict resolution is order-sensitive; retain the original flattened order.
+  return [...positions].sort((left, right) => left - right).map(position => fields[position]);
 }
 
 function isExplicitAlias(sourcePath = "", sourceField = "", aliases = [], aliasIndex = null) {
@@ -393,6 +425,8 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
         sourceProvider: provider,
         shallow: true,
         disableSemanticScan: true,
+        _providerIds: options._providerIds,
+        _providerProfiles: options._providerProfiles,
       }).resolved.chain ?? null;
 
   const explicitCandidates = aliases
@@ -406,9 +440,12 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 
   const explicitPaths = new Set(explicitCandidates.map((candidate) => candidate.sourcePath));
   const semanticFields = options._semanticFields || (options.disableSemanticScan ? [] : flattenObject(project));
+  const discoveredFields = options._semanticFieldIndex
+    ? indexedSemanticCandidates(semanticFields, options._semanticFieldIndex, aliases, canonicalField)
+    : semanticFields;
   const discoveredCandidates = options.disableSemanticScan
     ? []
-    : semanticFields
+    : discoveredFields
         .filter((candidate) => !explicitPaths.has(candidate.sourcePath) && hasRawValue(candidate.rawValue))
         .map((candidate) => {
           const direct = confidenceTypeForPath(candidate.sourcePath, aliases, provider, aliasIndex);
@@ -431,7 +468,11 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   for (const candidate of candidates) {
     // Discovery attribution cannot replace the provider that observed this field.
     const provider = inferProvider(project, options, candidate.sourcePath);
-    const profile = providerProfile(provider);
+    let profile = options._providerProfiles?.get(provider);
+    if (!profile) {
+      profile = providerProfile(provider);
+      options._providerProfiles?.set(provider, profile);
+    }
     if (candidate.confidenceType === "FUZZY_ALIAS" && IDENTITY_CRITICAL_FIELDS.has(canonicalField)) {
       records.push(rejectRecord({
         canonicalField,
@@ -482,13 +523,20 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 export function resolveCanonicalAliases(project = {}, options = {}) {
   const fields = options.fields || [...new Set([...Object.keys(CANONICAL_FIELD_ALIAS_REGISTRY), ...Object.keys(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY)])];
   const semanticFields = options.disableSemanticScan ? [] : semanticScanFields(project, options);
+  const semanticFieldIndex = options.disableSemanticScan ? null : indexSemanticFields(semanticFields);
+  // These caches live for one resolution only, never across evidence updates.
+  const providerIds = options._providerIds || new Map();
+  const providerProfiles = options._providerProfiles || new Map();
   const resolved = {};
   const provenance = {};
   const conflicts = {};
   const audits = [];
 
   for (const field of fields) {
-    const candidates = collectAliasCandidates(project, field, { ...options, _semanticFields: semanticFields });
+    const candidates = collectAliasCandidates(project, field, {
+      ...options, _semanticFields: semanticFields, _semanticFieldIndex: semanticFieldIndex,
+      _providerIds: providerIds, _providerProfiles: providerProfiles,
+    });
     const { winner, conflicts: fieldConflicts, status } = resolveFieldConflict(candidates);
     if (winner) {
       resolved[field] = winner.canonicalValue;

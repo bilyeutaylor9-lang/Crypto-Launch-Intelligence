@@ -65,8 +65,11 @@ function validateReasoningBrain(project = {}) {
 function deterministicOutcomeCheck(project = {}) {
   if (!project.quantumOutcomeField) return { status: "SKIPPED", reason: "missing quantumOutcomeField" };
   const scenarios = normalizeScenarioCount(project.quantumOutcomeField.scenarioCount, 2048);
-  const first = analyzeQuantumOutcomeField(project, { scenarios }).quantumOutcomeField;
-  const second = analyzeQuantumOutcomeField(project, { scenarios }).quantumOutcomeField;
+  // Later engines can retain an evidence envelope rather than an array. This
+  // replay consumes only simulator inputs and must not mutate that raw envelope.
+  const replay = Array.isArray(project.evidence) ? project : { ...project, evidence: [] };
+  const first = analyzeQuantumOutcomeField(replay, { scenarios }).quantumOutcomeField;
+  const second = analyzeQuantumOutcomeField(replay, { scenarios }).quantumOutcomeField;
   const same = JSON.stringify(first) === JSON.stringify(second);
   return {
     status: same ? "PASS" : "FAIL",

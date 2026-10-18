@@ -116,6 +116,16 @@ test("all Node 24 workflows require the released native-addon cleanup fix", () =
   assert.doesNotMatch(ci, /continue-on-error:/);
 });
 
+test("CI scanner smoke is offline and preserves the explicitly named live smoke chain", () => {
+  const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+  const ci = fs.readFileSync(".github/workflows/node.js.yml", "utf8");
+  assert.equal(pkg.scripts["scan:smoke"], "node src/ops/runOfflineScannerSmoke.js");
+  assert.equal(pkg.scripts["scan:smoke:live"], "SCANNER_DATA_DEGRADED_MIN_CANDIDATES=1000 npm run scan:debug100 && npm run engine:audit:full && ARTIFACT_CLASS=TEST npm run system:readiness:refresh && npm run smoke:scanner");
+  assert.match(ci, /name: Deterministic offline full-pipeline scanner smoke/);
+  assert.match(ci, /if: matrix\.node-version == '24\.x'\s+run: npm run scan:smoke/);
+  assert.doesNotMatch(ci, /continue-on-error:|scan:smoke:live/);
+});
+
 test("only the live dashboard workflow schedules or runs full scans on main pushes", () => {
   const manual = fs.readFileSync(".github/workflows/manual.yml", "utf8");
   const live = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");
