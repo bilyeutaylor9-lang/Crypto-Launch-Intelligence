@@ -1,5 +1,46 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Authority Response Clock
+
+The 80d5d888 wide run completed as scan_1792308779461 with stable matching
+source identities, 9221 discoveries, 1551 standard / 136 deep, and 1415
+deferred candidates. Core/advisory coverage was 92%/90%, with zero core
+starved/partial, 136 advisory gaps, zero verified routes/qualified and 135
+unresolved final proofs. Discovery missed its 10000 target by 7.79%; it was
+not filled with synthetic identities. The repaired report retains the actual
+AGENT raw wallet proof and matching field/alias source under the tighter
+20631-character budget. Aggregate recovery metrics remain authoritative in
+starvation-recovery-results.json:evidenceHydration, not in every bounded
+per-project report receipt. It records 120 attempts, waves 48/120/36 and
+289/2000 request units, without deadline exhaustion. Recovered fields were
+IDENTITY 3, MARKET 3, WALLETS 293, SECURITY 326 and DEPLOYER 186.
+
+All 205 engines (51 standalone) executed in the post-run audit; report
+contracts pass, but readiness and scanner smoke fail on real decision-proof
+gaps. Latest exact-head Node22 and Production Verification pass; Node24
+passes install/typecheck/lint/tests but fails the live readiness smoke. No
+landing request was made. The original scan remains archived and is not
+retroactively labeled with a later source version.
+
+Successful RPC methods with unresolved authority inputs prompted another
+clock audit. A deterministic regression proved that the collector compared
+block time with a clock captured before its RPC sequence: a block produced
+during the request could be rejected as future despite being in the past at
+response time. Freshness/nonfuture validation now uses the response-time
+clock. The same strict 300-second limit and rejection of genuinely future,
+unknown and stale timestamps remain. No clock-skew allowance or authority
+inference was introduced. The new test failed before repair; the final
+focused authority/planner set passes 26. Fresh scanning, rather than a blanket
+assumption, must determine which remaining production gaps this resolves.
+
+Integrated validation passes 1811 tests without failures/skips/cancellations,
+26 focused authority/planner tests, 21 load tests and entrypoint typecheck.
+The two changed JavaScript files pass direct syntax checks; the unchanged
+remaining files retain the prior complete 929-file syntax validation, and
+fresh exact-head CI will repeat it. After the full suite/load run, every live
+report matches the preserved 80d5d888 archive and all pre-audit data file
+hashes remain unchanged. No old report was relabeled as a new scan.
+
 ## October 18 Wide-Report Proof Priority
 
 The first clean wide run at 519ed0da, scan_1792307803689, reached 10000

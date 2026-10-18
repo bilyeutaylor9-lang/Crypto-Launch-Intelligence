@@ -126,8 +126,9 @@ async function rpcMintEvidence(project = {}, options = {}) {
         throw new Error("Solana RPC did not return an initialized, paired SPL mint-authority account.");
       }
       const blockTimestamp = await rpc("getBlockTime", [observedSlot]);
-      if (!Number.isSafeInteger(blockTimestamp) || blockTimestamp <= 0 || blockTimestamp * 1000 > now ||
-          now - blockTimestamp * 1000 > maxAge * 1000) throw new Error("Authority account context time is missing, future or stale.");
+      const responseTime = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+      if (!Number.isFinite(responseTime) || !Number.isSafeInteger(blockTimestamp) || blockTimestamp <= 0 || blockTimestamp * 1000 > responseTime ||
+          responseTime - blockTimestamp * 1000 > maxAge * 1000) throw new Error("Authority account context time is missing, future or stale.");
       attempts.push({ endpointId, status: "EVIDENCE_AVAILABLE" });
       return { ownerProgram: value.owner, mintAuthority: info.mintAuthority, freezeAuthority: info.freezeAuthority,
         decimals: info.decimals ?? null, supply: info.supply ?? null,

@@ -72,3 +72,16 @@ test("independent configured endpoints can recover after a real transport failur
   assert.ok(calls.every(x => x.url === "https://rpc.invalid"));
   assert.equal(result.raw.rpc.rpcEndpointAttempts.length, 2);
 });
+
+test("a block produced during RPC collection is not falsely future at response time", async () => {
+  let now = NOW;
+  const fetch = transport({ time: NOW / 1000 + 1 });
+  const opts = options(async (url, init) => {
+    if (init.method === "POST" && JSON.parse(init.body).method === "getGenesisHash") now += 2000;
+    return fetch(url, init);
+  });
+  opts.now = () => now;
+  const result = await getSolanaSecurityEvidence({ chain: "solana", tokenAddress: MINT }, opts);
+  assert.equal(result.identityVerifiedOnChain, true);
+  assert.equal(result.sourceTimestamp, new Date(NOW + 1000).toISOString());
+});
