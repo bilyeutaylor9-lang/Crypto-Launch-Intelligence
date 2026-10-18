@@ -95,6 +95,27 @@ test("all GitHub workflows use Node 24-safe action versions", () => {
   }
 });
 
+test("all Node 24 workflows require the released native-addon cleanup fix", () => {
+  const workflowDir = ".github/workflows";
+  let setups = 0;
+  for (const fileName of fs.readdirSync(workflowDir).filter((name) => name.endsWith(".yml"))) {
+    const workflow = fs.readFileSync(`${workflowDir}/${fileName}`, "utf8");
+    const setupSteps = workflow.split(/\r?\n(?=\s*- (?:name:|uses:))/)
+      .filter((step) => /uses:\s*actions\/setup-node@/.test(step));
+    for (const step of setupSteps) {
+      if (!/node-version:/.test(step)) continue;
+      setups += 1;
+      assert.match(step, /\^24\.22\.0/, `${fileName} must not select affected cached Node 24.21`);
+      assert.match(step, /check-latest:\s*true/, `${fileName} must resolve current patched releases`);
+    }
+  }
+  assert.ok(setups >= 18, "all scanner and publishing Node setup steps must be checked");
+  const ci = fs.readFileSync(`${workflowDir}/node.js.yml`, "utf8");
+  assert.match(ci, /node-version:\s*\[22\.x, 24\.x\]/);
+  assert.match(ci, /if: matrix\.node-version == '24\.x'\s+run: npm run scan:smoke/);
+  assert.doesNotMatch(ci, /continue-on-error:/);
+});
+
 test("only the live dashboard workflow schedules or runs full scans on main pushes", () => {
   const manual = fs.readFileSync(".github/workflows/manual.yml", "utf8");
   const live = fs.readFileSync(".github/workflows/pages-dashboard.yml", "utf8");

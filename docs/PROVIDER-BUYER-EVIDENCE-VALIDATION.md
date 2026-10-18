@@ -1,5 +1,68 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Native CI Runtime Repair
+
+CI run 39099424362 at 5503ece9597338ba85f1feb80062cd671dbd0a1c
+passed unit tests but aborted inside better-sqlite3 Statement cleanup during
+the scanner's Capital Flow Observation stage. This was before the isolated
+engine audit, not an audit-worker shutdown. The runner selected cached Node
+24.21.0 despite Node 24.22.0 having been released on October 14.
+
+The upstream ObjectWrap cleanup regression is documented in
+[Node issue 65446](https://github.com/nodejs/node/issues/65446). The released
+[Node 24.22.0](https://github.com/nodejs/node/releases/tag/v24.22.0) contains
+cleanup registry fix abe1b673e9b12588abcb6d74b0facedf6a3136dd; GitHub's
+commit comparison confirms it is an ancestor of that release. Every workflow
+using Node 24 now requires ^24.22.0 and resolves the latest matching release,
+rather than accepting the runner's older cached runtime. Node22/24 CI check
+names, both test matrix entries, scanner smoke, and live readiness gates are
+unchanged. No dependency or test gate is removed. An allocation-driven native
+SQLite cleanup regression test keeps the connection alive while 40,000
+temporary statements become collectible and then checks database integrity.
+Workflow contracts guard the runtime floor and unchanged smoke invocation.
+
+Independent reproduction used official macOS x64 Node 24.21.0 and 24.22.0
+archives, each verified against its official distribution SHA256 listing.
+The fixture addon was rebuilt against 24.21.0 headers (build/config.gypi
+confirmed that header directory). The same addon and test aborted on 24.21.0
+with RemoveEnvironmentCleanupHook's env-null assertion, then passed on
+24.22.0 without rebuilding or changing the test. The first prebuilt-addon
+attempt did not reproduce the bug; the affected-header rebuild did. This is
+an actual before/after runtime reproduction, not a claim based only on retry.
+The full isolated project suite passes 1717 tests, all 917 JavaScript files
+pass syntax checks, entrypoint syntax/typecheck passes, and the load suite
+passes 21 tests; all 17 workflow YAML files parse. All 215 runtime files remain byte-for-byte
+unchanged after full tests/load. Fresh remote CI is still required and live
+readiness remains an independent, unchanged gate.
+
+## October 18 GoPlus Live Validation
+
+The clean production-style scan scan_1792300021876 at
+5503ece9597338ba85f1feb80062cd671dbd0a1c accepted 2000 discovered candidates,
+with 277 standard / 116 deep / 161 deferred. It achieved 91% core / 90%
+advisory coverage, 114 core-ready / zero partial / two core-starved (1.72%).
+Before this layer, six of 117 deep candidates were core-starved (5.13%).
+These are separate live universes, not a controlled benchmark.
+
+Recovery attempted 98 candidates and recovered fields for 97, with wave
+counts 47/98/34 and 26 of 2000 request units used. Recovered field counts:
+IDENTITY3 / MARKET3 / WALLETS235 / DEPLOYER203 / SECURITY236. Unresolved
+attempted fields: MARKET2 / DEPLOYER93 / EXECUTION136 / WALLETS4. No request
+was skipped because of the shared deadline. The two remaining core wallet
+gaps are an unresolvable Solana owner sample and a BSC GoPlus cooldown;
+neither was converted to positive evidence. Deferred candidates are excluded.
+
+Verified routes and fully qualified candidates both remain zero. LI.FI was
+explicitly disabled for this local run because its prior real 70-request
+keyless allowance was still cooling down; 0x lacked its optional key. Thus
+this scan made zero quote HTTP requests and is not execution verification.
+Report contracts passed and the engine manifest is COMPLETE. The full audit
+passed 205 engines (51 standalone) while all 211 non-audit live artifacts
+retained their hashes. The three previously contaminated advisory reports
+each analyzed 277 real inputs. Readiness refresh and scanner smoke still
+failed DATA_DEGRADED because final decision proof was missing. No edge or
+deployment readiness is claimed by improved core input coverage alone.
+
 ## October 18 GoPlus Wallet Acquisition
 
 Inspection of scan_1792298173233 at 467c081d9c8aad4c3d0d7912e3f9edc6588c5429

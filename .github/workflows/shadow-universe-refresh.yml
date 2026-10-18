@@ -33,7 +33,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: '^24.22.0'
+          check-latest: true
           cache: npm
 
       - name: Install Dependencies
