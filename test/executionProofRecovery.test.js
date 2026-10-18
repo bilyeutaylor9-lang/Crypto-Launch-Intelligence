@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   analyzeExecutionProofRecoveryBatch,
@@ -7,7 +10,6 @@ import {
 import { analyzeExecutionProofBatch } from "../src/engines/executionProofEngine.js";
 import { analyzeRouteAccessibilityBatch, summarizeRouteAccessibility } from "../src/engines/routeAccessibilityEngine.js";
 import { summarizeExecutionProofRecovery } from "../src/reports/executionProofRecoveryReportEngine.js";
-import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilityReportEngine.js";
 import { summarizeDailySourceGaps } from "../src/reports/dailySourceGapReportEngine.js";
 
 const NOW = new Date("2026-07-26T12:00:00.000Z");
@@ -457,7 +459,16 @@ test("recovery timeout produces a safe no-route result", async () => {
   assert.ok(recovered.executionProofRecovery.executionRecoveryFailures.some((failure) => /timeout|aborted/i.test(failure)));
 });
 
-test("route-universe report re-analyzes recovered routes when canonicalRoutes are absent", async () => {
+test("route-universe report re-analyzes recovered routes when canonicalRoutes are absent", async (t) => {
+  const originalCwd = process.cwd();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "execution-recovery-report-test-"));
+  t.after(() => {
+    process.chdir(originalCwd);
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+  process.chdir(root);
+  // This writer binds its report directory when the module is imported.
+  const { writeRouteAccessibilityReports } = await import("../src/reports/routeAccessibilityReportEngine.js");
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
     jupiterApiKey: "test-key",
     fetchJson: jupiterMock(),
