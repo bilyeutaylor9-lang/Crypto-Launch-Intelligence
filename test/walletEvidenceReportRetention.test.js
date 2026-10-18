@@ -183,6 +183,37 @@ test("the JSON writer retains the actual recovered proof after both serializatio
   assert.ok(fs.statSync(file).size < 100000);
 });
 
+test("decision proof is retained before shared references in derived report fields", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cli-shared-proof-report-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const executionProof = {
+    executionStatus: "UNKNOWN",
+    authorityEvidenceRequired: true,
+    authorityEvidenceVerified: true,
+    authoritySafetyClean: false,
+    buyQuoteVerified: false,
+    sellQuoteVerified: false,
+    liveExecutionReady: false,
+  };
+  const canonicalExecutionRoute = { chain: "solana", tokenAddress: TOKEN, poolAddress: POOL };
+  const project = freezeTree({
+    ...solanaProject(),
+    provenance: { priorProof: executionProof, priorRoute: canonicalExecutionRoute },
+    explosionReadinessComponents: { executionProof, canonicalExecutionRoute },
+    executionProof,
+    canonicalExecutionRoute,
+    finalSelectionQualified: false,
+  });
+  const compacted = compactProjectForReportWriters(project);
+  assert.deepEqual(compacted.executionProof, executionProof);
+  assert.deepEqual(compacted.canonicalExecutionRoute, canonicalExecutionRoute);
+  const file = writeJsonReport([compacted], { reportsDir: directory });
+  const [retained] = JSON.parse(fs.readFileSync(file, "utf8")).projects;
+  assert.deepEqual(retained.executionProof, executionProof);
+  assert.deepEqual(retained.canonicalExecutionRoute, canonicalExecutionRoute);
+  assert.equal(retained.finalSelectionQualified, false);
+});
+
 test("wallet retention and existing decision-critical fields survive project and nested key pressure", () => {
   const original = solanaProject();
   const pressure = filler();

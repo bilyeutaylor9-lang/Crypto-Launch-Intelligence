@@ -107,6 +107,11 @@ export function deterministicCandidateBlocks(project = {}) {
       ? ["Verified scam or honeypot evidence."]
       : []),
     ...(project.sellRestricted === true ? ["Confirmed sell restriction."] : []),
+    ...(project.executionProof?.authorityEvidenceRequired === true &&
+        project.executionProof?.authorityEvidenceVerified === true &&
+        project.executionProof?.authoritySafetyClean === false
+      ? ["Verified unsafe mint or freeze authority."]
+      : []),
     ...(project.chainMismatch === true || project.contractChainMismatch === true
       ? ["Confirmed chain mismatch."]
       : []),

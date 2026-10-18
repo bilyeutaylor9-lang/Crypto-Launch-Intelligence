@@ -1,5 +1,50 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Known Rejection And Shared Proof
+
+The source-stable cf3d0b43 wide scan, scan_1792309913834, reached 10000
+discoveries, 1421 standard / 138 deep candidates and 1283 deferred before
+deep. It measured 92% core / 90% advisory coverage, zero core-starved or
+partial candidates, zero verified routes/qualified candidates and 137
+unresolved final proofs. Recovery attempted 122 candidates, selected waves
+48/122/36 and used 329/2000 request units. All requested mint-authority raw
+fields were recovered; no pending requested authority field remained.
+The post-run 205-engine audit changed only its four declared report files.
+Report health passed, but readiness and scanner smoke still failed on real
+decision-proof gaps. Exact-head Node22 and Production Verification passed;
+Node24's live readiness smoke failed. No landing request was made.
+
+Manual inspection of debug-execution-proof.json found the remaining authority
+gap was a verified negative, not an acquisition failure: the exact Solana
+mint DWCj1WhLQouv7WgfzLM4V1K3AQadZr4re6gSbLdD7Ppo had
+authorityEvidenceVerified:true and authoritySafetyClean:false. Candidate
+truth now treats that strict verified/required/unsafe combination as a
+deterministic rejection. It cannot become VERIFIED_SAFE, qualify or consume
+irrelevant decision-proof requests. Unknown, partial and nonboolean flags
+remain missing evidence; a new clean current proof can clear this block but
+cannot clear missing quotes. This strengthens known-negative handling rather
+than promoting unavailable proof.
+
+The same inspection found report.json's executionProof roots were repeated
+reference markers on all 138 deep rows. The first report compactor had visited
+shared proof through identity provenance or derived snapshots before copying
+the authoritative root. Its traversal now retains executionProof and
+canonicalExecutionRoute first. Ordinary repeat detection and every existing
+depth, key, array and string limit remain unchanged; downstream serialization
+keeps its existing bounds. Frozen shared-reference fixtures verify both passes
+without altering source objects or fabricating a positive execution flag.
+
+Both new regressions failed before repair. The focused current-proof,
+authority/planner and report suite passes 49 tests. Integrated validation passes
+1816 full tests without failures/skips/cancellations, 21 load tests, all 930
+JavaScript syntax checks and the entrypoint typecheck. Runtime preservation
+comparison found only the six intentional audit/readiness writer outputs
+changed from the pre-audit scan snapshot; data and all other reports match.
+A fresh source-pinned scan remains required. These repairs do not
+restore unavailable live quotes or prove a profitable edge. LI.FI's existing
+local quota remains exhausted through 2026-10-18T08:39:19.615Z; no extra request,
+quota reset, alternate egress or gate override was used.
+
 ## October 18 Authority Response Clock
 
 The 80d5d888 wide run completed as scan_1792308779461 with stable matching
