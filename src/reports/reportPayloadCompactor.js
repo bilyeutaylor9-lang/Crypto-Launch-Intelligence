@@ -5,12 +5,20 @@ const DEFAULT_REPORT_STRING_LIMIT = 1_500;
 const DEFAULT_REPORT_DEPTH_LIMIT = 4;
 const DISCOVERY_SAMPLE_LIMIT = 50;
 
+export const REPORT_FINAL_RISK_SCALAR_FIELDS = Object.freeze([
+  "riskScore", "smallCapRiskScore", "economicIntegrityRiskScore", "activityAuthenticityRiskScore",
+  "supplyIntegrityRiskScore", "deployerRiskScore", "walletClusterRiskScore", "washTradingRiskScore",
+  "bundledLaunchRiskScore", "instantSafetyRiskScore", "organicDemandFirewallRisk",
+  "trapRiskScore", "outcomeTrapRisk", "falsePositiveSimilarity", "finalRiskScore", "finalTrapRiskScore",
+]);
+
 // A finite scalar projection must precede wallet/provenance graphs in every writer.
 export const REPORT_DECISION_SCALAR_FIELDS = Object.freeze([
   "name", "symbol", "chain", "chainId", "tokenAddress", "contractAddress", "poolAddress", "pairAddress",
   "tokenName", "dexName", "dex", "venue", "exchange", "routeType", "source", "provider",
   "sourceTimestamp", "observedAt", "scannedAt", "dataCutoffTimestamp",
-  "pipelineScore", "score", "opportunityScore", "guardedLiveScore", "liveScore", "riskScore",
+  "pipelineScore", "score", "opportunityScore", "guardedLiveScore", "liveScore",
+  ...REPORT_FINAL_RISK_SCALAR_FIELDS,
   "researchScore", "executionScore", "finalDecisionScore", "finalIdentityState",
   "finalSelectionState", "finalSelectionQualified", "finalIntegrityScore", "finalIntegrityVerdict",
   "liveActionStatus", "liveExecutionReady", "liveRankingModel", "liveRankingAuthoritative", "scoringPrimaryModel",
@@ -323,6 +331,7 @@ const EVIDENCE_FIELDS = [
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
   ...REPORT_DECISION_SCALAR_FIELDS,
+  "signalProfile",
   // Derived snapshots can share these objects; retain the authoritative roots first.
   "executionProof",
   "canonicalExecutionRoute",
@@ -369,9 +378,10 @@ function compactPrimitive(value, limits = {}) {
   return undefined;
 }
 
-function orderedKeys(value = {}, topLevel = false, limits = {}) {
+function orderedKeys(value = {}, topLevel = false, limits = {}, parentKey = "") {
   const keys = Object.keys(value);
-  if (!topLevel) return keys.slice(0, limits.objectKeyLimit);
+  if (!topLevel) return (parentKey === "signalProfile" && Object.hasOwn(value, "risk")
+    ? ["risk", ...keys.filter((key) => key !== "risk")] : keys).slice(0, limits.objectKeyLimit);
 
   const priority = REPORT_PRIORITY_FIELDS.filter((key) => Object.hasOwn(value, key));
   const remaining = keys.filter((key) => !priority.includes(key));
@@ -453,7 +463,7 @@ export function compactValueForReport(value, options = {}, state = null, depth =
   }
 
   const output = {};
-  for (const childKey of orderedKeys(value, topLevel, limits)) {
+  for (const childKey of orderedKeys(value, topLevel, limits, key)) {
     if (topLevel && Object.hasOwn(WALLET_REPORT_SCHEMAS, childKey)) {
       output[childKey] = compactWalletValueForReport(value[childKey], limits, depth + 1, WALLET_REPORT_SCHEMAS[childKey]);
     } else if (topLevel && ["fieldProvenance", "canonicalAliasProvenance"].includes(childKey)) {

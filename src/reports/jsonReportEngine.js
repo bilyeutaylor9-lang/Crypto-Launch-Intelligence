@@ -10,6 +10,7 @@ const STREAM_COPY_BUFFER_BYTES = 64 * 1024;
 
 const REPORT_PRIORITY_FIELDS = [
   ...REPORT_DECISION_SCALAR_FIELDS,
+  "signalProfile",
   "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   "legacyFinalBlockingReasons", "legacyFinalWarningReasons", "legacyFinalSelectionReasons", "finalSelectionReasons",
@@ -238,9 +239,12 @@ function boundedNumber(value) {
   return Number.isFinite(value) ? value : String(value);
 }
 
-function prioritizedKeys(value, maxKeys, topLevel = false) {
+function prioritizedKeys(value, maxKeys, topLevel = false, parentKey = "") {
   const keys = Object.keys(value);
   if (!topLevel) {
+    if (parentKey === "signalProfile" && Object.hasOwn(value, "risk")) {
+      return ["risk", ...keys.filter((key) => key !== "risk")].slice(0, maxKeys);
+    }
     return (Object.hasOwn(value, "batchSummary")
       ? ["batchSummary", ...keys.filter((key) => key !== "batchSummary")]
       : keys).slice(0, maxKeys);
@@ -251,7 +255,7 @@ function prioritizedKeys(value, maxKeys, topLevel = false) {
   return [...priority, ...remaining].slice(0, maxKeys);
 }
 
-function compactValue(value, state, depth = 0, topLevel = false) {
+function compactValue(value, state, depth = 0, topLevel = false, parentKey = "") {
   if (value === null || value === undefined) return value ?? null;
   if (typeof value === "string") {
     const available = Math.max(0, state.remainingChars);
@@ -298,9 +302,9 @@ function compactValue(value, state, depth = 0, topLevel = false) {
 
   const output = {};
   const maxKeys = topLevel ? state.maxTopLevelKeys : state.maxObjectKeys;
-  const keys = prioritizedKeys(value, maxKeys, topLevel);
+  const keys = prioritizedKeys(value, maxKeys, topLevel, parentKey);
   for (const key of keys) {
-    output[key] = compactValue(value[key], state, depth + 1);
+    output[key] = compactValue(value[key], state, depth + 1, false, key);
     if (state.remainingChars <= 0 || state.remainingNodes <= 0) break;
   }
   if (Object.keys(value).length > keys.length) state.truncated = true;

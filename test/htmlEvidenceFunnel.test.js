@@ -21,6 +21,19 @@ function metric(html, label, expected) {
 const deep = { name: "Research only", deepEvaluationState: "DEEP_EVALUATED", coreEvidenceState: "CORE_EVIDENCE_READY",
   coreEvidenceCoveragePct: 91, finalSelectionState: "INSUFFICIENT_DATA", bestAvailableEligible: false };
 
+test("HTML risk column shows the final aggregate instead of a lower legacy root score", (t) => {
+  const html = render(t, [{...deep, name: "Risk retention example", riskScore: 0, finalRiskScore: 78}]);
+  const header = html.indexOf("<th>AI Thesis</th>");
+  assert.ok(header >= 0);
+  const mainTable = html.slice(header);
+  const body = mainTable.slice(mainTable.indexOf("<tbody>"), mainTable.indexOf("</tbody>"));
+  const row = [...body.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map(match => match[1])
+    .find(value => value.includes("Risk retention example"));
+  assert.ok(row);
+  const cells = [...row.matchAll(/<td(?:\s[^>]*)?>([\s\S]*?)<\/td>/g)].map(match => match[1].trim());
+  assert.equal(cells.at(-6), "78");
+});
+
 test("HTML recovery counts come from deep evidence, even when no candidate is best available", (t) => {
   const html = render(t, [{ ...deep, coreEvidenceState: "CORE_DATA_STARVED" }, deep,
     ...Array.from({ length: 5 }, () => ({ ...deep, deepEvaluationState: "DEFERRED_BEFORE_DEEP" }))]);

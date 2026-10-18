@@ -443,7 +443,7 @@ export function writeHtmlReport(projects = [], meta = {}) {
           <td>${esc(p.quantumOpportunityScore ?? "")}</td>
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
-          <td>${esc(p.riskScore ?? "")}</td>
+          <td>${esc(p.finalRiskScore ?? p.riskScore ?? "")}</td>
           <td>${listText(p.topEvidence || [])}</td>
           <td>${listText(p.topRisks || [])}</td>
           <td>${scoreBreakdownText(p)}</td>

@@ -27,6 +27,32 @@ const SCALARS = [
   "finalIntegrityPipelineScore", "finalIntegrityScoreSource", "finalAuthorityEngine",
 ];
 
+const RISK_INPUT_CASES = [
+  "smallCapRiskScore", "economicIntegrityRiskScore", "activityAuthenticityRiskScore", "supplyIntegrityRiskScore",
+  "deployerRiskScore", "walletClusterRiskScore", "washTradingRiskScore", "bundledLaunchRiskScore",
+  "instantSafetyRiskScore", "organicDemandFirewallRisk", "signalProfile.risk",
+  "trapRiskScore", "outcomeTrapRisk", "falsePositiveSimilarity",
+];
+
+test("unknown risk components stay null through every report projection", (t) => {
+  t.mock.method(Date, "now", () => Date.parse(CUTOFF));
+  const raw = {...lateProofProfileCandidate(), riskScore: null, signalProfile: {risk: null}};
+  for (const field of RISK_INPUT_CASES.filter(field => !field.includes("."))) raw[field] = null;
+  const original = analyzeFinalSelectionIntegrity(raw);
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "report-unknown-risk-"));
+  t.after(() => fs.rmSync(reportsDir, {recursive: true, force: true}));
+  for (const input of [original, compactProjectForReportWriters(original),
+    JSON.parse(JSON.stringify(buildTop10CandidateInput([original]))).projects[0]]) {
+    const file = writeJsonReport([input], {reportsDir, dataCutoffTimestamp: CUTOFF});
+    const [saved] = JSON.parse(fs.readFileSync(file, "utf8")).projects;
+    for (const field of RISK_INPUT_CASES) {
+      assert.equal(field.includes(".") ? saved.signalProfile?.risk : saved[field], null, field);
+    }
+    assert.equal(saved.riskScore, null);
+    assert.equal(saved.finalSelectionQualified, false);
+  }
+});
+
 function heavyCandidate(index, pressure = "characters") {
   const tokenAddress = `0x${(index + 100).toString(16).padStart(40, "0")}`;
   const poolAddress = `0x${(index + 200).toString(16).padStart(40, "0")}`;
@@ -248,6 +274,45 @@ for (const { budget, boundedWriter } of BUDGET_CASES) {
   });
 }
 
+for (const { budget, boundedWriter, top10 = false } of [...BUDGET_CASES,
+  ...[BUDGET, 8_000].map(budget => ({budget, boundedWriter: false, top10: true}))]) {
+  test(`all final-risk components survive ${top10 ? "Top10" : boundedWriter ? "bounded" : "raw"} serialization at ${budget} chars`, (t) => {
+    t.mock.method(Date, "now", () => Date.parse(CUTOFF));
+    const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "report-risk-inputs-"));
+    t.after(() => fs.rmSync(reportsDir, {recursive: true, force: true}));
+    const previous = process.env.REPORT_MAX_PROJECT_PAYLOAD_CHARS;
+    process.env.REPORT_MAX_PROJECT_PAYLOAD_CHARS = String(budget);
+    t.after(() => { if (previous === undefined) delete process.env.REPORT_MAX_PROJECT_PAYLOAD_CHARS;
+      else process.env.REPORT_MAX_PROJECT_PAYLOAD_CHARS = previous; });
+    for (const field of RISK_INPUT_CASES) {
+      const raw = {...lateProofProfileCandidate(), pipelineScore: 90, opportunityScore: 90,
+        riskScore: 0, finalBlockingReasons: [], legacyFinalBlockingReasons: []};
+      if (field === "signalProfile.risk") {
+        raw.signalProfile = {...Object.fromEntries(Array.from({length: 100}, (_, i) => [`noise${i}`, 0])), risk: 99};
+      } else raw[field] = 99;
+      const original = analyzeFinalSelectionIntegrity(raw);
+      const trap = ["trapRiskScore", "outcomeTrapRisk", "falsePositiveSimilarity"].includes(field);
+      assert.equal(trap ? original.finalTrapRiskScore : original.finalRiskScore, 99, field);
+      assert.equal(original.finalSelectionQualified, false, field);
+      const input = top10 ? JSON.parse(JSON.stringify(buildTop10CandidateInput([original]))).projects[0]
+        : boundedWriter ? compactProjectForReportWriters(original) : original;
+      const file = writeJsonReport([input], {reportsDir, dataCutoffTimestamp: CUTOFF});
+      const [saved] = JSON.parse(fs.readFileSync(file, "utf8")).projects;
+      assert.equal(field === "signalProfile.risk" ? saved.signalProfile?.risk : saved[field], 99,
+        `${field}: raw contributing fact`);
+      assert.equal(saved.finalRiskScore, original.finalRiskScore, `${field}: published final risk`);
+      assert.equal(saved.finalTrapRiskScore, original.finalTrapRiskScore, `${field}: published trap risk`);
+      saved.finalRiskScore = 0;
+      saved.finalTrapRiskScore = 0;
+      const rechecked = analyzeFinalSelectionIntegrity(saved);
+      assert.equal(rechecked.finalRiskScore, original.finalRiskScore, `${field}: recomputed risk`);
+      assert.equal(rechecked.finalTrapRiskScore, original.finalTrapRiskScore, `${field}: recomputed trap risk`);
+      assert.equal(rechecked.finalSelectionQualified, false, field);
+      assert.ok(JSON.stringify(saved).length < budget * 2, `${field}: bounded output`);
+    }
+  });
+}
+
 for (const budget of [BUDGET, 8_000]) {
   test(`Top10 late producer proof survives projection then JSON at ${budget} chars`, (t) => {
     t.mock.method(Date, "now", () => Date.parse(CUTOFF));
@@ -327,6 +392,8 @@ test("Top10 proof projection bounds normalized fields and excludes raw provider 
 for (const { budget, boundedWriter } of BUDGET_CASES) {
   test(`valid frozen proof frame survives ${boundedWriter ? "bounded" : "raw"} serialization at ${budget} chars`, (t) => {
     const original = { ...recoveredProfileCandidate(),
+      ...Object.fromEntries(RISK_INPUT_CASES.filter(field => !field.includes(".")).map(field => [field, 0])),
+      signalProfile: {risk: 0}, finalRiskScore: 35, finalTrapRiskScore: 0,
       deepEvaluationState: "DEEP_EVALUATED", coreEvidenceState: "CORE_EVIDENCE_READY",
       coreEvidenceCoveragePct: 92, advisoryEvidenceCoveragePct: 0,
       pipelineScore: 75, finalDecisionScore: 75, finalIntegrityPipelineScore: 75, finalSelectionState: "RESEARCH_ONLY",

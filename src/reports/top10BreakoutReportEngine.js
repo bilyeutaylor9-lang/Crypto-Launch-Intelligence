@@ -27,6 +27,7 @@ import {
 import {
   compactMetaForReportWriters,
   compactValueForReport,
+  REPORT_FINAL_RISK_SCALAR_FIELDS,
 } from "./reportPayloadCompactor.js";
 
 const BREAKOUT_WEIGHTS = [
@@ -117,6 +118,8 @@ const NON_DETERMINISTIC_BLOCK_PATTERNS = [
 ];
 
 const TOP10_CANDIDATE_INPUT_FIELDS = [
+  ...REPORT_FINAL_RISK_SCALAR_FIELDS,
+  "signalProfile",
   "canonicalProjectId",
   "projectId",
   "permanentProjectKey",
@@ -258,11 +261,7 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "contractRiskScore",
   "honeypotRiskScore",
   "manipulationRiskScore",
-  "washTradingRiskScore",
-  "activityAuthenticityRiskScore",
-  "deployerRiskScore",
   "holderConcentrationRiskScore",
-  "walletClusterRiskScore",
   "insiderDistributionRisk",
   "liquidityRemovalRiskScore",
   "liquidityControlRisk",
@@ -1229,6 +1228,12 @@ function copyCandidateInputProject(project = {}) {
     if (value === undefined) continue;
 
     if (TOP10_RECOMPUTED_OR_RAW_FIELDS.has(field)) {
+      continue;
+    }
+    if (field === "signalProfile") {
+      if (value && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "risk")) {
+        copy[field] = {risk: compactValueForReport(value.risk, {depthLimit: 1, arrayLimit: 1, objectKeyLimit: 1, stringLimit: 100})};
+      }
       continue;
     }
     if (field === "executionProof") {
