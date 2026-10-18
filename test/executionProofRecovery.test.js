@@ -61,17 +61,20 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   return async (url) => {
     const parsed = new URL(url);
     const inputMint = parsed.searchParams.get("inputMint");
+    const identity = { inputMint, outputMint: parsed.searchParams.get("outputMint"), inAmount: parsed.searchParams.get("amount") };
     if (inputMint === SOL_TOKEN && !sellSucceeds) {
       return { outAmount: "0", routePlan: [] };
     }
     if (inputMint === SOL_TOKEN) {
       return {
+        ...identity,
         outAmount: "24900000",
         priceImpactPct: "0.21",
         routePlan: [{ swapInfo: { ammKey: SOL_POOL, label: "Raydium" } }],
       };
     }
     return {
+      ...identity,
       outAmount: "1000000000",
       priceImpactPct: "0.19",
       routePlan: [{ swapInfo: { ammKey: SOL_POOL, label: "Raydium" } }],

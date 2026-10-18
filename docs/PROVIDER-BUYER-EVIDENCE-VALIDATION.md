@@ -1,5 +1,84 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Final Decision Acquisition Repair
+
+The next audit found two concrete acquisition defects beyond raw core-input
+coverage. First, standalone quote recovery treated LI.FI's successful two-way
+quotes as ROUTE_RECOVERED even without the required pool attestation. That
+stopped adapter fallback before the stricter active-evidence layer rejected
+the route. Unattested pools now remain explicitly unverified, do not increment
+recovered-route counts or overwrite canonical proof, and allow the next
+configured adapter to run within the same budget. An exactly attested first
+adapter still avoids unnecessary fallback. 0x can no longer copy the requested
+pool into its output as if the provider observed it; both responses must
+attest it. Shared direct-quote validation independently checks Jupiter/0x
+token identities, chain compatibility and bounded positive atomic quantities.
+Input quantities cannot substitute for missing output quantities. Existing
+positive Jupiter fixtures now carry the actual requested mint/amount fields.
+Missing, malformed or underflowed impacts remain UNKNOWN in standalone and
+active paths; the two measured 0x leg impacts are conservatively combined,
+not replaced by their maximum. This is not an all-in fee or profit claim.
+
+Second, the completed 53c110a7 scan still had 50 TOKEN_AUTHORITY gaps, but all
+50 affected Solana candidates requested only wallet/holder fields. The planner
+now schedules a fresh raw mint-authority request with an explicit paired-proof
+requirement, using the existing chain RPC collector, bounded selected Wave2
+candidates and shared budgets. Current conclusive rejections, conflicting
+identities, deferred candidates and inapplicable EVM semantics do not create
+these requests. A lone scalar, incomplete pair or RugCheck-only report cannot
+satisfy this request. Actual changed security patches trigger dependent
+reruns even when no requested scalar can be proven; unchanged patches do not.
+No derived safety status or pass flag is recovered from an external provider.
+
+The reused Solana collector now independently verifies mainnet genesis and an
+initialized parsed SPL mint, including both explicit authorities, then checks
+the time of that account's confirmed context slot on the same endpoint. It
+tries at most two existing configured/public endpoints, never mixes their
+proofs, and rejects missing/stale/future time, malformed supplied identities,
+wrong clusters and incomplete authorities. Source time is the observed slot
+time, not the fetch receipt. The RPC contracts are documented in the official
+[account reference](https://solana.com/docs/rpc/http/getaccountinfo),
+[block time reference](https://solana.com/docs/rpc/http/getblocktime), and
+[cluster genesis reference](https://solana.com/docs/rpc/http/getgenesishash).
+Each actual RPC/HTTP method uses the active budget and endpoint circuit;
+partial provider success cannot conceal the RPC's failure circuit. Expired
+queued work cannot begin a new HTTP request. Unreported security booleans no
+longer become clean false values merely because a provider family is capable.
+
+A real, non-production executor probe for exact mint
+3HLhtXNCVh1VbCrpwACoZWwHoNeoCB7hRAPcYN2jjUiL used four actual requests:
+getGenesisHash, getAccountInfo, getBlockTime, and the existing RugCheck report.
+At confirmed slot 458346827 / 2026-10-18T07:10:47Z, the SPL Token-2022 mint
+and freeze authorities were both explicitly null. The normalized observation
+retained that timestamp and mainnet provenance; no quote, buyer, smart-wallet,
+execution-ready or final-qualified result was inferred. This probe ran on
+uncommitted repairs based on 53c110a7, so it is acquisition evidence, not a
+clean source-pinned production scan. New live scanning must validate the
+scanner-wide result independently and preserve UNKNOWN for failed reads.
+
+Six of seven new adapter regressions failed before the repair, all four new
+snapshot cases failed before the collector repair, and the two additional
+deadline/impact regressions also reproduced failures. The final focused
+recovery/security/quote set passes 91 tests. The first integrated run passed
+1807 tests; the final integrated run, syntax checks and load validation are
+recorded below after the last guards. No provider or safety gate was waived.
+
+Final integrated validation passes 1809 tests with zero failures, skips or
+cancellations; all 929 JavaScript files pass syntax checks and the entrypoint
+typecheck passes. The last two guard edits were followed by direct syntax
+checks of all four affected files and the final full suite. The focused set
+passes 91 tests and the load command passes 21, including the existing
+500-deep / 3500-deferred deterministic fixture. All 217 runtime files preserve
+their hashes and original set after both full test runs, the no-cache live
+probe and load validation. Fresh production scanning and exact-head GitHub CI
+must still be evaluated independently; no deploy-readiness claim is made.
+
+For edge research, this layer removes a selection/measurement blind spot; it
+does not establish alpha. The existing frozen arrival/vacuum and seller
+replenishment comparisons still need exact executable cost observations and
+matched out-of-sample outcomes. Authority completeness must be measured as
+a coverage variable, never converted into a bullish signal or a required pick.
+
 ## October 18 Field-Level Source Attribution
 
 The completed live run scan_1792305291363 at d9022267 records matching start/end

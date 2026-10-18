@@ -283,12 +283,37 @@ function executionProofRecoveryItems(project = {}, options = {}) {
   })), { chain: chainOf(project), routeType, freeOnly }).items;
 }
 
+function authorityProofRecoveryItems(project = {}, options = {}) {
+  const proof = project.executionProof;
+  if (!proof || typeof proof !== "object" || Array.isArray(proof) || chainOf(project) !== "solana" ||
+      (proof.authorityEvidenceVerified === true && proof.authoritySafetyClean === false)) return [];
+  const assessment = decisionProofAssessment(project);
+  if (assessment.conclusivelyRejected || !assessment.missingFields.includes("TOKEN_AUTHORITY")) return [];
+
+  const mint = tokenAddressOf(project, "solana");
+  const identities = [project, project.rawCandidate || {}, project.marketData || {},
+    project.canonicalExecutionRoute || {}, project.executionProofRecoveryRoute || {}];
+  const chains = identities.flatMap((item) => [item.chain, item.chainId, item.network, item.canonicalChain,
+    item.finalChain, item.baseToken?.chain]).filter((value) => text(value));
+  const addresses = identities.flatMap((item) => [item.tokenAddress, item.contractAddress, item.address,
+    item.canonicalAddress, item.finalContractAddress, item.baseToken?.address]).filter((value) => text(value));
+  if (!mint || !chains.every((value) => normalizeChainId(value) === "solana") ||
+      !addresses.every((value) => normalizeTokenAddress(value, "solana") === mint)) return [];
+
+  // The raw mint field dispatches the existing collector for both authorities, not a scalar shortcut.
+  return buildTargetedEnrichmentPlan([{
+    canonicalField: "mintAuthorityEnabled", rootCause: "TOKEN_AUTHORITY_EVIDENCE_MISSING",
+    evidenceClass: "CORE", blockingExecution: true, requiresFreshObservation: true, requiresAuthorityPair: true,
+  }], { chain: "solana", routeType: proof.routeType, freeOnly: options.freeOnly ?? true }).items;
+}
+
 function planItems(project = {}, options = {}) {
   const items = [
     ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
     ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
     ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
     ...executionProofRecoveryItems(project, options),
+    ...authorityProofRecoveryItems(project, options),
   ];
   const bestByField = new Map();
   for (const item of items) {
@@ -304,9 +329,12 @@ function planItems(project = {}, options = {}) {
     const value = num(item.valueOfInformationScore || item.estimatedRecoveryValue);
     if (!current || value > num(current.valueOfInformationScore || current.estimatedRecoveryValue)) {
       bestByField.set(field, { ...item, recoveryDisposition,
-        requiresFreshObservation: item.requiresFreshObservation === true || current?.requiresFreshObservation === true });
-    } else if (item.requiresFreshObservation === true) {
-      bestByField.set(field, { ...current, requiresFreshObservation: true });
+        requiresFreshObservation: item.requiresFreshObservation === true || current?.requiresFreshObservation === true,
+        requiresAuthorityPair: item.requiresAuthorityPair === true || current?.requiresAuthorityPair === true });
+    } else if (item.requiresFreshObservation === true || item.requiresAuthorityPair === true) {
+      bestByField.set(field, { ...current,
+        requiresFreshObservation: item.requiresFreshObservation === true || current.requiresFreshObservation === true,
+        requiresAuthorityPair: item.requiresAuthorityPair === true || current.requiresAuthorityPair === true });
     }
   }
   return [...bestByField.values()];
@@ -422,6 +450,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       const project = currentProjects[projectIndex];
       let next = { ...project };
       const recoveredFields = [];
+      const changedEvidenceFamilies = new Set();
       const attempts = [];
       const unresolvedEntries = [];
 
@@ -468,6 +497,9 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           options,
           executionState
         );
+        for (const family of providerResult.changedEvidenceFamilies || []) {
+          changedEvidenceFamilies.add(family);
+        }
         next = { ...next, ...(providerResult.projectPatch || {}) };
         providerAttempts = providerResult.attempts || [];
         executionAdapterResults = providerResult.executionAdapterResults || [];
@@ -499,7 +531,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           activeEvidenceRecovery: {
             status,
             waves: [wave],
-            changedEvidenceFamilies: [...new Set(uniqueRecovered.map(sourceFamilyForField))],
+            changedEvidenceFamilies: [...new Set([...uniqueRecovered.map(sourceFamilyForField), ...changedEvidenceFamilies])],
             recoveredFields: uniqueRecovered,
             attemptedFields,
             unrecoveredFields: uniqueUnrecovered,

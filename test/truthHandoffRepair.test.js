@@ -232,14 +232,19 @@ test("Solana safety recovery uses mint authority checks without EVM source field
       useCache: false,
       fetchJson: async (_url, init = {}) => {
         if (init.method === "POST") {
+          const { method } = JSON.parse(init.body);
+          if (method === "getGenesisHash") return { result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d" };
+          if (method === "getBlockTime") return { result: Math.floor(Date.now() / 1000) };
           return {
             result: {
+              context: { slot: 12345 },
               value: {
                 owner: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                 data: {
                   parsed: {
                     type: "mint",
                     info: {
+                      isInitialized: true,
                       mintAuthority: null,
                       freezeAuthority: null,
                       decimals: 9,

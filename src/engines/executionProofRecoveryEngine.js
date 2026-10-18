@@ -382,10 +382,47 @@ function routePlanPools(quote = {}, chain = "solana") {
     .filter(Boolean))];
 }
 
+function atomicQuantity(value) {
+  if (typeof value !== "string" || !/^\d{1,78}$/.test(value)) return null;
+  const quantity = BigInt(value);
+  return quantity > 0n && quantity < 2n ** 256n ? quantity : null;
+}
+
+export function verifyDirectQuoteIdentity(quote = {}, expected = {}) {
+  const { source, chain, fromToken, toToken, fromAmount } = expected;
+  const solana = source === "jupiter";
+  if (solana ? chain !== "solana" : source !== "0x" || chainDefinition(chain)?.kind !== "evm") {
+    throw new Error("Quote provider does not support the requested chain identity.");
+  }
+  const from = normalizeTokenAddress(fromToken, chain);
+  const to = normalizeTokenAddress(toToken, chain);
+  if (!from || !to || from === to ||
+      normalizeTokenAddress(quote[solana ? "inputMint" : "sellToken"], chain) !== from ||
+      normalizeTokenAddress(quote[solana ? "outputMint" : "buyToken"], chain) !== to ||
+      (quote.chainId !== undefined && normalizeChainId(quote.chainId) !== chain)) {
+    throw new Error("Quote response does not attest the requested token/chain identity.");
+  }
+  const requested = atomicQuantity(fromAmount);
+  const input = atomicQuantity(quote[solana ? "inAmount" : "sellAmount"]);
+  const output = atomicQuantity(quote[solana ? "outAmount" : "buyAmount"]);
+  if (requested === null || input === null || input !== requested || output === null) {
+    throw new Error("Quote response has a missing, invalid or mismatched atomic quantity.");
+  }
+}
+
+function measuredPriceImpact(value) {
+  if (typeof value !== "number" && (typeof value !== "string" ||
+      !/^[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()))) return null;
+  const impact = Number(value);
+  if (impact === 0 && typeof value === "string" && /[1-9]/.test(value.trim().split(/e/i)[0])) return null;
+  return Number.isFinite(impact) && impact >= 0 ? impact : null;
+}
+
 function priceImpactPct(...quotes) {
-  return Math.round(
-    quotes.reduce((sum, quote) => sum + Math.max(0, num(quote?.priceImpactPct)), 0) * 10_000
-  ) / 10_000;
+  const impacts = quotes.map((quote) => measuredPriceImpact(quote?.priceImpactPct));
+  if (impacts.some((impact) => impact === null)) return null;
+  const total = Math.round(impacts.reduce((sum, impact) => sum + impact, 0) * 10_000) / 10_000;
+  return Number.isFinite(total) ? total : null;
 }
 
 function validJupiterQuote(quote = {}) {
@@ -424,6 +461,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
   const failures = [];
   const tradeUsd = options.tradeSizesUsd[0] || 25;
   const tryQuoteAsset = async (quoteMint, quoteAsset, amount) => {
+    if (quoteMint === tokenAddress) return { status: "QUOTE_ASSET_EQUALS_TOKEN" };
     const buy = await fetchJupiterQuote({
       inputMint: quoteMint,
       outputMint: tokenAddress,
@@ -432,6 +470,8 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
       signal,
     });
     if (!validJupiterQuote(buy)) return { status: "NO_BUY_QUOTE", buy };
+    verifyDirectQuoteIdentity(buy, { source: "jupiter", chain, fromToken: quoteMint,
+      toToken: tokenAddress, fromAmount: String(amount) });
     const sellAmount = String(BigInt(String(buy.outAmount || "0")) * 95n / 100n);
     const sell = await fetchJupiterQuote({
       inputMint: tokenAddress,
@@ -441,6 +481,8 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
       signal,
     });
     if (!validJupiterQuote(sell)) return { status: "NO_SELL_QUOTE", buy, sell };
+    verifyDirectQuoteIdentity(sell, { source: "jupiter", chain, fromToken: tokenAddress,
+      toToken: quoteMint, fromAmount: sellAmount });
     return { status: "ROUTE_RECOVERED", buy, sell, quoteAsset };
   };
 
@@ -452,7 +494,8 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
   }
 
   const primaryAttempt = recovered;
-  if ((!recovered || recovered.status === "NO_BUY_QUOTE") && !signal?.aborted) {
+  if ((!recovered || ["NO_BUY_QUOTE", "QUOTE_ASSET_EQUALS_TOKEN"].includes(recovered.status)) &&
+      tokenAddress !== SOLANA_SOL_MINT && !signal?.aborted) {
     try {
       const fallback = await tryQuoteAsset(SOLANA_SOL_MINT, "SOL", "100000000");
       if (fallback.status === "ROUTE_RECOVERED" || !primaryAttempt) recovered = fallback;
@@ -502,7 +545,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     priceImpactPct: slippage,
     estimatedRoundTripSlippagePct: slippage,
     slippagePct: slippage,
-    slippageIsHeuristic: false,
+    slippageIsHeuristic: slippage === null ? null : false,
     verifiedTradeSizeUsd: tradeUsd,
     executableDepthUsd: tradeUsd,
     verifiedDepthSource: "live-buy-sell-quote",
@@ -522,7 +565,8 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     sellQuote: { verified: true, timestamp, outAmount: recovered.sell.outAmount, routePlanCount: array(recovered.sell.routePlan).length },
   };
 
-  return { adapter: "jupiter", status: "ROUTE_RECOVERED", route, failures };
+  return { adapter: "jupiter", status: exactPoolObserved ? "ROUTE_RECOVERED" : "IDENTITY_OR_POOL_UNATTESTED",
+    reason: exactPoolObserved ? null : "Both quotes must independently attest the requested exact pool.", route, failures };
 }
 
 async function fetchZeroXPrice({ chainId, sellToken, buyToken, sellAmount, options, signal }) {
@@ -544,8 +588,11 @@ async function fetchZeroXPrice({ chainId, sellToken, buyToken, sellAmount, optio
   return quote;
 }
 
-function tokenOutAmount(quote = {}) {
-  return first([quote.buyAmount, quote.toAmount, quote.outAmount, quote.sellAmount]);
+function zeroXPoolAddresses(quote, chain) {
+  return [...new Set([
+    ...extractLiFiRoutePoolAddresses(quote, chain),
+    ...array(quote.route?.fills).map((fill) => normalizePoolAddress(fill?.poolAddress, chain)),
+  ].filter(Boolean))];
 }
 
 export async function recoverZeroXRoute(project = {}, options = {}, signal = null) {
@@ -560,18 +607,18 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
   const timestamp = quoteTimestamp(options);
   const tradeUsd = options.tradeSizesUsd[0] || 25;
   try {
+    const buyInputAmount = amountUnits(tradeUsd, quoteToken.decimals);
     const buy = await fetchZeroXPrice({
       chainId: quoteToken.chainId,
       sellToken: quoteToken.address,
       buyToken: tokenAddress,
-      sellAmount: amountUnits(tradeUsd, quoteToken.decimals),
+      sellAmount: buyInputAmount,
       options,
       signal,
     });
-    const buyAmount = tokenOutAmount(buy);
-    if (!buyAmount || String(buyAmount) === "0") {
-      return { adapter: "0x", status: "NO_BUY_QUOTE", buyQuoteVerified: false, sellQuoteVerified: false };
-    }
+    verifyDirectQuoteIdentity(buy, { source: "0x", chain, fromToken: quoteToken.address,
+      toToken: tokenAddress, fromAmount: buyInputAmount });
+    const buyAmount = buy.buyAmount;
     const sellAmount = String(BigInt(String(buyAmount)) * 95n / 100n);
     const sell = await fetchZeroXPrice({
       chainId: quoteToken.chainId,
@@ -581,11 +628,16 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
       options,
       signal,
     });
-    if (!tokenOutAmount(sell) || String(tokenOutAmount(sell)) === "0") {
-      return { adapter: "0x", status: "NO_SELL_QUOTE", buyQuoteVerified: true, sellQuoteVerified: false };
-    }
+    verifyDirectQuoteIdentity(sell, { source: "0x", chain, fromToken: tokenAddress,
+      toToken: quoteToken.address, fromAmount: sellAmount });
 
-    const slippage = Math.max(num(buy.estimatedPriceImpact || buy.priceImpactPct), num(sell.estimatedPriceImpact || sell.priceImpactPct));
+    const slippage = priceImpactPct(...[buy, sell].map((quote) => ({
+      priceImpactPct: quote.estimatedPriceImpact ?? quote.priceImpactPct,
+    })));
+    const expectedPool = poolAddressOf(project);
+    const buyPools = zeroXPoolAddresses(buy, chain);
+    const sellPools = zeroXPoolAddresses(sell, chain);
+    const exactPoolObserved = Boolean(expectedPool && buyPools.includes(expectedPool) && sellPools.includes(expectedPool));
     const route = {
       source: "0x",
       provider: "0x Swap API",
@@ -595,7 +647,12 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
       tokenAddress,
       contractAddress: tokenAddress,
       baseTokenAddress: tokenAddress,
-      poolAddress: poolAddressOf(project),
+      poolAddress: exactPoolObserved ? expectedPool : null,
+      routePoolAddresses: [...new Set([...buyPools, ...sellPools])],
+      exactIdentityVerified: exactPoolObserved,
+      identityVerificationState: exactPoolObserved
+        ? "EXACT_CHAIN_CONTRACT_POOL_ATTESTED"
+        : "EXACT_CHAIN_CONTRACT_ONLY_POOL_UNATTESTED",
       quoteAsset: "USDC",
       quoteTokenAddress: quoteToken.address,
       buyRouteAvailable: true,
@@ -608,7 +665,7 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
       priceImpactPct: slippage,
       estimatedRoundTripSlippagePct: slippage,
       slippagePct: slippage,
-      slippageIsHeuristic: false,
+      slippageIsHeuristic: slippage === null ? null : false,
       verifiedTradeSizeUsd: tradeUsd,
       executableDepthUsd: tradeUsd,
       verifiedDepthSource: "live-buy-sell-quote",
@@ -623,7 +680,8 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
       buyQuote: { verified: true, timestamp },
       sellQuote: { verified: true, timestamp },
     };
-    return { adapter: "0x", status: "ROUTE_RECOVERED", route, failures: [] };
+    return { adapter: "0x", status: exactPoolObserved ? "ROUTE_RECOVERED" : "IDENTITY_OR_POOL_UNATTESTED",
+      reason: exactPoolObserved ? null : "Both quotes must independently attest the requested exact pool.", route, failures: [] };
   } catch (error) {
     return { adapter: "0x", status: "PROVIDER_FAILED", failures: [errorMessage(error)] };
   }
@@ -832,7 +890,8 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
         tool: sell.tool || sell.estimate?.tool || null,
       },
     };
-    return { adapter: "lifi", status: "ROUTE_RECOVERED", route, failures: [] };
+    return { adapter: "lifi", status: exactPoolObserved ? "ROUTE_RECOVERED" : "IDENTITY_OR_POOL_UNATTESTED",
+      reason: exactPoolObserved ? null : "Both quotes must independently attest the requested exact pool.", route, failures: [] };
   } catch (error) {
     return { adapter: "lifi", status: "PROVIDER_FAILED", providerFailureCode: error?.code || null,
       retryAt: error?.retryAt || null, failures: [errorMessage(error, "LI.FI quote failed")] };
@@ -1029,7 +1088,8 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     routeFailures.push(...array(result.failures), result.reason || result.status);
   }
 
-  const recoveredRoutes = adapterResults.map((item) => item.route).filter(Boolean);
+  const recoveredRoutes = adapterResults.filter((item) => item.status === "ROUTE_RECOVERED")
+    .map((item) => item.route).filter(Boolean);
   const bestRoute = recoveredRoutes.sort((a, b) => rankRoute(b) - rankRoute(a))[0] || null;
   const buyOnly = adapterResults.some((item) => item.buyQuoteVerified === true && item.sellQuoteVerified !== true);
   const optionalGaps = adapterResults
@@ -1153,7 +1213,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     estimatedRoundTripSlippagePct: bestRoute.estimatedRoundTripSlippagePct,
     priceImpactPct: bestRoute.priceImpactPct,
     slippagePct: bestRoute.slippagePct,
-    slippageIsHeuristic: false,
+    slippageIsHeuristic: bestRoute.slippageIsHeuristic,
     executableDepthUsd: Math.max(num(project.executableDepthUsd), num(bestRoute.executableDepthUsd)),
     verifiedTradeSizeUsd: Math.max(num(project.verifiedTradeSizeUsd), num(bestRoute.verifiedTradeSizeUsd)),
     verifiedDepthSource: bestRoute.verifiedDepthSource || project.verifiedDepthSource,

@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import {
   getPairByAddress,
   getTokenPairs,
@@ -39,7 +40,7 @@ import { appendWalletParticipationHistory, loadWalletParticipationHistory, norma
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
 import { loadNativeEvents } from "./native/nativeEventStore.js";
 import { nativeContractDeployerEvidence } from "./native/evm/evmContractDeploymentConnector.js";
-import { analyzeExecutionProofRecoveryBatch } from "../engines/executionProofRecoveryEngine.js";
+import { analyzeExecutionProofRecoveryBatch, verifyDirectQuoteIdentity } from "../engines/executionProofRecoveryEngine.js";
 import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
 import {
   normalizeChainId,
@@ -1616,6 +1617,9 @@ function securityIdentityMatches(item = {}, identity = {}, allowUnknown = false)
 
 function securitySourceEligible(item = {}, field = "") {
   const provider = lower(item.provider);
+  const booleanField = { contractVerified: "verifiedSource", honeypotDetected: "honeypot",
+    mintAuthorityEnabled: "mintRisk", sellRestricted: "blacklistRisk", blacklistEnabled: "blacklistRisk" }[field];
+  if (booleanField && typeof item[booleanField] !== "boolean") return false;
   if (provider.includes("goplus") && ["buyTaxPct", "sellTaxPct", "holderCount"].includes(field)) {
     const rawKey = { buyTaxPct: "buy_tax", sellTaxPct: "sell_tax", holderCount: "holder_count" }[field];
     const expected = field === "holderCount" ? nonnegativeSafeInteger(item.raw?.[rawKey]) : goPlusTaxPct(item.raw?.[rawKey]);
@@ -1685,7 +1689,7 @@ function securityObservations(items = [], fields = [], identity = {}, result = {
         field,
         value,
         lower(sourceItem.provider || "free-security"),
-        sourceItem.observedAt || result.observedAt || new Date().toISOString(),
+        sourceItem.sourceTimestamp || sourceItem.observedAt || result.observedAt || new Date().toISOString(),
         confidenceFraction(sourceItem.confidence || result.summary?.confidence || 0, 0),
         identity
       );
@@ -1701,6 +1705,58 @@ function securityEvidencePatch(items = []) {
     securityEvidence: items,
     securityEvidenceSummary: summary,
   };
+}
+
+function freshAuthorityPair(item, options) {
+  const checks = (Array.isArray(item.testedChecks) ? item.testedChecks : []).join(" ").toLowerCase();
+  const stamp = Date.parse(item.sourceTimestamp || item.observedAt || "");
+  const now = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+  return item.identityVerifiedOnChain === true && checks.includes("mint authority") && checks.includes("freeze authority") &&
+    typeof item.mintRisk === "boolean" && typeof item.freezeRisk === "boolean" &&
+    Number.isFinite(stamp) && Number.isFinite(now) && stamp <= now && now - stamp <= 300000;
+}
+
+async function collectBudgetedSolanaSecurity(project, providers, options, state) {
+  const attempts = [];
+  const transport = options.securityEvidence?.fetchJson || options.providers?.fetchJson || (async (url, init) => {
+    const response = await (options.providers?.fetch || fetch)(url, init);
+    if (!response.ok) throw new Error(`Security provider HTTP ${response.status}`);
+    return response.json();
+  });
+  const fetchJson = async (url, init = {}) => {
+    const rpc = init.method === "POST";
+    const provider = rpc ? "solana-security-rpc" : "rugcheck";
+    const method = rpc ? JSON.parse(init.body).method : null;
+    const attempt = await executeProviderCall(provider, async () => {
+      const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
+      if (remaining <= 0 || state.timeBudgetExceeded || init.signal?.aborted) {
+        state.timeBudgetExceeded ||= remaining <= 0;
+        throw new Error("Security request deadline expired before HTTP start.");
+      }
+      const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000), remaining)));
+      const signal = AbortSignal.timeout(timeout);
+      const value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
+      if (signal.aborted || init.signal?.aborted || (state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
+        state.timeBudgetExceeded ||= (state.now || Date.now)() >= (state.deadlineAt ?? Infinity);
+        throw new Error("Security response arrived after its deadline.");
+      }
+      if (rpc && value?.error) throw new Error("Solana security RPC returned a JSON-RPC error.");
+      return value;
+    }, options, state, 1, rpc ? walletRpcEndpointId(url) : "solana");
+    attempts.push({ ...attempt, value: undefined, family: "SECURITY", ...(method ? { rpcMethod: method } : {}) });
+    if (attempt.status !== "SUCCESS") {
+      const error = new Error(attempt.reason);
+      error.code = attempt.status;
+      throw error;
+    }
+    return attempt.value;
+  };
+  const { providers: providerOverrides, ...securityOptions } = options.securityEvidence || options;
+  const value = await providers.getFreeSecurityEvidence(project, {
+    ...securityOptions, ...(Array.isArray(providerOverrides) ? { providers: providerOverrides } : {}),
+    now: state.now || options.now, fetchJson,
+  });
+  return { attempt: { status: "SUCCESS", value }, attempts };
 }
 
 async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
@@ -1728,7 +1784,8 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     (!lower(item.provider).includes("goplus") || item.responseIdentityVerified === true)
   );
   const identity = { chain, tokenAddress };
-  const localObservations = securityObservations(existing, fields, identity);
+  const eligible = (items) => options.requiresAuthorityPair === true ? items.filter((item) => freshAuthorityPair(item, options)) : items;
+  const localObservations = securityObservations(eligible(existing), fields, identity);
   if (localObservations.length === fields.length) {
     return {
       observations: localObservations,
@@ -1737,7 +1794,9 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     };
   }
   let goPlusCooldownSkipped = false;
-  const attempt = await executeProviderCall(
+  const budgeted = providers.defaultFreeSecurityProvider && chain === "solana"
+    ? await collectBudgetedSolanaSecurity({ ...project, chain, tokenAddress }, providers, options, state) : null;
+  const attempt = budgeted?.attempt || await executeProviderCall(
     "free-security",
     () => providers.getFreeSecurityEvidence(
       { ...project, chain, tokenAddress, contractAddress: project.contractAddress || tokenAddress },
@@ -1760,13 +1819,13 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
   const result = attempt.value || {};
   const items = knownSecurityItems(result).filter((item) => securityIdentityMatches(item, identity));
   const observations = [
-    ...securityObservations([...existing, ...items], fields, identity, result),
+    ...securityObservations(eligible([...existing, ...items]), fields, identity, result),
     ...securityHolderObservations(project, [...existing, ...items], options.securityEvidence || options),
   ];
 
   return {
     observations,
-    attempts: [{ ...attempt, value: undefined, providers: result.summary?.knownProviders || [] }],
+    attempts: budgeted?.attempts || [{ ...attempt, value: undefined, providers: result.summary?.knownProviders || [] }],
     projectPatch: securityEvidencePatch([...existing,
       ...(Array.isArray(result.evidence) ? result.evidence : items)
         .filter((item) => securityIdentityMatches(item, identity, true))]),
@@ -1937,11 +1996,8 @@ function exactExecutionQuotes(route, identity, responses) {
       } else {
         if (source === "jupiter" ? identity.chain !== "solana"
           : normalizeChainId(params.get("chainId")) !== identity.chain) return false;
-        if (normalizeTokenAddress(value[source === "jupiter" ? "inputMint" : "sellToken"], identity.chain) !== from ||
-            normalizeTokenAddress(value[source === "jupiter" ? "outputMint" : "buyToken"], identity.chain) !== to ||
-            BigInt(value[source === "jupiter" ? "inAmount" : "sellAmount"]) !== BigInt(amount) ||
-            BigInt(value[source === "jupiter" ? "outAmount" : "buyAmount"]) <= 0n) return false;
-        if (value.chainId !== undefined && normalizeChainId(value.chainId) !== identity.chain) return false;
+        verifyDirectQuoteIdentity(value, { source, chain: identity.chain,
+          fromToken: from, toToken: to, fromAmount: amount });
       }
       const pools = source === "jupiter"
         ? (value.routePlan || []).map((step) => normalizePoolAddress(step?.swapInfo?.ammKey, identity.chain))
@@ -2121,6 +2177,8 @@ export async function executeActiveEvidenceProviderRequests(
 ) {
   const providers = providerFunctions(options);
   const fields = [...new Set((Array.isArray(requests) ? requests : []).map(fieldOf).filter(Boolean))];
+  const requiresAuthorityPair = (Array.isArray(requests) ? requests : [])
+    .some((request) => request?.item?.requiresAuthorityPair === true || request?.requiresAuthorityPair === true);
   const sources = targetSourceNames(requests);
   const attempts = [];
   let executionAdapterResults = [];
@@ -2232,7 +2290,8 @@ export async function executeActiveEvidenceProviderRequests(
     sourceRequested(sources, ["goplus", "sourcify", "blockscout", "rugcheck", "explorer", "chain rpc"])
   ) {
     parallel.push(
-      recoverSecurity({ ...project, ...projectPatch }, securityFields, providers, options, executionState).then((result) => ({
+      recoverSecurity({ ...project, ...projectPatch }, securityFields, providers,
+        { ...options, requiresAuthorityPair }, executionState).then((result) => ({
         kind: "security",
         result,
       }))
@@ -2280,6 +2339,8 @@ export async function executeActiveEvidenceProviderRequests(
     attempts,
     executionAdapterResults,
     projectPatch,
+    changedEvidenceFamilies: Array.isArray(projectPatch.securityEvidence) &&
+      !isDeepStrictEqual(project.securityEvidence, projectPatch.securityEvidence) ? ["SECURITY"] : [],
   };
 }
 

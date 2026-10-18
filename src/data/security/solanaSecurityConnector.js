@@ -7,20 +7,24 @@ import {
   tokenAddress,
 } from "./securityEvidenceUtils.js";
 import { normalizeChainId, normalizeTokenAddress, normalizeWalletAddress } from "../../identity/strictIdentityValidators.js";
+import { resolveNativeRpcUrl } from "../native/nativePoolConfig.js";
+import { walletRpcEndpointId } from "../rpcWalletEvidenceConnector.js";
 
 const FULL_PROVIDER = "rugcheck-solana-full";
+const MAINNET_GENESIS = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d";
 const TOKEN_PROGRAMS = new Set([
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
   "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
 ]);
 
 function exactSolanaMint(project) {
-  const chain = normalizeChainId(project.chain || project.canonicalChain || project.network);
+  const chain = normalizeChainId(project.chain || project.canonicalChain || project.network || project.chainId);
   if (chain !== "solana") return null;
   const mint = normalizeTokenAddress(tokenAddress(project), chain);
-  const chains = [project.chain, project.canonicalChain, project.network].map(normalizeChainId).filter(Boolean);
+  const supplied = (value) => value !== undefined && value !== null && value !== "";
+  const chains = [project.chain, project.canonicalChain, project.network, project.chainId].filter(supplied).map(normalizeChainId);
   const addresses = [project.tokenAddress, project.contractAddress, project.address]
-    .map((value) => normalizeTokenAddress(value, chain)).filter(Boolean);
+    .filter(supplied).map((value) => normalizeTokenAddress(value, chain));
   return mint && chains.every((value) => value === chain) && addresses.every((value) => value === mint) ? mint : null;
 }
 
@@ -91,37 +95,51 @@ function riskText(risk = {}) {
 
 async function rpcMintEvidence(project = {}, options = {}) {
   const mint = tokenAddress(project);
-  const rpcUrl = options.solanaRpcUrl || process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
   const fetchJson = options.fetchJson || defaultFetchJson;
-  const response = await fetchJson(rpcUrl, {
-    method: "POST",
-    timeoutMs: options.timeoutMs,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "getAccountInfo",
-      params: [mint, { commitment: "confirmed", encoding: "jsonParsed" }],
-    }),
-  });
-  const value = response?.result?.value;
-  const info = value?.data?.parsed?.info;
-  if (!value || !info || value.data.parsed.type !== "mint" || !TOKEN_PROGRAMS.has(value.owner) ||
-    !Object.hasOwn(info, "mintAuthority") || !Object.hasOwn(info, "freezeAuthority") ||
-    ![info.mintAuthority, info.freezeAuthority].every((authority) => authority === null || Boolean(normalizeWalletAddress(authority, "solana")))) {
-    throw new Error("Solana RPC did not return a verified parsed SPL mint-account shape.");
+  const explicit = [options.solanaRpcUrl, options.rpcUrl, ...(Array.isArray(options.solanaRpcUrls) ? options.solanaRpcUrls : [])]
+    .filter((url) => typeof url === "string" && url.trim()).map((url) => url.trim());
+  const urls = [...new Set(explicit.length ? explicit : resolveNativeRpcUrl({ chain: "solana" }, options).rpcUrls)].slice(0, 2);
+  const now = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+  const maxAge = Number(options.securityAuthorityMaxAgeSeconds ?? 300);
+  if (!Number.isFinite(now) || !Number.isSafeInteger(maxAge) || maxAge < 1 || maxAge > 300) throw new Error("Invalid authority observation clock or freshness limit.");
+  const attempts = [];
+  for (const rpcUrl of urls) {
+    const endpointId = walletRpcEndpointId(rpcUrl);
+    try {
+      const rpc = async (method, params = []) => {
+        const response = await fetchJson(rpcUrl, { method: "POST", timeoutMs: options.timeoutMs,
+          signal: options.signal, headers: { "content-type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+        if (!response || response.error || !Object.hasOwn(response, "result")) throw new Error("Solana RPC response is unavailable.");
+        return response.result;
+      };
+      const genesisHash = await rpc("getGenesisHash");
+      if (genesisHash !== MAINNET_GENESIS) throw new Error("Solana mainnet genesis mismatch.");
+      const account = await rpc("getAccountInfo", [mint, { commitment: "confirmed", encoding: "jsonParsed" }]);
+      const observedSlot = account?.context?.slot;
+      const value = account?.value;
+      const info = value?.data?.parsed?.info;
+      if (!Number.isSafeInteger(observedSlot) || observedSlot <= 0 || !value || value.executable === true ||
+          !info || value.data.parsed.type !== "mint" || !TOKEN_PROGRAMS.has(value.owner) || info.isInitialized !== true ||
+          !Object.hasOwn(info, "mintAuthority") || !Object.hasOwn(info, "freezeAuthority") ||
+          ![info.mintAuthority, info.freezeAuthority].every((authority) => authority === null || Boolean(normalizeWalletAddress(authority, "solana")))) {
+        throw new Error("Solana RPC did not return an initialized, paired SPL mint-authority account.");
+      }
+      const blockTimestamp = await rpc("getBlockTime", [observedSlot]);
+      if (!Number.isSafeInteger(blockTimestamp) || blockTimestamp <= 0 || blockTimestamp * 1000 > now ||
+          now - blockTimestamp * 1000 > maxAge * 1000) throw new Error("Authority account context time is missing, future or stale.");
+      attempts.push({ endpointId, status: "EVIDENCE_AVAILABLE" });
+      return { ownerProgram: value.owner, mintAuthority: info.mintAuthority, freezeAuthority: info.freezeAuthority,
+        decimals: info.decimals ?? null, supply: info.supply ?? null,
+        mintRisk: Boolean(info.mintAuthority), freezeRisk: Boolean(info.freezeAuthority),
+        genesisHash, observedSlot, blockTimestamp, sourceTimestamp: new Date(blockTimestamp * 1000).toISOString(),
+        rpcEndpointId: endpointId, rpcEndpointAttempts: attempts };
+    } catch (error) {
+      attempts.push({ endpointId, status: "UNKNOWN", code: error?.code || "UNAVAILABLE_OR_INVALID" });
+      if (["REQUEST_BUDGET_EXHAUSTED", "TIME_BUDGET_EXHAUSTED"].includes(error?.code)) break;
+    }
   }
-  const mintAuthority = info.mintAuthority ?? null;
-  const freezeAuthority = info.freezeAuthority ?? null;
-  return {
-    ownerProgram: value.owner || null,
-    mintAuthority,
-    freezeAuthority,
-    decimals: info.decimals ?? null,
-    supply: info.supply ?? null,
-    mintRisk: Boolean(mintAuthority),
-    freezeRisk: Boolean(freezeAuthority),
-  };
+  throw new Error("No configured Solana endpoint proved a fresh mainnet mint-authority snapshot.");
 }
 
 async function rugCheckEvidence(project = {}, options = {}) {
@@ -214,6 +232,9 @@ export async function getSolanaSecurityEvidence(project = {}, options = {}) {
     observedAt,
     verifiedSource: Boolean(rpc),
     identityVerifiedOnChain: Boolean(rpc),
+    snapshotTimestampVerified: Boolean(rpc),
+    sourceTimestamp: rpc?.sourceTimestamp || null,
+    sourceTimestampMeaning: rpc ? "CONFIRMED_MAINNET_MINT_ACCOUNT_CONTEXT_TIME" : "UNKNOWN_CHAIN_SNAPSHOT_TIME",
     malicious,
     honeypot: malicious,
     mintRisk,
