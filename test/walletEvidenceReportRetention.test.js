@@ -387,3 +387,38 @@ test("unrelated heavy payloads, nesting and repeated-reference compaction are un
   const standalone = compactValueForReport({ solanaRpcWalletEvidence: { ...filler(), provider: "late-provider" } });
   assert.equal(standalone.solanaRpcWalletEvidence.provider, undefined);
 });
+
+test("wide 1420-project serialization retains raw proof before verbose derived scores", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "wide-wallet-proof-"));
+  try {
+    const project = solanaProject();
+    project.explosionReadinessReasons = Array(12).fill("a".repeat(1400));
+    project.liveRankingMissingEvidence = Array(12).fill("b".repeat(1400));
+    project.activeEvidenceRecovery = {
+      status: "PARTIAL_RECOVERY", recoveredFields: RAW_FIELDS,
+      providerAttempts: Array(12).fill({ provider: "solana-rpc-wallets", reason: "c".repeat(1400) }),
+      batchSummary: { deepEvaluatedCandidates: 135, recoveryCandidatesAttempted: 119,
+        providerRequestsUsed: 200, recoveredFieldsByFamily: { WALLETS: 241, SECURITY: 50 } },
+    };
+    const before = structuredClone(project);
+    const projects = [project, ...Array.from({ length: 1419 }, (_, i) => ({ symbol: `other-${i}`, finalSelectionQualified: false }))];
+    const file = writeJsonReport(projects.map((item) => compactProjectForReportWriters(item)), {
+      scanRunId: "wide-proof-test", reportsDir: directory,
+    });
+    const report = JSON.parse(fs.readFileSync(file, "utf8"));
+    assert.equal(report.meta.reportSerialization.projectPayloadCharacterLimit, 22535);
+    const saved = report.projects[0];
+    assert.deepEqual(saved.wallets, [OWNER]);
+    assert.equal(saved.walletTransactions[0].timestamp, "2026-10-17T09:45:01.000Z");
+    assert.equal(saved.walletTransactions[0].currentHoldingVerified, false);
+    assert.equal(saved.solanaRpcWalletEvidence.sourceTimestamp, SOURCE_TIMESTAMP);
+    assert.equal(saved.solanaRpcWalletEvidence.provider, "solana-rpc-wallets");
+    assert.equal(saved.fieldProvenance.wallets.source, "solana-rpc-wallets");
+    assert.equal(saved.canonicalAliasProvenance.wallets.sourceProvider, "original-wallet-provider");
+    assert.deepEqual(saved.activeEvidenceRecovery.batchSummary, project.activeEvidenceRecovery.batchSummary);
+    assert.ok(report.meta.reportSerialization.truncatedProjects > 0);
+    assert.deepEqual(project, before);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

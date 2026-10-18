@@ -1,5 +1,53 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Wide-Report Proof Priority
+
+The first clean wide run at 519ed0da, scan_1792307803689, reached 10000
+discovery candidates and evaluated 1420 standard / 135 deep candidates,
+with 1285 deferred before deep. It measured 92% core / 90% advisory coverage,
+zero core-starved/partial and 135 advisory-gap candidates. Final proof remained
+DATA_DEGRADED: 134 unresolved, zero verified routes/qualified, 23 safety gaps,
+seven tax gaps and one authority gap. The previous smaller 53c110a7 run had
+50 authority gaps across 112 deep candidates. These are different live
+universes, not a controlled before/after profitability comparison.
+
+The wide run exposed a further report-only defect: at the 22535-character
+per-project budget, report.json retained verbose derived output but omitted
+the real AGENT wallet sample/proof and recovery batch summary. The earlier
+writer regression used a small universe and did not exercise this budget.
+JSON serialization now puts exact identities, final states, raw proof and
+provenance before verbose derived output, with batchSummary first within a
+recovery receipt. Existing depth, key, node, string, total and per-project
+limits remain unchanged, and truncation remains explicit. A 1420-project
+regression using the actual budget fails before repair and passes after it,
+including source/event times, UNKNOWN/false semantics, nonmutation and batch
+metrics. No absent raw observation is synthesized.
+
+During test development, the new harness initially supplied reportsDir in
+the wrong writer argument, and a subsequent direct run exposed two existing
+JSON tests that also defaulted to the live report directory. Only the report
+file they overwrote was restored from the already completed wide-run archive,
+not relabeled or regenerated. Its archive/restored SHA-256 matches exactly:
+50dbfe9c9409a28b9a91944e338df50595bffb047da3579f44f0f5be8f1355b0.
+The harness and both older tests now use disposable OS directories. The
+incidents and both regression logs are preserved; subsequent validation must
+prove that live artifacts remain unchanged. Full tests continue through the
+canonical artifact-isolating wrapper.
+
+The local quote diagnostic spent the last reserved LI.FI request of the
+existing allowance and returned HTTP429, with provider retryAt
+2026-10-18T08:37:33.361Z. Local accounting conservatively permits no further
+quote requests until 2026-10-18T08:39:19.615Z; no reset or alternate egress was
+used. All missing pool/quote proof remains UNKNOWN. This reporting repair
+does not make the scanner deploy-ready or establish profitable edge.
+
+The repaired wide-report layer passes 1810 full tests with zero failures,
+skips or cancellations, 929 JavaScript syntax checks, entrypoint typecheck,
+21 load tests and 15 focused report tests. All 217 runtime files retain their
+hashes and file set after the full suite and load command, including the
+restored wide report. Source-pinned production proof retention must still be
+checked at the real wide-run size, rather than inferred from small reports.
+
 ## October 18 Final Decision Acquisition Repair
 
 The next audit found two concrete acquisition defects beyond raw core-input

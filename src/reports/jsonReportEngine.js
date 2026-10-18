@@ -22,6 +22,31 @@ const REPORT_PRIORITY_FIELDS = [
   "finalIntegrityVerdict",
   "finalBlockingReasons",
   "finalWarningReasons",
+  "pipelineScore",
+  "guardedLiveScore",
+  "liveExecutionReady",
+  "deepEvaluationState",
+  "coreEvidenceState",
+  "coreEvidenceCoveragePct",
+  "advisoryEvidenceCoveragePct",
+  "coreDataStarved",
+  "executionProof",
+  "canonicalExecutionRoute",
+  "executionProofRecoveryRoute",
+  "solanaRpcWalletEvidence",
+  "rpcWalletEvidence",
+  "blockscoutWalletEvidence",
+  "wallets",
+  "holderAddresses",
+  "holderBalanceEvidence",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "securityEvidence",
+  "securityEvidenceSummary",
+  "fieldProvenance",
+  "canonicalAliasProvenance",
+  "activeEvidenceRecoveryStatus",
+  "activeEvidenceRecovery",
   "finalIdentityState",
   "identityVerified",
   "contractVerified",
@@ -209,9 +234,13 @@ function boundedNumber(value) {
 
 function prioritizedKeys(value, maxKeys, topLevel = false) {
   const keys = Object.keys(value);
-  if (!topLevel) return keys.slice(0, maxKeys);
+  if (!topLevel) {
+    return (Object.hasOwn(value, "batchSummary")
+      ? ["batchSummary", ...keys.filter((key) => key !== "batchSummary")]
+      : keys).slice(0, maxKeys);
+  }
 
-  const priority = REPORT_PRIORITY_FIELDS.filter((key) => Object.hasOwn(value, key));
+  const priority = [...new Set(REPORT_PRIORITY_FIELDS)].filter((key) => Object.hasOwn(value, key));
   const remaining = keys.filter((key) => !priority.includes(key));
   return [...priority, ...remaining].slice(0, maxKeys);
 }
