@@ -403,7 +403,7 @@ async function executeProviderCall(
   beforeOperation = null
 ) {
   const health = providerState(state, provider, circuitScope);
-  if ((state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
+  if (state.timeBudgetExceeded || (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
     health.skipped += 1;
     state.timeBudgetExceeded = true;
     state.timeBudgetSkippedCalls = (state.timeBudgetSkippedCalls || 0) + 1;
@@ -439,7 +439,7 @@ async function executeProviderCall(
   if (beforeOperation) {
     const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (health.circuitOpen || state.requestsUsed + cost > state.maxRequests ||
+    if (state.timeBudgetExceeded || health.circuitOpen || state.requestsUsed + cost > state.maxRequests ||
         (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
       return executeProviderCall(provider, operation, options, state, cost, circuitScope);
     }
@@ -1895,8 +1895,10 @@ export async function recoverExecutionEvidence(
       const signal = init.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal;
       const configuredTimeout = Math.max(250, Number(options.providerTimeoutMs || options.timeoutMs ||
         process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS || process.env.ACTIVE_EVIDENCE_RECOVERY_PROVIDER_TIMEOUT_MS || 8_000));
-      const timeoutMs = Math.max(1, Math.min(configuredTimeout, Number(init.timeoutMs) || configuredTimeout,
-        (state.deadlineAt ?? Infinity) - clock()));
+      const providerTimeoutMs = Math.min(configuredTimeout, Number(init.timeoutMs) || configuredTimeout);
+      const remainingMs = (state.deadlineAt ?? Infinity) - clock();
+      const deadlineOwnsTimeout = Number.isFinite(remainingMs) && remainingMs <= providerTimeoutMs;
+      const timeoutMs = Math.max(1, Math.min(providerTimeoutMs, remainingMs));
       let timer;
       let onAbort;
       try {
@@ -1909,9 +1911,13 @@ export async function recoverExecutionEvidence(
           onAbort = () => reject(new Error("Execution provider request aborted or timed out."));
           signal.addEventListener("abort", onAbort, { once: true });
         });
-        timer = setTimeout(() => controller.abort(), timeoutMs);
+        timer = setTimeout(() => {
+          // Timer expiry owns this decision; wall-clock rounding must not reopen its budget.
+          if (deadlineOwnsTimeout) state.timeBudgetExceeded = true;
+          controller.abort();
+        }, timeoutMs);
         const value = await Promise.race([transport(url, { ...init, timeoutMs, signal }), aborted]);
-        if (signal.aborted || clock() >= (state.deadlineAt ?? Infinity)) {
+        if (state.timeBudgetExceeded || signal.aborted || clock() >= (state.deadlineAt ?? Infinity)) {
           state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
           throw new Error("Execution provider response arrived after its deadline.");
         }

@@ -375,6 +375,41 @@ test("an in-flight shared deadline aborts HTTP even when the provider timeout is
   unresolved(result);
 });
 
+test("a deadline-owned timer closes the shared budget even before the wall clock advances", async () => {
+  let calls = 0;
+  let signal;
+  const opts = options(async (_url, init) => {
+    calls++;
+    signal = init.signal;
+    return new Promise((_, reject) => signal.addEventListener("abort", () => reject(new Error("deadline abort")), { once: true }));
+  }, { timeBudgetMs: 10, providerTimeoutMs: 500 });
+  const state = createActiveEvidenceExecutionState(opts);
+  const first = await execute(project(), opts, state);
+  assert.equal(signal.aborted, true);
+  assert.equal(state.timeBudgetExceeded, true);
+  unresolved(first);
+  const second = await execute(project(), opts, state);
+  assert.equal(calls, 1);
+  assert.equal(state.requestsUsed, 1);
+  assert.ok(second.attempts.some((attempt) => attempt.status === "TIME_BUDGET_EXHAUSTED"));
+  unresolved(second);
+});
+
+test("an in-flight quote cannot promote proof after another request closes the shared budget", async () => {
+  let calls = 0;
+  let state;
+  const opts = options(async (url) => {
+    calls++;
+    state.timeBudgetExceeded = true;
+    return lifiQuote(url);
+  });
+  state = createActiveEvidenceExecutionState(opts);
+  const result = await execute(project(), opts, state);
+  assert.equal(calls, 1);
+  assert.equal(state.requestsUsed, 1);
+  unresolved(result);
+});
+
 test("provider timeout aborts the underlying HTTP signal without promoting late proof", async () => {
   let signal;
   let calls = 0;

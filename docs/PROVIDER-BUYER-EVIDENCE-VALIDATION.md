@@ -313,6 +313,21 @@ Fresh GitHub checks at 86e9b927 passed build22 and Production Verification but
 build24 failed live readiness (run39092048939). No unresolved review threads were
 reported. PR56 remains open and unmerged; no failing check was weakened or skipped.
 
+The subsequent documentation-only head ff280d9c exposed a real Node22 timer race
+in an existing execution deadline regression. The HTTP signal was aborted, but
+wall-clock rounding could leave timeBudgetExceeded false. A frozen-clock
+regression reproduces this deterministically on the old code. Deadline-owned
+timers now close the shared budget explicitly; later requests and in-flight
+quote results cannot bypass that closed budget. Ordinary provider timeouts do
+not masquerade as a shared deadline. Both new regressions preserve the original
+real-time abort assertion rather than loosening it. The focused 47-test
+execution/holder/starvation suite passes. The complete suite now passes 1622
+tests with zero failures, skips or cancellations; all 905 JavaScript files pass
+syntax checks, the entrypoint syntax/typecheck passes and 21 load tests pass.
+The preceding live metrics remain pinned to 86e9b927, not this timer repair.
+Subsequent exact-source live results and exact-head CI observations are retained
+in PR56; a passing code suite does not clear its external readiness blockers.
+
 ## October 14 Handoff Reconciliation
 
 The former `/tmp/cli-scanner-health-20261009` checkout no longer exists.
