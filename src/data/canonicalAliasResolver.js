@@ -531,10 +531,21 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
   const provenance = {};
   const conflicts = {};
   const audits = [];
+  let resolvedChain = options.resolvedChain;
 
   for (const field of fields) {
+    if (field !== "chain" && resolvedChain === undefined) {
+      resolvedChain = resolveCanonicalAliases(project, {
+        fields: ["chain"],
+        sourceProvider: inferProvider(project, {...options, _providerIds: providerIds}),
+        shallow: true,
+        disableSemanticScan: true,
+        _providerIds: providerIds,
+        _providerProfiles: providerProfiles,
+      }).resolved.chain ?? null;
+    }
     const candidates = collectAliasCandidates(project, field, {
-      ...options, _semanticFields: semanticFields, _semanticFieldIndex: semanticFieldIndex,
+      ...options, resolvedChain, _semanticFields: semanticFields, _semanticFieldIndex: semanticFieldIndex,
       _providerIds: providerIds, _providerProfiles: providerProfiles,
     });
     const { winner, conflicts: fieldConflicts, status } = resolveFieldConflict(candidates);

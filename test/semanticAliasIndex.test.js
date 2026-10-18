@@ -200,3 +200,50 @@ test("provider memoization cannot retain old provenance or mutable vocabulary be
     "raw.liquidity": {source: "local-observation-provider"}}}, options).provenance.liquidityUsd.sourceProvider,
   "local-observation-provider");
 });
+
+test("one multi-field resolution looks up its chain context only once", () => {
+  let reads = 0;
+  const project = {
+    source: "dexscreener", priceUsd: 1, liquidityUsd: 25000, volume24h: 50000,
+    contractAddress: base.contractAddress, poolAddress: base.poolAddress,
+  };
+  Object.defineProperty(project, "network", {
+    enumerable: true,
+    get() { reads += 1; return "base"; },
+  });
+  const options = {fields: ["priceUsd", "liquidityUsd", "volume24hUsd", "tokenAddress", "poolAddress"],
+    disableSemanticScan: true};
+  const result = resolveCanonicalAliases(project, options);
+  assert.equal(reads, 1, "Chain resolution must be call-local rather than repeated for every field");
+  assert.deepEqual(result, referenceResolution({...project, network: "base"}, options));
+  assert.equal(result.resolved.tokenAddress, base.contractAddress);
+});
+
+test("chain context reuse never survives a changed project or provenance", () => {
+  const project = {...base, network: "base", fieldProvenance: {network: {source: "native rpc"}}};
+  delete project.chain;
+  const options = {fields: ["liquidityUsd", "tokenAddress", "chain", "poolAddress"], semanticScanIgnores: []};
+  assert.deepEqual(resolveCanonicalAliases(project, options), referenceResolution(project, options));
+  project.network = "solana";
+  project.fieldProvenance.network = {source: "goplus", sourceTimestamp: "2026-10-18T11:00:00.000Z"};
+  const changed = resolveCanonicalAliases(project, options);
+  assert.deepEqual(changed, referenceResolution(project, options));
+  assert.equal(changed.resolved.chain, "solana");
+  assert.equal(changed.resolved.tokenAddress, null);
+  assert.equal(changed.provenance.chain.sourceProvider, "goplus");
+});
+
+test("an explicit chain context is not fetched again from the project", () => {
+  const project = {liquidityUsd: 25, contractAddress: base.contractAddress};
+  Object.defineProperty(project, "network", {enumerable: true,
+    get() { throw new Error("Explicit chain context must not trigger chain lookup"); }});
+  const options = {fields: ["tokenAddress", "liquidityUsd"], resolvedChain: "base", disableSemanticScan: true};
+  assert.deepEqual(resolveCanonicalAliases(project, options), referenceResolution(project, options));
+});
+
+test("an explicitly null context keeps the existing normalization and conflict behavior", () => {
+  const options = {fields: allFields, resolvedChain: null, semanticScanIgnores: []};
+  for (const project of [base, {...base, chain: "solana"}, {network: "unrecognized-chain"}, {}]) {
+    assert.deepEqual(resolveCanonicalAliases(project, options), referenceResolution(project, options));
+  }
+});
