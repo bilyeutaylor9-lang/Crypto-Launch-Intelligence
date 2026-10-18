@@ -1711,7 +1711,7 @@ function executionIdentity(project = {}) {
 
 function exactExecutionMarket(project = {}) {
   const route = project.canonicalExecutionRoute || {};
-  const routeType = text(project.routeType || route.routeType || project.executionProof?.routeType).toUpperCase();
+  const routeType = text(project.executionProof?.routeType || project.routeType || route.routeType).toUpperCase();
   // Public books prove a venue market, never the contract identity of a DEX candidate.
   if (routeType !== "CEX" && (chainOf(project) || tokenAddressOf(project))) return null;
   const supported = new Set(["coinbase", "kraken", "gate", "mexc"]);
@@ -1724,6 +1724,12 @@ function exactExecutionMarket(project = {}) {
     .map((value) => text(value).toUpperCase().replace(/[-_/]/g, ""));
   if (!pairs.length || new Set(pairs).size !== 1 || !/^[A-Z0-9]+(?:USDT|USDC|USD)$/.test(pairs[0])) return null;
   return { provider: venues[0], marketPair: pairs[0] };
+}
+
+export function hasExactExecutionRecoveryIdentity(project = {}) {
+  const routeType = text(project.executionProof?.routeType || project.routeType || project.canonicalExecutionRoute?.routeType).toUpperCase();
+  if (routeType === "CEX") return Boolean(exactExecutionMarket(project));
+  return executionIdentity(project).exact || Boolean(exactExecutionMarket(project));
 }
 
 function exactExecutionQuotes(route, identity, responses) {
@@ -1781,11 +1787,12 @@ export async function recoverExecutionEvidence(
   options = {},
   state = createActiveEvidenceExecutionState(options)
 ) {
-  const empty = (attempts) => ({ observations: [], projectPatch: {}, attempts });
+  let executionAdapterResults = [];
+  const empty = (attempts) => ({ observations: [], projectPatch: {}, attempts, executionAdapterResults });
   if (!fields.some((field) => EXECUTION_RAW_FIELDS.has(field))) return empty([]);
   const identity = executionIdentity(project);
   const market = exactExecutionMarket(project);
-  if (!identity.exact && !market) return empty([{ provider: "execution-proof-recovery", status: "MISSING_OR_CONFLICTING_IDENTITY",
+  if (!hasExactExecutionRecoveryIdentity(project)) return empty([{ provider: "execution-proof-recovery", status: "MISSING_OR_CONFLICTING_IDENTITY",
     durationMs: 0, reason: "Execution recovery requires an exact chain, contract and known pool, or an exact CEX venue market." }]);
 
   // The batch owns adapter selection and safety gates; its candidate qualification output is never merged.
@@ -1866,7 +1873,16 @@ export async function recoverExecutionEvidence(
     ...recovery, auditMode: options.auditMode === true || recovery.auditMode === true,
     deferToActiveEvidence: false, maxCandidates: 1, concurrency: 1, now, fetchJson, signal: options.signal || recovery.signal,
   });
+  executionAdapterResults = (recovered?.executionProofRecovery?.adapterResults || []).map((result) => ({
+    adapter: result.adapter, status: result.status,
+    missingKey: result.missingKey || null,
+    reason: result.reason ? redact(result.reason) : null,
+    failures: (result.failures || []).map(redact),
+    providerFailureCode: result.providerFailureCode ? redact(result.providerFailureCode) : null,
+    retryAt: result.retryAt ? redact(result.retryAt) : null,
+  }));
   const attempts = calls.map(({ attempt, failure }) => ({ ...attempt, value: undefined,
+    family: "EXECUTION",
     reason: attempt.reason ? redact(attempt.reason) : null,
     ...(failure ? { httpStatus: failure.status ?? null, code: failure.code ? redact(failure.code) : null,
       retryAfter: failure.retryAfter == null ? null : redact(failure.retryAfter),
@@ -1880,6 +1896,10 @@ export async function recoverExecutionEvidence(
   if (!route || route.buyQuoteVerified !== true || route.sellQuoteVerified !== true ||
       !Number.isFinite(Date.parse(route.quoteTimestamp)) ||
       !(exactMarket || (!market && exactExecutionQuotes(route, identity, responses)))) {
+    executionAdapterResults = executionAdapterResults.map((result) => result.status === "ROUTE_RECOVERED"
+      ? { ...result, providerStatus: result.status, status: "IDENTITY_OR_POOL_UNATTESTED",
+        reason: "Provider quote did not attest the required exact route identity on both legs." }
+      : result);
     return empty([...attempts, { provider: "execution-proof-recovery", status: route ? "IDENTITY_OR_POOL_UNATTESTED" : "NO_VERIFIED_ROUTE",
       durationMs: 0, reason: "No new exact two-way execution proof was recovered; missing evidence remains unresolved." }]);
   }
@@ -1904,7 +1924,7 @@ export async function recoverExecutionEvidence(
   const observations = [...EXECUTION_RAW_FIELDS].map((field) => observation(field,
     field === "purchaseRouteConfirmed" ? true : rawRoute[field], route.source, route.quoteTimestamp, 0.9, details))
     .filter((item) => valueKnown(item.value));
-  return { observations, attempts, projectPatch: { executionProofRecoveryRoute: {
+  return { observations, attempts, executionAdapterResults, projectPatch: { executionProofRecoveryRoute: {
     ...rawRoute, exactIdentityVerified: !market, marketIdentityVerified: Boolean(market),
     sourceTimestamp: route.quoteTimestamp, confidence: 0.9,
     verificationStatus: "VERIFIED_PROVIDER_OBSERVATION", recoveryRun: true,
@@ -1921,6 +1941,7 @@ export async function executeActiveEvidenceProviderRequests(
   const fields = [...new Set((Array.isArray(requests) ? requests : []).map(fieldOf).filter(Boolean))];
   const sources = targetSourceNames(requests);
   const attempts = [];
+  let executionAdapterResults = [];
   const observations = securityHolderObservations(project, [
     ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
     ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
@@ -1987,6 +2008,7 @@ export async function executeActiveEvidenceProviderRequests(
     const result = await recoverExecutionEvidence(project, executionFields, providers, options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
+    executionAdapterResults = result.executionAdapterResults || [];
     projectPatch = { ...projectPatch, ...result.projectPatch };
   }
   if (
@@ -2072,6 +2094,7 @@ export async function executeActiveEvidenceProviderRequests(
   return {
     observations: [...bestByField.values()],
     attempts,
+    executionAdapterResults,
     projectPatch,
   };
 }

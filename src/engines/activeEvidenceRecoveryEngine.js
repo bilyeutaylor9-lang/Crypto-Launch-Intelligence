@@ -10,6 +10,7 @@ import {
   createActiveEvidenceExecutionState,
   resolveActiveEvidenceRequestBudget,
   executeActiveEvidenceProviderRequests,
+  hasExactExecutionRecoveryIdentity,
   mapWithBoundedConcurrency,
   summarizeActiveEvidenceExecutionState,
 } from "../data/activeEvidenceProviderExecutor.js";
@@ -358,6 +359,7 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
   for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
     const scoreKey = wave === "WAVE3" ? "executionPriority" : "priority";
     waves[wave] = eligible
+      .filter((candidate) => wave !== "WAVE3" || hasExactExecutionRecoveryIdentity(candidate.project))
       .map((candidate) => ({
         ...candidate,
         entries: candidate.items
@@ -389,7 +391,10 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
       })
       .slice(0, waveLimits[wave]);
   }
-  return { waves, waveLimits, deepEvaluatedCandidates: eligible.length };
+  return { waves, waveLimits, deepEvaluatedCandidates: eligible.length,
+    executionIdentityDeferredCandidates: eligible.filter((candidate) =>
+      !hasExactExecutionRecoveryIdentity(candidate.project) && candidate.items.some((item) =>
+        recoveryWaveForField(item.canonicalField || item.field) === "WAVE3")).length };
 }
 
 export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
@@ -455,6 +460,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       }
 
       let providerAttempts = [];
+      let executionAdapterResults = [];
       if (unresolvedEntries.length) {
         const providerResult = await executeActiveEvidenceProviderRequests(
           next,
@@ -464,6 +470,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         );
         next = { ...next, ...(providerResult.projectPatch || {}) };
         providerAttempts = providerResult.attempts || [];
+        executionAdapterResults = providerResult.executionAdapterResults || [];
         for (const recovered of providerResult.observations || []) {
           next = applyRecoveredField(next, recovered.field, recovered.value);
           next = attachFieldProvenance(next, recovered.field, recovered);
@@ -498,6 +505,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
             unrecoveredFields: uniqueUnrecovered,
             attempts,
             providerAttempts,
+            executionAdapterResults,
             plannedRequestCost: entries.reduce(
               (sum, entry) => sum + entry.requestCost,
               0
@@ -510,6 +518,11 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
   }
 
   for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
+    if (wave !== "WAVE1") {
+      const refreshed = buildActiveEvidenceRecoveryWaves(currentProjects, options);
+      hydration.waves[wave] = refreshed.waves[wave];
+      hydration.executionIdentityDeferredCandidates = refreshed.executionIdentityDeferredCandidates;
+    }
     const recoveredWave = await mapWithBoundedConcurrency(
       hydration.waves[wave],
       concurrency,
@@ -528,6 +541,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         changedEvidenceFamilies: [...new Set([...(previousReport.changedEvidenceFamilies || []), ...(report.changedEvidenceFamilies || [])])],
         attempts: [...(previousReport.attempts || []), ...(report.attempts || [])],
         providerAttempts: [...(previousReport.providerAttempts || []), ...(report.providerAttempts || [])],
+        executionAdapterResults: [...(previousReport.executionAdapterResults || []), ...(report.executionAdapterResults || [])],
         plannedRequestCost: num(previousReport.plannedRequestCost) + num(report.plannedRequestCost),
       };
       mergedReport.unrecoveredFields = mergedReport.unrecoveredFields.filter(
@@ -571,6 +585,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     deepEvaluatedCandidates: hydration.deepEvaluatedCandidates,
     recoveryCandidatesAttempted: selectedIndexes.size,
     selectedWaveCounts,
+    executionIdentityDeferredCandidates: hydration.executionIdentityDeferredCandidates,
     providerRequestsUsed: providerExecution.requestsUsed,
     providerRequestBudget: providerExecution.maxRequests,
     timeBudgetExceeded: providerExecution.timeBudgetExceeded,
@@ -592,6 +607,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       };
     }
     const deferred = !isDeepCandidate(project);
+    const executionIdentityDeferred = !deferred && !hasExactExecutionRecoveryIdentity(project) &&
+      planItems(project, options).some((item) => recoveryWaveForField(item.canonicalField || item.field) === "WAVE3");
     return {
       ...project,
       activeEvidenceRecoveryStatus: deferred ? "DEFERRED_BEFORE_DEEP" : "NOT_SELECTED",
@@ -602,8 +619,11 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         unrecoveredFields: [],
         providerExecution,
         batchSummary,
+        executionIdentityDeferred,
         reason: deferred
           ? "Project was deferred before deep evaluation and excluded from recovery."
+          : executionIdentityDeferred
+          ? "Quote recovery awaits exact non-conflicting chain, contract and pool identity, or a supported exact CEX venue market."
           : "Project was outside the bounded value-of-information recovery budget.",
       },
     };

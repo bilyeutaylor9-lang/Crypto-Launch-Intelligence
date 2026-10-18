@@ -731,6 +731,7 @@ test("candidate field limits preserve core creator recovery ahead of advisory ma
 test("wave 3 only includes the configured top execution candidates", () => {
   const candidates = Array.from({ length: 5 }, (_, index) => ({
     symbol: `E${index}`,
+    chain: "base", tokenAddress: TOKEN, poolAddress: POOL,
     preliminaryOpportunityScore: index * 10,
     targetedEnrichmentPlan: {
       items: [{ canonicalField: "purchaseRouteConfirmed", recoverable: true, valueOfInformationScore: 1, targetSources: [{ source: "Jupiter" }] }],

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { analyzeActiveEvidenceRecoveryBatch } from "../src/engines/activeEvidenceRecoveryEngine.js";
 import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
+import { summarizeExecutionProofRecovery } from "../src/reports/executionProofRecoveryReportEngine.js";
 
 test("500 deep and 3500 deferred fixtures enforce Wave3 limits, real request accounting and zero forced picks", async () => {
   const now = new Date();
@@ -16,6 +17,7 @@ test("500 deep and 3500 deferred fixtures enforce Wave3 limits, real request acc
       identityVerified: true, contractVerified: true, instantSafetyStatus: "PASS",
       deepEvaluationState: "DEEP_EVALUATED", coreEvidenceState: "CORE_EVIDENCE_READY", coreEvidenceCoveragePct: 91,
       preliminaryOpportunityScore: 500 - index, finalSelectionState: "RESEARCH_ONLY",
+      executionProofRecovery: { status: "DEFERRED_TO_WAVE3", attempted: false },
       executionProof: { routeType: "DEX", buyQuoteVerified: false, sellQuoteVerified: false,
         executionProofState: "MARKET_OBSERVED", liveExecutionReady: false } };
   });
@@ -50,6 +52,13 @@ test("500 deep and 3500 deferred fixtures enforce Wave3 limits, real request acc
   assert.equal(calledTokens.size, 30);
   assert.equal(result.filter((candidate) => candidate.activeEvidenceRecovery?.waves?.includes("WAVE3")).length, 50);
   assert.equal(result.filter((candidate) => candidate.executionProofRecoveryRoute).length, 30);
+  const report = summarizeExecutionProofRecovery(result);
+  assert.equal(report.candidatesAttempted, 50);
+  assert.equal(report.candidatesWithProviderRequests, 30);
+  assert.equal(report.executionProviderRequestsUsed, 60);
+  assert.equal(report.routesRecovered, 30);
+  assert.equal(report.newlyExecutionReady, 0);
+  assert.equal(report.adapterHealth.find((adapter) => adapter.adapter === "lifi").budgetExhausted, 20);
   assert.ok(result.slice(500).every((candidate) => !candidate.activeEvidenceRecovery?.waves?.length));
   for (const candidate of result.filter((item) => item.executionProofRecoveryRoute)) {
     assert.equal(candidate.fieldProvenance.purchaseRouteConfirmed.source, "lifi");

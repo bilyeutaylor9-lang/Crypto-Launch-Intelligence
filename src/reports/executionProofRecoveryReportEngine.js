@@ -1,6 +1,30 @@
 import fs from "fs";
 import path from "path";
-import { routeQuoteAgeSeconds, routeQuoteFresh } from "../execution/routeTruthV2.js";
+import { isLiveExecutionReady, routeQuoteAgeSeconds, routeQuoteFresh } from "../execution/routeTruthV2.js";
+
+const QUOTE_PROVIDERS = new Set(["jupiter", "0x", "lifi", "lifi-token", "coinbase", "kraken", "gate", "mexc"]);
+const HTTP_ATTEMPT_STATUSES = new Set(["SUCCESS", "FAILED", "NO_CANDIDATE_EVIDENCE"]);
+
+function candidateNoRoute(result = {}) {
+  return [result.status, result.providerFailureCode, result.code].some((value) =>
+    ["NO_BUY_QUOTE", "NO_SELL_QUOTE", "NO_VERIFIED_ROUTE", "NO_CANDIDATE_EVIDENCE",
+      "IDENTITY_OR_POOL_UNATTESTED", "HTTP_400", "HTTP_404", "HTTP_422"].includes(value)
+  ) || [400, 404, 422].includes(result.httpStatus);
+}
+
+function budgetExhausted(result = {}) {
+  return [result.status, result.providerFailureCode, result.code].some((value) => /BUDGET_EXHAUSTED$/.test(value || ""));
+}
+
+function providerFailed(result = {}) {
+  if (budgetExhausted(result) || candidateNoRoute(result)) return false;
+  return ["FAILED", "PROVIDER_FAILED", "TIMED_OUT", "RATE_LIMITED", "CIRCUIT_OPEN", "PROVIDER_COOLDOWN"].includes(result.status);
+}
+
+function executionReadyForReport(project = {}) {
+  const state = project.executionProof?.executionProofState || project.executionProofState;
+  return state === "LIVE_EXECUTION_READY" && isLiveExecutionReady(project);
+}
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -20,15 +44,30 @@ function recoveryForReport(project = {}) {
   if (previous.status !== "DEFERRED_TO_WAVE3" || !array(active.waves).includes("WAVE3")) return previous;
   const attempted = array(active.attempts).some((item) => item.family === "EXECUTION");
   if (!attempted) return previous;
+  const explicitAdapterResults = Array.isArray(active.executionAdapterResults);
+  const httpAttempts = array(active.providerAttempts).filter((attempt) =>
+    QUOTE_PROVIDERS.has(attempt.provider) &&
+      (attempt.family === "EXECUTION" || (!explicitAdapterResults && !attempt.family))
+  );
+  // HTTP success is not evidence that either quote passed adapter verification.
+  const adapterResults = explicitAdapterResults
+    ? active.executionAdapterResults.map((result) => ({ ...result, resultType: "ADAPTER" }))
+    : httpAttempts.map((attempt) => ({ ...attempt, adapter: attempt.provider, resultType: "HTTP" }));
+  const optionalSourceGaps = adapterResults.filter((result) => result.status === "OPTIONAL_KEY_MISSING")
+    .map((result) => ({ source: result.adapter, missingKey: result.missingKey, reason: result.reason }));
   const route = project.executionProofRecoveryRoute || {};
   const recovered = route.verificationStatus === "VERIFIED_PROVIDER_OBSERVATION" && route.recoveryRun === true &&
     (route.exactIdentityVerified === true || route.marketIdentityVerified === true) &&
-    route.buyQuoteVerified === true && route.sellQuoteVerified === true && routeQuoteFresh(route);
+    route.buyQuoteVerified === true && route.sellQuoteVerified === true &&
+    Number.isFinite(Date.parse(route.quoteTimestamp)) && routeQuoteFresh(route);
   return { status: recovered ? "ROUTE_RECOVERED" : "NO_VERIFIED_ROUTE", attempted: true, selected: true,
     executionRecoverySource: route.source || null, buyQuoteVerified: recovered, sellQuoteVerified: recovered,
-    quoteTimestamp: recovered ? route.quoteTimestamp : null,
-    adapterResults: array(active.providerAttempts).map((attempt) => ({ adapter: attempt.provider,
-      status: attempt.status === "FAILED" ? "PROVIDER_FAILED" : attempt.status, reason: attempt.reason })),
+    quoteTimestamp: route.quoteTimestamp || null, quoteAgeSeconds: routeQuoteAgeSeconds(route),
+    adapterResults, httpAttempts, optionalSourceGaps,
+    executionRecoveryFailures: adapterResults.flatMap((result) =>
+      result.status === "ROUTE_RECOVERED" || result.status === "SUCCESS" ? []
+        : [...array(result.failures), result.reason, result.providerFailureCode, result.status].filter(Boolean)
+    ),
   };
 }
 
@@ -37,8 +76,11 @@ function nextProofToPromote(project = {}, recovery = {}, proofState = {}) {
   if (execution.exactIdentityVerified !== true) {
     return execution.routeKind === "CEX" ? "verified exchange venue and market pair" : "exact chain, token, and applicable pool identity";
   }
-  if (execution.buyQuoteVerified !== true && recovery.buyQuoteVerified !== true) return "fresh buy quote";
-  if (execution.sellQuoteVerified !== true && recovery.sellQuoteVerified !== true) return "fresh sell quote";
+  if (execution.buyQuoteVerified === false ||
+      (execution.buyQuoteVerified !== true && recovery.buyQuoteVerified !== true)) return "fresh buy quote";
+  if (execution.sellQuoteVerified === false ||
+      (execution.sellQuoteVerified !== true && recovery.sellQuoteVerified !== true)) return "fresh sell quote";
+  if (!routeQuoteFresh(project)) return "fresh buy and sell quotes";
   if (execution.slippageIsHeuristic !== false) return "observed live slippage";
   if (execution.safetyVerified !== true) return "verified route safety";
   if (execution.transferTaxEvidenceRequired === true && execution.transferTaxEvidenceVerified !== true) return "verified transfer-tax evidence";
@@ -59,8 +101,7 @@ function projectIdentity(project = {}, rank = null) {
   const route = project.executionProofRecoveryRoute || project.bestGlobalRoute || project.canonicalExecutionRoute || {};
   const proofState = project.candidateProofState || {};
   const executionReadinessState = project.executionReadinessState || "RESEARCH_ONLY";
-  const executionProofState = project.executionProofState || project.executionProof?.executionProofState || "NO_VERIFIED_ROUTE";
-  const routeExecutionReady = executionProofState === "LIVE_EXECUTION_READY";
+  const routeExecutionReady = executionReadyForReport(project);
   const finalProjectExecutionReady = routeExecutionReady && project.finalSelectionQualified === true;
   return {
     rank,
@@ -115,17 +156,26 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
   const safe = (Array.isArray(projects) ? projects : []).map((project) => ({ ...project,
     executionProofRecovery: recoveryForReport(project) }));
   const attemptedProjects = safe.filter((project) => project.executionProofRecovery?.attempted === true);
+  const providerRequests = attemptedProjects.flatMap((project) =>
+    array(project.executionProofRecovery?.httpAttempts).filter((attempt) => HTTP_ATTEMPT_STATUSES.has(attempt.status))
+      .map((attempt) => ({ ...attempt, symbol: project.symbol || "UNKNOWN" }))
+  );
+  const candidatesWithProviderRequests = attemptedProjects.filter((project) =>
+    array(project.executionProofRecovery?.httpAttempts).some((attempt) => HTTP_ATTEMPT_STATUSES.has(attempt.status))
+  );
   const recoveredProjects = attemptedProjects.filter((project) => project.executionProofRecovery?.status === "ROUTE_RECOVERED");
   const buyOnlyProjects = attemptedProjects.filter((project) => project.executionProofRecovery?.status === "BUY_ONLY_ROUTE");
   const sellProofFailures = attemptedProjects.filter((project) =>
     project.executionProofRecovery?.buyQuoteVerified === true &&
       project.executionProofRecovery?.sellQuoteVerified !== true
   );
-  const staleQuotes = attemptedProjects.filter((project) => num(project.executionProofRecovery?.quoteAgeSeconds) > 3600);
+  const staleQuotes = attemptedProjects.filter((project) => {
+    const recovery = project.executionProofRecovery || {};
+    return routeQuoteAgeSeconds({ quoteAgeSeconds: recovery.quoteAgeSeconds,
+      quoteTimestamp: recovery.quoteTimestamp }) > 3600;
+  });
   const providerFailures = attemptedProjects.filter((project) =>
-    array(project.executionProofRecovery?.adapterResults).some((result) =>
-      ["PROVIDER_FAILED", "TIMED_OUT", "RATE_LIMITED"].includes(result.status)
-    )
+    array(project.executionProofRecovery?.adapterResults).some(providerFailed)
   );
   const optionalSourceGaps = attemptedProjects.flatMap((project) =>
     array(project.executionProofRecovery?.optionalSourceGaps).map((gap) => ({
@@ -140,23 +190,38 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
     project.executionProofRecovery?.newlyPromotedToExecutionReview === true &&
       ["EXECUTION_REVIEW", "READY"].includes(project.executionReadinessState)
   );
-  const routeExecutionReady = recoveredProjects.filter(
-    (project) => (project.executionProofState || project.executionProof?.executionProofState) === "LIVE_EXECUTION_READY"
-  );
+  const routeExecutionReady = recoveredProjects.filter(executionReadyForReport);
   const executionReady = routeExecutionReady.filter((project) => project.finalSelectionQualified === true);
 
   const adapterHealth = attemptedProjects
-    .flatMap((project) => array(project.executionProofRecovery?.adapterResults))
-    .reduce((acc, result) => {
+    .flatMap((project) => array(project.executionProofRecovery?.adapterResults)
+      .map((result) => ({ result, symbol: project.symbol || "UNKNOWN",
+        routeRecovered: project.executionProofRecovery.status === "ROUTE_RECOVERED" })))
+    .reduce((acc, { result, symbol, routeRecovered }) => {
       const key = result.adapter || "unknown";
-      acc[key] ||= { adapter: key, attempts: 0, recovered: 0, buyOnly: 0, optionalKeyMissing: 0, providerFailures: 0 };
+      acc[key] ||= { adapter: key, attempts: 0, recovered: 0, buyOnly: 0, optionalKeyMissing: 0,
+        providerFailures: 0, httpRequests: 0, httpSuccesses: 0, budgetExhausted: 0,
+        rateLimited: 0, noRoute: 0, statusCounts: {}, outcomes: [] };
       acc[key].attempts += 1;
-      if (result.status === "ROUTE_RECOVERED") acc[key].recovered += 1;
-      if (result.status === "NO_SELL_QUOTE" || result.status === "BUY_ONLY_ROUTE") acc[key].buyOnly += 1;
+      acc[key].statusCounts[result.status] = (acc[key].statusCounts[result.status] || 0) + 1;
+      acc[key].outcomes.push({ ...result, symbol });
+      if (routeRecovered && result.resultType !== "HTTP" && result.status === "ROUTE_RECOVERED") acc[key].recovered += 1;
+      if (result.status === "BUY_ONLY_ROUTE") acc[key].buyOnly += 1;
+      if (candidateNoRoute(result)) acc[key].noRoute += 1;
       if (result.status === "OPTIONAL_KEY_MISSING") acc[key].optionalKeyMissing += 1;
-      if (["PROVIDER_FAILED", "TIMED_OUT", "RATE_LIMITED"].includes(result.status)) acc[key].providerFailures += 1;
+      if (budgetExhausted(result)) acc[key].budgetExhausted += 1;
+      if ([result.status, result.providerFailureCode, result.code].includes("RATE_LIMITED")) acc[key].rateLimited += 1;
+      if (providerFailed(result)) acc[key].providerFailures += 1;
       return acc;
     }, {});
+  for (const attempt of providerRequests) {
+    const adapter = adapterHealth[attempt.provider] ||
+      (attempt.provider === "lifi-token" ? adapterHealth.lifi : null) ||
+      (["coinbase", "kraken", "gate", "mexc"].includes(attempt.provider) ? adapterHealth["cex-order-book"] : null);
+    if (!adapter) continue;
+    adapter.httpRequests += 1;
+    if (attempt.status === "SUCCESS") adapter.httpSuccesses += 1;
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -175,6 +240,8 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
       "Execution proof recovery fetches research and paper-execution evidence only. It does not place trades and is not financial advice.",
     projectsAnalyzed: safe.length,
     candidatesAttempted: attemptedProjects.length,
+    executionProviderRequestsUsed: providerRequests.length,
+    candidatesWithProviderRequests: candidatesWithProviderRequests.length,
     routesRecovered,
     buyOnlyRoutes: buyOnlyProjects.length,
     sellProofFailures: sellProofFailures.length,
@@ -185,11 +252,13 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
     newlyRouteExecutionReady: routeExecutionReady.length,
     newlyExecutionReady: executionReady.length,
     adapterHealth: Object.values(adapterHealth),
+    executionProviderAttempts: providerRequests,
     topRecoveredRoutes: recoveredProjects.map((project, index) => projectIdentity(project, index + 1)).slice(0, 25),
     buyOnlyRouteFailures: buyOnlyProjects.map((project, index) => projectIdentity(project, index + 1)).slice(0, 25),
     sellProofFailureExamples: sellProofFailures.map((project, index) => projectIdentity(project, index + 1)).slice(0, 25),
     remainingActions: [
-      ...(optionalSourceGaps.length ? ["Add optional ZEROX_API_KEY to improve EVM quote recovery breadth."] : []),
+      ...[...new Set(optionalSourceGaps.map((gap) => gap.missingKey).filter(Boolean))]
+        .map((key) => `Add optional ${key} to improve execution quote recovery breadth.`),
       ...(sellProofFailures.length ? ["Prioritize sell quote recovery before any execution-ready decision."] : []),
       ...(providerFailures.length ? ["Check provider cooldowns, rate limits, and network availability."] : []),
       ...(!routesRecovered ? ["No route proof was recovered in this scan; candidates remain research-only."] : []),

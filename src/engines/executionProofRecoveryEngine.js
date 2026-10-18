@@ -1057,6 +1057,8 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
       missingKey: item.missingKey || null,
       reason: item.reason || null,
       failures: array(item.failures).slice(0, 5),
+      providerFailureCode: item.providerFailureCode || null,
+      retryAt: item.retryAt || null,
     })),
     executionRecoverySource: bestRoute?.executionRecoverySource || null,
     executionRecoveryFailures: [...new Set(collectedFailures)].slice(0, 12),

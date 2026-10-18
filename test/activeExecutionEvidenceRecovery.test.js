@@ -228,6 +228,7 @@ test("unknown, fabricated, pool-unattested and different-pool routes remain unre
   for (const fetchJson of fixtures) {
     const result = await execute(project(), options(fetchJson));
     unresolved(result);
+    assert.equal(result.executionAdapterResults.some((item) => item.status === "ROUTE_RECOVERED"), false);
     assert.ok(result.attempts.some((attempt) => ["NO_VERIFIED_ROUTE", "IDENTITY_OR_POOL_UNATTESTED"].includes(attempt.status)));
   }
 });
@@ -257,7 +258,22 @@ test("DERIVED execution/qualification fields are never sent to the recovery batc
   assert.equal(calls, 0);
   assert.equal(result.state.requestsUsed, 0);
   unresolved(result);
-  assert.deepEqual(await recoverExecutionEvidence(project(), fields, {}, opts), { observations: [], projectPatch: {}, attempts: [] });
+  assert.deepEqual(await recoverExecutionEvidence(project(), fields, {}, opts), {
+    observations: [], projectPatch: {}, attempts: [], executionAdapterResults: [],
+  });
+});
+
+test("execution diagnostics retain missing-key and keyless-budget outcomes without HTTP or positive evidence", async () => {
+  const opts = options(async () => { throw new Error("No HTTP should be attempted"); }, {
+    executionRecovery: { lifiRateBudget: { windowStartedAtMs: NOW.getTime(), requests: 70 } },
+  });
+  const result = await execute(project(), opts);
+  unresolved(result);
+  assert.equal(result.state.requestsUsed, 0);
+  assert.equal(result.executionAdapterResults.find((item) => item.adapter === "lifi").providerFailureCode,
+    "LIFI_KEYLESS_BUDGET_EXHAUSTED");
+  assert.equal(result.executionAdapterResults.find((item) => item.adapter === "0x").missingKey, "ZEROX_API_KEY");
+  assert.ok(result.executionAdapterResults.find((item) => item.adapter === "lifi").retryAt);
 });
 
 test("the same request state is shared between executor invocations and cannot replay an old recovered route", async () => {
