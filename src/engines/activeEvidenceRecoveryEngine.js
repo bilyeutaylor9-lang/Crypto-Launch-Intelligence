@@ -1,4 +1,6 @@
 import { canonicalValue } from "../data/canonicalAliasResolver.js";
+import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
+import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -262,11 +264,30 @@ function recoveryWaveForField(field = "") {
   return null;
 }
 
-function planItems(project = {}) {
+function executionProofRecoveryItems(project = {}, options = {}) {
+  const proof = project.executionProof;
+  if (!proof || typeof proof !== "object" || Array.isArray(proof) || !Object.keys(proof).length) return [];
+  const assessment = decisionProofAssessment(project);
+  if (assessment.conclusivelyRejected || !assessment.missingFields.some((field) =>
+    ["BUY_QUOTE", "SELL_QUOTE", "QUOTE_FRESHNESS", "ROUTE_DEPTH", "VERIFIED_SLIPPAGE"].includes(field))) return [];
+  const routeType = proof.routeType || project.canonicalExecutionRoute?.routeType || project.routeType;
+  const recovery = options.executionRecovery || options.executionProofRecovery || {};
+  const keyedProviderConfigured = chainOf(project) === "solana"
+    ? Boolean(recovery.jupiterApiKey || process.env.JUPITER_API_KEY)
+    : Boolean(recovery.zeroxApiKey || process.env.ZEROX_API_KEY);
+  const freeOnly = options.freeOnly ?? (process.env.FREE_ONLY_MODE === "true" || !keyedProviderConfigured);
+  return buildTargetedEnrichmentPlan(["purchaseRouteConfirmed", "sellRouteAvailable", "quoteTimestamp", "slippagePct"].map((field) => ({
+    canonicalField: field, rootCause: "EXECUTION_EVIDENCE_MISSING", evidenceClass: "CORE", blockingExecution: true,
+    requiresFreshObservation: true, decisionImportance: 1, currentUncertainty: 1, expectedRankChange: 1,
+  })), { chain: chainOf(project), routeType, freeOnly }).items;
+}
+
+function planItems(project = {}, options = {}) {
   const items = [
     ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
     ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
     ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
+    ...executionProofRecoveryItems(project, options),
   ];
   const bestByField = new Map();
   for (const item of items) {
@@ -275,12 +296,16 @@ function planItems(project = {}) {
     const recoveryDisposition = recoveryDispositionForField(field, {
         applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
         chain: chainOf(project),
+        routeType: project.executionProof?.routeType || project.canonicalExecutionRoute?.routeType || project.routeType,
       });
     if (recoveryDisposition !== "RAW_RECOVERABLE") continue;
     const current = bestByField.get(field);
     const value = num(item.valueOfInformationScore || item.estimatedRecoveryValue);
     if (!current || value > num(current.valueOfInformationScore || current.estimatedRecoveryValue)) {
-      bestByField.set(field, { ...item, recoveryDisposition });
+      bestByField.set(field, { ...item, recoveryDisposition,
+        requiresFreshObservation: item.requiresFreshObservation === true || current?.requiresFreshObservation === true });
+    } else if (item.requiresFreshObservation === true) {
+      bestByField.set(field, { ...current, requiresFreshObservation: true });
     }
   }
   return [...bestByField.values()];
@@ -308,7 +333,7 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
   );
   const eligible = input
     .map((project, projectIndex) => {
-      const items = planItems(project);
+      const items = planItems(project, options);
       const valueOfInformationPriority = Math.max(
         0,
         ...items.map((item) => num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100)
@@ -396,7 +421,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       const unresolvedEntries = [];
 
       for (const entry of entries) {
-        const value = recoveredValueFor(next, entry.field);
+        const value = entry.item.requiresFreshObservation === true ? null : recoveredValueFor(next, entry.field);
         const planAttempt = {
           field: entry.field,
           family: entry.family,

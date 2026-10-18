@@ -34,6 +34,8 @@ import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import { getRpcWalletEvidence } from "./rpcWalletEvidenceConnector.js";
 import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
+import { analyzeExecutionProofRecoveryBatch } from "../engines/executionProofRecoveryEngine.js";
+import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -133,6 +135,22 @@ const WALLET_RAW_FIELDS = new Set([
   "walletTransactions",
   "walletParticipationHistory",
 ]);
+
+const EXECUTION_RAW_FIELDS = new Set([
+  "purchaseRouteConfirmed", "sellRouteAvailable", "quoteTimestamp",
+  "slippagePct", "priceImpactPct", "executableDepthUsd", "verifiedTradeSizeUsd",
+  "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct",
+]);
+
+const EXECUTION_ROUTE_FIELDS = [
+  "source", "provider", "venue", "underlyingVenue", "routeType", "chain", "chainId",
+  "tokenAddress", "contractAddress", "baseTokenAddress", "poolAddress", "routePoolAddresses",
+  "marketPair", "quoteAsset", "quoteTokenAddress", "buyRouteAvailable", "sellRouteAvailable",
+  "buyQuoteVerified", "sellQuoteVerified", "quoteVerified", "quoteTimestamp",
+  "slippagePct", "priceImpactPct", "estimatedRoundTripSlippagePct", "slippageIsHeuristic",
+  "executableDepthUsd", "verifiedTradeSizeUsd", "verifiedDepthSource", "orderBookDepthVerified",
+  "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "buyQuote", "sellQuote",
+];
 
 function text(value = "") {
   return String(value ?? "").trim();
@@ -455,6 +473,11 @@ async function executeProviderCall(
         );
       }),
     ]);
+    if (value?.candidateEvidenceUnavailable === true) {
+      health.noDataResponses = (health.noDataResponses || 0) + 1;
+      return { status: "NO_CANDIDATE_EVIDENCE", provider, value: null,
+        reason: value.reason || "Provider returned no evidence for this candidate.", durationMs: Date.now() - startedAt };
+    }
     if (value?.providerFailure === true && value.rateLimited === true) {
       health.rateLimitResponses = (health.rateLimitResponses || 0) + 1;
       return {
@@ -1661,6 +1684,233 @@ async function recoverCoinPaprika(project = {}, fields = [], providers = {}, opt
   };
 }
 
+function executionIdentity(project = {}) {
+  const route = project.canonicalExecutionRoute || {};
+  const known = [project, project.rawCandidate || {}, project.marketData || {}, route];
+  const unique = (values, normalize) => {
+    const supplied = values.filter(valueKnown);
+    const normalized = supplied.map(normalize);
+    return normalized.every(Boolean) && new Set(normalized).size === 1 ? normalized[0] : null;
+  };
+  const chain = unique([
+    ...known.flatMap((item) => [item.chain, item.chainId, item.network]),
+    project.canonicalChain, project.finalChain,
+  ], normalizeChainId);
+  const tokenAddress = unique([
+    ...known.flatMap((item) => [item.tokenAddress, item.contractAddress, item.baseToken?.address]),
+    project.address, project.rawCandidate?.address, project.canonicalAddress, project.finalContractAddress,
+  ], (value) => normalizeTokenAddress(value, chain));
+  const poolAddress = unique([
+    ...known.flatMap((item) => [item.poolAddress, item.pairAddress]),
+    project.primaryPool, project.primaryTradablePool, project.finalPairAddress, project.pair?.address,
+  ], (value) => normalizePoolAddress(value, chain));
+  return { chain, tokenAddress, poolAddress,
+    exact: Boolean(chain && tokenAddress && poolAddress && tokenAddress !== poolAddress &&
+      !/^0x0{40}$/.test(tokenAddress) && !/^0x0{40}$/.test(poolAddress)) };
+}
+
+function exactExecutionMarket(project = {}) {
+  const route = project.canonicalExecutionRoute || {};
+  const routeType = text(project.routeType || route.routeType || project.executionProof?.routeType).toUpperCase();
+  // Public books prove a venue market, never the contract identity of a DEX candidate.
+  if (routeType !== "CEX" && (chainOf(project) || tokenAddressOf(project))) return null;
+  const supported = new Set(["coinbase", "kraken", "gate", "mexc"]);
+  const marketKey = text(project.marketKey).split(":");
+  const venues = [marketKey.length > 1 ? marketKey[0] : null,
+    project.exchange, project.provider, project.source, route.venue].map(lower).filter((value) => supported.has(value));
+  if (!venues.length || new Set(venues).size !== 1) return null;
+  const pairs = [project.marketPair, route.marketPair, project.marketData?.marketPair,
+    marketKey.length > 1 ? marketKey.at(-1) : null].filter(valueKnown)
+    .map((value) => text(value).toUpperCase().replace(/[-_/]/g, ""));
+  if (!pairs.length || new Set(pairs).size !== 1 || !/^[A-Z0-9]+(?:USDT|USDC|USD)$/.test(pairs[0])) return null;
+  return { provider: venues[0], marketPair: pairs[0] };
+}
+
+function exactExecutionQuotes(route, identity, responses) {
+  const source = lower(route.source);
+  if (!["lifi", "jupiter", "0x"].includes(source) || !identity.exact ||
+      normalizeChainId(route.chain) !== identity.chain ||
+      normalizeTokenAddress(route.tokenAddress, identity.chain) !== identity.tokenAddress ||
+      normalizeTokenAddress(route.contractAddress, identity.chain) !== identity.tokenAddress ||
+      normalizePoolAddress(route.poolAddress, identity.chain) !== identity.poolAddress) return false;
+  const quoteToken = normalizeTokenAddress(route.quoteTokenAddress, identity.chain);
+  if (!quoteToken || quoteToken === identity.tokenAddress) return false;
+  const quotes = responses.filter((item) => item.provider === source && item.adapter !== "lifi-token");
+  if (quotes.length !== 2) return false;
+  const sides = new Set();
+  try {
+    for (const { url, value } of quotes) {
+      const params = new URL(url).searchParams;
+      const from = normalizeTokenAddress(params.get(source === "jupiter" ? "inputMint" : source === "0x" ? "sellToken" : "fromToken"), identity.chain);
+      const to = normalizeTokenAddress(params.get(source === "jupiter" ? "outputMint" : source === "0x" ? "buyToken" : "toToken"), identity.chain);
+      const side = from === quoteToken && to === identity.tokenAddress ? "BUY"
+        : from === identity.tokenAddress && to === quoteToken ? "SELL" : null;
+      if (!side || sides.has(side)) return false;
+      const amount = params.get(source === "jupiter" ? "amount" : source === "0x" ? "sellAmount" : "fromAmount");
+      if (source === "lifi") {
+        if (normalizeChainId(params.get("fromChain")) !== identity.chain ||
+            normalizeChainId(params.get("toChain")) !== identity.chain) return false;
+        verifyActionIdentity(value, { chain: identity.chain, side, tokenAddress: identity.tokenAddress,
+          quoteTokenAddress: quoteToken, fromAmount: amount });
+      } else {
+        if (source === "jupiter" ? identity.chain !== "solana"
+          : normalizeChainId(params.get("chainId")) !== identity.chain) return false;
+        if (normalizeTokenAddress(value[source === "jupiter" ? "inputMint" : "sellToken"], identity.chain) !== from ||
+            normalizeTokenAddress(value[source === "jupiter" ? "outputMint" : "buyToken"], identity.chain) !== to ||
+            BigInt(value[source === "jupiter" ? "inAmount" : "sellAmount"]) !== BigInt(amount) ||
+            BigInt(value[source === "jupiter" ? "outAmount" : "buyAmount"]) <= 0n) return false;
+        if (value.chainId !== undefined && normalizeChainId(value.chainId) !== identity.chain) return false;
+      }
+      const pools = source === "jupiter"
+        ? (value.routePlan || []).map((step) => normalizePoolAddress(step?.swapInfo?.ammKey, identity.chain))
+        : [...extractLiFiRoutePoolAddresses(value, identity.chain),
+          ...(Array.isArray(value.route?.fills) ? value.route.fills : []).map((fill) => normalizePoolAddress(fill.poolAddress, identity.chain))];
+      if (!pools.includes(identity.poolAddress)) return false;
+      sides.add(side);
+    }
+    return sides.has("BUY") && sides.has("SELL");
+  } catch {
+    return false;
+  }
+}
+
+export async function recoverExecutionEvidence(
+  project = {},
+  fields = [],
+  providers = {},
+  options = {},
+  state = createActiveEvidenceExecutionState(options)
+) {
+  const empty = (attempts) => ({ observations: [], projectPatch: {}, attempts });
+  if (!fields.some((field) => EXECUTION_RAW_FIELDS.has(field))) return empty([]);
+  const identity = executionIdentity(project);
+  const market = exactExecutionMarket(project);
+  if (!identity.exact && !market) return empty([{ provider: "execution-proof-recovery", status: "MISSING_OR_CONFLICTING_IDENTITY",
+    durationMs: 0, reason: "Execution recovery requires an exact chain, contract and known pool, or an exact CEX venue market." }]);
+
+  // The batch owns adapter selection and safety gates; its candidate qualification output is never merged.
+  // executionRecovery is primary; executionProofRecovery is a compatibility alias for injected batch options.
+  const recovery = options.executionRecovery || options.executionProofRecovery || {};
+  const clock = state.now || options.now || Date.now;
+  const now = () => new Date(clock());
+  const responses = [];
+  const calls = [];
+  const secrets = [recovery.lifiApiKey, recovery.jupiterApiKey, recovery.zeroxApiKey,
+    (recovery.env || process.env).LIFI_API_KEY, (recovery.env || process.env).JUPITER_API_KEY,
+    (recovery.env || process.env).ZEROX_API_KEY].filter(Boolean).map(String);
+  const redact = (value) => secrets.reduce((result, secret) => result.split(secret).join("[REDACTED]"), text(value));
+  const transport = recovery.fetchJson || providers.fetchJson || options.providers?.fetchJson || (async (url, init) => {
+    const response = await (options.providers?.fetch || fetch)(url, init);
+    if (!response.ok) {
+      const error = new Error(`Execution provider HTTP ${response.status}`);
+      error.status = response.status;
+      error.retryAfter = response.headers?.get("retry-after");
+      if (response.status === 429) error.providerMessage = (await response.json().catch(() => null))?.message;
+      throw error;
+    }
+    return response.json();
+  });
+  const fetchJson = async (url, init = {}) => {
+    const provider = init.adapter === "lifi-token" ? "lifi" : init.adapter;
+    let failure = null;
+    const attempt = await executeProviderCall(provider, async () => {
+      const controller = new AbortController();
+      const signal = init.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal;
+      const configuredTimeout = Math.max(250, Number(options.providerTimeoutMs || options.timeoutMs ||
+        process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS || process.env.ACTIVE_EVIDENCE_RECOVERY_PROVIDER_TIMEOUT_MS || 8_000));
+      const timeoutMs = Math.max(1, Math.min(configuredTimeout, Number(init.timeoutMs) || configuredTimeout,
+        (state.deadlineAt ?? Infinity) - clock()));
+      let timer;
+      let onAbort;
+      try {
+        if (signal.aborted) throw new Error("Execution provider request aborted before start.");
+        if (clock() >= (state.deadlineAt ?? Infinity)) {
+          state.timeBudgetExceeded = true;
+          throw new Error("Execution provider deadline exhausted before start.");
+        }
+        const aborted = new Promise((_, reject) => {
+          onAbort = () => reject(new Error("Execution provider request aborted or timed out."));
+          signal.addEventListener("abort", onAbort, { once: true });
+        });
+        timer = setTimeout(() => controller.abort(), timeoutMs);
+        const value = await Promise.race([transport(url, { ...init, timeoutMs, signal }), aborted]);
+        if (signal.aborted || clock() >= (state.deadlineAt ?? Infinity)) {
+          state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
+          throw new Error("Execution provider response arrived after its deadline.");
+        }
+        responses.push({ provider, adapter: init.adapter, url, value });
+        return value;
+      } catch (error) {
+        failure = error;
+        state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
+        if ([400, 404, 422].includes(error?.status)) {
+          return { candidateEvidenceUnavailable: true, reason: redact(error.message) };
+        }
+        throw new Error(redact(error?.message || "Execution provider request failed."));
+      } finally {
+        clearTimeout(timer);
+        if (onAbort) signal.removeEventListener("abort", onAbort);
+      }
+    }, options, state, 1, market ? "cex" : identity.chain);
+    calls.push({ attempt, failure });
+    if (attempt.status !== "SUCCESS") {
+      const error = failure || new Error(attempt.reason);
+      error.code ||= attempt.status;
+      throw error;
+    }
+    return attempt.value;
+  };
+  const candidate = market ? { ...project, provider: market.provider, marketPair: market.marketPair }
+    : { ...project, chain: identity.chain, tokenAddress: identity.tokenAddress, poolAddress: identity.poolAddress };
+  const [recovered] = await analyzeExecutionProofRecoveryBatch([candidate], {
+    ...recovery, auditMode: options.auditMode === true || recovery.auditMode === true,
+    deferToActiveEvidence: false, maxCandidates: 1, concurrency: 1, now, fetchJson, signal: options.signal || recovery.signal,
+  });
+  const attempts = calls.map(({ attempt, failure }) => ({ ...attempt, value: undefined,
+    reason: attempt.reason ? redact(attempt.reason) : null,
+    ...(failure ? { httpStatus: failure.status ?? null, code: failure.code ? redact(failure.code) : null,
+      retryAfter: failure.retryAfter == null ? null : redact(failure.retryAfter),
+      retryAt: failure.retryAt == null ? null : redact(failure.retryAt) } : {}),
+  }));
+  const route = recovered?.executionProofRecovery?.status === "ROUTE_RECOVERED"
+    ? recovered.executionProofRecoveryRoute : null;
+  const exactMarket = market && route?.routeType === "CEX" && lower(route.source) === market.provider &&
+    text(route.marketPair).replace(/[-_/]/g, "").toUpperCase() === market.marketPair &&
+    responses.some((item) => item.provider === market.provider);
+  if (!route || route.buyQuoteVerified !== true || route.sellQuoteVerified !== true ||
+      !Number.isFinite(Date.parse(route.quoteTimestamp)) ||
+      !(exactMarket || (!market && exactExecutionQuotes(route, identity, responses)))) {
+    return empty([...attempts, { provider: "execution-proof-recovery", status: route ? "IDENTITY_OR_POOL_UNATTESTED" : "NO_VERIFIED_ROUTE",
+      durationMs: 0, reason: "No new exact two-way execution proof was recovered; missing evidence remains unresolved." }]);
+  }
+
+  const rawRoute = Object.fromEntries(EXECUTION_ROUTE_FIELDS.filter((field) => valueKnown(route[field])).map((field) => [field, route[field]]));
+  // Canonical route recomputation recognizes venue names, including LI.FI's observed underlying venue.
+  if (route.underlyingVenue) rawRoute.name = route.underlyingVenue;
+  // Jupiter/0x may default an absent price impact to zero. Missing measurements stay unknown.
+  if (["jupiter", "0x"].includes(route.source) && !responses.filter((item) => item.provider === route.source)
+    .every(({ value }) => {
+      const measured = value.priceImpactPct ?? value.estimatedPriceImpact;
+      if (typeof measured !== "number" && (typeof measured !== "string" || !measured.trim())) return false;
+      const impact = numberOrNull(measured);
+      return impact !== null && impact >= 0;
+    })) {
+    for (const field of ["priceImpactPct", "slippagePct", "estimatedRoundTripSlippagePct", "slippageIsHeuristic"]) delete rawRoute[field];
+  }
+  const details = { chain: market ? null : identity.chain, tokenAddress: market ? null : identity.tokenAddress,
+    poolAddress: market ? null : identity.poolAddress, routeType: route.routeType,
+    ...(market ? { marketPair: route.marketPair, venue: market.provider } : {}),
+    identityMatchMode: market ? "exact-venue-market" : "exact-chain-contract-pool" };
+  const observations = [...EXECUTION_RAW_FIELDS].map((field) => observation(field,
+    field === "purchaseRouteConfirmed" ? true : rawRoute[field], route.source, route.quoteTimestamp, 0.9, details))
+    .filter((item) => valueKnown(item.value));
+  return { observations, attempts, projectPatch: { executionProofRecoveryRoute: {
+    ...rawRoute, exactIdentityVerified: !market, marketIdentityVerified: Boolean(market),
+    sourceTimestamp: route.quoteTimestamp, confidence: 0.9,
+    verificationStatus: "VERIFIED_PROVIDER_OBSERVATION", recoveryRun: true,
+  } } };
+}
+
 export async function executeActiveEvidenceProviderRequests(
   project = {},
   requests = [],
@@ -1731,7 +1981,14 @@ export async function executeActiveEvidenceProviderRequests(
   const aggregateFields = fields.filter(
     (field) => AGGREGATE_MARKET_FIELDS.has(field) && !recoveredFields.has(field)
   );
+  const executionFields = fields.filter((field) => EXECUTION_RAW_FIELDS.has(field));
   const parallel = [];
+  if (executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "0x", "cex", "order book", "dex aggregators"])) {
+    const result = await recoverExecutionEvidence(project, executionFields, providers, options, executionState);
+    observations.push(...result.observations);
+    attempts.push(...result.attempts);
+    projectPatch = { ...projectPatch, ...result.projectPatch };
+  }
   if (
     deployerFields.length &&
     sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer", "native rpc", "security providers"])

@@ -2573,12 +2573,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     const positions = [];
     currentProjects.forEach((project, index) => {
       const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamilies || [];
-      const executionWaveSelected =
-        project.activeEvidenceRecovery?.waves?.includes("WAVE3") &&
-        RECOVERY_ENGINE_EVIDENCE_FAMILIES[name]?.includes("EXECUTION");
       if (
         project.activeEvidenceRecovery?.waves?.length &&
-        (executionWaveSelected || shouldRerunEngineForEvidenceFamilies(name, changedFamilies))
+        shouldRerunEngineForEvidenceFamilies(name, changedFamilies)
       ) {
         selected.push(project);
         positions.push(index);
@@ -2706,7 +2703,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Autonomous Alpha Investigator", analyzeAutonomousAlphaInvestigatorBatch, results);
 
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
-  results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
+  results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, {
+    ...(options.executionProofRecovery || {}), deferToActiveEvidence: true,
+  });
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
   results = await runEngine(
@@ -2804,7 +2803,11 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
   results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
-  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, options.activeEvidenceRecovery || {});
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+    ...(options.activeEvidenceRecovery || {}), executionRecovery: {
+      ...(options.executionProofRecovery || {}), ...(options.activeEvidenceRecovery?.executionRecovery || {}),
+    },
+  });
   if (results.some((project) => project.activeEvidenceRecovery?.waves?.length)) {
     results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
     results = await runRecoveryEngine("Source Truth", analyzeSourceTruthBatch, results);
@@ -2826,7 +2829,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     });
     results = await runRecoveryEngine("Liquidity Control Risk", analyzeLiquidityControlRiskBatch, results);
     results = await runRecoveryEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
-    results = await runRecoveryEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
     results = await runRecoveryEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
     results = await runRecoveryEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
     results = await runRecoveryEngine(

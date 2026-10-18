@@ -1229,6 +1229,14 @@ export async function analyzeExecutionProofRecoveryBatch(projects = [], options 
       },
     }));
   }
+  if (options.deferToActiveEvidence === true) {
+    return safe.map((project) => ({ ...project,
+      executionProofRecovery: { status: "DEFERRED_TO_WAVE3", attempted: false, selected: false,
+        reason: "Live quote acquisition is scheduled by the bounded active-evidence Wave 3 planner." },
+      executionProofRecoveryStage: { stageStatus: "DEFERRED_TO_WAVE3", selectedCandidates: 0,
+        attemptedCandidates: 0, recoveredRoutes: 0 },
+    }));
+  }
   if (!resolved.enabled || !safe.length) {
     return safe.map((project) => ({
       ...project,

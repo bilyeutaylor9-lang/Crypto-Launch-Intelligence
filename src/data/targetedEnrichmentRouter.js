@@ -31,8 +31,9 @@ export function routeMissingEvidence(item = {}, options = {}) {
   let recoveryDisposition = recoveryDispositionForField(field, {
     applicability: item.applicability,
     chain: options.chain || item.chain,
+    routeType: options.routeType || item.routeType,
   });
-  const sources = (recoveryDisposition === "RAW_RECOVERABLE" ? sourcesForField(field, { chain: options.chain || item.chain }) : [])
+  const sources = (recoveryDisposition === "RAW_RECOVERABLE" ? sourcesForField(field, { chain: options.chain || item.chain, routeType: options.routeType || item.routeType }) : [])
     .filter((source) => options.freeOnly === false || source.free !== false)
     .map((source) => ({
       ...source,

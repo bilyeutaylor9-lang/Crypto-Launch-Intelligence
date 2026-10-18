@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { routeQuoteAgeSeconds, routeQuoteFresh } from "../execution/routeTruthV2.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -11,6 +12,24 @@ function first(values = []) {
 
 function array(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function recoveryForReport(project = {}) {
+  const previous = project.executionProofRecovery || {};
+  const active = project.activeEvidenceRecovery || {};
+  if (previous.status !== "DEFERRED_TO_WAVE3" || !array(active.waves).includes("WAVE3")) return previous;
+  const attempted = array(active.attempts).some((item) => item.family === "EXECUTION");
+  if (!attempted) return previous;
+  const route = project.executionProofRecoveryRoute || {};
+  const recovered = route.verificationStatus === "VERIFIED_PROVIDER_OBSERVATION" && route.recoveryRun === true &&
+    (route.exactIdentityVerified === true || route.marketIdentityVerified === true) &&
+    route.buyQuoteVerified === true && route.sellQuoteVerified === true && routeQuoteFresh(route);
+  return { status: recovered ? "ROUTE_RECOVERED" : "NO_VERIFIED_ROUTE", attempted: true, selected: true,
+    executionRecoverySource: route.source || null, buyQuoteVerified: recovered, sellQuoteVerified: recovered,
+    quoteTimestamp: recovered ? route.quoteTimestamp : null,
+    adapterResults: array(active.providerAttempts).map((attempt) => ({ adapter: attempt.provider,
+      status: attempt.status === "FAILED" ? "PROVIDER_FAILED" : attempt.status, reason: attempt.reason })),
+  };
 }
 
 function nextProofToPromote(project = {}, recovery = {}, proofState = {}) {
@@ -61,7 +80,8 @@ function projectIdentity(project = {}, rank = null) {
     buyQuoteVerified: recovery.buyQuoteVerified === true || route.buyQuoteVerified === true,
     sellQuoteVerified: recovery.sellQuoteVerified === true || route.sellQuoteVerified === true,
     quoteTimestamp: recovery.quoteTimestamp || route.quoteTimestamp || null,
-    quoteAgeSeconds: recovery.quoteAgeSeconds ?? route.quoteAgeSeconds ?? null,
+    quoteAgeSeconds: routeQuoteAgeSeconds({ ...route, quoteAgeSeconds: recovery.quoteAgeSeconds ?? route.quoteAgeSeconds,
+      quoteTimestamp: recovery.quoteTimestamp || route.quoteTimestamp }),
     estimatedRoundTripSlippagePct: route.estimatedRoundTripSlippagePct ?? null,
     orderBookDepthUsd: route.orderBookDepthUsd ?? null,
     failures: array(recovery.executionRecoveryFailures || route.executionRecoveryFailures)
@@ -92,7 +112,8 @@ function statusFor({ attempted = 0, recovered = 0, buyOnly = 0, providerFailures
 }
 
 export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
-  const safe = Array.isArray(projects) ? projects : [];
+  const safe = (Array.isArray(projects) ? projects : []).map((project) => ({ ...project,
+    executionProofRecovery: recoveryForReport(project) }));
   const attemptedProjects = safe.filter((project) => project.executionProofRecovery?.attempted === true);
   const recoveredProjects = attemptedProjects.filter((project) => project.executionProofRecovery?.status === "ROUTE_RECOVERED");
   const buyOnlyProjects = attemptedProjects.filter((project) => project.executionProofRecovery?.status === "BUY_ONLY_ROUTE");

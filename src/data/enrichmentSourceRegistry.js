@@ -48,16 +48,10 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "reputable news sources", authority: 58, cost: 2, latencyMs: 3200, fields: ["liveCatalystEvents"] },
   ],
   EXECUTION: [
-    { source: "LI.FI keyless quote", authority: 84, cost: 1, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Jupiter (API key required)", authority: 84, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "0x Swap API", authority: 82, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "1inch quote API", authority: 80, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Uniswap quote adapters", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Aerodrome", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "PancakeSwap", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "DEX aggregators", authority: 80, cost: 1, latencyMs: 1500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "CEX public order books", authority: 74, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "quoteTimestamp"] },
-    { source: "bridge quote adapters", authority: 68, cost: 2, latencyMs: 2500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "bridgeRequired", "bridgeRisk", "quoteTimestamp"] },
+    { source: "LI.FI keyless quote", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "Jupiter (API key required)", chains: ["solana"], authority: 84, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "0x Swap API", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 82, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
+    { source: "CEX public order books", routeTypes: ["CEX"], authority: 74, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "quoteTimestamp", "slippagePct"] },
   ],
   DERIVED: [],
   UNKNOWN: [],
@@ -178,9 +172,11 @@ export function sourceFamilyForField(field = "") {
 export function sourcesForField(field = "", options = {}) {
   const family = sourceFamilyForField(field);
   const chain = normalizeChainId(options.chain);
+  const routeType = String(options.routeType || "DEX").toUpperCase();
   return (ENRICHMENT_SOURCE_REGISTRY[family] || []).filter((source) => source.fields.includes(field) &&
     (!options.chain || ((!source.chains || source.chains.includes(chain)) &&
-      (!source.chainKinds || source.chainKinds.includes(chainKind(chain))))));
+      (!source.chainKinds || source.chainKinds.includes(chainKind(chain))))) &&
+    (!(options.chain || options.routeType) || !source.routeTypes || source.routeTypes.includes(routeType)));
 }
 
 export function recoveryDispositionForField(field = "", options = {}) {
