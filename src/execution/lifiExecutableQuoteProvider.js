@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { createProviderRequestAdmission, PROVIDER_REQUEST_ADMISSION } from "./providerRequestAdmission.js";
 
 import { SUPPORTED_CHAIN_REGISTRY } from "../data/chainAliasRegistry.js";
 import {
@@ -180,17 +181,24 @@ function consumeKeylessBudget(options = {}) {
     throw error;
   }
   budget.requests += 1;
+  const reservationWindow = budget.windowStartedAtMs;
+  return () => {
+    // An executor can explicitly reject before dispatch; an older window cannot debit the current one.
+    if (budget.windowStartedAtMs === reservationWindow && budget.requests > 0) budget.requests -= 1;
+  };
 }
 
 export async function fetchLiFiJson(url, options = {}) {
   if (options.signal?.aborted) throw new Error("LI.FI request aborted before start.");
-  consumeKeylessBudget(options);
+  const admission = createProviderRequestAdmission(consumeKeylessBudget(options));
   const controller = new AbortController();
   const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
   const timeout = setTimeout(() => controller.abort(), Math.max(500, Number(options.timeoutMs || 8_000)));
   try {
     if (options.fetchJson) return await options.fetchJson(url, { headers: options.headers || {},
-      adapter: options.adapter || "lifi-keyless-forward", timeoutMs: options.timeoutMs, signal });
+      adapter: options.adapter || "lifi-keyless-forward", timeoutMs: options.timeoutMs, signal,
+      [PROVIDER_REQUEST_ADMISSION]: admission });
+    admission.markDispatched();
     const response = await (options.fetchImpl || fetch)(url, {
       headers: options.headers || {},
       signal,

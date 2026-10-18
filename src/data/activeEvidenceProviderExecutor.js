@@ -43,6 +43,7 @@ import { loadNativeEvents } from "./native/nativeEventStore.js";
 import { nativeContractDeployerEvidence } from "./native/evm/evmContractDeploymentConnector.js";
 import { analyzeExecutionProofRecoveryBatch, verifyDirectQuoteIdentity } from "../engines/executionProofRecoveryEngine.js";
 import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
+import { PROVIDER_REQUEST_ADMISSION } from "../execution/providerRequestAdmission.js";
 import { verifyRaydiumQuote } from "../execution/raydiumExecutableQuoteProvider.js";
 import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
 import {
@@ -2087,6 +2088,7 @@ export async function recoverExecutionEvidence(
     return response.json();
   });
   const fetchJson = async (url, init = {}) => {
+    const { [PROVIDER_REQUEST_ADMISSION]: admission, ...transportInit } = init;
     const provider = init.adapter === "lifi-token" ? "lifi" : init.adapter;
     let failure = null;
     const attempt = await executeProviderCall(provider, async () => {
@@ -2115,7 +2117,9 @@ export async function recoverExecutionEvidence(
           if (deadlineOwnsTimeout) state.timeBudgetExceeded = true;
           controller.abort();
         }, timeoutMs);
-        const value = await Promise.race([transport(url, { ...init, timeoutMs, signal }), aborted]);
+        // No await separates dispatch admission from the transport invocation.
+        admission?.markDispatched();
+        const value = await Promise.race([transport(url, { ...transportInit, timeoutMs, signal }), aborted]);
         if (state.timeBudgetExceeded || signal.aborted || clock() >= (state.deadlineAt ?? Infinity)) {
           state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
           throw new Error("Execution provider response arrived after its deadline.");
@@ -2136,6 +2140,7 @@ export async function recoverExecutionEvidence(
     }, options, state, 1, market ? "cex" : identity.chain);
     calls.push({ attempt, failure });
     if (attempt.status !== "SUCCESS") {
+      admission?.rejectBeforeDispatch();
       const error = failure || new Error(attempt.reason);
       error.code ||= attempt.status;
       throw error;

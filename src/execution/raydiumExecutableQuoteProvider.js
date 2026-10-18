@@ -1,4 +1,5 @@
 import { normalizeChainId, normalizePoolAddress, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
+import { createProviderRequestAdmission, PROVIDER_REQUEST_ADMISSION } from "./providerRequestAdmission.js";
 
 const QUOTE_URL = "https://transaction-v1.raydium.io/compute/swap-base-in";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -80,6 +81,10 @@ function reserveRequest(budget, now) {
     throw error;
   }
   budget.requests++;
+  const reservationWindow = budget.startedAt;
+  return () => {
+    if (budget.startedAt === reservationWindow && budget.requests > 0) budget.requests--;
+  };
 }
 
 async function quoteLeg({ fromToken, toToken, fromAmount, poolAddress, options, signal }) {
@@ -87,14 +92,14 @@ async function quoteLeg({ fromToken, toToken, fromAmount, poolAddress, options, 
   const startedAt = options.now().getTime();
   if (!Number.isFinite(startedAt) || startedAt <= 0) throw new Error("Raydium quote requires a valid observation clock.");
   const budget = options.raydiumRateBudget || sharedBudget;
-  reserveRequest(budget, startedAt);
+  const admission = createProviderRequestAdmission(reserveRequest(budget, startedAt));
   const url = new URL(QUOTE_URL);
   for (const [key, value] of Object.entries({ inputMint: fromToken, outputMint: toToken, amount: fromAmount,
     slippageBps: "100", txVersion: "V0" })) url.searchParams.set(key, value);
   let response;
   try {
     response = await options.fetchJson(url.toString(), { method: "GET", adapter: "raydium",
-      timeoutMs: options.requestTimeoutMs, signal });
+      timeoutMs: options.requestTimeoutMs, signal, [PROVIDER_REQUEST_ADMISSION]: admission });
   } catch (error) {
     if (error?.status === 429) {
       const seconds = Number(error.retryAfter);
