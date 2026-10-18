@@ -125,6 +125,19 @@ test("hottest-ten-now ranks current high-upside utility candidates without finan
   assert.match(report.disclaimer, /not financial advice/i);
 });
 
+test("hottest-ten keeps both syntactic Solana mints differing only by case", () => {
+  const mint = "HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump";
+  const mints = [mint, `h${mint.slice(1)}`];
+  const report = summarizeHottestTenNow(mints.map((tokenAddress) => candidate({
+    chain: "solana", tokenAddress, contractAddress: tokenAddress,
+    poolAddress: null, pairAddress: null, dex: "Jupiter", dexName: "Jupiter",
+    routeType: "DEX_AGGREGATOR", quoteTokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  })));
+  assert.equal(report.qualifiedNowCount, 2);
+  assert.equal(report.qualifiedReturnedCount, 2);
+  assert.deepEqual(new Set(report.topTenResearchWorthy.map((row) => row.tokenAddress)), new Set(mints));
+});
+
 test("hottest-ten-now excludes late-chase, meme-only, unsafe, and no-sell-route names", () => {
   const report = summarizeHottestTenNow([
     candidate({ symbol: "CHASE", priceChange24hPct: 140 }),

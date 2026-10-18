@@ -1,3 +1,5 @@
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
+
 const DEFAULT_WINDOW_MINUTES = 360;
 const DEFAULT_HORIZON_HOURS = 24;
 
@@ -48,14 +50,19 @@ function clamp(value, min = 0, max = 1) {
 }
 
 function identityKey(item = {}) {
-  if (item.identityKey) return String(item.identityKey).toLowerCase();
+  const explicit = item.identityKey || item.canonicalProjectId || "";
+  const normalizedChain = normalizeChainId(item.chain || item.canonicalChain || item.chainId ||
+    String(explicit).split(":")[0]);
+  const preserveCase = normalizedChain && chainKind(normalizedChain) !== "evm";
+  const normalize = (value) => preserveCase ? String(value) : String(value).toLowerCase();
+  if (item.identityKey) return normalize(item.identityKey);
   if (item.canonicalProjectId && String(item.canonicalProjectId).includes(":")) {
-    return String(item.canonicalProjectId).toLowerCase();
+    return normalize(item.canonicalProjectId);
   }
   const chain = String(item.chain || item.canonicalChain || "unknown").toLowerCase();
-  const token = String(
+  const token = normalize(String(
     item.tokenAddress || item.contractAddress || item.canonicalAddress || ""
-  ).trim().toLowerCase();
+  ).trim());
   return token ? `${chain}:${token}` : `${chain}:${String(item.symbol || item.name || "unknown").toLowerCase()}`;
 }
 
@@ -410,7 +417,7 @@ export function matchIgnitionGenome(currentTrajectory, historicalGenomes = [], o
     };
   }
 
-  const currentIdentity = String(options.identityKey || "").toLowerCase();
+  const currentIdentity = options.identityKey ? identityKey(options) : "";
   const asOfMs = timestamp(options.asOf || new Date().toISOString());
   const topK = Math.max(3, Number(options.topK || 25));
   const minimumSimilarity = clamp(

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+import { resolveCanonicalHistoryIdentity } from "../identity/canonicalHistoryIdentity.js";
 
 const DATA_DIR = path.resolve("data");
 const MEMORY_FILE = path.join(DATA_DIR, "paper-trading-outcomes.json");
@@ -16,6 +17,39 @@ function clamp(value = 0, min = -100, max = 1000) {
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function normalizeHistory(records = []) {
+  const rows = records.map((record) => {
+    if (!record || typeof record !== "object" || Array.isArray(record)) {
+      return { legacyRecord: record, historyIdentityStatus: "UNKNOWN", identityStatus: "UNKNOWN" };
+    }
+    const identity = resolveCanonicalHistoryIdentity(record, ["id", "canonicalId"]);
+    if (identity.status === "UNCHANGED") return { ...record };
+    if (identity.status === "UNKNOWN") return { ...record, historyIdentityStatus: "UNKNOWN", identityStatus: "UNKNOWN" };
+    return {
+      ...record,
+      legacyCanonicalId: record.legacyCanonicalId || record.id,
+      id: identity.canonicalId,
+      canonicalId: identity.canonicalId,
+      historyIdentityStatus: identity.status,
+    };
+  });
+  const groups = new Map();
+  for (const record of rows) {
+    if (record.historyIdentityStatus === "UNKNOWN") continue;
+    const key = `${record.id}:${record.strategyId}`;
+    const group = groups.get(key) || [];
+    group.push(record);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    if (group.length > 1) group.forEach((record) => {
+      record.historyIdentityStatus = "UNKNOWN";
+      record.identityStatus = "UNKNOWN";
+    });
+  }
+  return rows;
 }
 
 function readMemory() {
@@ -34,7 +68,7 @@ function readMemory() {
     return {
       version: parsed.version || 1,
       updatedAt: parsed.updatedAt || new Date().toISOString(),
-      records: Array.isArray(parsed.records) ? parsed.records : [],
+      records: normalizeHistory(Array.isArray(parsed.records) ? parsed.records : []),
     };
   } catch {
     return {
@@ -232,9 +266,9 @@ export function loadPaperTradingOutcomes() {
 export function savePaperTradingOutcomes(projects = []) {
   const memory = readMemory();
   const now = new Date().toISOString();
-  const byKey = new Map(
-    (memory.records || []).map((record) => [`${record.id}:${record.strategyId}`, record])
-  );
+  const records = [...memory.records];
+  const byKey = new Map(records.flatMap((record, index) => record.historyIdentityStatus === "UNKNOWN"
+    ? [] : [[`${record.id}:${record.strategyId}`, index]]));
   let opened = 0;
   let updated = 0;
 
@@ -244,31 +278,33 @@ export function savePaperTradingOutcomes(projects = []) {
     const key = `${projectId(project)}:${strategyId(project)}`;
     const existing = byKey.get(key);
 
-    if (existing) {
-      byKey.set(key, updateRecord(existing, project, now));
+    if (existing !== undefined) {
+      records[existing] = updateRecord(records[existing], project, now);
       updated += 1;
     } else {
-      byKey.set(key, createRecord(project, now));
+      byKey.set(key, records.length);
+      records.push(createRecord(project, now));
       opened += 1;
     }
   }
 
-  const records = [...byKey.values()].slice(-MAX_RECORDS);
+  const retainedRecords = records.slice(-MAX_RECORDS);
   writeMemory({
     ...memory,
-    records,
+    records: retainedRecords,
   });
 
   return {
     file: MEMORY_FILE,
     opened,
     updated,
-    totalRecords: records.length,
+    totalRecords: retainedRecords.length,
   };
 }
 
 export function summarizePaperTradingOutcomes(records = null) {
-  const memoryRecords = Array.isArray(records) ? records : readMemory().records;
+  const allRecords = Array.isArray(records) ? normalizeHistory(records) : readMemory().records;
+  const memoryRecords = allRecords.filter((record) => record.historyIdentityStatus !== "UNKNOWN");
   const closedOrAged = memoryRecords.filter((record) => num(record.daysOpen) >= 1);
   const winners = closedOrAged.filter((record) => num(record.latestReturnPct) > 5);
   const losers = closedOrAged.filter((record) => num(record.latestReturnPct) < -5);
@@ -333,7 +369,8 @@ export function summarizePaperTradingOutcomes(records = null) {
 
   return {
     file: MEMORY_FILE,
-    totalRecords: memoryRecords.length,
+    totalRecords: allRecords.length,
+    unknownIdentityRecords: allRecords.length - memoryRecords.length,
     evaluatedRecords: closedOrAged.length,
     openRecords: memoryRecords.filter((record) => num(record.daysOpen) < 1).length,
     winners: winners.length,

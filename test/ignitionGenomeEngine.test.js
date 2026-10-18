@@ -7,6 +7,7 @@ import {
   buildIgnitionTrajectoryVector,
   compareIgnitionGenomes,
   matchIgnitionGenome,
+  __ignitionGenomeHooks,
 } from "../src/learning/ignitionGenomeEngine.js";
 
 function obs(identity, minute, overrides = {}) {
@@ -132,6 +133,35 @@ test("self-identity historical genomes are excluded from neighbors", () => {
     asOf: "2026-01-03T00:00:00.000Z",
   });
   assert.equal(match.neighborCount, 0);
+});
+
+test("genome identity preserves proven non-EVM case without changing EVM or unknown folding", () => {
+  const mint = "HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump";
+  const variant = `h${mint.slice(1)}`;
+  const { identityKey, groupObservations } = __ignitionGenomeHooks;
+  for (const token of [mint, variant]) {
+    assert.equal(identityKey({ chain: "SOL", tokenAddress: token }), `sol:${token}`);
+    assert.equal(identityKey({ canonicalProjectId: `101:${token}` }), `101:${token}`);
+    assert.equal(identityKey({ identityKey: `solana:${token}` }), `solana:${token}`);
+  }
+  assert.equal(groupObservations([mint, variant].map((token) => obs(`solana:${token}`, 0, { chain: "solana" }))).size, 2);
+  assert.equal(identityKey({ chain: "BASE", tokenAddress: "0xABCDEF" }), "base:0xabcdef");
+  assert.equal(identityKey({ chain: "unregistered", identityKey: "unregistered:ABC" }), "unregistered:abc");
+});
+
+test("Solana genome neighbor exclusion preserves exact self identity and distinct case variant", () => {
+  const mint = "HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump";
+  const keys = [mint, `h${mint.slice(1)}`].map((token) => `solana:${token}`);
+  const trajectory = buildIgnitionTrajectoryVector(history("base:a"), "2026-01-01T01:00:00.000Z", { windowMinutes: 90 });
+  const historical = keys.map((identityKey, index) => ({
+    genomeId: `sol-${index}`, identityKey, returnPct: 50, label: "BREAKOUT_50",
+    resolvedAt: "2025-12-01T00:00:00.000Z", trajectory,
+  }));
+  const match = matchIgnitionGenome(trajectory, historical, {
+    identityKey: keys[0], asOf: "2026-01-03T00:00:00.000Z",
+  });
+  assert.equal(match.neighborCount, 1);
+  assert.equal(match.neighbors[0].identityKey, keys[1]);
 });
 
 test("winner-like history produces nonzero breakout probabilities", () => {

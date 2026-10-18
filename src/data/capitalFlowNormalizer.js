@@ -2,6 +2,19 @@ import crypto from "node:crypto";
 
 import { normalizeMetricTruth } from "./metricTruthNormalizer.js";
 import { numberOrNull } from "../math/numericSafety.js";
+import { resolveCanonicalHistoryIdentity } from "../identity/canonicalHistoryIdentity.js";
+
+export function normalizeCapitalFlowHistoryIdentity(observation = {}) {
+  const identity = resolveCanonicalHistoryIdentity(observation);
+  if (identity.status === "UNCHANGED") return observation;
+  return {
+    ...observation,
+    legacyCanonicalProjectId: observation.legacyCanonicalProjectId || observation.canonicalProjectId || null,
+    canonicalProjectId: identity.canonicalId,
+    historyIdentityStatus: identity.status,
+    ...(identity.status === "UNKNOWN" ? { identityStatus: "UNKNOWN" } : {}),
+  };
+}
 
 function first(values = []) {
   return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
@@ -81,13 +94,23 @@ export function normalizeCapitalFlowObservation(project = {}, options = {}) {
     project.liquidityRemovedUsd,
     project.liquidityRemoved24hUsd,
   ]));
-  const canonicalProjectId = canonicalProjectIdFor(project, normalized);
+  const historyIdentity = normalizeCapitalFlowHistoryIdentity({
+    ...project,
+    chainId: project.chainId || normalized.chainId,
+    tokenAddress: project.tokenAddress || normalized.tokenAddress,
+    canonicalProjectId: canonicalProjectIdFor(project, normalized),
+  });
+  const canonicalProjectId = historyIdentity.canonicalProjectId;
   const observation = {
     observedAt,
     sourceTimestamp: project.sourceTimestamp || project.updatedAt || project.canonicalExecutionRoute?.quoteTimestamp || null,
     source,
     canonicalProjectId,
-    identityStatus: normalized.identityStatus || project.identityStatus || "UNKNOWN",
+    identityStatus: historyIdentity.historyIdentityStatus === "UNKNOWN" ? "UNKNOWN" : normalized.identityStatus || project.identityStatus || "UNKNOWN",
+    ...(historyIdentity.historyIdentityStatus ? {
+      historyIdentityStatus: historyIdentity.historyIdentityStatus,
+      legacyCanonicalProjectId: historyIdentity.legacyCanonicalProjectId,
+    } : {}),
     name: normalized.name || project.name || "Unknown",
     symbol: normalized.symbol || project.symbol || "UNKNOWN",
     chainId: normalized.chainId || null,

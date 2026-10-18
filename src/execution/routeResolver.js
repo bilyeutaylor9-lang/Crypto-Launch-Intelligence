@@ -159,7 +159,7 @@ export function buildStrictCanonicalId(chain = null, contractAddress = null) {
   const normalizedChain = normalizeChainId(chain);
   const normalizedAddress = normalizeTokenAddress(contractAddress, normalizedChain);
   const id = canonicalChainId(normalizedChain);
-  return id !== null && normalizedAddress ? `${id}:${normalizedAddress.toLowerCase()}` : null;
+  return id !== null && normalizedAddress ? `${id}:${normalizedAddress}` : null;
 }
 
 function routeObjects(project = {}) {

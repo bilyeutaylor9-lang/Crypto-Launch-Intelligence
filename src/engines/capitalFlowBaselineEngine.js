@@ -1,4 +1,4 @@
-import { normalizeCapitalFlowObservation } from "../data/capitalFlowNormalizer.js";
+import { normalizeCapitalFlowHistoryIdentity, normalizeCapitalFlowObservation } from "../data/capitalFlowNormalizer.js";
 import { loadCapitalFlowObservations } from "../data/capitalFlowObservationStore.js";
 import { numberOrNull, percentRatio } from "../math/numericSafety.js";
 import { ewma, median, medianAbsoluteDeviation, percentileRank, robustZScore } from "../math/robustStatistics.js";
@@ -167,7 +167,9 @@ function baselineFor(current = {}, rows = [], allObservations = []) {
 
 export function analyzeCapitalFlowBaseline(project = {}, options = {}) {
   const currentObservation = normalizeCapitalFlowObservation(project, options);
-  const history = options.observations || loadCapitalFlowObservations({ limit: options.historyLimit || 10000 });
+  const history = (options.observations || loadCapitalFlowObservations({ limit: options.historyLimit || 10000 }))
+    .map(normalizeCapitalFlowHistoryIdentity)
+    .filter((row) => row.historyIdentityStatus !== "UNKNOWN");
   const grouped = byProject([...history, currentObservation]);
   const projectRows = grouped.get(currentObservation.canonicalProjectId) || [currentObservation];
   const baseline = baselineFor(currentObservation, projectRows, [...history, currentObservation]);
@@ -176,7 +178,7 @@ export function analyzeCapitalFlowBaseline(project = {}, options = {}) {
     ...project,
     capitalFlowObservation: currentObservation,
     capitalFlowBaseline: baseline,
-    capitalFlowBaselineStatus: baseline.observationCount >= 2 ? "TRACKED" : "PRELIMINARY",
+    capitalFlowBaselineStatus: currentObservation.historyIdentityStatus === "UNKNOWN" ? "UNKNOWN" : baseline.observationCount >= 2 ? "TRACKED" : "PRELIMINARY",
   };
 }
 

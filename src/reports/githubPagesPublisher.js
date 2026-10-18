@@ -9,6 +9,7 @@ import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import { finalizeScanArtifactManifestPublication } from "./scanArtifactManifestReportEngine.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -310,7 +311,7 @@ function scoreForResearchWorthy(candidate = {}) {
 }
 
 function researchKey(candidate = {}) {
-  return [
+  const key = [
     candidate.canonicalId,
     candidate.tokenAddress,
     candidate.contractAddress,
@@ -321,8 +322,9 @@ function researchKey(candidate = {}) {
     candidate.chain,
   ]
     .filter(Boolean)
-    .join("|")
-    .toLowerCase();
+    .join("|");
+  const chain = normalizeChainId(candidate.chain) || normalizeChainId(candidate.chainId);
+  return chain && chainKind(chain) !== "evm" ? key : key.toLowerCase();
 }
 
 function shortAddress(value = "") {
@@ -419,7 +421,7 @@ function compactResearchWorthyCandidate(candidate = {}, source = "research") {
   };
 }
 
-function buildResearchWorthyBoard({
+export function buildResearchWorthyBoard({
   hottestTenNow = {},
   highUpsideScalp = {},
   scalpMicrostructure = {},
