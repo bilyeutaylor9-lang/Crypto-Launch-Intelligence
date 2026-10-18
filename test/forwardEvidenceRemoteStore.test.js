@@ -367,6 +367,175 @@ test("sync still reports upload query failures as FAILED", async (t) => {
   assert.match(report.error, /Remote forward-evidence write failed: write denied/);
 });
 
+test("sync rejects a conflicting concurrent insert hidden by ignoreDuplicates", async (t) => {
+  const root = isolatedRoot(t);
+  const expected = remoteRow("production-market-observations", { observationKey: "raced", priceUsd: 1 });
+  const conflicting = remoteRow("production-market-observations", { observationKey: "raced", priceUsd: 99 });
+  mergeForwardEvidenceRows([expected], { root });
+  const remote = [];
+  const backend = fakeBackend(remote, { onWrite: () => { remote.push(conflicting); } });
+  const report = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+  assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.match(report.error, /Immutable forward-evidence conflict/);
+  assert.deepEqual(loadLocalForwardEvidence({ root }), [expected]);
+  assert.deepEqual(remote, [conflicting]);
+});
+
+test("a successful upload acknowledgement without the remote record cannot claim synced evidence", async (t) => {
+  const root = isolatedRoot(t);
+  const expected = remoteRow("prospective-edge-cohorts", { episodeId: "not-persisted", role: "CONTROL_MATCHED" });
+  mergeForwardEvidenceRows([expected], { root });
+  const backend = fakeBackend([], { onWrite: () => ({ error: null }) });
+  const report = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+  assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.match(report.error, /missing.*write|write.*missing/i);
+  assert.deepEqual(loadLocalForwardEvidence({ root }), [expected]);
+});
+
+test("sync accepts an identical concurrent insert only after verifying its exact hash", async (t) => {
+  const root = isolatedRoot(t);
+  const expected = remoteRow("production-market-observations", { observationKey: "same-race", priceUsd: 1 });
+  mergeForwardEvidenceRows([expected], { root });
+  const remote = [];
+  const backend = fakeBackend(remote, { onWrite: () => { remote.push(expected); } });
+  const report = await syncForwardEvidence({ root, backend });
+  assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_SYNCED");
+  assert.equal(report.uploaded, 1);
+  assert.deepEqual(remote, [expected]);
+  assert.deepEqual(backend.reads.filter((call) => call.ids).map((call) => call.fields), ["ledger_name,record_id,content_hash"]);
+  assert.equal(bodyReads(backend).length, 0);
+});
+
+test("write verification rejects duplicate, unexpected, malformed or missing remote hashes", async (t) => {
+  const root = isolatedRoot(t);
+  const expected = remoteRow("market-context-observations", { observationKey: "proof", context: "market" });
+  mergeForwardEvidenceRows([expected], { root });
+  for (const transform of [
+    () => [null], (data) => [{ ...data[0], content_hash: "bad" }],
+    (data) => [{ ...data[0], ledger_name: "production-market-observations" }],
+    (data) => [{ ...data[0], record_id: "unrequested" }],
+    (data) => [data[0], data[0]], () => [],
+  ]) {
+    const backend = fakeBackend([], { onRead: (call, data) => call.ids ? { data: transform(data), error: null } : undefined });
+    const report = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+    assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.match(report.error, /invalid page|write verification failed/);
+    assert.deepEqual(loadLocalForwardEvidence({ root }), [expected]);
+  }
+});
+
+test("write verification quota failures never become synced evidence", async (t) => {
+  const root = isolatedRoot(t);
+  const expected = remoteRow("production-market-observations", { observationKey: "stored-but-unverified" });
+  mergeForwardEvidenceRows([expected], { root });
+  const backend = fakeBackend([], { onRead: (call) => call.ids
+    ? { data: null, error: { message: "exceed_egress_quota" } } : undefined });
+  const report = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+  assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.match(report.error, /exceed_egress_quota/);
+  assert.equal(backend.writes.length, 1);
+  assert.deepEqual(loadLocalForwardEvidence({ root }), [expected]);
+});
+
+test("write verification supports a lower metadata row cap without re-downloading bodies", async (t) => {
+  const root = isolatedRoot(t);
+  const rows = ["a", "b", "c"].map((episodeId) => remoteRow("prospective-edge-cohorts", { episodeId }));
+  mergeForwardEvidenceRows(rows, { root });
+  const backend = fakeBackend([], { onRead: (call, data) => call.ids ? { data: data.slice(0, 1), error: null } : undefined });
+  const report = await syncForwardEvidence({ root, backend });
+  assert.equal(report.uploaded, 3);
+  assert.deepEqual(backend.reads.filter((call) => call.ids).map((call) => call.ids), [["a", "b", "c"], ["b", "c"], ["c"]]);
+  assert.equal(bodyReads(backend).length, 0);
+});
+
+test("sync retains 500-record uploads and bounded metadata checks, stopping before later writes on failed proof", async (t) => {
+  const root = isolatedRoot(t);
+  const rows = Array.from({ length: 501 }, (_, id) => remoteRow("production-market-observations", {
+    observationKey: String(id).padStart(3, "0"),
+  }));
+  mergeForwardEvidenceRows(rows, { root });
+  const backend = fakeBackend([]);
+  assert.equal((await syncForwardEvidence({ root, backend })).uploaded, 501);
+  assert.deepEqual(backend.writes.map((batch) => batch.length), [500, 1]);
+  const checks = backend.reads.filter((call) => call.ids);
+  assert.deepEqual(checks.map((call) => call.ids.length), [...Array(10).fill(50), 1]);
+  assert.ok(checks.every((call) => call.fields === "ledger_name,record_id,content_hash"));
+  assert.equal(bodyReads(backend).length, 0);
+  const noProof = fakeBackend([], { onWrite: () => ({ error: null }) });
+  await assert.rejects(syncForwardEvidence({ root, backend: noProof }), /missing records/);
+  assert.equal(noProof.writes.length, 1);
+});
+
+test("sync rejects unqueryable local IDs before attempting any upload", async (t) => {
+  const root = isolatedRoot(t);
+  mergeForwardEvidenceRows([remoteRow("production-market-observations", {
+    observationKey: "identity:/".repeat(1000),
+  })], { root });
+  const backend = fakeBackend([]);
+  await assert.rejects(syncForwardEvidence({ root, backend }), /record ID exceeds request byte limit/);
+  assert.equal(backend.writes.length, 0);
+});
+
+test("real Supabase SDK verifies uploaded long IDs with bounded metadata and catches a concurrent conflict", async (t) => {
+  for (const conflictingWrite of [false, true]) {
+    const root = isolatedRoot(t);
+    const suffix = "identity:/asset?(pair),chain&observedAt=".repeat(18);
+    const local = Array.from({ length: 12 }, (_, id) => remoteRow("production-market-observations", {
+      observationKey: `asset:${String(id).padStart(3, "0")}:${suffix}`, priceUsd: 1,
+    }));
+    mergeForwardEvidenceRows(local, { root });
+    const remote = [];
+    const requests = [];
+    const client = createClient("https://forward-evidence.invalid", "offline-test-placeholder", {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      global: { fetch: async (input, init) => {
+        const url = new URL(String(input));
+        assert.equal(url.origin, "https://forward-evidence.invalid");
+        assert.ok(url.href.length <= 6000);
+        if (init.method === "POST") {
+          assert.match(new Headers(init.headers).get("prefer"), /resolution=ignore-duplicates/);
+          const pending = JSON.parse(init.body);
+          requests.push({ method: "POST", count: pending.length });
+          if (conflictingWrite) remote.push(remoteRow("production-market-observations", {
+            observationKey: local[0].record_id, priceUsd: 99,
+          }));
+          for (const row of pending) if (!remote.some((item) => item.ledger_name === row.ledger_name && item.record_id === row.record_id)) remote.push(row);
+          return new Response(null, { status: 201 });
+        }
+        assert.equal(init.method, "GET");
+        const params = url.searchParams;
+        const fields = params.get("select").split(",");
+        assert.deepEqual(fields, ["ledger_name", "record_id", "content_hash"]);
+        const filter = params.get("record_id");
+        const ids = filter?.startsWith("in.(") ? filter.slice(4, -1).match(/"[^"]*"|[^,]+/g)
+          .map((id) => id.startsWith('"') ? id.slice(1, -1) : id) : null;
+        const afterId = filter?.startsWith("gt.") ? filter.slice(3) : null;
+        assert.equal(params.get("offset"), "0");
+        assert.equal(params.get("order"), "record_id.asc");
+        if (ids) assert.ok(ids.length <= 50);
+        requests.push({ method: "GET", ids, bytes: url.href.length });
+        const data = remote.filter((row) => row.ledger_name === params.get("ledger_name").slice(3))
+          .filter((row) => !ids || ids.includes(row.record_id))
+          .filter((row) => !afterId || row.record_id > afterId)
+          .sort((a, b) => a.record_id < b.record_id ? -1 : a.record_id > b.record_id ? 1 : 0)
+          .slice(0, Number(params.get("limit")))
+          .map((row) => Object.fromEntries(fields.map((field) => [field, row[field]])));
+        return new Response(JSON.stringify(data), { status: 200, headers: { "Content-Type": "application/json" } });
+      } },
+    });
+    const report = await runForwardEvidenceRemoteCommand("sync", {
+      root, backend: { client, config: { serverWriteCapable: true } }, writeReport: false,
+    });
+    assert.equal(report.state, conflictingWrite ? "REMOTE_FORWARD_EVIDENCE_FAILED" : "REMOTE_FORWARD_EVIDENCE_SYNCED");
+    if (conflictingWrite) assert.match(report.error, /Immutable forward-evidence conflict/);
+    else assert.equal(report.uploaded, local.length);
+    const checks = requests.filter((request) => request.ids);
+    assert.ok(checks.length > 0);
+    assert.ok(checks.every((request) => request.ids.length < local.length && request.bytes <= 6000));
+    assert.deepEqual(loadLocalForwardEvidence({ root }), local);
+  }
+});
+
 test("body batches cap short ID lists at 50 records", async (t) => {
   const root = isolatedRoot(t);
   const rows = Array.from({ length: 101 }, (_, id) =>
