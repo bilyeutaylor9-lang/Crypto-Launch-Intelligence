@@ -65,10 +65,22 @@ test("security holder reuse preserves existing wallet observations", () => {
 test("existing exact holder payload hydrates raw wallet evidence without a provider request", async () => {
   const options = { now, maxProviderRequests: 0 };
   const state = createActiveEvidenceExecutionState(options);
-  const result = await executeActiveEvidenceProviderRequests({ ...project, securityEvidence: [evidence] }, [], options, state);
+  const current = { ...evidence, observedAt: "2026-10-10T11:59:00Z" };
+  const result = await executeActiveEvidenceProviderRequests({ ...project, securityEvidence: [current] }, [], options, state);
   assert.deepEqual(result.observations.find((item) => item.field === "wallets").value, [HOLDER]);
+  assert.equal(result.observations.find((item) => item.field === "wallets").sourceTimestamp, current.observedAt);
   assert.equal(state.requestsUsed, 0);
   assert.deepEqual(result.attempts, []);
+});
+
+test("aged existing holders cannot become current wallet evidence merely because security metadata is cached", async () => {
+  const options = { now, maxProviderRequests: 0 };
+  const state = createActiveEvidenceExecutionState(options);
+  const result = await executeActiveEvidenceProviderRequests({ ...project, securityEvidence: [evidence] }, [], options, state);
+  assert.deepEqual(result.observations, []);
+  assert.equal(state.requestsUsed, 0);
+  assert.deepEqual(result.attempts, []);
+  assert.equal(evidence.observedAt, "2026-10-10T11:00:00Z");
 });
 
 const request = (field, source) => ({ field, item: { canonicalField: field, targetSources: [{ source }] } });

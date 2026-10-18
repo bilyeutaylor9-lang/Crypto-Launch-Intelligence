@@ -4,6 +4,7 @@ import {
   analyzeActiveEvidenceRecoveryBatch,
   createActiveEvidenceRecoveryState,
 } from "../src/engines/activeEvidenceRecoveryEngine.js";
+import {securityWalletEvidencePatch} from "../src/data/security/securityWalletEvidence.js";
 
 const START = Date.parse("2026-10-18T12:00:00Z");
 const TOKEN = `0x${"11".repeat(20)}`;
@@ -165,4 +166,59 @@ test("a new recovery state cannot import another scan's history by setting resum
   assert.equal(freshCall.activeEvidenceRecovery.batchSummary.recoveryCandidatesAttempted, 0);
   assert.equal(freshCall.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 0);
   assert.deepEqual(freshCall.activeEvidenceRecovery.recoveredFields, []);
+});
+
+const HOLDER = `0x${"55".repeat(20)}`;
+const NEWER_HOLDER = `0x${"66".repeat(20)}`;
+
+function cachedHolderEvidence(timestamp = START) {
+  return {provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+    chain: "base", address: TOKEN, observedAt: new Date(timestamp).toISOString(), confidence: 0.9,
+    raw: {holders: [{address: HOLDER, balance: "1"}]}};
+}
+
+test("execution-only recovery does not replay known holder inputs as new wallet evidence", async (t) => {
+  t.mock.method(Date, "now", () => START);
+  const events = [];
+  const evidence = cachedHolderEvidence();
+  const base = project({securityEvidence: [evidence]});
+  const input = {...base, ...securityWalletEvidencePatch(base, [evidence], {now: () => START})};
+  const original = structuredClone(input);
+  const opts = options(() => START, events, {maxProviderRequests: 2, wave1Max: 0, wave2Max: 0, wave3Max: 1});
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([input], opts);
+  assert.deepEqual(events, ["QUOTE", "QUOTE"]);
+  assert.deepEqual(result.activeEvidenceRecovery.changedEvidenceFamiliesThisPhase, ["EXECUTION"]);
+  assert.deepEqual(result.wallets, input.wallets);
+  assert.deepEqual(result.holderAddresses, input.holderAddresses);
+  assert.deepEqual(result.canonicalAliasProvenance.wallets, input.canonicalAliasProvenance.wallets);
+  assert.equal(result.fieldProvenance?.wallets, undefined);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 2);
+  assert.deepEqual(input, original);
+});
+
+test("execution-only companions cannot overwrite a newer wallet sample with older cached holders", async (t) => {
+  t.mock.method(Date, "now", () => START);
+  const input = project({securityEvidence: [cachedHolderEvidence(START - 60_000)],
+    wallets: [NEWER_HOLDER], holderAddresses: [NEWER_HOLDER],
+    fieldProvenance: {wallets: {source: "chain-rpc", sourceTimestamp: new Date(START).toISOString(),
+      confidence: 0.99, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION", value: [NEWER_HOLDER]}}});
+  const original = structuredClone(input);
+  const opts = options(() => START, [], {maxProviderRequests: 2, wave1Max: 0, wave2Max: 0, wave3Max: 1});
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([input], opts);
+  assert.deepEqual(result.wallets, [NEWER_HOLDER]);
+  assert.deepEqual(result.holderAddresses, [NEWER_HOLDER]);
+  assert.deepEqual(result.fieldProvenance.wallets, input.fieldProvenance.wallets);
+  assert.deepEqual(result.activeEvidenceRecovery.changedEvidenceFamiliesThisPhase, ["EXECUTION"]);
+  assert.deepEqual(input, original);
+});
+
+test("execution-only recovery still promotes a valid missing holder companion without extra requests", async (t) => {
+  t.mock.method(Date, "now", () => START);
+  const opts = options(() => START, [], {maxProviderRequests: 2, wave1Max: 0, wave2Max: 0, wave3Max: 1});
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([project({securityEvidence: [cachedHolderEvidence()]})], opts);
+  assert.deepEqual(result.wallets, [HOLDER]);
+  assert.deepEqual(result.holderAddresses, [HOLDER]);
+  assert.equal(result.fieldProvenance.wallets.sourceTimestamp, new Date(START).toISOString());
+  assert.deepEqual(new Set(result.activeEvidenceRecovery.changedEvidenceFamiliesThisPhase), new Set(["WALLETS", "EXECUTION"]));
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 2);
 });

@@ -19,6 +19,7 @@ import { getDefiLlamaExactPrice } from "./defiLlamaExactPriceConnector.js";
 import { getFreeSecurityEvidence } from "./security/freeSecurityEvidenceConnector.js";
 import { getRugCheckFullTokenEvidence } from "./security/solanaSecurityConnector.js";
 import { securityHolderObservations } from "./security/securityWalletEvidence.js";
+import { evaluateEvidenceFreshness } from "./evidenceFreshnessPolicy.js";
 import {
   getBlockscoutDeployerEvidence,
   getBlockscoutSecurityEvidence,
@@ -944,6 +945,11 @@ export async function recoverDeployerEvidence(
   };
 }
 
+function currentHolderObservation(item, options = {}) {
+  const now = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now());
+  return evaluateEvidenceFreshness(item.sourceTimestamp, item.field, now).status === "CURRENT";
+}
+
 export async function recoverWalletEvidence(
   project = {},
   fields = [],
@@ -1057,29 +1063,48 @@ export async function recoverWalletEvidence(
   const attempts = [];
   let goPlusWalletPatch = {};
   const goPlusHolderFields = ["wallets", "holderAddresses"];
-  if (providers.useGoPlusWalletFallback && GOPLUS_WALLET_CHAINS.includes(evm.chain) && fields.some((field) => goPlusHolderFields.includes(field) &&
-      !observations.some((item) => item.field === field))) {
-    const goPlusAttempt = await executeProviderCall("goplus-wallets",
-      () => providers.getGoPlusWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-        { ...options, goPlusRequestSlotReserved: providers.defaultGoPlusWalletProvider }),
-      options, state, 1, evm.chain, providers.defaultGoPlusWalletProvider
-        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null);
-    const goPlusResult = goPlusAttempt.value;
-    const holderObservations = goPlusAttempt.status === "SUCCESS"
-      ? securityHolderObservations(project, [goPlusResult], options).map((item) => ({ ...item,
-        acquisitionMode: "WALLET_PROVIDER_RECOVERY", identityVerifiedOnChain: false,
-        snapshotTimestampVerified: false, sourceTimestampMeaning: "PROVIDER_RECEIPT_TIME_NOT_CHAIN_SNAPSHOT_TIME",
-      })) : [];
-    attempts.push({ ...goPlusAttempt, value: undefined, family: "WALLETS",
-      holderSampleFieldsRecovered: holderObservations.length });
-    if (holderObservations.length) {
-      observations.push(...holderObservations, ...securityObservations([goPlusResult], [...SECURITY_FIELDS], evm));
+  const holderSeeds = [];
+  const addGoPlusSample = (sample, acquisitionMode) => {
+    const holderSample = securityHolderObservations(project, [sample], options);
+    const current = holderSample.filter((item) => currentHolderObservation(item, options)).map((item) => ({ ...item,
+      acquisitionMode, identityVerifiedOnChain: false, snapshotTimestampVerified: false,
+      sourceTimestampMeaning: "PROVIDER_RECEIPT_TIME_NOT_CHAIN_SNAPSHOT_TIME",
+    }));
+    // Aged provider addresses are query seeds, never current wallet observations.
+    holderSeeds.push(...holderSample.filter((item) => item.field === "wallets" && !currentHolderObservation(item, options))
+      .flatMap((item) => item.value));
+    if (current.length) {
+      observations.push(...current, ...securityObservations([sample], [...SECURITY_FIELDS], evm));
       const existing = knownSecurityItems({ evidence: [
         ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
         ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
       ] }).filter((item) => securityIdentityMatches(item, evm));
-      goPlusWalletPatch = { goplusWalletEvidence: goPlusResult, ...securityEvidencePatch([...existing, goPlusResult]) };
+      goPlusWalletPatch = { goplusWalletEvidence: sample, ...securityEvidencePatch([...existing, sample]) };
     }
+    return current.length;
+  };
+  const needsGoPlusHolders = () => fields.some((field) => goPlusHolderFields.includes(field) &&
+    !observations.some((item) => item.field === field));
+  if (providers.useGoPlusWalletFallback && GOPLUS_WALLET_CHAINS.includes(evm.chain) && needsGoPlusHolders()) {
+    if (providers.defaultGoPlusWalletProvider && options.useCache !== false) {
+      const cached = (options.readCachedSecurityEvidence || getCachedSecurityEvidence)("goplus", evm.chain, evm.tokenAddress, options.cacheTtlMs);
+      const recovered = addGoPlusSample(cached, "EXISTING_SECURITY_PAYLOAD");
+      if (recovered || holderSeeds.length) attempts.push({ provider: "goplus-wallets", family: "WALLETS",
+        status: recovered ? "LOCAL_EVIDENCE_AVAILABLE" : "HOLDER_QUERY_SEEDS_AVAILABLE",
+        durationMs: 0, requestCost: 0, holderSampleFieldsRecovered: recovered });
+    }
+  }
+  if (providers.useGoPlusWalletFallback && GOPLUS_WALLET_CHAINS.includes(evm.chain) && needsGoPlusHolders()) {
+    const goPlusAttempt = await executeProviderCall("goplus-wallets",
+      () => providers.getGoPlusWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+        { ...options, useCache: holderSeeds.length ? false : options.useCache,
+          goPlusRequestSlotReserved: providers.defaultGoPlusWalletProvider }),
+      options, state, 1, evm.chain, providers.defaultGoPlusWalletProvider
+        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null);
+    const recovered = goPlusAttempt.status === "SUCCESS"
+      ? addGoPlusSample(goPlusAttempt.value, "WALLET_PROVIDER_RECOVERY") : 0;
+    attempts.push({ ...goPlusAttempt, value: undefined, family: "WALLETS",
+      holderSampleFieldsRecovered: recovered });
   }
   if (fields.length && fields.every((field) => observations.some((item) => item.field === field))) {
     return { observations, attempts, projectPatch: goPlusWalletPatch };
@@ -1105,6 +1130,9 @@ export async function recoverWalletEvidence(
   const rpcFields = ["wallets", "holderAddresses", "walletTransactions", "walletParticipationHistory"];
   const missingRpcField = fields.some((field) => rpcFields.includes(field) &&
     !observations.some((item) => item.field === field));
+  const rpcRecoveryOptions = { ...options, walletRpcHolderSeeds: [
+    ...(Array.isArray(options.walletRpcHolderSeeds) ? options.walletRpcHolderSeeds : []), ...new Set(holderSeeds),
+  ] };
   if (providers.useRpcWalletFallback && (missingRpcField || !observations.some((item) => companionFields.includes(item.field)))) {
     if (providers.defaultRpcWalletProvider) {
       if (state.requestsUsed + 3 > state.maxRequests) {
@@ -1135,11 +1163,11 @@ export async function recoverWalletEvidence(
           return call.value;
         };
         rpcResult = await providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, jsonRpc: boundedRpc });
+          { ...rpcRecoveryOptions, jsonRpc: boundedRpc });
       }
     } else {
       const rpcAttempt = await executeProviderCall("rpc-wallets",
-        () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
+        () => providers.getRpcWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, rpcRecoveryOptions),
         options, state, 3, evm.chain);
       attempts.push({ ...rpcAttempt, value: undefined });
       rpcResult = rpcAttempt.value;
@@ -2195,7 +2223,9 @@ export async function executeActiveEvidenceProviderRequests(
     ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
     ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
     project.goplusDeployerEvidence,
-  ], options);
+  ], options).filter((item) =>
+    (fields.includes(item.field) || !Array.isArray(project[item.field]) || !project[item.field].length) &&
+    (item.source !== "goplus" || currentHolderObservation(item, options)));
   let projectPatch = {};
 
   const dexFields = fields.filter((field) => DEX_FIELDS.has(field));

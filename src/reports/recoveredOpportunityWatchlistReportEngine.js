@@ -73,6 +73,10 @@ export function summarizeRecoveryAttempts(projects = []) {
       attemptedFields: project.activeEvidenceRecovery?.attemptedFields || [],
       recoveredFields: project.activeEvidenceRecovery?.recoveredFields || [],
       unrecoveredFields: project.activeEvidenceRecovery?.unrecoveredFields || [],
+      changedEvidenceFamilies: Array.isArray(project.activeEvidenceRecovery?.changedEvidenceFamilies)
+        ? [...project.activeEvidenceRecovery.changedEvidenceFamilies] : null,
+      changedEvidenceFamiliesThisPhase: Array.isArray(project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase)
+        ? [...project.activeEvidenceRecovery.changedEvidenceFamiliesThisPhase] : null,
       attempts: project.activeEvidenceRecovery?.attempts || [],
       providerAttempts: project.activeEvidenceRecovery?.providerAttempts || [],
     }));
