@@ -188,18 +188,21 @@ test("Solana program collector uses bounded RPC and preserves case-sensitive exa
   const creator = "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD";
   const blockTime = Date.parse("2026-08-24T00:00:00.000Z") / 1000;
   const calls = [];
-  const rpcCall = async (_url, method) => {
+  const rpcCall = async (_url, method, params) => {
     calls.push(method);
     if (method === "getSignaturesForAddress") {
       return [{ signature: "SignatureCaseSensitive111111111111111111111111111111", slot: 99, blockTime, err: null }];
     }
+    assert.equal(params[1].maxSupportedTransactionVersion, 1);
     return {
+      version: 1,
       slot: 99,
       blockTime,
       meta: { err: null, innerInstructions: [], logMessages: ["Program log: initialize pool"] },
       transaction: {
         signatures: ["SignatureCaseSensitive111111111111111111111111111111"],
         message: {
+          transactionConfig: { computeUnitLimit: 30000 },
           accountKeys: [programId],
           instructions: [{
             programId,

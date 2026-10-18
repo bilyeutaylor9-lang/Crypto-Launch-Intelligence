@@ -33,6 +33,7 @@ import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
 import { GOPLUS_WALLET_CHAINS } from "./enrichmentSourceRegistry.js";
 import { getRpcWalletEvidence, walletRpcEndpointId } from "./rpcWalletEvidenceConnector.js";
+import { getSolanaRpcWalletEvidence } from "./solanaRpcWalletEvidenceConnector.js";
 import { jsonRpc } from "../sensors/rpcJsonClient.js";
 import { appendWalletParticipationHistory, loadWalletParticipationHistory, normalizeWalletParticipationObservation, walletParticipationHistoryFor } from "./walletParticipationHistoryStore.js";
 import { getBaseB20LifecycleEvidence, isBaseB20Candidate, isVerifiedBaseB20Evidence } from "./baseB20LifecycleConnector.js";
@@ -328,6 +329,10 @@ function providerFunctions(options = {}) {
       (Boolean(injected.getGoPlusWalletEvidence || options.getGoPlusWalletEvidence || injected.getGoPlusSecurityEvidence) || !customWalletProvider),
     defaultRpcWalletProvider: (injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence) === getRpcWalletEvidence,
     getSolanaWalletEvidence: injected.getSolanaWalletEvidence || options.getSolanaWalletEvidence || getRugCheckFullTokenEvidence,
+    getSolanaRpcWalletEvidence: injected.getSolanaRpcWalletEvidence || options.getSolanaRpcWalletEvidence || getSolanaRpcWalletEvidence,
+    defaultSolanaRpcWalletProvider: (injected.getSolanaRpcWalletEvidence || options.getSolanaRpcWalletEvidence || getSolanaRpcWalletEvidence) === getSolanaRpcWalletEvidence,
+    useSolanaRpcWalletFallback: options.useSolanaRpcWalletFallback ?? options.useRpcWalletFallback ??
+      (Boolean(injected.getSolanaRpcWalletEvidence || options.getSolanaRpcWalletEvidence) || !(injected.getSolanaWalletEvidence || options.getSolanaWalletEvidence)),
     useRpcWalletFallback: options.useRpcWalletFallback ?? (Boolean(injected.getRpcWalletEvidence || options.getRpcWalletEvidence) ||
       !(injected.getBlockscoutWalletEvidence || injected.getWalletEvidence || options.getBlockscoutWalletEvidence)),
     getCoinGeckoMarketsByIds:
@@ -944,7 +949,9 @@ export async function recoverWalletEvidence(
 ) {
   if (chainOf(project) === "solana") {
     const tokenAddress = tokenAddressOf(project, "solana");
-    const capableFields = ["wallets", "holderAddresses", "holderCount"];
+    const holderFields = ["wallets", "holderAddresses", "holderCount"];
+    const rpcFields = ["wallets", "walletTransactions", "walletParticipationHistory"];
+    const capableFields = [...holderFields, ...rpcFields];
     if (!tokenAddress || !fields.some((field) => capableFields.includes(field))) return {
       observations: [], attempts: [{ provider: "rugcheck-solana-full", status: "NOT_APPLICABLE", durationMs: 0,
         reason: "Exact Solana mint and supported holder-owner fields are required." }], projectPatch: {},
@@ -959,16 +966,75 @@ export async function recoverWalletEvidence(
     if (fields.every((field) => local.some((item) => item.field === field))) return {
       observations: local, attempts: [{ provider: "rugcheck-solana-full", status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0 }], projectPatch: {},
     };
-    const attempt = await executeProviderCall("rugcheck-solana-full",
-      () => providers.getSolanaWalletEvidence({ ...project, chain: "solana", tokenAddress }, options), options, state, 1, "solana");
-    const result = attempt.value || {};
-    const observations = securityHolderObservations(project, [result], options);
-    if (observations.length && fields.includes("holderCount") && Number.isSafeInteger(result.holderCount) && result.holderCount >= 0) {
-      observations.push({ ...observations[0], field: "holderCount", value: result.holderCount, holderSampleOnly: false,
-        holderCountSemantics: "PROVIDER_REPORTED_COUNT_NOT_SAMPLE_COUNT" });
+    const attempts = [];
+    const observations = [...local];
+    const projectPatch = {};
+    if (fields.some((field) => holderFields.includes(field) && !observations.some((item) => item.field === field))) {
+      const attempt = await executeProviderCall("rugcheck-solana-full",
+        () => providers.getSolanaWalletEvidence({ ...project, chain: "solana", tokenAddress }, options), options, state, 1, "solana");
+      attempts.push({ ...attempt, value: undefined });
+      const result = attempt.value || {};
+      const holders = securityHolderObservations(project, [result], options);
+      observations.push(...holders);
+      if (holders.length && fields.includes("holderCount") && Number.isSafeInteger(result.holderCount) && result.holderCount >= 0) {
+        observations.push({ ...holders[0], field: "holderCount", value: result.holderCount, holderSampleOnly: false,
+          holderCountSemantics: "PROVIDER_REPORTED_COUNT_NOT_SAMPLE_COUNT" });
+      }
+      if (result.status === "EVIDENCE_AVAILABLE" && holders.length) projectPatch.solanaWalletEvidence = result;
     }
-    return { observations: [...local, ...observations], attempts: [{ ...attempt, value: undefined }],
-      projectPatch: result.status === "EVIDENCE_AVAILABLE" && observations.length ? { solanaWalletEvidence: result } : {} };
+    if (providers.useSolanaRpcWalletFallback && fields.some((field) => rpcFields.includes(field) &&
+        !observations.some((item) => item.field === field))) {
+      let result;
+      if (state.requestsUsed + 5 > state.maxRequests) attempts.push({ provider: "solana-rpc-wallets", family: "WALLETS",
+        status: "REQUEST_BUDGET_EXHAUSTED", durationMs: 0,
+        reason: "At least five RPC methods are needed for mainnet identity, a fresh head and exact transaction evidence." });
+      else if (providers.defaultSolanaRpcWalletProvider) {
+        const transport = options.jsonRpc || jsonRpc;
+        const boundedRpc = async (url, method, params, rpcOptions) => {
+          const endpointId = walletRpcEndpointId(url);
+          const call = await executeProviderCall("solana-rpc-wallets", async () => {
+            const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
+            const value = await transport(url, method, params, { ...rpcOptions, retries: 0,
+              timeoutMs: Math.max(1, Math.min(rpcOptions.timeoutMs, remaining, Number(options.providerTimeoutMs || 8000))) });
+            if ((state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
+              state.timeBudgetExceeded = true;
+              throw new Error("Solana wallet RPC arrived after the recovery deadline.");
+            }
+            return value;
+          }, options, state, 1, `solana:${endpointId}`);
+          attempts.push({ ...call, value: undefined, family: "WALLETS", rpcMethod: method, rpcEndpointId: endpointId });
+          if (call.status !== "SUCCESS") {
+            const error = new Error(call.reason || call.status);
+            error.code = call.status;
+            throw error;
+          }
+          return call.value;
+        };
+        result = await providers.getSolanaRpcWalletEvidence({ ...project, chain: "solana", tokenAddress,
+          poolAddress: poolAddressOf(project, "solana") }, { ...options, jsonRpc: boundedRpc });
+      } else {
+        const attempt = await executeProviderCall("solana-rpc-wallets", () => providers.getSolanaRpcWalletEvidence(
+          { ...project, chain: "solana", tokenAddress, poolAddress: poolAddressOf(project, "solana") }, options), options, state, 5, "solana");
+        attempts.push({ ...attempt, value: undefined, family: "WALLETS" });
+        result = attempt.value;
+      }
+      if (result) attempts.push({ provider: "solana-rpc-wallets", family: "WALLETS", resultType: "EVIDENCE", requestCost: 0,
+        status: result.status === "EVIDENCE_AVAILABLE" ? "RAW_EVIDENCE_AVAILABLE" : "NO_VERIFIED_WALLET_EVIDENCE",
+        durationMs: 0, reason: result.warnings?.[0] || null });
+      if (result?.status === "EVIDENCE_AVAILABLE" && result.exactTokenIdentity === true && result.exactPoolIdentity === true &&
+          result.chain === "solana" && result.tokenAddress === tokenAddress && result.poolAddress === poolAddressOf(project, "solana") &&
+          result.genesisHash === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d") {
+        for (const field of rpcFields) if (valueKnown(result[field]) && !observations.some((item) => item.field === field)) observations.push(
+          observation(field, result[field], "solana-rpc-wallets", result.sourceTimestamp, confidenceFraction(result.confidence), {
+            chain: "solana", tokenAddress, poolAddress: result.poolAddress, exactPoolIdentity: true,
+            transferCoverage: result.transferCoverage, rpcEndpointId: result.rpcEndpointId,
+            completeHolderCoverage: false, buyerClassificationAvailable: false, currentHoldingVerified: false,
+            sourceTimestampMeaning: "PINNED_CONFIRMED_HEAD_FOR_HISTORICAL_OWNER_CHANGE_SAMPLE_NOT_INDIVIDUAL_TRADE_TIME",
+          }));
+        projectPatch.solanaRpcWalletEvidence = result;
+      }
+    }
+    return { observations, attempts, projectPatch };
   }
   const evm = evmIdentity(project);
   if (!evm.exact) {
@@ -1100,7 +1166,8 @@ export async function recoverWalletEvidence(
 }
 
 async function recoverWalletEvidenceWithHistory(project, fields, providers, options, state) {
-  if (options.walletHistory === false) return recoverWalletEvidence(project, fields, providers, options, state);
+  // The persistent transfer ledger is EVM-specific; do not discard fresh Solana history through it.
+  if (options.walletHistory === false || chainOf(project) === "solana") return recoverWalletEvidence(project, fields, providers, options, state);
   const historyOptions = options.walletHistory || {};
   const identity = { ...project, chain: chainOf(project), tokenAddress: tokenAddressOf(project) };
   const attempts = [];

@@ -4,8 +4,8 @@ import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdent
 import { EVM_CHAIN_IDS } from "./security/securityEvidenceUtils.js";
 import { jsonRpc } from "../sensors/rpcJsonClient.js";
 import { ERC20_TRANSFER_TOPIC, addressFromTopic, encodeAddressWord, hexNumber } from "../sensors/evmAbi.js";
+import { createEvmWalletParticipantFilter } from "./walletParticipantPolicy.js";
 
-const ZERO = `0x${"0".repeat(40)}`;
 const WORD = /^0x[0-9a-f]{64}$/i;
 const ADDRESS_TOPIC = /^0x0{24}[0-9a-f]{40}$/i;
 const HASH = /^0x[0-9a-f]{64}$/i;
@@ -41,7 +41,7 @@ async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
   const chain = normalizeChainId(project.chain || project.chainId || project.network);
   const tokenAddress = normalizeTokenAddress(project.tokenAddress || project.contractAddress, chain);
   const poolAddress = normalizeTokenAddress(project.poolAddress || project.pairAddress, chain);
-  const excluded = new Set([ZERO, tokenAddress, poolAddress]);
+  const isParticipant = createEvmWalletParticipantFilter(tokenAddress, poolAddress, project.poolAddress, project.pairAddress);
   const chainId = EVM_CHAIN_IDS[chain];
   const rpcUrl = options.rpcUrl || resolveNativeRpcUrl({ chain }, options).rpcUrl;
   const unknown = (reason, providerFailure = false) => ({ provider: "rpc-wallets", status: "UNKNOWN",
@@ -80,7 +80,7 @@ async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
       if (normalizeTokenAddress(log?.address, chain) !== tokenAddress ||
         log?.topics?.length !== 3 || log.topics[0]?.toLowerCase() !== ERC20_TRANSFER_TOPIC ||
         !ADDRESS_TOPIC.test(log.topics[1]) || !ADDRESS_TOPIC.test(log.topics[2]) ||
-        !WORD.test(log.data || "") || !HASH.test(log.transactionHash || "") ||
+        typeof log.data !== "string" || !WORD.test(log.data) || !HASH.test(log.transactionHash || "") ||
         !HEX.test(log.blockNumber || "") || !HEX.test(log.logIndex || "")) return unknown("Transfer response identity or shape mismatch.");
       const number = Number(BigInt(log.blockNumber));
       if (!Number.isSafeInteger(number) || number < fromBlock || number > toBlock) return unknown("Transfer outside pinned block range.");
@@ -89,9 +89,10 @@ async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
       seen.add(key);
       const from = addressFromTopic(log.topics[1]);
       const to = addressFromTopic(log.topics[2]);
-      for (const address of [from, to]) if (!excluded.has(address)) wallets.add(address);
+      const amountRaw = BigInt(log.data);
+      if (amountRaw > 0n) for (const address of [from, to]) if (isParticipant(address)) wallets.add(address);
       transactions.push({ transactionHash: log.transactionHash.toLowerCase(), logIndex: log.logIndex,
-        blockNumber: number, timestamp: null, from, to, tokenAmountRaw: BigInt(log.data).toString(),
+        blockNumber: number, timestamp: null, from, to, tokenAmountRaw: amountRaw.toString(),
         tokenAddress, direction: "TRANSFER", smartWallet: null });
     }
     const holderBalanceEvidence = [];
@@ -112,7 +113,7 @@ async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
         ...(Array.isArray(project.holderAddresses) ? project.holderAddresses : []),
         project.deployerAddress, project.creatorAddress, project.deployer, project.creator, project.ownerAddress,
       ].map((value) => normalizeTokenAddress(typeof value === "string" ? value : value?.address, chain))
-        .filter((address) => address && !excluded.has(address)))].slice(0, maxProbes);
+        .filter(isParticipant))].slice(0, maxProbes);
       for (const address of seeds) {
         balanceProbes++;
         try {
@@ -150,7 +151,8 @@ async function getRpcWalletEvidenceFromEndpoint(project = {}, options = {}) {
       transferCoverage: { fromBlock, toBlock, observedBlockTimestamp, complete24h: false, sampled: true },
       uniqueBuyers24h: null, buyTransactions24h: null, sellTransactions24h: null,
       smartWallets: null, trackedWallets: null,
-      warnings: [...warnings, "Bounded transfer participation and positive balance samples only; no complete daily totals, holder census, trade classification, creator role or smart-wallet labels are established."] };
+      warnings: [...warnings, "Zero-value transfers and known sink/token/pool addresses do not establish generic participant wallets.",
+        "Bounded transfer participation and positive balance samples only; no complete daily totals, holder census, trade classification, creator role or smart-wallet labels are established."] };
   } catch (error) {
     return { ...unknown(error?.message || "Wallet RPC failed.", true),
       providerFailureCode: error?.code || null };

@@ -1,5 +1,74 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Solana Transaction-Owner Recovery
+
+Fresh exact-token inspection of the last Solana wallet gap confirmed that
+RugCheck lists seven accounts, but only the pool-owned account has positive
+balance. Six zero-balance accounts are not current holder proof. Largest-account
+RPC calls were unavailable, but that did not mean every existing RPC method
+was unavailable: both configured public endpoints returned exact pool
+signatures. Reading one listed transaction with maxSupportedTransactionVersion
+0 failed -32015; the same transaction was returned with version 1.
+The current [official Solana version guide](https://solana.com/docs/core/transactions/versioned-transactions)
+requires integer 1 for v1 transaction reads. The existing native program
+collector's version ceiling is now updated too, preserving exact parsed
+instruction identity rather than guessing mint/pool account order.
+
+The wallet executor now has a selected, bounded Solana RPC fallback after
+usable RugCheck owner samples are exhausted. Each endpoint independently
+verifies mainnet genesis, a confirmed slot and its fresh nonfuture block time,
+then requests at most four signatures by default (hard cap six). Every actual
+RPC method uses the shared request budget, deadline and endpoint circuit;
+transaction requests opt into v1. Unknown/failed/foreign transactions,
+conflicting or malformed identities, duplicate account indices, missing
+balances, mismatched owners and programs, future/old events and stale heads
+cannot create observations. A proven pool-owned exact-mint balance change
+and a separate nonzero owner balance change are both required.
+
+Raw output is wallets / walletTransactions / walletParticipationHistory with
+per-event slot, signature, original timestamp, mint, pool, token account,
+owner and exact before/after raw amounts. The sample observation timestamp
+is its freshly verified confirmed head; each historical event keeps its own
+older timestamp. Provenance explicitly distinguishes the sample head from
+individual trade time and does not claim current holdings, EOAs, buyers,
+swaps, USD flows, smart labels, creator roles or execution proof. Missing
+balances are never assumed zero. Historical nonzero change into a zero final
+balance is participation evidence, not a claim of a positive current holder.
+The EVM-only persistent transfer ledger is no longer advertised on Solana
+or allowed to strip this newly collected Solana history from executor output.
+No new external provider or dependency is added.
+
+An actual executor probe for exact mint
+3HLhtXNCVh1VbCrpwACoZWwHoNeoCB7hRAPcYN2jjUiL and pool
+DN5Eq6ELcvUcC69VNbNW5pNbnt3bvtVGfHpBWb8pAcoF used seven request units
+(one RugCheck plus six RPC methods). It recovered one transaction-owner
+sample, preserving its original 2026-10-17T09:45:01Z event time and a separately
+verified 2026-10-18T05:45:04Z sample head. Organic-buyer, wallet-cluster and
+smart-wallet scores all remained null. This probe ran on the dirty working
+tree based on 021bb529, not a clean source-pinned scanner run; it does not by
+itself establish scanner-wide zero starvation or final qualification.
+
+The other prior gap, BSC RWA, recovered real holders in one existing GoPlus
+request after the actual cooldown expired. It also reported sell restrictions,
+blacklist controls and mint risk; hydration is not approval of the token.
+That real sample exposed a conventional dead-address entry leaking into
+generic wallets. A shared conservative EVM participant filter now excludes
+zero/dead sinks and token/pool contracts across GoPlus, Blockscout and RPC.
+Raw holder inventory and transfer endpoints are retained. Zero or unproven
+transfer amounts cannot invent participants, and explorer raw amounts remain
+exact independently of display-decimal availability. These changes strengthen
+truthfulness rather than count unknown evidence as favorable.
+
+Integrated validation passes 1749 tests with no failures/skips/cancellations,
+921 JavaScript syntax checks (with changed files rechecked after the final
+edits), entrypoint syntax/typecheck, and 21 load tests. The focused final
+Solana/buyer/participant set passes 69 tests. All 215 live runtime files retain
+their hashes and original file set after full tests/load. The first full run
+exposed an old generic source-list expectation; it now explicitly verifies
+unchanged EVM providers and the new chain-specific Solana RPC capability,
+including rejection of the unavailable Solana persistent ledger. No check was
+disabled. Clean production-style validation and fresh CI are still required.
+
 ## October 18 Native CI Runtime Repair
 
 CI run 39099424362 at 5503ece9597338ba85f1feb80062cd671dbd0a1c

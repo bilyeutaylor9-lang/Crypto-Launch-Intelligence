@@ -209,7 +209,7 @@ export async function fetchSolanaProgramInstructions(config = {}, options = {}) 
     const transaction = await rpcCall(rpcUrl, "getTransaction", [signatureInfo.signature, {
       commitment: options.commitment || "confirmed",
       encoding: "jsonParsed",
-      maxSupportedTransactionVersion: 0,
+      maxSupportedTransactionVersion: 1,
     }], options);
     requests += 1;
     if (!transaction || transaction.meta?.err) continue;

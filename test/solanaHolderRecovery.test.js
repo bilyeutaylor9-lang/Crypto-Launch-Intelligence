@@ -76,9 +76,9 @@ test("stale, future, foreign and unverified cache observations cannot hydrate in
   }
 });
 
-test("wallet routing is chain-specific and unsupported Solana transactions remain unavailable", () => {
-  assert.deepEqual(routeMissingEvidence({ canonicalField: "wallets" }, { chain: "solana" }).targetSources.map((item) => item.source), ["RugCheck"]);
-  assert.equal(routeMissingEvidence({ canonicalField: "walletTransactions" }, { chain: "solana" }).recoverable, false);
+test("wallet routing offers bounded Solana RPC participation separately from holder reports", () => {
+  assert.deepEqual(routeMissingEvidence({ canonicalField: "wallets" }, { chain: "solana" }).targetSources.map((item) => item.source), ["RugCheck", "chain RPC"]);
+  assert.deepEqual(routeMissingEvidence({ canonicalField: "walletTransactions" }, { chain: "solana" }).targetSources.map((item) => item.source), ["chain RPC"]);
   assert.equal(routeMissingEvidence({ canonicalField: "wallets" }, { chain: "base" }).targetSources.some((item) => item.source === "RugCheck"), false);
 });
 

@@ -159,8 +159,9 @@ test("provider routing honors individual raw field capabilities and derived reco
   assert.deepEqual(sourcesForField("buyTransactions24h").map((source) => source.source), ["DexScreener"]);
   assert.equal(routeMissingEvidence({ canonicalField: "buyTransactions24h" }).evidenceFamily, "MARKET");
   assert.ok(sourcesForField("wallets").some((source) => source.source === "chain RPC"));
-  assert.deepEqual(sourcesForField("walletParticipationHistory").map((source) => source.source),
+  assert.deepEqual(sourcesForField("walletParticipationHistory", { chain: "base" }).map((source) => source.source),
     ["chain RPC", "block explorers", "wallet-history database"]);
+  assert.deepEqual(sourcesForField("walletParticipationHistory", { chain: "solana" }).map((source) => source.source), ["chain RPC"]);
   for (const field of ["developerActivityScore", "catalystScore", "smartWalletScore"]) {
     assert.equal(recoveryDispositionForField(field), "DERIVED_RECOMPUTE");
   }

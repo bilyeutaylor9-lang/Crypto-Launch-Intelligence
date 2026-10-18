@@ -5,6 +5,7 @@ import {
   isEvmAddress,
 } from "./security/securityEvidenceUtils.js";
 import { chainKind } from "../identity/strictIdentityValidators.js";
+import { createEvmWalletParticipantFilter } from "./walletParticipantPolicy.js";
 
 const ZERO_ADDRESS = `0x${"0".repeat(40)}`;
 
@@ -76,8 +77,7 @@ function tokenAddressOfTransfer(item = {}) {
   return record(item) ? consistent(tokenAddresses(item), addressOf) : null;
 }
 
-function transferAmount(item = {}, tokenDecimals) {
-  const raw = consistent([item.total?.value, item.value, item.amount, item.token?.value], unsignedInteger);
+function transferAmount(item = {}, tokenDecimals, raw) {
   if (raw === null) return null;
   const decimals = consistent([item.total?.decimals, item.token?.decimals, item.decimals, tokenDecimals], safeInteger);
   if (decimals === null || decimals > 36) return null;
@@ -117,7 +117,8 @@ function normalizeTransfers(payload = {}, project = {}, meta = {}) {
     const timestampMs = timestamp ? Date.parse(timestamp) : NaN;
     if (!from || !to || !Number.isFinite(timestampMs) || !Number.isFinite(nowMs) ||
         timestampMs > nowMs || nowMs - timestampMs > 24 * 60 * 60 * 1000) continue;
-    const amount = transferAmount(item, meta.tokenDecimals);
+    const amountRaw = consistent([item.total?.value, item.value, item.amount, item.token?.value], unsignedInteger);
+    const amount = transferAmount(item, meta.tokenDecimals, amountRaw);
     const estimatedValue = amount !== null && priceUsd !== null ? amount * priceUsd : null;
     const poolMovement = poolAddress && from === poolAddress
       ? "POOL_OUTFLOW"
@@ -131,6 +132,7 @@ function normalizeTransfers(payload = {}, project = {}, meta = {}) {
       direction: "TRANSFER",
       poolMovement,
       tokenAmount: amount,
+      tokenAmountRaw: amountRaw === null ? null : amountRaw.toString(),
       volumeUsd: null,
       estimatedCurrentValueUsd: Number.isFinite(estimatedValue) ? estimatedValue : null,
       smartWallet: null,
@@ -173,8 +175,9 @@ export function normalizeBlockscoutWalletEvidence(
   }).map((item) => addressOf(item.address)));
   const wallets = uniqueAddresses([
     ...holderAddresses,
-    ...transfers.flatMap((item) => [item.from, item.to]),
-  ]).filter((address) => address !== poolAddress);
+    ...transfers.filter((item) => item.tokenAmountRaw !== null && BigInt(item.tokenAmountRaw) > 0n)
+      .flatMap((item) => [item.from, item.to]),
+  ]).filter(createEvmWalletParticipantFilter(tokenAddress, poolAddress, project.poolAddress, project.pairAddress));
   const transferItems = Array.isArray(raw.transfers?.items) ? raw.transfers.items : null;
   const nowMs = meta.now instanceof Date ? meta.now.getTime() : Date.now();
   const cutoff = nowMs - 24 * 60 * 60 * 1000;
@@ -235,6 +238,7 @@ export function normalizeBlockscoutWalletEvidence(
     warnings: [
       ...(!exactTokenIdentity ? ["Exact EVM token identity is missing, malformed or conflicting; wallet evidence remains unknown."] : []),
       ...(!completeDailyTransfers ? ["Transfer coverage is missing or incomplete; daily activity remains unknown."] : []),
+      "Zero or unproven transfer amounts and known sink/token/pool addresses do not establish generic participant wallets.",
       "Token transfers do not prove swaps; buyer, seller and trade totals remain unknown.",
       "Transfer normalization does not verify historical smart-wallet labels.",
     ],

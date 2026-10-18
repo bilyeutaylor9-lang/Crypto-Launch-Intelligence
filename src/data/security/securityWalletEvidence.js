@@ -1,4 +1,5 @@
 import { normalizeChainId, normalizeTokenAddress, normalizeWalletAddress } from "../../identity/strictIdentityValidators.js";
+import { createEvmWalletParticipantFilter } from "../walletParticipantPolicy.js";
 
 function hasEligibleGoPlusHolderBalance(holder) {
   if (!holder || typeof holder !== "object" || Array.isArray(holder)) return false;
@@ -64,8 +65,7 @@ export function securityHolderObservations(project = {}, items = [], options = {
     const confidence = typeof item.confidence === "number" && Number.isFinite(item.confidence)
       ? Math.max(0, Math.min(1, item.confidence > 1 ? item.confidence / 100 : item.confidence)) : 0;
     if (confidence < 0.5) continue;
-    const pool = normalizeTokenAddress(project.poolAddress || project.pairAddress, chain);
-    const wallets = addresses.filter((address) => address !== tokenAddress && address !== pool);
+    const wallets = addresses.filter(createEvmWalletParticipantFilter(tokenAddress, project.poolAddress, project.pairAddress));
     return [{ field: "holderAddresses", value: addresses }, ...(wallets.length ? [{ field: "wallets", value: wallets }] : [])]
       .map((observation) => ({ ...observation, source: "goplus", sourceTimestamp: item.observedAt,
         timestamp: item.observedAt, confidence, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
