@@ -47,6 +47,19 @@ test("system readiness accepts no-edge outcome when evidence is healthy", () => 
   assert.equal(readiness.selectionOutcomeStatus, "NO_EDGE_FOUND");
 });
 
+test("healthy input flags cannot make unresolved decision proof advisory", () => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "decision-proof-readiness-"));
+  fs.writeFileSync(path.join(reportsDir, "high-upside-scalp-research.json"), JSON.stringify({
+    quarantinedIdentityOrRouteCount: 43, scalpReadyCount: 0, highUpsideWatchCount: 0,
+  }));
+  const readiness = summarizeSystemReadiness({ scannerSemanticHealth: {
+    status: "DATA_DEGRADED", readinessClass: "DATA_DEGRADED", healthyCoreEvidence: true,
+    healthyDecisionEvidence: false, unresolvedDecisionEvidence: 43,
+  } }, { reportsDir, requiredFiles: [] });
+  assert.equal(readiness.status, "FAIL");
+  assert.ok(readiness.failures.some((item) => item.area === "candidate-lanes" && item.blocksReadiness));
+});
+
 test("system readiness keeps healthy no-edge scans passable with advisory recovery gaps", () => {
   const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "semantic-readiness-"));
   fs.writeFileSync(path.join(reportsDir, "engine-data-contract-health.json"), JSON.stringify({

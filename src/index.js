@@ -285,11 +285,9 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
   const deepEvaluatedCandidates = funnel.deepEvaluated;
   const deferredBeforeDeepCandidates = funnel.deepDeferred;
   const qualified = funnel.fullyQualified;
-  // Final selection can be insufficient for advisory reasons even when the
-  // decision-critical evidence is complete. Count only canonical core states
-  // here so advisory gaps do not masquerade as data starvation.
-  const insufficient =
-    funnel.coreDataStarved + funnel.coreEvidencePartial + funnel.coreEvidenceUnknown;
+  // Input completeness and decision proof are separate; advisory gaps alone
+  // do not contribute to this union of unresolved decision-critical evidence.
+  const insufficient = funnel.insufficientEvidenceCandidates;
   const recovered = deepUniverse.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
   const averageEvidenceCoverage = funnel.coreEvidenceCoveragePct;
   const insufficientRatio = deepEvaluatedCandidates ? insufficient / deepEvaluatedCandidates : 0;
@@ -329,6 +327,7 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
     ? !funnel.healthyCoreEvidence
     : false;
   const dataDegraded =
+    funnel.unresolvedDecisionEvidence > 0 ||
     (coreEvidenceUnhealthy && qualified === 0) ||
     largeInsufficientFailure ||
     deepEvaluationMissing ||

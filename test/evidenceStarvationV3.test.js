@@ -28,6 +28,7 @@ import { buildQualificationFailureMicroscope } from "../src/diagnostics/qualific
 import { emptyExecutionLabel } from "../src/reports/githubPagesPublisher.js";
 import { buildScannerSemanticHealth } from "../src/index.js";
 import { getBlockscoutDeployerEvidence } from "../src/data/security/blockscoutConnector.js";
+import { decisionCompleteProject } from "./fixtures/decisionCompleteProject.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -880,8 +881,7 @@ test("current partial execution proof prevents stale flags from inflating verifi
   assert.equal(hasVerifiedExecutionRoute(project), false);
   assert.equal(summarizeEvidenceFunnel([project]).verifiedRoutes, 0);
   assert.equal(buildQualificationFailureMicroscope([project]).verifiedRouteCandidates, 0);
-  const verified = { ...project, liveExecutionReady: false,
-    executionProof: { routeTruthStatus: "LIVE_EXECUTION_READY", liveExecutionReady: true } };
+  const verified = { ...decisionCompleteProject(), liveExecutionReady: false };
   assert.equal(hasVerifiedExecutionRoute(verified), true);
   assert.equal(summarizeEvidenceFunnel([verified]).verifiedRoutes, 1);
   assert.equal(buildQualificationFailureMicroscope([verified]).verifiedRouteCandidates, 1);
@@ -955,6 +955,7 @@ test("readiness summary excludes deferred candidates from all deep counters", ()
 
 test("healthy core evidence with no qualified token returns NO_EDGE_FOUND", () => {
   const health = buildScannerSemanticHealth([{
+    ...decisionCompleteProject(),
     deepEvaluationState: "DEEP_EVALUATED",
     engineDataReadinessStatus: "CORE_READY",
     coreEvidenceCoveragePct: 92,

@@ -4,6 +4,7 @@ import {
   hasVerifiedRouteDepth,
   hasVerifiedRouteSlippage,
   hasVerifiedSellQuote,
+  isLiveExecutionReady,
   routeQuoteAgeSeconds,
   routeQuoteFresh,
 } from "../execution/routeTruthV2.js";
@@ -293,7 +294,9 @@ export function buildCandidateProofState(project = {}) {
   const depthVerified = hasVerifiedRouteDepth(project);
   const slippageVerified = hasVerifiedRouteSlippage(project);
   const quoteFresh = routeQuoteFresh(project);
-  const exactIdentityVerified = Boolean(
+  const exactIdentityVerified = project.executionProof && Object.hasOwn(project.executionProof, "exactIdentityVerified")
+    ? project.executionProof.exactIdentityVerified === true
+    : Boolean(
     project.canonicalExecutionRoute?.exactIdentityVerified === true ||
     project.strictIdentityVerified === true ||
     hasExactRouteIdentity(project)
@@ -382,7 +385,8 @@ export function attachCandidateTruthState(project = {}) {
       ? "BLOCKED"
       : globalRouteStatus === "ROUTE_VERIFIED" &&
           candidateProofState.safety.status === "VERIFIED_SAFE" &&
-          candidateProofState.userAccess.status === "CONFIRMED_AVAILABLE"
+          candidateProofState.userAccess.status === "CONFIRMED_AVAILABLE" &&
+          isLiveExecutionReady(project)
         ? "READY"
         : globalRouteStatus === "ROUTE_VERIFIED" || globalRouteStatus === "TWO_WAY_QUOTE_VERIFIED"
           ? "EXECUTION_REVIEW"

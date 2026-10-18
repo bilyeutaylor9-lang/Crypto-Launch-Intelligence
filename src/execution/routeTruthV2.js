@@ -25,6 +25,11 @@ function first(values = []) {
   return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
 }
 
+function currentProof(subject = {}) {
+  const proof = subject.executionProof;
+  return proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length ? proof : null;
+}
+
 function hasVerifiedDepthSource(subject = {}) {
   const source = upper(first([
     subject.verifiedDepthSource,
@@ -60,6 +65,16 @@ function quoteObjectVerified(object = {}) {
 }
 
 export function routeQuoteAgeSeconds(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof && ["quoteFreshnessSeconds", "quoteAgeSeconds"].some((field) => Object.hasOwn(proof, field))) {
+    const age = Object.hasOwn(proof, "quoteFreshnessSeconds") ? proof.quoteFreshnessSeconds : proof.quoteAgeSeconds;
+    return (typeof age === "number" || (typeof age === "string" && age.trim() !== "")) &&
+      Number.isFinite(Number(age)) && Number(age) >= 0 ? Number(age) : null;
+  }
+  if (proof && Object.hasOwn(proof, "quoteTimestamp")) {
+    const timestamp = proof.quoteTimestamp ? Date.parse(proof.quoteTimestamp) : NaN;
+    return Number.isFinite(timestamp) ? Math.max(0, Math.round((Date.now() - timestamp) / 1000)) : null;
+  }
   const explicit = first([
     subject.quoteAgeSeconds,
     subject.quoteFreshnessSeconds,
@@ -94,6 +109,9 @@ export function routeQuoteFresh(subject = {}, maxAgeSeconds = 3600) {
 }
 
 export function hasVerifiedBuyQuote(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof && Object.hasOwn(proof, "buyQuoteVerified")) return proof.buyQuoteVerified === true;
+  if (proof && Object.hasOwn(proof, "liveBuyQuoteVerified")) return proof.liveBuyQuoteVerified === true;
   return Boolean(
     subject.buyQuoteVerified === true ||
       subject.liveBuyQuoteVerified === true ||
@@ -107,6 +125,9 @@ export function hasVerifiedBuyQuote(subject = {}) {
 }
 
 export function hasVerifiedSellQuote(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof && Object.hasOwn(proof, "sellQuoteVerified")) return proof.sellQuoteVerified === true;
+  if (proof && Object.hasOwn(proof, "liveSellQuoteVerified")) return proof.liveSellQuoteVerified === true;
   return Boolean(
     subject.sellQuoteVerified === true ||
       subject.liveSellQuoteVerified === true ||
@@ -120,6 +141,11 @@ export function hasVerifiedSellQuote(subject = {}) {
 }
 
 export function hasVerifiedRouteDepth(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof && Object.hasOwn(proof, "depthVerified")) return proof.depthVerified === true;
+  if (proof && Object.hasOwn(proof, "orderBookDepthVerified")) return proof.orderBookDepthVerified === true;
+  const proofFields = ["orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "executableDepthUsd", "verifiedTradeSizeUsd", "liquidityUsd"];
+  if (proof && proofFields.some((field) => Object.hasOwn(proof, field))) return Math.max(...proofFields.map((field) => num(proof[field]))) > 0;
   if (subject.liquidityVerified === false && !hasVerifiedDepthSource(subject)) return false;
   return Boolean(
     subject.orderBookDepthVerified === true ||
@@ -150,6 +176,13 @@ export function hasVerifiedRouteDepth(subject = {}) {
 }
 
 export function hasVerifiedRouteSlippage(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof?.slippageIsHeuristic === true || proof?.slippageVerified === false) return false;
+  const proofFields = ["estimatedRoundTripSlippagePct", "estimatedSlippagePct", "observedSlippagePct"];
+  if (proof && proofFields.some((field) => Object.hasOwn(proof, field))) {
+    const value = first(proofFields.map((field) => proof[field]));
+    return value !== null && Number.isFinite(Number(value));
+  }
   const value = first([
     subject.estimatedRoundTripSlippagePct,
     subject.estimatedSlippagePct,
@@ -174,6 +207,8 @@ export function hasVerifiedRouteSlippage(subject = {}) {
 }
 
 export function hasExactRouteIdentity(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof && Object.hasOwn(proof, "exactIdentityVerified")) return proof.exactIdentityVerified === true;
   const routeType = normalizedRouteType(subject);
   if (subject.exactIdentityVerified === true || subject.executionProof?.exactIdentityVerified === true) return true;
   if (routeType === "CEX") {
@@ -191,6 +226,8 @@ export function hasExactRouteIdentity(subject = {}) {
 }
 
 function routeRegionAllowsExecution(subject = {}) {
+  const proof = currentProof(subject);
+  if (proof?.userAccessEvidenceRequired === true && proof.userAccessVerified !== true) return false;
   const routeType = normalizedRouteType(subject);
   const status = upper(first([
     subject.regionStatus,
@@ -210,16 +247,19 @@ export function isLiveExecutionReady(subject = {}, options = {}) {
   const status = upper(subject.routeTruthStatus || subject.executionProofState || subject.executionStatus || subject.status);
   const proofStatus = upper(subject.executionProof?.routeTruthStatus || subject.executionProof?.executionProofState || subject.executionProof?.executionStatus);
   const routeStatus = upper(subject.canonicalExecutionRoute?.routeTruthStatus || subject.canonicalExecutionRoute?.status);
+  const proof = currentProof(subject);
+  if (proof && (proof.liveExecutionReady === false || (proofStatus && proofStatus !== LIVE_READY_STATUS))) return false;
   if (HARD_BLOCK_STATUSES.has(status) || HARD_BLOCK_STATUSES.has(proofStatus) || HARD_BLOCK_STATUSES.has(routeStatus)) return false;
   if (![status, proofStatus, routeStatus].includes(LIVE_READY_STATUS)) return false;
-  if (subject.safetyVerified === false) return false;
+  if (subject.safetyVerified === false || (proof && Object.hasOwn(proof, "safetyVerified") && proof.safetyVerified !== true)) return false;
+  const requirements = { ...subject, ...proof };
   if (
-    subject.transferTaxEvidenceRequired === true &&
-    subject.transferTaxEvidenceVerified !== true
+    requirements.transferTaxEvidenceRequired === true &&
+    requirements.transferTaxEvidenceVerified !== true
   ) return false;
   if (
-    subject.authorityEvidenceRequired === true &&
-    (subject.authorityEvidenceVerified !== true || subject.authoritySafetyClean !== true)
+    requirements.authorityEvidenceRequired === true &&
+    (requirements.authorityEvidenceVerified !== true || requirements.authoritySafetyClean !== true)
   ) return false;
 
   return Boolean(

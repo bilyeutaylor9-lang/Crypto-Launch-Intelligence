@@ -34,6 +34,9 @@ function finding(item = {}, blocksReadiness = true) {
 }
 
 function scannerEvidenceIsHealthy(scannerSemanticHealth = {}, liveCoreRanking = {}) {
+  if (scannerSemanticHealth.status === "DATA_DEGRADED" ||
+    (scannerSemanticHealth.healthyDecisionEvidence ?? liveCoreRanking.summary?.healthyDecisionEvidence) === false ||
+    Number(scannerSemanticHealth.unresolvedDecisionEvidence || liveCoreRanking.summary?.unresolvedDecisionEvidence || 0) > 0) return false;
   return (
     scannerSemanticHealth.readinessClass === "HEALTHY_EVIDENCE" ||
     scannerSemanticHealth.healthyCoreEvidence === true ||

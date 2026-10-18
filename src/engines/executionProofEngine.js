@@ -371,14 +371,14 @@ function moneyStatusFor(status = "") {
 }
 
 function verifiedTaxEvidence(project = {}) {
+  const observedPct = (value) => (typeof value === "number" || (typeof value === "string" && value.trim() !== "")) &&
+    Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 100;
   return Boolean(
     project.taxesVerified === true ||
       project.transferTaxVerified === true ||
-      project.transferTaxEvidence ||
-      project.taxEvidence ||
-      project.buyTaxPct !== undefined ||
-      project.sellTaxPct !== undefined ||
-      project.executionProof?.taxesVerified === true ||
+      project.transferTaxEvidence?.verified === true ||
+      project.taxEvidence?.verified === true ||
+      (observedPct(project.buyTaxPct) && observedPct(project.sellTaxPct)) ||
       project.proofOfAlphaExecutionTwin?.taxes?.verified === true
   );
 }
@@ -598,6 +598,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const accessVerified = routeKind === "CEX" ? regionAccessVerified(project) : true;
   const liveReadySubject = {
     ...project,
+    executionProof: undefined,
     executionProofState: "LIVE_EXECUTION_READY",
     routeTruthStatus: "LIVE_EXECUTION_READY",
     buyQuoteVerified: buyRouteAvailable,

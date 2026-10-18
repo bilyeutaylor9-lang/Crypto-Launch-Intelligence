@@ -260,7 +260,7 @@ test("hottest-ten-now excludes aggregate provider rows from the top-ten board", 
   assert.equal(report.topTenCurrentResearchBoard.some((project) => project.symbol === "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGE"), false);
   assert.equal(report.topTenCurrentResearchBoard.length, 0);
   assert.equal(report.quarantinedIdentityOrRoute[0].symbol, "REAL");
-  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "SELL_ROUTE_FAILED");
+  assert.equal(report.quarantinedIdentityOrRoute[0].quarantineReason, "BUY_ROUTE_FAILED");
 });
 
 test("hottest-ten-now excludes obvious meme identities and oversized assets from utility-small-cap board", () => {
