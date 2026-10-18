@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { summarizeUniverseLedger } from "../learning/universeLedgerStore.js";
+import { hasUniverseFinalQualification, summarizeUniverseLedger } from "../learning/universeLedgerStore.js";
 import {
   hasCleanDisplayIdentity,
   isLikelyAggregateCandidate,
@@ -15,7 +15,7 @@ function compactRecord(record = {}) {
     symbol: record.canonicalIdentity?.symbol || "UNKNOWN",
     chain: record.canonicalIdentity?.chain || "unknown",
     finalState: record.finalState || "UNKNOWN",
-    finalQualified: Boolean(record.finalQualified),
+    finalQualified: hasUniverseFinalQualification(record),
     finalConfidence: record.finalConfidence || "Unknown",
     lifecycleState: record.lifecycleState || "UNKNOWN",
     funnelStage: record.processing?.stage || "UNKNOWN",

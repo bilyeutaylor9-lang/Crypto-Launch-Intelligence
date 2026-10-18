@@ -400,6 +400,14 @@ function lifecycleState(project = {}, finalState = "DEFERRED") {
   return "IDENTITY_PENDING";
 }
 
+export function hasUniverseFinalQualification(record = {}) {
+  const proof = record.finalQualificationProof;
+  return record.finalQualified === true && record.finalState !== "BLOCKED" &&
+    proof?.producer === "Final Selection Integrity" && proof.state === "QUALIFIED" &&
+    proof.qualified === true && proof.selected === true && proof.invariantStatus === "PASS" &&
+    Array.isArray(proof.invariantViolations) && proof.invariantViolations.length === 0;
+}
+
 function finalDecision(project = {}, context = {}) {
   const rejected = Boolean(context.rejected);
   const selected = Boolean(context.selected);
@@ -437,7 +445,12 @@ function finalDecision(project = {}, context = {}) {
 
   return {
     finalState,
-    finalQualified: finalState === "PROMOTED" && risk < 65,
+    finalQualified: !blockers.length && hasUniverseFinalQualification({ finalQualified: true, finalState,
+      finalQualificationProof: {
+        producer: project.finalAuthorityEngine, state: project.finalSelectionState,
+        qualified: project.finalSelectionQualified, selected: project.finalCandidateSelected,
+        invariantStatus: project.finalSelectionInvariantStatus, invariantViolations: project.finalSelectionInvariantViolations,
+      } }),
     finalConfidence:
       coverage >= 75 && risk < 45 ? "High" : coverage >= 55 ? "Medium" : coverage >= 30 ? "Developing" : "Low",
     finalBlockingReasons: blockers,
@@ -513,6 +526,12 @@ export function buildUniverseLedgerRecord(project = {}, context = {}) {
     },
     finalState: decision.finalState,
     finalQualified: decision.finalQualified,
+    finalQualificationProof: {
+      producer: enriched.finalAuthorityEngine || null, state: enriched.finalSelectionState || "NOT_EVALUATED",
+      qualified: enriched.finalSelectionQualified === true, selected: enriched.finalCandidateSelected === true,
+      invariantStatus: enriched.finalSelectionInvariantStatus || "NOT_EVALUATED",
+      invariantViolations: Array.isArray(enriched.finalSelectionInvariantViolations) ? enriched.finalSelectionInvariantViolations : null,
+    },
     finalConfidence: decision.finalConfidence,
     finalBlockingReasons: decision.finalBlockingReasons,
     finalWarningReasons: decision.finalWarningReasons,
@@ -606,7 +625,7 @@ function summarizeRecords(records = [], targetCandidates = 0) {
     researchOnly: count((record) => record.finalState === "RESEARCH_ONLY"),
     deferred: count((record) => record.finalState === "DEFERRED"),
     blocked: count((record) => record.finalState === "BLOCKED"),
-    finalQualified: count((record) => record.finalQualified),
+    finalQualified: count(hasUniverseFinalQualification),
     lowCoverage: count((record) => record.dataCoverageScore < 30),
     highRisk: count((record) => ["high", "critical"].includes(record.riskClass)),
     byFinalState: by((record) => record.finalState),

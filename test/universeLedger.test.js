@@ -4,9 +4,11 @@ import assert from "node:assert/strict";
 import {
   buildUniverseLedgerRecord,
   buildUniverseLedgerSnapshot,
+  hasUniverseFinalQualification,
+  summarizeUniverseLedger,
 } from "../src/learning/universeLedgerStore.js";
 
-test("universe ledger promotes selected projects with authoritative final fields", () => {
+test("universe ledger deep promotion is not final qualification", () => {
   const record = buildUniverseLedgerRecord(
     {
       name: "Ledger Alpha",
@@ -33,13 +35,40 @@ test("universe ledger promotes selected projects with authoritative final fields
   );
 
   assert.equal(record.finalState, "PROMOTED");
-  assert.equal(record.finalQualified, true);
+  assert.equal(record.finalQualified, false);
+  assert.equal(record.finalQualificationProof.state, "NOT_EVALUATED");
   assert.equal(record.processing.stage, "DEEP_SNIPER_QUEUE");
   assert.ok(record.lastSelectedAt);
   assert.ok(record.dataCoverageScore >= 40);
   assert.equal(record.finalEvidenceFamilies.identity.status, "confirmed");
   assert.equal(record.finalEvidenceFamilies.manipulationRisk.status, "clear");
   assert.ok(record.finalInvalidationConditions.length > 0);
+});
+
+test("ledger final qualification requires producer proof and passing invariants", () => {
+  const project = { name: "Proof Token", symbol: "PROOF", chain: "base",
+    address: "0x0000000000000000000000000000000000000a11",
+    finalAuthorityEngine: "Final Selection Integrity", finalSelectionState: "QUALIFIED",
+    finalSelectionQualified: true, finalCandidateSelected: true,
+    finalSelectionInvariantStatus: "PASS", finalSelectionInvariantViolations: [] };
+  const record = buildUniverseLedgerRecord(project, { selected: true });
+  assert.equal(record.finalQualified, true);
+  assert.equal(hasUniverseFinalQualification(record), true);
+  for (const patch of [{ finalAuthorityEngine: undefined }, { finalSelectionInvariantStatus: "CRITICAL" },
+    { finalSelectionInvariantViolations: ["current negative execution proof"] }, { finalSelectionQualified: false },
+    { finalCandidateSelected: false }, { finalSelectionState: "INSUFFICIENT_DATA" }]) {
+    assert.equal(buildUniverseLedgerRecord({ ...project, ...patch }, { selected: true }).finalQualified, false);
+  }
+  assert.equal(buildUniverseLedgerRecord(project, { rejected: true }).finalQualified, false);
+});
+
+test("legacy discovery qualification flags cannot inflate persistent totals or rewrite history", () => {
+  const record = { projectId: "legacy", finalState: "PROMOTED", finalQualified: true,
+    processing: { stage: "DEEP_SNIPER_QUEUE" } };
+  const ledger = { projects: { legacy: { latest: record } } };
+  assert.equal(summarizeUniverseLedger(ledger).totals.finalQualified, 0);
+  assert.equal(hasUniverseFinalQualification(record), false);
+  assert.equal(record.finalQualified, true);
 });
 
 test("universe ledger blocks rejected or unresolved identity projects", () => {
