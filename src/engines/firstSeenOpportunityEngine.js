@@ -1,13 +1,6 @@
-import { buildFirstSeenSnapshot, recordPointInTimeObservation } from "../data/pointInTimeObservationStore.js";
+import { buildFirstSeenSnapshot, recordPointInTimeObservation, recordPointInTimeObservations } from "../data/pointInTimeObservationStore.js";
 
-export function analyzeFirstSeenOpportunity(project = {}, options = {}) {
-  const snapshot = buildFirstSeenSnapshot(project, options.meta || options);
-  let stored = null;
-  if (options.persist !== false) {
-    stored = recordPointInTimeObservation(project, options.meta || options, options.store || {});
-  }
-  const firstSeen = stored?.firstSeen || snapshot;
-
+function attachFirstSeen(project, firstSeen) {
   return {
     ...project,
     firstSeenOpportunity: firstSeen,
@@ -18,6 +11,17 @@ export function analyzeFirstSeenOpportunity(project = {}, options = {}) {
   };
 }
 
+export function analyzeFirstSeenOpportunity(project = {}, options = {}) {
+  const meta = options.meta || options;
+  const firstSeen = options.persist === false
+    ? buildFirstSeenSnapshot(project, meta)
+    : recordPointInTimeObservation(project, meta, options.store || {}).firstSeen;
+  return attachFirstSeen(project, firstSeen);
+}
+
 export function analyzeFirstSeenOpportunityBatch(projects = [], options = {}) {
-  return (Array.isArray(projects) ? projects : []).map((project) => analyzeFirstSeenOpportunity(project, options));
+  const rows = Array.isArray(projects) ? projects : [];
+  if (options.persist === false) return rows.map((project) => analyzeFirstSeenOpportunity(project, options));
+  const records = recordPointInTimeObservations(rows, options.meta || options, options.store || {});
+  return rows.map((project, index) => attachFirstSeen(project, records[index].firstSeen));
 }

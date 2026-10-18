@@ -157,7 +157,7 @@ import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEn
 import { analyzeDataStarvationRootCauseBatch } from "./engines/dataStarvationRootCauseEngine.js";
 import { analyzeValueOfInformationBatch } from "./engines/valueOfInformationEngine.js";
 import { analyzeStarvationRescueBatch } from "./engines/starvationRescueEngine.js";
-import { analyzeActiveEvidenceRecoveryBatch } from "./engines/activeEvidenceRecoveryEngine.js";
+import { analyzeActiveEvidenceRecoveryBatch, createActiveEvidenceRecoveryState } from "./engines/activeEvidenceRecoveryEngine.js";
 import { analyzeEarlyAsymmetryTriageBatch } from "./engines/earlyAsymmetryTriageEngine.js";
 import { analyzePreBreakoutSequenceBatch } from "./engines/preBreakoutSequenceEngine.js";
 import { analyzeAttentionGapV2Batch } from "./engines/attentionGapV2Engine.js";
@@ -2572,7 +2572,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     const selected = [];
     const positions = [];
     currentProjects.forEach((project, index) => {
-      const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamilies || [];
+      const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
+        project.activeEvidenceRecovery?.changedEvidenceFamilies ?? [];
       if (
         project.activeEvidenceRecovery?.waves?.length &&
         shouldRerunEngineForEvidenceFamilies(name, changedFamilies)
@@ -2803,12 +2804,18 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
   results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
-  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+  const evidenceRecoveryOptions = {
     ...(options.activeEvidenceRecovery || {}), executionRecovery: {
       ...(options.executionProofRecovery || {}), ...(options.activeEvidenceRecovery?.executionRecovery || {}),
     },
+  };
+  const evidenceExecutionState = evidenceRecoveryOptions.executionState || createActiveEvidenceRecoveryState(evidenceRecoveryOptions);
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+    ...evidenceRecoveryOptions, executionState: evidenceExecutionState, wave3Max: 0,
   });
-  if (results.some((project) => project.activeEvidenceRecovery?.waves?.length)) {
+  const rerunRecoveredInputs = async () => {
+    if (!results.some((project) => (project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
+      project.activeEvidenceRecovery?.changedEvidenceFamilies ?? []).length)) return;
     results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
     results = await runRecoveryEngine("Source Truth", analyzeSourceTruthBatch, results);
     results = await runRecoveryEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
@@ -2841,7 +2848,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     results = await runRecoveryEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
     results = await runRecoveryEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
     results = await runRecoveryEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
-  }
+  };
+  await rerunRecoveredInputs();
   results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
   results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
     ...(options.firstSeenOpportunity || {}),
@@ -2869,6 +2877,24 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     options.candidateDecisionScoring || {}
   );
   results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  // Quotes are short-lived. Acquire them after the long research/learning pass,
+  // using the same request allowance, provider circuits and absolute deadline.
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+    ...evidenceRecoveryOptions, executionState: evidenceExecutionState, resumeRecovery: true,
+    wave1Max: 0, wave2Max: 0,
+  });
+  await rerunRecoveredInputs();
+  if (results.some((project) => project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase?.includes("EXECUTION"))) {
+    results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
+    results = await runEngine("Utility Quality", analyzeUtilityQualityBatch, results, options.utilityQuality || {});
+    results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
+    results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
+    results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});
+    results = await runEngine("Scalp Microstructure", analyzeScalpMicrostructureBatch, results, options.scalpMicrostructure || {});
+    results = await runEngine("High-Upside Scalp Classification", analyzeHighUpsideScalpClassificationBatch, results, options.highUpsideScalpClassification || {});
+    results = await runEngine("Candidate Decision Scoring", analyzeCandidateDecisionScoringBatch, results, options.candidateDecisionScoring || {});
+    results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  }
   results = markDeepEvaluationComplete(results, stageContext);
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, {
     ...(options.engineDataReadiness || {}),

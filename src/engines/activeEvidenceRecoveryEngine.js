@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { canonicalValue } from "../data/canonicalAliasResolver.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
@@ -427,15 +428,20 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
         recoveryWaveForField(item.canonicalField || item.field) === "WAVE3")).length };
 }
 
-export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
-  const safeProjects = Array.isArray(projects) ? projects : [];
-  const hydration = buildActiveEvidenceRecoveryWaves(safeProjects, options);
+export function createActiveEvidenceRecoveryState(options = {}) {
   const maxRequests = resolveActiveEvidenceRequestBudget(options, 2000);
-  const executionState = createActiveEvidenceExecutionState({
+  return { ...createActiveEvidenceExecutionState({
     ...options,
     maxProviderRequests: maxRequests,
     timeBudgetMs: options.timeBudgetMs ?? process.env.ACTIVE_EVIDENCE_RECOVERY_TIME_BUDGET_MS ?? 23 * 60 * 1000,
-  });
+  }), recoverySessionId: randomUUID() };
+}
+
+export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const hydration = buildActiveEvidenceRecoveryWaves(safeProjects, options);
+  const executionState = options.executionState || createActiveEvidenceRecoveryState(options);
+  executionState.recoverySessionId ||= randomUUID();
   const concurrency = Math.max(
     1,
     Number(
@@ -445,8 +451,17 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         6
     )
   );
-  const currentProjects = safeProjects.map((project) => ({ ...project }));
+  const resume = options.resumeRecovery === true && Boolean(options.executionState);
+  const currentProjects = safeProjects.map((project) => ({ ...project,
+    ...(resume && project.activeEvidenceRecovery?.recoverySessionId === executionState.recoverySessionId ? { activeEvidenceRecovery: {
+      ...project.activeEvidenceRecovery, changedEvidenceFamiliesThisPhase: [],
+    } } : {}),
+  }));
   const recoveryByProject = new Map();
+  if (resume) currentProjects.forEach((project, index) => {
+    if (isDeepCandidate(project) && project.activeEvidenceRecovery?.recoverySessionId === executionState.recoverySessionId &&
+        project.activeEvidenceRecovery?.waves?.length) recoveryByProject.set(index, project);
+  });
 
   async function recoverCandidate({ projectIndex, entries }, wave) {
       const project = currentProjects[projectIndex];
@@ -532,8 +547,10 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           activeEvidenceRecoveryAttemptedFields: attemptedFields,
           activeEvidenceRecovery: {
             status,
+            recoverySessionId: executionState.recoverySessionId,
             waves: [wave],
             changedEvidenceFamilies: [...new Set([...uniqueRecovered.map(sourceFamilyForField), ...changedEvidenceFamilies])],
+            changedEvidenceFamiliesThisPhase: [...new Set([...uniqueRecovered.map(sourceFamilyForField), ...changedEvidenceFamilies])],
             recoveredFields: uniqueRecovered,
             attemptedFields,
             unrecoveredFields: uniqueUnrecovered,
@@ -573,6 +590,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         attemptedFields: [...new Set([...(previousReport.attemptedFields || []), ...(report.attemptedFields || [])])],
         unrecoveredFields: [...new Set([...(previousReport.unrecoveredFields || []), ...(report.unrecoveredFields || [])])],
         changedEvidenceFamilies: [...new Set([...(previousReport.changedEvidenceFamilies || []), ...(report.changedEvidenceFamilies || [])])],
+        changedEvidenceFamiliesThisPhase: [...new Set([...(previousReport.changedEvidenceFamiliesThisPhase || []), ...(report.changedEvidenceFamiliesThisPhase || [])])],
         attempts: [...(previousReport.attempts || []), ...(report.attempts || [])],
         providerAttempts: [...(previousReport.providerAttempts || []), ...(report.providerAttempts || [])],
         executionAdapterResults: [...(previousReport.executionAdapterResults || []), ...(report.executionAdapterResults || [])],
@@ -600,9 +618,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
 
   const providerExecution = summarizeActiveEvidenceExecutionState(executionState);
   const selectedIndexes = new Set(recoveryByProject.keys());
-  const selectedWaveCounts = Object.fromEntries(
-    Object.entries(hydration.waves).map(([wave, items]) => [wave, items.length])
-  );
+  const selectedWaveCounts = Object.fromEntries(["WAVE1", "WAVE2", "WAVE3"].map(wave =>
+    [wave, [...recoveryByProject.values()].filter(project => project.activeEvidenceRecovery?.waves?.includes(wave)).length]));
   const recoveredFieldsByFamily = {};
   const unresolvedFieldsByFamily = {};
   for (const project of recoveryByProject.values()) {
@@ -648,9 +665,11 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       activeEvidenceRecoveryStatus: deferred ? "DEFERRED_BEFORE_DEEP" : "NOT_SELECTED",
       activeEvidenceRecovery: {
         status: deferred ? "DEFERRED_BEFORE_DEEP" : "NOT_SELECTED",
+        recoverySessionId: executionState.recoverySessionId,
         recoveredFields: [],
         attemptedFields: [],
         unrecoveredFields: [],
+        changedEvidenceFamiliesThisPhase: [],
         providerExecution,
         batchSummary,
         executionIdentityDeferred,

@@ -1,5 +1,72 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Late Execution Hydration
+
+The clean e6ce5a7a scan, scan_1792317799166, proved the new free acquisition path
+works: 57 actual Raydium HTTP requests recovered seven exact two-way quotes,
+without provider failures, rate limits or quota exhaustion. All seven retained
+their original 30-second deadlines and raw field provenance. However, acquisition
+around 10:08:15-18Z preceded final evaluation at 10:10:42Z. Current consumers
+correctly rejected all seven after expiration. There were zero final qualified
+picks and no stale positive actionability at completion. Passing the 1913-test
+suite did not mean this timing defect was repaired.
+
+The normal pipeline now hydrates raw Wave1/2 evidence first, performs dependent
+research and utility analysis, then acquires Wave3 quotes near FINAL readiness
+and scoring. Both phases use the same execution-state object: request allowance,
+request count, provider circuits and absolute deadline are not recreated. The
+23-minute default provider deadline and all existing configurable limits remain
+unchanged. Standalone recovery still runs its configured three waves normally.
+
+Cumulative recovery fields, attempts and wave membership survive continuation;
+phase-local changed families select dependent reruns rather than rerunning old
+wallet/deployer acquisition after a quote. An opaque recovery-session identifier
+prevents a new state from counting another scan's history as recovered this run.
+Provider observation timestamps remain original, not refreshed by the later
+phase. Deferred rows remain outside deep/recovery denominators. Final readiness,
+post-evidence scoring and final integrity still run after the fresh evidence.
+
+The seven real recoveries also exposed fourteen raw executableDepthUsd and
+verifiedTradeSizeUsd companion observations mislabeled UNKNOWN in the family
+summary. These are now classified as raw EXECUTION observations, with only
+implemented chain/route-appropriate providers advertised. The deterministic
+seven-route regression now reports EXECUTION:56 with no UNKNOWN bucket, while
+derived scores and unsupported fields still cannot consume request budget.
+
+A new whole-pipeline regression simulates a two-minute research delay. It fails
+against a disposable source snapshot of e6ce5a7a, where the quotes are acquired
+two minutes too early, and passes against this repair with the original TTL.
+Separate tests retain the global request cap across phases, reject one-leg
+proof, preserve an expired absolute deadline and open provider circuits, retain
+history through input reordering and reject cross-run history imports. All
+provider responses are fixtures and the whole-pipeline test runs in a temporary
+workspace; no production store or external provider is used by these tests.
+
+This changes scheduling and bookkeeping, not safety/identity requirements or the
+alpha hypothesis. No gate is weakened, quote lifetime extended, provider quota
+reset, trade submitted or profitable edge claimed. A new clean source-pinned
+production scan remains necessary to measure actual final quote freshness.
+
+The audit also found First Seen rereading and rewriting its whole persistent
+store for every candidate. Its batch path now reads, updates and writes once,
+while preserving the single-record API, immutable firstSeen, input/duplicate
+order, the 250-observation cap and unknown store/record metadata. Fallback
+Solana token/pool keys preserve case; new records retain declared raw identity.
+Ambiguous legacy collisions and malformed stores fail before any write, rather
+than borrowing another mint's history or overwriting corruption with an empty
+store. Explicit keys are prototype-safe. Temporary-store tests check these
+invariants; a read-only check also accepted the real 198-record, 5724310-byte
+store without modifying it. This is a concrete I/O improvement, not attribution
+of all observed latency to that store or a migration of historical identity.
+
+Integrated validation for this layer passes 1943 tests with zero failures,
+skips or cancellations, syntax checks across 942 JavaScript files, entrypoint
+typecheck and all 21 load tests. The full data/report file set remains 217,
+with no changed, added or missing runtime files across validation. A clean
+dependency install reports zero vulnerabilities. Both bounded specialists are
+complete and closed. These checks do not substitute for the required new live
+scan or permit merging while exact-head readiness remains red.
+
 ## October 18 Free Exact Solana Quote Acquisition
 
 The last clean baseline, 67da8952 / scan_1792315416280, reached 10000 discoveries,
