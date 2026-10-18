@@ -306,6 +306,7 @@ const REPORT_PRIORITY_FIELDS = [...new Set([
   // Derived snapshots can share these objects; retain the authoritative roots first.
   "executionProof",
   "canonicalExecutionRoute",
+  ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   ...IDENTITY_FIELDS,
   ...DECISION_FIELDS,
   ...EVIDENCE_FIELDS,
@@ -588,3 +589,4 @@ export function compactMetaForReportWriters(meta = {}) {
     discovery: compactDiscoveryForReports(discovery),
   };
 }
+import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";

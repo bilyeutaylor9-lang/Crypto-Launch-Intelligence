@@ -11,6 +11,7 @@ import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 import { analyzeFinalSelectionIntegrity } from "../engines/finalSelectionIntegrityEngine.js";
 import { demoteSelectionProjections } from "../execution/executionPublicationBoundary.js";
+import { getFrozenEvidenceFunnel } from "../reports/evidenceFunnelSnapshot.js";
 import {
   hasCleanDisplayIdentity,
   isGenericMarketIdentity,
@@ -1294,7 +1295,7 @@ export function writeGuardedLiveRankingReports(projects = [], meta = {}, options
           primaryCandidateProject.primaryCandidateReason || inferredPrimaryMetadata?.reason,
       })
     : null;
-  const funnelSummary = summarizeEvidenceFunnel(ranked);
+  const funnelSummary = getFrozenEvidenceFunnel(ranked, meta) || summarizeEvidenceFunnel(ranked);
   const summary = {
     analyzed: rows.length,
     microTestEligible: projectsByStatus("MICRO_TEST_ELIGIBLE", ranked.length).length,

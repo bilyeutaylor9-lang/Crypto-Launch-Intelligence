@@ -1,5 +1,44 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Report Snapshot Clock And Compaction
+
+Clean 05ca1cb6 scan_1792329496762 reached 10000 discovered, 1416 standard,
+124 deep and 1292 deferred candidates. Core/advisory coverage was 92%/90%,
+core starved/partial 0/0, and six paired routes were fresh at the real
+13:22:10.200Z cutoff. All original 30-second quote deadlines were retained,
+with zero expired positive flags and zero qualified picks. Shared recovery used
+360/2000 requests without deadline exhaustion. Live readiness correctly remained
+DATA_DEGRADED for 117 incomplete decision-proof rows, not NO_EDGE_FOUND.
+
+Manual HTML inspection then exposed a separate reporting defect: writers
+recomputed the funnel after quotes expired, showing zero routes instead of the
+six observed at the frozen cutoff. Dense-row compaction also dropped atomic
+core/advisory fields before JSON serialization; serialized rows could therefore
+look unknown despite the genuine 92% aggregate. The source-pinned before-state,
+including live data, reports and logs, is preserved in
+cli-05ca-final-live-state-20261018.tar.gz with SHA-256
+9c68e19836f318c4e9f923aac613771e6023d934c255ad9916a666d5b782e79d.
+
+Report-only snapshots now bind immutable canonical counters to the real scan
+cutoff and exact candidate/proof cohort. They reject changed identities,
+negative proof, impossible counts, future observations, expired-at-cutoff quotes
+and missing/stale authority evidence. Reporting priority retains the necessary
+primitive fields through dense-row and JSON compaction. HTML, guarded report
+JSON, scalp and Pages use the same explicitly labeled At Scan frame, while
+current quote verification remains false after expiry. Snapshot readers are not
+used by ranking, selection or execution gates. Main creation fails closed if a
+frame cannot be bound; stale/mismatched report frames use strict current truth.
+The recovery diagnostic separately reports observed paired recoveries, freshness
+at generation time, and the frozen scan count rather than claiming no recovery
+ever occurred when a previously verified quote expires.
+
+The integration regression fails against the original 05ca writers and passes
+the repaired HTML/JSON/Pages path without reviving any expired quote. All 2003
+tests, 955 syntax checks, typecheck, 21 load tests and the full offline scanner
+smoke pass. All 231 saved data/report/documentation files are byte-identical
+across the suite. Another clean source-pinned scan and rendered-artifact check
+remain required; final metrics belong in the PR without a post-scan source edit.
+
 ## October 18 Stable Snapshot Closure
 
 The clean a353a6e3 run, scan_1792325125130, retained 128 deep and 1416 deferred

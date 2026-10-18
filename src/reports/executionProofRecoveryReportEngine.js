@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { isLiveExecutionReady, routeQuoteAgeSeconds, routeQuoteFresh } from "../execution/routeTruthV2.js";
+import { getFrozenEvidenceFunnel } from "./evidenceFunnelSnapshot.js";
 
 const QUOTE_PROVIDERS = new Set(["jupiter", "raydium", "0x", "lifi", "lifi-token", "coinbase", "kraken", "gate", "mexc"]);
 const HTTP_ATTEMPT_STATUSES = new Set(["SUCCESS", "FAILED", "NO_CANDIDATE_EVIDENCE"]);
@@ -199,6 +200,14 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
   );
   const routeExecutionReady = recoveredProjects.filter(executionReadyForReport);
   const executionReady = routeExecutionReady.filter((project) => project.finalSelectionQualified === true);
+  const observedPairedRecoveries = attemptedProjects.filter((project) => {
+    const route = project.executionProofRecoveryRoute || {};
+    return route.verificationStatus === "VERIFIED_PROVIDER_OBSERVATION" && route.recoveryRun === true &&
+      (route.exactIdentityVerified === true || route.marketIdentityVerified === true) &&
+      route.buyQuoteVerified === true && route.sellQuoteVerified === true &&
+      Number.isFinite(Date.parse(route.quoteTimestamp));
+  }).length;
+  const scanFunnel = getFrozenEvidenceFunnel(projects, meta);
 
   const adapterHealth = attemptedProjects
     .flatMap((project) => array(project.executionProofRecovery?.adapterResults)
@@ -250,6 +259,10 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
     executionProviderRequestsUsed: providerRequests.length,
     candidatesWithProviderRequests: candidatesWithProviderRequests.length,
     routesRecovered,
+    observedPairedRecoveries,
+    freshRouteCountAtReportGeneration: routeExecutionReady.length,
+    verifiedRoutesAtScan: scanFunnel?.verifiedRoutes ?? null,
+    scanFunnelAsOfTimestamp: scanFunnel?.asOfTimestamp ?? null,
     buyOnlyRoutes: buyOnlyProjects.length,
     sellProofFailures: sellProofFailures.length,
     staleQuotes: staleQuotes.length,
@@ -268,7 +281,9 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
         .map((key) => `Add optional ${key} to improve execution quote recovery breadth.`),
       ...(sellProofFailures.length ? ["Prioritize sell quote recovery before any execution-ready decision."] : []),
       ...(providerFailures.length ? ["Check provider cooldowns, rate limits, and network availability."] : []),
-      ...(!routesRecovered ? ["No route proof was recovered in this scan; candidates remain research-only."] : []),
+      ...(!routesRecovered ? [observedPairedRecoveries
+        ? `${observedPairedRecoveries} paired recoveries were observed, but none remained fresh at report generation. Refresh quotes before execution.`
+        : "No route proof was recovered in this scan; candidates remain research-only."] : []),
     ],
   };
 }

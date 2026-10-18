@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";
 
 const DEFAULT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = 32_000_000;
 const DEFAULT_MAX_PROJECT_PAYLOAD_CHARS = 64_000;
@@ -7,6 +8,8 @@ const DEFAULT_MIN_PROJECT_PAYLOAD_CHARS = 2_048;
 const STREAM_COPY_BUFFER_BYTES = 64 * 1024;
 
 const REPORT_PRIORITY_FIELDS = [
+  "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
+  ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   "name",
   "symbol",
   "chain",

@@ -34,7 +34,7 @@ test("HTML recovery counts come from deep evidence, even when no candidate is be
 
 test("HTML verified routes remain visible independently of final qualification", (t) => {
   const html = render(t, [{ ...deep, finalSelectionState: "RESEARCH_ONLY", liveExecutionReady: true }]);
-  metric(html, "Verified Routes", 1);
+  metric(html, "Verified Routes At Report", 1);
   metric(html, "Qualified Candidates", 0);
 });
 
@@ -45,7 +45,7 @@ test("HTML cannot publish stale qualified flags over current negative execution 
     executionProof: { buyQuoteVerified: false, sellQuoteVerified: false, executionStatus: "BLOCKED" } };
   const html = render(t, [stale]);
   metric(html, "Qualified Candidates", 0);
-  metric(html, "Verified Routes", 0);
+  metric(html, "Verified Routes At Report", 0);
 });
 
 test("HTML cannot qualify or count routes from deferred or merely selected projects", (t) => {
@@ -55,6 +55,6 @@ test("HTML cannot qualify or count routes from deferred or merely selected proje
   const html = render(t, [{ ...stale, deepEvaluationState: "DEFERRED_BEFORE_DEEP" },
     { ...stale, deepEvaluationState: "SELECTED_FOR_DEEP" }]);
   metric(html, "Qualified Candidates", 0);
-  metric(html, "Verified Routes", 0);
+  metric(html, "Verified Routes At Report", 0);
   metric(html, "Needs Data Recovery", 0);
 });

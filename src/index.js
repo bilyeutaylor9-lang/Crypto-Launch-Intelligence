@@ -11,6 +11,7 @@ import {
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
 import { finalizeExecutionPublicationSnapshot } from "./execution/executionPublicationBoundary.js";
+import { createEvidenceFunnelSnapshot } from "./reports/evidenceFunnelSnapshot.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -1019,6 +1020,7 @@ async function main() {
           discovery: discoveredProjects,
           supabaseMemory,
         }),
+        evidenceFunnelSummary: guardedLiveRanking.funnelSummary,
       };
     });
     results = publication.projects;
@@ -1027,6 +1029,7 @@ async function main() {
     const scannerSemanticHealth = publication.scannerSemanticHealth;
     const completedAt = publication.completedAt;
     const executionPublicationPasses = publication.executionPublicationPasses;
+    const evidenceFunnelSummary = publication.evidenceFunnelSummary;
     publication = null;
     let reportMeta = {
       runId: scanRunId,
@@ -1058,6 +1061,8 @@ async function main() {
       scannerSemanticHealth,
       platform: "Crypto Launch Intelligence",
     };
+    reportMeta.evidenceFunnelSnapshot = createEvidenceFunnelSnapshot(results, evidenceFunnelSummary, reportMeta);
+    if (!reportMeta.evidenceFunnelSnapshot) throw new Error("Frozen evidence funnel does not match the settled scan.");
     reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
 
     // The pipeline has persisted the exact candidate universe by this point.

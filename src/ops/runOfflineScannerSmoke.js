@@ -53,7 +53,8 @@ async function runWorker(scenario) {
   const { runIntelligencePipeline } = await import("../intelligencePipeline.js");
   const { buildGuardedLiveRanking } = await import("../ranking/guardedLiveRankingEngine.js");
   const { finalizeExecutionPublicationSnapshot } = await import("../execution/executionPublicationBoundary.js");
-  const { decisionProofAssessment } = await import("../kernel/evidenceFunnelSummary.js");
+  const { createEvidenceFunnelSnapshot } = await import("../reports/evidenceFunnelSnapshot.js");
+  const { decisionProofAssessment, summarizeEvidenceFunnel } = await import("../kernel/evidenceFunnelSummary.js");
   const { generateReports } = await import("../reports/reportOrchestrator.js");
   const { refreshSystemReadinessReport } = await import("../reports/refreshSystemReadinessReport.js");
   const { REQUIRED_REPORT_FILES, DASHBOARD_CRITICAL_REPORT_FILES, validateReportContracts } = await import("../reports/reportContractValidator.js");
@@ -82,7 +83,8 @@ async function runWorker(scenario) {
   });
   const publication = await finalizeExecutionPublicationSnapshot(results, currentProjects => {
     const ranked = buildGuardedLiveRanking(currentProjects, {scanRunId: FIXTURE_RUN_ID, dataCutoffTimestamp: FIXTURE_TIME}).ranked;
-    return {projects: ranked, semantic: buildScannerSemanticHealth(ranked, {discovery: fixture.discovery})};
+    return {projects: ranked, semantic: buildScannerSemanticHealth(ranked, {discovery: fixture.discovery}),
+      evidenceFunnelSummary: summarizeEvidenceFunnel(ranked)};
   });
   const ranked = publication.projects;
   const semantic = publication.semantic;
@@ -91,6 +93,8 @@ async function runWorker(scenario) {
     startedAt: FIXTURE_TIME, completedAt: FIXTURE_TIME, dataCutoffTimestamp: FIXTURE_TIME,
     scannedProjects: ranked.length, discovery: fixture.discovery, analysisFunnel: plan.report,
     scannerSemanticHealth: semantic, automaticTradingEnabled: false, automaticModelPromotion: false };
+  meta.evidenceFunnelSnapshot = createEvidenceFunnelSnapshot(ranked, publication.evidenceFunnelSummary, meta);
+  if (!meta.evidenceFunnelSnapshot) throw new Error("Frozen evidence funnel does not match the offline scan.");
   const summary = { scenario, phase: "reports", artifactClass: meta.artifactClass, evidenceMode: meta.evidenceMode,
     livePublishable: null, semantic, fixtureCalls: fixture.calls,
     candidates: ranked.map(project => ({ symbol: project.symbol, finalSelectionState: project.finalSelectionState,

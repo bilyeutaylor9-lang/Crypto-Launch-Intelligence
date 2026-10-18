@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { hasVerifiedExecutionRoute, summarizeEvidenceFunnel } from "../kernel/evidenceFunnelSummary.js";
+import { getFrozenEvidenceFunnel } from "./evidenceFunnelSnapshot.js";
 
 function esc(value = "") {
   return String(value ?? "")
@@ -242,12 +243,12 @@ function causalNetworkRows(projects = [], emptyMessage = "No projects") {
     .join("");
 }
 
-export function writeHtmlReport(projects = []) {
+export function writeHtmlReport(projects = [], meta = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const ranked = [...projects].sort((a, b) => scoreOf(b) - scoreOf(a));
-  const funnel = summarizeEvidenceFunnel(projects);
+  const funnel = getFrozenEvidenceFunnel(projects, meta) || summarizeEvidenceFunnel(projects);
   const progressive = ranked.some((project) => ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(project.deepEvaluationState));
   const deepCandidates = progressive ? ranked.filter((project) => project.deepEvaluationState === "DEEP_EVALUATED") : ranked;
   const progressiveRanked = [...projects]
@@ -654,7 +655,8 @@ export function writeHtmlReport(projects = []) {
 
     <div class="card">
       <h2>${funnel.verifiedRoutes}</h2>
-      <p>Verified Routes</p>
+      <p>Verified Routes At ${funnel.evidenceBasis === "FROZEN_SCAN" ? "Scan" : "Report"}</p>
+      ${funnel.asOfTimestamp ? `<small>${esc(funnel.asOfTimestamp)}</small>` : ""}
     </div>
 
     <div class="card">

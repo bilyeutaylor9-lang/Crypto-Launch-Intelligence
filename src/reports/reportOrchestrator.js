@@ -119,7 +119,7 @@ export function generateReports(projects = [], meta = {}) {
   const csvPath = writeCsvReport(projects);
   const { filePath: watchlistPath, watchlist } = writeWatchlist(projects);
   const summaryPath = writeSummaryReport(projects);
-  const htmlPath = writeHtmlReport(projects);
+  const htmlPath = writeHtmlReport(projects, meta);
   const quantumFieldPath = writeQuantumFieldReport(projects);
   const {
     healthPath: quantumSuiteHealthPath,
