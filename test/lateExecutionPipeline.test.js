@@ -24,7 +24,7 @@ test("normal pipeline acquires 30-second quotes after slow research and before F
       if (message === 'Running Market Opportunity Learning...') { now += 120000; slowPasses++; }
     };
     globalThis.fetch = async () => { throw new Error('External network is forbidden in the isolated regression'); };
-    const {runIntelligencePipeline} = await import(${JSON.stringify(pipelineUrl)});
+    const {runIntelligencePipeline, shouldRerunEngineForEvidenceFamilies} = await import(${JSON.stringify(pipelineUrl)});
     const {routeQuoteFresh} = await import(${JSON.stringify(routeUrl)});
     const token = '66wLt8u1BmvqWb2Wks7NiVeuvNC9NsmrDUVu777YuHzW';
     const pool = 'GJ2uhUVnzBj96uxp5b2hX9oJ9k6jX5DnwxYxPneNHfNe';
@@ -39,10 +39,17 @@ test("normal pipeline acquires 30-second quotes after slow research and before F
         snapshotTimestampVerified: true, sourceTimestamp: new Date(start).toISOString(),
         mintRisk: false, freezeRisk: false, testedChecks: ['mint authority', 'freeze authority']}],
       executionProof: {routeType: 'DEX', buyQuoteVerified: false, sellQuoteVerified: false, liveExecutionReady: false}};
+    const deferred = {...candidate, name: 'Deferred infrastructure fixture', symbol: 'DEFERRED', chain: 'base',
+      tokenAddress: '0x9999999999999999999999999999999999999999',
+      contractAddress: '0x9999999999999999999999999999999999999999',
+      poolAddress: '0x8888888888888888888888888888888888888888',
+      pairAddress: '0x8888888888888888888888888888888888888888', securityEvidence: []};
     let calls = 0;
     const callOrder = [];
     const afterResearch = [];
-    const [result] = await runIntelligencePipeline([candidate], {saveMemory: false, engineProfile: 'tenx',
+    const outputs = await runIntelligencePipeline([candidate, deferred], {saveMemory: false, engineProfile: 'tenx',
+      progressiveFunnel: true, analysisFunnelSelection: {standard: [candidate, deferred], advanced: [candidate],
+        deep: [candidate], crawler: [], llama: [], debate: [], finalist: []},
       scanRunId: 'isolated-late-quote-regression', freeOnly: true, localAI: {enabled: false},
       contractAuthorityRisk: {collectSecurityEvidence: false},
       webResearchAgent: {enabled: false}, externalIntelligence: {enabled: false},
@@ -64,7 +71,19 @@ test("normal pipeline acquires 30-second quotes after slow research and before F
               otherAmountThreshold: inputMint === usdc ? '990000000' : '24502500', slippageBps: 100,
               routePlan: [{poolId: pool, inputMint, outputMint}]}};
           }}}});
+    const result = outputs.find(project => project.contractAddress === token);
+    const untouched = outputs.find(project => project.contractAddress === deferred.contractAddress);
+    assert.equal(untouched.deepEvaluationState, 'DEFERRED_BEFORE_DEEP');
+    assert.notEqual(untouched.finalSelectionQualified, true);
     assert.equal(calls, 2);
+    assert.ok(logs.includes('Post-Recovery Rerun: Utility Quality on 1/2 recovered candidates'));
+    assert.ok(logs.includes('Post-Recovery Rerun: Research Readiness on 1/2 recovered candidates'));
+    for (const name of ['Utility Quality', 'Research Readiness']) {
+      assert.equal(shouldRerunEngineForEvidenceFamilies(name, []), false);
+      for (const family of ['IDENTITY', 'MARKET', 'WALLETS', 'DEPLOYER', 'SECURITY', 'EXECUTION']) {
+        assert.equal(shouldRerunEngineForEvidenceFamilies(name, [family]), true);
+      }
+    }
     assert.equal(result.executionProofRecoveryRoute.source, 'raydium');
     assert.equal(result.executionProof.quoteTimestamp, new Date(start + 120000).toISOString());
     assert.equal(result.executionProof.quoteExpiresAt, new Date(start + 150000).toISOString());

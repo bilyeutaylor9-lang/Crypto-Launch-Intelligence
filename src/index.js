@@ -10,7 +10,7 @@ import {
 
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
-import { revalidateExecutionPublicationBoundary } from "./execution/executionPublicationBoundary.js";
+import { finalizeExecutionPublicationSnapshot } from "./execution/executionPublicationBoundary.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -998,27 +998,36 @@ async function main() {
 
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
-    results = revalidateExecutionPublicationBoundary(results);
-    let guardedLiveRanking = buildGuardedLiveRanking(results, {
-      env: process.env,
-      scanRunId,
-      dataCutoffTimestamp: new Date().toISOString(),
-      backtestReportPath: "reports/core-model-backtest.json",
+    let publication = await finalizeExecutionPublicationSnapshot(results, currentProjects => {
+      const guardedLiveRanking = buildGuardedLiveRanking(currentProjects, {
+        env: process.env,
+        scanRunId,
+        dataCutoffTimestamp: new Date().toISOString(),
+        backtestReportPath: "reports/core-model-backtest.json",
+      });
+      const ranked = guardedLiveRanking.ranked;
+      return {
+        projects: ranked,
+        guardedLiveRankingMeta: {
+          authoritativeRanking: guardedLiveRanking.authoritativeRanking,
+          summary: guardedLiveRanking.summary,
+          policy: guardedLiveRanking.policy,
+          configuration: guardedLiveRanking.configuration,
+        },
+        summary: summarizePipelineResults(ranked),
+        scannerSemanticHealth: buildScannerSemanticHealth(ranked, {
+          discovery: discoveredProjects,
+          supabaseMemory,
+        }),
+      };
     });
-    results = guardedLiveRanking.ranked;
-    const guardedLiveRankingMeta = {
-      authoritativeRanking: guardedLiveRanking.authoritativeRanking,
-      summary: guardedLiveRanking.summary,
-      policy: guardedLiveRanking.policy,
-      configuration: guardedLiveRanking.configuration,
-    };
-    const summary = summarizePipelineResults(results);
-    const scannerSemanticHealth = buildScannerSemanticHealth(results, {
-      discovery: discoveredProjects,
-      supabaseMemory,
-    });
-
-    const completedAt = new Date().toISOString();
+    results = publication.projects;
+    const guardedLiveRankingMeta = publication.guardedLiveRankingMeta;
+    const summary = publication.summary;
+    const scannerSemanticHealth = publication.scannerSemanticHealth;
+    const completedAt = publication.completedAt;
+    const executionPublicationPasses = publication.executionPublicationPasses;
+    publication = null;
     let reportMeta = {
       runId: scanRunId,
       scanRunId,
@@ -1037,6 +1046,7 @@ async function main() {
       engineMode: "progressive-stage-execution",
       engineProfile: engineProfileReport(process.env.PIPELINE_ENGINE_PROFILE),
       scoringMode: "guarded-live-core-authoritative",
+      executionPublicationPasses,
       authoritativeRanking: guardedLiveRankingMeta.authoritativeRanking,
       guardedLiveRanking: guardedLiveRankingMeta.summary,
       guardedLiveRankingPolicy: guardedLiveRankingMeta.policy,
@@ -1048,7 +1058,6 @@ async function main() {
       scannerSemanticHealth,
       platform: "Crypto Launch Intelligence",
     };
-    guardedLiveRanking = null;
     reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
 
     // The pipeline has persisted the exact candidate universe by this point.

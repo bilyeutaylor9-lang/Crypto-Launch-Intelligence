@@ -1,5 +1,62 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Stable Snapshot Closure
+
+The clean a353a6e3 run, scan_1792325125130, retained 128 deep and 1416 deferred
+rows from 1544 standard candidates. Core/advisory input coverage remained
+92%/90%, with no core-starved/partial candidates. Recovery used 336/2000 request
+units across 45/112/50 wave memberships, without deadline exhaustion. All 205
+engines and report contracts passed; strict live readiness remained FAIL.
+
+Four real paired quotes retained original issue times at 12:08:45-47Z and
+30-second deadlines at 12:09:15-17Z. The final cutoff, 12:09:18.762Z, was only
+1-3 seconds later. The pre-ranking revalidation could still be fresh when it
+ran, then expire during ranking/summarization. Three root and four nested
+positive flags therefore failed the stronger manual invariant again. The
+source-pinned failed artifact is preserved with SHA-256
+a9fd38f5c69a6a8b3238fc46ed826afa139cf15112f14cc0feb836553f35bfa7.
+Green CI did not authorize merging this result as a completed repair.
+
+The final snapshot now closes after its projections: capture the real cutoff,
+revalidate current proof, and recompute projections only after a monotonic
+demotion. An unchanged final check certifies that all surviving positives were
+valid at that cutoff. Bounded failure throws before publication rather than
+publishing a stale frame. Provider clocks and raw observations are untouched;
+future evidence capture remains after the frozen current decision. A real-time
+regression reproduces expiry inside projection, fails the one-shot path and
+passes with a second projection. Fresh proof closes in one pass without forcing
+qualification. Malformed, incomplete or repeatedly resurrected projections fail.
+
+Timing also isolated an avoidable 3597ms late Utility Quality pass over all
+1544 standard rows. Utility and Research Readiness are per-project analyses;
+their late pass now uses phase-local evidence families, with explicit quote
+refresh for time-dependent research state. Global rankings and downstream
+classifiers still receive the full cohort. The initial utility pass still
+gives every candidate's producer a chance before FINAL readiness. Wallet-only
+late changes also trigger dependent recomputation. A two-project/deferred
+pipeline regression passes current sources and fails a disposable a353 source
+snapshot; empty-family and all-six-family cases are checked explicitly.
+
+Independent review also reproduced two retry hazards: adjusted ranking scores
+fed back into scoring, and ranking resurrected a candidate rejected by final
+integrity. Retries now revalidate the original producer outputs, never ranked
+scores. Tentative micro-test eligibility must pass the canonical final engine
+and cannot override explicit negative/null/UNKNOWN qualification. Pure shared
+selection demotion clears inherited selectors and final-readiness projections
+without reading clocks or modifying raw execution proof; the outer boundary
+therefore retains its expiry/reprojection signal. Regressions cover score
+stability, current vetoes, lower guarded scores, controlled expiry, and a fresh
+complete positive case. The bounded specialist recheck found no remaining issue
+in those specific repairs.
+
+All 37 focused execution/ranking/pipeline cases pass. Fresh installation reports
+zero known vulnerabilities; all 1989 tests, 952 JavaScript syntax checks, typecheck,
+21 load tests and the isolated full offline scanner smoke pass. All 231 saved
+data/report/documentation files remain byte-identical across the full suite.
+Another clean source-pinned live scan remains mandatory before declaring this
+gap repaired; its exact metrics must be attached to the PR rather than inferred
+from these deterministic checks.
+
 ## October 18 Publication-Time Proof Expiry
 
 Clean bb0d0c5c scan_1792322858542 completed its intelligence snapshot at

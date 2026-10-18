@@ -6,11 +6,27 @@ import https from "node:https";
 import net from "node:net";
 import { setTimeout } from "node:timers/promises";
 import { analyzeFinalSelectionIntegrity } from "../src/engines/finalSelectionIntegrityEngine.js";
-import { revalidateExecutionAtPublication, revalidateExecutionPublicationBoundary } from "../src/execution/executionPublicationBoundary.js";
+import { finalizeExecutionPublicationSnapshot, revalidateExecutionAtPublication, revalidateExecutionPublicationBoundary } from "../src/execution/executionPublicationBoundary.js";
 import { hasFreshTokenAuthorityEvidence, isLiveExecutionReady, routeQuoteFresh } from "../src/execution/routeTruthV2.js";
 import { attachCandidateTruthState } from "../src/kernel/candidateTruthState.js";
 import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
 import { decisionCompleteProject } from "./fixtures/decisionCompleteProject.js";
+import { buildGuardedLiveRanking } from "../src/ranking/guardedLiveRankingEngine.js";
+
+const rankingOptions = {
+  policy: {source: "test", winnerPublished: false, bestModel: null, adequateModels: [], rejectionReasons: []},
+  env: {LIVE_RANKING_MIN_SCORE: "70", LIVE_RANKING_MIN_MICRO_COVERAGE: "0.6"},
+};
+
+function rankingFixture(lifetimeMs) {
+  return {...publicationFixture(lifetimeMs), pipelineScore: 84,
+    rawEvidence: Object.fromEntries(["independentBuyerAccelerationScore", "qualifiedSmartWalletFlowScore",
+      "liquidityFormationScore", "relativeStrengthScore", "volumeAccelerationScore", "verifiedCatalystScore",
+      "safetyScore"].map(key => [key, 95])),
+    utilityQualityScore: 90, realUtilityQualified: true, utilityClassification: "REAL_UTILITY",
+    utilityEvidenceFamilies: ["PRODUCT", "DEVELOPMENT", "ADOPTION"], researchOpportunityScore: 95,
+    researchOpportunityCoverage: {observedComponentCount: 8, expectedComponentCount: 10, coveragePct: 80}};
+}
 
 function publicationFixture(lifetimeMs = 60_000) {
   const timestamp = new Date().toISOString();
@@ -100,6 +116,167 @@ test("proof valid in the pipeline expires during persistence before publication,
   assert.equal(funnel.verifiedRoutes, 0);
   assert.equal(funnel.fullyQualified, 0);
   assert.equal(funnel.selectionOutcome, "DATA_DEGRADED");
+});
+
+test("snapshot projection cannot publish a flag that expires while ranking is computed", async () => {
+  const project = selectedFixture(1000);
+  const original = JSON.stringify(project);
+  const rawEvidence = evidenceBytes(project);
+  let passes = 0;
+  const snapshot = await finalizeExecutionPublicationSnapshot([project], async projects => {
+    passes++;
+    const summary = summarizeEvidenceFunnel(projects);
+    if (passes === 1) {
+      assert.equal(summary.verifiedRoutes, 1);
+      await setTimeout(Math.max(1, Date.parse(project.quoteExpiresAt) - Date.now() + 15));
+    }
+    return {projects, summary, completedAt: "1900-01-01T00:00:00.000Z"};
+  });
+  assert.equal(snapshot.executionPublicationPasses, 2);
+  assert.equal(passes, 2);
+  assertDemoted(snapshot.projects[0]);
+  assert.equal(snapshot.summary.verifiedRoutes, 0);
+  assert.equal(snapshot.summary.fullyQualified, 0);
+  assert.ok(Date.parse(snapshot.completedAt) > Date.parse(project.quoteExpiresAt));
+  assert.ok(Date.parse(snapshot.completedAt) <= Date.now());
+  assert.equal(evidenceBytes(snapshot.projects[0]), rawEvidence);
+  assert.equal(JSON.stringify(project), original);
+});
+
+test("a fresh snapshot closes in one pass without manufacturing a qualified candidate", async () => {
+  const project = {...publicationFixture(), finalSelectionQualified: false};
+  const before = JSON.stringify(project);
+  const snapshot = await finalizeExecutionPublicationSnapshot([project], projects => ({
+    projects, summary: summarizeEvidenceFunnel(projects),
+  }));
+  assert.equal(snapshot.executionPublicationPasses, 1);
+  assert.equal(snapshot.projects[0], project);
+  assert.equal(snapshot.summary.verifiedRoutes, 1);
+  assert.equal(snapshot.summary.fullyQualified, 0);
+  assert.equal(JSON.stringify(project), before);
+});
+
+test("real ranking honors current final vetoes and publication converges without losing a verified route", async () => {
+  for (const veto of [{aiDecision: "Reject"}, {allocationBucket: "Defensive Avoid"},
+    ...[false, null, "UNKNOWN"].map(value => ({finalSelectionQualified: value, finalSelectionState: "UNKNOWN"})),
+    {finalSelectionState: "UNKNOWN"}]) {
+    const project = {...rankingFixture(), ...veto};
+    const before = JSON.stringify(project);
+    const snapshot = await finalizeExecutionPublicationSnapshot([project], projects => {
+      const ranked = buildGuardedLiveRanking(projects, rankingOptions);
+      return {projects: ranked.ranked, summary: ranked.summary};
+    }, {maxPasses: 3});
+    assert.equal(snapshot.executionPublicationPasses, 1);
+    assert.equal(snapshot.projects[0].liveExecutionReady, true);
+    assert.equal(snapshot.projects[0].finalSelectionQualified, false);
+    assert.notEqual(snapshot.projects[0].liveActionStatus, "MICRO_TEST_ELIGIBLE");
+    assert.equal(snapshot.summary.verifiedRoutes, 1);
+    assert.equal(snapshot.summary.fullyQualified, 0);
+    assert.equal(JSON.stringify(project), before);
+  }
+});
+
+test("publication retries use original scorer inputs even when another candidate expires", async () => {
+  const short = rankingFixture(1000);
+  const unchanged = {name: "Unchanged research candidate", symbol: "URC", pipelineScore: 84,
+    researchOpportunityScore: 80, researchOpportunityCoverage: {coveragePct: 80}, utilityQualityScore: 80,
+    realUtilityQualified: true, utilityClassification: "REAL_UTILITY",
+    utilityEvidenceFamilies: ["PRODUCT", "DEVELOPMENT", "ADOPTION"]};
+  const options = {...rankingOptions, env: {}};
+  const expected = buildGuardedLiveRanking([unchanged], options).ranked[0];
+  const before = JSON.stringify([short, unchanged]);
+  let passes = 0;
+  const snapshot = await finalizeExecutionPublicationSnapshot([short, unchanged], async projects => {
+    const ranking = buildGuardedLiveRanking(projects, options);
+    if (++passes === 1) await setTimeout(Math.max(1, Date.parse(short.quoteExpiresAt) - Date.now() + 15));
+    return {projects: ranking.ranked, summary: ranking.summary};
+  });
+  const actual = snapshot.projects.find(project => project.symbol === unchanged.symbol);
+  assert.equal(snapshot.executionPublicationPasses, 2);
+  assert.equal(actual.pipelineScore, expected.pipelineScore);
+  assert.equal(actual.legacyProductionScore, 84);
+  assert.deepEqual(actual.rawEvidence, expected.rawEvidence);
+  assert.equal(JSON.stringify([short, unchanged]), before);
+});
+
+test("fresh complete evidence remains eligible after canonical final integrity checks", async () => {
+  const snapshot = await finalizeExecutionPublicationSnapshot([rankingFixture()], projects => {
+    const ranking = buildGuardedLiveRanking(projects, rankingOptions);
+    return {projects: ranking.ranked, summary: ranking.summary};
+  });
+  assert.equal(snapshot.executionPublicationPasses, 1);
+  assert.equal(snapshot.projects[0].liveActionStatus, "MICRO_TEST_ELIGIBLE");
+  assert.equal(snapshot.summary.fullyQualified, 1);
+});
+
+test("a lower guarded score clears inherited selectors before snapshot projection closes", async () => {
+  const project = analyzeFinalSelectionIntegrity({...rankingFixture(), researchOpportunityScore: 50});
+  assert.equal(project.finalSelectionQualified, true);
+  assert.equal(project.finalCandidateSelected, true);
+  const before = JSON.stringify(project);
+  const snapshot = await finalizeExecutionPublicationSnapshot([project], projects => {
+    const ranking = buildGuardedLiveRanking(projects, {...rankingOptions, env: {
+      LIVE_RANKING_MODEL: "research", LIVE_RANKING_MIN_SCORE: "40", LIVE_RANKING_MIN_MICRO_COVERAGE: "0.6",
+    }});
+    return {projects: ranking.ranked, summary: ranking.summary};
+  }, {maxPasses: 3});
+  assert.equal(snapshot.executionPublicationPasses, 1);
+  assert.equal(snapshot.projects[0].liveExecutionReady, true);
+  assert.equal(snapshot.projects[0].finalSelectionQualified, false);
+  assert.equal(snapshot.projects[0].finalCandidateSelected, false);
+  assert.equal(snapshot.projects[0].executionVerifiedSelected, false);
+  assert.equal(snapshot.projects[0].finalSelectionState, "BLOCKED");
+  assert.equal(snapshot.summary.verifiedRoutes, 1);
+  assert.equal(snapshot.summary.fullyQualified, 0);
+  assert.equal(JSON.stringify(project), before);
+});
+
+test("expiry during ranking cannot hide the outer retry behind cleared readiness flags", async () => {
+  const RealDate = globalThis.Date;
+  let now = RealDate.now();
+  let deadline;
+  const clock = () => {
+    const stack = new Error().stack || "";
+    if (deadline && stack.includes("scoreCandidate") && stack.includes("revalidateExecutionAtPublication")) now = deadline + 1;
+    return now;
+  };
+  globalThis.Date = class extends RealDate {
+    constructor(...args) { super(...(args.length ? args : [clock()])); }
+    static now() { return clock(); }
+  };
+  try {
+    const project = rankingFixture(30_000);
+    deadline = Date.parse(project.quoteExpiresAt);
+    let calls = 0;
+    const snapshot = await finalizeExecutionPublicationSnapshot([project], projects => {
+      const ranking = buildGuardedLiveRanking(projects, {...rankingOptions, env: {...rankingOptions.env,
+        MICRO_TEST_MODE: "true", MICRO_TEST_BANKROLL_USD: "1000"}});
+      if (++calls === 1) now = deadline + 1;
+      return {projects: ranking.ranked, summary: ranking.summary};
+    });
+    assert.equal(snapshot.executionPublicationPasses, 2);
+    assert.equal(snapshot.projects[0].liveExecutionReady, false);
+    assert.equal(snapshot.projects[0].executionProof.liveExecutionReady, false);
+    assert.notEqual(snapshot.projects[0].liveActionStatus, "MICRO_TEST_ELIGIBLE");
+    assert.equal(snapshot.summary.microTestEligible, 0);
+    assert.equal(snapshot.summary.fullyQualified, 0);
+    assert.equal(snapshot.projects[0].microTestPlan.maximumExperimentAllocationUsd, null);
+    assert.equal(snapshot.projects[0].microTestPlan.label, "NOT_ELIGIBLE");
+  } finally { globalThis.Date = RealDate; }
+});
+
+test("unstable or incomplete snapshot projections fail closed within the pass budget", async () => {
+  let calls = 0;
+  await assert.rejects(finalizeExecutionPublicationSnapshot([{}], projects => {
+    calls++;
+    return {projects: projects.map(project => ({...project, liveExecutionReady: true}))};
+  }, {maxPasses: 2}), /did not stabilize/);
+  assert.equal(calls, 2);
+  await assert.rejects(finalizeExecutionPublicationSnapshot([{}], () => ({projects: []})), /complete candidate universe/);
+  for (const maxPasses of [0, -1, 1.5, 17, "UNKNOWN"]) {
+    await assert.rejects(finalizeExecutionPublicationSnapshot([], () => ({projects: []}), {maxPasses}), RangeError);
+  }
+  await assert.rejects(finalizeExecutionPublicationSnapshot([], null), TypeError);
 });
 
 test("fresh independent route proof is retained without forcing final qualification", () => {
@@ -238,12 +415,12 @@ test("publication revalidation uses no transport calls and adds no replacement r
 
 test("entry point revalidates before the frozen snapshot, with prospective capture and alpha truth still afterward", () => {
   const source = fs.readFileSync(new URL("../src/index.js", import.meta.url), "utf8");
-  const boundary = source.indexOf("results = revalidateExecutionPublicationBoundary(results)");
+  const boundary = source.indexOf("let publication = await finalizeExecutionPublicationSnapshot(results");
   const capture = source.indexOf("reportMeta.forwardEvidence = await runForwardEvidenceCapture");
   const persistence = source.indexOf("const alphaTruth = persistAlphaTruthMemory(results, reportMeta)");
-  const ranking = source.indexOf("let guardedLiveRanking = buildGuardedLiveRanking(results");
-  const semantic = source.indexOf("const scannerSemanticHealth = buildScannerSemanticHealth(results");
-  const cutoff = source.indexOf("const completedAt = new Date().toISOString()");
+  const ranking = source.indexOf("const guardedLiveRanking = buildGuardedLiveRanking(currentProjects");
+  const semantic = source.indexOf("scannerSemanticHealth: buildScannerSemanticHealth(ranked");
+  const cutoff = source.indexOf("const completedAt = publication.completedAt");
   const memory = source.indexOf("const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory)");
   assert.ok(memory >= 0 && memory < boundary && boundary < ranking && ranking < semantic && semantic < cutoff);
   assert.ok(cutoff < capture && capture < persistence);
@@ -253,10 +430,10 @@ test("entry point revalidates before the frozen snapshot, with prospective captu
 
 test("offline baseline traverses the same publication stage without fixture, clock or network changes", () => {
   const source = fs.readFileSync(new URL("../src/ops/runOfflineScannerSmoke.js", import.meta.url), "utf8");
-  const pipeline = source.indexOf("let results = await runIntelligencePipeline(");
-  const boundary = source.indexOf("results = revalidateExecutionPublicationBoundary(results)");
-  const ranking = source.indexOf("const ranked = buildGuardedLiveRanking(results");
-  const semantic = source.indexOf("const semantic = buildScannerSemanticHealth(ranked");
+  const pipeline = source.indexOf("const results = await runIntelligencePipeline(");
+  const boundary = source.indexOf("const publication = await finalizeExecutionPublicationSnapshot(results");
+  const ranking = source.indexOf("const ranked = buildGuardedLiveRanking(currentProjects");
+  const semantic = source.indexOf("semantic: buildScannerSemanticHealth(ranked");
   assert.ok(pipeline >= 0 && pipeline < boundary && boundary < ranking && ranking < semantic);
-  assert.equal(source.slice(boundary, ranking).trim(), "results = revalidateExecutionPublicationBoundary(results);");
+  assert.match(source.slice(boundary, ranking), /finalizeExecutionPublicationSnapshot\(results, currentProjects =>/);
 });

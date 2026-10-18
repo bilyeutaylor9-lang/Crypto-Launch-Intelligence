@@ -271,6 +271,8 @@ export const RECOVERY_ENGINE_EVIDENCE_FAMILIES = Object.freeze({
   "Sniper Evidence Families": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Sniper Integrity Gate": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Opportunity Proof": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Research Readiness": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Utility Quality": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
 });
 
 export function shouldRerunEngineForEvidenceFamilies(name = "", families = []) {
@@ -2571,15 +2573,18 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       stageContext
     );
   const runEngine = runPipelineEngine;
-  const runRecoveryEngine = async (name, engine, currentProjects, engineOptions = {}) => {
+  const runRecoveryEngine = async (name, engine, currentProjects, engineOptions = {}, recoveryOptions = {}) => {
     const selected = [];
     const positions = [];
     currentProjects.forEach((project, index) => {
+      if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return;
       const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
         project.activeEvidenceRecovery?.changedEvidenceFamilies ?? [];
+      const refreshQuotes = recoveryOptions.refreshQuotes === true &&
+        (project.executionProof?.buyQuoteVerified === true || project.executionProof?.sellQuoteVerified === true);
       if (
-        project.activeEvidenceRecovery?.waves?.length &&
-        shouldRerunEngineForEvidenceFamilies(name, changedFamilies)
+        (project.activeEvidenceRecovery?.waves?.length &&
+          shouldRerunEngineForEvidenceFamilies(name, changedFamilies)) || refreshQuotes
       ) {
         selected.push(project);
         positions.push(index);
@@ -2887,9 +2892,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     wave1Max: 0, wave2Max: 0,
   });
   await rerunRecoveredInputs();
-  if (results.some((project) => project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase?.includes("EXECUTION"))) {
-    results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
-    results = await runEngine("Utility Quality", analyzeUtilityQualityBatch, results, options.utilityQuality || {});
+  if (results.some((project) => project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase?.length)) {
+    results = await runRecoveryEngine("Research Readiness", analyzeResearchReadinessBatch, results,
+      options.researchReadiness || {}, {refreshQuotes: true});
+    results = await runRecoveryEngine("Utility Quality", analyzeUtilityQualityBatch, results, options.utilityQuality || {});
     results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
     results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
     results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});

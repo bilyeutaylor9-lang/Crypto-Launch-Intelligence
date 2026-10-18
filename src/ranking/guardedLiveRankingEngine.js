@@ -9,6 +9,8 @@ import {
 } from "../kernel/candidateTruthState.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
+import { analyzeFinalSelectionIntegrity } from "../engines/finalSelectionIntegrityEngine.js";
+import { demoteSelectionProjections } from "../execution/executionPublicationBoundary.js";
 import {
   hasCleanDisplayIdentity,
   isGenericMarketIdentity,
@@ -815,6 +817,20 @@ function scoreCandidate(project, policy, options = {}) {
     liveActionStatus = "DEEP_DEFERRED";
   }
 
+  let finalIntegrity = null;
+  let finalQualificationDenied = false;
+  if (liveActionStatus === "MICRO_TEST_ELIGIBLE") {
+    finalIntegrity = analyzeFinalSelectionIntegrity({...adapted.project, pipelineScore: selectedScore});
+    finalQualificationDenied = (Object.hasOwn(project, "finalSelectionQualified") && project.finalSelectionQualified !== true) ||
+      ["BLOCKED", "IDENTITY_CONFLICT", "UNKNOWN", "INSUFFICIENT_DATA"].includes(project.finalSelectionState) ||
+      finalIntegrity.finalSelectionQualified !== true;
+    if (finalQualificationDenied) {
+      liveActionStatus = [finalIntegrity.finalSelectionState, project.finalSelectionState]
+        .some(state => ["BLOCKED", "IDENTITY_CONFLICT"].includes(state))
+        ? "BLOCKED" : "RESEARCH_WATCHLIST";
+    }
+  }
+
   let liveScore = selectedScore;
   if (liveScore !== null && liveActionStatus === "BLOCKED") liveScore = Math.min(20, liveScore);
   if (liveScore !== null && liveActionStatus === "DATA_RECOVERY_REQUIRED") liveScore *= 0.75;
@@ -836,14 +852,20 @@ function scoreCandidate(project, policy, options = {}) {
     ...(!execution.slippageVerified ? ["measuredSlippage"] : []),
     ...(!execution.quoteFresh ? ["freshQuote"] : []),
     ...(!execution.routeReady ? ["liveExecutionRoute"] : []),
+    ...(finalQualificationDenied ? ["finalSelectionIntegrity"] : []),
   ]);
-  const finalSelectionState = {
+  const rankedSelectionState = {
     MICRO_TEST_ELIGIBLE: "QUALIFIED",
     RESEARCH_WATCHLIST: "RESEARCH_ONLY",
     DATA_RECOVERY_REQUIRED: "INSUFFICIENT_DATA",
     BLOCKED: "BLOCKED",
     DEEP_DEFERRED: "DEFERRED_BEFORE_DEEP",
   }[liveActionStatus];
+  const finalSelectionState = finalQualificationDenied
+    ? (finalIntegrity.finalSelectionQualified !== true ? finalIntegrity.finalSelectionState
+      : project.finalSelectionState && project.finalSelectionState !== "QUALIFIED"
+        ? project.finalSelectionState : "RESEARCH_ONLY")
+    : rankedSelectionState;
   const scored = {
     ...adapted.project,
     legacyProductionScore,
@@ -862,7 +884,15 @@ function scoreCandidate(project, policy, options = {}) {
     scoringPrimaryModel: "guarded-live-core-authoritative",
     liveRankingMissingEvidence: missingEvidence,
     liveRankingBlocks: execution.blocks,
-    liveRankingGateReasons: execution.gateReasons,
+    liveRankingGateReasons: unique([...execution.gateReasons,
+      ...(finalQualificationDenied ? [...finalIntegrity.finalBlockingReasons, ...finalIntegrity.finalWarningReasons,
+        "Current final qualification has not passed."] : [])]),
+    ...(finalQualificationDenied && finalIntegrity.finalSelectionQualified !== true ? {
+      finalBlockingReasons: finalIntegrity.finalBlockingReasons,
+      finalWarningReasons: finalIntegrity.finalWarningReasons,
+      finalSelectionReasons: finalIntegrity.finalSelectionReasons,
+      finalIntegrityVerdict: finalIntegrity.finalIntegrityVerdict,
+    } : {}),
     liveRankingTrace: {
       selectedModel: selected.model,
       selectedRawScore: selectedScore,
@@ -895,8 +925,9 @@ function scoreCandidate(project, policy, options = {}) {
     finalSelectionState,
     finalSelectionQualified: liveActionStatus === "MICRO_TEST_ELIGIBLE",
   };
-  scored.microTestPlan = buildMicroTestPlan(scored, options);
-  return scored;
+  const finalized = scored.finalSelectionQualified === true ? scored : demoteSelectionProjections(scored);
+  finalized.microTestPlan = buildMicroTestPlan(finalized, options);
+  return finalized;
 }
 
 function sortCandidates(left, right) {

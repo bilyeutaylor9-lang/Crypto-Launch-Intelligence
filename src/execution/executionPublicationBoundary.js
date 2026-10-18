@@ -40,6 +40,30 @@ function demoteFinalReadiness(source) {
     ? { ...source, finalProjectExecutionReadiness: "FINAL_PROJECT_NOT_READY" } : source;
 }
 
+export function demoteSelectionProjections(project = {}) {
+  let output = {...project, finalSelectionQualified: false};
+  for (const key of SELECTION_FLAGS) if (project[key] === true) output[key] = false;
+  for (const [key, flag, rank] of [
+    ["smallCapHunter", "smallCapHunterSelected", "selectionRank"],
+    ["proofOfAlphaExecutionTwin", "proofOfAlphaExecutionTwinSelected", "rank"],
+    ["preConsensusBreakoutHunter", "preConsensusCandidateSelected", null],
+  ]) {
+    if (project[key]) output[key] = {...project[key], selected: false,
+      finalSelectionState: output.finalSelectionState, finalIntegrityVerdict: output.finalIntegrityVerdict,
+      ...(rank ? {[rank]: null} : {}),
+      ...(key === "preConsensusBreakoutHunter" ? {finalSelectionQualified: false} : {})};
+    if (project[flag] === true && flag === "smallCapHunterSelected") output.smallCapHunterSelectionRank = null;
+    if (project[flag] === true && flag === "proofOfAlphaExecutionTwinSelected") output.proofOfAlphaExecutionTwinRank = null;
+  }
+  if (Object.hasOwn(project, "finalCandidateRank")) output.finalCandidateRank = null;
+  output = demoteFinalReadiness(output);
+  if (output.executionProof) {
+    const proof = demoteFinalReadiness(output.executionProof);
+    if (proof !== output.executionProof) output = {...output, executionProof: proof};
+  }
+  return output;
+}
+
 export function revalidateExecutionAtPublication(project = {}) {
   if (isDeferredBeforeDeep(project)) return project;
   const proof = project.executionProof;
@@ -110,21 +134,7 @@ export function revalidateExecutionAtPublication(project = {}) {
       if (["BLOCKED", "IDENTITY_CONFLICT", "UNKNOWN"].includes(project.finalSelectionState)) {
         output.finalSelectionState = project.finalSelectionState;
       }
-      output.finalSelectionQualified = false;
-      for (const key of SELECTION_FLAGS) if (project[key] === true) output[key] = false;
-      for (const [key, flag, rank] of [
-        ["smallCapHunter", "smallCapHunterSelected", "selectionRank"],
-        ["proofOfAlphaExecutionTwin", "proofOfAlphaExecutionTwinSelected", "rank"],
-        ["preConsensusBreakoutHunter", "preConsensusCandidateSelected", null],
-      ]) {
-        if (project[key]) output[key] = { ...project[key], selected: false,
-          finalSelectionState: output.finalSelectionState, finalIntegrityVerdict: output.finalIntegrityVerdict,
-          ...(rank ? { [rank]: null } : {}),
-          ...(key === "preConsensusBreakoutHunter" ? { finalSelectionQualified: false } : {}) };
-        if (project[flag] === true && flag === "smallCapHunterSelected") output.smallCapHunterSelectionRank = null;
-        if (project[flag] === true && flag === "proofOfAlphaExecutionTwinSelected") output.proofOfAlphaExecutionTwinRank = null;
-      }
-      if (Object.hasOwn(project, "finalCandidateRank")) output.finalCandidateRank = null;
+      output = demoteSelectionProjections(output);
     }
   }
 
@@ -140,4 +150,31 @@ export function revalidateExecutionAtPublication(project = {}) {
 
 export function revalidateExecutionPublicationBoundary(projects = []) {
   return (Array.isArray(projects) ? projects : []).map(revalidateExecutionAtPublication);
+}
+
+export async function finalizeExecutionPublicationSnapshot(projects, projectSnapshot, options = {}) {
+  const maxPasses = options.maxPasses ?? 8;
+  if (typeof projectSnapshot !== "function") throw new TypeError("A snapshot projector is required.");
+  if (!Number.isInteger(maxPasses) || maxPasses < 1 || maxPasses > 16) {
+    throw new RangeError("Publication passes must be an integer between 1 and 16.");
+  }
+  const sourceProjects = Array.isArray(projects) ? projects : [];
+  for (let pass = 1; pass <= maxPasses; pass++) {
+    // Retry from producer outputs, not already-adjusted ranking scores. Every
+    // pass rechecks current truth before the projector can consider selection.
+    const prepared = revalidateExecutionPublicationBoundary(sourceProjects);
+    const candidateCount = prepared.length;
+    const snapshot = await projectSnapshot(prepared);
+    if (!Array.isArray(snapshot?.projects) || snapshot.projects.length !== candidateCount) {
+      throw new Error("Snapshot projection must preserve the complete candidate universe.");
+    }
+    const completedAt = new Date().toISOString();
+    const checked = revalidateExecutionPublicationBoundary(snapshot.projects);
+    // Ranking and summaries can outlast a quote. Recompute projections only
+    // after a monotonic demotion; never publish the earlier positive snapshot.
+    if (checked.every((project, index) => project === snapshot.projects[index])) {
+      return {...snapshot, projects: checked, completedAt, executionPublicationPasses: pass};
+    }
+  }
+  throw new Error("Execution evidence did not stabilize before publication.");
 }
