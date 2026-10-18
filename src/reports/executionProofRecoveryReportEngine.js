@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { isLiveExecutionReady, routeQuoteAgeSeconds, routeQuoteFresh } from "../execution/routeTruthV2.js";
 
-const QUOTE_PROVIDERS = new Set(["jupiter", "0x", "lifi", "lifi-token", "coinbase", "kraken", "gate", "mexc"]);
+const QUOTE_PROVIDERS = new Set(["jupiter", "raydium", "0x", "lifi", "lifi-token", "coinbase", "kraken", "gate", "mexc"]);
 const HTTP_ATTEMPT_STATUSES = new Set(["SUCCESS", "FAILED", "NO_CANDIDATE_EVIDENCE"]);
 
 function candidateNoRoute(result = {}) {
@@ -63,6 +63,7 @@ function recoveryForReport(project = {}) {
   return { status: recovered ? "ROUTE_RECOVERED" : "NO_VERIFIED_ROUTE", attempted: true, selected: true,
     executionRecoverySource: route.source || null, buyQuoteVerified: recovered, sellQuoteVerified: recovered,
     quoteTimestamp: route.quoteTimestamp || null, quoteAgeSeconds: routeQuoteAgeSeconds(route),
+    ...(Object.hasOwn(route, "quoteExpiresAt") ? { quoteExpiresAt: route.quoteExpiresAt } : {}),
     adapterResults, httpAttempts, optionalSourceGaps,
     executionRecoveryFailures: adapterResults.flatMap((result) =>
       result.status === "ROUTE_RECOVERED" || result.status === "SUCCESS" ? []
@@ -121,9 +122,13 @@ function projectIdentity(project = {}, rank = null) {
     buyQuoteVerified: recovery.buyQuoteVerified === true || route.buyQuoteVerified === true,
     sellQuoteVerified: recovery.sellQuoteVerified === true || route.sellQuoteVerified === true,
     quoteTimestamp: recovery.quoteTimestamp || route.quoteTimestamp || null,
+    ...(Object.hasOwn(route, "quoteExpiresAt") ? { quoteExpiresAt: route.quoteExpiresAt } : {}),
     quoteAgeSeconds: routeQuoteAgeSeconds({ ...route, quoteAgeSeconds: recovery.quoteAgeSeconds ?? route.quoteAgeSeconds,
       quoteTimestamp: recovery.quoteTimestamp || route.quoteTimestamp }),
     estimatedRoundTripSlippagePct: route.estimatedRoundTripSlippagePct ?? null,
+    ...(Object.hasOwn(route, "quoteCostIncludesNetworkFees") ? {
+      quoteCostIncludesNetworkFees: route.quoteCostIncludesNetworkFees, quoteCostScope: route.quoteCostScope,
+    } : {}),
     orderBookDepthUsd: route.orderBookDepthUsd ?? null,
     failures: array(recovery.executionRecoveryFailures || route.executionRecoveryFailures)
       .filter((failure) => !["ROUTE_RECOVERED", "SUCCESS_WITH_DATA"].includes(String(failure)))
@@ -171,8 +176,10 @@ export function summarizeExecutionProofRecovery(projects = [], meta = {}) {
   );
   const staleQuotes = attemptedProjects.filter((project) => {
     const recovery = project.executionProofRecovery || {};
-    return routeQuoteAgeSeconds({ quoteAgeSeconds: recovery.quoteAgeSeconds,
-      quoteTimestamp: recovery.quoteTimestamp }) > 3600;
+    const route = project.executionProofRecoveryRoute || {};
+    const quote = { ...route, quoteAgeSeconds: recovery.quoteAgeSeconds ?? route.quoteAgeSeconds,
+      quoteTimestamp: recovery.quoteTimestamp || route.quoteTimestamp };
+    return routeQuoteAgeSeconds(quote) !== null && !routeQuoteFresh(quote);
   });
   const providerFailures = attemptedProjects.filter((project) =>
     array(project.executionProofRecovery?.adapterResults).some(providerFailed)

@@ -1,5 +1,77 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Free Exact Solana Quote Acquisition
+
+The last clean baseline, 67da8952 / scan_1792315416280, reached 10000 discoveries,
+1418 standard / 130 deep / 1288 deferred, 92% core / 90% advisory coverage and
+zero core-starved/partial candidates. It still had 128 unresolved final proofs,
+zero verified routes and zero qualified picks. That run made no quote HTTP calls
+because the recorded LI.FI allowance was exhausted; it is not acquisition proof
+for the new integration below. Report health and all 205 engine audits passed;
+strict readiness and Node24 scanner smoke remained red. These gates remain intact.
+
+Inspection showed keyless Solana execution had no implemented free quote source.
+The existing keyed Jupiter path was unavailable without an operator-owned key.
+Raydium's official Trade API supplies raw input/output mints, atomic quantities,
+and an explicit contiguous routePlan with poolId on each hop:
+
+- https://github.com/raydium-io/raydium-docs-v1/blob/main/sdk-api/trade-api.mdx
+- https://github.com/raydium-io/raydium-sdk-V2-demo/blob/master/src/api/swap.ts
+- https://github.com/raydium-io/raydium-sdk-V2/blob/master/src/api/url.ts
+
+The new read-only fallback uses that API only in selected Wave3 work, after the
+existing Jupiter path. Both legs must independently attest the exact requested
+token-adjacent pool and mint identities; malformed, disconnected, cyclic,
+wrong-chain, one-sided, mismatched or nonpositive quantities cannot qualify.
+SELL uses all quoted BUY output, not 95%, so quoted round-trip loss has the same
+cash-flow basis. Network fees remain explicitly excluded and unknown; slippage
+tolerance is not substituted for measured impact or quoted costs. No transaction
+is built, signed or submitted, and no safety or final-selection flag is supplied.
+
+The source registry now routes keyless Solana execution to the implemented
+Raydium path instead of an empty free-provider set. Calls use existing shared
+request budgets, deadlines and provider circuits. A separate conservative hard
+limit permits at most 100 quote attempts per 60-second process window, below the
+documented 120/minute endpoint limit; 429 Retry-After is respected without retry
+loops. RAYDIUM_EXECUTION_RECOVERY_ENABLED=false disables acquisition explicitly.
+The existing LI.FI allowance is unchanged and remains independent.
+
+Provider validity is short: 30 seconds, anchored before the BUY request. The
+earliest quoteExpiresAt and original leg timestamps survive canonical routes,
+accessibility normalization and execution-proof production. Current consumers
+and report counts dynamically reject expiration, malformed/future issue times
+and later scalar refreshes. A genuinely new raw provider observation can replace
+expired evidence. EVM casing/canonical chain aliases cannot disconnect a copied
+deadline; Solana address case remains significant. Legacy providers with no
+declared expiry retain their existing max-age policy.
+
+Bounded dirty-repair probes are diagnostic, not production validations or picks.
+The actual ZK BUY response attested its frozen scanner pool, but no SELL quote was
+available. TSAT and wrapped-SOL controls returned different pools; strict checks
+rejected them, even when another market independently recognized the quoted pool.
+No route or qualified pick was promoted. API reachability is not two-way proof.
+
+New deterministic coverage exercises raw identity/path/amount validation, free
+source dispatch, selected-only Wave3 work, request budgets, circuits, quota and
+Retry-After, raw provenance, network-cost scope, missing authority, dependent
+recomputation, original expiry retention and report HTTP/expiry accounting.
+Prior Jupiter fixtures explicitly isolate that adapter; no gate assertion was
+weakened. A separate refresh regression also proves standalone recovery replaces
+old provider bounds, including transition to a provider with no declared expiry.
+The full suite passes 1913 tests with zero failures/skips/cancellations, syntax
+validation covers 938 JavaScript files, typecheck passes and all 21 load tests
+pass, including the 500-deep/3500-deferred request-accounting replay. A clean
+install reports zero dependency vulnerabilities. Comparing all 217 runtime files
+before/after the suite finds no changed, added or missing data/report files.
+Clean source-pinned live results must still be recorded after committing; these
+bounded probes are not production success.
+
+Research direction remains prospective: compare independently confirmed buyer
+arrival against matched no-arrival controls, stratified by executable depth and
+pool, using frozen episodes and net-of-cost outcomes. The new quote channel may
+improve measurement, but does not establish that arrival predicts excess return.
+Missing observations stay UNKNOWN; automatic trading and promotion stay off.
+
 ## October 18 Canonical Transfer Restriction
 
 The clean a78885d6 production run, scan_1792314123231, reached 10000

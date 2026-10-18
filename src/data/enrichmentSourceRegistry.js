@@ -52,6 +52,7 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "reputable news sources", authority: 58, cost: 2, latencyMs: 3200, fields: ["liveCatalystEvents"] },
   ],
   EXECUTION: [
+    { source: "Raydium Trade API", chains: ["solana"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1400, free: true, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp", "quoteExpiresAt"] },
     { source: "LI.FI keyless quote", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
     { source: "Jupiter (API key required)", chains: ["solana"], authority: 84, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
     { source: "0x Swap API", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 82, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
@@ -134,6 +135,7 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   priceImpactPct: "EXECUTION",
   slippagePct: "EXECUTION",
   quoteTimestamp: "EXECUTION",
+  quoteExpiresAt: "EXECUTION",
   orderBookDepthUsd: "EXECUTION",
   bidDepthUsd: "EXECUTION",
   askDepthUsd: "EXECUTION",

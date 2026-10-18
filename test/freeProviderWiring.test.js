@@ -262,6 +262,7 @@ test("key-required providers are not called in keyless mode", async () => {
     highUpsideScalpScore: 90,
   }], {
     jupiterApiKey: "",
+    raydiumEnabled: false,
     fetchJson: async () => { calls += 1; return {}; },
     now: () => new Date(NOW),
   });
@@ -274,6 +275,7 @@ test("free-only provider policy excludes services whose current APIs require key
   assert.equal(getSourceById("lifi").requiresKey, false);
   assert.equal(getSourceById("defillama-exact-price").requiresKey, false);
   assert.equal(getSourceById("jupiter").requiresKey, true);
+  assert.equal(getSourceById("raydium").requiresKey, false);
   assert.equal(getSourceById("zerox").requiresKey, true);
   assert.equal(getSourceById("cryptocompare").requiresKey, true);
   assert.equal(getSourceById("coincap").requiresKey, true);

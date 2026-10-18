@@ -222,6 +222,18 @@ export const SOURCE_MANIFEST = [
     chains: ["solana"],
   },
   {
+    id: "raydium",
+    label: "Raydium Read-Only Trade Quote API",
+    category: "execution",
+    evidenceFamily: EVIDENCE_FAMILIES.exchange,
+    status: SOURCE_STATUS.IMPLEMENTED,
+    candidateGenerator: false,
+    enrichmentProvider: true,
+    requiresKey: false,
+    accessMode: "KEYLESS_PUBLIC",
+    chains: ["solana"],
+  },
+  {
     id: "zerox",
     label: "0x Swap API",
     category: "execution",

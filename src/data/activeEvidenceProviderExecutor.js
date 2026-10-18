@@ -42,6 +42,7 @@ import { loadNativeEvents } from "./native/nativeEventStore.js";
 import { nativeContractDeployerEvidence } from "./native/evm/evmContractDeploymentConnector.js";
 import { analyzeExecutionProofRecoveryBatch, verifyDirectQuoteIdentity } from "../engines/executionProofRecoveryEngine.js";
 import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
+import { verifyRaydiumQuote } from "../execution/raydiumExecutableQuoteProvider.js";
 import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
 import {
   normalizeChainId,
@@ -144,7 +145,7 @@ const WALLET_RAW_FIELDS = new Set([
 ]);
 
 const EXECUTION_RAW_FIELDS = new Set([
-  "purchaseRouteConfirmed", "sellRouteAvailable", "quoteTimestamp",
+  "purchaseRouteConfirmed", "sellRouteAvailable", "quoteTimestamp", "quoteExpiresAt",
   "slippagePct", "priceImpactPct", "executableDepthUsd", "verifiedTradeSizeUsd",
   "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct",
 ]);
@@ -153,10 +154,11 @@ const EXECUTION_ROUTE_FIELDS = [
   "source", "provider", "venue", "underlyingVenue", "routeType", "chain", "chainId",
   "tokenAddress", "contractAddress", "baseTokenAddress", "poolAddress", "routePoolAddresses",
   "marketPair", "quoteAsset", "quoteTokenAddress", "buyRouteAvailable", "sellRouteAvailable",
-  "buyQuoteVerified", "sellQuoteVerified", "quoteVerified", "quoteTimestamp",
+  "buyQuoteVerified", "sellQuoteVerified", "quoteVerified", "quoteTimestamp", "quoteExpiresAt",
   "slippagePct", "priceImpactPct", "estimatedRoundTripSlippagePct", "slippageIsHeuristic",
   "executableDepthUsd", "verifiedTradeSizeUsd", "verifiedDepthSource", "orderBookDepthVerified",
   "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "buyQuote", "sellQuote",
+  "quoteCostIncludesNetworkFees", "quoteCostScope",
 ];
 
 function text(value = "") {
@@ -1970,7 +1972,7 @@ export function hasExactExecutionRecoveryIdentity(project = {}) {
 
 function exactExecutionQuotes(route, identity, responses) {
   const source = lower(route.source);
-  if (!["lifi", "jupiter", "0x"].includes(source) || !identity.exact ||
+  if (!["lifi", "jupiter", "raydium", "0x"].includes(source) || !identity.exact ||
       normalizeChainId(route.chain) !== identity.chain ||
       normalizeTokenAddress(route.tokenAddress, identity.chain) !== identity.tokenAddress ||
       normalizeTokenAddress(route.contractAddress, identity.chain) !== identity.tokenAddress ||
@@ -1983,13 +1985,17 @@ function exactExecutionQuotes(route, identity, responses) {
   try {
     for (const { url, value } of quotes) {
       const params = new URL(url).searchParams;
-      const from = normalizeTokenAddress(params.get(source === "jupiter" ? "inputMint" : source === "0x" ? "sellToken" : "fromToken"), identity.chain);
-      const to = normalizeTokenAddress(params.get(source === "jupiter" ? "outputMint" : source === "0x" ? "buyToken" : "toToken"), identity.chain);
+      const solana = ["jupiter", "raydium"].includes(source);
+      const from = normalizeTokenAddress(params.get(solana ? "inputMint" : source === "0x" ? "sellToken" : "fromToken"), identity.chain);
+      const to = normalizeTokenAddress(params.get(solana ? "outputMint" : source === "0x" ? "buyToken" : "toToken"), identity.chain);
       const side = from === quoteToken && to === identity.tokenAddress ? "BUY"
         : from === identity.tokenAddress && to === quoteToken ? "SELL" : null;
       if (!side || sides.has(side)) return false;
-      const amount = params.get(source === "jupiter" ? "amount" : source === "0x" ? "sellAmount" : "fromAmount");
-      if (source === "lifi") {
+      const amount = params.get(solana ? "amount" : source === "0x" ? "sellAmount" : "fromAmount");
+      if (source === "raydium") {
+        if (identity.chain !== "solana") return false;
+        verifyRaydiumQuote(value, { fromToken: from, toToken: to, fromAmount: amount, poolAddress: identity.poolAddress });
+      } else if (source === "lifi") {
         if (normalizeChainId(params.get("fromChain")) !== identity.chain ||
             normalizeChainId(params.get("toChain")) !== identity.chain) return false;
         verifyActionIdentity(value, { chain: identity.chain, side, tokenAddress: identity.tokenAddress,
@@ -2000,7 +2006,7 @@ function exactExecutionQuotes(route, identity, responses) {
         verifyDirectQuoteIdentity(value, { source, chain: identity.chain,
           fromToken: from, toToken: to, fromAmount: amount });
       }
-      const pools = source === "jupiter"
+      const pools = source === "raydium" ? value.data.routePlan.map(step => step.poolId) : source === "jupiter"
         ? (value.routePlan || []).map((step) => normalizePoolAddress(step?.swapInfo?.ammKey, identity.chain))
         : [...extractLiFiRoutePoolAddresses(value, identity.chain),
           ...(Array.isArray(value.route?.fills) ? value.route.fills : []).map((fill) => normalizePoolAddress(fill.poolAddress, identity.chain))];
@@ -2247,7 +2253,7 @@ export async function executeActiveEvidenceProviderRequests(
   );
   const executionFields = fields.filter((field) => EXECUTION_RAW_FIELDS.has(field));
   const parallel = [];
-  if (executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "0x", "cex", "order book", "dex aggregators"])) {
+  if (executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "raydium", "0x", "cex", "order book", "dex aggregators"])) {
     const result = await recoverExecutionEvidence(project, executionFields, providers, options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);

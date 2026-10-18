@@ -3,7 +3,7 @@ import {
   normalizePoolAddress,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
-import { observedRouteSlippagePct } from "../execution/routeTruthV2.js";
+import { observedRouteSlippagePct, routeQuoteAgeSeconds, routeQuoteFresh, routeQuoteTiming } from "../execution/routeTruthV2.js";
 
 const DEFAULT_CEX_VENUES = [
   "Coinbase",
@@ -227,12 +227,10 @@ function defaultWalletFamily(chain = "", routeType = "") {
   return WALLET_FAMILIES[family]?.[0] || "Unknown Wallet";
 }
 
-function quoteAgeSeconds(route = {}, project = {}) {
+function quoteAgeSeconds(route = {}, project = {}, timing = {}) {
   const explicit = route.quoteAgeSeconds ?? project.quoteAgeSeconds ?? project.executionQuoteAgeSeconds;
-  if (explicit !== undefined && explicit !== null && explicit !== "") return num(explicit);
   const timestamp = route.quoteTimestamp || route.timestamp || route.updatedAt || project.quoteTimestamp || project.executionQuoteTimestamp || project.updatedAt || project.lastUpdatedAt;
-  const parsed = Date.parse(timestamp || "");
-  return Number.isFinite(parsed) ? Math.max(0, Math.round((Date.now() - parsed) / 1000)) : null;
+  return routeQuoteAgeSeconds({ quoteAgeSeconds: explicit, quoteTimestamp: timestamp, ...timing });
 }
 
 function first(values = []) {
@@ -336,9 +334,7 @@ function bridgeState(route = {}, preferences = {}) {
 }
 
 function quoteFresh(route = {}) {
-  return route.quoteAgeSeconds !== null &&
-    route.quoteAgeSeconds !== undefined &&
-    route.quoteAgeSeconds <= FRESH_QUOTE_MAX_AGE_SECONDS;
+  return routeQuoteFresh(route, FRESH_QUOTE_MAX_AGE_SECONDS);
 }
 
 function nestedBoolean(...values) {
@@ -483,7 +479,14 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
     venueCatalog().find((item) => item.venue === venue)?.chain ||
     null;
   const routeType = inferRouteType({ venue, chain, route: rawRoute, project });
-  const quoteAge = quoteAgeSeconds(rawRoute, project);
+  const quoteTiming = routeQuoteTiming({ executionProof: rawRoute,
+    canonicalExecutionRoute: project, executionProofRecoveryRoute: project.executionProof });
+  const quoteAge = quoteAgeSeconds(rawRoute, project, quoteTiming);
+  const quoteEvidence = {
+    quoteTimestamp: rawRoute.quoteTimestamp || rawRoute.timestamp || project.quoteTimestamp || project.executionQuoteTimestamp || project.updatedAt || null,
+    ...quoteTiming,
+    quoteAgeSeconds: quoteAge,
+  };
   const buyQuoteVerified = liveBuyQuoteVerified(rawRoute) ||
     (canonical && project.canonicalExecutionRoute?.buyQuoteVerified === true);
   const sellQuoteVerified = liveSellQuoteVerified(rawRoute) ||
@@ -555,7 +558,7 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
     bridgeState: bridgeStatus,
   };
   fields.identity = routeIdentityState(fields);
-  const truthStatus = routeTruthStatus(rawRoute, { ...fields, quoteAgeSeconds: quoteAge });
+  const truthStatus = routeTruthStatus(rawRoute, { ...fields, ...quoteEvidence });
   const verification = verificationStatusFromTruth(truthStatus);
   const failureReasons = [
     ...array(rawRoute.failureReasons),
@@ -564,7 +567,7 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
     ...(rawPoolAddress && !poolAddress ? [`Pool or market address failed chain-aware validation: ${rawPoolAddress}.`] : []),
     ...(!buyQuoteVerified ? ["Fresh live buy quote is not verified."] : []),
     ...(!sellQuoteVerified ? ["Fresh live sell quote is not verified."] : []),
-    ...(!quoteFresh({ quoteAgeSeconds: quoteAge }) ? ["Route quote is missing or stale."] : []),
+    ...(!quoteFresh(quoteEvidence) ? ["Route quote is missing or stale."] : []),
     ...(Math.max(liquidityUsd, orderBookDepthUsd) <= 0 ? ["Liquidity or order-book depth is not verified."] : []),
     ...(estimatedRoundTripSlippagePct === null || estimatedRoundTripSlippagePct === undefined ? ["Route slippage is not verified."] : []),
     ...(verification === "UNVERIFIED" ? ["Route authenticity is not verified."] : []),
@@ -623,8 +626,7 @@ function normalizeRoute(project = {}, rawRoute = {}, preferences = {}) {
     spreadPct: rawRoute.spreadPct ?? null,
     estimatedSlippagePct: estimatedRoundTripSlippagePct,
     minimumOrderSize: rawRoute.minimumOrderSize ?? null,
-    quoteTimestamp: rawRoute.quoteTimestamp || rawRoute.timestamp || project.quoteTimestamp || project.executionQuoteTimestamp || project.updatedAt || null,
-    quoteAgeSeconds: quoteAge,
+    ...quoteEvidence,
     source: rawRoute.source || project.source || "route-accessibility",
     regionStatus: region,
     regionAvailability: region,

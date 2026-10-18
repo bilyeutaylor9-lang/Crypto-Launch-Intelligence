@@ -8,6 +8,7 @@ import {
   observedRouteSlippagePct,
   routeQuoteAgeSeconds,
   routeQuoteFresh,
+  routeQuoteTiming,
 } from "../execution/routeTruthV2.js";
 
 function num(value = 0) {
@@ -131,7 +132,7 @@ function quoteTimestampFor(project = {}) {
     project.executionProofRecoveryRoute?.quoteTimestamp, project.proofOfAlphaExecutionTwin?.quote?.timestamp]);
 }
 
-function quoteAgeSeconds(project = {}) {
+function quoteAgeSeconds(project = {}, timing = {}) {
   const explicit = first([
     project.quoteAgeSeconds,
     project.executionQuoteAgeSeconds,
@@ -140,7 +141,7 @@ function quoteAgeSeconds(project = {}) {
     project.proofOfAlphaExecutionTwin?.quote?.ageSeconds,
     project.proofOfAlphaExecutionTwin?.quoteAgeSeconds,
   ]);
-  return routeQuoteAgeSeconds({ quoteAgeSeconds: explicit, quoteTimestamp: quoteTimestampFor(project) });
+  return routeQuoteAgeSeconds({ quoteAgeSeconds: explicit, quoteTimestamp: quoteTimestampFor(project), ...timing });
 }
 
 function slippageFor(liquidity = 0, orderSize = 100, observed = null) {
@@ -168,6 +169,7 @@ function routeSources(project = {}) {
       quoteAsset: route.quoteAsset || route.quoteToken,
       quoteAgeSeconds: route.quoteAgeSeconds,
       quoteTimestamp: route.quoteTimestamp || route.timestamp || route.updatedAt,
+      ...routeQuoteTiming(route),
       marketPair: route.marketPair || route.market || route.symbol,
       routeType: route.routeType,
       verified: route.routeTruthStatus === "LIVE_EXECUTION_READY" || (buyQuoteVerified && sellQuoteVerified && route.verified === true),
@@ -189,6 +191,7 @@ function routeSources(project = {}) {
       quoteAsset: project.canonicalExecutionRoute.quoteAsset,
       quoteAgeSeconds: project.canonicalExecutionRoute.quoteAgeSeconds,
       quoteTimestamp: project.canonicalExecutionRoute.quoteTimestamp,
+      ...routeQuoteTiming(project.canonicalExecutionRoute),
       marketPair: project.canonicalExecutionRoute.marketPair,
       routeType: project.canonicalExecutionRoute.routeType,
       verified: project.canonicalExecutionRoute.routeTruthStatus === "LIVE_EXECUTION_READY" ||
@@ -542,8 +545,12 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const liquidity = liquidityUsd(project);
   const volume = volume24hUsd(project);
   const price = priceUsd(project);
-  const quoteAge = quoteAgeSeconds(project);
-  const quoteTimestamp = quoteTimestampFor(project);
+  const rawTiming = routeQuoteTiming({ ...project, executionProof: undefined });
+  const quoteTiming = Object.hasOwn(rawTiming, "quoteExpiresAt") ? rawTiming : routeQuoteTiming(project);
+  const quoteAge = quoteAgeSeconds(project, quoteTiming);
+  const quoteTimestamp = Object.hasOwn(quoteTiming, "quoteTimestamp") ? quoteTiming.quoteTimestamp : quoteTimestampFor(project);
+  const quoteEvidence = { quoteAgeSeconds: quoteAge, ...(quoteTimestamp ? { quoteTimestamp } : {}), ...quoteTiming };
+  const quoteFresh = routeQuoteFresh(quoteEvidence, 3600);
   const outage = providerUnavailable(project, routes);
   const buyRouteAvailable = routes.some((route) => route.buy);
   const sellRouteAvailable = routes.some((route) => route.sell) && !sellRouteConfirmedUnavailable(project, routes);
@@ -583,7 +590,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       liquidity > 0 &&
       quoteAge !== null &&
       observedSlippageVerified &&
-      routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600)
+      routeQuoteFresh(quoteEvidence, 21_600)
   );
   const safetyVerified = safetyNonBlocked(project, routes);
   const taxVerified = verifiedTaxEvidence(project);
@@ -597,6 +604,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     buyQuoteVerified: buyRouteAvailable,
     sellQuoteVerified: sellRouteAvailable,
     quoteAgeSeconds: quoteAge,
+    ...quoteTiming,
     liquidityUsd: liquidity,
     executableDepthUsd: first([
       project.executableDepthUsd,
@@ -744,6 +752,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     transferTaxEvidence: project.transferTaxEvidence || project.taxEvidence || null,
     quoteFreshnessSeconds: quoteAge,
     ...(quoteTimestamp ? { quoteTimestamp } : {}),
+    ...quoteTiming,
     supportingSources: [...new Set(supportingSources)],
     failureReasons: [...new Set(failureReasons)],
   };
@@ -751,7 +760,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const moneyMissingEvidence = [];
   if (!buyRouteAvailable) moneyMissingEvidence.push("buy route");
   if (!sellRouteAvailable) moneyMissingEvidence.push("sell route");
-  if (quoteAge === null) moneyMissingEvidence.push("fresh quote timestamp");
+  if (!quoteFresh) moneyMissingEvidence.push("fresh quote timestamp");
   if (!liquidity) moneyMissingEvidence.push("liquidity depth");
   if (!observedSlippageVerified) moneyMissingEvidence.push("live slippage quote");
   if (!safetyVerified) moneyMissingEvidence.push("verified safety evidence");
@@ -765,7 +774,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     chain: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : chainVerified ? { value: chainOf(project), status: "VERIFIED" } : { value: chainOf(project), status: "UNKNOWN", reason: "Correct chain not verified" },
     contract: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : contractVerified ? { value: addressOf(project), status: "VERIFIED" } : { value: addressOf(project), status: "UNKNOWN", reason: "Verified token contract missing" },
     pool: !poolRequired ? { value: null, status: "NOT_APPLICABLE" } : poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
-    quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteAge <= 3600 ? "VERIFIED" : "STALE" },
+    quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteFresh ? "VERIFIED" : "STALE" },
     liquidity: liquidity ? { value: liquidity, status: liquidity >= 5_000 ? "VERIFIED" : "LOW" } : { value: null, status: "UNKNOWN", reason: "Liquidity provider unavailable or missing" },
     slippage100: !observedSlippageVerified ? { value: null, status: "UNKNOWN", reason: "Live slippage quote unavailable; heuristic estimate is not execution proof" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
     safety: safetyVerified ? { value: true, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Execution safety is unresolved" },
@@ -784,7 +793,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       source: "execution-proof",
       timestamp: new Date().toISOString(),
       confidence: liquidity >= 5_000 ? 85 : liquidity > 0 ? 45 : 0,
-      freshness: quoteAge === null ? "UNKNOWN" : quoteAge <= 3600 ? "FRESH" : "STALE",
+      freshness: quoteAge === null ? "UNKNOWN" : quoteFresh ? "FRESH" : "STALE",
       provenance: "executionProof.liquidityUsd",
       status: liquidity >= 5_000 ? "VERIFIED" : liquidity > 0 ? "PARTIAL" : "UNKNOWN",
     }),

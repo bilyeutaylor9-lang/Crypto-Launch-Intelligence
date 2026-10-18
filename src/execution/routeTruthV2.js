@@ -1,3 +1,5 @@
+import { normalizeChainId } from "../identity/strictIdentityValidators.js";
+
 const LIVE_READY_STATUS = "LIVE_EXECUTION_READY";
 const STALE_STATUSES = new Set(["STALE", "STALE_QUOTE"]);
 const HARD_BLOCK_STATUSES = new Set(["HONEYPOT_RISK", "CONTRACT_MISMATCH", "CHAIN_MISMATCH", "REJECTED"]);
@@ -30,6 +32,116 @@ function first(values = []) {
 function currentProof(subject = {}) {
   const proof = subject.executionProof;
   return proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length ? proof : null;
+}
+
+function quoteObjects(source = {}) {
+  return [source.buyQuote, source.sellQuote, source.quote, source.quotes?.buy, source.quotes?.sell,
+    source.quote?.buy, source.quote?.sell].filter((quote) => quote && typeof quote === "object");
+}
+
+function declaredExpiries(source = {}) {
+  return [
+    ...(Object.hasOwn(source, "quoteExpiresAt") ? [source.quoteExpiresAt] : []),
+    ...quoteObjects(source).filter((quote) => Object.hasOwn(quote, "expiresAt")).map((quote) => quote.expiresAt),
+  ];
+}
+
+function quoteTimestamps(source = {}) {
+  return [
+    ...["quoteTimestamp", "executionQuoteTimestamp"].filter((key) => Object.hasOwn(source, key)).map((key) => source[key]),
+    ...quoteObjects(source).filter((quote) => Object.hasOwn(quote, "timestamp")).map((quote) => quote.timestamp),
+  ];
+}
+
+function quoteTime(value) {
+  if (typeof value !== "string") return NaN;
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!parts) return NaN;
+  const [year, month, day, hour, minute, second] = parts.slice(1).map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > new Date(Date.UTC(year, month, 0)).getUTCDate() ||
+    hour > 23 || minute > 59 || second > 59) return NaN;
+  return Date.parse(value);
+}
+
+function compatibleQuoteIdentity(left = {}, right = {}) {
+  const fields = [["venue", "exchange"], ["chain", "chainId"], ["contractAddress", "tokenAddress", "contract"],
+    ["pairAddress", "poolAddress"], ["marketPair"]];
+  return fields.every((keys) => {
+    const a = first(keys.map((key) => left[key]));
+    const b = first(keys.map((key) => right[key]));
+    if (a === null || b === null) return true;
+    if (keys.includes("chain")) return Boolean(normalizeChainId(a) && normalizeChainId(a) === normalizeChainId(b));
+    if (keys.includes("contractAddress") || keys.includes("poolAddress")) {
+      return /^0x[0-9a-f]{40}$/i.test(clean(a)) && /^0x[0-9a-f]{40}$/i.test(clean(b))
+        ? clean(a).toLowerCase() === clean(b).toLowerCase() : clean(a) === clean(b);
+    }
+    return upper(a) === upper(b);
+  });
+}
+
+function quoteExpirySources(subject = {}) {
+  const proof = currentProof(subject);
+  const routes = [subject, subject.canonicalExecutionRoute, subject.executionProofRecoveryRoute,
+    subject.purchaseRoute, subject.executionRoute, ...(Array.isArray(subject.executionRoutes) ? subject.executionRoutes : []),
+    ...(Array.isArray(subject.executionProofRecoveryRoutes) ? subject.executionProofRecoveryRoutes : [])]
+    .filter((source) => source && typeof source === "object");
+  const proofOwnsTiming = proof && ["quoteTimestamp", "quoteFreshnessSeconds", "quoteAgeSeconds", "quoteExpiresAt"]
+    .some((key) => Object.hasOwn(proof, key));
+  const recoveryRoute = subject.executionProofRecoveryRoute;
+  const recoveryOwnsTiming = recoveryRoute && quoteTimestamps(recoveryRoute).length &&
+    recoveryRoute.buyQuoteVerified === true && recoveryRoute.sellQuoteVerified === true &&
+    (recoveryRoute.verificationStatus === "VERIFIED_PROVIDER_OBSERVATION" ||
+      (subject.executionProofRecovery?.status === "ROUTE_RECOVERED" && recoveryRoute.source &&
+        recoveryRoute.source === subject.executionProofRecovery.executionRecoverySource));
+  const owner = proof && (proofOwnsTiming || declaredExpiries(proof).length) ? proof
+    : recoveryOwnsTiming ? recoveryRoute : routes.find((source) => declaredExpiries(source).length);
+  if (!owner) return [];
+  // Only copies of the same quote may constrain its owner's provider deadline.
+  return [owner, ...routes.filter((source) => {
+    if (source === owner || !declaredExpiries(source).length || !compatibleQuoteIdentity(owner, source)) return false;
+    const ownerStamp = first(quoteTimestamps(owner));
+    const sourceStamp = first(quoteTimestamps(source));
+    return (owner === proof && !declaredExpiries(owner).length) ||
+      ownerStamp === null || sourceStamp === null || ownerStamp === sourceStamp ||
+      (Number.isFinite(quoteTime(ownerStamp)) && quoteTime(ownerStamp) === quoteTime(sourceStamp));
+  })];
+}
+
+// Preserve the earliest provider bound, including malformed declarations, through lossy normalizers.
+export function routeQuoteTiming(subject = {}) {
+  const sources = quoteExpirySources(subject);
+  const expiries = sources.flatMap(declaredExpiries);
+  if (!expiries.length) return {};
+  const invalidExpiry = expiries.findIndex((value) => !Number.isFinite(quoteTime(value)));
+  const quoteExpiresAt = invalidExpiry >= 0 ? (typeof expiries[invalidExpiry] === "string" ? expiries[invalidExpiry] : null)
+    : expiries.reduce((a, b) => quoteTime(a) <= quoteTime(b) ? a : b);
+  const timestamps = sources.flatMap(quoteTimestamps);
+  const missingStamp = sources.some((source) => declaredExpiries(source).length && !quoteTimestamps(source).length);
+  const invalidStamp = timestamps.findIndex((value) => !Number.isFinite(quoteTime(value)));
+  const contradictoryStamp = timestamps.find((value) => quoteTime(value) > Date.now() || quoteTime(value) >= quoteTime(quoteExpiresAt));
+  const quoteTimestamp = missingStamp ? null : invalidStamp >= 0
+    ? (typeof timestamps[invalidStamp] === "string" ? timestamps[invalidStamp] : null) : contradictoryStamp ??
+    (timestamps.length ? timestamps.reduce((a, b) => quoteTime(a) <= quoteTime(b) ? a : b) : null);
+  const timing = { quoteTimestamp, quoteExpiresAt };
+  for (const key of ["buyQuote", "sellQuote", "quote", "quotes"]) {
+    const source = sources.find((source) => Object.hasOwn(source, key));
+    if (source) timing[key] = source[key];
+  }
+  return timing;
+}
+
+function providerQuoteExpiryValid(subject = {}) {
+  const sources = quoteExpirySources(subject);
+  const expiries = sources.flatMap(declaredExpiries);
+  if (!expiries.length) return true;
+  if (sources.some((source) => declaredExpiries(source).length && !quoteTimestamps(source).length)) return false;
+  const timestamps = sources.flatMap(quoteTimestamps).map(quoteTime);
+  const now = Date.now();
+  if (!timestamps.length || timestamps.some((stamp) => !Number.isFinite(stamp) || stamp <= 0 || stamp > now)) return false;
+  return expiries.every((value) => {
+    const expiry = quoteTime(value);
+    return Number.isFinite(expiry) && expiry > now && timestamps.every((stamp) => expiry > stamp);
+  });
 }
 
 function hasVerifiedDepthSource(subject = {}) {
@@ -68,12 +180,14 @@ function quoteObjectVerified(object = {}) {
 
 export function routeQuoteAgeSeconds(subject = {}) {
   const proof = currentProof(subject);
-  const timestamp = proof && Object.hasOwn(proof, "quoteTimestamp") ? proof.quoteTimestamp : first([
+  const timing = routeQuoteTiming(subject);
+  const timestamp = Object.hasOwn(timing, "quoteTimestamp") ? timing.quoteTimestamp
+    : proof && Object.hasOwn(proof, "quoteTimestamp") ? proof.quoteTimestamp : first([
     subject.quoteTimestamp, subject.executionQuoteTimestamp, subject.buyQuote?.timestamp,
     subject.sellQuote?.timestamp, subject.quote?.timestamp, subject.executionProofRecoveryRoute?.quoteTimestamp,
     subject.canonicalExecutionRoute?.quoteTimestamp,
   ]);
-  const timestampSupplied = Boolean(timestamp) || Boolean(proof && Object.hasOwn(proof, "quoteTimestamp"));
+  const timestampSupplied = Boolean(timestamp) || Object.hasOwn(timing, "quoteTimestamp") || Boolean(proof && Object.hasOwn(proof, "quoteTimestamp"));
   const parsed = timestamp ? Date.parse(timestamp) : NaN;
   const timestampAge = Number.isFinite(parsed) && parsed <= Date.now()
     ? Math.round((Date.now() - parsed) / 1000) : null;
@@ -107,7 +221,8 @@ export function routeQuoteAgeSeconds(subject = {}) {
 
 export function routeQuoteFresh(subject = {}, maxAgeSeconds = 3600) {
   const age = routeQuoteAgeSeconds(subject);
-  return age !== null && age <= maxAgeSeconds && !STALE_STATUSES.has(upper(subject.status || subject.executionStatus));
+  return age !== null && age <= maxAgeSeconds && providerQuoteExpiryValid(subject) &&
+    !STALE_STATUSES.has(upper(subject.status || subject.executionStatus));
 }
 
 export function hasVerifiedBuyQuote(subject = {}) {

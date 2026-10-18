@@ -9,6 +9,7 @@ import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
 import { extractLiFiRoutePoolAddresses, fetchLiFiJson, verifyActionIdentity } from "../execution/lifiExecutableQuoteProvider.js";
+import { recoverSolanaRaydiumRoute } from "../execution/raydiumExecutableQuoteProvider.js";
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -93,6 +94,8 @@ function resolveOptions(options = {}) {
     zeroxApiKey: options.zeroxApiKey ?? env.ZEROX_API_KEY ?? "",
     lifiApiKey: options.lifiApiKey ?? env.LIFI_API_KEY ?? "",
     lifiEnabled: options.lifiEnabled ?? boolEnv(env.LIFI_EXECUTION_RECOVERY_ENABLED, true),
+    raydiumEnabled: options.raydiumEnabled ?? boolEnv(env.RAYDIUM_EXECUTION_RECOVERY_ENABLED, true),
+    raydiumRateBudget: options.raydiumRateBudget,
     lifiIntegrator: clean(options.lifiIntegrator ?? env.LIFI_INTEGRATOR ?? "crypto-launch-intel")
       .replace(/[^A-Za-z0-9._-]/g, "-")
       .slice(0, 23) || "crypto-launch-intel",
@@ -1065,7 +1068,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
   if (explicitCex) {
     if (hasExplicitCexMarket(project)) adapters.push(recoverCexOrderBookRoute);
   } else {
-    if (chain === "solana") adapters.push(recoverSolanaJupiterRoute);
+    if (chain === "solana") adapters.push(recoverSolanaJupiterRoute, recoverSolanaRaydiumRoute);
     if (chainDefinition(chain)?.kind === "evm") {
       adapters.push(recoverLiFiRoute);
       adapters.push(recoverZeroXRoute);
@@ -1095,6 +1098,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
   const optionalGaps = adapterResults
     .filter((item) => item.status === "OPTIONAL_KEY_MISSING")
     .map((item) => ({ source: item.adapter, missingKey: item.missingKey, reason: item.reason }));
+  const applicableResults = adapterResults.filter((item) => !["DISABLED", "NOT_APPLICABLE"].includes(item.status));
   const collectedFailures = [
     ...routeFailures,
     ...adapterResults.flatMap((item) => array(item.failures)),
@@ -1105,7 +1109,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     ? "ROUTE_RECOVERED"
     : buyOnly
       ? "BUY_ONLY_ROUTE"
-      : adapterResults.some((item) => item.status === "OPTIONAL_KEY_MISSING") && adapterResults.length === 1
+      : applicableResults.some((item) => item.status === "OPTIONAL_KEY_MISSING") && applicableResults.length === 1
         ? "OPTIONAL_SOURCE_SKIPPED"
         : "NO_ROUTE_RECOVERED";
 
@@ -1132,6 +1136,7 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     sellQuoteVerified: bestRoute?.sellQuoteVerified === true,
     routeTruthStatus: bestRoute?.routeTruthStatus || null,
     quoteTimestamp: bestRoute?.quoteTimestamp || null,
+    ...(bestRoute && Object.hasOwn(bestRoute, "quoteExpiresAt") ? { quoteExpiresAt: bestRoute.quoteExpiresAt } : {}),
     quoteAgeSeconds: bestRoute?.quoteAgeSeconds ?? null,
     newlyPromotedToExecutionReview: Boolean(bestRoute?.buyQuoteVerified && bestRoute?.sellQuoteVerified),
   };
@@ -1145,8 +1150,11 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
   }
 
   const existingRoutes = array(project.executionRoutes);
+  const previousCanonical = { ...(project.canonicalExecutionRoute || {}) };
+  for (const field of ["quoteExpiresAt", "buyQuote", "sellQuote"]) delete previousCanonical[field];
   const canonicalExecutionRoute = {
-    ...(project.canonicalExecutionRoute || {}),
+    ...previousCanonical,
+    source: bestRoute.source,
     status: bestRoute.status || project.canonicalExecutionRoute?.status || "PARTIALLY_VERIFIED",
     venue: bestRoute.venue || project.canonicalExecutionRoute?.venue || "UNKNOWN",
     routeType: bestRoute.routeType || project.canonicalExecutionRoute?.routeType || "UNKNOWN",
@@ -1180,6 +1188,9 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     slippagePct: bestRoute.slippagePct ?? project.canonicalExecutionRoute?.slippagePct ?? null,
     slippageIsHeuristic: bestRoute.slippageIsHeuristic === true,
     quoteTimestamp: bestRoute.quoteTimestamp || null,
+    ...(Object.hasOwn(bestRoute, "quoteExpiresAt") ? { quoteExpiresAt: bestRoute.quoteExpiresAt } : {}),
+    buyQuote: bestRoute.buyQuote,
+    sellQuote: bestRoute.sellQuote,
     quoteAgeSeconds: bestRoute.quoteAgeSeconds ?? null,
     regionStatus: bestRoute.regionStatus || project.canonicalExecutionRoute?.regionStatus || null,
     executionRecoverySource: bestRoute.executionRecoverySource || project.canonicalExecutionRoute?.executionRecoverySource || null,
@@ -1205,10 +1216,12 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
     executionProofRecoveryRoutes: recoveredRoutes,
     executionRoute: bestRoute,
     executionRoutes: [bestRoute, ...existingRoutes],
-    purchaseRoute: project.purchaseRoute || bestRoute,
+    purchaseRoute: bestRoute,
     buyQuoteVerified: bestRoute.buyQuoteVerified === true,
     sellQuoteVerified: bestRoute.sellQuoteVerified === true,
     quoteTimestamp: bestRoute.quoteTimestamp,
+    buyQuote: bestRoute.buyQuote,
+    sellQuote: bestRoute.sellQuote,
     quoteAgeSeconds: bestRoute.quoteAgeSeconds,
     estimatedRoundTripSlippagePct: bestRoute.estimatedRoundTripSlippagePct,
     priceImpactPct: bestRoute.priceImpactPct,
@@ -1242,6 +1255,8 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
       },
     ],
   };
+  if (Object.hasOwn(bestRoute, "quoteExpiresAt")) recoveredProject.quoteExpiresAt = bestRoute.quoteExpiresAt;
+  else delete recoveredProject.quoteExpiresAt;
   const strictCandidateGate = resolveStrictCandidateGate(recoveredProject);
   const reconciledRoute = {
     ...canonicalExecutionRoute,

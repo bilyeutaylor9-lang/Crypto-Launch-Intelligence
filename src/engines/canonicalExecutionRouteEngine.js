@@ -8,6 +8,8 @@ import {
   hasVerifiedSellQuote,
   observedRouteSlippagePct,
   routeQuoteAgeSeconds,
+  routeQuoteFresh,
+  routeQuoteTiming,
 } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
 
@@ -392,11 +394,18 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     "rawCandidate.priceUsd",
     "quote.priceUsd",
   ]);
-  const quoteAgeSeconds = routeQuoteAgeSeconds({
+  const quoteTiming = routeQuoteTiming({
+    ...project,
+    executionProof: undefined,
+    canonicalExecutionRoute: routes.find((route) => Object.hasOwn(routeQuoteTiming(route), "quoteExpiresAt")) || project.canonicalExecutionRoute,
+  });
+  const quoteEvidence = {
     quoteAgeSeconds: first([project.quoteAgeSeconds, project.executionQuoteAgeSeconds, routes.find((route) => route.quoteAgeSeconds)?.quoteAgeSeconds]),
     quoteTimestamp: quoteTimestamp(project, routes),
-  });
-  const quoteFresh = quoteAgeSeconds !== null && quoteAgeSeconds <= 3600;
+    ...quoteTiming,
+  };
+  const quoteAgeSeconds = routeQuoteAgeSeconds(quoteEvidence);
+  const quoteFresh = routeQuoteFresh(quoteEvidence, 3600);
   const buyQuoteVerified = [project, ...routes].some(hasVerifiedBuyQuote);
   const sellQuoteVerified = [project, ...routes].some(hasVerifiedSellQuote);
   const explicitBuy = boolFromRoutes(routes, ["buyRouteAvailable", "purchasable", "canBuy", "buyAvailable"]);
@@ -489,8 +498,9 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     volume24hUsd,
     priceUsd,
     quoteTimestamp: quoteTimestamp(project, routes) || null,
+    ...quoteTiming,
     quoteAgeSeconds,
-    lastVerifiedAt: quoteTimestamp(project, routes) || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
+    lastVerifiedAt: quoteEvidence.quoteTimestamp || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
     estimatedRoundTripSlippagePct: observedSlippage,
     slippageIsHeuristic: observedSlippage === null,
     regionStatus: first([project.regionStatus, routes.find((route) => route.regionStatus)?.regionStatus]) || null,
@@ -502,10 +512,14 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   };
   const strictCandidateGate = resolveStrictCandidateGate({
     ...project,
+    ...quoteTiming,
+    ...(Object.hasOwn(quoteTiming, "quoteExpiresAt") && project.executionProof ? {
+      executionProof: { ...project.executionProof, ...quoteTiming },
+    } : {}),
     canonicalExecutionRoute,
     routeTruthStatus,
   });
-  if (strictCandidateGate.strictRouteVerified) {
+  if (quoteFresh && strictCandidateGate.strictRouteVerified) {
     canonicalExecutionRoute.routeTruthStatus = "LIVE_EXECUTION_READY";
     canonicalExecutionRoute.routeVerificationStatus = "LIVE_EXECUTION_READY";
   } else {

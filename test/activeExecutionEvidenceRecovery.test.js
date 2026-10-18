@@ -492,7 +492,7 @@ test("Jupiter requires exact returned mints and known pools, not adapter-synthes
       return { inputMint: mismatch ? "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" : params.get("inputMint"),
         outputMint: params.get("outputMint"), inAmount: params.get("amount"), outAmount: "24900000",
         priceImpactPct: "0.2", routePlan: [{ swapInfo: { ammKey: pool } }] };
-    }, { executionRecovery: { jupiterApiKey: "fixture-key" } });
+    }, { executionRecovery: { jupiterApiKey: "fixture-key", raydiumEnabled: false } });
     const result = await execute(project({ chain: "solana", tokenAddress: mint, contractAddress: mint, poolAddress: pool }),
       opts, undefined, FIELDS, "Jupiter (API key required)");
     assert.equal(calls, 2);

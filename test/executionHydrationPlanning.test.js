@@ -101,16 +101,19 @@ test("deferred, conclusively rejected and already quoted candidates do not recei
   assert.equal(buildActiveEvidenceRecoveryWaves(candidates).waves.WAVE3.length, 0);
 });
 
-test("Solana keyless mode does not route quotes to EVM or unimplemented providers", () => {
+test("Solana keyless mode routes quotes only to implemented free Raydium recovery", () => {
   const project = { chain: "solana", tokenAddress: "E6vtwCUtcNJdQEPGY8vWKahtu2sfwxQ4j68pUKm7pump",
     poolAddress: "So11111111111111111111111111111111111111112",
     deepEvaluationState: "DEEP_EVALUATED", executionProof: { routeType: "DEX", liveExecutionReady: false,
       executionProofState: "MARKET_OBSERVED", buyQuoteVerified: false, sellQuoteVerified: false } };
-  assert.equal(buildActiveEvidenceRecoveryWaves([project], { freeOnly: true }).waves.WAVE3.length, 0);
+  const keyless = buildActiveEvidenceRecoveryWaves([project], { freeOnly: true });
+  assert.equal(keyless.waves.WAVE3.length, 1);
+  assert.ok(keyless.waves.WAVE3[0].entries.every((entry) =>
+    entry.item.targetSources.every((source) => source.source === "Raydium Trade API" && source.free === true)));
   const keyed = buildActiveEvidenceRecoveryWaves([project], { freeOnly: false });
   assert.equal(keyed.waves.WAVE3.length, 1);
   assert.ok(keyed.waves.WAVE3[0].entries.every((entry) =>
-    entry.item.targetSources.every((source) => source.source === "Jupiter (API key required)")));
+    entry.item.targetSources.every((source) => ["Raydium Trade API", "Jupiter (API key required)"].includes(source.source))));
 });
 
 test("CEX proof recovery uses implemented public order books rather than DEX adapters", () => {
