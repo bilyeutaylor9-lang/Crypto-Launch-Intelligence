@@ -120,8 +120,11 @@ function sourceTimestamp(project = {}, path = "") {
   );
 }
 
-function inferProvider(project = {}, options = {}) {
-  return canonicalProviderId(options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown");
+function inferProvider(project = {}, options = {}, sourcePath = "") {
+  const provenance = sourcePath ? fieldProvenance(project, sourcePath) : {};
+  const observedSource = [provenance.source, provenance.sourceProvider, provenance.provider]
+    .find((value) => typeof value === "string" && value.trim());
+  return canonicalProviderId(observedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown");
 }
 
 function flattenObject(object = {}, prefix = "", output = []) {
@@ -381,7 +384,6 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   const aliases = aliasesForCanonicalField(canonicalField);
   const aliasIndex = { exact: new Set(aliases), comparable: new Set(aliases.map(comparable)) };
   const provider = inferProvider(project, options);
-  const profile = providerProfile(provider);
   const resolvedChain = canonicalField === "chain"
     ? null
     : options.resolvedChain !== undefined
@@ -427,6 +429,9 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   const records = [];
 
   for (const candidate of candidates) {
+    // Discovery attribution cannot replace the provider that observed this field.
+    const provider = inferProvider(project, options, candidate.sourcePath);
+    const profile = providerProfile(provider);
     if (candidate.confidenceType === "FUZZY_ALIAS" && IDENTITY_CRITICAL_FIELDS.has(canonicalField)) {
       records.push(rejectRecord({
         canonicalField,
@@ -442,6 +447,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 
       const normalized = normalizeValue(candidate.rawValue, canonicalField, project, {
         ...options,
+        sourceProvider: provider,
         sourcePath: candidate.sourcePath,
         sourceField: candidate.sourceField,
         resolvedChain,

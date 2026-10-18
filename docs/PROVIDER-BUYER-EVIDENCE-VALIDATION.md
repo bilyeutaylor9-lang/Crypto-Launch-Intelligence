@@ -1,5 +1,49 @@
 # Provider Capability And Buyer Evidence Truth
 
+## October 18 Field-Level Source Attribution
+
+The completed live run scan_1792305291363 at d9022267 records matching start/end
+commit identities and SOURCE_VERSION_STABLE. It discovered 2000 candidates,
+evaluated 276 standard / 117 deep, deferred 159 before deep, and measured 91%
+core / 90% advisory coverage with zero core-starved candidates. All 117 still
+have advisory gaps. Recovery selected 48/102/35 candidates across the three
+waves and used 114/2000 provider request units without deadline exhaustion.
+It recovered 252 wallet, 186 deployer, 255 security, three identity and three
+market fields. The engine audit executed all 205 engines (51 standalone) and
+changed only its four intended outputs; all 212 other runtime files retained
+their hashes. Report contracts passed, but final readiness and scanner smoke
+failed honestly: 115 candidates still lack conclusive final proof, with zero
+verified routes or qualified candidates. This is DATA_DEGRADED, not NO_EDGE_FOUND.
+
+LI.FI was enabled for this run: 69 actual requests, 62 HTTP successes, no rate
+limits or budget overrun. Twenty-eight candidate quote pairs did not attest
+the required exact pool; seven candidates had no usable provider route.
+Successful chain/token quotes are not exact-pool execution proof. No router
+address or requested pool was substituted for provider attestation. Current-head
+Node22 and Production Verification passed; Node24 passed install, syntax and
+unit tests but failed its live readiness smoke. These findings do not justify
+waiving a gate or a claim of deploy readiness or profitable edge.
+
+The actual AGENT report now retains the exact Solana mint/pool, wallet sample,
+normalized transaction, original 2026-10-17T09:45:01Z event, separately pinned
+2026-10-18T06:37:30Z sample head and currentHoldingVerified:false. Manual
+inspection exposed another real defect: raw field provenance correctly named
+solana-rpc-wallets, but canonical alias provenance credited the project's
+DexScreener discovery source. Alias candidate attribution now uses its own
+field-level observation source before discovery/provider defaults, and applies
+that provider's existing semantic validation. This also prevents protocol TVL
+from inheriting a market provider's liquidity semantics. Four of five new
+regressions failed before repair; the repaired focused alias set passes 26.
+Missing/malformed source metadata still uses the existing fallback. No wallet
+classification, safety gate or positive observation is manufactured.
+
+Integrated validation of the field-source repair passes 1776 tests with no
+failures/skips/cancellations, 925 JavaScript syntax checks, entrypoint syntax
+and 21 load tests. The final five source-attribution regressions also pass
+after strengthening the explicit rejected-TVL assertion. The d9022267 live
+reports are preserved outside the checkout as cli-d902-live-reports-20261018.tar.gz
+(SHA-256 f9544b5c4b6659944776c22f9742970d2352faffaba3a43cf65f3936a1d6d73f).
+
 ## October 18 Quote Money And Proof Retention
 
 The next audit reproduced a genuine quote-money defect without provider calls:
