@@ -1002,12 +1002,17 @@ async function recoverProject(project = {}, recoveryMeta = {}, options = {}, sig
   const routeFailures = [];
   const chain = chainOf(project);
   const adapters = [];
-  if (chain === "solana") adapters.push(recoverSolanaJupiterRoute);
-  if (chainDefinition(chain)?.kind === "evm") {
-    adapters.push(recoverLiFiRoute);
-    adapters.push(recoverZeroXRoute);
+  const explicitCex = upper(project.executionProof?.routeType || project.routeType || project.canonicalExecutionRoute?.routeType) === "CEX";
+  if (explicitCex) {
+    if (hasExplicitCexMarket(project)) adapters.push(recoverCexOrderBookRoute);
+  } else {
+    if (chain === "solana") adapters.push(recoverSolanaJupiterRoute);
+    if (chainDefinition(chain)?.kind === "evm") {
+      adapters.push(recoverLiFiRoute);
+      adapters.push(recoverZeroXRoute);
+    }
+    if (hasExplicitCexMarket(project)) adapters.push(recoverCexOrderBookRoute);
   }
-  if (hasExplicitCexMarket(project)) adapters.push(recoverCexOrderBookRoute);
 
   for (const adapter of adapters) {
     if (signal?.aborted) {

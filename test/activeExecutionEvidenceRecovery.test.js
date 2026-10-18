@@ -531,6 +531,23 @@ test("exact public CEX books recover only venue-market raw observations without 
   unresolved(missingMarket);
 });
 
+test("explicit CEX recovery never spends DEX quote budget on retained on-chain aliases", async () => {
+  const adapters = [];
+  const opts = options(async (_url, init) => {
+    adapters.push(init.adapter);
+    if (init.adapter !== "coinbase") throw new Error("A CEX request must not probe a DEX adapter");
+    return { bids: [["0.99", "1000"]], asks: [["1.01", "1000"]] };
+  });
+  const candidate = project({ routeType: "CEX", source: "coinbase", marketPair: "BOOK-USD",
+    executionProof: { routeType: "CEX", buyQuoteVerified: false, sellQuoteVerified: false } });
+  const result = await execute(candidate, opts, undefined, FIELDS, "CEX public order books");
+  assert.deepEqual(adapters, ["coinbase"]);
+  assert.equal(result.state.requestsUsed, 1);
+  assert.equal(result.projectPatch.executionProofRecoveryRoute.marketIdentityVerified, true);
+  unresolved(await execute({ ...candidate, marketPair: null }, opts, undefined, FIELDS, "CEX public order books"));
+  assert.deepEqual(adapters, ["coinbase"]);
+});
+
 test("existing batch safety, identity, disabled and audit gates remain intact", async () => {
   let calls = 0;
   const opts = options(async () => { calls++; return {}; });
