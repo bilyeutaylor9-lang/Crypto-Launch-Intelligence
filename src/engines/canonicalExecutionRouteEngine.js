@@ -12,6 +12,7 @@ import {
   routeQuoteTiming,
 } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+import { normalizeVenue } from "../data/venueVocabularyRegistry.js";
 
 const CEX_VENUES = [
   ["Coinbase", ["coinbase", "coinbase.com"]],
@@ -109,6 +110,27 @@ function findVenue(text = "", registry = []) {
   const normalized = lower(text);
   for (const [venue, aliases] of registry) {
     if (aliases.some((alias) => normalized.includes(alias))) return venue;
+  }
+  return null;
+}
+
+function findCexVenue(project, routes) {
+  const fields = [project.source, project.exchange, project.listingExchange, project.cex, project.dex,
+    project.url, project.marketUrl, project.marketData?.url, project.marketData?.marketUrl,
+    project.rawCandidate?.url, project.rawCandidate?.marketUrl, ...array(project.discoverySources),
+    ...routes.flatMap((route) => [route.source, route.provider, route.venue, route.name,
+      route.url, route.routeUrl, route.marketUrl, route.preferredRoute])].filter(Boolean);
+  for (const [venue, aliases] of CEX_VENUES) {
+    const names = new Set([venue, ...aliases].map(normalizeVenue));
+    const hosts = aliases.filter((alias) => alias.includes("."));
+    if (fields.some((value) => {
+      if (names.has(normalizeVenue(value))) return true;
+      try {
+        const url = new URL(value);
+        return ["https:", "http:"].includes(url.protocol) &&
+          hosts.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
+      } catch { return false; }
+    })) return venue;
   }
   return null;
 }
@@ -357,7 +379,7 @@ function routeTruthStatusFor(fields = {}) {
 export function analyzeCanonicalExecutionRoute(project = {}) {
   const routes = routeObjects(project);
   const text = routeText(project, routes);
-  const cexVenue = findVenue(text, CEX_VENUES);
+  const cexVenue = findCexVenue(project, routes);
   const evmDexVenue = findVenue(text, EVM_DEX_VENUES);
   const solanaVenue = findVenue(text, SOLANA_VENUES);
   const venue = venueFor({ cexVenue, evmDexVenue, solanaVenue, text });

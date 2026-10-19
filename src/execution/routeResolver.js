@@ -347,7 +347,7 @@ function inferVenue(project = {}) {
     project.marketData?.dex,
     project.rawCandidate?.dex,
   ]);
-  if (observed && !["token-profile", "token-boost"].includes(lower(observed))) return observed;
+  if (observed && !["token-profile", "token-boost", "market-aggregate"].includes(lower(observed))) return observed;
 
   // A discovery label is not a venue. Only current exact route evidence can replace it.
   const proof = project.executionProof;

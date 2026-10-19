@@ -72,3 +72,44 @@ No score threshold, risk threshold, identity requirement, quote lifetime,
 liquidity minimum, security check, promotion gate or automatic-trading setting
 was weakened. Zero qualifying candidates remains a valid outcome. No profitable
 edge is established by these repairs or test results.
+
+## 500-Candidate Follow-Up
+
+The clean `f4d09e94` live run `scan_1792370383902` evaluated 500 deep
+candidates, with 1,981 deferred separately. Core coverage was 89%, but 389
+candidates remained core-starved. That larger run disproved the assumption that
+the earlier 132-candidate result established production-scale evidence health.
+It used 1,866 of 2,000 provider request units. No candidates qualified.
+
+New root causes found in its actual evidence:
+
+- Substring CEX detection matched `gate` inside `market-aggregate`. On-chain
+  discovery metadata was incorrectly classified as the Gate exchange, preventing
+  appropriate on-chain acquisition. CEX names now match whole normalized fields
+  or actual exchange hostnames, never URL paths or lookalike substrings.
+- Missing exact pools did not schedule market recovery when other engine-input
+  groups were already satisfied. Cheap Wave 1 now requests a pool for exact,
+  nonconflicting chain-contract identities without replacing supplied pools.
+  Exact DexScreener companions include raw buy/sell counts, not unique buyers.
+- `UNKNOWN` route types prevented quote acquisition even after exact pool
+  recovery. The planner can select on-chain acquisition providers; only actual
+  current two-leg proof can establish a recognized executable venue. The
+  `market-aggregate` discovery placeholder obeys the same strict replacement
+  rules as profile/boost labels, including expiry and conflicting-leg checks.
+- Production recovery skipped hundreds of candidates during GoPlus cooldowns,
+  then spent budget on fallback ladders. Bounded batch recovery now opts into
+  the existing shared limiter's cooldown wait. Direct helpers remain nonblocking
+  by default. Admission rechecks the absolute deadline, remaining budget and
+  provider circuit after waiting; waiting reserves no request units.
+- Mixed Wave 3 work aged early 30-second Raydium quotes behind slower providers.
+  The priority-selected candidate set stays fixed; slower EVM acquisition drains
+  before the selected Solana cohort. The same budget, deadline, concurrency and
+  provider quotas apply. Quote lifetimes and final expiry demotion are unchanged.
+  This reduces cross-provider waiting but cannot promise freshness if later work
+  itself exceeds a quote's lifetime.
+
+The primary report and metrics from that run are retained as the baseline.
+Five debug JSON files were subsequently overwritten by an existing focused test
+invocation; those diagnostics are not represented as pristine live evidence.
+The next clean-source live run must regenerate them before final publication.
+These new repairs require full-suite and production-scale revalidation.

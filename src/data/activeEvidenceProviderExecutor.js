@@ -763,7 +763,7 @@ export async function recoverDeployerEvidence(
       ),
       Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
       "goplusDeployerEvidence",
-      providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
+      providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true }) : null
     );
     if (providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
       await acquireGoPlus();
@@ -1024,7 +1024,7 @@ export async function recoverWalletEvidence(
         { ...options, useCache: holderSeeds.length ? false : options.useCache,
           goPlusRequestSlotReserved: providers.defaultGoPlusWalletProvider }),
       options, state, 1, evm.chain, providers.defaultGoPlusWalletProvider
-        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null);
+        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true }) : null);
     const recovered = goPlusAttempt.status === "SUCCESS"
       ? addGoPlusSample(goPlusAttempt.value, "WALLET_PROVIDER_RECOVERY") : 0;
     attempts.push({ ...goPlusAttempt, value: undefined, family: "WALLETS",
@@ -1763,7 +1763,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     Math.max(1, Number(options.securityProviderRequestCost || 4)),
     chain,
     providers.defaultFreeSecurityProvider && chain !== "solana" ? async () => {
-      goPlusCooldownSkipped = !await (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false });
+      goPlusCooldownSkipped = !await (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true });
       return true;
     } : null
   );

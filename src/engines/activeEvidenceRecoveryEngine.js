@@ -271,13 +271,23 @@ function recoveryWaveForField(field = "") {
   return null;
 }
 
+function recoveryRouteType(project = {}) {
+  const types = [project.executionProof?.routeType, project.canonicalExecutionRoute?.routeType,
+    project.routeType, project.executionProofRecoveryRoute?.routeType].map((value) => text(value).toUpperCase());
+  if (types.includes("CEX")) return "CEX";
+  const observed = types.find((value) => value && value !== "UNKNOWN") || types.find(Boolean) || "";
+  // This selects an acquisition provider, not a verified route or venue.
+  return observed === "UNKNOWN" && chainOf(project) ? "DEX" : observed;
+}
+
 function executionProofRecoveryItems(project = {}, options = {}) {
   const proof = project.executionProof;
   if (!proof || typeof proof !== "object" || Array.isArray(proof) || !Object.keys(proof).length) return [];
   const assessment = decisionProofAssessment(project);
   if (assessment.conclusivelyRejected || !assessment.missingFields.some((field) =>
     ["BUY_QUOTE", "SELL_QUOTE", "QUOTE_FRESHNESS", "ROUTE_DEPTH", "VERIFIED_SLIPPAGE"].includes(field))) return [];
-  const routeType = proof.routeType || project.canonicalExecutionRoute?.routeType || project.routeType;
+  const routeType = recoveryRouteType(project);
+  if (routeType === "CEX" && text(proof.routeType).toUpperCase() !== "CEX") return [];
   const recovery = options.executionRecovery || options.executionProofRecovery || {};
   const keyedProviderConfigured = chainOf(project) === "solana"
     ? Boolean(recovery.jupiterApiKey || process.env.JUPITER_API_KEY)
@@ -287,6 +297,35 @@ function executionProofRecoveryItems(project = {}, options = {}) {
     canonicalField: field, rootCause: "EXECUTION_EVIDENCE_MISSING", evidenceClass: "CORE", blockingExecution: true,
     requiresFreshObservation: true, decisionImportance: 1, currentUncertainty: 1, expectedRankChange: 1,
   })), { chain: chainOf(project), routeType, freeOnly }).items;
+}
+
+function poolIdentityRecoveryItems(project = {}, options = {}) {
+  const proof = project.executionProof;
+  if (!proof || typeof proof !== "object" || Array.isArray(proof) || !Object.keys(proof).length ||
+      recoveryRouteType(project) === "CEX" ||
+      decisionProofAssessment(project).conclusivelyRejected) return [];
+  const identities = [project, project.rawCandidate || {}, project.marketData || {},
+    project.canonicalExecutionRoute || {}, project.executionProofRecoveryRoute || {}, proof];
+  const supplied = (value) => value !== undefined && value !== null && value !== "";
+  const pools = identities.flatMap((item) => [item.poolAddress, item.pairAddress, item.primaryPool,
+    item.primaryTradablePool, item.finalPairAddress, item.verifiedPairAddress, item.pair?.address]).filter(supplied);
+  if (pools.length) return [];
+  const chain = chainOf(project);
+  const token = tokenAddressOf(project, chain);
+  if (!chain || !token || /^0x0{40}$/.test(token)) return [];
+  const chains = identities.flatMap((item) => [item.chain, item.chainId, item.network,
+    item.canonicalChain, item.canonicalChainId, item.finalChain, item.finalChainId,
+    item.normalizedChain, item.baseToken?.chain]).filter(supplied);
+  const addresses = identities.flatMap((item) => [item.tokenAddress, item.contractAddress, item.address,
+    item.canonicalAddress, item.finalContractAddress, item.verifiedContractAddress,
+    item.baseTokenAddress, item.baseToken?.address]).filter(supplied);
+  if (!chains.every((value) => normalizeChainId(value) === chain) ||
+      !addresses.every((value) => normalizeTokenAddress(value, chain) === token)) return [];
+  return buildTargetedEnrichmentPlan([{
+    canonicalField: "poolAddress", rootCause: "EXACT_POOL_IDENTITY_MISSING", evidenceClass: "CORE",
+    blockingExecution: true, requiresFreshObservation: true, decisionImportance: 1,
+    currentUncertainty: 1, expectedRankChange: 1,
+  }], { chain, routeType: proof.routeType, freeOnly: options.freeOnly ?? true }).items;
 }
 
 function authorityProofRecoveryItems(project = {}, options = {}) {
@@ -358,6 +397,7 @@ function planItems(project = {}, options = {}) {
     ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
     ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
     ...executionProofRecoveryItems(project, options),
+    ...poolIdentityRecoveryItems(project, options),
     ...authorityProofRecoveryItems(project, options),
     ...securityProofRecoveryItems(project, options),
   ];
@@ -365,10 +405,12 @@ function planItems(project = {}, options = {}) {
   for (const item of items) {
     const field = item?.canonicalField || item?.field;
     if (!field || item.recoverable === false) continue;
+    if (sourceFamilyForField(field) === "EXECUTION" && recoveryRouteType(project) === "CEX" &&
+        text(project.executionProof?.routeType).toUpperCase() !== "CEX") continue;
     const recoveryDisposition = recoveryDispositionForField(field, {
         applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
         chain: chainOf(project),
-        routeType: project.executionProof?.routeType || project.canonicalExecutionRoute?.routeType || project.routeType,
+        routeType: recoveryRouteType(project),
       });
     if (recoveryDisposition !== "RAW_RECOVERABLE") continue;
     const current = bestByField.get(field);
@@ -555,7 +597,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         const providerResult = await executeActiveEvidenceProviderRequests(
           next,
           unresolvedEntries,
-          options,
+          { ...options, waitForGoPlusCooldown: options.waitForGoPlusCooldown ?? true },
           executionState
         );
         for (const family of providerResult.changedEvidenceFamilies || []) {
@@ -618,11 +660,17 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       hydration.waves[wave] = refreshed.waves[wave];
       hydration.executionIdentityDeferredCandidates = refreshed.executionIdentityDeferredCandidates;
     }
-    const recoveredWave = await mapWithBoundedConcurrency(
-      hydration.waves[wave],
-      concurrency,
-      (candidate) => recoverCandidate(candidate, wave)
-    );
+    // Keep the priority-selected set, but acquire short-lived Raydium proof last.
+    const selected = hydration.waves[wave];
+    const cohorts = wave === "WAVE3"
+      ? [selected.filter((candidate) => chainOf(candidate.project) !== "solana"),
+        selected.filter((candidate) => chainOf(candidate.project) === "solana")]
+      : [selected];
+    const recoveredWave = [];
+    for (const cohort of cohorts) {
+      recoveredWave.push(...await mapWithBoundedConcurrency(cohort, concurrency,
+        (candidate) => recoverCandidate(candidate, wave)));
+    }
     for (const recovered of recoveredWave) {
       const previous = recoveryByProject.get(recovered.projectIndex);
       const previousReport = previous?.activeEvidenceRecovery || {};

@@ -43,8 +43,8 @@ function recoveredCandidate(label = "token-profile") {
   };
 }
 
-test("exact current recovered venue supersedes discovery profile/boost placeholders", () => {
-  for (const label of ["token-profile", "token-boost"]) {
+test("exact current recovered venue supersedes discovery profile/boost/aggregate placeholders", () => {
+  for (const label of ["token-profile", "token-boost", "market-aggregate"]) {
     const project = recoveredCandidate(label);
     const gate = resolveStrictCandidateGate(project);
     assert.equal(gate.dexName, "Raydium");
@@ -82,8 +82,8 @@ test("stale, foreign, conflicting, or forged recovered venues cannot clear stric
       delete p.canonicalExecutionRoute.buyQuote; delete p.canonicalExecutionRoute.sellQuote;
       delete p.executionProofRecoveryRoute.buyQuote; delete p.executionProofRecoveryRoute.sellQuote; },
   ];
-  cases.forEach((change, index) => {
-    const project = recoveredCandidate();
+  for (const label of ["token-profile", "market-aggregate"]) cases.forEach((change, index) => {
+    const project = recoveredCandidate(label);
     change(project);
     const gate = resolveStrictCandidateGate(project);
     assert.equal(gate.strictRankEligible, false, `case ${index}`);

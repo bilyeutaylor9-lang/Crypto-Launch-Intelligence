@@ -20,6 +20,8 @@ function candidate(overrides = {}) {
   return {
     name: "Safety Recovery Utility", symbol: "SRU", chain: "base", tokenAddress: TOKEN,
     contractAddress: TOKEN, deepEvaluationState: "DEEP_EVALUATED",
+    // Security-only fixtures already have a pool; pool acquisition is tested separately.
+    poolAddress: OTHER,
     executionProof: {
       routeType: "DEX", exactIdentityVerified: true, safetyVerified: false,
       authorityEvidenceRequired: false, transferTaxEvidenceRequired: true,
