@@ -178,7 +178,7 @@ export function openDurableEvidenceArchive(options = {}) {
     for (const row of db.prepare("SELECT * FROM evidence_records").all()) { try { assertSegment(row); } catch (error) { errors.push(error.message); } }
     const indexed = new Set(db.prepare("SELECT segment_name FROM evidence_records").all().map((row) => row.segment_name));
     const detectedOrphans = fs.readdirSync(segmentDir).filter((name) => name.endsWith(".gz") && !indexed.has(name));
-    return { ok: errors.length === 0, errors, orphanSegments: db.prepare("SELECT * FROM orphan_segments").all(), detectedOrphans, records: db.prepare("SELECT COUNT(*) n FROM evidence_records").get().n };
+    return { ok: errors.length === 0 && detectedOrphans.length === 0, errors, orphanSegments: db.prepare("SELECT * FROM orphan_segments").all(), detectedOrphans, records: db.prepare("SELECT COUNT(*) n FROM evidence_records").get().n };
   }
   function exportArchive(destination) {
     const target = path.resolve(destination); fs.mkdirSync(target, { recursive: true });
