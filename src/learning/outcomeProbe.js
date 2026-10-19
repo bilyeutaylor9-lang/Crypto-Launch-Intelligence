@@ -57,6 +57,17 @@ function timestampOf(item = {}) {
   return new Date(item.observedAt || item.timestamp || item.scannedAt || item.decisionAt || 0).getTime();
 }
 
+function isoTimestamp(value) {
+  const timestamp = new Date(value || "").getTime();
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
+function collectionTime(options = {}) {
+  // A supplied fixture clock remains deterministic; live collection must not
+  // reuse the run-start clock as the receipt time.
+  return new Date(options.now === undefined ? Date.now() : options.now).toISOString();
+}
+
 function parseHorizons(value = DEFAULT_HORIZONS) {
   const values = Array.isArray(value) ? value : String(value || "").split(",");
   return [...new Set(values.map(Number).filter((horizon) => horizon > 0))];
@@ -85,11 +96,15 @@ function alreadyResolved(snapshots = [], targetMs = 0, toleranceMs = 0, expected
     const observedAt = timestampOf(snapshot);
     const verificationStatus = snapshot.provenance?.verificationStatus;
     const actualIdentity = identityFrom(snapshot);
-    const poolCompatible = !expectedIdentity?.poolAddress ||
-      !actualIdentity?.poolAddress ||
-      expectedIdentity.poolAddress === actualIdentity.poolAddress;
+    const identityCompatible = actualIdentity?.key === expectedIdentity?.key;
+    // A frozen pool route can only be closed by an observation that names the
+    // same canonical pool. Missing pool evidence is not interchangeable.
+    const poolCompatible = !expectedIdentity?.poolAddress
+      ? true
+      : actualIdentity?.poolAddress === expectedIdentity.poolAddress;
     return observedAt >= targetMs &&
       observedAt <= targetMs + toleranceMs &&
+      identityCompatible &&
       poolCompatible &&
       (snapshot.exactIdentityVerified === true || [
         "EXACT_CHAIN_TOKEN_MATCH",
@@ -226,10 +241,13 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
     const identity = identityFrom(record, latestSnapshotByKey.get(key));
     if (!identity) continue;
 
-    const allowedHorizons = Array.isArray(record.outcomeHorizonsHours) && record.outcomeHorizonsHours.length
-      ? new Set(record.outcomeHorizonsHours.map(Number))
-      : null;
-    for (const horizonHours of horizons.filter((value) => !allowedHorizons || allowedHorizons.has(value))) {
+    const hasExplicitHorizonContract = Array.isArray(record.outcomeHorizonsHours);
+    const contractedHorizons = hasExplicitHorizonContract
+      ? parseHorizons(record.outcomeHorizonsHours)
+      : horizons;
+    // A declared contract governs its own horizons. In particular, do not
+    // silently substitute configured defaults for an empty/malformed contract.
+    for (const horizonHours of contractedHorizons) {
       const targetMs = scannedAtMs + horizonHours * 60 * 60 * 1000;
       const toleranceHours = outcomeHorizonToleranceHours(horizonHours, options);
       const toleranceMs = toleranceHours * 60 * 60 * 1000;
@@ -303,8 +321,12 @@ function geckoPairs(payload = {}) {
 }
 
 function normalizedPair(pair = {}) {
-  if (pair.chain && pair.tokenAddress) return pair;
-  return normalizeDexPair(pair);
+  const normalized = pair.chain && pair.tokenAddress ? pair : normalizeDexPair(pair);
+  const sourceTimestamp = isoTimestamp(
+    pair.sourceTimestamp || pair.sourceObservedAt || pair.observedAt || pair.updatedAt ||
+    pair.updated_at || pair.timestamp || pair.attributes?.updated_at || pair.attributes?.updatedAt
+  );
+  return { ...normalized, sourceTimestamp };
 }
 
 function exactPair(candidate = {}, pairs = []) {
@@ -330,40 +352,52 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    let pair = null;
+    let source = "dexscreener";
+    let dexError = null;
+    let geckoError = null;
     if (!options.consumeProviderRequest()) {
       return { candidate, status: "PROVIDER_REQUEST_BUDGET_EXHAUSTED", observation: null };
     }
-    const dexPayload = candidate.poolAddress
-      ? await providers.getPairByAddress(candidate.chain, candidate.poolAddress, {
-          signal: controller.signal,
-        })
-      : await providers.getTokenPairs(candidate.chain, candidate.tokenAddress, {
-          signal: controller.signal,
-        });
-    let pair = exactPair(candidate, rawPairs(dexPayload));
-    let source = "dexscreener";
+    try {
+      const dexPayload = candidate.poolAddress
+        ? await providers.getPairByAddress(candidate.chain, candidate.poolAddress, {
+            signal: controller.signal,
+          })
+        : await providers.getTokenPairs(candidate.chain, candidate.tokenAddress, {
+            signal: controller.signal,
+          });
+      pair = exactPair(candidate, rawPairs(dexPayload));
+    } catch (error) {
+      dexError = error;
+    }
 
-    if (
-      !pair &&
-      candidate.poolAddress &&
-      providers.getGeckoPoolByAddress &&
-      resolveGeckoTerminalNetworkId(candidate.chain) &&
-      options.consumeProviderRequest()
-    ) {
-      const geckoPayload = await providers.getGeckoPoolByAddress(
-        candidate.chain,
-        candidate.poolAddress,
-        { maxAttempts: 1, timeoutMs }
-      );
-      pair = exactPair(candidate, geckoPairs(geckoPayload));
-      source = "geckoterminal";
+    if (!pair && candidate.poolAddress && providers.getGeckoPoolByAddress &&
+      resolveGeckoTerminalNetworkId(candidate.chain) && options.consumeProviderRequest()) {
+      try {
+        const geckoPayload = await providers.getGeckoPoolByAddress(
+          candidate.chain,
+          candidate.poolAddress,
+          { maxAttempts: 1, timeoutMs, signal: controller.signal }
+        );
+        pair = exactPair(candidate, geckoPairs(geckoPayload));
+        source = "geckoterminal";
+      } catch (error) {
+        geckoError = error;
+      }
     }
 
     if (!pair) {
-      return { candidate, status: "NO_EXACT_PROVIDER_MATCH", observation: null };
+      const error = geckoError || dexError;
+      return {
+        candidate,
+        status: error ? (error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_FAILURE") : "NO_EXACT_PROVIDER_MATCH",
+        error: error?.message || null,
+        observation: null,
+      };
     }
 
-    const observedAt = new Date(options.now || Date.now()).toISOString();
+    const observedAt = collectionTime(options);
     return {
       candidate,
       status: "OBSERVED",
@@ -377,7 +411,9 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
         poolAddress: candidate.poolAddress || pair.poolAddress || pair.pairAddress || null,
         outcomeObservationProvenance: {
           source,
-          sourceTimestamp: observedAt,
+          sourceTimestamp: pair.sourceTimestamp,
+          receiptObservedAt: observedAt,
+          observationTimeBasis: pair.sourceTimestamp ? "PROVIDER_SOURCE_AND_COLLECTION_RECEIPT" : "COLLECTION_RECEIPT_ONLY",
           confidence: 1,
           verificationStatus: candidate.poolAddress
             ? "EXACT_CHAIN_TOKEN_POOL_MATCH"
@@ -439,7 +475,7 @@ function saveReport(report = {}, file = REPORT_FILE) {
 
 async function runOutcomeProbeUnlocked(options = {}) {
   const runId = options.runId || `outcome-probe-${Date.now()}`;
-  const now = new Date(options.now || Date.now()).toISOString();
+  const now = collectionTime(options);
   const usingDefaultMemory = options.memory === undefined;
   const scanMemory = usingDefaultMemory
     ? (options.loadScanMemory || loadScanMemory)()
@@ -500,12 +536,21 @@ async function runOutcomeProbeUnlocked(options = {}) {
   const results = await mapWithConcurrency(selected, concurrency, (candidate) =>
     probeCandidate(candidate, providers, {
       ...options,
-      now,
       runId,
       consumeProviderRequest,
     })
   );
   let observations = results.map((result) => result.observation).filter(Boolean);
+  const captureIsOnTime = (observation, candidate) => {
+    const observedMs = timestampOf(observation);
+    return candidate.duePredictions.some((prediction) => {
+      const targetMs = Date.parse(prediction.targetAt);
+      return observedMs >= targetMs && observedMs <= targetMs + prediction.maximumLatenessHours * 60 * 60 * 1000;
+    });
+  };
+  const validObservations = observations.filter((observation) =>
+    captureIsOnTime(observation, results.find((result) => result.observation === observation)?.candidate || {})
+  );
   let marketContext = null;
   let marketContextSaveResult = { saved: 0, rejected: 0 };
   const shouldCollectMarketContext =
@@ -514,25 +559,26 @@ async function runOutcomeProbeUnlocked(options = {}) {
     (typeof options.marketContextProvider === "function" || options.providers === undefined);
   if (shouldCollectMarketContext) {
     try {
+      const contextNow = collectionTime(options);
       const rawContext = await (options.marketContextProvider || collectMarketContextSnapshot)({
-        now,
+        now: contextNow,
         providers: options.marketContextProviders,
         previousContext: options.marketContextObservations || loadMarketContextObservations(),
         previousExactObservations: existingExactObservations,
         currentExactObservations: observations,
         timeoutMs: options.marketContextTimeoutMs,
       });
-      marketContext = buildMarketContextObservation(rawContext, { now, asOf: now });
+      marketContext = buildMarketContextObservation(rawContext, { now: contextNow, asOf: contextNow });
       if (marketContext) {
         marketContextSaveResult = (options.saveMarketContextObservations || appendMarketContextObservations)(
           [marketContext],
-          { ...(options.marketContextStore || {}), now, asOf: now }
+          { ...(options.marketContextStore || {}), now: contextNow, asOf: contextNow }
         );
         observations = attachMarketContext(observations, marketContext);
       }
     } catch (error) {
       marketContext = {
-        observedAt: now,
+        observedAt: collectionTime(options),
         state: "CONTEXT_CAPTURE_FAILED",
         error: error?.message || "Unknown market-context provider failure",
         pointInTimeVerified: false,
@@ -547,18 +593,17 @@ async function runOutcomeProbeUnlocked(options = {}) {
   const exactSaveResult = observations.length
     ? (options.saveExactObservations || appendExactMarketObservations)(observations, {
         ...(options.exactObservationStore || {}),
-        observedAt: now,
-        asOf: now,
+        asOf: collectionTime(options),
         source: "outcome-probe",
       })
     : { saved: 0, rejected: 0 };
   const report = {
-    generatedAt: now,
+    generatedAt: collectionTime(options),
     runId,
     status: !candidates.length
       ? "NO_OUTCOMES_DUE"
-      : observations.length
-        ? observations.length === candidates.length
+      : validObservations.length
+        ? validObservations.length === candidates.length
           ? "PASS"
           : "PARTIAL"
         : "PROVIDER_DEGRADED",
@@ -613,9 +658,12 @@ async function runOutcomeProbeUnlocked(options = {}) {
       0
     ),
     prospectiveEntryEdgePolicy: "Only immutable, post-declaration, exact chain-token-pool treatment/control episodes at their registry-declared horizon are probed; the probe cannot influence ranking, promotion, or trading.",
-    unresolvedCandidates: Math.max(0, candidates.length - observations.length),
+    unresolvedCandidates: Math.max(0, candidates.length - validObservations.length),
     outcomesByHorizon: Object.fromEntries(
-      parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS).map(
+      [...new Set([
+        ...parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS),
+        ...candidates.flatMap((candidate) => candidate.duePredictions.map((item) => item.horizonHours)),
+      ])].map(
         (horizon) => [
           `${horizon}h`,
           candidates.reduce(
@@ -628,7 +676,9 @@ async function runOutcomeProbeUnlocked(options = {}) {
     ),
     results: results.map((result) => ({
       key: result.candidate.key,
-      status: result.status,
+      status: result.observation && !captureIsOnTime(result.observation, result.candidate)
+        ? "OBSERVED_LATE"
+        : result.status,
       duePredictions: result.candidate.duePredictions.length,
       error: result.error || null,
     })),

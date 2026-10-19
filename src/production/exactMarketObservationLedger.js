@@ -66,6 +66,15 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     schemaVersion: 2,
     observationKey,
     observedAt: new Date(observedMs).toISOString(),
+    // These fields are additive for newly appended rows. Existing ledger rows
+    // retain their original bytes and integrity hashes.
+    receiptObservedAt: timestamp(row.outcomeObservationProvenance?.receiptObservedAt || row.receiptObservedAt) === null
+      ? null
+      : new Date(timestamp(row.outcomeObservationProvenance?.receiptObservedAt || row.receiptObservedAt)).toISOString(),
+    sourceObservedAt: timestamp(row.outcomeObservationProvenance?.sourceTimestamp || row.sourceObservedAt) === null
+      ? null
+      : new Date(timestamp(row.outcomeObservationProvenance?.sourceTimestamp || row.sourceObservedAt)).toISOString(),
+    observationTimeBasis: row.outcomeObservationProvenance?.observationTimeBasis || row.observationTimeBasis || null,
     source,
     chain: identity.chain,
     tokenAddress: identity.tokenAddress,
@@ -124,6 +133,7 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     marketContextPointInTimeVerified,
     exactIdentityVerified: true,
     scoringOrSelectionAllowed: false,
+    outcomeObservationProvenance: row.outcomeObservationProvenance || null,
   };
   return {
     ...observation,
