@@ -169,3 +169,37 @@ Another clean-source live validation is still required before landing. The
 `ab2e354a` measurements above are the prior baseline, not results for this layer.
 The latest inspected main evidence workflow also still fails because Supabase
 denies production reads with `exceed_egress_quota`; no billing settings changed.
+
+## Supabase Egress Follow-Up
+
+The separate scanner-memory reader still requested five unused project columns
+and ten unused receipt columns. Its projections now include only consumed
+fields, retaining exact project identity, health-row filtering, ordering,
+limits, historical counts and existing memory output.
+
+An HTTP 402 or explicit `exceed_egress_quota` now stops that table's complete
+retry/credential loop. With two configured keys, injected 402 responses require
+three table requests instead of six. Genuine authentication fallback,
+clock-skew recovery and transient retries remain intact. FAILED/DEGRADED states
+and the original restriction reason remain visible; unavailable memory cannot
+become historical evidence.
+
+This is prevention, not service restoration. The connected organization was
+confirmed on Free, and its latest inspected production workflow still denied
+Data API reads. For a Free organization, the documented recovery is an
+owner-approved Pro upgrade or the next billing-cycle quota refill. Changing a
+Pro spend cap is not the recovery action for this Free organization. Pausing
+and restoring a project does not clear usage already recorded in the cycle.
+No connected tool can make the billing change; dashboard sign-in and the owner
+decision remain external requirements. No billing, RLS, schema, credentials or
+stored observations were changed, and no alternate data-export path was used.
+
+The focused injected regressions verify minimal projections, identical memory
+and exact identities, quota short-circuiting, error visibility, transient retry
+and legitimate credential fallback. A fresh full-suite run is retained
+separately. The in-flight 500-deep scanner validation remains pinned to
+`2533c592`; these isolated memory-reader edits do not alter that checkout.
+
+Official references:
+- https://supabase.com/docs/guides/platform/manage-your-usage/egress#optimize-usage
+- https://supabase.com/docs/guides/platform/billing-faq#how-can-i-remove-restrictions-applied-from-the-fair-use-policy
