@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const runner = path.resolve("src/ops/runTestsIsolated.js");
+const lockFor = root => path.join(os.tmpdir(), `scanner-test-isolation-lock-${crypto.createHash("sha256").update(fs.realpathSync(root)).digest("hex")}`);
 
 test("unsupported test filters are rejected before artifacts are moved or tests are run", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-filter-"));
@@ -46,7 +48,41 @@ for (const fails of [false, true]) {
         assert.deepEqual(fs.readdirSync(path.join(root, directory)), ["live.json"]);
         assert.equal(fs.readFileSync(path.join(root, directory, "live.json"), "utf8"), "original-live-observation\n");
       }
-      assert.equal(fs.readdirSync(root).some((name) => name.startsWith(".test-artifact-backup-")), false);
+      assert.equal(fs.existsSync(lockFor(root)), false);
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
   });
 }
+
+test("missing backup fails closed, retaining generated output and manual-recovery paths", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-isolation-missing-"));
+  try {
+    for (const directory of ["data", "reports", "test"]) fs.mkdirSync(path.join(root, directory));
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
+    for (const directory of ["data", "reports"]) fs.writeFileSync(path.join(root, directory, "live.json"), "original\n");
+    fs.writeFileSync(path.join(root, "test", "worker.test.js"), `import test from "node:test"; import fs from "node:fs"; import assert from "node:assert/strict";
+      test("tamper backup", () => { fs.writeFileSync("reports/generated.json", "generated"); assert.ok(process.env.TEST_ARTIFACT_BACKUP_ROOT);
+        fs.renameSync(process.env.TEST_ARTIFACT_BACKUP_ROOT + "/reports", process.env.TEST_ARTIFACT_BACKUP_ROOT + "/reports-moved"); });`);
+    const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
+    const result = spawnSync(process.execPath, [runner], { cwd: root, env, encoding: "utf8", timeout: 15000 });
+    assert.equal(result.status, 1); assert.match(result.stderr, /Manual recovery/);
+    assert.equal(fs.readFileSync(path.join(root, "reports", "generated.json"), "utf8"), "generated");
+    const lock = lockFor(root); assert.equal(fs.existsSync(lock), true);
+    const metadata = JSON.parse(fs.readFileSync(lock, "utf8"));
+    assert.equal(fs.existsSync(metadata.backupRoot), true);
+    fs.rmSync(metadata.backupRoot, { recursive: true, force: true }); fs.unlinkSync(lock);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("competing wrappers fail before moving an active checkout's artifacts", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-isolation-lock-"));
+  try {
+    for (const directory of ["data", "reports", "test"]) fs.mkdirSync(path.join(root, directory));
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
+    for (const directory of ["data", "reports"]) fs.writeFileSync(path.join(root, directory, "live.json"), "original\n");
+    const lock = lockFor(root); fs.writeFileSync(lock, "manual recovery");
+    const result = spawnSync(process.execPath, [runner], { cwd: root, encoding: "utf8", timeout: 15000 });
+    assert.equal(result.status, 1); assert.match(result.stderr, /TEST_ARTIFACT_ISOLATION_LOCKED/);
+    assert.equal(fs.readFileSync(path.join(root, "reports", "live.json"), "utf8"), "original\n");
+    fs.unlinkSync(lock);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
