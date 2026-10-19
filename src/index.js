@@ -949,7 +949,7 @@ async function main() {
 
     let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
     try {
-      supabaseMemory = await collectSupabaseMemory({ projects: researchQueue });
+      supabaseMemory = await collectSupabaseMemory({ projects: researchQueue, root: process.cwd() });
       const primed = primeScanMemory(scanMemoryRecordsFromSupabase(supabaseMemory), {
         source: "supabase-remote-memory",
       });

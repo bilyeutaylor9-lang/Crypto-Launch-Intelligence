@@ -4,45 +4,20 @@ import path from "node:path";
 
 import { createBackendSupabaseClient } from "../db/supabaseClient.js";
 import { writeAtomicJson } from "./atomicArtifactStore.js";
+import {
+  EGRESS_QUOTA_PROVIDER_CODE,
+  clearRemoteEgressCircuit,
+  isTrustedEgressQuota,
+  loadRemoteEgressCircuit,
+  openRemoteEgressCircuit,
+  supabaseCircuitScope,
+} from "./remoteOperationalCircuit.js";
 
 export const FORWARD_EVIDENCE_LEDGERS = Object.freeze({
   "production-market-observations": "data/production-market-observations.jsonl",
   "market-context-observations": "data/market-context-observations.jsonl",
   "prospective-edge-cohorts": "data/prospective-edge-cohorts.jsonl",
 });
-export const FORWARD_EVIDENCE_EGRESS_CIRCUIT_FILE = "data/forward-evidence-remote-circuit.json";
-const EGRESS_CIRCUIT_SCHEMA_VERSION = 1;
-const EGRESS_CIRCUIT_MAX_BYTES = 4096;
-const EGRESS_QUOTA_PROVIDER_CODE = "exceed_egress_quota";
-
-function circuitFile(options = {}) {
-  return path.resolve(options.root || ".", FORWARD_EVIDENCE_EGRESS_CIRCUIT_FILE);
-}
-
-function loadEgressCircuit(options = {}) {
-  const file = circuitFile(options);
-  if (!fs.existsSync(file)) return null;
-  if (fs.statSync(file).size > EGRESS_CIRCUIT_MAX_BYTES) throw new Error("Forward-evidence egress circuit state is too large.");
-  let value;
-  try { value = JSON.parse(fs.readFileSync(file, "utf8")); } catch { throw new Error("Forward-evidence egress circuit state is malformed."); }
-  if (value?.schemaVersion !== EGRESS_CIRCUIT_SCHEMA_VERSION || value?.state !== "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" ||
-      value?.providerCode !== EGRESS_QUOTA_PROVIDER_CODE || !Number.isFinite(Date.parse(value?.detectedAt || ""))) {
-    throw new Error("Forward-evidence egress circuit state is invalid.");
-  }
-  return { schemaVersion: EGRESS_CIRCUIT_SCHEMA_VERSION, state: value.state, providerCode: value.providerCode,
-    detectedAt: new Date(Date.parse(value.detectedAt)).toISOString() };
-}
-
-function writeEgressCircuit(options = {}) {
-  const incident = { schemaVersion: EGRESS_CIRCUIT_SCHEMA_VERSION, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE",
-    providerCode: EGRESS_QUOTA_PROVIDER_CODE, detectedAt: options.now || new Date().toISOString() };
-  writeAtomicJson(circuitFile(options), incident);
-  return incident;
-}
-
-function clearEgressCircuit(options = {}) {
-  try { fs.unlinkSync(circuitFile(options)); } catch (error) { if (error?.code !== "ENOENT") throw error; }
-}
 
 function remoteError(prefix, error) {
   const wrapped = new Error(`${prefix}: ${error?.message || String(error)}`);
@@ -51,7 +26,7 @@ function remoteError(prefix, error) {
 }
 
 function isConfirmedEgressQuotaError(error) {
-  return error?.providerCode === EGRESS_QUOTA_PROVIDER_CODE;
+  return isTrustedEgressQuota(error);
 }
 
 function canonicalize(value) {
@@ -388,21 +363,29 @@ export async function syncForwardEvidence(options = {}) {
 export async function runForwardEvidenceRemoteCommand(command = "restore", options = {}) {
   const now = options.now || new Date().toISOString();
   try {
-    const incident = loadEgressCircuit(options);
+    const backendForCircuit = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
+    const scope = supabaseCircuitScope(backendForCircuit.config);
+    const incident = loadRemoteEgressCircuit(scope, options);
     if (incident && command !== "verify") {
-      const report = { ...incident, generatedAt: now, skipped: true };
+      const report = { ...incident, schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE", generatedAt: now, skipped: true };
       if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
       return report;
     }
     let result;
     if (command === "verify") {
-      const backend = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
+      const backend = backendForCircuit;
       if (!backend.client) result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_NOT_CONFIGURED", reason: backend.reason };
       else {
         // An explicit successful indexed read is the bounded recovery proof.
-        await readRemotePage(backend.client.from("forward_evidence_records").select("ledger_name,record_id,content_hash")
+        const data = await readRemotePage(backend.client.from("forward_evidence_records").select("ledger_name,record_id,content_hash")
           .eq("ledger_name", "production-market-observations").order("record_id", { ascending: true }).range(0, 0), 1);
-        clearEgressCircuit(options);
+        // Empty reads establish admission only. They cannot clear an outage because
+        // they prove neither a requested ledger record nor immutable metadata.
+        if (!data.length || data.some((row) => row?.ledger_name !== "production-market-observations" ||
+          typeof row.record_id !== "string" || !row.record_id || !/^[0-9a-f]{64}$/.test(String(row.content_hash || "")))) {
+          throw new Error("Remote forward-evidence verification requires indexed ledger metadata.");
+        }
+        clearRemoteEgressCircuit(scope, options);
         result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED" };
       }
     } else result = command === "sync" ? await syncForwardEvidence(options) : await restoreForwardEvidence(options);
@@ -410,11 +393,13 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
     if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
     return report;
   } catch (error) {
-    const incident = isConfirmedEgressQuotaError(error) ? writeEgressCircuit({ ...options, now }) : null;
+    const backend = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
+    const incident = isConfirmedEgressQuotaError(error)
+      ? openRemoteEgressCircuit(supabaseCircuitScope(backend.config), { ...options, now }) : null;
     const report = {
       schemaVersion: 1,
       generatedAt: now,
-      state: incident?.state || "REMOTE_FORWARD_EVIDENCE_FAILED",
+      state: incident ? "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" : "REMOTE_FORWARD_EVIDENCE_FAILED",
       error: error?.message || String(error),
       ...(incident ? { providerCode: incident.providerCode, detectedAt: incident.detectedAt } : {}),
     };
@@ -431,6 +416,6 @@ export const __forwardEvidenceRemoteHooks = {
   parseJsonl,
   validateRows,
   fetchRemoteRows,
-  loadEgressCircuit,
+  loadEgressCircuit: (options = {}) => loadRemoteEgressCircuit(supabaseCircuitScope(options.backend?.config || options.config || {}), options),
   isConfirmedEgressQuotaError,
 };

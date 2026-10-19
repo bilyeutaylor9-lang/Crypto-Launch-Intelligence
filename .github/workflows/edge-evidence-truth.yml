@@ -44,6 +44,15 @@ jobs:
       - name: Restore Validated Scanner State
         run: npm run state:restore
 
+      - name: Restore Remote Operational Circuit
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-
+
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
         uses: actions/cache/restore@v5
@@ -145,6 +154,14 @@ jobs:
             data/market-context-observations.jsonl
             data/prospective-edge-cohorts.jsonl
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Save Remote Operational Circuit
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Enforce Acquisition Operational Truth
         if: always()

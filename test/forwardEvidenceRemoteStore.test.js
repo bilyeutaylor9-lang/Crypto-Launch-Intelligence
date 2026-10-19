@@ -36,7 +36,7 @@ function isolatedRoot(t) {
   return root;
 }
 
-function fakeBackend(rows = [], { onRead, onWrite } = {}) {
+function fakeBackend(rows = [], { onRead, onWrite, url = "https://example-project.supabase.co" } = {}) {
   const reads = [];
   const writes = [];
   const client = {
@@ -96,7 +96,7 @@ function fakeBackend(rows = [], { onRead, onWrite } = {}) {
       return query;
     },
   };
-  return { client, config: { serverWriteCapable: true }, reads, writes };
+  return { client, config: { serverWriteCapable: true, url }, reads, writes };
 }
 
 function bodyReads(backend) {
@@ -319,9 +319,10 @@ test("only the exact provider egress code opens a durable circuit and later comm
     detectedAt: "2026-10-19T00:00:00.000Z",
   });
   assert.equal(backend.reads.length, 1);
-  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, "data", "forward-evidence-remote-circuit.json"), "utf8")), {
-    schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE", providerCode: "exceed_egress_quota",
-    detectedAt: "2026-10-19T00:00:00.000Z",
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, "data", "remote-operational-circuits.json"), "utf8")), {
+    schemaVersion: 1, incidents: { "supabase:https://example-project.supabase.co": {
+      state: "REMOTE_EGRESS_OUTAGE", providerCode: "exceed_egress_quota", detectedAt: "2026-10-19T00:00:00.000Z",
+    } },
   });
   const skipped = await runForwardEvidenceRemoteCommand("sync", { root, backend, now: "2026-10-19T01:00:00.000Z", writeReport: false });
   assert.equal(skipped.state, "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE");
@@ -340,7 +341,7 @@ test("generic provider failures do not open an egress circuit", async (t) => {
 
 test("corrupt circuit state fails closed without acknowledging or contacting remote sync", async (t) => {
   const root = isolatedRoot(t);
-  const file = path.join(root, "data", "forward-evidence-remote-circuit.json");
+  const file = path.join(root, "data", "remote-operational-circuits.json");
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, "not-json");
   const backend = fakeBackend();
@@ -355,13 +356,27 @@ test("only an explicit successful verification clears the egress circuit", async
   const root = isolatedRoot(t);
   const outage = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "quota" } }) });
   await runForwardEvidenceRemoteCommand("restore", { root, backend: outage, writeReport: false });
-  const recovered = fakeBackend();
+  const recovered = fakeBackend([remoteRow("production-market-observations", { observationKey: "proof" })]);
   const report = await runForwardEvidenceRemoteCommand("verify", { root, backend: recovered, writeReport: false });
   assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED");
   assert.equal(recovered.reads.length, 1);
-  assert.equal(fs.existsSync(path.join(root, "data", "forward-evidence-remote-circuit.json")), false);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, "data", "remote-operational-circuits.json"), "utf8")).incidents, {});
   assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: recovered, writeReport: false })).state,
     "REMOTE_FORWARD_EVIDENCE_SYNCED");
+});
+
+test("an empty or other-project verification cannot clear a scoped outage", async (t) => {
+  const root = isolatedRoot(t);
+  const outage = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "quota" } }) });
+  await runForwardEvidenceRemoteCommand("restore", { root, backend: outage, writeReport: false });
+  const empty = fakeBackend();
+  const report = await runForwardEvidenceRemoteCommand("verify", { root, backend: empty, writeReport: false });
+  assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: empty, writeReport: false })).skipped, true);
+  const other = fakeBackend([remoteRow("production-market-observations", { observationKey: "proof" })], { url: "https://other-project.supabase.co" });
+  assert.equal((await runForwardEvidenceRemoteCommand("verify", { root, backend: other, writeReport: false })).state,
+    "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED");
+  assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: empty, writeReport: false })).skipped, true);
 });
 
 for (const [name, transform, message] of [

@@ -11,6 +11,7 @@ import {
   buildPersistentProjectKey,
   normalizePersistentProjectKey,
 } from "../identity/persistentProjectKey.js";
+import { isTrustedEgressQuota, loadRemoteEgressCircuit, openRemoteEgressCircuit, supabaseCircuitScope } from "../production/remoteOperationalCircuit.js";
 
 const DEFAULT_REPORT_PATH = "reports/supabase-memory.json";
 
@@ -101,10 +102,17 @@ async function fetchTableRows(config = {}, table = "", params = {}, options = {}
 
         const detail = typeof response.text === "function" ? await response.text() : "";
         const error = new Error(`Supabase ${table} read failed: ${response.status} ${String(detail).slice(0, 400)}`);
+        try {
+          const payload = JSON.parse(detail);
+          const providerCode = payload?.code || payload?.message;
+          if (typeof providerCode === "string" && /(^|[^a-z0-9_])exceed_egress_quota([^a-z0-9_]|$)/i.test(providerCode)) {
+            error.providerCode = "exceed_egress_quota";
+          }
+        } catch { /* Provider codes are trusted only when structured. */ }
         const normalized = String(detail).toLowerCase();
         lastError = error;
         // Organization restrictions cannot be recovered with retries or another key.
-        if (response.status === 402 || normalized.includes("exceed_egress_quota")) break credentialAttempts;
+        if (response.status === 402 || isTrustedEgressQuota(error)) break credentialAttempts;
         const retryable =
           response.status === 429 ||
           response.status >= 500 ||
@@ -135,7 +143,7 @@ async function tableRead(name = "", promise) {
     const rows = await promise;
     return { name, status: "OK", rows: Array.isArray(rows) ? rows : [] };
   } catch (error) {
-    return { name, status: "FAILED", rows: [], reason: error.message };
+    return { name, status: "FAILED", rows: [], reason: error.message, error };
   }
 }
 
@@ -262,6 +270,23 @@ export async function collectSupabaseMemory(options = {}) {
     };
   }
 
+  // Callers that run an operational workflow provide its workspace root. Keep
+  // library consumers side-effect free (and testable) unless they opt in.
+  const circuitOptions = options.root === undefined ? null : options;
+  const scope = supabaseCircuitScope(config);
+  const incident = circuitOptions && loadRemoteEgressCircuit(scope, circuitOptions);
+  if (incident) {
+    return {
+      status: "FAILED", reason: "Remote memory skipped because a scoped egress outage is active.",
+      failureStage: "pre-pipeline-memory-load", remoteCircuit: incident,
+      tableHealth: Object.fromEntries(["runs", "projects", "alphaReceipts"].map((name) => [name, {
+        status: "SKIPPED", rowCount: 0, reason: "Scoped remote egress outage is active.",
+      }])),
+      counts: { runs: 0, projectRows: 0, receiptRows: 0, rememberedProjects: 0, failedTables: 3 },
+      byProject: {}, bySymbolChain: {},
+    };
+  }
+
   const runLimit = Math.max(1, Number(options.runLimit || env.SUPABASE_MEMORY_RUN_LIMIT || 25));
   const projectLimit = Math.max(1, Number(options.projectLimit || env.SUPABASE_MEMORY_PROJECT_LIMIT || 2500));
   const receiptLimit = Math.max(1, Number(options.receiptLimit || env.SUPABASE_MEMORY_RECEIPT_LIMIT || 1000));
@@ -310,6 +335,8 @@ export async function collectSupabaseMemory(options = {}) {
     ),
   ]);
   const reads = [runRead, projectRead, receiptRead];
+  const quotaFailure = reads.find((read) => isTrustedEgressQuota(read.error));
+  if (quotaFailure && circuitOptions) openRemoteEgressCircuit(scope, circuitOptions);
   const projectsUsable = projectRead.status === "OK";
   const failedReads = reads.filter((read) => read.status === "FAILED");
   const indexed = aggregateProjectMemory(projectRead.rows, receiptRead.rows);
