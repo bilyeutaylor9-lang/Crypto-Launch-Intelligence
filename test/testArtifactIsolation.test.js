@@ -87,15 +87,16 @@ test("competing wrappers fail before moving an active checkout's artifacts", () 
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
-test("tampered backup and replaced generated directory both preserve recovery material", () => {
+for (const kind of ["tampered-backup", "replaced-directory"]) test(kind + " preserves recovery material independently", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-isolation-tamper-"));
   try {
     for (const directory of ["data", "reports", "test"]) fs.mkdirSync(path.join(root, directory));
     fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
     for (const directory of ["data", "reports"]) fs.writeFileSync(path.join(root, directory, "live.json"), "original\n");
     fs.writeFileSync(path.join(root, "test", "worker.test.js"), `import test from "node:test"; import fs from "node:fs";
-      test("tamper", () => { fs.writeFileSync(process.env.TEST_ARTIFACT_BACKUP_ROOT + "/data/live.json", "tampered");
-        fs.rmSync("reports", { recursive: true }); fs.mkdirSync("reports"); fs.writeFileSync("reports/generated.json", "generated"); });`);
+      test("tamper", () => {
+        ${kind === "tampered-backup" ? 'fs.writeFileSync(process.env.TEST_ARTIFACT_BACKUP_ROOT + "/data/live.json", "tampered");' : 'fs.renameSync("reports", "reports-previous"); fs.mkdirSync("reports");'}
+        fs.writeFileSync("reports/generated.json", "generated"); });`);
     const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
     const result = spawnSync(process.execPath, [runner], { cwd: root, env, encoding: "utf8", timeout: 15000 });
     assert.equal(result.status, 1); assert.match(result.stderr, /Manual recovery/);
@@ -104,4 +105,36 @@ test("tampered backup and replaced generated directory both preserve recovery ma
     assert.equal(fs.existsSync(metadata.backupRoot), true);
     fs.rmSync(metadata.backupRoot, { recursive: true, force: true }); fs.unlinkSync(lock);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test("an isolation failure after moving an original retains its bytes and recovery manifest", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-partial-isolation-"));
+  let lock, metadata;
+  try {
+    for (const directory of ["data", "reports", "test"]) fs.mkdirSync(path.join(root, directory));
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
+    for (const directory of ["data", "reports"]) fs.writeFileSync(path.join(root, directory, "live.json"), "original\n");
+    fs.writeFileSync(path.join(root, "test/worker.test.js"), 'throw new Error("worker must not run after isolation failure");');
+    const preload = path.join(root, "fail-after-move.mjs");
+    fs.writeFileSync(preload, `import fs from "node:fs"; import path from "node:path";
+      const mkdir = fs.mkdirSync;
+      fs.mkdirSync = function(directory, ...args) {
+        if (directory === path.join(process.cwd(), "reports") && !fs.existsSync(directory)) throw Object.assign(new Error("injected mkdir failure"), { code: "EIO" });
+        return mkdir.call(this, directory, ...args);
+      };`);
+    const env = { ...process.env, NODE_OPTIONS: "--import=" + JSON.stringify(preload) }; delete env.NODE_TEST_CONTEXT;
+    const result = spawnSync(process.execPath, [runner], { cwd: root, env, encoding: "utf8", timeout: 15000 });
+    assert.equal(result.status, 1); assert.match(result.stderr, /isolation incomplete/);
+    lock = lockFor(root); metadata = JSON.parse(fs.readFileSync(lock, "utf8"));
+    assert.equal(fs.readFileSync(path.join(metadata.backupRoot, "reports/live.json"), "utf8"), "original\n");
+    assert.equal(fs.readFileSync(path.join(root, "data/live.json"), "utf8"), "original\n");
+    const manifest = JSON.parse(fs.readFileSync(path.join(metadata.backupRoot, "recovery-manifest.json"), "utf8"));
+    const reports = manifest.artifacts.find(item => item.name === "reports");
+    assert.equal(reports.moved, true); assert.equal(reports.isolated, false);
+    assert.equal(fs.existsSync(path.join(root, "reports")), false);
+  } finally {
+    if (metadata) fs.rmSync(metadata.backupRoot, { recursive: true, force: true });
+    if (lock && fs.existsSync(lock)) fs.unlinkSync(lock);
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

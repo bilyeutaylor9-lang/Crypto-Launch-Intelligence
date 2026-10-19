@@ -34,8 +34,10 @@ const artifacts = ["reports", "data"].map(name => {
 });
 function persistRecoveryManifest() {
   const file = path.join(backupRoot, "recovery-manifest.json");
-  const fd = fs.openSync(file, "w", 0o600);
+  const temporary = file + "." + crypto.randomUUID() + ".tmp";
+  const fd = fs.openSync(temporary, "wx", 0o600);
   try { fs.writeFileSync(fd, JSON.stringify({ rootDir, lockFile, artifacts })); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  fs.renameSync(temporary, file);
   const fdRoot = fs.openSync(backupRoot, "r"); try { fs.fsyncSync(fdRoot); } finally { fs.closeSync(fdRoot); }
 }
 function bindInventories() {
