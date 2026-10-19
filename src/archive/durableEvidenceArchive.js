@@ -1,42 +1,96 @@
-/**
- * Local, append-only evidence archive.  This is deliberately not connected to
- * collection: callers must explicitly pass the bytes and the already-frozen
- * future obligations that their contract created.
- */
-import crypto from "crypto";
-import fs from "fs";
-import path from "path";
-import zlib from "zlib";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import zlib from "node:zlib";
 import Database from "better-sqlite3";
 
-const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
+const digest = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
 const now = () => new Date().toISOString();
-const parse = (value, fallback = null) => { try { return JSON.parse(value); } catch { return fallback; } };
+const HASH = /^[a-f0-9]{64}$/;
+const TABLES = ["evidence_records", "obligations", "leases", "outbox", "orphan_segments"];
 
-function fsyncDirectory(directory) {
-  let fd;
-  try { fd = fs.openSync(directory, "r"); fs.fsyncSync(fd); } finally { if (fd !== undefined) fs.closeSync(fd); }
-}
-
-function writeExclusiveAndSync(file, bytes) {
-  const temporary = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`;
-  let fd;
-  try {
-    fd = fs.openSync(temporary, "wx", 0o600);
-    fs.writeFileSync(fd, bytes);
-    fs.fsyncSync(fd);
-  } finally { if (fd !== undefined) fs.closeSync(fd); }
-  try { fs.renameSync(temporary, file); } catch (error) {
-    try { fs.unlinkSync(temporary); } catch {}
-    if (error.code !== "EEXIST") throw error;
+function canonical(value) {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+  if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${Array.from(value, canonical).join(",")}]`;
+  if (value && typeof value === "object" && [Object.prototype, null].includes(Object.getPrototypeOf(value))) {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
   }
-  fsyncDirectory(path.dirname(file));
+  throw new TypeError("Archive metadata must contain only finite JSON values");
 }
 
-function rawBuffer(rawBytes) {
-  if (Buffer.isBuffer(rawBytes)) return rawBytes;
-  if (rawBytes instanceof Uint8Array) return Buffer.from(rawBytes);
-  throw new TypeError("rawBytes must be Buffer or Uint8Array; stringify at the collection boundary if appropriate");
+function identifier(value, label) {
+  if (typeof value !== "string" || !value || value.trim() !== value || value.length > 4096 || /[\x00-\x1f]/.test(value)) throw new TypeError(`${label} must be a nonempty exact identifier`);
+  return value;
+}
+
+function timestamp(value, label) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) throw new TypeError(`${label} must be an ISO timestamp with an explicit timezone`);
+  return new Date(value).toISOString();
+}
+
+function syncDirectory(directory) {
+  const fd = fs.openSync(directory, "r");
+  try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+}
+
+function readRegular(file) {
+  if (!fs.lstatSync(file).isFile()) throw new Error(`ARCHIVE_NOT_REGULAR_FILE:${file}`);
+  return fs.readFileSync(file);
+}
+
+// Hard-link publication cannot overwrite an existing file like POSIX rename can.
+function persistImmutable(file, bytes) {
+  if (fs.existsSync(file)) {
+    if (!readRegular(file).equals(bytes)) throw new Error(`IMMUTABLE_FILE_CONFLICT:${path.basename(file)}`);
+    return;
+  }
+  const temporary = `${file}.${process.pid}.${crypto.randomUUID()}.tmp`;
+  const fd = fs.openSync(temporary, "wx", 0o600);
+  try { fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  try { fs.linkSync(temporary, file); } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    if (!readRegular(file).equals(bytes)) throw new Error(`IMMUTABLE_FILE_CONFLICT:${path.basename(file)}`);
+  }
+  fs.unlinkSync(temporary);
+  syncDirectory(path.dirname(file));
+}
+
+function rawBuffer(value) {
+  if (Buffer.isBuffer(value) || value instanceof Uint8Array) return Buffer.from(value);
+  throw new TypeError("rawBytes must be Buffer or Uint8Array");
+}
+
+function obligationsFor(recordId, value, contract) {
+  if (!Array.isArray(value)) throw new TypeError("frozenObligations must be supplied by the frozen contract");
+  const seen = new Set();
+  const tasks = value.map((input) => {
+    const item = JSON.parse(canonical(input));
+    identifier(item.obligationId, "obligationId");
+    if (seen.has(item.obligationId)) throw new Error(`DUPLICATE_OBLIGATION:${item.obligationId}`);
+    seen.add(item.obligationId);
+    item.dueAt = timestamp(item.dueAt, "dueAt");
+    item.expiresAt = timestamp(item.expiresAt, "expiresAt");
+    if (item.expiresAt < item.dueAt) throw new TypeError("expiresAt cannot precede dueAt");
+    if (item.horizonHours !== undefined && !(Number.isFinite(item.horizonHours) && item.horizonHours > 0)) throw new TypeError("horizonHours must be positive");
+    item.taskId = item.taskId ? identifier(item.taskId, "taskId") : digest(`${recordId}\u0000${item.obligationId}`);
+    return item;
+  }).sort((a, b) => a.obligationId < b.obligationId ? -1 : a.obligationId > b.obligationId ? 1 : 0);
+  if (Array.isArray(contract?.outcomeHorizonsHours)) {
+    const declared = [...contract.outcomeHorizonsHours].sort((a, b) => a - b);
+    const queued = tasks.map((task) => task.horizonHours).sort((a, b) => a - b);
+    if (canonical(declared) !== canonical(queued)) throw new Error("IMMUTABLE_HORIZON_CONFLICT");
+  }
+  return tasks;
+}
+
+function validateManifest(manifest) {
+  const { admissionHash, ...body } = manifest;
+  if (body.format !== "durable-evidence-manifest/v2" || !HASH.test(body.contentHash) || !HASH.test(body.compressedHash) || admissionHash !== digest(canonical(body))) throw new Error("ARCHIVE_MANIFEST_CORRUPT");
+  identifier(body.recordId, "recordId");
+  if (!Number.isSafeInteger(body.rawSize) || body.rawSize < 0) throw new Error("ARCHIVE_MANIFEST_CORRUPT");
+  if (canonical(body.frozenObligations) !== canonical(obligationsFor(body.recordId, body.frozenObligations, body.immutableContract))) throw new Error("ARCHIVE_MANIFEST_CORRUPT");
+  return manifest;
 }
 
 export function openDurableEvidenceArchive(options = {}) {
@@ -46,188 +100,343 @@ export function openDurableEvidenceArchive(options = {}) {
   const dbPath = path.join(root, "archive.sqlite");
   fs.mkdirSync(segmentDir, { recursive: true }); fs.mkdirSync(manifestDir, { recursive: true });
   const db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
-  db.pragma("synchronous = FULL");
+  const existing = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='evidence_records'").get();
+  if (existing && !db.pragma("table_info(evidence_records)").some((column) => column.name === "manifest_hash")) {
+    db.close(); throw new Error("ARCHIVE_SCHEMA_UNSUPPORTED_PRESERVE_ORIGINAL");
+  }
+  db.pragma("journal_mode = WAL"); db.pragma("synchronous = FULL"); db.pragma("foreign_keys = ON");
   db.exec(`
     CREATE TABLE IF NOT EXISTS evidence_records (
-      record_id TEXT PRIMARY KEY, content_hash TEXT NOT NULL UNIQUE, segment_name TEXT NOT NULL,
-      compressed_hash TEXT NOT NULL, raw_size INTEGER NOT NULL, cohort_json TEXT,
-      missingness_json TEXT, immutable_json TEXT NOT NULL, admitted_at TEXT NOT NULL
+      record_id TEXT PRIMARY KEY, content_hash TEXT NOT NULL, segment_name TEXT NOT NULL,
+      compressed_hash TEXT NOT NULL, raw_size INTEGER NOT NULL, manifest_name TEXT NOT NULL UNIQUE,
+      manifest_hash TEXT NOT NULL, admission_hash TEXT NOT NULL, cohort_json TEXT NOT NULL,
+      missingness_json TEXT NOT NULL, immutable_json TEXT NOT NULL, admitted_at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS obligations (
-      obligation_id TEXT PRIMARY KEY, record_id TEXT NOT NULL, frozen_json TEXT NOT NULL,
-      due_at TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending', task_id TEXT NOT NULL UNIQUE,
-      created_at TEXT NOT NULL, completed_at TEXT, FOREIGN KEY(record_id) REFERENCES evidence_records(record_id)
+      obligation_id TEXT NOT NULL, record_id TEXT NOT NULL REFERENCES evidence_records(record_id),
+      frozen_json TEXT NOT NULL, due_at TEXT NOT NULL, expires_at TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'pending', task_id TEXT PRIMARY KEY, created_at TEXT NOT NULL, completed_at TEXT,
+      evidence_record_id TEXT REFERENCES evidence_records(record_id),
+      UNIQUE(record_id, obligation_id)
     );
     CREATE TABLE IF NOT EXISTS leases (
-      obligation_id TEXT PRIMARY KEY, owner TEXT NOT NULL, lease_until TEXT NOT NULL, version INTEGER NOT NULL,
-      FOREIGN KEY(obligation_id) REFERENCES obligations(obligation_id)
+      task_id TEXT PRIMARY KEY REFERENCES obligations(task_id), owner TEXT NOT NULL,
+      lease_until TEXT NOT NULL, token TEXT NOT NULL UNIQUE
     );
     CREATE TABLE IF NOT EXISTS outbox (
-      outbox_id TEXT PRIMARY KEY, record_id TEXT NOT NULL, content_hash TEXT NOT NULL, kind TEXT NOT NULL,
+      outbox_id TEXT PRIMARY KEY, record_id TEXT NOT NULL REFERENCES evidence_records(record_id),
+      content_hash TEXT NOT NULL, manifest_hash TEXT NOT NULL, kind TEXT NOT NULL,
       payload_json TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending', receipt_json TEXT, created_at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS orphan_segments (
       content_hash TEXT PRIMARY KEY, segment_name TEXT NOT NULL, reason TEXT NOT NULL, noted_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_obligations_due ON obligations(state, due_at);
+    PRAGMA user_version = 2;
   `);
-
-  const findRecord = db.prepare("SELECT * FROM evidence_records WHERE record_id = ?");
-  const findHash = db.prepare("SELECT * FROM evidence_records WHERE content_hash = ?");
+  syncDirectory(root);
+  let closed = false;
+  const findRecord = db.prepare("SELECT * FROM evidence_records WHERE record_id=?");
+  const insertRecord = db.prepare("INSERT INTO evidence_records VALUES (@record_id,@content_hash,@segment_name,@compressed_hash,@raw_size,@manifest_name,@manifest_hash,@admission_hash,@cohort_json,@missingness_json,@immutable_json,@admitted_at)");
+  const insertTask = db.prepare("INSERT INTO obligations VALUES (@obligation_id,@record_id,@frozen_json,@due_at,@expires_at,@state,@task_id,@created_at,@completed_at,@evidence_record_id)");
+  const insertOutbox = db.prepare("INSERT INTO outbox VALUES (@outbox_id,@record_id,@content_hash,@manifest_hash,@kind,@payload_json,@state,@receipt_json,@created_at)");
   const markOrphan = db.prepare("INSERT OR IGNORE INTO orphan_segments VALUES (@content_hash,@segment_name,@reason,@noted_at)");
 
-  function assertSegment(row) {
+  function assertRow(row) {
+    if (!HASH.test(row.content_hash) || row.segment_name !== `${row.content_hash}.gz` || row.manifest_name !== `${digest(row.record_id)}.json`) throw new Error("ARCHIVE_INDEX_CORRUPT");
     const file = path.join(segmentDir, row.segment_name);
     if (!fs.existsSync(file)) throw new Error(`ARCHIVE_SEGMENT_MISSING:${row.segment_name}`);
-    const compressed = fs.readFileSync(file);
-    if (hash(compressed) !== row.compressed_hash) throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${row.segment_name}`);
+    const compressed = readRegular(file);
+    if (digest(compressed) !== row.compressed_hash) throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${row.segment_name}`);
     let raw;
     try { raw = zlib.gunzipSync(compressed); } catch { throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${row.segment_name}`); }
-    if (hash(raw) !== row.content_hash) throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${row.segment_name}`);
-    const manifestFile = path.join(manifestDir, `${row.content_hash}.json`);
-    if (!fs.existsSync(manifestFile)) throw new Error(`ARCHIVE_MANIFEST_MISSING:${row.content_hash}`);
-    const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
-    if (manifest.recordId !== row.record_id || manifest.contentHash !== row.content_hash || manifest.compressedHash !== row.compressed_hash) throw new Error(`ARCHIVE_MANIFEST_CORRUPT:${row.content_hash}`);
-    return raw;
-  }
-
-  function normalizeObligations(recordId, obligations) {
-    if (!Array.isArray(obligations)) throw new TypeError("frozenObligations must be an array supplied by the frozen contract");
-    const seen = new Set();
-    return obligations.map((frozen) => {
-      if (!frozen || typeof frozen !== "object" || !frozen.obligationId || !frozen.dueAt) throw new TypeError("each frozen obligation needs obligationId and dueAt");
-      if (!Number.isFinite(Date.parse(frozen.dueAt))) throw new TypeError("frozen obligation dueAt must be an ISO date");
-      if (seen.has(frozen.obligationId)) throw new Error(`DUPLICATE_OBLIGATION:${frozen.obligationId}`);
-      seen.add(frozen.obligationId);
-      return { ...frozen, taskId: frozen.taskId || hash(`${recordId}\u0000${frozen.obligationId}`) };
+    if (digest(raw) !== row.content_hash || raw.length !== row.raw_size) throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${row.segment_name}`);
+    const manifestFile = path.join(manifestDir, row.manifest_name);
+    if (!fs.existsSync(manifestFile)) throw new Error(`ARCHIVE_MANIFEST_MISSING:${row.manifest_name}`);
+    const bytes = readRegular(manifestFile);
+    if (digest(bytes) !== row.manifest_hash) throw new Error(`ARCHIVE_MANIFEST_CORRUPT:${row.manifest_name}`);
+    const manifest = validateManifest(JSON.parse(bytes));
+    const tasks = db.prepare("SELECT * FROM obligations WHERE record_id=? ORDER BY obligation_id").all(row.record_id);
+    const frozen = tasks.map((item) => {
+      const value = JSON.parse(item.frozen_json);
+      if (item.obligation_id !== value.obligationId || item.task_id !== value.taskId || item.due_at !== value.dueAt || item.expires_at !== value.expiresAt) throw new Error("ARCHIVE_TASK_CONTRACT_CORRUPT");
+      return value;
     });
+    if (manifest.recordId !== row.record_id || manifest.contentHash !== row.content_hash || manifest.compressedHash !== row.compressed_hash || manifest.admissionHash !== row.admission_hash ||
+      canonical(manifest.cohortMetadata) !== row.cohort_json || canonical(manifest.missingness) !== row.missingness_json || canonical(manifest.immutableContract) !== row.immutable_json || canonical(manifest.frozenObligations) !== canonical(frozen)) throw new Error(`ARCHIVE_MANIFEST_CORRUPT:${row.manifest_name}`);
+    return { raw, manifest };
   }
 
   function admitPrediction(input = {}) {
-    if (!input.recordId) throw new TypeError("recordId is required");
+    const recordId = identifier(input.recordId, "recordId");
     const bytes = rawBuffer(input.rawBytes);
-    const contentHash = hash(bytes);
-    const old = findRecord.get(input.recordId);
-    if (old) {
-      if (old.content_hash !== contentHash) throw new Error(`IMMUTABLE_ID_CONFLICT:${input.recordId}`);
-      return { status: "duplicate", recordId: input.recordId, contentHash, taskIds: db.prepare("SELECT task_id FROM obligations WHERE record_id=?").all(input.recordId).map((x) => x.task_id) };
+    const contract = input.immutableContract ?? null;
+    const obligations = obligationsFor(recordId, input.frozenObligations, contract);
+    const contentHash = digest(bytes);
+    const segment = path.join(segmentDir, `${contentHash}.gz`);
+    let compressed = zlib.gzipSync(bytes, { mtime: 0 });
+    if (fs.existsSync(segment)) {
+      compressed = readRegular(segment);
+      let original;
+      try { original = zlib.gunzipSync(compressed); } catch { throw new Error("ARCHIVE_SEGMENT_CORRUPT"); }
+      if (!original.equals(bytes)) throw new Error("ARCHIVE_SEGMENT_CORRUPT");
     }
-    const sameContent = findHash.get(contentHash);
-    if (sameContent) throw new Error(`IMMUTABLE_CONTENT_CONFLICT:${contentHash}`);
-    const obligations = normalizeObligations(input.recordId, input.frozenObligations);
-    const segmentName = `${contentHash}.gz`;
-    const compressed = zlib.gzipSync(bytes, { mtime: 0 });
-    const row = { record_id: input.recordId, content_hash: contentHash, segment_name: segmentName, compressed_hash: hash(compressed), raw_size: bytes.length, cohort_json: JSON.stringify(input.cohortMetadata ?? null), missingness_json: JSON.stringify(input.missingness ?? null), immutable_json: JSON.stringify(input.immutableContract ?? null), admitted_at: now() };
-    const file = path.join(segmentDir, segmentName);
-    if (!fs.existsSync(file)) writeExclusiveAndSync(file, compressed);
-    const manifest = { format: "durable-evidence-manifest/v1", recordId: input.recordId, contentHash, compressedHash: row.compressed_hash, rawSize: bytes.length, cohortMetadata: input.cohortMetadata ?? null, missingness: input.missingness ?? null, immutableContract: input.immutableContract ?? null, frozenObligations: obligations };
-    const manifestFile = path.join(manifestDir, `${contentHash}.json`);
-    if (!fs.existsSync(manifestFile)) writeExclusiveAndSync(manifestFile, Buffer.from(JSON.stringify(manifest)));
+    const body = { format: "durable-evidence-manifest/v2", recordId, contentHash: digest(bytes), compressedHash: digest(compressed), rawSize: bytes.length,
+      cohortMetadata: input.cohortMetadata ?? null, missingness: input.missingness ?? null, immutableContract: contract, frozenObligations: obligations };
+    const manifest = { ...body, admissionHash: digest(canonical(body)) };
+    const manifestBytes = Buffer.from(canonical(manifest));
+    const row = { record_id: recordId, content_hash: body.contentHash, segment_name: `${body.contentHash}.gz`, compressed_hash: body.compressedHash,
+      raw_size: bytes.length, manifest_name: `${digest(recordId)}.json`, manifest_hash: digest(manifestBytes), admission_hash: manifest.admissionHash,
+      cohort_json: canonical(body.cohortMetadata), missingness_json: canonical(body.missingness), immutable_json: canonical(contract), admitted_at: now() };
+    const old = findRecord.get(recordId);
+    if (old) {
+      assertRow(old);
+      if (old.admission_hash !== row.admission_hash) throw new Error(`IMMUTABLE_ID_CONFLICT:${recordId}`);
+      return { status: "duplicate", recordId, contentHash: row.content_hash, manifestName: row.manifest_name, admissionHash: row.admission_hash, taskIds: obligations.map((item) => item.taskId) };
+    }
+    persistImmutable(path.join(segmentDir, row.segment_name), compressed);
     if (options.fault === "after-segment") throw new Error("FAULT_AFTER_SEGMENT");
+    persistImmutable(path.join(manifestDir, row.manifest_name), manifestBytes);
+    if (options.fault === "after-manifest") throw new Error("FAULT_AFTER_MANIFEST");
     try {
       db.transaction(() => {
-        db.prepare("INSERT INTO evidence_records VALUES (@record_id,@content_hash,@segment_name,@compressed_hash,@raw_size,@cohort_json,@missingness_json,@immutable_json,@admitted_at)").run(row);
-        const insert = db.prepare("INSERT INTO obligations (obligation_id,record_id,frozen_json,due_at,state,task_id,created_at) VALUES (?,?,?,?, 'pending',?,?)");
-        for (const obligation of obligations) insert.run(obligation.obligationId, input.recordId, JSON.stringify(obligation), obligation.dueAt, obligation.taskId, row.admitted_at);
-        db.prepare("INSERT INTO outbox VALUES (?,?,?,?,?,'pending',NULL,?)").run(hash(`admit\u0000${input.recordId}\u0000${contentHash}`), input.recordId, contentHash, "admission", JSON.stringify({ recordId: input.recordId, contentHash }), row.admitted_at);
+        const concurrent = findRecord.get(recordId);
+        if (concurrent) {
+          assertRow(concurrent);
+          if (concurrent.admission_hash !== row.admission_hash) throw new Error(`IMMUTABLE_ID_CONFLICT:${recordId}`);
+          return;
+        }
+        insertRecord.run(row);
+        for (const item of obligations) insertTask.run({ obligation_id: item.obligationId, record_id: recordId, frozen_json: canonical(item), due_at: item.dueAt, expires_at: item.expiresAt, state: "pending", task_id: item.taskId, created_at: row.admitted_at, completed_at: null, evidence_record_id: null });
+        insertOutbox.run({ outbox_id: digest(`admit\u0000${recordId}\u0000${row.admission_hash}`), record_id: recordId, content_hash: row.content_hash, manifest_hash: row.manifest_hash,
+          kind: "admission", payload_json: canonical({ recordId, contentHash: row.content_hash, manifestHash: row.manifest_hash, admissionHash: row.admission_hash }), state: "pending", receipt_json: null, created_at: row.admitted_at });
         if (options.fault === "inside-transaction") throw new Error("FAULT_INSIDE_TRANSACTION");
-      })();
+      }).immediate();
     } catch (error) {
-      markOrphan.run({ content_hash: contentHash, segment_name: segmentName, reason: `unindexed:${error.message}`, noted_at: now() });
+      markOrphan.run({ content_hash: row.content_hash, segment_name: row.segment_name, reason: `unindexed:${error.message}`, noted_at: now() });
       throw error;
     }
-    return { status: "admitted", recordId: input.recordId, contentHash, taskIds: obligations.map((x) => x.taskId) };
+    return { status: "admitted", recordId, contentHash: row.content_hash, manifestName: row.manifest_name, admissionHash: row.admission_hash, taskIds: obligations.map((item) => item.taskId) };
   }
 
-  function readEvidence(recordId) { const row = findRecord.get(recordId); if (!row) return null; return { recordId, contentHash: row.content_hash, rawBytes: assertSegment(row), cohortMetadata: parse(row.cohort_json), missingness: parse(row.missingness_json), immutableContract: parse(row.immutable_json) }; }
+  function readEvidence(recordId) {
+    const row = findRecord.get(recordId); if (!row) return null;
+    return { recordId, contentHash: row.content_hash, admissionHash: row.admission_hash, rawBytes: assertRow(row).raw,
+      cohortMetadata: JSON.parse(row.cohort_json), missingness: JSON.parse(row.missingness_json), immutableContract: JSON.parse(row.immutable_json) };
+  }
 
-  function leaseDue({ owner, nowAt = now(), limit = 1, leaseMs = 60_000 } = {}) {
-    if (!owner) throw new TypeError("owner required");
-    const until = new Date(Date.parse(nowAt) + leaseMs).toISOString();
-    return db.transaction(() => {
-      db.prepare("UPDATE obligations SET state='pending' WHERE state='leased' AND obligation_id IN (SELECT obligation_id FROM leases WHERE lease_until <= ?)").run(nowAt);
-      db.prepare("DELETE FROM leases WHERE lease_until <= ?").run(nowAt);
-      const candidates = db.prepare("SELECT * FROM obligations WHERE state IN ('pending','retryable','budget-deferred') AND due_at <= ? ORDER BY due_at LIMIT ?").all(nowAt, limit);
-      const leased = [];
-      for (const task of candidates) {
-        const changed = db.prepare("UPDATE obligations SET state='leased' WHERE obligation_id=? AND state IN ('pending','retryable','budget-deferred')").run(task.obligation_id).changes;
-        if (changed) { db.prepare("INSERT INTO leases VALUES (?,?,?,1)").run(task.obligation_id, owner, until); leased.push({ taskId: task.task_id, obligationId: task.obligation_id, frozen: parse(task.frozen_json), leaseUntil: until }); }
-      }
-      return leased;
-    })();
+  function expireTasks(at) {
+    db.prepare("UPDATE obligations SET state='expired',completed_at=NULL WHERE state IN ('pending','leased','retryable','budget-deferred') AND expires_at < ?").run(at);
+    db.prepare("DELETE FROM leases WHERE task_id IN (SELECT task_id FROM obligations WHERE state='expired')").run();
+    db.prepare("UPDATE obligations SET state='pending' WHERE state='leased' AND task_id IN (SELECT task_id FROM leases WHERE lease_until <= ?)").run(at);
+    db.prepare("DELETE FROM leases WHERE lease_until <= ?").run(at);
   }
-  function transitionTask({ obligationId, owner, state, nowAt = now() } = {}) {
-    if (!['completed','retryable','budget-deferred','expired'].includes(state)) throw new TypeError("invalid terminal task state");
+
+  function leaseDue({ owner, nowAt = now(), limit = 1, leaseMs = 60000 } = {}) {
+    identifier(owner, "owner"); const at = timestamp(nowAt, "nowAt");
+    if (!Number.isSafeInteger(limit) || limit < 0 || !Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new TypeError("Invalid lease limit or duration");
+    const until = new Date(Date.parse(at) + leaseMs).toISOString();
     return db.transaction(() => {
-      const lease = db.prepare("SELECT * FROM leases WHERE obligation_id=?").get(obligationId);
-      if (!lease || lease.owner !== owner || lease.lease_until <= nowAt) return false;
-      const changed = db.prepare("UPDATE obligations SET state=?, completed_at=? WHERE obligation_id=? AND state='leased'").run(state, state === 'completed' ? nowAt : null, obligationId).changes;
-      if (changed) db.prepare("DELETE FROM leases WHERE obligation_id=? AND owner=? AND version=?").run(obligationId, owner, lease.version);
-      return Boolean(changed);
-    })();
+      expireTasks(at);
+      const candidates = db.prepare("SELECT * FROM obligations WHERE state IN ('pending','retryable','budget-deferred') AND due_at <= ? ORDER BY due_at,obligation_id LIMIT ?").all(at, limit);
+      return candidates.map((task) => {
+        const token = crypto.randomUUID();
+        db.prepare("UPDATE obligations SET state='leased' WHERE task_id=?").run(task.task_id);
+        db.prepare("INSERT INTO leases VALUES (?,?,?,?)").run(task.task_id, owner, until, token);
+        return { taskId: task.task_id, obligationId: task.obligation_id, frozen: JSON.parse(task.frozen_json), leaseUntil: until, leaseToken: token };
+      });
+    }).immediate();
   }
-  function dueDenominators(nowAt = now()) { return db.prepare("SELECT state, COUNT(*) AS count FROM obligations WHERE due_at <= ? GROUP BY state").all(nowAt); }
-  function acknowledgeOutbox({ outboxId, recordId, contentHash, receipt } = {}) {
+
+  function validObservation(task, evidenceRecordId, completedAt) {
+    if (!evidenceRecordId) return false;
+    const observation = findRecord.get(evidenceRecordId);
+    if (!observation) return false;
+    const manifest = assertRow(observation).manifest;
+    const link = manifest.immutableContract?.observationOf;
+    if (link?.recordId !== task.record_id || link?.taskId !== task.task_id) return false;
+    let requestedAt, receivedAt, marketAt;
+    try { requestedAt = timestamp(link.requestedAt, "requestedAt"); receivedAt = timestamp(link.receivedAt, "receivedAt"); marketAt = timestamp(link.marketObservedAt, "marketObservedAt"); } catch { return false; }
+    if (requestedAt > receivedAt || marketAt > receivedAt || receivedAt > completedAt || marketAt < task.due_at || marketAt > task.expires_at || receivedAt > task.expires_at) return false;
+    const parent = JSON.parse(findRecord.get(task.record_id).immutable_json);
+    for (const key of ["chain", "tokenAddress", "poolAddress"]) if (parent?.[key] !== undefined && parent[key] !== manifest.immutableContract?.[key]) return false;
+    const frozen = JSON.parse(task.frozen_json);
+    if (frozen.horizonHours !== undefined && frozen.horizonHours !== link.horizonHours) return false;
+    return true;
+  }
+
+  function transitionTask({ obligationId, owner, leaseToken, state, evidenceRecordId = null, nowAt = now() } = {}) {
+    if (!["completed", "retryable", "budget-deferred", "expired"].includes(state)) throw new TypeError("Invalid task transition");
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => {
+      expireTasks(at);
+      if (typeof leaseToken !== "string") return false;
+      const lease = db.prepare("SELECT leases.*, obligations.obligation_id FROM leases JOIN obligations USING(task_id) WHERE token=?").get(leaseToken);
+      if (!lease || lease.obligation_id !== obligationId || lease.owner !== owner || lease.lease_until <= at) return false;
+      if (state === "expired") return false;
+      const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(lease.task_id);
+      assertRow(findRecord.get(task.record_id));
+      if (state === "completed" && !validObservation(task, evidenceRecordId, at)) return false;
+      const changed = db.prepare("UPDATE obligations SET state=?,completed_at=?,evidence_record_id=? WHERE task_id=? AND state='leased'").run(state, state === "completed" ? at : null, state === "completed" ? evidenceRecordId : null, lease.task_id).changes;
+      if (changed) db.prepare("DELETE FROM leases WHERE task_id=? AND token=?").run(lease.task_id, leaseToken);
+      return changed === 1;
+    }).immediate();
+  }
+
+  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, nowAt = now() } = {}) {
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => {
+      expireTasks(at);
+      const lease = db.prepare("SELECT * FROM leases WHERE token=? AND owner=? AND lease_until>?").get(leaseToken, owner, at);
+      if (!lease) return false;
+      const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(lease.task_id);
+      if (task.obligation_id !== obligationId || !evidence?.recordId) return false;
+      const admitted = admitPrediction(evidence);
+      if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: at })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
+      return true;
+    }).immediate();
+  }
+
+  function dueDenominators(nowAt = now()) {
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => { expireTasks(at); return db.prepare("SELECT state,COUNT(*) AS count FROM obligations WHERE due_at <= ? GROUP BY state ORDER BY state").all(at); }).immediate();
+  }
+
+  function listOutbox() { return db.prepare("SELECT * FROM outbox ORDER BY created_at,outbox_id").all(); }
+
+  function acknowledgeOutbox({ outboxId, recordId, contentHash, manifestHash, readBack, receipt } = {}) {
     const row = db.prepare("SELECT * FROM outbox WHERE outbox_id=?").get(outboxId);
-    if (!row || row.record_id !== recordId || row.content_hash !== contentHash) return false;
-    return db.prepare("UPDATE outbox SET state='acknowledged', receipt_json=? WHERE outbox_id=? AND state='pending'").run(JSON.stringify(receipt ?? null), outboxId).changes === 1;
+    if (!row || row.record_id !== recordId || row.content_hash !== contentHash || row.manifest_hash !== manifestHash ||
+      readBack?.recordId !== recordId || readBack?.contentHash !== contentHash || readBack?.manifestHash !== manifestHash) return false;
+    const record = findRecord.get(recordId);
+    if (!record || record.content_hash !== contentHash || record.manifest_hash !== manifestHash) return false;
+    assertRow(record);
+    return db.prepare("UPDATE outbox SET state='acknowledged',receipt_json=? WHERE outbox_id=? AND state='pending'").run(canonical({ readBack, receipt: receipt ?? null }), outboxId).changes === 1;
   }
+
   function audit() {
     const errors = [];
-    for (const row of db.prepare("SELECT * FROM evidence_records").all()) { try { assertSegment(row); } catch (error) { errors.push(error.message); } }
-    const indexed = new Set(db.prepare("SELECT segment_name FROM evidence_records").all().map((row) => row.segment_name));
-    const detectedOrphans = fs.readdirSync(segmentDir).filter((name) => name.endsWith(".gz") && !indexed.has(name));
-    return { ok: errors.length === 0 && detectedOrphans.length === 0, errors, orphanSegments: db.prepare("SELECT * FROM orphan_segments").all(), detectedOrphans, records: db.prepare("SELECT COUNT(*) n FROM evidence_records").get().n };
-  }
-  function exportArchive(destination) {
-    const target = path.resolve(destination); fs.mkdirSync(target, { recursive: true });
-    const records = db.prepare("SELECT * FROM evidence_records").all().map((row) => ({ row, rawBase64: assertSegment(row).toString("base64") }));
-    const snapshot = { format: "durable-evidence-archive/v1", records, obligations: db.prepare("SELECT * FROM obligations").all(), leases: db.prepare("SELECT * FROM leases").all(), outbox: db.prepare("SELECT * FROM outbox").all(), orphanSegments: db.prepare("SELECT * FROM orphan_segments").all() };
-    fs.writeFileSync(path.join(target, "archive-export.json"), JSON.stringify(snapshot));
-    return path.join(target, "archive-export.json");
-  }
-  function rebuildIndex() {
-    if (db.prepare("SELECT COUNT(*) n FROM evidence_records").get().n) throw new Error("REBUILD_TARGET_NOT_EMPTY");
-    const manifests = fs.readdirSync(manifestDir).filter((name) => name.endsWith(".json"));
-    for (const name of manifests) {
-      const manifest = JSON.parse(fs.readFileSync(path.join(manifestDir, name), "utf8"));
-      if (manifest.format !== "durable-evidence-manifest/v1") throw new Error(`INVALID_MANIFEST:${name}`);
-      const raw = zlib.gunzipSync(fs.readFileSync(path.join(segmentDir, `${manifest.contentHash}.gz`)));
-      if (hash(raw) !== manifest.contentHash) throw new Error(`ARCHIVE_SEGMENT_CORRUPT:${manifest.contentHash}.gz`);
-      admitPrediction({ recordId: manifest.recordId, rawBytes: raw, cohortMetadata: manifest.cohortMetadata, missingness: manifest.missingness, immutableContract: manifest.immutableContract, frozenObligations: manifest.frozenObligations });
+    const records = db.prepare("SELECT * FROM evidence_records").all();
+    for (const row of records) { try { assertRow(row); } catch (error) { errors.push(error.message); } }
+    const indexed = new Set(records.map((row) => row.segment_name));
+    const manifests = new Set(records.map((row) => row.manifest_name));
+    const detectedOrphans = fs.readdirSync(segmentDir).filter((name) => !indexed.has(name));
+    const unindexedManifests = fs.readdirSync(manifestDir).filter((name) => !manifests.has(name));
+    const foreignKeyErrors = db.pragma("foreign_key_check");
+    if (foreignKeyErrors.length) errors.push("ARCHIVE_FOREIGN_KEY_INTEGRITY_FAILED");
+    const orphanSegments = db.prepare("SELECT * FROM orphan_segments").all();
+    const unresolvedOrphanMarkers = orphanSegments.filter((row) => !indexed.has(row.segment_name));
+    for (const marker of unresolvedOrphanMarkers) if (!fs.existsSync(path.join(segmentDir, marker.segment_name))) errors.push(`ARCHIVE_ORPHAN_SEGMENT_MISSING:${marker.segment_name}`);
+    const inconsistentTasks = db.prepare("SELECT obligations.task_id FROM obligations LEFT JOIN leases USING(task_id) WHERE (obligations.state='leased' AND leases.token IS NULL) OR (obligations.state!='leased' AND leases.token IS NOT NULL)").all();
+    if (inconsistentTasks.length) errors.push("ARCHIVE_LEASE_STATE_INCONSISTENT");
+    const invalidStates = db.prepare("SELECT task_id FROM obligations WHERE state NOT IN ('pending','leased','retryable','budget-deferred','expired','completed') OR (state='completed' AND (completed_at IS NULL OR completed_at < due_at OR completed_at > expires_at OR evidence_record_id IS NULL)) OR (state!='completed' AND (completed_at IS NOT NULL OR evidence_record_id IS NOT NULL))").all();
+    if (invalidStates.length) errors.push("ARCHIVE_TASK_STATE_INVALID");
+    for (const task of db.prepare("SELECT * FROM obligations WHERE state='completed'").all()) {
+      try { if (!validObservation(task, task.evidence_record_id, task.completed_at)) errors.push(`ARCHIVE_COMPLETION_EVIDENCE_INVALID:${task.task_id}`); } catch (error) { errors.push(error.message); }
     }
-    return audit();
+    for (const row of records) {
+      const entries = db.prepare("SELECT * FROM outbox WHERE record_id=?").all(row.record_id);
+      const entry = entries[0];
+      const expectedPayload = canonical({ recordId: row.record_id, contentHash: row.content_hash, manifestHash: row.manifest_hash, admissionHash: row.admission_hash });
+      if (entries.length !== 1 || entry.content_hash !== row.content_hash || entry.manifest_hash !== row.manifest_hash || entry.payload_json !== expectedPayload ||
+        entry.outbox_id !== digest(`admit\u0000${row.record_id}\u0000${row.admission_hash}`) || !["pending", "acknowledged"].includes(entry.state)) errors.push(`ARCHIVE_OUTBOX_CORRUPT:${row.record_id}`);
+    }
+    return { ok: errors.length === 0 && detectedOrphans.length === 0 && unindexedManifests.length === 0, integrityOk: errors.length === 0,
+      errors, detectedOrphans, unindexedManifests, orphanSegments, unresolvedOrphanMarkers, records: records.length };
   }
-  function importArchive(source) {
-    const snapshot = JSON.parse(fs.readFileSync(source, "utf8"));
-    if (snapshot.format !== "durable-evidence-archive/v1") throw new Error("UNSUPPORTED_ARCHIVE_EXPORT");
-    if (db.prepare("SELECT COUNT(*) n FROM evidence_records").get().n) throw new Error("RESTORE_TARGET_NOT_EMPTY");
-    db.transaction(() => {
-      for (const item of snapshot.records) {
-        const raw = Buffer.from(item.rawBase64, "base64"); const row = item.row;
-        if (hash(raw) !== row.content_hash) throw new Error(`INVALID_EXPORT_HASH:${row.record_id}`);
-        writeExclusiveAndSync(path.join(segmentDir, row.segment_name), zlib.gzipSync(raw, { mtime: 0 }));
-        const compressed = fs.readFileSync(path.join(segmentDir, row.segment_name));
-        if (hash(compressed) !== row.compressed_hash) throw new Error(`INVALID_EXPORT_SEGMENT:${row.record_id}`);
-        const frozenObligations = snapshot.obligations.filter((obligation) => obligation.record_id === row.record_id).map((obligation) => parse(obligation.frozen_json));
-        writeExclusiveAndSync(path.join(manifestDir, `${row.content_hash}.json`), Buffer.from(JSON.stringify({ format: "durable-evidence-manifest/v1", recordId: row.record_id, contentHash: row.content_hash, compressedHash: row.compressed_hash, rawSize: row.raw_size, cohortMetadata: parse(row.cohort_json), missingness: parse(row.missingness_json), immutableContract: parse(row.immutable_json), frozenObligations })));
-        db.prepare("INSERT INTO evidence_records VALUES (@record_id,@content_hash,@segment_name,@compressed_hash,@raw_size,@cohort_json,@missingness_json,@immutable_json,@admitted_at)").run(row);
-      }
-      for (const row of snapshot.obligations) db.prepare("INSERT INTO obligations VALUES (@obligation_id,@record_id,@frozen_json,@due_at,@state,@task_id,@created_at,@completed_at)").run(row);
-      for (const row of snapshot.leases) db.prepare("INSERT INTO leases VALUES (@obligation_id,@owner,@lease_until,@version)").run(row);
-      for (const row of snapshot.outbox) db.prepare("INSERT INTO outbox VALUES (@outbox_id,@record_id,@content_hash,@kind,@payload_json,@state,@receipt_json,@created_at)").run(row);
-      for (const row of snapshot.orphanSegments) markOrphan.run(row);
+
+  function exportArchive(destination) {
+    const target = path.resolve(destination);
+    if (fs.existsSync(target) && fs.readdirSync(target).length) throw new Error("EXPORT_TARGET_NOT_EMPTY");
+    fs.mkdirSync(target, { recursive: true });
+    const snapshot = db.transaction(() => {
+      const tables = Object.fromEntries(TABLES.map((table) => [table, db.prepare(`SELECT * FROM ${table}`).all()]));
+      for (const row of tables.evidence_records) assertRow(row);
+      return { format: "durable-evidence-archive/v2", createdAt: now(), tables, files: [] };
     })();
-    return audit();
+    for (const directory of ["segments", "manifests"]) {
+      fs.mkdirSync(path.join(target, directory));
+      for (const name of fs.readdirSync(path.join(root, directory)).sort()) {
+        const relative = `${directory}/${name}`;
+        const bytes = readRegular(path.join(root, relative));
+        persistImmutable(path.join(target, relative), bytes);
+        snapshot.files.push({ path: relative, bytes: bytes.length, sha256: digest(bytes) });
+      }
+    }
+    const index = Buffer.from(canonical(snapshot));
+    const file = path.join(target, "archive-export.json");
+    persistImmutable(file, index);
+    persistImmutable(`${file}.sha256`, Buffer.from(digest(index)));
+    syncDirectory(target);
+    return file;
   }
-  async function backup(destination) { await db.backup(path.resolve(destination)); return path.resolve(destination); }
-  function close() { db.close(); }
-  return { root, dbPath, admitPrediction, readEvidence, leaseDue, transitionTask, dueDenominators, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close };
+
+  function importArchive(source) {
+    if (TABLES.some((table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n) || fs.readdirSync(segmentDir).length || fs.readdirSync(manifestDir).length) throw new Error("RESTORE_TARGET_NOT_EMPTY");
+    const sourceFile = path.resolve(source);
+    const bytes = readRegular(sourceFile);
+    if (readRegular(`${sourceFile}.sha256`).toString() !== digest(bytes)) throw new Error("ARCHIVE_EXPORT_HASH_MISMATCH");
+    const snapshot = JSON.parse(bytes);
+    if (snapshot.format !== "durable-evidence-archive/v2" || !Array.isArray(snapshot.files) || TABLES.some((table) => !Array.isArray(snapshot.tables?.[table]))) throw new Error("UNSUPPORTED_ARCHIVE_EXPORT");
+    const seen = new Set();
+    for (const item of snapshot.files) {
+      if (!/^(segments|manifests)\/[a-zA-Z0-9.-]+$/.test(item.path) || item.path.split("/")[1].includes("..") || seen.has(item.path) || !HASH.test(item.sha256)) throw new Error("ARCHIVE_EXPORT_PATH_INVALID");
+      seen.add(item.path);
+      const original = readRegular(path.join(path.dirname(sourceFile), item.path));
+      if (original.length !== item.bytes || digest(original) !== item.sha256) throw new Error(`ARCHIVE_EXPORT_FILE_CORRUPT:${item.path}`);
+    }
+    for (const row of snapshot.tables.evidence_records) {
+      if (!HASH.test(row.content_hash) || row.segment_name !== `${row.content_hash}.gz` || row.manifest_name !== `${digest(identifier(row.record_id, "recordId"))}.json` ||
+        !seen.has(`segments/${row.segment_name}`) || !seen.has(`manifests/${row.manifest_name}`)) throw new Error("ARCHIVE_EXPORT_RECORD_INVALID");
+    }
+    for (const item of snapshot.files) persistImmutable(path.join(root, item.path), readRegular(path.join(path.dirname(sourceFile), item.path)));
+    db.transaction(() => {
+      for (const row of snapshot.tables.evidence_records) insertRecord.run(row);
+      for (const row of snapshot.tables.obligations) insertTask.run(row);
+      for (const row of snapshot.tables.leases) db.prepare("INSERT INTO leases VALUES (@task_id,@owner,@lease_until,@token)").run(row);
+      for (const row of snapshot.tables.outbox) insertOutbox.run(row);
+      for (const row of snapshot.tables.orphan_segments) markOrphan.run(row);
+      for (const row of snapshot.tables.evidence_records) assertRow(row);
+      const checked = audit();
+      if (!checked.integrityOk) throw new Error(`ARCHIVE_RESTORE_INTEGRITY_FAILED:${checked.errors.join(",")}`);
+    })();
+    const result = audit();
+    if (!result.integrityOk) throw new Error(`ARCHIVE_RESTORE_INTEGRITY_FAILED:${result.errors.join(",")}`);
+    return result;
+  }
+
+  function rebuildIndex() {
+    if (TABLES.some((table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n)) throw new Error("REBUILD_TARGET_NOT_EMPTY");
+    const inputs = fs.readdirSync(manifestDir).filter((name) => name.endsWith(".json")).map((name) => {
+      const manifest = validateManifest(JSON.parse(readRegular(path.join(manifestDir, name))));
+      if (name !== `${digest(manifest.recordId)}.json`) throw new Error("ARCHIVE_MANIFEST_CORRUPT");
+      const compressed = readRegular(path.join(segmentDir, `${manifest.contentHash}.gz`));
+      if (digest(compressed) !== manifest.compressedHash) throw new Error("ARCHIVE_SEGMENT_CORRUPT");
+      const raw = zlib.gunzipSync(compressed);
+      if (digest(raw) !== manifest.contentHash || raw.length !== manifest.rawSize) throw new Error("ARCHIVE_SEGMENT_CORRUPT");
+      return { ...manifest, rawBytes: raw };
+    });
+    db.transaction(() => { for (const input of inputs) admitPrediction(input); })();
+    return { ...audit(), mutableTaskHistoryRestored: false, status: "IMMUTABLE_INDEX_REBUILT_RECONCILIATION_REQUIRED" };
+  }
+
+  async function backup(destination) {
+    const target = path.resolve(destination);
+    let reserved;
+    try { reserved = fs.openSync(target, "wx", 0o600); } catch (error) { if (error.code === "EEXIST") throw new Error("BACKUP_TARGET_EXISTS"); throw error; }
+    fs.closeSync(reserved);
+    await db.backup(target);
+    const fd = fs.openSync(target, "r"); try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+    syncDirectory(path.dirname(target));
+    return target;
+  }
+  function close() { if (!closed) { db.close(); closed = true; } }
+  return { root, dbPath, admitPrediction, readEvidence, leaseDue, transitionTask, completeWithEvidence, dueDenominators, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close };
 }
 
 export function restoreDurableEvidenceArchive({ source, root }) {
-  const store = openDurableEvidenceArchive({ root });
-  store.importArchive(source);
-  return store;
+  const destination = path.resolve(root);
+  if (fs.existsSync(destination) && fs.readdirSync(destination).length) throw new Error("RESTORE_TARGET_NOT_EMPTY");
+  const store = openDurableEvidenceArchive({ root: destination });
+  try { store.importArchive(source); return store; } catch (error) { store.close(); throw error; }
 }

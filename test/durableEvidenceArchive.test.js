@@ -6,7 +6,7 @@ import test from "node:test";
 import { openDurableEvidenceArchive, restoreDurableEvidenceArchive } from "../src/archive/durableEvidenceArchive.js";
 
 const root = () => fs.mkdtempSync(path.join(os.tmpdir(), "archive-test-"));
-const admission = (raw = Buffer.from('{bad json\n')) => ({ recordId: "Prediction:SoLAnA:ABC", rawBytes: raw, cohortMetadata: { cohort: "C1", observedClock: null }, missingness: { sourceCommit: "unknown" }, immutableContract: { identity: "SoLAnA" }, frozenObligations: [{ obligationId: "one-hour", dueAt: "2026-01-01T01:00:00.000Z", horizonHours: 1 }, { obligationId: "six-hour", dueAt: "2026-01-01T06:00:00.000Z", horizonHours: 6 }] });
+const admission = (raw = Buffer.from('{bad json\n')) => ({ recordId: "Prediction:SoLAnA:ABC", rawBytes: raw, cohortMetadata: { cohort: "C1", observedClock: null }, missingness: { sourceCommit: "unknown" }, immutableContract: { identity: "SoLAnA" }, frozenObligations: [{ obligationId: "one-hour", dueAt: "2026-01-01T01:00:00.000Z", expiresAt: "2026-01-03T00:00:00.000Z", horizonHours: 1 }, { obligationId: "six-hour", dueAt: "2026-01-01T06:00:00.000Z", expiresAt: "2026-01-03T00:00:00.000Z", horizonHours: 6 }] });
 
 test("preserves malformed original bytes and immutable duplicate/conflict semantics", () => {
   const store = openDurableEvidenceArchive({ root: root() });
@@ -31,7 +31,7 @@ test("post-segment interruption leaves a discoverable physical orphan", () => {
 test("leases use ownership CAS and expired leases become pending", () => {
   const store = openDurableEvidenceArchive({ root: root() }); store.admitPrediction(admission());
   const [job] = store.leaseDue({ owner: "worker-a", nowAt: "2026-01-02T00:00:00.000Z", leaseMs: 1 });
-  assert.equal(store.transitionTask({ obligationId: job.obligationId, owner: "worker-b", state: "completed", nowAt: "2026-01-02T00:00:00.000Z" }), false);
+  assert.equal(store.transitionTask({ obligationId: job.obligationId, owner: "worker-b", leaseToken: job.leaseToken, state: "completed", nowAt: "2026-01-02T00:00:00.000Z" }), false);
   assert.equal(store.leaseDue({ owner: "worker-c", nowAt: "2026-01-02T00:01:00.000Z" }).length, 1);
   store.close();
 });
@@ -49,14 +49,22 @@ test("invalid compressed bytes are never silently repaired", () => {
 });
 test("empty-directory restore reproduces bytes and task states", () => {
   const dir = root(); const store = openDurableEvidenceArchive({ root: dir }); const r = store.admitPrediction(admission());
-  const [job] = store.leaseDue({ owner: "w", nowAt: "2026-01-02T00:00:00.000Z" }); store.transitionTask({ obligationId: job.obligationId, owner: "w", state: "completed", nowAt: "2026-01-02T00:00:00.000Z" });
+  const [job] = store.leaseDue({ owner: "w", nowAt: "2026-01-02T00:00:00.000Z" });
+  assert.equal(store.completeWithEvidence({ obligationId: job.obligationId, owner: "w", leaseToken: job.leaseToken, nowAt: "2026-01-02T00:00:00.000Z", evidence: {
+    recordId: "observed:one-hour", rawBytes: Buffer.from("original observation bytes"), frozenObligations: [],
+    immutableContract: { observationOf: { recordId: r.recordId, taskId: job.taskId, horizonHours: job.frozen.horizonHours,
+      requestedAt: "2026-01-02T00:00:00.000Z", receivedAt: "2026-01-02T00:00:00.000Z", marketObservedAt: "2026-01-02T00:00:00.000Z" } },
+  } }), true);
+  const expectedState = store.dueDenominators("2026-01-02T00:00:00.000Z");
   const exported = store.exportArchive(path.join(dir, "export")); store.close();
   const restored = restoreDurableEvidenceArchive({ source: exported, root: root() });
-  assert.equal(restored.readEvidence(r.recordId).rawBytes.toString(), "{bad json\n"); assert.equal(restored.audit().ok, true); restored.close();
+  assert.equal(restored.readEvidence(r.recordId).rawBytes.toString(), "{bad json\n");
+  assert.deepEqual(restored.dueDenominators("2026-01-02T00:00:00.000Z"), expectedState);
+  assert.equal(restored.audit().ok, true); restored.close();
 });
 test("manifests can rebuild immutable index but missing manifests fail audit", () => {
   const dir = root(); const store = openDurableEvidenceArchive({ root: dir }); const r = store.admitPrediction(admission()); store.close();
   fs.unlinkSync(path.join(dir, "archive.sqlite")); const rebuilt = openDurableEvidenceArchive({ root: dir });
   assert.equal(rebuilt.rebuildIndex().ok, true); assert.equal(rebuilt.readEvidence(r.recordId).contentHash, r.contentHash); rebuilt.close();
-  fs.unlinkSync(path.join(dir, "manifests", `${r.contentHash}.json`)); const broken = openDurableEvidenceArchive({ root: dir }); assert.equal(broken.audit().ok, false); broken.close();
+  fs.unlinkSync(path.join(dir, "manifests", r.manifestName)); const broken = openDurableEvidenceArchive({ root: dir }); assert.equal(broken.audit().ok, false); broken.close();
 });
