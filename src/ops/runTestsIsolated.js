@@ -2,6 +2,10 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+if (process.argv.length > 2) {
+  throw new Error("npm test runs the complete isolated suite and does not accept filters. Use node --test for focused tests.");
+}
+
 const rootDir = process.cwd();
 const testDir = path.join(rootDir, "test");
 const backupRoot = fs.mkdtempSync(path.join(rootDir, ".test-artifact-backup-"));

@@ -7,6 +7,19 @@ import { spawnSync } from "node:child_process";
 
 const runner = path.resolve("src/ops/runTestsIsolated.js");
 
+test("unsupported test filters are rejected before artifacts are moved or tests are run", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-filter-"));
+  try {
+    fs.mkdirSync(path.join(root, "data")); fs.mkdirSync(path.join(root, "reports"));
+    const original = Buffer.from("original-unmodified-evidence");
+    fs.writeFileSync(path.join(root, "data", "live.json"), original);
+    const result = spawnSync(process.execPath, [runner, "--test-name-pattern=focused"], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 1); assert.match(result.stderr, /does not accept filters/);
+    assert.deepEqual(fs.readFileSync(path.join(root, "data", "live.json")), original);
+    assert.deepEqual(fs.readdirSync(root).sort(), ["data", "reports"]);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
 for (const fails of [false, true]) {
   test(`test runner restores live data and reports after ${fails ? "failure" : "success"}`, () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-isolation-"));
