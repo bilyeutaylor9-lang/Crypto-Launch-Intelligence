@@ -23,6 +23,11 @@ test("transaction rollback retains auditable orphan and never invents obligation
   assert.equal(store.audit().orphanSegments.length, 1);
   store.close();
 });
+test("post-segment interruption leaves a discoverable physical orphan", () => {
+  const store = openDurableEvidenceArchive({ root: root(), fault: "after-segment" });
+  assert.throws(() => store.admitPrediction(admission()), /FAULT_AFTER_SEGMENT/);
+  assert.equal(store.audit().detectedOrphans.length, 1); store.close();
+});
 test("leases use ownership CAS and expired leases become pending", () => {
   const store = openDurableEvidenceArchive({ root: root() }); store.admitPrediction(admission());
   const [job] = store.leaseDue({ owner: "worker-a", nowAt: "2026-01-02T00:00:00.000Z", leaseMs: 1 });
@@ -36,6 +41,11 @@ test("missing or corrupt segments fail visibly; backup uses SQLite backup API", 
   fs.unlinkSync(path.join(dir, "segments", `${result.contentHash}.gz`));
   assert.throws(() => store.readEvidence(result.recordId), /ARCHIVE_SEGMENT_MISSING/);
   assert.equal(store.audit().ok, false); store.close();
+});
+test("invalid compressed bytes are never silently repaired", () => {
+  const dir = root(); const store = openDurableEvidenceArchive({ root: dir }); const result = store.admitPrediction(admission());
+  fs.writeFileSync(path.join(dir, "segments", `${result.contentHash}.gz`), "not gzip");
+  assert.throws(() => store.readEvidence(result.recordId), /ARCHIVE_SEGMENT_CORRUPT/); assert.equal(store.audit().ok, false); store.close();
 });
 test("empty-directory restore reproduces bytes and task states", () => {
   const dir = root(); const store = openDurableEvidenceArchive({ root: dir }); const r = store.admitPrediction(admission());
