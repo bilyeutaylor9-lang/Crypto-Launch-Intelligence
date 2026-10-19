@@ -104,15 +104,14 @@ async function fetchTableRows(config = {}, table = "", params = {}, options = {}
         const error = new Error(`Supabase ${table} read failed: ${response.status} ${String(detail).slice(0, 400)}`);
         try {
           const payload = JSON.parse(detail);
-          const providerCode = payload?.code || payload?.message;
-          if (typeof providerCode === "string" && /(^|[^a-z0-9_])exceed_egress_quota([^a-z0-9_]|$)/i.test(providerCode)) {
+          if (isTrustedEgressQuota(payload)) {
             error.providerCode = "exceed_egress_quota";
           }
         } catch { /* Provider codes are trusted only when structured. */ }
         const normalized = String(detail).toLowerCase();
         lastError = error;
         // Organization restrictions cannot be recovered with retries or another key.
-        if (response.status === 402 || isTrustedEgressQuota(error)) break credentialAttempts;
+        if (response.status === 402 || isTrustedEgressQuota(error) || normalized.includes("exceed_egress_quota")) break credentialAttempts;
         const retryable =
           response.status === 429 ||
           response.status >= 500 ||
@@ -457,7 +456,7 @@ export function writeSupabaseMemoryReport(memory = {}, filePath = DEFAULT_REPORT
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const memory = await collectSupabaseMemory();
+  const memory = await collectSupabaseMemory({ root: process.cwd() });
   const filePath = writeSupabaseMemoryReport(memory);
   console.log(JSON.stringify({ filePath, status: memory.status, counts: memory.counts, reason: memory.reason }, null, 2));
 }

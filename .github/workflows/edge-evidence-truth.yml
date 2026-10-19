@@ -45,13 +45,14 @@ jobs:
         run: npm run state:restore
 
       - name: Restore Remote Operational Circuit
+        if: always()
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
           path: data/remote-operational-circuits.json
-          key: remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-
+            remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-
 
       - name: Restore Append-Only Forward Evidence
         continue-on-error: true
@@ -156,12 +157,12 @@ jobs:
           key: forward-evidence-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Save Remote Operational Circuit
-        if: always()
+        if: ${{ always() && hashFiles('data/remote-operational-circuits.json') != '' }}
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: data/remote-operational-circuits.json
-          key: remote-operational-circuit-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Enforce Acquisition Operational Truth
         if: always()

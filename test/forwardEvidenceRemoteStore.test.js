@@ -336,7 +336,54 @@ test("generic provider failures do not open an egress circuit", async (t) => {
   const backend = fakeBackend([], { onRead: () => ({ data: null, error: { code: "42501", message: "forbidden" } }) });
   const report = await runForwardEvidenceRemoteCommand("restore", { root, backend, writeReport: false });
   assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
-  assert.equal(fs.existsSync(path.join(root, "data", "forward-evidence-remote-circuit.json")), false);
+  assert.equal(fs.existsSync(path.join(root, "data", "remote-operational-circuits.json")), false);
+});
+
+test("the captured platform restriction message opens the SDK circuit even without a code field", async (t) => {
+  const root = isolatedRoot(t);
+  const message = "Service for this project is restricted due to the following violations: exceed_egress_quota. " +
+    "The project owner must upgrade their plan or remove spend caps to restore service.";
+  const backend = fakeBackend([], { onRead: () => ({ data: null, error: { message } }) });
+  const first = await runForwardEvidenceRemoteCommand("restore", { root, backend, writeReport: false });
+  assert.equal(first.state, "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE");
+  const next = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+  assert.equal(next.skipped, true);
+  assert.equal(backend.reads.length, 1);
+  assert.equal(backend.writes.length, 0);
+});
+
+test("invalid backend configuration is reported without recreating the failed client", async (t) => {
+  const root = isolatedRoot(t);
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No network calls"));
+  const result = await runForwardEvidenceRemoteCommand("restore", { root, writeReport: false, env: {
+    SUPABASE_ENABLED: "true", SUPABASE_URL: "not-a-url", SUPABASE_SECRET_KEY: "fixture-secret",
+  } });
+  assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.match(result.error, /URL/i);
+});
+
+test("an incident persistence failure remains explicit without acknowledging remote synchronization", async (t) => {
+  const root = isolatedRoot(t);
+  const backend = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "quota" } }) });
+  const rename = fs.renameSync;
+  t.mock.method(fs, "renameSync", (source, target) => {
+    if (String(target).endsWith("remote-operational-circuits.json")) throw new Error("fixture persistence denied");
+    return rename(source, target);
+  });
+  const result = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+  assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.match(result.error, /quota/);
+  assert.match(result.circuitPersistenceError, /fixture persistence denied/);
+  assert.equal(result.uploaded, undefined);
+  assert.equal(backend.reads.length, 1);
+  assert.equal(backend.writes.length, 0);
+});
+
+test("operational reports stay inside the explicitly supplied workspace root", async t => {
+  const root = isolatedRoot(t), backend = fakeBackend();
+  const result = await runForwardEvidenceRemoteCommand("restore", { root, backend });
+  const saved = JSON.parse(fs.readFileSync(path.join(root, "reports", "forward-evidence-remote-sync.json"), "utf8"));
+  assert.deepEqual(saved, result);
 });
 
 test("corrupt circuit state fails closed without acknowledging or contacting remote sync", async (t) => {
@@ -359,6 +406,9 @@ test("only an explicit successful verification clears the egress circuit", async
   const recovered = fakeBackend([remoteRow("production-market-observations", { observationKey: "proof" })]);
   const report = await runForwardEvidenceRemoteCommand("verify", { root, backend: recovered, writeReport: false });
   assert.equal(report.state, "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED");
+  assert.equal(report.verificationScope, "INDEXED_SERVICE_ADMISSION_ONLY");
+  assert.equal(report.remoteDataRestored, false);
+  assert.equal(report.remoteSyncAcknowledged, false);
   assert.equal(recovered.reads.length, 1);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, "data", "remote-operational-circuits.json"), "utf8")).incidents, {});
   assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: recovered, writeReport: false })).state,
@@ -378,6 +428,24 @@ test("an empty or other-project verification cannot clear a scoped outage", asyn
     "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED");
   assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: empty, writeReport: false })).skipped, true);
 });
+
+for (const [name, change] of [
+  ["array hash", row => ({ ...row, content_hash: [row.content_hash] })],
+  ["whitespace ID", row => ({ ...row, record_id: "   " })],
+  ["oversized ID", row => ({ ...row, record_id: "x".repeat(7000) })],
+]) {
+  test(`${name} cannot clear a known quota incident`, async t => {
+    const root = isolatedRoot(t);
+    const outage = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "quota" } }) });
+    await runForwardEvidenceRemoteCommand("restore", { root, backend: outage, writeReport: false });
+    const row = change(remoteRow("production-market-observations", { observationKey: "verification-fixture" }));
+    const invalid = fakeBackend([row]);
+    const result = await runForwardEvidenceRemoteCommand("verify", { root, backend: invalid, writeReport: false });
+    assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: invalid, writeReport: false })).skipped, true);
+    assert.equal(invalid.reads.length, 1);
+  });
+}
 
 for (const [name, transform, message] of [
   ["corrupt hash", (row) => ({ ...row, record_json: { observationKey: "a", priceUsd: 99 } }), /hash mismatch/],

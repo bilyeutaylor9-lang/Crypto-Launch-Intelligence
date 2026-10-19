@@ -37,7 +37,13 @@ function loadAll(options = {}) {
   return value;
 }
 
-function saveAll(value, options = {}) { writeAtomicJson(fileFor(options), value); }
+function saveAll(value, options = {}) {
+  if (Object.keys(value.incidents).length > MAX_INCIDENTS ||
+      Buffer.byteLength(`${JSON.stringify(value, null, 2)}\n`) > MAX_BYTES) {
+    throw new Error("Remote operational circuit state exceeds its bounded limit.");
+  }
+  writeAtomicJson(fileFor(options), value);
+}
 
 export function loadRemoteEgressCircuit(scope, options = {}) {
   if (!scope) return null;
@@ -55,8 +61,8 @@ export function openRemoteEgressCircuit(scope, options = {}) {
   return incident;
 }
 
-// Keep a cleared tombstone out of the cache by deleting only this endpoint's
-// incident. A newer operational-cache key is saved by workflows after every run.
+// Retain the empty snapshot so the latest operational cache records recovery
+// instead of falling back to an older snapshot containing this incident.
 export function clearRemoteEgressCircuit(scope, options = {}) {
   if (!scope) return;
   const state = loadAll(options);
@@ -65,6 +71,11 @@ export function clearRemoteEgressCircuit(scope, options = {}) {
   saveAll(state, options);
 }
 
-export function isTrustedEgressQuota(error) { return error?.providerCode === EGRESS_QUOTA_PROVIDER_CODE; }
+export function isTrustedEgressQuota(error) {
+  if ([error?.providerCode, error?.code].includes(EGRESS_QUOTA_PROVIDER_CODE)) return true;
+  if (typeof error?.message !== "string") return false;
+  return /^Service for this project is restricted due to the following violations:\s*[^.]*\bexceed_egress_quota\b(?:[.,\s]|$)/i
+    .test(error.message.trim());
+}
 
 export const __remoteOperationalCircuitHooks = { loadAll, fileFor, validIncident };

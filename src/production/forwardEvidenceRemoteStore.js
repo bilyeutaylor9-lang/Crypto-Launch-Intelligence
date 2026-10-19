@@ -21,7 +21,7 @@ export const FORWARD_EVIDENCE_LEDGERS = Object.freeze({
 
 function remoteError(prefix, error) {
   const wrapped = new Error(`${prefix}: ${error?.message || String(error)}`);
-  if (error?.code === EGRESS_QUOTA_PROVIDER_CODE) wrapped.providerCode = error.code;
+  if (isTrustedEgressQuota(error)) wrapped.providerCode = EGRESS_QUOTA_PROVIDER_CODE;
   return wrapped;
 }
 
@@ -362,13 +362,15 @@ export async function syncForwardEvidence(options = {}) {
 
 export async function runForwardEvidenceRemoteCommand(command = "restore", options = {}) {
   const now = options.now || new Date().toISOString();
+  const reportFile = path.resolve(options.root || ".", "reports/forward-evidence-remote-sync.json");
+  let backendForCircuit;
   try {
-    const backendForCircuit = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
+    backendForCircuit = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
     const scope = supabaseCircuitScope(backendForCircuit.config);
     const incident = loadRemoteEgressCircuit(scope, options);
     if (incident && command !== "verify") {
       const report = { ...incident, schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE", generatedAt: now, skipped: true };
-      if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+      if (options.writeReport !== false) writeAtomicJson(reportFile, report);
       return report;
     }
     let result;
@@ -382,28 +384,35 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
         // Empty reads establish admission only. They cannot clear an outage because
         // they prove neither a requested ledger record nor immutable metadata.
         if (!data.length || data.some((row) => row?.ledger_name !== "production-market-observations" ||
-          typeof row.record_id !== "string" || !row.record_id || !/^[0-9a-f]{64}$/.test(String(row.content_hash || "")))) {
+          typeof row.record_id !== "string" || !row.record_id.trim() || recordIdQueryBytes(row.record_id) + 512 > 6000 ||
+          typeof row.content_hash !== "string" || !/^[0-9a-f]{64}$/.test(row.content_hash))) {
           throw new Error("Remote forward-evidence verification requires indexed ledger metadata.");
         }
         clearRemoteEgressCircuit(scope, options);
-        result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED" };
+        result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED",
+          verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", remoteDataRestored: false, remoteSyncAcknowledged: false };
       }
-    } else result = command === "sync" ? await syncForwardEvidence(options) : await restoreForwardEvidence(options);
+    } else result = command === "sync"
+      ? await syncForwardEvidence({ ...options, backend: backendForCircuit })
+      : await restoreForwardEvidence({ ...options, backend: backendForCircuit });
     const report = { ...result, generatedAt: now };
-    if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+    if (options.writeReport !== false) writeAtomicJson(reportFile, report);
     return report;
   } catch (error) {
-    const backend = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
-    const incident = isConfirmedEgressQuotaError(error)
-      ? openRemoteEgressCircuit(supabaseCircuitScope(backend.config), { ...options, now }) : null;
+    let incident = null, circuitPersistenceError = null;
+    if (isConfirmedEgressQuotaError(error) && backendForCircuit) {
+      try { incident = openRemoteEgressCircuit(supabaseCircuitScope(backendForCircuit.config), { ...options, now }); }
+      catch (persistenceError) { circuitPersistenceError = persistenceError?.message || String(persistenceError); }
+    }
     const report = {
       schemaVersion: 1,
       generatedAt: now,
       state: incident ? "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" : "REMOTE_FORWARD_EVIDENCE_FAILED",
       error: error?.message || String(error),
       ...(incident ? { providerCode: incident.providerCode, detectedAt: incident.detectedAt } : {}),
+      ...(circuitPersistenceError ? { circuitPersistenceError } : {}),
     };
-    if (options.writeReport !== false) writeAtomicJson("reports/forward-evidence-remote-sync.json", report);
+    if (options.writeReport !== false) writeAtomicJson(reportFile, report);
     return report;
   }
 }

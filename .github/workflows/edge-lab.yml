@@ -40,6 +40,16 @@ jobs:
       - name: Restore Validated Scanner State
         run: npm run state:restore
 
+      - name: Restore Remote Operational Circuit
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-
+
       - name: Refresh Lead-Time Outcome Lab
         run: npm run edge:lab
 
@@ -85,3 +95,11 @@ jobs:
             reports/committed-loaded-vacuum-validation.json
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Save Remote Operational Circuit
+        if: ${{ always() && hashFiles('data/remote-operational-circuits.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
