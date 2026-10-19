@@ -122,6 +122,29 @@ test("frozen explicit horizons govern selection without being intersected with g
   assert.deepEqual(malformed, []);
 });
 
+test("prospective frozen cohorts without a valid horizon contract are not assigned invented work", () => {
+  const episode = {
+    cohortId: "cohort-invalid", episodeId: "episode-invalid", role: "TREATMENT",
+    decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+  };
+  assert.deepEqual(prospectiveCohortsToProbeMemory([episode]), []);
+});
+
+test("frozen evaluation policy controls the primary-horizon tolerance only", () => {
+  const memory = prospectiveCohortsToProbeMemory([{
+    cohortId: "cohort-policy", episodeId: "episode-policy", role: "TREATMENT",
+    decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+    outcomeHorizonsHours: [24, 168],
+    strategyDefinition: { evaluationPolicy: { primaryHorizonHours: 24, outcomeToleranceHours: 8 } },
+  }]);
+  const due = selectOutcomeProbeCandidates(memory, [], {
+    now: "2026-01-02T07:00:00.000Z", horizons: [1],
+  });
+  assert.equal(due.length, 1);
+  assert.equal(due[0].duePredictions[0].maximumLatenessHours, 8);
+  assert.equal(due[0].duePredictions[0].toleranceBasis, "FROZEN_EVALUATION_POLICY_PRIMARY_HORIZON");
+});
+
 test("dedicated exact-ledger observations prevent redundant outcome requests", () => {
   const exactLedgerObservation = {
     chain: "base",
@@ -405,6 +428,46 @@ test("a primary provider failure still permits the budgeted exact Gecko fallback
   assert.equal(report.status, "PASS");
   assert.equal(report.providerRequestsUsed, 2);
   assert.equal(saved[0].outcomeObservationProvenance.source, "geckoterminal");
+});
+
+test("a timed-out DEX request does not abort the independently timed Gecko fallback", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", timeoutMs: 5, horizons: [1], maxRequests: 2, geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async (_chain, _pool, { signal }) => new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(Object.assign(new Error("timed out"), { name: "AbortError" })));
+      }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async (_chain, _pool, { signal }) => {
+        assert.equal(signal.aborted, false);
+        return { data: {
+          id: `base_${POOL_A}`,
+          attributes: { address: POOL_A, name: "Edge / WETH", base_token_price_usd: "1.3", reserve_in_usd: "100000" },
+          relationships: { base_token: { data: { id: `base_${TOKEN_A}` } } },
+        } };
+      },
+    },
+    saveSnapshots: (observations) => { saved = observations; return { saved: observations.length }; },
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.status, "PASS");
+  assert.deepEqual(saved[0].outcomeObservationProvenance.providerAttempts.map((item) => item.status), ["TIMEOUT", "RECEIVED"]);
+  assert.ok(saved[0].outcomeObservationProvenance.providerAttempts.every((item) => item.requestedAt));
+  assert.equal(saved[0].outcomeObservationProvenance.receiptObservedAt, "2026-01-01T01:30:00.000Z");
+});
+
+test("an invalid frozen cohort contract cannot be reported as no outcomes due", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", memory: [], prospectiveEpisodes: [{
+      cohortId: "cohort-invalid", episodeId: "episode-invalid", role: "TREATMENT",
+      decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+    }], snapshots: [], providers: { getPairByAddress: async () => ({ pairs: [] }), getTokenPairs: async () => [] },
+    writeReport: false,
+  });
+  assert.equal(report.status, "INVALID_FROZEN_OUTCOME_CONTRACT");
+  assert.equal(report.invalidFrozenOutcomeContracts, 1);
 });
 
 test("outcome observations retain receipt time and do not invent a missing provider source time", async () => {

@@ -117,7 +117,13 @@ export function prospectiveCohortsToProbeMemory(episodes = []) {
   return (Array.isArray(episodes) ? episodes : []).flatMap((episode) => {
     const key = getOutcomeIdentityKey(episode);
     const scannedAt = episode.decisionAt || episode.frozenAt || null;
-    if (!key || !scannedAt || !["TREATMENT", "CONTROL_MATCHED"].includes(episode.role)) return [];
+    const horizons = Array.isArray(episode.outcomeHorizonsHours)
+      ? parseHorizons(episode.outcomeHorizonsHours)
+      : [];
+    if (!key || !scannedAt || !["TREATMENT", "CONTROL_MATCHED"].includes(episode.role) || !horizons.length) return [];
+    const frozenPolicy = episode.strategyDefinition?.evaluationPolicy || episode.evaluationPolicy || {};
+    const primaryHorizonHours = Number(frozenPolicy.primaryHorizonHours);
+    const frozenOutcomeToleranceHours = Number(frozenPolicy.outcomeToleranceHours);
     return [{
       identityKey: key,
       chain: episode.chain,
@@ -126,9 +132,11 @@ export function prospectiveCohortsToProbeMemory(episodes = []) {
       symbol: episode.symbol || null,
       name: episode.name || null,
       scannedAt,
-      outcomeHorizonsHours: Array.isArray(episode.outcomeHorizonsHours)
-        ? episode.outcomeHorizonsHours.map(Number).filter((value) => value > 0)
-        : [24, 168],
+      outcomeHorizonsHours: horizons,
+      frozenPrimaryHorizonHours: horizons.includes(primaryHorizonHours) ? primaryHorizonHours : null,
+      frozenOutcomeToleranceHours: Number.isFinite(frozenOutcomeToleranceHours) && frozenOutcomeToleranceHours > 0
+        ? frozenOutcomeToleranceHours
+        : null,
       forwardEvidencePriority: episode.role === "TREATMENT" ? 100 : 90,
       prospectiveEdgeCohortId: episode.cohortId || null,
       prospectiveEdgeEpisodeId: episode.episodeId || null,
@@ -136,6 +144,15 @@ export function prospectiveCohortsToProbeMemory(episodes = []) {
       scores: { opportunity: episode.role === "TREATMENT" ? 100 : 90 },
     }];
   });
+}
+
+function invalidFrozenCohortContract(episode = {}) {
+  const key = getOutcomeIdentityKey(episode);
+  const scannedAt = episode.decisionAt || episode.frozenAt || null;
+  return Boolean(
+    key && scannedAt && ["TREATMENT", "CONTROL_MATCHED"].includes(episode.role) &&
+    (!Array.isArray(episode.outcomeHorizonsHours) || !parseHorizons(episode.outcomeHorizonsHours).length)
+  );
 }
 
 /**
@@ -249,7 +266,12 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
     // silently substitute configured defaults for an empty/malformed contract.
     for (const horizonHours of contractedHorizons) {
       const targetMs = scannedAtMs + horizonHours * 60 * 60 * 1000;
-      const toleranceHours = outcomeHorizonToleranceHours(horizonHours, options);
+      const usesFrozenPrimaryTolerance =
+        horizonHours === Number(record.frozenPrimaryHorizonHours) &&
+        Number(record.frozenOutcomeToleranceHours) > 0;
+      const toleranceHours = usesFrozenPrimaryTolerance
+        ? Number(record.frozenOutcomeToleranceHours)
+        : outcomeHorizonToleranceHours(horizonHours, options);
       const toleranceMs = toleranceHours * 60 * 60 * 1000;
       if (nowMs < targetMs || nowMs > targetMs + toleranceMs) continue;
       if (alreadyResolved(snapshotsByKey.get(key) || [], targetMs, toleranceMs, identity)) continue;
@@ -275,6 +297,9 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
           predictionAt: record.scannedAt || new Date(scannedAtMs).toISOString(),
           targetAt: new Date(targetMs).toISOString(),
           maximumLatenessHours: toleranceHours,
+          toleranceBasis: usesFrozenPrimaryTolerance
+            ? "FROZEN_EVALUATION_POLICY_PRIMARY_HORIZON"
+            : "OPERATIONAL_NON_CERTIFICATE_TOLERANCE",
           prospectiveEntryEdgeEpisodeId: record.prospectiveEntryEdgeEpisodeId || null,
           prospectiveEntryEdgeRole: record.prospectiveEntryEdgeRole || null,
         });
@@ -347,9 +372,28 @@ function exactPair(candidate = {}, pairs = []) {
 }
 
 async function probeCandidate(candidate = {}, providers = {}, options = {}) {
-  const controller = new AbortController();
   const timeoutMs = Number(options.timeoutMs || DEFAULT_TIMEOUT_MS);
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const providerAttempts = [];
+
+  async function requestProvider(source, request) {
+    const controller = new AbortController();
+    const requestedAt = collectionTime(options);
+    const attempt = { source, requestedAt, receiptObservedAt: null, status: "REQUESTED" };
+    providerAttempts.push(attempt);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const payload = await request(controller.signal);
+      attempt.receiptObservedAt = collectionTime(options);
+      attempt.status = "RECEIVED";
+      return payload;
+    } catch (error) {
+      attempt.status = error?.name === "AbortError" ? "TIMEOUT" : "FAILURE";
+      attempt.error = error?.message || "Unknown provider failure";
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
 
   try {
     let pair = null;
@@ -360,13 +404,9 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       return { candidate, status: "PROVIDER_REQUEST_BUDGET_EXHAUSTED", observation: null };
     }
     try {
-      const dexPayload = candidate.poolAddress
-        ? await providers.getPairByAddress(candidate.chain, candidate.poolAddress, {
-            signal: controller.signal,
-          })
-        : await providers.getTokenPairs(candidate.chain, candidate.tokenAddress, {
-            signal: controller.signal,
-          });
+      const dexPayload = await requestProvider("dexscreener", (signal) => candidate.poolAddress
+        ? providers.getPairByAddress(candidate.chain, candidate.poolAddress, { signal })
+        : providers.getTokenPairs(candidate.chain, candidate.tokenAddress, { signal }));
       pair = exactPair(candidate, rawPairs(dexPayload));
     } catch (error) {
       dexError = error;
@@ -375,11 +415,11 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
     if (!pair && candidate.poolAddress && providers.getGeckoPoolByAddress &&
       resolveGeckoTerminalNetworkId(candidate.chain) && options.consumeProviderRequest()) {
       try {
-        const geckoPayload = await providers.getGeckoPoolByAddress(
+        const geckoPayload = await requestProvider("geckoterminal", (signal) => providers.getGeckoPoolByAddress(
           candidate.chain,
           candidate.poolAddress,
-          { maxAttempts: 1, timeoutMs, signal: controller.signal }
-        );
+          { maxAttempts: 1, timeoutMs, signal }
+        ));
         pair = exactPair(candidate, geckoPairs(geckoPayload));
         source = "geckoterminal";
       } catch (error) {
@@ -393,6 +433,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
         candidate,
         status: error ? (error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_FAILURE") : "NO_EXACT_PROVIDER_MATCH",
         error: error?.message || null,
+        providerAttempts,
         observation: null,
       };
     }
@@ -413,6 +454,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
           source,
           sourceTimestamp: pair.sourceTimestamp,
           receiptObservedAt: observedAt,
+          providerAttempts,
           observationTimeBasis: pair.sourceTimestamp ? "PROVIDER_SOURCE_AND_COLLECTION_RECEIPT" : "COLLECTION_RECEIPT_ONLY",
           confidence: 1,
           verificationStatus: candidate.poolAddress
@@ -427,10 +469,9 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       candidate,
       status: error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_FAILURE",
       error: error?.message || "Unknown provider failure",
+      providerAttempts,
       observation: null,
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -493,6 +534,8 @@ async function runOutcomeProbeUnlocked(options = {}) {
         )
       : [];
   const prospectiveMemory = prospectiveCohortsToProbeMemory(prospectiveEpisodes);
+  const invalidFrozenOutcomeContracts = (Array.isArray(prospectiveEpisodes) ? prospectiveEpisodes : [])
+    .filter(invalidFrozenCohortContract).length;
   const prospectiveEntryMemory = prospectiveEntryEpisodesToProbeMemory(
     prospectiveEntryEpisodes,
     { trials: options.prospectiveEntryTrials }
@@ -600,7 +643,9 @@ async function runOutcomeProbeUnlocked(options = {}) {
   const report = {
     generatedAt: collectionTime(options),
     runId,
-    status: !candidates.length
+    status: invalidFrozenOutcomeContracts > 0
+      ? "INVALID_FROZEN_OUTCOME_CONTRACT"
+      : !candidates.length
       ? "NO_OUTCOMES_DUE"
       : validObservations.length
         ? validObservations.length === candidates.length
@@ -644,6 +689,7 @@ async function runOutcomeProbeUnlocked(options = {}) {
     marketContextObservationsSaved: num(marketContextSaveResult.saved),
     marketContextObservationsRejected: num(marketContextSaveResult.rejected),
     prospectiveEdgeEpisodesTracked: prospectiveMemory.length,
+    invalidFrozenOutcomeContracts,
     prospectiveEdgeDueCandidates: candidates.filter(
       (candidate) => candidate.forwardEvidencePriority > 0
     ).length,
@@ -681,6 +727,7 @@ async function runOutcomeProbeUnlocked(options = {}) {
         : result.status,
       duePredictions: result.candidate.duePredictions.length,
       error: result.error || null,
+      providerAttempts: result.providerAttempts || result.observation?.outcomeObservationProvenance?.providerAttempts || [],
     })),
   };
 
