@@ -504,6 +504,22 @@ test("outcome observations retain receipt time and do not invent a missing provi
   assert.equal(saved[0].outcomeObservationProvenance.observationTimeBasis, "COLLECTION_RECEIPT_ONLY");
 });
 
+test("a provider source clock after the actual receipt is degraded rather than captured", async () => {
+  let saves = 0;
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [{ ...providerPair(), sourceTimestamp: "2026-01-01T01:31:00.000Z" }] }),
+      getTokenPairs: async () => [],
+    },
+    saveSnapshots: () => { saves += 1; return { saved: 0 }; },
+    saveExactObservations: () => assert.fail("contradictory provider clock must not be persisted"), writeReport: false,
+  });
+  assert.equal(report.status, "PROVIDER_DEGRADED");
+  assert.equal(report.results[0].status, "PROVIDER_CLOCK_INVALID");
+  assert.equal(saves, 0);
+});
+
 test("a late receipt is retained as evidence but cannot make the due capture pass", async () => {
   const originalNow = Date.now;
   let clock = Date.parse("2026-01-01T01:30:00.000Z");
