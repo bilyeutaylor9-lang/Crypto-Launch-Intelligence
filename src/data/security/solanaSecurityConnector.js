@@ -237,7 +237,7 @@ export async function getSolanaSecurityEvidence(project = {}, options = {}) {
     sourceTimestamp: rpc?.sourceTimestamp || null,
     sourceTimestampMeaning: rpc ? "CONFIRMED_MAINNET_MINT_ACCOUNT_CONTEXT_TIME" : "UNKNOWN_CHAIN_SNAPSHOT_TIME",
     malicious,
-    honeypot: malicious,
+    honeypot: malicious ? true : null,
     mintRisk,
     freezeRisk,
     blacklistRisk,

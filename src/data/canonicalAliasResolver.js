@@ -15,6 +15,7 @@ import { normalizeUnitValue } from "./unitNormalizationRegistry.js";
 import { resolveFieldConflict } from "./fieldConflictResolver.js";
 import { buildAliasAuditRecord } from "./aliasResolutionAudit.js";
 import { normalizeBooleanVocabulary, normalizeStatusVocabulary } from "./statusVocabularyNormalizer.js";
+import { hasVerifiedHoneypotNegative, metadataOnlySecurityProvider, securityObservationIsCurrent, sourcifyResponseIdentityMatches } from "./security/securityEvidenceUtils.js";
 import {
   aliasConfidenceValue,
   fuzzyAliasMatch,
@@ -131,6 +132,70 @@ function inferProvider(project = {}, options = {}, sourcePath = "") {
   const provider = canonicalProviderId(source);
   cache?.set(source, provider);
   return provider;
+}
+
+function matchesProjectIdentity(project, chain, address, requireDeclared = false) {
+  const known = [project, project.rawCandidate, project.marketData, project.canonicalExecutionRoute,
+    project.executionProofRecoveryRoute, project.executionProof].filter(Boolean);
+  const supplied = value => value !== null && value !== undefined && value !== "";
+  const chains = known.flatMap(value => [value.chain, value.chainId, value.network, value.canonicalChain,
+    value.canonicalChainId, value.finalChain, value.finalChainId, value.normalizedChain, value.baseToken?.chain]).filter(supplied);
+  const addresses = known.flatMap(value => [value.tokenAddress, value.contractAddress, value.address,
+    value.canonicalAddress, value.finalContractAddress, value.verifiedContractAddress,
+    value.baseTokenAddress, value.baseToken?.address]).filter(supplied);
+  return (!requireDeclared || Boolean(chain && address && chains.length && addresses.length)) &&
+    chains.every(value => normalizeChainId(value) === chain) &&
+    addresses.every(value => normalizeTokenAddress(value, chain) === address);
+}
+
+function securityAliasRejection(project, sourcePath, canonicalField, rawValue, inferredProvider) {
+  const negativeHoneypot = canonicalField === "honeypotDetected" && normalizeBooleanVocabulary(rawValue).value === false;
+  if (negativeHoneypot && metadataOnlySecurityProvider(inferredProvider)) return "metadata-does-not-prove-honeypot-negative";
+  let node = project;
+  let container = "";
+  const parts = sourcePath.split(".");
+  for (let index = 0; index < parts.length; index++) {
+    const part = parts[index];
+    if (!node || typeof node !== "object") return negativeHoneypot ? "unavailable-source-for-honeypot-negative" : null;
+    const provider = node.provider || node.source;
+    if (container === "sourcifyDeployerEvidence" ||
+        (typeof provider === "string" && provider.toLowerCase().includes("sourcify"))) {
+      const boundChain = normalizeChainId(node.chain);
+      const boundAddress = normalizeTokenAddress(node.address || node.tokenAddress, boundChain);
+      if (node.status === "UNKNOWN" ||
+          !sourcifyResponseIdentityMatches(node.raw, node.chain, node.address || node.tokenAddress) ||
+          !matchesProjectIdentity(project, boundChain, boundAddress)) return "sourcify-unverified-or-contradictory-identity";
+    }
+    if (negativeHoneypot) {
+      if (metadataOnlySecurityProvider(provider) || metadataOnlySecurityProvider(container)) {
+        return "metadata-does-not-prove-honeypot-negative";
+      }
+      if (typeof provider === "string" && provider.toLowerCase().includes("goplus") &&
+          (["EVIDENCE_AVAILABLE", "UNKNOWN"].includes(node.status) || Object.hasOwn(node, "responseIdentityVerified"))) {
+        const chain = normalizeChainId(node.chain);
+        if (!hasVerifiedHoneypotNegative(node) ||
+            !matchesProjectIdentity(project, chain, normalizeTokenAddress(node.address || node.tokenAddress, chain), true)) {
+          return "unproven-honeypot-negative";
+        }
+      }
+      if (container === "securityEvidenceSummary" ||
+          (container === "summary" && Array.isArray(node.providers)) || Object.hasOwn(node, "honeypotNegativeEvidence")) {
+        const observations = Array.isArray(node.honeypotNegativeEvidence) ? node.honeypotNegativeEvidence : [];
+        if (node.honeypotNegativeVerified !== true || !observations.some(evidence => {
+          if (!evidence || typeof evidence !== "object" ||
+              !String(evidence.source || "").toLowerCase().includes("goplus")) return false;
+          if (!securityObservationIsCurrent(evidence.sourceTimestamp) || !(Number(evidence.confidence) > 0)) return false;
+          const chain = normalizeChainId(evidence.chain);
+          return matchesProjectIdentity(project, chain, normalizeTokenAddress(evidence.tokenAddress, chain), true);
+        })) return "unproven-honeypot-negative";
+      }
+    }
+    if (index < parts.length - 1) {
+      node = node[part];
+      container = part;
+    }
+  }
+  return null;
 }
 
 function flattenObject(object = {}, prefix = "", output = [], ignoredRoots = null) {
@@ -468,6 +533,17 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   for (const candidate of candidates) {
     // Discovery attribution cannot replace the provider that observed this field.
     const provider = inferProvider(project, options, candidate.sourcePath);
+    const prior = project.canonicalAliasProvenance?.[canonicalField];
+    const observation = fieldProvenance(project, candidate.sourcePath);
+    const trustPath = canonicalField === "honeypotDetected" && candidate.sourcePath === canonicalField && prior?.sourcePath &&
+      observation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION" ? prior.sourcePath : candidate.sourcePath;
+    const rejection = securityAliasRejection(project, trustPath, canonicalField, candidate.rawValue, provider);
+    if (rejection) {
+      records.push(rejectRecord({ canonicalField, sourcePath: candidate.sourcePath, rawValue: candidate.rawValue,
+        provider, reason: rejection, aliases,
+        sourceTimestamp: sourceTimestamp(project, candidate.sourcePath) }));
+      continue;
+    }
     let profile = options._providerProfiles?.get(provider);
     if (!profile) {
       profile = providerProfile(provider);
@@ -589,6 +665,15 @@ export function applyCanonicalAliases(project = {}, options = {}) {
     if (transactionCountSource(priorProvenance.sourcePath) && Object.hasOwn(resolution.resolved, field)) {
       sanitized[field] = resolution.resolved[field];
     }
+  }
+  const priorHoneypot = project.canonicalAliasProvenance?.honeypotDetected;
+  const honeyObservation = fieldProvenance(project, "honeypotDetected");
+  if (project.honeypotDetected === false && Object.hasOwn(resolution.resolved, "honeypotDetected") &&
+      resolution.resolved.honeypotDetected === null &&
+      ((priorHoneypot?.sourcePath && priorHoneypot.sourcePath !== "honeypotDetected" &&
+        honeyObservation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION") ||
+        metadataOnlySecurityProvider(honeyObservation.source || honeyObservation.sourceProvider || project.source || project.provider))) {
+    sanitized.honeypotDetected = null;
   }
   return {
     ...sanitized,

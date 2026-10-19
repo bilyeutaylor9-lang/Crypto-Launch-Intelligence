@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { normalizeChainId, normalizeTokenAddress } from "../../identity/strictIdentityValidators.js";
 
 const DATA_DIR = path.resolve("data");
 const CACHE_FILE = path.join(DATA_DIR, "security-evidence-cache.json");
@@ -71,6 +72,45 @@ export function tokenAddress(project = {}) {
 
 export function isEvmAddress(address = "") {
   return /^0x[a-fA-F0-9]{40}$/.test(clean(address));
+}
+
+export function sourcifyResponseIdentityMatches(raw, chain, address) {
+  if (raw === null || raw === undefined) return true;
+  if (typeof raw !== "object" || Array.isArray(raw)) return false;
+  const supplied = value => value !== null && value !== undefined;
+  const chains = [raw.chain, raw.chainId, raw.chain_id, raw.network].filter(supplied);
+  const addresses = [raw.address, raw.contractAddress, raw.contract_address, raw.tokenAddress].filter(supplied);
+  if (!chains.length && !addresses.length) return true;
+  const expectedChain = normalizeChainId(chain);
+  const expectedAddress = normalizeTokenAddress(address, expectedChain);
+  return Boolean(expectedChain && expectedAddress) &&
+    chains.every(value => normalizeChainId(value) === expectedChain) &&
+    addresses.every(value => normalizeTokenAddress(value, expectedChain) === expectedAddress);
+}
+
+function hasSourcifyIdentityConflict(item = {}) {
+  return lower(item.provider || item.source).includes("sourcify") &&
+    !sourcifyResponseIdentityMatches(item.raw, item.chain, item.address || item.tokenAddress);
+}
+
+export function metadataOnlySecurityProvider(provider = "") {
+  const value = lower(provider);
+  return ["sourcify", "blockscout", "etherscan", "rugcheck", "solana-rpc"].some(source => value.includes(source));
+}
+
+export function securityObservationIsCurrent(timestamp, ttlMs = DEFAULT_TTL_MS, now = Date.now()) {
+  const observed = typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
+  return Number.isFinite(observed) && observed <= now && typeof ttlMs === "number" &&
+    Number.isFinite(ttlMs) && ttlMs > 0 && now - observed <= ttlMs;
+}
+
+export function hasVerifiedHoneypotNegative(item = {}) {
+  const chain = normalizeChainId(item.chain);
+  const address = normalizeTokenAddress(item.address || item.tokenAddress, chain);
+  return lower(item.provider || item.source).includes("goplus") && item.status === "EVIDENCE_AVAILABLE" &&
+    item.responseIdentityVerified === true && item.honeypot !== true &&
+    goPlusBoolFlag(item.raw?.is_honeypot) === false && Boolean(chain && address) &&
+    securityObservationIsCurrent(item.observedAt) && Number(item.confidence) > 0;
 }
 
 export function boolFlag(value) {
@@ -151,9 +191,19 @@ export function getCachedSecurityEvidence(provider = "", chain = "", address = "
       !Number.isFinite(ttlMs) || ttlMs <= 0 || now - cachedAtMs > ttlMs) return null;
   const value = entry.value;
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  if (lower(provider).includes("sourcify") &&
+      (!sourcifyResponseIdentityMatches(value, chain, address) ||
+        !sourcifyResponseIdentityMatches(value.raw, chain, address))) return null;
   const observedAtMs = typeof value.observedAt === "string" ? Date.parse(value.observedAt) : NaN;
   if (!Number.isFinite(observedAtMs) || observedAtMs > now || now - observedAtMs > ttlMs) return null;
-  return structuredClone(value);
+  const observed = structuredClone(value);
+  if (observed.honeypot !== true) {
+    if (metadataOnlySecurityProvider(provider) && observed.honeypot === false) observed.honeypot = null;
+    if (lower(provider).includes("goplus") && Object.hasOwn(observed, "honeypot")) {
+      observed.honeypot = goPlusBoolFlag(observed.raw?.is_honeypot);
+    }
+  }
+  return observed;
 }
 
 export function setCachedSecurityEvidence(provider = "", chain = "", address = "", value = {}) {
@@ -209,10 +259,12 @@ export function unknownSecurityEvidence(provider = "unknown", reason = "Security
 
 export function summarizeSecurityEvidence(evidence = []) {
   const items = (Array.isArray(evidence) ? evidence : []).filter(Boolean);
-  const known = items.filter((item) => item.status !== "UNKNOWN" &&
+  const scopedItems = items.filter(item => !hasSourcifyIdentityConflict(item));
+  const known = scopedItems.filter((item) => item.status !== "UNKNOWN" &&
     (item.provider !== "goplus" || item.responseIdentityVerified === true));
-  const riskFindings = [...new Set(items.flatMap((item) => item.riskFindings || []))];
-  const warnings = [...new Set(items.flatMap((item) => item.warnings || []))];
+  const riskFindings = [...new Set(scopedItems.flatMap((item) => item.riskFindings || []))];
+  const warnings = [...new Set([...items.flatMap((item) => item.warnings || []),
+    ...(scopedItems.length < items.length ? ["Sourcify response identity conflicts with its bound contract; evidence remains unknown."] : [])])];
   const verifiedSource = known.some((item) => item.verifiedSource === true);
   const goPlusItems = known.filter((item) => item.provider === "goplus");
   const requiredChecks = ["is_open_source", "is_honeypot", "is_mintable", "is_proxy", "is_blacklisted", "cannot_sell_all", "slippage_modifiable", "transfer_pausable", "trading_cooldown", "personal_slippage_modifiable", "hidden_owner", "can_take_back_ownership", "owner_change_balance"];
@@ -224,14 +276,20 @@ export function summarizeSecurityEvidence(evidence = []) {
       if (!goPlusItems.some((item) => goPlusTaxPct(item.raw?.[field]) !== null)) unknownChecks.push(`goplus.${field}`);
     }
   }
-  const malicious = items.some((item) => item.malicious === true);
-  const honeypot = items.some((item) => item.honeypot === true);
-  const proxy = items.some((item) => item.proxy === true);
-  const ownerRisk = items.some((item) => item.ownerRisk === true);
-  const mintRisk = items.some((item) => item.mintRisk === true);
-  const freezeRisk = items.some((item) => item.freezeRisk === true);
-  const blacklistRisk = items.some((item) => item.blacklistRisk === true);
-  const highTaxRisk = items.some((item) => item.highTaxRisk === true);
+  const malicious = scopedItems.some((item) => item.malicious === true);
+  const honeypotNegativeEvidence = known.filter(hasVerifiedHoneypotNegative).map(item => ({
+    source: item.provider || item.source, chain: normalizeChainId(item.chain),
+    tokenAddress: normalizeTokenAddress(item.address || item.tokenAddress, normalizeChainId(item.chain)),
+    sourceTimestamp: item.observedAt, confidence: item.confidence,
+  }));
+  const honeypot = scopedItems.some((item) => item.honeypot === true) ? true
+    : honeypotNegativeEvidence.length ? false : null;
+  const proxy = scopedItems.some((item) => item.proxy === true);
+  const ownerRisk = scopedItems.some((item) => item.ownerRisk === true);
+  const mintRisk = scopedItems.some((item) => item.mintRisk === true);
+  const freezeRisk = scopedItems.some((item) => item.freezeRisk === true);
+  const blacklistRisk = scopedItems.some((item) => item.blacklistRisk === true);
+  const highTaxRisk = scopedItems.some((item) => item.highTaxRisk === true);
   const confidence = known.length
     ? Math.round(known.reduce((sum, item) => sum + Number(item.confidence || 0), 0) / known.length)
     : 0;
@@ -245,6 +303,8 @@ export function summarizeSecurityEvidence(evidence = []) {
     verifiedSource,
     malicious,
     honeypot,
+    honeypotNegativeVerified: honeypot === false,
+    honeypotNegativeEvidence,
     proxy,
     ownerRisk,
     mintRisk,

@@ -56,7 +56,7 @@ export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
     boolFlag(item.is_blacklisted) === true ||
     boolFlag(item.cannot_sell_all) === true ||
     boolFlag(item.slippage_modifiable) === true;
-  const honeypot = boolFlag(item.is_honeypot) === true;
+  const honeypot = boolFlag(item.is_honeypot);
   const malicious = boolFlag(item.malicious_address) === true || boolFlag(item.is_airdrop_scam) === true;
   const proxy = boolFlag(item.is_proxy) === true;
   const verifiedSource = boolFlag(item.is_open_source) === true;

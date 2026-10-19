@@ -272,3 +272,42 @@ through the first full-suite, syntax, load and isolated smoke passes. Fresh
 complete validation and another source-pinned live run are required for this
 final scheduling revision. Results belong in the PR's current validation record;
 the failed live metrics above remain the retained before-repair measurement.
+
+## Sourcify Response Identity Hardening
+
+An additional offline adversarial probe reproduced a pre-existing boundary
+defect: a Sourcify response explicitly naming a different chain and contract
+could be normalized using the requested identity and contribute creator proof.
+Contradictory or malformed declared bindings now remain UNKNOWN at the fresh
+provider, cache, creator-recovery and security-summary boundaries. Valid
+endpoint-scoped metadata without redundant identifiers remains supported.
+
+Retaining rejected raw metadata also exposed a second path: semantic aliases
+could rediscover its nested deployment address. Alias candidates under UNKNOWN,
+contradictory or foreign Sourcify envelopes are now rejected, while the raw audit
+response is retained. Valid bound creator observations still resolve normally.
+Foreign flags cannot clear genuine local adverse evidence or supply another
+contract's risk. Cached observations are neither deleted nor timestamp-refreshed
+by validation. New regressions cover fresh, cached, injected and retained raw
+responses, malformed declarations, semantic alias replay and adverse precedence.
+Canonical/final/raw/market/route identity forms and source-only or provider-less
+known-supplier records receive the same checks.
+
+## Metadata Is Not A Honeypot Test
+
+A further executable probe showed that source-verification metadata and generic
+absence-of-risk flags could become `honeypotDetected: false` through aliases.
+Sourcify, Blockscout and Etherscan do not perform that test; their unassessed
+honeypot field is now null. A clean Solana mint likewise does not manufacture an
+EVM-style negative honeypot test. GoPlus preserves strict true/false/null based
+on its actual `is_honeypot` response, including null for omitted/invalid values.
+
+Security summaries retain genuine adverse flags but no longer turn an absence
+of findings into a negative test. Verified negatives carry the actual source,
+chain, token, observation timestamp and confidence. Alias consumers require a
+matching current observation, reject metadata-only or foreign negatives and
+quarantine unsupported flattened legacy aliases. Current verified observations
+are not overridden by older alias provenance. Cache reads sanitize legacy
+absence flags without rewriting stored records or refreshing timestamps.
+The added regressions cover these distinctions before another live validation;
+the coverage target cannot be met by manufacturing benign safety evidence.

@@ -126,7 +126,7 @@ export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo =
     blacklistRisk: false,
     highTaxRisk: false,
     malicious: false,
-    honeypot: false,
+    honeypot: null,
     riskFindings: proxy ? ["Blockscout shows proxy or implementation indirection."] : [],
     warnings: sourceVerified ? [] : ["Blockscout did not confirm verified source code."],
     confidence: sourceVerified ? (proxy ? 78 : 84) : 48,

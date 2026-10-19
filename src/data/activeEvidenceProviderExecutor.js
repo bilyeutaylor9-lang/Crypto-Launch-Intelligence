@@ -30,7 +30,7 @@ import {
 } from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
 import { createGoPlusRequestLimiter, waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
-import { getCachedSecurityEvidence, goPlusTaxPct, nonnegativeSafeInteger, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
+import { getCachedSecurityEvidence, goPlusTaxPct, nonnegativeSafeInteger, sourcifyResponseIdentityMatches, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
 import { getBlockscoutWalletEvidence, resolveBlockscoutWalletRequest } from "./blockscoutWalletConnector.js";
 import { GOPLUS_WALLET_CHAINS } from "./enrichmentSourceRegistry.js";
@@ -647,7 +647,9 @@ function confidenceFraction(value, fallback = 0.8) {
   return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric));
 }
 
-function exactDeployerResult(result = {}, identity = {}) {
+function exactDeployerResult(result = {}, identity = {}, source = null) {
+  if ([source, result.provider, result.source].some(value => lower(value).includes("sourcify")) &&
+      !sourcifyResponseIdentityMatches(result.raw, identity.chain, identity.tokenAddress)) return false;
   const resultChain = result.chain ? normalizeChainId(result.chain) : null;
   const resultAddress = lower(result.address || result.tokenAddress);
   if (resultChain && resultChain !== identity.chain) return false;
@@ -666,7 +668,8 @@ function existingDeployerEvidence(project = {}, identity = {}) {
       : []),
     project.blockscoutDeployerEvidence,
     project.goplusDeployerEvidence,
-    project.sourcifyDeployerEvidence,
+    ...(project.sourcifyDeployerEvidence && sourcifyResponseIdentityMatches(project.sourcifyDeployerEvidence.raw,
+      identity.chain, identity.tokenAddress) ? [project.sourcifyDeployerEvidence] : []),
     project.etherscanDeployerEvidence,
     project.baseB20LifecycleEvidence,
     project.nativeContractDeploymentEvidence,
@@ -724,7 +727,7 @@ export async function recoverDeployerEvidence(
     const localSources = new Set();
     const needs = (supported) => fields.some((field) => supported.includes(field) && !observations.has(field));
     const collect = (result, source, patchKey) => {
-      if (!exactDeployerResult(result, evm) || result.status === "UNKNOWN") return;
+      if (!exactDeployerResult(result, evm, source) || result.status === "UNKNOWN") return;
       for (const item of deployerObservations(result, fields, evm, source)) {
         if (!observations.has(item.field)) observations.set(item.field, item);
       }
@@ -1679,6 +1682,8 @@ function knownSecurityItems(result = {}) {
 
 function securityIdentityMatches(item = {}, identity = {}, allowUnknown = false) {
   if (!item || typeof item !== "object") return false;
+  if (lower(item.provider || item.source).includes("sourcify") &&
+      !sourcifyResponseIdentityMatches(item.raw, identity.chain, identity.tokenAddress)) return false;
   if (allowUnknown && item.status === "UNKNOWN") {
     return (!item.chain || normalizeChainId(item.chain) === identity.chain) &&
       (!(item.address || item.tokenAddress) ||
