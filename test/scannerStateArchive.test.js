@@ -79,6 +79,20 @@ test("archive mode requires the latest exact universe and never archives it away
   assert.throws(() => packScannerState({ root: f.root, archiveRoot: f.archiveRoot, writeReport: false }), /exact universe/i);
 });
 
+test("restart packing cannot compete with an enforced evidence writer but works after release", t => {
+  const f = fixture(t), store = openDurableEvidenceArchive({ root: f.archiveRoot });
+  try {
+    store.claimWriter({ owner: "outcome-capture" });
+    assert.throws(() => packScannerState({ root: f.root, archiveRoot: f.archiveRoot, writeReport: false }), /WRITER_BUSY/);
+    assert.equal(fs.existsSync(path.join(f.root, ".state/scanner-learning-bundle.json.gz")), false);
+    store.releaseWriter();
+    const packed = packScannerState({ root: f.root, archiveRoot: f.archiveRoot, writeReport: false });
+    assert.equal(packed.archiveReferenceCount, 1);
+    assert.equal(store.coordinationStatus().writer.active, false);
+    assert.equal(store.audit().ok, true);
+  } finally { store.close(); }
+});
+
 test("large archived history does not consume the bounded restart payload allowance", t => {
   const f = fixture(t); const bytes = Buffer.alloc(1024 * 1024, 65);
   f.write("data/scan-history.jsonl", bytes);

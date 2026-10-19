@@ -329,10 +329,16 @@ function hashFile(file) {
   return hashFileRange(file, 0, fs.statSync(file).size);
 }
 
-function archiveStateEntries(archiveRoot, entries) {
-  const store = openDurableEvidenceArchive({ root: archiveRoot });
+function archiveStateEntries(archiveRoot, entries, options = {}) {
+  const store = openDurableEvidenceArchive({ root: archiveRoot, writerToken: options.archiveWriterToken });
+  let claimed = false;
   try {
+    if (store.coordinationStatus().writerEnforced && !options.archiveWriterToken) {
+      claimed = Boolean(store.claimWriter({ owner: "scanner-state-pack:" + process.pid }));
+      if (!claimed) throw new Error("SCANNER_STATE_ARCHIVE_WRITER_BUSY");
+    }
     return entries.map((entry) => {
+      if (claimed) store.renewWriter();
       const bytes = fs.readFileSync(entry.absolute);
       if (bytes.length !== entry.bytes || sha256(bytes) !== entry.sha256) throw new Error("Scanner-state source changed during archival: " + entry.path);
       const admitted = store.admitPrediction({
@@ -343,7 +349,7 @@ function archiveStateEntries(archiveRoot, entries) {
       });
       return { path: entry.path, bytes: entry.bytes, sha256: entry.sha256, recordId: admitted.recordId, admissionHash: admitted.admissionHash };
     });
-  } finally { store.close(); }
+  } finally { if (claimed) store.releaseWriter(); store.close(); }
 }
 
 function readArchiveReference(store, reference) {
@@ -518,7 +524,7 @@ export function packScannerState(options = {}) {
     scanRunId: options.scanRunId ?? process.env.GITHUB_RUN_ID ?? null,
     fileCount: hot.length,
     files: hot.map(({ absolute, ...entry }) => entry),
-    ...(useArchive ? { archiveReferenceCount: archived.length, archiveReferences: archiveStateEntries(options.archiveRoot, archived) } : {}),
+    ...(useArchive ? { archiveReferenceCount: archived.length, archiveReferences: archiveStateEntries(options.archiveRoot, archived, options) } : {}),
   };
   fs.mkdirSync(path.dirname(bundleFile), { recursive: true });
   const validateSources = () => {

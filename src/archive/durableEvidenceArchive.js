@@ -3,11 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import Database from "better-sqlite3";
+import { COORDINATOR_TABLES, createEvidenceCoordinatorState } from "./evidenceCoordinatorState.js";
 
 const digest = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
 const now = () => new Date().toISOString();
 const HASH = /^[a-f0-9]{64}$/;
-const TABLES = ["evidence_records", "obligations", "leases", "outbox", "orphan_segments"];
+const EVIDENCE_TABLES = ["evidence_records", "obligations", "leases", "outbox", "orphan_segments"];
+const TABLES = [...EVIDENCE_TABLES, ...COORDINATOR_TABLES];
 
 function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
@@ -73,6 +75,7 @@ function obligationsFor(recordId, value, contract) {
     item.expiresAt = timestamp(item.expiresAt, "expiresAt");
     if (item.expiresAt < item.dueAt) throw new TypeError("expiresAt cannot precede dueAt");
     if (item.horizonHours !== undefined && !(Number.isFinite(item.horizonHours) && item.horizonHours > 0)) throw new TypeError("horizonHours must be positive");
+    if (item.observationClockPolicy !== undefined && !["INDEPENDENT_MARKET_CLOCK_V1", "COLLECTION_RECEIPT_V1"].includes(item.observationClockPolicy)) throw new TypeError("Unsupported observation clock policy");
     item.taskId = item.taskId ? identifier(item.taskId, "taskId") : digest(`${recordId}\u0000${item.obligationId}`);
     return item;
   }).sort((a, b) => a.obligationId < b.obligationId ? -1 : a.obligationId > b.obligationId ? 1 : 0);
@@ -136,6 +139,8 @@ export function openDurableEvidenceArchive(options = {}) {
     CREATE INDEX IF NOT EXISTS idx_obligations_due ON obligations(state, due_at);
     PRAGMA user_version = 2;
   `);
+  const coordinator = createEvidenceCoordinatorState(db, { clock: options.clock, writerToken: options.writerToken });
+  const archiveNow = () => timestamp(options.clock ? options.clock() : now(), "archive clock");
   syncDirectory(root);
   let closed = false;
   const findRecord = db.prepare("SELECT * FROM evidence_records WHERE record_id=?");
@@ -170,6 +175,7 @@ export function openDurableEvidenceArchive(options = {}) {
   }
 
   function admitPrediction(input = {}) {
+    coordinator.assertWrite();
     const recordId = identifier(input.recordId, "recordId");
     const bytes = rawBuffer(input.rawBytes);
     const contract = input.immutableContract ?? null;
@@ -189,7 +195,7 @@ export function openDurableEvidenceArchive(options = {}) {
     const manifestBytes = Buffer.from(canonical(manifest));
     const row = { record_id: recordId, content_hash: body.contentHash, segment_name: `${body.contentHash}.gz`, compressed_hash: body.compressedHash,
       raw_size: bytes.length, manifest_name: `${digest(recordId)}.json`, manifest_hash: digest(manifestBytes), admission_hash: manifest.admissionHash,
-      cohort_json: canonical(body.cohortMetadata), missingness_json: canonical(body.missingness), immutable_json: canonical(contract), admitted_at: now() };
+      cohort_json: canonical(body.cohortMetadata), missingness_json: canonical(body.missingness), immutable_json: canonical(contract), admitted_at: archiveNow() };
     const old = findRecord.get(recordId);
     if (old) {
       assertRow(old);
@@ -202,6 +208,7 @@ export function openDurableEvidenceArchive(options = {}) {
     if (options.fault === "after-manifest") throw new Error("FAULT_AFTER_MANIFEST");
     try {
       db.transaction(() => {
+        coordinator.assertWrite();
         const concurrent = findRecord.get(recordId);
         if (concurrent) {
           assertRow(concurrent);
@@ -215,7 +222,13 @@ export function openDurableEvidenceArchive(options = {}) {
         if (options.fault === "inside-transaction") throw new Error("FAULT_INSIDE_TRANSACTION");
       }).immediate();
     } catch (error) {
-      markOrphan.run({ content_hash: row.content_hash, segment_name: row.segment_name, reason: `unindexed:${error.message}`, noted_at: now() });
+      // Physical orphan detection still works if ownership expired during publication.
+      try {
+        db.transaction(() => {
+          coordinator.assertWrite();
+          markOrphan.run({ content_hash: row.content_hash, segment_name: row.segment_name, reason: `unindexed:${error.message}`, noted_at: archiveNow() });
+        }).immediate();
+      } catch {}
       throw error;
     }
     return { status: "admitted", recordId, contentHash: row.content_hash, manifestName: row.manifest_name, admissionHash: row.admission_hash, taskIds: obligations.map((item) => item.taskId) };
@@ -234,19 +247,34 @@ export function openDurableEvidenceArchive(options = {}) {
     db.prepare("DELETE FROM leases WHERE lease_until <= ?").run(at);
   }
 
-  function leaseDue({ owner, nowAt = now(), limit = 1, leaseMs = 60000 } = {}) {
+  function leaseDue({ owner, nowAt = archiveNow(), limit = 1, leaseMs = 60000, excludeTaskIds = [] } = {}) {
     identifier(owner, "owner"); const at = timestamp(nowAt, "nowAt");
     if (!Number.isSafeInteger(limit) || limit < 0 || !Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new TypeError("Invalid lease limit or duration");
+    if (!Array.isArray(excludeTaskIds) || excludeTaskIds.length > 1000) throw new TypeError("Invalid task exclusion list");
+    excludeTaskIds.forEach(taskId => identifier(taskId, "excluded taskId"));
     const until = new Date(Date.parse(at) + leaseMs).toISOString();
     return db.transaction(() => {
+      coordinator.assertWrite(at);
       expireTasks(at);
-      const candidates = db.prepare("SELECT * FROM obligations WHERE state IN ('pending','retryable','budget-deferred') AND due_at <= ? ORDER BY due_at,obligation_id LIMIT ?").all(at, limit);
+      const excluded = excludeTaskIds.length ? ` AND o.task_id NOT IN (${excludeTaskIds.map(() => '?').join(',')})` : '';
+      const candidates = db.prepare("SELECT o.* FROM obligations o LEFT JOIN task_schedule s USING(task_id) WHERE o.state IN ('pending','retryable','budget-deferred') AND o.due_at <= ? AND (s.next_attempt_at IS NULL OR s.next_attempt_at<=?)" + excluded + " ORDER BY o.expires_at,COALESCE(s.attempt_count,0),o.due_at,o.task_id LIMIT ?").all(at, at, ...excludeTaskIds, limit);
       return candidates.map((task) => {
         const token = crypto.randomUUID();
         db.prepare("UPDATE obligations SET state='leased' WHERE task_id=?").run(task.task_id);
         db.prepare("INSERT INTO leases VALUES (?,?,?,?)").run(task.task_id, owner, until, token);
-        return { taskId: task.task_id, obligationId: task.obligation_id, frozen: JSON.parse(task.frozen_json), leaseUntil: until, leaseToken: token };
+        coordinator.noteTaskLease(task.task_id, at);
+        return { taskId: task.task_id, recordId: task.record_id, obligationId: task.obligation_id, frozen: JSON.parse(task.frozen_json), leaseUntil: until, leaseToken: token };
       });
+    }).immediate();
+  }
+
+  function renewTaskLease({ owner, leaseToken, nowAt = archiveNow(), leaseMs = 60000 } = {}) {
+    const at = timestamp(nowAt, "nowAt");
+    if (!Number.isSafeInteger(leaseMs) || leaseMs <= 0) throw new TypeError("Invalid lease duration");
+    return db.transaction(() => {
+      coordinator.assertWrite(at);
+      expireTasks(at);
+      return db.prepare("UPDATE leases SET lease_until=? WHERE token=? AND owner=? AND lease_until>?").run(new Date(Date.parse(at) + leaseMs).toISOString(), leaseToken, owner, at).changes === 1;
     }).immediate();
   }
 
@@ -257,20 +285,27 @@ export function openDurableEvidenceArchive(options = {}) {
     const manifest = assertRow(observation).manifest;
     const link = manifest.immutableContract?.observationOf;
     if (link?.recordId !== task.record_id || link?.taskId !== task.task_id) return false;
+    const frozen = JSON.parse(task.frozen_json);
+    const receiptPolicy = frozen.observationClockPolicy === "COLLECTION_RECEIPT_V1";
+    if (receiptPolicy && link.observationClockPolicy !== frozen.observationClockPolicy) return false;
     let requestedAt, receivedAt, marketAt;
-    try { requestedAt = timestamp(link.requestedAt, "requestedAt"); receivedAt = timestamp(link.receivedAt, "receivedAt"); marketAt = timestamp(link.marketObservedAt, "marketObservedAt"); } catch { return false; }
-    if (requestedAt > receivedAt || marketAt > receivedAt || receivedAt > completedAt || marketAt < task.due_at || marketAt > task.expires_at || receivedAt > task.expires_at) return false;
+    try {
+      requestedAt = timestamp(link.requestedAt, "requestedAt"); receivedAt = timestamp(link.receivedAt, "receivedAt");
+      marketAt = receiptPolicy && link.marketObservedAt === null ? null : timestamp(link.marketObservedAt, "marketObservedAt");
+    } catch { return false; }
+    if (requestedAt > receivedAt || receivedAt > completedAt || receivedAt < task.due_at || receivedAt > task.expires_at ||
+      (marketAt !== null && (marketAt > receivedAt || marketAt < task.due_at || marketAt > task.expires_at))) return false;
     const parent = JSON.parse(findRecord.get(task.record_id).immutable_json);
     for (const key of ["chain", "tokenAddress", "poolAddress"]) if (parent?.[key] !== undefined && parent[key] !== manifest.immutableContract?.[key]) return false;
-    const frozen = JSON.parse(task.frozen_json);
     if (frozen.horizonHours !== undefined && frozen.horizonHours !== link.horizonHours) return false;
     return true;
   }
 
-  function transitionTask({ obligationId, owner, leaseToken, state, evidenceRecordId = null, nowAt = now() } = {}) {
+  function transitionTask({ obligationId, owner, leaseToken, state, evidenceRecordId = null, retryAt, nowAt = archiveNow() } = {}) {
     if (!["completed", "retryable", "budget-deferred", "expired"].includes(state)) throw new TypeError("Invalid task transition");
     const at = timestamp(nowAt, "nowAt");
     return db.transaction(() => {
+      coordinator.assertWrite(at);
       expireTasks(at);
       if (typeof leaseToken !== "string") return false;
       const lease = db.prepare("SELECT leases.*, obligations.obligation_id FROM leases JOIN obligations USING(task_id) WHERE token=?").get(leaseToken);
@@ -280,14 +315,18 @@ export function openDurableEvidenceArchive(options = {}) {
       assertRow(findRecord.get(task.record_id));
       if (state === "completed" && !validObservation(task, evidenceRecordId, at)) return false;
       const changed = db.prepare("UPDATE obligations SET state=?,completed_at=?,evidence_record_id=? WHERE task_id=? AND state='leased'").run(state, state === "completed" ? at : null, state === "completed" ? evidenceRecordId : null, lease.task_id).changes;
-      if (changed) db.prepare("DELETE FROM leases WHERE task_id=? AND token=?").run(lease.task_id, leaseToken);
+      if (changed) {
+        if (["retryable", "budget-deferred"].includes(state)) coordinator.scheduleTask(lease.task_id, retryAt ?? at, at);
+        db.prepare("DELETE FROM leases WHERE task_id=? AND token=?").run(lease.task_id, leaseToken);
+      }
       return changed === 1;
     }).immediate();
   }
 
-  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, nowAt = now() } = {}) {
+  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, nowAt = archiveNow() } = {}) {
     const at = timestamp(nowAt, "nowAt");
     return db.transaction(() => {
+      coordinator.assertWrite(at);
       expireTasks(at);
       const lease = db.prepare("SELECT * FROM leases WHERE token=? AND owner=? AND lease_until>?").get(leaseToken, owner, at);
       if (!lease) return false;
@@ -299,25 +338,28 @@ export function openDurableEvidenceArchive(options = {}) {
     }).immediate();
   }
 
-  function dueDenominators(nowAt = now()) {
+  function dueDenominators(nowAt = archiveNow()) {
     const at = timestamp(nowAt, "nowAt");
-    return db.transaction(() => { expireTasks(at); return db.prepare("SELECT state,COUNT(*) AS count FROM obligations WHERE due_at <= ? GROUP BY state ORDER BY state").all(at); }).immediate();
+    return db.prepare("SELECT CASE WHEN state!='completed' AND expires_at<? THEN 'expired' WHEN state='leased' AND task_id IN (SELECT task_id FROM leases WHERE lease_until<=?) THEN 'pending' ELSE state END AS state,COUNT(*) AS count FROM obligations WHERE due_at<=? GROUP BY 1 ORDER BY 1").all(at, at, at);
   }
 
   function listOutbox() { return db.prepare("SELECT * FROM outbox ORDER BY created_at,outbox_id").all(); }
 
   function acknowledgeOutbox({ outboxId, recordId, contentHash, manifestHash, readBack, receipt } = {}) {
-    const row = db.prepare("SELECT * FROM outbox WHERE outbox_id=?").get(outboxId);
-    if (!row || row.kind !== "admission" || row.record_id !== recordId || row.content_hash !== contentHash || row.manifest_hash !== manifestHash ||
-      readBack?.recordId !== recordId || readBack?.contentHash !== contentHash || readBack?.manifestHash !== manifestHash) return false;
-    const record = findRecord.get(recordId);
-    if (!record || record.content_hash !== contentHash || record.manifest_hash !== manifestHash) return false;
-    assertRow(record);
-    return db.prepare("UPDATE outbox SET state='acknowledged',receipt_json=? WHERE outbox_id=? AND state='pending'").run(canonical({ readBack, receipt: receipt ?? null }), outboxId).changes === 1;
+    return db.transaction(() => {
+      coordinator.assertWrite();
+      const row = db.prepare("SELECT * FROM outbox WHERE outbox_id=?").get(outboxId);
+      if (!row || row.kind !== "admission" || row.record_id !== recordId || row.content_hash !== contentHash || row.manifest_hash !== manifestHash ||
+        readBack?.recordId !== recordId || readBack?.contentHash !== contentHash || readBack?.manifestHash !== manifestHash) return false;
+      const record = findRecord.get(recordId);
+      if (!record || record.content_hash !== contentHash || record.manifest_hash !== manifestHash) return false;
+      assertRow(record);
+      return db.prepare("UPDATE outbox SET state='acknowledged',receipt_json=? WHERE outbox_id=? AND state='pending'").run(canonical({ readBack, receipt: receipt ?? null }), outboxId).changes === 1;
+    }).immediate();
   }
 
   function audit() {
-    const errors = [];
+    const errors = coordinator.integrityErrors();
     const records = db.prepare("SELECT * FROM evidence_records").all();
     for (const row of records) { try { assertRow(row); } catch (error) { errors.push(error.message); } }
     const indexed = new Set(records.map((row) => row.segment_name));
@@ -358,21 +400,24 @@ export function openDurableEvidenceArchive(options = {}) {
     const target = path.resolve(destination);
     if (fs.existsSync(target) && fs.readdirSync(target).length) throw new Error("EXPORT_TARGET_NOT_EMPTY");
     fs.mkdirSync(target, { recursive: true });
-    const snapshot = db.transaction(() => {
+    const { paths, ...snapshot } = db.transaction(() => {
       const checked = audit();
       if (!checked.ok && !(exportOptions.preserveQuarantinedEvidence === true && checked.integrityOk)) throw new Error("ARCHIVE_EXPORT_INTEGRITY_FAILED:" + (checked.errors.join(",") || "UNINDEXED_EVIDENCE"));
       const tables = Object.fromEntries(TABLES.map((table) => [table, db.prepare(`SELECT * FROM ${table}`).all()]));
       for (const row of tables.evidence_records) assertRow(row);
-      return { format: "durable-evidence-archive/v2", createdAt: now(), preservesQuarantinedEvidence: !checked.ok, tables, files: [] };
+      const paths = [...new Set([
+        ...tables.evidence_records.flatMap(row => ["segments/" + row.segment_name, "manifests/" + row.manifest_name]),
+        ...checked.detectedOrphans.map(name => "segments/" + name),
+        ...checked.unindexedManifests.map(name => "manifests/" + name),
+      ])].sort();
+      return { format: "durable-evidence-archive/v2", operationalStateSchemaVersion: 1, createdAt: archiveNow(), preservesQuarantinedEvidence: !checked.ok, tables, paths, files: [] };
     })();
-    for (const directory of ["segments", "manifests"]) {
-      fs.mkdirSync(path.join(target, directory));
-      for (const name of fs.readdirSync(path.join(root, directory)).sort()) {
-        const relative = `${directory}/${name}`;
-        const bytes = readRegular(path.join(root, relative));
-        persistImmutable(path.join(target, relative), bytes);
-        snapshot.files.push({ path: relative, bytes: bytes.length, sha256: digest(bytes) });
-      }
+    for (const directory of ["segments", "manifests"]) fs.mkdirSync(path.join(target, directory));
+    // Only copy the captured snapshot's names, not later concurrent admissions.
+    for (const relative of paths) {
+      const bytes = readRegular(path.join(root, relative));
+      persistImmutable(path.join(target, relative), bytes);
+      snapshot.files.push({ path: relative, bytes: bytes.length, sha256: digest(bytes) });
     }
     const index = Buffer.from(canonical(snapshot));
     const file = path.join(target, "archive-export.json");
@@ -388,7 +433,9 @@ export function openDurableEvidenceArchive(options = {}) {
     const bytes = readRegular(sourceFile);
     if (readRegular(`${sourceFile}.sha256`).toString() !== digest(bytes)) throw new Error("ARCHIVE_EXPORT_HASH_MISMATCH");
     const snapshot = JSON.parse(bytes);
-    if (snapshot.format !== "durable-evidence-archive/v2" || !Array.isArray(snapshot.files) || TABLES.some((table) => !Array.isArray(snapshot.tables?.[table]))) throw new Error("UNSUPPORTED_ARCHIVE_EXPORT");
+    const restoredTables = snapshot.operationalStateSchemaVersion === undefined ? EVIDENCE_TABLES : snapshot.operationalStateSchemaVersion === 1 ? TABLES : [];
+    if (snapshot.format !== "durable-evidence-archive/v2" || !Array.isArray(snapshot.files) || !restoredTables.length ||
+      canonical(Object.keys(snapshot.tables || {}).sort()) !== canonical([...restoredTables].sort()) || restoredTables.some((table) => !Array.isArray(snapshot.tables[table]))) throw new Error("UNSUPPORTED_ARCHIVE_EXPORT");
     const seen = new Set();
     for (const item of snapshot.files) {
       if (!/^(segments|manifests)\/[a-zA-Z0-9.-]+$/.test(item.path) || item.path.split("/")[1].includes("..") || seen.has(item.path) || !HASH.test(item.sha256)) throw new Error("ARCHIVE_EXPORT_PATH_INVALID");
@@ -411,6 +458,11 @@ export function openDurableEvidenceArchive(options = {}) {
       for (const row of snapshot.tables.leases) db.prepare("INSERT INTO leases VALUES (@task_id,@owner,@lease_until,@token)").run(row);
       for (const row of snapshot.tables.outbox) insertOutbox.run(row);
       for (const row of snapshot.tables.orphan_segments) markOrphan.run(row);
+      for (const table of COORDINATOR_TABLES.filter(table => restoredTables.includes(table))) {
+        const columns = db.pragma(`table_info(${table})`).map(column => column.name);
+        const insert = db.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(column => '@' + column).join(',')})`);
+        for (const row of snapshot.tables[table]) insert.run(row);
+      }
       for (const row of snapshot.tables.evidence_records) assertRow(row);
       const checked = audit();
       if (!checked.ok && !(importOptions.preserveQuarantinedEvidence === true && checked.integrityOk)) throw new Error("ARCHIVE_RESTORE_INTEGRITY_FAILED:" + (checked.errors.join(",") || "UNINDEXED_EVIDENCE"));
@@ -446,7 +498,10 @@ export function openDurableEvidenceArchive(options = {}) {
     return target;
   }
   function close() { if (!closed) { db.close(); closed = true; } }
-  return { root, dbPath, admitPrediction, readEvidence, leaseDue, transitionTask, completeWithEvidence, dueDenominators, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close };
+  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
+    claimWriter: coordinator.claimWriter, renewWriter: coordinator.renewWriter, releaseWriter: coordinator.releaseWriter,
+    reserveProviderRequest: coordinator.reserveProviderRequest, markProviderDispatched: coordinator.markProviderDispatched,
+    finishProviderRequest: coordinator.finishProviderRequest, coordinationStatus: coordinator.coordinationStatus };
 }
 
 export function restoreDurableEvidenceArchive({ source, root, preserveQuarantinedEvidence = false }) {

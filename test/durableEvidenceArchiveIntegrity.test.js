@@ -215,6 +215,28 @@ function editExport(file, edit) {
   fs.writeFileSync(`${file}.sha256`, crypto.createHash("sha256").update(bytes).digest("hex"));
 }
 
+test("portable export excludes immutable files committed after its SQL snapshot", t => {
+  const { root, store } = fixture(t); store.admitPrediction(prediction());
+  const destination = path.join(root, "snapshot-export"), mkdir = fs.mkdirSync;
+  let admittedLater = false;
+  t.mock.method(fs, "mkdirSync", function(directory, ...args) {
+    if (!admittedLater && directory === path.join(destination, "segments")) {
+      admittedLater = true;
+      const later = prediction(); later.recordId = "episode:after-snapshot"; later.rawBytes = Buffer.from("later original bytes");
+      store.admitPrediction(later);
+    }
+    return mkdir.call(this, directory, ...args);
+  });
+  const source = store.exportArchive(destination);
+  assert.equal(admittedLater, true); assert.equal(store.audit().records, 2);
+  const restored = restoreDurableEvidenceArchive({ source, root: path.join(root, "snapshot-restored") });
+  try {
+    assert.equal(restored.audit().records, 1); assert.equal(restored.audit().ok, true);
+    assert.equal(restored.readEvidence("episode:after-snapshot"), null);
+    assert.equal(store.readEvidence("episode:after-snapshot").rawBytes.toString(), "later original bytes");
+  } finally { restored.close(); }
+});
+
 test("malicious export paths fail before any file escapes the restore root", (t) => {
   const { root, store } = fixture(t); store.admitPrediction(prediction());
   const file = store.exportArchive(path.join(root, "export"));
