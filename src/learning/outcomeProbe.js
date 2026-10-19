@@ -73,6 +73,19 @@ function parseHorizons(value = DEFAULT_HORIZONS) {
   return [...new Set(values.map(Number).filter((horizon) => horizon > 0))];
 }
 
+function frozenHorizonContract(value) {
+  if (!Array.isArray(value) || !value.length) {
+    return { valid: false, horizons: [], reason: "MISSING_OR_EMPTY_FROZEN_HORIZONS" };
+  }
+  if (!value.every((horizon) => Number.isFinite(horizon) && horizon > 0)) {
+    return { valid: false, horizons: [], reason: "FROZEN_HORIZONS_MUST_BE_FINITE_POSITIVE_NUMBERS" };
+  }
+  if (new Set(value).size !== value.length) {
+    return { valid: false, horizons: [], reason: "DUPLICATE_FROZEN_HORIZON" };
+  }
+  return { valid: true, horizons: [...value], reason: null };
+}
+
 function identityFrom(record = {}, fallback = {}) {
   const key = getOutcomeIdentityKey(record) || getOutcomeIdentityKey(fallback);
   const separator = key.indexOf(":");
@@ -117,11 +130,10 @@ export function prospectiveCohortsToProbeMemory(episodes = []) {
   return (Array.isArray(episodes) ? episodes : []).flatMap((episode) => {
     const key = getOutcomeIdentityKey(episode);
     const scannedAt = episode.decisionAt || episode.frozenAt || null;
-    const horizons = Array.isArray(episode.outcomeHorizonsHours)
-      ? parseHorizons(episode.outcomeHorizonsHours)
-      : [];
-    if (!key || !scannedAt || !["TREATMENT", "CONTROL_MATCHED"].includes(episode.role) || !horizons.length) return [];
-    const frozenPolicy = episode.strategyDefinition?.evaluationPolicy || episode.evaluationPolicy || {};
+    const { valid: validHorizons, horizons } = frozenHorizonContract(episode.outcomeHorizonsHours);
+    if (!key || !scannedAt || !["TREATMENT", "CONTROL_MATCHED"].includes(episode.role) || !validHorizons) return [];
+    const declaredPolicy = episode.strategyDefinition?.evaluationPolicy || episode.evaluationPolicy || {};
+    const frozenPolicy = declaredPolicy.version === "PROSPECTIVE_EDGE_CERTIFICATE_V1" ? declaredPolicy : {};
     const primaryHorizonHours = Number(frozenPolicy.primaryHorizonHours);
     const frozenOutcomeToleranceHours = Number(frozenPolicy.outcomeToleranceHours);
     return [{
@@ -151,7 +163,7 @@ function invalidFrozenCohortContract(episode = {}) {
   const scannedAt = episode.decisionAt || episode.frozenAt || null;
   return Boolean(
     key && scannedAt && ["TREATMENT", "CONTROL_MATCHED"].includes(episode.role) &&
-    (!Array.isArray(episode.outcomeHorizonsHours) || !parseHorizons(episode.outcomeHorizonsHours).length)
+    !frozenHorizonContract(episode.outcomeHorizonsHours).valid
   );
 }
 
@@ -258,9 +270,10 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
     const identity = identityFrom(record, latestSnapshotByKey.get(key));
     if (!identity) continue;
 
+    const explicitFrozenHorizons = frozenHorizonContract(record.outcomeHorizonsHours);
     const hasExplicitHorizonContract = Array.isArray(record.outcomeHorizonsHours);
     const contractedHorizons = hasExplicitHorizonContract
-      ? parseHorizons(record.outcomeHorizonsHours)
+      ? explicitFrozenHorizons.horizons
       : horizons;
     // A declared contract governs its own horizons. In particular, do not
     // silently substitute configured defaults for an empty/malformed contract.
@@ -534,8 +547,18 @@ async function runOutcomeProbeUnlocked(options = {}) {
         )
       : [];
   const prospectiveMemory = prospectiveCohortsToProbeMemory(prospectiveEpisodes);
-  const invalidFrozenOutcomeContracts = (Array.isArray(prospectiveEpisodes) ? prospectiveEpisodes : [])
-    .filter(invalidFrozenCohortContract).length;
+  const invalidFrozenOutcomeContractDiagnostics = (Array.isArray(prospectiveEpisodes) ? prospectiveEpisodes : [])
+    .flatMap((episode) => {
+      if (!invalidFrozenCohortContract(episode)) return [];
+      return [{
+        cohortId: episode.cohortId || null,
+        episodeId: episode.episodeId || null,
+        identityKey: getOutcomeIdentityKey(episode) || null,
+        reason: frozenHorizonContract(episode.outcomeHorizonsHours).reason,
+        declaredOutcomeHorizonsHours: episode.outcomeHorizonsHours ?? null,
+      }];
+    });
+  const invalidFrozenOutcomeContracts = invalidFrozenOutcomeContractDiagnostics.length;
   const prospectiveEntryMemory = prospectiveEntryEpisodesToProbeMemory(
     prospectiveEntryEpisodes,
     { trials: options.prospectiveEntryTrials }
@@ -584,16 +607,28 @@ async function runOutcomeProbeUnlocked(options = {}) {
     })
   );
   let observations = results.map((result) => result.observation).filter(Boolean);
-  const captureIsOnTime = (observation, candidate) => {
+  const captureSatisfiesPrediction = (observation, prediction) => {
     const observedMs = timestampOf(observation);
-    return candidate.duePredictions.some((prediction) => {
-      const targetMs = Date.parse(prediction.targetAt);
-      return observedMs >= targetMs && observedMs <= targetMs + prediction.maximumLatenessHours * 60 * 60 * 1000;
-    });
+    const targetMs = Date.parse(prediction.targetAt);
+    return observedMs >= targetMs && observedMs <= targetMs + prediction.maximumLatenessHours * 60 * 60 * 1000;
   };
-  const validObservations = observations.filter((observation) =>
-    captureIsOnTime(observation, results.find((result) => result.observation === observation)?.candidate || {})
+  const captureIsOnTime = (observation, candidate) => {
+    return candidate.duePredictions.some((prediction) => captureSatisfiesPrediction(observation, prediction));
+  };
+  const resultByCandidate = new Map(results.map((result) => [result.candidate, result]));
+  const selectedDuePredictions = selected.flatMap((candidate) =>
+    candidate.duePredictions.map((prediction) => ({ candidate, prediction }))
   );
+  const resolvedDuePredictions = selectedDuePredictions.filter(({ candidate, prediction }) => {
+    const observation = resultByCandidate.get(candidate)?.observation;
+    return observation && captureSatisfiesPrediction(observation, prediction);
+  });
+  const resolvedCandidates = selected.filter((candidate) => candidate.duePredictions.every((prediction) => {
+    const observation = resultByCandidate.get(candidate)?.observation;
+    return observation && captureSatisfiesPrediction(observation, prediction);
+  }));
+  const totalDuePredictions = candidates.reduce((sum, candidate) => sum + candidate.duePredictions.length, 0);
+  const unresolvedDuePredictions = Math.max(0, totalDuePredictions - resolvedDuePredictions.length);
   let marketContext = null;
   let marketContextSaveResult = { saved: 0, rejected: 0 };
   const shouldCollectMarketContext =
@@ -647,8 +682,8 @@ async function runOutcomeProbeUnlocked(options = {}) {
       ? "INVALID_FROZEN_OUTCOME_CONTRACT"
       : !candidates.length
       ? "NO_OUTCOMES_DUE"
-      : validObservations.length
-        ? validObservations.length === candidates.length
+      : resolvedDuePredictions.length
+        ? unresolvedDuePredictions === 0
           ? "PASS"
           : "PARTIAL"
         : "PROVIDER_DEGRADED",
@@ -658,10 +693,11 @@ async function runOutcomeProbeUnlocked(options = {}) {
     automaticPromotion: false,
     identityPolicy: "EXACT_CHAIN_TOKEN_WITH_OPTIONAL_EXACT_POOL",
     dueCandidates: candidates.length,
-    duePredictions: candidates.reduce(
-      (sum, candidate) => sum + candidate.duePredictions.length,
-      0
-    ),
+    duePredictions: totalDuePredictions,
+    selectedDuePredictions: selectedDuePredictions.length,
+    capDeferredDuePredictions: Math.max(0, totalDuePredictions - selectedDuePredictions.length),
+    resolvedDuePredictions: resolvedDuePredictions.length,
+    unresolvedDuePredictions,
     providerRequestsUsed,
     providerRequestBudget: maxRequests,
     observationsSaved: num(saveResult.saved),
@@ -690,6 +726,7 @@ async function runOutcomeProbeUnlocked(options = {}) {
     marketContextObservationsRejected: num(marketContextSaveResult.rejected),
     prospectiveEdgeEpisodesTracked: prospectiveMemory.length,
     invalidFrozenOutcomeContracts,
+    invalidFrozenOutcomeContractDiagnostics,
     prospectiveEdgeDueCandidates: candidates.filter(
       (candidate) => candidate.forwardEvidencePriority > 0
     ).length,
@@ -704,7 +741,7 @@ async function runOutcomeProbeUnlocked(options = {}) {
       0
     ),
     prospectiveEntryEdgePolicy: "Only immutable, post-declaration, exact chain-token-pool treatment/control episodes at their registry-declared horizon are probed; the probe cannot influence ranking, promotion, or trading.",
-    unresolvedCandidates: Math.max(0, candidates.length - validObservations.length),
+    unresolvedCandidates: Math.max(0, candidates.length - resolvedCandidates.length),
     outcomesByHorizon: Object.fromEntries(
       [...new Set([
         ...parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS),
@@ -719,6 +756,12 @@ async function runOutcomeProbeUnlocked(options = {}) {
           ),
         ]
       )
+    ),
+    resolvedOutcomesByHorizon: Object.fromEntries(
+      [...new Set(selectedDuePredictions.map(({ prediction }) => prediction.horizonHours))].map((horizon) => [
+        `${horizon}h`,
+        resolvedDuePredictions.filter(({ prediction }) => prediction.horizonHours === horizon).length,
+      ])
     ),
     results: results.map((result) => ({
       key: result.candidate.key,

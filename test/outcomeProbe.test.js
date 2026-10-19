@@ -128,6 +128,9 @@ test("prospective frozen cohorts without a valid horizon contract are not assign
     decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
   };
   assert.deepEqual(prospectiveCohortsToProbeMemory([episode]), []);
+  assert.deepEqual(prospectiveCohortsToProbeMemory([{
+    ...episode, outcomeHorizonsHours: [6, "invalid", 24],
+  }]), []);
 });
 
 test("frozen evaluation policy controls the primary-horizon tolerance only", () => {
@@ -135,7 +138,9 @@ test("frozen evaluation policy controls the primary-horizon tolerance only", () 
     cohortId: "cohort-policy", episodeId: "episode-policy", role: "TREATMENT",
     decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
     outcomeHorizonsHours: [24, 168],
-    strategyDefinition: { evaluationPolicy: { primaryHorizonHours: 24, outcomeToleranceHours: 8 } },
+    strategyDefinition: { evaluationPolicy: {
+      version: "PROSPECTIVE_EDGE_CERTIFICATE_V1", primaryHorizonHours: 24, outcomeToleranceHours: 8,
+    } },
   }]);
   const due = selectOutcomeProbeCandidates(memory, [], {
     now: "2026-01-02T07:00:00.000Z", horizons: [1],
@@ -468,6 +473,21 @@ test("an invalid frozen cohort contract cannot be reported as no outcomes due", 
   });
   assert.equal(report.status, "INVALID_FROZEN_OUTCOME_CONTRACT");
   assert.equal(report.invalidFrozenOutcomeContracts, 1);
+  assert.equal(report.invalidFrozenOutcomeContractDiagnostics[0].reason, "MISSING_OR_EMPTY_FROZEN_HORIZONS");
+});
+
+test("a mixed malformed frozen horizon list is reported as an invalid contract", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", memory: [], prospectiveEpisodes: [{
+      cohortId: "cohort-mixed", episodeId: "episode-mixed", role: "TREATMENT",
+      decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+      outcomeHorizonsHours: [6, "invalid", 24],
+    }], snapshots: [], providers: { getPairByAddress: async () => ({ pairs: [] }), getTokenPairs: async () => [] },
+    writeReport: false,
+  });
+  assert.equal(report.status, "INVALID_FROZEN_OUTCOME_CONTRACT");
+  assert.equal(report.invalidFrozenOutcomeContracts, 1);
+  assert.equal(report.invalidFrozenOutcomeContractDiagnostics[0].reason, "FROZEN_HORIZONS_MUST_BE_FINITE_POSITIVE_NUMBERS");
 });
 
 test("outcome observations retain receipt time and do not invent a missing provider source time", async () => {
@@ -509,6 +529,34 @@ test("a late receipt is retained as evidence but cannot make the due capture pas
     assert.equal(report.status, "PROVIDER_DEGRADED");
     assert.equal(report.results[0].status, "OBSERVED_LATE");
     assert.equal(report.unresolvedCandidates, 1);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("one receipt cannot pass a candidate while one of its due obligations expires", async () => {
+  const originalNow = Date.now;
+  let clock = Date.parse("2026-01-01T02:30:00.000Z");
+  Date.now = () => clock;
+  try {
+    const report = await runOutcomeProbe({
+      acquireOutcomeProbeLock: false,
+      memory: [{ ...memoryRecord(), outcomeHorizonsHours: [1, 2] }], snapshots: [],
+      providers: {
+        getPairByAddress: async () => {
+          clock = Date.parse("2026-01-01T03:01:00.000Z");
+          return { pairs: [providerPair()] };
+        },
+        getTokenPairs: async () => [],
+      },
+      saveSnapshots: (observations) => ({ saved: observations.length }),
+      saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }), writeReport: false,
+    });
+    assert.equal(report.status, "PARTIAL");
+    assert.equal(report.duePredictions, 2);
+    assert.equal(report.resolvedDuePredictions, 1);
+    assert.equal(report.unresolvedDuePredictions, 1);
+    assert.equal(report.resolvedOutcomesByHorizon["2h"], 1);
   } finally {
     Date.now = originalNow;
   }
