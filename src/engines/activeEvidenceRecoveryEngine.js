@@ -3,6 +3,8 @@ import { canonicalValue } from "../data/canonicalAliasResolver.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
 import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
+import { BLOCKSCOUT_DEFAULTS, evmChainId } from "../data/security/securityEvidenceUtils.js";
+import { getSourceById } from "../config/sourceManifest.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -20,6 +22,8 @@ import {
   recoveryDispositionForField,
   sourceFamilyForField,
 } from "../data/enrichmentSourceRegistry.js";
+
+const GOPLUS_SECURITY_CHAINS = new Set(getSourceById("goplus").chains);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -309,6 +313,45 @@ function authorityProofRecoveryItems(project = {}, options = {}) {
   }], { chain: "solana", routeType: proof.routeType, freeOnly: options.freeOnly ?? true }).items;
 }
 
+function securityProofRecoveryItems(project = {}, options = {}) {
+  const proof = project.executionProof;
+  if (!proof || typeof proof !== "object" || Array.isArray(proof) || !Object.keys(proof).length) return [];
+  const assessment = decisionProofAssessment(project);
+  if (assessment.conclusivelyRejected || !assessment.missingFields.some((field) =>
+    ["SAFETY", "TRANSFER_TAX"].includes(field))) return [];
+
+  const chain = chainOf(project);
+  const token = tokenAddressOf(project, chain);
+  const evmSecuritySupported = Boolean(evmChainId(chain)) && GOPLUS_SECURITY_CHAINS.has(chain);
+  if (!chain || !token || /^0x0{40}$/.test(token) ||
+      (chain !== "solana" && !evmSecuritySupported && !BLOCKSCOUT_DEFAULTS[chain])) return [];
+  const identities = [project, project.rawCandidate || {}, project.marketData || {},
+    project.canonicalExecutionRoute || {}, project.executionProofRecoveryRoute || {}, proof];
+  if (identities.some((item) => [item.routeType, item.routeKind].some((value) => text(value).toUpperCase() === "CEX"))) return [];
+  const chains = identities.flatMap((item) => [item.chain, item.chainId, item.network, item.canonicalChain,
+    item.canonicalChainId, item.finalChain, item.finalChainId, item.baseToken?.chain]).filter((value) => text(value));
+  const addresses = identities.flatMap((item) => [item.tokenAddress, item.contractAddress, item.address,
+    item.canonicalAddress, item.finalContractAddress, item.baseTokenAddress, item.baseToken?.address]).filter((value) => text(value));
+  if (!chains.every((value) => normalizeChainId(value) === chain) ||
+      !addresses.every((value) => normalizeTokenAddress(value, chain) === token)) return [];
+
+  const missing = [];
+  if (assessment.missingFields.includes("SAFETY")) {
+    const fields = chain === "solana" ? ["honeypotDetected", "sellRestricted"]
+      : evmSecuritySupported ? ["honeypotDetected", "sellRestricted", "contractVerified"] : ["contractVerified"];
+    missing.push(...fields.map((canonicalField) => ({ canonicalField, rootCause: "SAFETY_EVIDENCE_MISSING" })));
+  }
+  if (evmSecuritySupported && assessment.missingFields.includes("TRANSFER_TAX")) {
+    missing.push(...["buyTaxPct", "sellTaxPct"].map((canonicalField) => ({
+      canonicalField, rootCause: "TRANSFER_TAX_EVIDENCE_MISSING",
+    })));
+  }
+  // Only raw observations are acquired here; the safety and execution engines own verification.
+  return buildTargetedEnrichmentPlan(missing.map((item) => ({
+    ...item, evidenceClass: "CORE", blockingExecution: true, requiresFreshObservation: true,
+  })), { chain, routeType: proof.routeType, freeOnly: options.freeOnly ?? true }).items;
+}
+
 function planItems(project = {}, options = {}) {
   const items = [
     ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
@@ -316,6 +359,7 @@ function planItems(project = {}, options = {}) {
     ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
     ...executionProofRecoveryItems(project, options),
     ...authorityProofRecoveryItems(project, options),
+    ...securityProofRecoveryItems(project, options),
   ];
   const bestByField = new Map();
   for (const item of items) {

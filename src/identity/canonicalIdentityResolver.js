@@ -4,12 +4,19 @@ import {
   normalizeChainId,
   normalizePoolAddress,
   normalizeTokenAddress,
+  normalizeWalletAddress,
 } from "./strictIdentityValidators.js";
 import { SUPPORTED_CHAIN_REGISTRY } from "../data/chainAliasRegistry.js";
 import { buildStrictCanonicalId } from "../execution/routeResolver.js";
 
 const BRIDGE_TERMS = ["bridged", "wormhole", "wrapped", "weth", "wbtc", "portal", "layerzero", "omnichain"];
 const CONTRACT_CONFLICT_TERMS = ["contract mismatch", "chain mismatch", "counterfeit", "impersonation", "incompatible contract"];
+export const SOLANA_MINT_SCOPE = "SOLANA_MINT_ACCOUNT";
+const SOLANA_MAINNET_GENESIS = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d";
+const SOLANA_TOKEN_PROGRAMS = new Set([
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+]);
 
 function clean(value = "") {
   return String(value ?? "").trim();
@@ -59,6 +66,57 @@ function sourceValues(project = {}, key = "") {
   ].filter((value) => value !== undefined && value !== null && value !== "");
 }
 
+function usesMintAccountProof(project) {
+  return project.identityVerificationScope === SOLANA_MINT_SCOPE ||
+    project.canonicalIdentity?.verificationScope === SOLANA_MINT_SCOPE;
+}
+
+function verifiedContractFlag(project) {
+  return project.contractVerified === true && !usesMintAccountProof(project);
+}
+
+function solanaMintIdentityEvidence(project) {
+  const supplied = (value) => value !== undefined && value !== null && value !== "";
+  const chains = [project.chain, project.chainId, project.network, project.canonicalChain, project.finalChain, project.finalChainId].filter(supplied);
+  if (!chains.length || !chains.every((chain) => normalizeChainId(chain) === "solana")) return null;
+  const addresses = [project.tokenAddress, project.contractAddress, project.address, project.canonicalAddress,
+    project.finalContractAddress, project.baseToken?.address].filter(supplied);
+  const mint = normalizeTokenAddress(addresses[0], "solana");
+  if (!mint || !addresses.every((address) => normalizeTokenAddress(address, "solana") === mint)) return null;
+  const now = Date.now();
+  const items = [project.solanaMintAccountEvidence,
+    ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : [])].filter(Boolean);
+  return items.find((item) => {
+    const rpc = item?.raw?.rpc || (item.verificationScope === SOLANA_MINT_SCOPE ? item : null);
+    const stamp = typeof item?.sourceTimestamp === "string" ? Date.parse(item.sourceTimestamp) : NaN;
+    const observed = typeof item?.observedAt === "string" ? Date.parse(item.observedAt) : NaN;
+    const checks = Array.isArray(item?.testedChecks) ? item.testedChecks : [];
+    return item?.provider === "solana-rpc-rugcheck" && ["EVIDENCE_AVAILABLE", "RISK_REVIEW"].includes(item.status) && item.chain === "solana" &&
+      item.address === mint && item.responseIdentityVerified === true && item.identityVerifiedOnChain === true &&
+      item.snapshotTimestampVerified === true && item.verifiedSource === true &&
+      ["mint-account identity", "mint authority", "freeze authority"].every((check) => checks.includes(check)) &&
+      rpc?.genesisHash === SOLANA_MAINNET_GENESIS && SOLANA_TOKEN_PROGRAMS.has(rpc.ownerProgram) &&
+      Number.isSafeInteger(rpc.observedSlot) && rpc.observedSlot > 0 &&
+      Number.isSafeInteger(rpc.blockTimestamp) && rpc.blockTimestamp > 0 &&
+      Number.isFinite(stamp) && stamp === rpc.blockTimestamp * 1000 && Date.parse(rpc.sourceTimestamp) === stamp &&
+      stamp <= now && now - stamp <= 300000 && Number.isFinite(observed) && observed <= now &&
+      ["mintAuthority", "freezeAuthority"].every((field) => Object.hasOwn(rpc, field) &&
+        (rpc[field] === null || Boolean(normalizeWalletAddress(rpc[field], "solana")))) &&
+      typeof item.mintRisk === "boolean" && typeof item.freezeRisk === "boolean" &&
+      (!rpc.mintAuthority || item.mintRisk) && (!rpc.freezeAuthority || item.freezeRisk);
+  }) || null;
+}
+
+function mintAccountProjection(item) {
+  const rpc = item.raw?.rpc || item;
+  const fields = ["provider", "status", "chain", "address", "sourceTimestamp", "observedAt", "verifiedSource",
+    "responseIdentityVerified", "identityVerifiedOnChain", "snapshotTimestampVerified", "mintRisk", "freezeRisk"];
+  const rpcFields = ["genesisHash", "ownerProgram", "observedSlot", "blockTimestamp", "mintAuthority", "freezeAuthority"];
+  return { ...Object.fromEntries(fields.map((field) => [field, item[field]])),
+    ...Object.fromEntries(rpcFields.map((field) => [field, rpc[field]])),
+    testedChecks: ["mint-account identity", "mint authority", "freeze authority"], verificationScope: SOLANA_MINT_SCOPE };
+}
+
 function collectContracts(project = {}) {
   const contracts = [];
   const add = (address, chain, source, verified = false, role = "token") => {
@@ -69,16 +127,18 @@ function collectContracts(project = {}) {
       address: normalizedAddress,
       chain: normalizedChain,
       source,
-      verified: Boolean(verified),
+      verified: verified === true,
       role,
     });
   };
 
-  add(project.finalContractAddress, project.finalChainId || project.finalChain, "final-selection", true);
-  add(project.contractAddress, project.chainId || project.chain || project.network, "contractAddress", project.contractVerified);
-  add(project.tokenAddress, project.chainId || project.chain || project.network, "tokenAddress", project.contractVerified);
-  add(project.address, project.chainId || project.chain || project.network, "address", project.contractVerified);
-  add(project.baseToken?.address, project.chainId || project.chain || project.network, "baseToken.address", project.contractVerified, "base-token");
+  // Final selection also emits addresses for UNKNOWN identities. Its output is
+  // an alias, not an independent verification source on a later pass.
+  add(project.finalContractAddress, project.finalChainId || project.finalChain, "final-selection");
+  add(project.contractAddress, project.chainId || project.chain || project.network, "contractAddress", verifiedContractFlag(project));
+  add(project.tokenAddress, project.chainId || project.chain || project.network, "tokenAddress", verifiedContractFlag(project));
+  add(project.address, project.chainId || project.chain || project.network, "address", verifiedContractFlag(project));
+  add(project.baseToken?.address, project.chainId || project.chain || project.network, "baseToken.address", verifiedContractFlag(project), "base-token");
   add(project.rawCandidate?.contractAddress, project.rawCandidate?.chain || project.chain, "rawCandidate.contractAddress");
   add(project.rawCandidate?.tokenAddress, project.rawCandidate?.chain || project.chain, "rawCandidate.tokenAddress");
 
@@ -94,6 +154,12 @@ function collectContracts(project = {}) {
   ]) {
     add(route.contract || route.tokenAddress || route.address, route.chain || project.chain, "execution-route", route.verified, "route-token");
   }
+
+  const mintProof = solanaMintIdentityEvidence(project);
+  if (mintProof) contracts.unshift({ address: mintProof.address, chain: "solana", source: "solana-rpc-mint-account",
+    verified: true, role: "token", verificationScope: SOLANA_MINT_SCOPE,
+    sourceTimestamp: mintProof.sourceTimestamp, observedSlot: (mintProof.raw?.rpc || mintProof).observedSlot,
+    accountEvidence: mintAccountProjection(mintProof) });
 
   return contracts;
 }
@@ -141,6 +207,8 @@ function collectSourceIdentities(project = {}, contracts = [], pairs = []) {
       chain: contract.chain,
       address: contract.address,
       verified: contract.verified,
+      ...(contract.verificationScope ? { verificationScope: contract.verificationScope,
+        sourceTimestamp: contract.sourceTimestamp, observedSlot: contract.observedSlot } : {}),
     })),
     ...pairs.map((pairAddress) => ({
       type: "pair",
@@ -263,7 +331,7 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
   const aliases = collectAliases(project);
   const sourceIdentities = collectSourceIdentities(project, contracts, pairs);
   const inputWarnings = identityInputWarnings(project);
-  const verifiedContracts = contracts.filter((contract) => contract.verified || project.contractVerified === true);
+  const verifiedContracts = contracts.filter((contract) => contract.verified || verifiedContractFlag(project));
   const primaryContract = verifiedContracts[0] || contracts[0] || null;
   const canonicalChain = normalizeChain(project.finalChainId || project.chainId || primaryContract?.chain || project.chain || project.network);
   const canonicalAddress = primaryContract?.address || "";
@@ -290,9 +358,9 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
 
   let identityStatus = "UNRESOLVED";
   if (contractConflict) identityStatus = "CONTRACT_CONFLICT";
+  else if (canonicalChain && canonicalAddress && verifiedContracts.length) identityStatus = "VERIFIED";
   else if (bridged) identityStatus = "BRIDGED_VARIANT";
   else if (multiChainVariant) identityStatus = "MULTICHAIN_VARIANT";
-  else if (canonicalChain && canonicalAddress && verifiedContracts.length) identityStatus = "VERIFIED";
   else if (canonicalChain && canonicalAddress) identityStatus = "PROBABLE_MATCH";
   else if (pairAddress && contracts.length) identityStatus = "PROBABLE_MATCH";
   else if (domain || sourceIdentities.some((identity) => identity.type === "external-id")) identityStatus = "WEAK_MATCH";
@@ -301,6 +369,7 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
   const conflictReasons = [];
   if (contractConflict) conflictReasons.push("Incompatible verified contract, chain, or external identity evidence.");
   conflictReasons.push(...inputWarnings);
+  if (collisionDetected) conflictReasons.push("Ticker appears across distinct instruments; no cross-chain or issuer relationship is established by the symbol.");
   if (collisionDetected && identityStatus === "SYMBOL_COLLISION") conflictReasons.push("Ticker symbol appears across multiple unresolved identities.");
   if (contractSet.size > 1 && !contractConflict) conflictReasons.push("Multiple aliases/contracts observed; treated as variant evidence until verified.");
 
@@ -331,6 +400,9 @@ export function resolveCanonicalIdentity(project = {}, context = buildCanonicalI
     canonicalAddress,
     aliases,
     sourceIdentities,
+    verificationScope: primaryContract?.verificationScope || (usesMintAccountProof(project) ? SOLANA_MINT_SCOPE : null),
+    mintAccountEvidence: primaryContract?.accountEvidence || null,
+    symbolCollisionDetected: collisionDetected,
     identityConfidence,
     identityStatus,
     conflictReasons,
@@ -351,6 +423,8 @@ export function attachCanonicalIdentity(project = {}, context) {
     canonicalChain: canonicalIdentity.canonicalChain,
     canonicalAddress: canonicalIdentity.canonicalAddress,
     identityConfidence: canonicalIdentity.identityConfidence,
+    identityVerificationScope: canonicalIdentity.verificationScope,
+    solanaMintAccountEvidence: canonicalIdentity.mintAccountEvidence || project.solanaMintAccountEvidence || null,
     identityStatus: canonicalIdentity.identityStatus,
     identityReviewQueueReason: canonicalIdentity.requiresManualReview ? canonicalIdentity.conflictReasons[0] || canonicalIdentity.identityStatus : "",
     canonicalIdentityHardBlock: canonicalIdentity.identityStatus === "CONTRACT_CONFLICT",

@@ -62,7 +62,8 @@ test("Wave3 is selected again after Wave1 recovers an exact missing pool", async
   const candidate = { name: "Hydrated Utility", symbol: "HYU", chain: "base", tokenAddress: token,
     contractAddress: token, identityVerified: true, contractVerified: true, instantSafetyStatus: "PASS",
     liquidityUsd: 260000, priceUsd: 0.006, deepEvaluationState: "DEEP_EVALUATED",
-    executionProof: { routeType: "DEX", buyQuoteVerified: false, sellQuoteVerified: false },
+    // This fixture isolates pool recovery; safety has already been evaluated.
+    executionProof: { routeType: "DEX", safetyVerified: true, buyQuoteVerified: false, sellQuoteVerified: false },
     targetedEnrichmentPlan: { items: [{ canonicalField: "poolAddress", recoverable: true,
       evidenceClass: "CORE", targetSources: [{ source: "DexScreener" }] }] } };
   assert.equal(buildActiveEvidenceRecoveryWaves([candidate]).waves.WAVE3.length, 0);

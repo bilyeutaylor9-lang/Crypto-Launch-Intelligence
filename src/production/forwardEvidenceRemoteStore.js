@@ -214,28 +214,30 @@ async function fetchRemoteRows(client, pageSize = 250, localRows = []) {
     );
     for (const batch of remoteRecordBatches(missing, pageSize)) {
       const requested = new Map(batch.map((row) => [`${row.ledger_name}:${row.record_id}`, row]));
-      const data = await readRemotePage(client
-        .from("forward_evidence_records")
-        .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
-        .eq("ledger_name", ledgerName)
-        .in("record_id", batch.map((row) => row.record_id))
-        .order("record_id", { ascending: true })
-        .range(0, batch.length - 1), batch.length);
-      const fetched = validateRows(data);
-      if (fetched.size !== data.length) {
-        throw new Error("Remote forward-evidence read failed: duplicate body row");
-      }
-      for (const [key, row] of fetched) {
-        const expected = requested.get(key);
-        if (!expected || row.content_hash !== expected.content_hash) {
-          throw new Error(`Remote forward-evidence index/body mismatch: ${key}`);
+      while (requested.size) {
+        const data = await readRemotePage(client
+          .from("forward_evidence_records")
+          .select("ledger_name,record_id,content_hash,record_json,observed_at,created_at")
+          .eq("ledger_name", ledgerName)
+          .in("record_id", [...requested.values()].map((row) => row.record_id))
+          .order("record_id", { ascending: true })
+          .range(0, requested.size - 1), requested.size);
+        if (!data.length) {
+          throw new Error(`Remote forward-evidence missing body: ${requested.keys().next().value}`);
         }
-        rowsById.set(key, row);
-      }
-      for (const key of requested.keys()) {
-        if (!fetched.has(key)) {
-          throw new Error(`Remote forward-evidence missing body: ${key}`);
+        const fetched = validateRows(data);
+        if (fetched.size !== data.length) {
+          throw new Error("Remote forward-evidence read failed: duplicate body row");
         }
+        for (const [key, row] of fetched) {
+          const expected = requested.get(key);
+          if (!expected || row.content_hash !== expected.content_hash) {
+            throw new Error(`Remote forward-evidence index/body mismatch: ${key}`);
+          }
+          rowsById.set(key, row);
+        }
+        // Short pages may be a server cap. Every pass must prove new bodies.
+        for (const key of fetched.keys()) requested.delete(key);
       }
     }
   }

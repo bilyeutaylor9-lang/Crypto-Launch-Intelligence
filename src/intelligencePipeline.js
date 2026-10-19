@@ -246,7 +246,7 @@ export const FINAL_EVIDENCE_ENGINE_SEQUENCE = Object.freeze([
 ]);
 
 export const RECOVERY_ENGINE_EVIDENCE_FAMILIES = Object.freeze({
-  "Project Identity Graph": ["IDENTITY", "DEPLOYER", "WALLETS"],
+  "Project Identity Graph": ["IDENTITY", "DEPLOYER", "WALLETS", "SECURITY"],
   "Source Truth": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Active Liquidity Truth": ["MARKET", "EXECUTION"],
   "Organic Buyer Classifier": ["WALLETS", "MARKET", "DEPLOYER"],

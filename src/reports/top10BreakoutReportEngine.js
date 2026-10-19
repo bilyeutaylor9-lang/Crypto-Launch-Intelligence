@@ -285,6 +285,8 @@ const TOP10_CANDIDATE_INPUT_FIELDS = [
   "deployerNetFlow",
   "lpRemovalUsd",
   "contractVerified",
+  "identityVerificationScope",
+  "solanaMintAccountEvidence",
   "contractSafetyVerified",
   "instantSafetyStatus",
   "safetyProofStatus",

@@ -138,6 +138,10 @@ const DEPLOYER_FIELDS = new Set([
   "nativeLifecycle",
 ]);
 
+const DEPLOYER_CREATOR_FIELDS = ["creatorAddress", "deployerAddress", "creator", "deployer"];
+const DEPLOYER_CREATION_FIELDS = [...DEPLOYER_CREATOR_FIELDS,
+  "deploymentTransactionHash", "contractCreationTimestamp", "creationBlockNumber"];
+
 const WALLET_RAW_FIELDS = new Set([
   "wallets",
   "holderAddresses",
@@ -596,12 +600,14 @@ function confidenceFraction(value, fallback = 0.8) {
 }
 
 function exactDeployerResult(result = {}, identity = {}) {
-  if (!deployerValue(result, "creatorAddress") && !isVerifiedBaseB20Evidence(result)) return false;
   const resultChain = result.chain ? normalizeChainId(result.chain) : null;
   const resultAddress = lower(result.address || result.tokenAddress);
   if (resultChain && resultChain !== identity.chain) return false;
   if (resultAddress && resultAddress !== lower(identity.tokenAddress)) return false;
-  return true;
+  if (deployerValue(result, "creatorAddress") || isVerifiedBaseB20Evidence(result)) return true;
+  return resultChain === identity.chain && resultAddress === lower(identity.tokenAddress) &&
+    ["deploymentTransactionHash", "contractCreationTimestamp", "creationBlockNumber"]
+      .some((field) => valueKnown(deployerValue(result, field)));
 }
 
 function existingDeployerEvidence(project = {}, identity = {}) {
@@ -617,14 +623,14 @@ function existingDeployerEvidence(project = {}, identity = {}) {
     project.baseB20LifecycleEvidence,
     project.nativeContractDeploymentEvidence,
   ].filter(Boolean);
-  return candidates.find(
+  return candidates.filter(
     (item) =>
       item.status !== "UNKNOWN" &&
       (!lower(item.provider || item.source).includes("goplus") || item.responseIdentityVerified === true) &&
       normalizeChainId(item.chain) === identity.chain &&
       lower(item.address || item.tokenAddress) === lower(identity.tokenAddress) &&
       exactDeployerResult(item, identity)
-  ) || null;
+  );
 }
 
 function deployerObservations(result = {}, fields = [], identity = {}, source = "blockscout") {
@@ -664,32 +670,42 @@ export async function recoverDeployerEvidence(
 ) {
   const evm = evmIdentity(project);
   if (evm.exact) {
-    let existing = existingDeployerEvidence(project, evm);
-    if (!existing && providers.preferGoPlusDeployer && providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
+    const observations = new Map();
+    const attempts = [];
+    const projectPatch = {};
+    const localSources = new Set();
+    const needs = (supported) => fields.some((field) => supported.includes(field) && !observations.has(field));
+    const collect = (result, source, patchKey) => {
+      if (!exactDeployerResult(result, evm) || result.status === "UNKNOWN") return;
+      for (const item of deployerObservations(result, fields, evm, source)) {
+        if (!observations.has(item.field)) observations.set(item.field, item);
+      }
+      if (patchKey && !projectPatch[patchKey]) projectPatch[patchKey] = result;
+    };
+    const local = (existing) => {
+      const source = existing.provider || existing.source || "existing-security-evidence";
+      localSources.add(lower(source).replace(/-deployer$/, ""));
+      collect(existing, source, lower(source).includes("goplus") ? "goplusDeployerEvidence" : null);
+      attempts.push({ status: "LOCAL_EVIDENCE_AVAILABLE", provider: source, reason: null, durationMs: 0 });
+    };
+    const finish = () => ({ observations: [...observations.values()], attempts, projectPatch });
+    // Known partial envelopes must not hide the same provider's unresolved raw fields.
+    const providerOptions = (source) => ({ ...options,
+      useCache: localSources.has(source) ? false : options.useCache });
+    for (const existing of existingDeployerEvidence(project, evm)) local(existing);
+    if (needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"]) && providers.preferGoPlusDeployer &&
+        providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
       const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
       for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2", "base-b20-native"]) {
         const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
-        existing = existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm);
-        if (existing) break;
+        for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm)) local(existing);
+        if (!needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"])) break;
       }
     }
-    if (existing) {
-      const source = existing.provider || existing.source || "existing-security-evidence";
-      return {
-        observations: deployerObservations(existing, fields, evm, source),
-        attempts: [{
-          status: "LOCAL_EVIDENCE_AVAILABLE",
-          provider: source,
-          reason: null,
-          durationMs: 0,
-        }],
-        projectPatch: lower(source).includes("goplus") ? { goplusDeployerEvidence: existing } : {},
-      };
-    }
 
-    if (Array.isArray(options.nativeDeploymentEvents) ||
+    if (needs(DEPLOYER_CREATION_FIELDS) && (Array.isArray(options.nativeDeploymentEvents) ||
         (options.useCache !== false && options.nativeDeploymentHistory !== false &&
-          (providers.preferGoPlusDeployer || typeof options.loadNativeDeploymentEvents === "function"))) {
+          (providers.preferGoPlusDeployer || typeof options.loadNativeDeploymentEvents === "function")))) {
       if (!state.nativeDeploymentEventsByIdentity) {
         const index = new Map();
         let records = [];
@@ -711,193 +727,100 @@ export async function recoverDeployerEvidence(
       }
       const native = nativeContractDeployerEvidence(project,
         state.nativeDeploymentEventsByIdentity.get(`${evm.chain}:${evm.tokenAddress}`) || []);
-      if (native) return { observations: deployerObservations(native, fields, evm, native.provider),
-        attempts: [{ provider: native.provider, status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0, requestCost: 0,
-          reason: "Exact stored top-level creation receipt; token kind, safety, reputation and chain finality remain unverified." }],
-        projectPatch: { nativeContractDeploymentEvidence: native } };
+      if (native) {
+        collect(native, native.provider, "nativeContractDeploymentEvidence");
+        attempts.push({ provider: native.provider, status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0, requestCost: 0,
+          reason: "Exact stored top-level creation receipt; token kind, safety, reputation and chain finality remain unverified." });
+      }
     }
 
-    if (providers.useBaseB20Lifecycle && isBaseB20Candidate({ chain: evm.chain, tokenAddress: evm.tokenAddress })) {
+    if (needs(["nativeLifecycle"]) && providers.useBaseB20Lifecycle &&
+        isBaseB20Candidate({ chain: evm.chain, tokenAddress: evm.tokenAddress })) {
       const attempt = await executeProviderCall("base-b20-native",
         () => providers.getBaseB20LifecycleEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress }, options),
         options, state, 4, evm.chain);
       const result = attempt.value || {};
+      attempts.push({ ...attempt, value: undefined });
       if (attempt.status === "SUCCESS" && isVerifiedBaseB20Evidence(result) && result.address === evm.tokenAddress) {
-        return { observations: deployerObservations(result, fields, evm, "base-b20-native"),
-          attempts: [{ ...attempt, value: undefined }], projectPatch: { baseB20LifecycleEvidence: result } };
-      }
-      const fallback = await recoverDeployerEvidence(project, fields,
-        { ...providers, useBaseB20Lifecycle: false }, options, state);
-      return { ...fallback, attempts: [{ ...attempt, value: undefined }, ...fallback.attempts],
-        projectPatch: { baseB20LifecycleEvidence: result, ...fallback.projectPatch } };
-    }
-
-    let goplusAttempt = null;
-    let goplusResult = {};
-    if (providers.preferGoPlusDeployer) {
-      goplusAttempt = await executeProviderCall(
-        "goplus-deployer",
-        () => providers.getGoPlusDeployerEvidence(
-          { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, useCache: options.useCache, goPlusRequestSlotReserved: providers.defaultGoPlusDeployerProvider }
-        ),
-        options,
-        state,
-        Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
-        evm.chain,
-        providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
-      );
-      goplusResult = goplusAttempt.value || {};
-      if (goplusAttempt.status === "SUCCESS" && exactDeployerResult(goplusResult, evm)) {
-        return {
-          observations: deployerObservations(goplusResult, fields, evm, "goplus"),
-          attempts: [{ ...goplusAttempt, value: undefined }],
-          projectPatch: { goplusDeployerEvidence: goplusResult },
-        };
+        collect(result, "base-b20-native", "baseB20LifecycleEvidence");
+      } else if (!project.baseB20LifecycleEvidence) {
+        projectPatch.baseB20LifecycleEvidence = result;
       }
     }
 
-    let sourcifyAttempt = null;
-    let sourcifyResult = {};
-    if (providers.useSourcifyDeployerFallback) {
-      sourcifyAttempt = await executeProviderCall(
+    const acquire = async (provider, operation, cost, patchKey, beforeOperation = null) => {
+      const attempt = await executeProviderCall(provider, operation, options, state, cost, evm.chain, beforeOperation);
+      attempts.push({ ...attempt, value: undefined });
+      const result = attempt.value || {};
+      if (attempt.status === "SUCCESS") collect(result, provider.replace(/-deployer$/, ""), patchKey);
+      if (!projectPatch[patchKey] && !project[patchKey]) projectPatch[patchKey] = result;
+    };
+    const acquireGoPlus = () => acquire(
+      "goplus-deployer",
+      () => providers.getGoPlusDeployerEvidence(
+        { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+        { ...providerOptions("goplus"), goPlusRequestSlotReserved: providers.defaultGoPlusDeployerProvider }
+      ),
+      Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
+      "goplusDeployerEvidence",
+      providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
+    );
+    if (providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
+      await acquireGoPlus();
+    }
+
+    if (providers.useSourcifyDeployerFallback && needs([...DEPLOYER_CREATOR_FIELDS,
+      "deploymentTransactionHash", "creationBlockNumber"])) {
+      await acquire(
         "sourcify-v2-deployer",
         () => providers.getSourcifyDeployerEvidence(
           { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, useCache: options.useCache }
+          providerOptions("sourcify-v2")
         ),
-        options,
-        state,
         Math.max(1, Number(options.sourcifyDeployerProviderRequestCost || 1)),
-        evm.chain
+        "sourcifyDeployerEvidence"
       );
-      sourcifyResult = sourcifyAttempt.value || {};
-      if (
-        sourcifyAttempt.status === "SUCCESS" &&
-        exactDeployerResult(sourcifyResult, evm)
-      ) {
-        return {
-          observations: deployerObservations(
-            sourcifyResult,
-            fields,
-            evm,
-            "sourcify-v2"
-          ),
-          attempts: [
-            ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
-            { ...sourcifyAttempt, value: undefined },
-          ],
-          projectPatch: { sourcifyDeployerEvidence: sourcifyResult },
-        };
-      }
     }
 
-    const blockscoutAttempt = await executeProviderCall(
-      "blockscout-deployer",
-      () => providers.getBlockscoutDeployerEvidence(
-        { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-        { ...options, useCache: options.useCache }
-      ),
-      options,
-      state,
-      Math.max(1, Number(options.deployerProviderRequestCost || providers.blockscoutDeployerRequestCost || 2)),
-      evm.chain
-    );
-    const blockscoutResult = blockscoutAttempt.value || {};
-    if (
-      blockscoutAttempt.status === "SUCCESS" &&
-      exactDeployerResult(blockscoutResult, evm)
-    ) {
-      return {
-        observations: deployerObservations(blockscoutResult, fields, evm, "blockscout"),
-        attempts: [
-          ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
-          ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
-          { ...blockscoutAttempt, value: undefined },
-        ],
-        projectPatch: {
-          ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
-          blockscoutDeployerEvidence: blockscoutResult,
-        },
-      };
-    }
-
-    if (providers.useGoPlusDeployerFallback && !goplusAttempt) {
-      goplusAttempt = await executeProviderCall(
-        "goplus-deployer",
-        () => providers.getGoPlusDeployerEvidence(
+    if (needs(DEPLOYER_CREATION_FIELDS)) {
+      await acquire(
+        "blockscout-deployer",
+        () => providers.getBlockscoutDeployerEvidence(
           { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-          { ...options, useCache: options.useCache, goPlusRequestSlotReserved: providers.defaultGoPlusDeployerProvider }
+          providerOptions("blockscout")
         ),
-        options,
-        state,
-        Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
-        evm.chain,
-        providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: false }) : null
+        Math.max(1, Number(options.deployerProviderRequestCost || providers.blockscoutDeployerRequestCost || 2)),
+        "blockscoutDeployerEvidence"
       );
-      goplusResult = goplusAttempt.value || {};
-      if (
-        goplusAttempt.status === "SUCCESS" &&
-        exactDeployerResult(goplusResult, evm)
-      ) {
-        return {
-          observations: deployerObservations(goplusResult, fields, evm, "goplus"),
-          attempts: [
-            ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
-            { ...blockscoutAttempt, value: undefined },
-            { ...goplusAttempt, value: undefined },
-          ],
-          projectPatch: {
-            ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
-            blockscoutDeployerEvidence: blockscoutResult,
-            goplusDeployerEvidence: goplusResult,
-          },
-        };
-      }
     }
 
+    if (providers.useGoPlusDeployerFallback && !providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
+      await acquireGoPlus();
+    }
+
+    if (!needs(DEPLOYER_CREATION_FIELDS)) return finish();
     const etherscanAvailable =
       providers.customEtherscanDeployerProvider ||
       Boolean(etherscanV2ApiKey(evm.chain, options.env || process.env));
-    const etherscanAttempt = etherscanAvailable
-      ? await executeProviderCall(
-          "etherscan-v2-deployer",
-          () => providers.getEtherscanV2SecurityEvidence(
-            { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
-            { ...options, useCache: options.useCache }
-          ),
-          options,
-          state,
-          Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3)),
-          evm.chain
-        )
-      : {
-          status: "PROVIDER_UNAVAILABLE",
-          provider: "etherscan-v2-deployer",
-          value: null,
-          reason: "Etherscan deployer recovery skipped because no API key is configured.",
-          durationMs: 0,
-        };
-    const etherscanResult = etherscanAttempt.value || {};
-    const observations =
-      etherscanAttempt.status === "SUCCESS" && exactDeployerResult(etherscanResult, evm)
-        ? deployerObservations(etherscanResult, fields, evm, "etherscan-v2")
-        : [];
-    return {
-      observations,
-      attempts: [
-        ...(sourcifyAttempt ? [{ ...sourcifyAttempt, value: undefined }] : []),
-        { ...blockscoutAttempt, value: undefined },
-        ...(goplusAttempt ? [{ ...goplusAttempt, value: undefined }] : []),
-        { ...etherscanAttempt, value: undefined },
-      ],
-      projectPatch: {
-        ...(sourcifyAttempt ? { sourcifyDeployerEvidence: sourcifyResult } : {}),
-        blockscoutDeployerEvidence: blockscoutResult,
-        ...(goplusAttempt ? { goplusDeployerEvidence: goplusResult } : {}),
-        ...(etherscanAvailable ? { etherscanDeployerEvidence: etherscanResult } : {}),
-      },
-    };
+    if (etherscanAvailable) {
+      await acquire(
+        "etherscan-v2-deployer",
+        () => providers.getEtherscanV2SecurityEvidence(
+          { ...project, chain: evm.chain, tokenAddress: evm.tokenAddress },
+          providerOptions("etherscan-v2")
+        ),
+        Math.max(1, Number(options.etherscanDeployerProviderRequestCost || 3)),
+        "etherscanDeployerEvidence"
+      );
+    } else {
+      attempts.push({
+        status: "PROVIDER_UNAVAILABLE",
+        provider: "etherscan-v2-deployer",
+        reason: "Etherscan deployer recovery skipped because no API key is configured.",
+        durationMs: 0,
+      });
+    }
+    return finish();
   }
 
   const solana = solanaIdentity(project);
@@ -2008,10 +1931,18 @@ function exactExecutionQuotes(route, identity, responses) {
       normalizePoolAddress(route.poolAddress, identity.chain) !== identity.poolAddress) return false;
   const quoteToken = normalizeTokenAddress(route.quoteTokenAddress, identity.chain);
   if (!quoteToken || quoteToken === identity.tokenAddress) return false;
-  const quotes = responses.filter((item) => item.provider === source && item.adapter !== "lifi-token");
-  if (quotes.length !== 2) return false;
   const sides = new Set();
   try {
+    // A failed quote-asset attempt is not one of the selected route's two legs.
+    const quotes = responses.filter((item) => {
+      if (item.provider !== source || item.adapter === "lifi-token") return false;
+      const params = new URL(item.url).searchParams;
+      const solana = ["jupiter", "raydium"].includes(source);
+      const from = normalizeTokenAddress(params.get(solana ? "inputMint" : source === "0x" ? "sellToken" : "fromToken"), identity.chain);
+      const to = normalizeTokenAddress(params.get(solana ? "outputMint" : source === "0x" ? "buyToken" : "toToken"), identity.chain);
+      return (from === quoteToken && to === identity.tokenAddress) || (from === identity.tokenAddress && to === quoteToken);
+    });
+    if (quotes.length !== 2) return false;
     for (const { url, value } of quotes) {
       const params = new URL(url).searchParams;
       const solana = ["jupiter", "raydium"].includes(source);
@@ -2040,9 +1971,13 @@ function exactExecutionQuotes(route, identity, responses) {
         : [...extractLiFiRoutePoolAddresses(value, identity.chain),
           ...(Array.isArray(value.route?.fills) ? value.route.fills : []).map((fill) => normalizePoolAddress(fill.poolAddress, identity.chain))];
       if (!pools.includes(identity.poolAddress)) return false;
+      const selectedOutput = route[side === "BUY" ? "buyQuote" : "sellQuote"]?.outAmount;
+      const observedOutput = source === "jupiter" ? value.outAmount : source === "lifi"
+        ? first([value.estimate?.toAmount, value.toAmount, value.action?.toAmount]) : null;
+      if (selectedOutput !== undefined && observedOutput !== null && String(selectedOutput) !== String(observedOutput)) return false;
       sides.add(side);
     }
-    return sides.has("BUY") && sides.has("SELL");
+    return sides.has("BUY") && sides.has("SELL") ? quotes : false;
   } catch {
     return false;
   }
@@ -2173,9 +2108,10 @@ export async function recoverExecutionEvidence(
   const exactMarket = market && route?.routeType === "CEX" && lower(route.source) === market.provider &&
     text(route.marketPair).replace(/[-_/]/g, "").toUpperCase() === market.marketPair &&
     responses.some((item) => item.provider === market.provider);
+  const executionQuotes = !market && route ? exactExecutionQuotes(route, identity, responses) : null;
   if (!route || route.buyQuoteVerified !== true || route.sellQuoteVerified !== true ||
       !Number.isFinite(Date.parse(route.quoteTimestamp)) ||
-      !(exactMarket || (!market && exactExecutionQuotes(route, identity, responses)))) {
+      !(exactMarket || executionQuotes)) {
     executionAdapterResults = executionAdapterResults.map((result) => result.status === "ROUTE_RECOVERED"
       ? { ...result, providerStatus: result.status, status: "IDENTITY_OR_POOL_UNATTESTED",
         reason: "Provider quote did not attest the required exact route identity on both legs." }
@@ -2188,7 +2124,7 @@ export async function recoverExecutionEvidence(
   // Canonical route recomputation recognizes venue names, including LI.FI's observed underlying venue.
   if (route.underlyingVenue) rawRoute.name = route.underlyingVenue;
   // Jupiter/0x may default an absent price impact to zero. Missing measurements stay unknown.
-  if (["jupiter", "0x"].includes(route.source) && !responses.filter((item) => item.provider === route.source)
+  if (["jupiter", "0x"].includes(route.source) && !executionQuotes
     .every(({ value }) => {
       const measured = value.priceImpactPct ?? value.estimatedPriceImpact;
       if (typeof measured !== "number" && (typeof measured !== "string" || !measured.trim())) return false;

@@ -19,7 +19,7 @@ export const REPORT_DECISION_SCALAR_FIELDS = Object.freeze([
   "sourceTimestamp", "observedAt", "scannedAt", "dataCutoffTimestamp",
   "pipelineScore", "score", "opportunityScore", "guardedLiveScore", "liveScore",
   ...REPORT_FINAL_RISK_SCALAR_FIELDS,
-  "researchScore", "executionScore", "finalDecisionScore", "finalIdentityState",
+  "researchScore", "executionScore", "finalDecisionScore", "finalIdentityState", "identityVerificationScope",
   "finalSelectionState", "finalSelectionQualified", "finalIntegrityScore", "finalIntegrityVerdict",
   "liveActionStatus", "liveExecutionReady", "liveRankingModel", "liveRankingAuthoritative", "scoringPrimaryModel",
   "utilityQualityScore", "realUtilityScore", "realUtilityQualified", "utilityClassification", "memeOnlySpeculative",
@@ -335,6 +335,7 @@ const REPORT_PRIORITY_FIELDS = [...new Set([
   // Derived snapshots can share these objects; retain the authoritative roots first.
   "executionProof",
   "canonicalExecutionRoute",
+  "solanaMintAccountEvidence",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   ...IDENTITY_FIELDS,
   ...DECISION_FIELDS,

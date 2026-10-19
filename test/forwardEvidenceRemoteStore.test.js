@@ -336,17 +336,71 @@ test("duplicate metadata pages fail closed rather than looping or skipping IDs",
   assert.deepEqual(loadLocalForwardEvidence({ root }), []);
 });
 
-test("duplicate or partially omitted body batches fail closed", async (t) => {
+test("duplicate or persistently omitted body batches fail closed", async (t) => {
   const root = isolatedRoot(t);
   const rows = ["a", "b"].map((observationKey) => remoteRow("production-market-observations", { observationKey }));
   for (const duplicate of [false, true]) {
     const backend = fakeBackend(rows, {
-      onRead: (call, data) => ({ data: call.ids ? duplicate ? [data[0], data[0]] : data.slice(0, 1) : data, error: null }),
+      onRead: (call, data) => ({ data: call.ids ? duplicate ? [data[0], data[0]] : data.filter((row) => row.record_id !== "b") : data, error: null }),
     });
     await assert.rejects(restoreForwardEvidence({ root, backend, pageSize: 2 }), /duplicate body row|missing body/);
     assert.deepEqual(loadLocalForwardEvidence({ root }), []);
   }
 });
+
+for (const [command, execute] of [["restore", restoreForwardEvidence], ["sync", syncForwardEvidence]]) {
+  test(`${command} hydrates complete bodies under a lower server row cap`, async (t) => {
+    const root = isolatedRoot(t);
+    const rows = ["a", "b", "c"].map((observationKey) => remoteRow("production-market-observations", { observationKey }));
+    const backend = fakeBackend(rows, {
+      onRead: (_call, data) => ({ data: data.slice(0, 1), error: null }),
+    });
+    const report = await execute({ root, backend, pageSize: 250 });
+    assert.equal(report.state, command === "sync" ? "REMOTE_FORWARD_EVIDENCE_SYNCED" : "REMOTE_FORWARD_EVIDENCE_RESTORED");
+    assert.deepEqual(loadLocalForwardEvidence({ root }).map((row) => row.record_id), ["a", "b", "c"]);
+    assert.deepEqual(bodyReads(backend).map((call) => call.ids), [["a", "b", "c"], ["b", "c"], ["c"]]);
+    assert.equal(backend.writes.length, 0);
+    await execute({ root, backend, pageSize: 250 });
+    assert.equal(bodyReads(backend).length, 3);
+  });
+
+  test(`${command} leaves local history intact when a later short page fails`, async (t) => {
+    const root = isolatedRoot(t);
+    const known = remoteRow("market-context-observations", { observationKey: "known" });
+    mergeForwardEvidenceRows([known], { root });
+    const rows = ["a", "b"].map((observationKey) => remoteRow("production-market-observations", { observationKey }));
+    const backend = fakeBackend([...rows, known], {
+      onRead: (call, data) => call.ids
+        ? call.ids.includes("a") ? { data: data.slice(0, 1), error: null }
+          : { data: null, error: { message: "exceed_egress_quota" } }
+        : undefined,
+    });
+    await assert.rejects(execute({ root, backend }), /exceed_egress_quota/);
+    assert.deepEqual(loadLocalForwardEvidence({ root }), [known]);
+    assert.equal(backend.writes.length, 0);
+  });
+
+  for (const [name, transform, message] of [
+    ["corrupt body", (rows) => [{ ...rows[0], record_json: { observationKey: "b", priceUsd: 99 } }], /hash mismatch/],
+    ["unexpected ID", () => [remoteRow("production-market-observations", { observationKey: "foreign" })], /index\/body mismatch/],
+    ["duplicate bodies", (rows) => [rows[0], rows[0]], /duplicate body row/],
+    ["repeated previous body", () => [remoteRow("production-market-observations", { observationKey: "a" })], /index\/body mismatch/],
+  ]) {
+    test(`${command} rejects ${name} on a later body page without partial appends`, async (t) => {
+      const root = isolatedRoot(t);
+      const rows = ["a", "b", "c"].map((observationKey) => remoteRow("production-market-observations", { observationKey }));
+      const backend = fakeBackend(rows, {
+        onRead: (call, data) => call.ids
+          ? { data: call.ids.includes("a") ? data.slice(0, 1) : transform(data), error: null }
+          : undefined,
+      });
+      await assert.rejects(execute({ root, backend }), message);
+      assert.equal(bodyReads(backend).length, 2);
+      assert.deepEqual(loadLocalForwardEvidence({ root }), []);
+      assert.equal(backend.writes.length, 0);
+    });
+  }
+}
 
 test("malformed metadata and absent query data fail closed", async (t) => {
   const root = isolatedRoot(t);
@@ -557,7 +611,8 @@ test("an oversized single ID fails closed before cursor or body requests", async
   assert.deepEqual(loadLocalForwardEvidence({ root }), []);
 });
 
-test("real Supabase SDK encodes bounded long-ID requests with an injected offline transport", async (t) => {
+for (const maxRows of [1000, 1]) {
+test(`real Supabase SDK restores bounded long-ID requests under a ${maxRows}-row server cap`, async (t) => {
   const root = isolatedRoot(t);
   const suffix = "identity:/asset?(pair),chain&observedAt=".repeat(18);
   const remote = Array.from({ length: 20 }, (_, id) => remoteRow("production-market-observations", {
@@ -597,14 +652,14 @@ test("real Supabase SDK encodes bounded long-ID requests with an injected offlin
             afterId = filter.slice(3);
           }
         }
-        requests.push({ fields, ids, afterId });
         const data = remote
           .filter((row) => row.ledger_name === ledgerFilter.slice(3))
           .filter((row) => afterId === null || row.record_id > afterId)
           .filter((row) => ids === null || ids.includes(row.record_id))
           .sort((left, right) => left.record_id < right.record_id ? -1 : left.record_id > right.record_id ? 1 : 0)
-          .slice(0, Number(params.get("limit")))
+          .slice(0, Math.min(maxRows, Number(params.get("limit"))))
           .map((row) => Object.fromEntries(fields.map((field) => [field, row[field]])));
+        requests.push({ fields, ids, afterId, returnedIds: data.map((row) => row.record_id) });
         return new Response(JSON.stringify(data), { status: 200, headers: { "Content-Type": "application/json" } });
       },
     },
@@ -615,7 +670,8 @@ test("real Supabase SDK encodes bounded long-ID requests with an injected offlin
   assert.equal(restored.restored, 19);
   const bodies = requests.filter((request) => request.ids);
   assert.ok(bodies.every((request) => request.ids.length < 7));
-  assert.equal(bodies.flatMap((request) => request.ids).length, 19);
+  assert.equal(bodies.flatMap((request) => request.returnedIds).length, 19);
+  assert.equal(new Set(bodies.flatMap((request) => request.returnedIds)).size, 19);
   assert.ok(bodies.every((request) => !request.ids.includes(known.record_id)));
   assert.ok(requests.some((request) => request.afterId));
 
@@ -630,3 +686,4 @@ test("real Supabase SDK encodes bounded long-ID requests with an injected offlin
   assert.equal((await restoreForwardEvidence({ root, backend, pageSize: 7 })).restored, 0);
   assert.equal(requests.filter((request) => request.ids).length, bodyCount);
 });
+}
