@@ -157,7 +157,7 @@ import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEn
 import { analyzeDataStarvationRootCauseBatch } from "./engines/dataStarvationRootCauseEngine.js";
 import { analyzeValueOfInformationBatch } from "./engines/valueOfInformationEngine.js";
 import { analyzeStarvationRescueBatch } from "./engines/starvationRescueEngine.js";
-import { analyzeActiveEvidenceRecoveryBatch, createActiveEvidenceRecoveryState } from "./engines/activeEvidenceRecoveryEngine.js";
+import { analyzeActiveEvidenceRecoveryBatch, createActiveEvidenceRecoveryState, reserveExecutionRecoveryWindow } from "./engines/activeEvidenceRecoveryEngine.js";
 import { analyzeEarlyAsymmetryTriageBatch } from "./engines/earlyAsymmetryTriageEngine.js";
 import { analyzePreBreakoutSequenceBatch } from "./engines/preBreakoutSequenceEngine.js";
 import { analyzeAttentionGapV2Batch } from "./engines/attentionGapV2Engine.js";
@@ -2820,6 +2820,7 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   const evidenceExecutionState = evidenceRecoveryOptions.executionState || createActiveEvidenceRecoveryState(evidenceRecoveryOptions);
   results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
     ...evidenceRecoveryOptions, executionState: evidenceExecutionState, wave3Max: 0,
+    ...reserveExecutionRecoveryWindow(evidenceExecutionState, evidenceRecoveryOptions),
   });
   const rerunRecoveredInputs = async () => {
     if (!results.some((project) => (project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??

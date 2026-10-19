@@ -67,7 +67,7 @@ test("persistent creator cache cannot override exact identity or legacy proof re
   }
 });
 
-test("recovery deadline retains completed proof and reports unattempted evidence unknown", async () => {
+test("recovery deadline rejects late proof and reports unattempted evidence unknown", async () => {
   let now = 0;
   let calls = 0;
   const projects = [TOKEN, POOL].map((tokenAddress) => ({
@@ -83,12 +83,31 @@ test("recovery deadline retains completed proof and reports unattempted evidence
     } },
   });
   assert.equal(calls, 1);
-  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[0].creatorAddress, undefined);
+  assert.ok(result[0].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
   assert.equal(result[1].creatorAddress, undefined);
   assert.ok(result[1].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
   assert.equal(result[1].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
   assert.ok(result[1].activeEvidenceRecovery.unrecoveredFields.includes("creatorAddress"));
   assert.equal(result[1].activeEvidenceRecovery.batchSummary.deepEvaluatedCandidates, 2);
+});
+
+test("proof completed within the deadline survives when a later request exhausts the same window", async () => {
+  let now = 0, calls = 0;
+  const projects = [TOKEN, POOL, CREATOR].map(tokenAddress => ({ chain: "base", tokenAddress,
+    targetedEnrichmentPlan: { items: [{ canonicalField: "creatorAddress", recoverable: true }] } }));
+  const result = await analyzeActiveEvidenceRecoveryBatch(projects, { now: () => now, timeBudgetMs: 10,
+    concurrency: 1, providers: { getDeployerEvidence: async project => {
+      calls++;
+      now = calls === 1 ? 9 : 11;
+      return { chain: project.chain, address: project.tokenAddress, creatorAddress: CREATOR };
+    } } });
+  assert.equal(calls, 2);
+  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[1].creatorAddress, undefined);
+  assert.equal(result[2].creatorAddress, undefined);
+  assert.equal(result[2].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
+  assert.ok(result[2].activeEvidenceRecovery.providerAttempts.some(item => item.status === "TIME_BUDGET_EXHAUSTED"));
 });
 
 function request(field, source) {

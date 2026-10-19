@@ -6,11 +6,22 @@ import { analyzeActiveEvidenceRecoveryBatch, buildActiveEvidenceRecoveryWaves,
 function candidate(symbol, score, chain = "solana") {
   const tokenAddress = chain === "solana" ? "ARMqZ1YB3ieGXeT6kjA7tC4ynoXGb5SBA6yXuTbs9Cgb"
     : "0x1111111111111111111111111111111111111111";
+  const blockTimestamp = Math.floor(Date.now() / 1000) - 1;
+  const sourceTimestamp = new Date(blockTimestamp * 1000).toISOString();
   return { symbol, preliminaryOpportunityScore: score, chain, tokenAddress, contractAddress: tokenAddress,
     poolAddress: chain === "solana" ? "HcX7NPj9sCbcN8A1E9WXZvgzR4A2uUKtrpTiFFUcibM6"
       : "0x2222222222222222222222222222222222222222", priceUsd: 1, liquidityUsd: 100000,
     deepEvaluationState: "DEEP_EVALUATED", executionProof: { routeType: "DEX", safetyVerified: true,
-      buyQuoteVerified: false, sellQuoteVerified: false } };
+      buyQuoteVerified: false, sellQuoteVerified: false },
+    // Scheduling-only fixture: mint identity and paired safety have already been observed.
+    ...(chain === "solana" ? { securityEvidence: [{ provider: "solana-rpc-rugcheck", status: "EVIDENCE_AVAILABLE",
+      chain, address: tokenAddress, responseIdentityVerified: true, identityVerifiedOnChain: true,
+      snapshotTimestampVerified: true, verifiedSource: true, observedAt: new Date().toISOString(), sourceTimestamp,
+      mintRisk: false, freezeRisk: false, testedChecks: ["mint-account identity", "mint authority", "freeze authority"],
+      raw: { rpc: { genesisHash: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+        ownerProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", observedSlot: 1234,
+        blockTimestamp, sourceTimestamp, mintAuthority: null, freezeAuthority: null } },
+    }] } : {}) };
 }
 
 test("Wave3 freezes the priority-selected set and drains slow providers before short-lived Solana proofs", async (t) => {

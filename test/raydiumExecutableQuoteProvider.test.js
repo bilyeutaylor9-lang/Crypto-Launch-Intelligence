@@ -127,8 +127,16 @@ test("standalone refresh replaces old provider bounds, including when the new pr
 test("only selected Solana Wave3 candidates acquire quotes; dependent recomputation preserves expiry and missing authority", async (t) => {
   let now = NOW.getTime();
   t.mock.method(Date, "now", () => now);
+  const sourceTimestamp = new Date(Math.floor(now / 1000) * 1000).toISOString();
+  const safety = { provider: "solana-rpc-rugcheck", status: "EVIDENCE_AVAILABLE", chain: "solana", address: TOKEN,
+    responseIdentityVerified: true, identityVerifiedOnChain: true, snapshotTimestampVerified: true,
+    verifiedSource: true, observedAt: sourceTimestamp, sourceTimestamp, mintRisk: false, freezeRisk: false,
+    testedChecks: ["mint-account identity", "mint authority", "freeze authority"],
+    raw: { rpc: { genesisHash: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+      ownerProgram: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", observedSlot: 1234,
+      blockTimestamp: Math.floor(now / 1000), sourceTimestamp, mintAuthority: null, freezeAuthority: null } } };
   const projects = [10, 80].map(score => candidate({ preliminaryOpportunityScore: score,
-    deepEvaluationState: "DEEP_EVALUATED", finalSelectionQualified: false,
+    deepEvaluationState: "DEEP_EVALUATED", finalSelectionQualified: false, securityEvidence: [safety],
     executionProof: {routeType: "DEX", buyQuoteVerified: false, sellQuoteVerified: false, liveExecutionReady: false} }));
   const planned = buildActiveEvidenceRecoveryWaves(projects, {wave3Max: 1, freeOnly: true});
   assert.equal(planned.waves.WAVE3.length, 1);
@@ -141,7 +149,10 @@ test("only selected Solana Wave3 candidates acquire quotes; dependent recomputat
   assert.equal(results[0].executionProofRecoveryRoute, undefined);
   assert.equal(results[1].executionProofRecoveryRoute.poolAddress, POOL);
   assert.ok(results[1].activeEvidenceRecovery.changedEvidenceFamilies.includes("EXECUTION"));
-  const produced = analyzeExecutionProof(analyzeCanonicalExecutionRoute(results[1]));
+  const verified = analyzeExecutionProof(analyzeCanonicalExecutionRoute(results[1]));
+  assert.equal(verified.executionProof.authorityEvidenceVerified, true);
+  const produced = analyzeExecutionProof(analyzeCanonicalExecutionRoute({ ...results[1],
+    securityEvidence: [], freeSecurityEvidence: null, securityEvidenceSummary: null, solanaMintAccountEvidence: null }));
   assert.equal(produced.executionProof.buyQuoteVerified, true);
   assert.equal(produced.executionProof.sellQuoteVerified, true);
   assert.equal(produced.executionProof.observedSlippagePct, 1);
@@ -151,6 +162,21 @@ test("only selected Solana Wave3 candidates acquire quotes; dependent recomputat
   assert.equal(produced.finalSelectionQualified, false);
   now += 30_000;
   assert.equal(routeQuoteFresh(produced), false);
+});
+
+test("selected Solana candidates with unavailable mint safety never spend quote requests", async () => {
+  let quotes = 0, security = 0;
+  const opts = activeOptions(async url => { quotes++; return quote(url); });
+  const initial = candidate({ deepEvaluationState: "DEEP_EVALUATED",
+    executionProof: { routeType: "DEX", buyQuoteVerified: false, sellQuoteVerified: false, liveExecutionReady: false } });
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([initial], { ...opts, wave1Max: 0, wave2Max: 0,
+    wave3Max: 1, maxRequests: 2, securityProviderRequestCost: 1, walletHistory: false,
+    providers: { getFreeSecurityEvidence: async () => { security++; return { evidence: [] }; } } });
+  assert.equal(security, 1);
+  assert.equal(quotes, 0);
+  assert.equal(result.executionProofRecoveryRoute, undefined);
+  assert.equal(result.liveExecutionReady, undefined);
+  assert.ok(result.activeEvidenceRecovery.providerAttempts.some(item => item.status === "SAFETY_UNRESOLVED_OR_BLOCKED"));
 });
 
 test("known identity conflicts, no pool, EVM identity and symbol-only requests issue no Raydium calls", async () => {

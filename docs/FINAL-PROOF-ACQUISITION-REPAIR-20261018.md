@@ -113,3 +113,59 @@ Five debug JSON files were subsequently overwritten by an existing focused test
 invocation; those diagnostics are not represented as pristine live evidence.
 The next clean-source live run must regenerate them before final publication.
 These new repairs require full-suite and production-scale revalidation.
+
+## Hydration Scheduling Follow-Up
+
+The next clean `ab2e354a` run `scan_1792372980783` evaluated 500 deep candidates
+and kept 1,799 deferred candidates outside the recovery denominator. Core
+coverage improved to 90%, but 273 candidates remained starved: 271 lacked the
+wallet/holder required-any group and 111 lacked creator/lifecycle evidence.
+Recovery used 1,125 of 2,000 request units, exhausted its 23-minute time window,
+and made zero live quote HTTP calls. The real readiness and scanner smoke checks
+correctly failed. These results do not establish production health.
+
+All 5,362 recovered fields in the retained recovery report matched an exact
+serialized chain-token-pool record with complete provenance. The full audit
+changed only its declared outputs, and frozen JSON/HTML/ranking counters agreed.
+The complete intermediate live state is archived separately, including failure
+receipts. Main remains unmerged.
+
+The next acquisition repairs address the measured scheduling failures:
+
+- Core holder gaps can request only inexpensive existing GoPlus metadata in
+  Wave 1. This tier cannot invoke explorer/RPC fallback or remote history.
+  Deeper wallet work remains limited to the selected Wave 2 cohort. Advisory-only
+  gaps do not create these requests. Exact identity, freshness, confidence,
+  sample-only semantics and unknown smart-wallet labels remain unchanged.
+- Cheap market/holder collection completes before creator/security fallback
+  work. Each cohort's raw patches are merged before the next cohort dispatches,
+  so companion creator/security observations can be reused without new calls.
+  Valid adverse metadata is retained even when the holder sample is empty.
+- The normal pipeline reserves three minutes of its existing recovery window
+  for selected live proof, capped at one quarter of the remaining time and
+  configurable with `ACTIVE_EVIDENCE_EXECUTION_RESERVE_MS`. Raw phase expiry is
+  separate from terminal absolute expiry. No request allowance, circuit,
+  absolute deadline or quote lifetime resets. Late responses remain unpromoted
+  and deadline-driven cancellation does not blame the provider circuit.
+- At dispatch, selected Solana execution candidates reuse or acquire a fresh
+  exact paired mint-account/authority bundle before quoting. Missing, stale,
+  foreign, unavailable or adverse proof cannot clear safety. SECURITY changes
+  trigger existing identity and safety reruns. No RPC is added for nonselected,
+  deferred, conflicting, CEX or unsafe candidates.
+- The dispatch-time adverse-evidence check scopes raw records to the exact
+  chain and mint and rebuilds mixed-identity summaries from those records.
+  Another mint's risk cannot veto a verified local proof. Exact adverse raw
+  evidence and legacy adverse summaries without underlying records still block.
+
+New offline regressions exercise 500 cheap core-holder gaps under 500 requests,
+deeper-cohort limits, phase/absolute deadlines, cancellation, immutable budgets,
+17-minute snapshot expiry, fresh-proof reuse and adverse-evidence precedence.
+Validation on 2026-10-19 passed 2,286 tests, syntax checks across 975 JavaScript
+files, typecheck, all 21 load tests and the network-denied scanner smoke chain.
+The suite preserved all 236 saved data/report/doc files byte-for-byte. An
+interrupted earlier run's verified artifact backup was restored before testing;
+generated test artifacts were quarantined separately rather than discarded.
+Another clean-source live validation is still required before landing. The
+`ab2e354a` measurements above are the prior baseline, not results for this layer.
+The latest inspected main evidence workflow also still fails because Supabase
+denies production reads with `exceed_egress_quota`; no billing settings changed.

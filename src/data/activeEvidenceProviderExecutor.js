@@ -46,6 +46,8 @@ import { extractLiFiRoutePoolAddresses, verifyActionIdentity } from "../executio
 import { PROVIDER_REQUEST_ADMISSION } from "../execution/providerRequestAdmission.js";
 import { verifyRaydiumQuote } from "../execution/raydiumExecutableQuoteProvider.js";
 import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
+import { resolveCanonicalIdentity } from "../identity/canonicalIdentityResolver.js";
+import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
 import {
   normalizeChainId,
   normalizePoolAddress,
@@ -417,6 +419,28 @@ function providerState(state = {}, provider = "unknown", circuitScope = null) {
   return current;
 }
 
+function recoveryDeadlineAt(state, options) {
+  return Math.min(state.deadlineAt ?? Infinity,
+    Number.isFinite(options.phaseDeadlineAt) ? options.phaseDeadlineAt : Infinity);
+}
+
+function recoveryDeadlineStatus(state, options, expiredByTimer = false) {
+  const now = (state.now || Date.now)();
+  const absolute = state.deadlineAt ?? Infinity;
+  const deadline = recoveryDeadlineAt(state, options);
+  const phase = deadline < absolute;
+  if (state.timeBudgetExceeded || now >= absolute || (expiredByTimer && !phase)) {
+    state.timeBudgetExceeded = true;
+    return "TIME_BUDGET_EXHAUSTED";
+  }
+  if (phase && (now >= deadline || expiredByTimer || (state.phaseDeadlineExceededAt ?? -Infinity) >= deadline)) {
+    state.phaseTimeBudgetExceeded = true;
+    state.phaseDeadlineExceededAt = Math.max(state.phaseDeadlineExceededAt ?? -Infinity, deadline);
+    return "PHASE_TIME_BUDGET_EXHAUSTED";
+  }
+  return null;
+}
+
 async function executeProviderCall(
   provider,
   operation,
@@ -424,18 +448,22 @@ async function executeProviderCall(
   state = {},
   cost = 1,
   circuitScope = null,
-  beforeOperation = null
+  beforeOperation = null,
+  onTimeout = null
 ) {
   const health = providerState(state, provider, circuitScope);
-  if (state.timeBudgetExceeded || (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
+  const deadlineStatus = recoveryDeadlineStatus(state, options);
+  if (deadlineStatus) {
     health.skipped += 1;
-    state.timeBudgetExceeded = true;
-    state.timeBudgetSkippedCalls = (state.timeBudgetSkippedCalls || 0) + 1;
+    const counter = deadlineStatus === "PHASE_TIME_BUDGET_EXHAUSTED" ? "phaseTimeBudgetSkippedCalls" : "timeBudgetSkippedCalls";
+    state[counter] = (state[counter] || 0) + 1;
     return {
-      status: "TIME_BUDGET_EXHAUSTED",
+      status: deadlineStatus,
       provider,
       value: null,
-      reason: "Recovery time budget exhausted; missing evidence remains unknown.",
+      reason: deadlineStatus === "PHASE_TIME_BUDGET_EXHAUSTED"
+        ? "Raw recovery window exhausted; remaining absolute time is reserved for selected live proof."
+        : "Recovery time budget exhausted; missing evidence remains unknown.",
       durationMs: 0,
     };
   }
@@ -463,9 +491,8 @@ async function executeProviderCall(
   if (beforeOperation) {
     const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (state.timeBudgetExceeded || health.circuitOpen || state.requestsUsed + cost > state.maxRequests ||
-        (state.now || Date.now)() >= (state.deadlineAt ?? Number.POSITIVE_INFINITY)) {
-      return executeProviderCall(provider, operation, options, state, cost, circuitScope);
+    if (recoveryDeadlineStatus(state, options) || health.circuitOpen || state.requestsUsed + cost > state.maxRequests) {
+      return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout);
     }
     if (slotReserved === false) {
       health.skipped += 1;
@@ -479,7 +506,7 @@ async function executeProviderCall(
   state.requestsUsed += cost;
   health.attempts += 1;
   const startedAt = Date.now();
-  const timeoutMs = Math.max(
+  const providerTimeoutMs = Math.max(
     250,
     Number(
       options.providerTimeoutMs ||
@@ -489,6 +516,9 @@ async function executeProviderCall(
         8_000
     )
   );
+  const remainingMs = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
+  const deadlineOwnsTimeout = Number.isFinite(remainingMs) && remainingMs <= providerTimeoutMs;
+  const timeoutMs = Math.max(1, Math.min(providerTimeoutMs, remainingMs));
   let timer;
 
   try {
@@ -496,11 +526,18 @@ async function executeProviderCall(
       Promise.resolve().then(operation),
       new Promise((_, reject) => {
         timer = setTimeout(
-          () => reject(new Error(`${provider} recovery timed out after ${timeoutMs}ms`)),
+          () => {
+            if (deadlineOwnsTimeout) recoveryDeadlineStatus(state, options, true);
+            onTimeout?.();
+            reject(new Error(`${provider} recovery timed out after ${timeoutMs}ms`));
+          },
           timeoutMs
         );
       }),
     ]);
+    const expired = recoveryDeadlineStatus(state, options);
+    if (expired) return { provider, status: expired, value: null, durationMs: Date.now() - startedAt,
+      reason: "Provider response arrived after its recovery window; evidence was not promoted." };
     if (value?.candidateEvidenceUnavailable === true) {
       health.noDataResponses = (health.noDataResponses || 0) + 1;
       return { status: "NO_CANDIDATE_EVIDENCE", provider, value: null,
@@ -528,6 +565,9 @@ async function executeProviderCall(
       durationMs: Date.now() - startedAt,
     };
   } catch (error) {
+    const expired = recoveryDeadlineStatus(state, options);
+    if (expired) return { provider, status: expired, value: null, durationMs: Date.now() - startedAt,
+      reason: "Provider recovery window expired; evidence remains unknown and the provider circuit is unchanged." };
     health.failures += 1;
     health.lastError = error?.message || String(error);
     if (health.failures >= state.circuitFailureThreshold) health.circuitOpen = true;
@@ -763,7 +803,7 @@ export async function recoverDeployerEvidence(
       ),
       Math.max(1, Number(options.goplusDeployerProviderRequestCost || 1)),
       "goplusDeployerEvidence",
-      providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true }) : null
+      providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true }) : null
     );
     if (providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
       await acquireGoPlus();
@@ -927,11 +967,10 @@ export async function recoverWalletEvidence(
         const boundedRpc = async (url, method, params, rpcOptions) => {
           const endpointId = walletRpcEndpointId(url);
           const call = await executeProviderCall("solana-rpc-wallets", async () => {
-            const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
+            const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
             const value = await transport(url, method, params, { ...rpcOptions, retries: 0,
               timeoutMs: Math.max(1, Math.min(rpcOptions.timeoutMs, remaining, Number(options.providerTimeoutMs || 8000))) });
-            if ((state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
-              state.timeBudgetExceeded = true;
+            if (recoveryDeadlineStatus(state, options)) {
               throw new Error("Solana wallet RPC arrived after the recovery deadline.");
             }
             return value;
@@ -997,7 +1036,16 @@ export async function recoverWalletEvidence(
     // Aged provider addresses are query seeds, never current wallet observations.
     holderSeeds.push(...holderSample.filter((item) => item.field === "wallets" && !currentHolderObservation(item, options))
       .flatMap((item) => item.value));
-    if (current.length) {
+    const stamp = typeof sample?.observedAt === "string" ? Date.parse(sample.observedAt) : NaN;
+    const now = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+    const maxAgeMs = Number(options.cacheTtlMs ?? process.env.SECURITY_EVIDENCE_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
+    const exactCurrentMetadata = sample?.provider === "goplus" && sample.status === "EVIDENCE_AVAILABLE" &&
+      sample.responseIdentityVerified === true && securityIdentityMatches(sample, evm) &&
+      Number.isFinite(stamp) && stamp > 0 && Number.isFinite(now) && stamp <= now &&
+      Number.isFinite(maxAgeMs) && maxAgeMs > 0 && now - stamp <= maxAgeMs &&
+      typeof sample.confidence === "number" && Number.isFinite(sample.confidence) && confidenceFraction(sample.confidence) >= 0.5;
+    // Empty holder samples must not discard genuine creator or adverse security metadata.
+    if (current.length || (options.cheapHolderMetadataOnly === true && exactCurrentMetadata)) {
       observations.push(...current, ...securityObservations([sample], [...SECURITY_FIELDS], evm));
       const existing = knownSecurityItems({ evidence: [
         ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
@@ -1024,13 +1072,14 @@ export async function recoverWalletEvidence(
         { ...options, useCache: holderSeeds.length ? false : options.useCache,
           goPlusRequestSlotReserved: providers.defaultGoPlusWalletProvider }),
       options, state, 1, evm.chain, providers.defaultGoPlusWalletProvider
-        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true }) : null);
+        ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true }) : null);
     const recovered = goPlusAttempt.status === "SUCCESS"
       ? addGoPlusSample(goPlusAttempt.value, "WALLET_PROVIDER_RECOVERY") : 0;
     attempts.push({ ...goPlusAttempt, value: undefined, family: "WALLETS",
       holderSampleFieldsRecovered: recovered });
   }
-  if (fields.length && fields.every((field) => observations.some((item) => item.field === field))) {
+  if (options.cheapHolderMetadataOnly === true ||
+      (fields.length && fields.every((field) => observations.some((item) => item.field === field)))) {
     return { observations, attempts, projectPatch: goPlusWalletPatch };
   }
   const attempt = await executeProviderCall("blockscout-wallets",
@@ -1068,12 +1117,11 @@ export async function recoverWalletEvidence(
           const endpointId = walletRpcEndpointId(url);
           const circuitScope = options.rpcUrl && !options.rpcUrls?.length ? evm.chain : `${evm.chain}:${endpointId}`;
           const call = await executeProviderCall("rpc-wallets", async () => {
-            const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
+            const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
             const value = await transport(url, method, params, { ...rpcOptions, retries: 0,
               timeoutMs: Math.max(1, Math.min(rpcOptions.timeoutMs, remaining,
                 Number(options.providerTimeoutMs || 8000))) });
-            if ((state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
-              state.timeBudgetExceeded = true;
+            if (recoveryDeadlineStatus(state, options)) {
               throw new Error("Wallet RPC response arrived after the recovery deadline.");
             }
             return value;
@@ -1682,22 +1730,22 @@ async function collectBudgetedSolanaSecurity(project, providers, options, state)
     const rpc = init.method === "POST";
     const provider = rpc ? "solana-security-rpc" : "rugcheck";
     const method = rpc ? JSON.parse(init.body).method : null;
+    let controller;
     const attempt = await executeProviderCall(provider, async () => {
-      const remaining = (state.deadlineAt ?? Infinity) - (state.now || Date.now)();
-      if (remaining <= 0 || state.timeBudgetExceeded || init.signal?.aborted) {
-        state.timeBudgetExceeded ||= remaining <= 0;
+      const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
+      if (recoveryDeadlineStatus(state, options) || init.signal?.aborted) {
         throw new Error("Security request deadline expired before HTTP start.");
       }
       const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000), remaining)));
-      const signal = AbortSignal.timeout(timeout);
+      controller = new AbortController();
+      const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(timeout)]);
       const value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
-      if (signal.aborted || init.signal?.aborted || (state.now || Date.now)() >= (state.deadlineAt ?? Infinity)) {
-        state.timeBudgetExceeded ||= (state.now || Date.now)() >= (state.deadlineAt ?? Infinity);
+      if (signal.aborted || init.signal?.aborted || recoveryDeadlineStatus(state, options)) {
         throw new Error("Security response arrived after its deadline.");
       }
       if (rpc && value?.error) throw new Error("Solana security RPC returned a JSON-RPC error.");
       return value;
-    }, options, state, 1, rpc ? walletRpcEndpointId(url) : "solana");
+    }, options, state, 1, rpc ? walletRpcEndpointId(url) : "solana", null, () => controller?.abort());
     attempts.push({ ...attempt, value: undefined, family: "SECURITY", ...(method ? { rpcMethod: method } : {}) });
     if (attempt.status !== "SUCCESS") {
       const error = new Error(attempt.reason);
@@ -1739,7 +1787,11 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     (!lower(item.provider).includes("goplus") || item.responseIdentityVerified === true)
   );
   const identity = { chain, tokenAddress };
-  const eligible = (items) => options.requiresAuthorityPair === true ? items.filter((item) => freshAuthorityPair(item, options)) : items;
+  const eligible = (items) => items.filter((item) =>
+    (options.requiresAuthorityPair !== true || freshAuthorityPair(item, options)) &&
+    (options.requiresMintAccountEvidence !== true || resolveCanonicalIdentity({
+      ...project, solanaMintAccountEvidence: null, securityEvidence: [item],
+    }).mintAccountEvidence !== null));
   const localObservations = securityObservations(eligible(existing), fields, identity);
   if (localObservations.length === fields.length) {
     return {
@@ -1763,7 +1815,7 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     Math.max(1, Number(options.securityProviderRequestCost || 4)),
     chain,
     providers.defaultFreeSecurityProvider && chain !== "solana" ? async () => {
-      goPlusCooldownSkipped = !await (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: state.deadlineAt, waitForCooldown: options.waitForGoPlusCooldown === true });
+      goPlusCooldownSkipped = !await (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true });
       return true;
     } : null
   );
@@ -2026,21 +2078,22 @@ export async function recoverExecutionEvidence(
     const { [PROVIDER_REQUEST_ADMISSION]: admission, ...transportInit } = init;
     const provider = init.adapter === "lifi-token" ? "lifi" : init.adapter;
     let failure = null;
+    let requestController;
     const attempt = await executeProviderCall(provider, async () => {
       const controller = new AbortController();
+      requestController = controller;
       const signal = init.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal;
       const configuredTimeout = Math.max(250, Number(options.providerTimeoutMs || options.timeoutMs ||
         process.env.ACTIVE_EVIDENCE_PROVIDER_TIMEOUT_MS || process.env.ACTIVE_EVIDENCE_RECOVERY_PROVIDER_TIMEOUT_MS || 8_000));
       const providerTimeoutMs = Math.min(configuredTimeout, Number(init.timeoutMs) || configuredTimeout);
-      const remainingMs = (state.deadlineAt ?? Infinity) - clock();
+      const remainingMs = recoveryDeadlineAt(state, options) - clock();
       const deadlineOwnsTimeout = Number.isFinite(remainingMs) && remainingMs <= providerTimeoutMs;
       const timeoutMs = Math.max(1, Math.min(providerTimeoutMs, remainingMs));
       let timer;
       let onAbort;
       try {
         if (signal.aborted) throw new Error("Execution provider request aborted before start.");
-        if (clock() >= (state.deadlineAt ?? Infinity)) {
-          state.timeBudgetExceeded = true;
+        if (recoveryDeadlineStatus(state, options)) {
           throw new Error("Execution provider deadline exhausted before start.");
         }
         const aborted = new Promise((_, reject) => {
@@ -2049,21 +2102,20 @@ export async function recoverExecutionEvidence(
         });
         timer = setTimeout(() => {
           // Timer expiry owns this decision; wall-clock rounding must not reopen its budget.
-          if (deadlineOwnsTimeout) state.timeBudgetExceeded = true;
+          if (deadlineOwnsTimeout) recoveryDeadlineStatus(state, options, true);
           controller.abort();
         }, timeoutMs);
         // No await separates dispatch admission from the transport invocation.
         admission?.markDispatched();
         const value = await Promise.race([transport(url, { ...transportInit, timeoutMs, signal }), aborted]);
-        if (state.timeBudgetExceeded || signal.aborted || clock() >= (state.deadlineAt ?? Infinity)) {
-          state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
+        if (recoveryDeadlineStatus(state, options) || signal.aborted) {
           throw new Error("Execution provider response arrived after its deadline.");
         }
         responses.push({ provider, adapter: init.adapter, url, value });
         return value;
       } catch (error) {
         failure = error;
-        state.timeBudgetExceeded ||= clock() >= (state.deadlineAt ?? Infinity);
+        recoveryDeadlineStatus(state, options);
         if ([400, 404, 422].includes(error?.status)) {
           return { candidateEvidenceUnavailable: true, reason: redact(error.message) };
         }
@@ -2072,7 +2124,7 @@ export async function recoverExecutionEvidence(
         clearTimeout(timer);
         if (onAbort) signal.removeEventListener("abort", onAbort);
       }
-    }, options, state, 1, market ? "cex" : identity.chain);
+    }, options, state, 1, market ? "cex" : identity.chain, null, () => requestController?.abort());
     calls.push({ attempt, failure });
     if (attempt.status !== "SUCCESS") {
       admission?.rejectBeforeDispatch();
@@ -2157,6 +2209,8 @@ export async function executeActiveEvidenceProviderRequests(
   const fields = [...new Set((Array.isArray(requests) ? requests : []).map(fieldOf).filter(Boolean))];
   const requiresAuthorityPair = (Array.isArray(requests) ? requests : [])
     .some((request) => request?.item?.requiresAuthorityPair === true || request?.requiresAuthorityPair === true);
+  const requiresMintAccountEvidence = (Array.isArray(requests) ? requests : [])
+    .some((request) => request?.item?.requiresMintAccountEvidence === true);
   const sources = targetSourceNames(requests);
   const attempts = [];
   let executionAdapterResults = [];
@@ -2216,7 +2270,9 @@ export async function executeActiveEvidenceProviderRequests(
   const walletFields = fields.filter(
     (field) => WALLET_RAW_FIELDS.has(field) && !recoveredFields.has(field)
   );
-  const securityFields = fields.filter(
+  const cheapHolderMetadataOnly = walletFields.length > 0 && walletFields.every(field => field === "holderAddresses") &&
+    requests.some(request => fieldOf(request) === "holderAddresses" && request?.item?.cheapHolderMetadataOnly === true);
+  let securityFields = fields.filter(
     (field) => SECURITY_FIELDS.has(field) && !recoveredFields.has(field)
   );
   const aggregateFields = fields.filter(
@@ -2224,8 +2280,47 @@ export async function executeActiveEvidenceProviderRequests(
   );
   const executionFields = fields.filter((field) => EXECUTION_RAW_FIELDS.has(field));
   const parallel = [];
-  if (executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "raydium", "0x", "cex", "order book", "dex aggregators"])) {
-    const result = await recoverExecutionEvidence(project, executionFields, providers, options, executionState);
+  let executionProject = project;
+  let safetyReady = true;
+  if (requiresMintAccountEvidence && executionFields.length && chainOf(project) === "solana") {
+    const adverse = (candidate) => {
+      const identity = { chain: chainOf(candidate), tokenAddress: tokenAddressOf(candidate, chainOf(candidate)) };
+      const evidence = [
+        ...(Array.isArray(candidate.securityEvidence) ? candidate.securityEvidence : []),
+        ...(Array.isArray(candidate.freeSecurityEvidence?.evidence) ? candidate.freeSecurityEvidence.evidence : []),
+      ].filter(Boolean);
+      const scoped = evidence.filter(item => securityIdentityMatches(item, identity));
+      // Summaries over mixed identities must be rebuilt from the candidate's raw records.
+      const summaries = evidence.length ? [summarizeSecurityEvidence(scoped)]
+        : [candidate.securityEvidenceSummary, candidate.freeSecurityEvidence?.summary].filter(item => item &&
+          (!item.chain || normalizeChainId(item.chain) === identity.chain) &&
+          (!(item.address || item.tokenAddress) || normalizeTokenAddress(item.address || item.tokenAddress, identity.chain) === identity.tokenAddress));
+      return decisionProofAssessment(candidate).conclusivelyRejected ||
+        hasKnownTransferRestriction(candidate) || candidate.identityConflict === true || candidate.instantSafetyStatus === "CRITICAL" ||
+        candidate.mintAuthorityEnabled === true || candidate.freezeAuthorityEnabled === true ||
+        [...scoped, ...summaries].some(item =>
+          ["malicious", "honeypot", "blacklistRisk", "mintRisk", "freezeRisk"].some(field => item[field] === true));
+    };
+    safetyReady = !adverse(project);
+    if (safetyReady) {
+      const result = await recoverSecurity(project, ["mintAuthorityEnabled"], providers, {
+        ...options, now: executionState.now || options.now, requiresAuthorityPair: true, requiresMintAccountEvidence: true,
+      }, executionState);
+      observations.push(...result.observations);
+      attempts.push(...result.attempts);
+      projectPatch = { ...projectPatch, ...result.projectPatch };
+      executionProject = { ...project, ...projectPatch };
+      safetyReady = !adverse(executionProject) && resolveCanonicalIdentity({
+        ...executionProject, solanaMintAccountEvidence: null,
+      }).mintAccountEvidence !== null;
+    }
+    securityFields = securityFields.filter((field) => field !== "mintAuthorityEnabled");
+    if (!safetyReady) attempts.push({ provider: "solana-safety-hydration", family: "SECURITY",
+      status: "SAFETY_UNRESOLVED_OR_BLOCKED", durationMs: 0,
+      reason: "Fresh exact paired mint-account safety is required before quote acquisition." });
+  }
+  if (safetyReady && executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "raydium", "0x", "cex", "order book", "dex aggregators"])) {
+    const result = await recoverExecutionEvidence(executionProject, executionFields, providers, options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
     executionAdapterResults = result.executionAdapterResults || [];
@@ -2260,7 +2355,8 @@ export async function executeActiveEvidenceProviderRequests(
   ) {
     // Newly acquired holder payloads may also carry safety evidence needed by the next pass.
     const result = await recoverWalletEvidenceWithHistory({ ...project, ...projectPatch },
-      walletFields.filter((field) => !observations.some((item) => item.field === field)), providers, options, executionState);
+      walletFields.filter((field) => !observations.some((item) => item.field === field)), providers,
+      cheapHolderMetadataOnly ? { ...options, cheapHolderMetadataOnly: true, walletHistory: false } : options, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
     projectPatch = { ...projectPatch, ...result.projectPatch };
@@ -2330,6 +2426,8 @@ export function summarizeActiveEvidenceExecutionState(state = {}) {
     requestsUsed: state.requestsUsed || 0,
     timeBudgetExceeded: state.timeBudgetExceeded === true,
     timeBudgetSkippedCalls: state.timeBudgetSkippedCalls || 0,
+    phaseTimeBudgetExceeded: state.phaseTimeBudgetExceeded === true,
+    phaseTimeBudgetSkippedCalls: state.phaseTimeBudgetSkippedCalls || 0,
     providers: [...(state.providers?.values?.() || [])].map((provider) => ({ ...provider })),
   };
 }
