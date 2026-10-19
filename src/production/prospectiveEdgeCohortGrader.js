@@ -34,6 +34,7 @@ function observedAt(row = {}) {
 }
 
 function episodeIntegrityFailures(episode = {}, asOfMs, options = {}) {
+  if (!episode || typeof episode !== "object" || Array.isArray(episode)) return ["MALFORMED_EPISODE_RECORD"];
   const failures = [];
   const identity = strictIdentity(episode);
   const decisionMs = timestamp(episode.decisionAt);
@@ -816,27 +817,40 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
   const asOf = options.asOf || options.now || new Date().toISOString();
   const asOfMs = timestamp(asOf);
   if (asOfMs === null) throw new Error("A valid as-of timestamp is required to grade prospective edge cohorts");
-  const attemptedEpisodes = Array.isArray(episodes) ? episodes : [];
+  const episodeInputValid = Array.isArray(episodes);
+  const attemptedEpisodes = episodeInputValid ? episodes : [];
   const episodeAuditRows = attemptedEpisodes.map((row) => ({
     row,
     failures: episodeIntegrityFailures(row, asOfMs, options),
   }));
   const claimedLatestStrategyFingerprint = episodeAuditRows
-    .filter(({ row }) => row.strategyFingerprint && timestamp(row.decisionAt) !== null && timestamp(row.decisionAt) <= asOfMs)
+    .filter(({ row }) => row?.strategyFingerprint && timestamp(row.decisionAt) !== null && timestamp(row.decisionAt) <= asOfMs)
     .map(({ row }) => ({ fingerprint: row.strategyFingerprint, decisionMs: timestamp(row.decisionAt) }))
     .sort((left, right) => right.decisionMs - left.decisionMs)[0]?.fingerprint || null;
   const validCandidates = episodeAuditRows.filter((entry) => !entry.failures.length).map((entry) => entry.row);
   const duplicateEpisodeIds = new Set();
   const seenEpisodeIds = new Set();
-  for (const row of validCandidates) {
+  for (const row of attemptedEpisodes.filter(row => row && typeof row === "object" && !Array.isArray(row))) {
     if (!row.episodeId || seenEpisodeIds.has(row.episodeId)) duplicateEpisodeIds.add(row.episodeId || "MISSING_EPISODE_ID");
     else seenEpisodeIds.add(row.episodeId);
   }
   const validEpisodes = validCandidates.filter((row) => row.episodeId && !duplicateEpisodeIds.has(row.episodeId));
   const topologyFailures = cohortTopologyFailures(validEpisodes);
-  const attemptedObservations = Array.isArray(observations) ? observations : [];
+  const observationInputValid = Array.isArray(observations);
+  const attemptedObservations = observationInputValid ? observations : [];
   const requireObservationLedgerIntegrity = options.requireObservationLedgerIntegrity === true;
+  const seenObservationKeys = new Set();
+  const duplicateObservationKeys = new Set();
+  if (requireObservationLedgerIntegrity) for (const row of attemptedObservations) {
+    if (!row?.observationKey) continue;
+    if (seenObservationKeys.has(row.observationKey)) duplicateObservationKeys.add(row.observationKey);
+    seenObservationKeys.add(row.observationKey);
+  }
   const observationAudit = attemptedObservations.reduce((audit, row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      audit.invalidIdentity += 1;
+      return audit;
+    }
     const at = observedAt(row);
     const identity = strictIdentity(row);
     const price = finite(row.priceUsd);
@@ -845,7 +859,10 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
       row.observationIntegrityHash === exactMarketObservationIntegrityHash(row)
     );
     if (!integrityPass) audit.integrityFailure += 1;
-    else if (!identity) audit.invalidIdentity += 1;
+    else if (!identity || (requireObservationLedgerIntegrity && (row.exactIdentityVerified !== true ||
+      row.identityKey !== identity.identityKey || row.routeKey !== identity.routeKey || !row.observationKey)) ||
+      (row.identityKey && row.identityKey !== identity.identityKey) ||
+      (row.routeKey && row.routeKey !== identity.routeKey)) audit.invalidIdentity += 1;
     else if (at === null) audit.invalidTimestamp += 1;
     else if (at > asOfMs) audit.futureTimestamp += 1;
     else if (price === null || price <= 0) audit.invalidPrice += 1;
@@ -860,13 +877,18 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
     integrityFailure: 0,
   });
   const safeObservations = attemptedObservations.filter((row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return false;
+    const identity = strictIdentity(row);
     const at = observedAt(row);
     const integrityPass = !requireObservationLedgerIntegrity || (
       Boolean(row.observationIntegrityHash) &&
       row.observationIntegrityHash === exactMarketObservationIntegrityHash(row)
     );
-    return integrityPass &&
-      strictIdentity(row) &&
+    return integrityPass && !duplicateObservationKeys.has(row.observationKey) &&
+      identity && (!row.identityKey || row.identityKey === identity.identityKey) &&
+      (!row.routeKey || row.routeKey === identity.routeKey) &&
+      (!requireObservationLedgerIntegrity || (row.exactIdentityVerified === true && row.identityKey === identity.identityKey &&
+        row.routeKey === identity.routeKey && Boolean(row.observationKey))) &&
       at !== null &&
       at <= asOfMs &&
       finite(row.priceUsd) > 0;
@@ -911,11 +933,11 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
   // The evidence ledger is append-only. Any malformed, duplicated, or invalidly
   // linked row can change a capture denominator, so certification fails closed
   // for the entire loaded ledger instead of quietly quarantining older damage.
-  const prospectiveLedgerIntegrityPass = episodeAuditRows.every((entry) => !entry.failures.length) &&
+  const prospectiveLedgerIntegrityPass = episodeInputValid && episodeAuditRows.every((entry) => !entry.failures.length) &&
     duplicateEpisodeIds.size === 0 &&
     topologyFailures.size === 0;
-  const observationLedgerIntegrityPass = !requireObservationLedgerIntegrity ||
-    observationAudit.integrityFailure === 0;
+  const observationLedgerIntegrityPass = observationInputValid && (!requireObservationLedgerIntegrity ||
+    (observationAudit.accepted === attemptedObservations.length && duplicateObservationKeys.size === 0));
   const currentLedgerIntegrityPass = prospectiveLedgerIntegrityPass && observationLedgerIntegrityPass;
   const integrityBlockers = [
     ...(!prospectiveLedgerIntegrityPass ? ["PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"] : []),
@@ -951,6 +973,9 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
     current,
     strategies,
     inputAudit: {
+      episodeInputValid,
+      observationInputValid,
+      duplicateObservationKeys: [...duplicateObservationKeys],
       episodesAttempted: attemptedEpisodes.length,
       validProspectiveEpisodes: validEpisodes.length,
       invalidProspectiveEpisodes: episodeAuditRows.filter((entry) => entry.failures.length).length,

@@ -9,6 +9,30 @@ import { writeAtomicJson } from "../production/atomicArtifactStore.js";
 
 function readJson(file, fallback = {}) { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; } }
 
+export function edgeCertificateIntegrityBlockers(report = {}) {
+  const audit = report.inputAudit || {};
+  const blockers = [];
+  const cleanIds = Array.isArray(audit.duplicateEpisodeIds) && audit.duplicateEpisodeIds.length === 0 &&
+    Array.isArray(audit.topologyFailureEpisodeIds) && audit.topologyFailureEpisodeIds.length === 0;
+  const historicalIntegrityPass = audit.globalHistoricalProspectiveLedgerIntegrityPass === true ||
+    (audit.globalHistoricalProspectiveLedgerIntegrityPass === false &&
+      Number.isInteger(audit.legacyHashOrderRowsQuarantined) && audit.legacyHashOrderRowsQuarantined > 0 &&
+      audit.nonLegacyInvalidRowsObserved === 0 && cleanIds);
+  if (audit.currentStrategyPartitionIntegrityPass !== true || audit.scopedProspectiveLedgerIntegrityPass !== true ||
+      audit.currentStrategyLedgerIntegrityPass !== true || audit.nonLegacyInvalidRowsObserved !== 0 ||
+      audit.episodeInputValid !== true || !cleanIds || !historicalIntegrityPass) {
+    blockers.push("PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE");
+  }
+  if (audit.exactMarketObservationLedgerIntegrityRequired !== true) {
+    blockers.push("EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_NOT_REQUIRED");
+  }
+  if (audit.exactMarketObservationLedgerIntegrityPass !== true || audit.observationInputValid !== true ||
+      audit.observationsRejected !== 0 || !Array.isArray(audit.duplicateObservationKeys) || audit.duplicateObservationKeys.length !== 0) {
+    blockers.push("EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE");
+  }
+  return blockers;
+}
+
 export function runEdgeVerificationCycle(options = {}) {
   const now = options.now || new Date().toISOString();
   const resolvedReport = options.resolvedReport || readJson("reports/production-shadow-resolved.json", {});
@@ -65,10 +89,14 @@ export function runEdgeVerificationCycle(options = {}) {
     writeAtomicJson("reports/edge-verification-program.json", report);
   }
   const current = report.current;
+  const integrityBlockers = edgeCertificateIntegrityBlockers(report);
+  const certificateEligible = report.certificateEligible === true &&
+    report.edgeState === "VERIFIED_FORWARD_EDGE" && integrityBlockers.length === 0;
   const certificate = {
     schemaVersion: 1,
     generatedAt: report.generatedAt,
-    edgeState: report.edgeState,
+    edgeState: report.edgeState === "VERIFIED_FORWARD_EDGE" && !certificateEligible
+      ? "UNVERIFIED_CERTIFICATE_INTEGRITY" : report.edgeState,
     evidenceDesign: report.evidenceDesign,
     strategyFingerprint: report.latestStrategyFingerprint,
     forwardSelections: current.sample.resolvedMatchedPairs,
@@ -96,6 +124,8 @@ export function runEdgeVerificationCycle(options = {}) {
     missingnessWorstCaseSensitivityPass: current.missingnessSensitivity.pass,
     prospectiveCohortLedgerIntegrityPass: report.inputAudit.currentStrategyPartitionIntegrityPass === true,
     currentStrategyPartitionIntegrityPass: report.inputAudit.currentStrategyPartitionIntegrityPass,
+    scopedProspectiveLedgerIntegrityPass: report.inputAudit.scopedProspectiveLedgerIntegrityPass,
+    certificateIntegrityPass: integrityBlockers.length === 0,
     globalHistoricalProspectiveLedgerIntegrityPass:
       report.inputAudit.globalHistoricalProspectiveLedgerIntegrityPass,
     historicalObservationLedgerIntegrityPass:
@@ -105,9 +135,9 @@ export function runEdgeVerificationCycle(options = {}) {
     observationIntegrityRowsQuarantined: report.inputAudit.observationIntegrityRowsQuarantined,
     exactMarketObservationLedgerIntegrityRequired: report.inputAudit.exactMarketObservationLedgerIntegrityRequired,
     exactMarketObservationLedgerIntegrityPass: report.inputAudit.exactMarketObservationLedgerIntegrityPass,
-    blockers: current.blockers,
-    verified: report.certificateEligible === true,
-    certificateEligible: report.certificateEligible === true,
+    blockers: [...new Set([...(current.blockers || []), ...integrityBlockers])],
+    verified: certificateEligible,
+    certificateEligible,
     posthocDiagnosticState: diagnostic.edgeState,
     posthocDiagnosticCertificateEligible: false,
     automaticTrading: false,
