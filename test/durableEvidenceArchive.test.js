@@ -28,6 +28,12 @@ test("post-segment interruption leaves a discoverable physical orphan", () => {
   assert.throws(() => store.admitPrediction(admission()), /FAULT_AFTER_SEGMENT/);
   assert.equal(store.audit().detectedOrphans.length, 1); store.close();
 });
+test("portable export refuses a source with unindexed physical evidence", () => {
+  const dir = root(); const store = openDurableEvidenceArchive({ root: dir, fault: "after-segment" });
+  assert.throws(() => store.admitPrediction(admission()), /FAULT_AFTER_SEGMENT/);
+  assert.throws(() => store.exportArchive(path.join(dir, "export")), /ARCHIVE_EXPORT_INTEGRITY_FAILED/);
+  store.close();
+});
 test("leases use ownership CAS and expired leases become pending", () => {
   const store = openDurableEvidenceArchive({ root: root() }); store.admitPrediction(admission());
   const [job] = store.leaseDue({ owner: "worker-a", nowAt: "2026-01-02T00:00:00.000Z", leaseMs: 1 });

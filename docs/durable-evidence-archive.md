@@ -16,4 +16,30 @@ Use `backup(destination)` for an index snapshot: it reserves a new destination a
 
 The final audit also validates stored acknowledgment kind and receipt read-back hashes, not merely the acknowledgment flag. The public restore helper validates in a sibling staging directory and publishes only after a successful integrity check. A failed restore leaves the requested destination untouched, records the retained staging path on the error, and allows a corrected retry without deleting the failed bytes.
 
-Remaining acceptance work: archive migration and restart-reference wiring, crash/restart coordinator integration, provider retry/cooldown scheduling, independent backup destination, real remote read-back/restore, and production collection acceptance. The existing collector and 768 MiB state-bundle limit remain untouched. This foundation does not establish the proposed 128 MiB restart target, collection continuity, or a profitable strategy.
+## Archive-backed restart state
+
+The existing state commands support an explicit local archive mode:
+
+```sh
+SCANNER_STATE_ARCHIVE_ROOT=/persistent/evidence npm run state:pack
+SCANNER_STATE_ARCHIVE_ROOT=/persistent/evidence npm run state:inspect
+SCANNER_STATE_ARCHIVE_ROOT=/persistent/evidence npm run state:restore
+```
+
+Without this setting, the existing V2 bundle remains the default, and V1/V2 restoration is supported. No workflow is switched automatically. Do not enable this mode on ephemeral runners that cannot access the permanent archive.
+
+V3 keeps the latest exact candidate universe and working caches inside the restart bundle. It archives flat JSONL ledgers, growing scan/universe/outcome histories, and native discovery histories separately, including frozen cohort and observation ledgers outside the old bundle pattern set. Original malformed/quarantined bytes are not parsed away, and no source file is deleted. Immutable file snapshots get distinct IDs when their bytes change; older snapshots remain available.
+
+The complete decompressed V3 restart bundle, including reference metadata, must fit within 128 MiB. The existing 768 MiB ceiling is not raised. A smaller test/operator target may tighten this budget; it cannot enlarge it. Excess hot state fails explicitly instead of truncating history or replacing the previous valid bundle.
+
+The bundle contains exact file paths, lengths, raw hashes, immutable archive IDs, and admission hashes, not an embedded absolute archive location. Restore and inspection require an available matching archive. Missing, corrupt, stale, duplicate, mismatched, or unsafe references fail before any hot file is restored. Restore the permanent archive itself first, using its supported export/backup procedures, when recovering onto an empty host.
+
+Restoration stages and verifies all hot/cold bytes before publication. It never overwrites conflicting local files; identical files are left untouched, including their mtimes. Publication uses no-replace hard links and is recoverable after interruption by replaying the same verified bundle. Failed staging is retained on the error's recovery path. Source files are hash-checked during packing, but single-writer coordination is still required for a cross-file decision-cutoff snapshot.
+
+Bundle creation/restore times are operational timestamps, not market observations. Source bytes, embedded source times, UNKNOWN values, exact identities, and confidence values remain unchanged. File-snapshot admission does not create episode outcome obligations or activate a collector. Reports explicitly retain `archiveTaskQueueMigrated: false`.
+
+## Quarantine-preserving recovery
+
+Normal portable export and restore reject an archive with unindexed physical evidence. Explicit raw-preservation operations may use `exportArchive(destination, { preserveQuarantinedEvidence: true })` and `restoreDurableEvidenceArchive({ source, root, preserveQuarantinedEvidence: true })`. This copies verifiable quarantined/orphan bytes without indexing or promoting them. The restored audit remains `ok: false`. Corrupt/missing indexed evidence, missing orphan bytes, forged receipts, and invalid SQL state still fail, even with this option. The option is not a scanner-health, scoring, or certification override.
+
+Remaining acceptance work: production migration, episode-to-obligation reconciliation under the original frozen timing policy, crash/restart coordinator integration, provider retry/cooldown scheduling, independent backup destination, real remote read-back/restore, and production collection acceptance. The current collector has not been replaced. Storage restore tests do not establish sustained collection continuity or a profitable strategy.

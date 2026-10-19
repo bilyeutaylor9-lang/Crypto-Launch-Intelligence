@@ -98,7 +98,7 @@ export function openDurableEvidenceArchive(options = {}) {
   const segmentDir = path.join(root, "segments");
   const manifestDir = path.join(root, "manifests");
   const dbPath = path.join(root, "archive.sqlite");
-  fs.mkdirSync(segmentDir, { recursive: true }); fs.mkdirSync(manifestDir, { recursive: true });
+  fs.mkdirSync(segmentDir, { recursive: true, mode: 0o700 }); fs.mkdirSync(manifestDir, { recursive: true, mode: 0o700 });
   const db = new Database(dbPath);
   const existing = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='evidence_records'").get();
   if (existing && !db.pragma("table_info(evidence_records)").some((column) => column.name === "manifest_hash")) {
@@ -352,16 +352,16 @@ export function openDurableEvidenceArchive(options = {}) {
       errors, detectedOrphans, unindexedManifests, orphanSegments, unresolvedOrphanMarkers, records: records.length };
   }
 
-  function exportArchive(destination) {
+  function exportArchive(destination, exportOptions = {}) {
     const target = path.resolve(destination);
     if (fs.existsSync(target) && fs.readdirSync(target).length) throw new Error("EXPORT_TARGET_NOT_EMPTY");
     fs.mkdirSync(target, { recursive: true });
     const snapshot = db.transaction(() => {
       const checked = audit();
-      if (!checked.integrityOk) throw new Error("ARCHIVE_EXPORT_INTEGRITY_FAILED:" + checked.errors.join(","));
+      if (!checked.ok && !(exportOptions.preserveQuarantinedEvidence === true && checked.integrityOk)) throw new Error("ARCHIVE_EXPORT_INTEGRITY_FAILED:" + (checked.errors.join(",") || "UNINDEXED_EVIDENCE"));
       const tables = Object.fromEntries(TABLES.map((table) => [table, db.prepare(`SELECT * FROM ${table}`).all()]));
       for (const row of tables.evidence_records) assertRow(row);
-      return { format: "durable-evidence-archive/v2", createdAt: now(), tables, files: [] };
+      return { format: "durable-evidence-archive/v2", createdAt: now(), preservesQuarantinedEvidence: !checked.ok, tables, files: [] };
     })();
     for (const directory of ["segments", "manifests"]) {
       fs.mkdirSync(path.join(target, directory));
@@ -380,7 +380,7 @@ export function openDurableEvidenceArchive(options = {}) {
     return file;
   }
 
-  function importArchive(source) {
+  function importArchive(source, importOptions = {}) {
     if (TABLES.some((table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n) || fs.readdirSync(segmentDir).length || fs.readdirSync(manifestDir).length) throw new Error("RESTORE_TARGET_NOT_EMPTY");
     const sourceFile = path.resolve(source);
     const bytes = readRegular(sourceFile);
@@ -411,10 +411,10 @@ export function openDurableEvidenceArchive(options = {}) {
       for (const row of snapshot.tables.orphan_segments) markOrphan.run(row);
       for (const row of snapshot.tables.evidence_records) assertRow(row);
       const checked = audit();
-      if (!checked.integrityOk) throw new Error(`ARCHIVE_RESTORE_INTEGRITY_FAILED:${checked.errors.join(",")}`);
+      if (!checked.ok && !(importOptions.preserveQuarantinedEvidence === true && checked.integrityOk)) throw new Error("ARCHIVE_RESTORE_INTEGRITY_FAILED:" + (checked.errors.join(",") || "UNINDEXED_EVIDENCE"));
     })();
     const result = audit();
-    if (!result.integrityOk) throw new Error(`ARCHIVE_RESTORE_INTEGRITY_FAILED:${result.errors.join(",")}`);
+    if (!result.ok && !(importOptions.preserveQuarantinedEvidence === true && result.integrityOk)) throw new Error("ARCHIVE_RESTORE_INTEGRITY_FAILED:" + (result.errors.join(",") || "UNINDEXED_EVIDENCE"));
     return result;
   }
 
@@ -447,7 +447,7 @@ export function openDurableEvidenceArchive(options = {}) {
   return { root, dbPath, admitPrediction, readEvidence, leaseDue, transitionTask, completeWithEvidence, dueDenominators, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close };
 }
 
-export function restoreDurableEvidenceArchive({ source, root }) {
+export function restoreDurableEvidenceArchive({ source, root, preserveQuarantinedEvidence = false }) {
   const destination = path.resolve(root);
   const assertDestination = () => {
     if (fs.existsSync(destination) && (!fs.lstatSync(destination).isDirectory() || fs.readdirSync(destination).length)) throw new Error("RESTORE_TARGET_NOT_EMPTY");
@@ -458,7 +458,7 @@ export function restoreDurableEvidenceArchive({ source, root }) {
   const staging = fs.mkdtempSync(path.join(parent, ".archive-restore-"));
   const store = openDurableEvidenceArchive({ root: staging });
   try {
-    store.importArchive(source);
+    store.importArchive(source, { preserveQuarantinedEvidence });
     store.close();
     syncDirectory(staging);
     assertDestination();

@@ -78,16 +78,33 @@ test("portable recovery retains the original bytes of unindexed interrupted admi
   const { root, store } = fixture(t, { fault: "after-segment" });
   assert.throws(() => store.admitPrediction(prediction()), /FAULT_AFTER_SEGMENT/);
   const segments = fs.readdirSync(path.join(root, "segments"));
-  const exported = store.exportArchive(path.join(root, "export"));
+  const exported = store.exportArchive(path.join(root, "export"), { preserveQuarantinedEvidence: true });
   const target = fs.mkdtempSync(path.join(os.tmpdir(), "archive-orphan-restore-"));
   t.after(() => fs.rmSync(target, { recursive: true, force: true }));
-  const restored = restoreDurableEvidenceArchive({ source: exported, root: target });
+  const restored = restoreDurableEvidenceArchive({ source: exported, root: target, preserveQuarantinedEvidence: true });
   try {
     assert.deepEqual(fs.readdirSync(path.join(target, "segments")), segments);
     assert.deepEqual(fs.readFileSync(path.join(target, "segments", segments[0])), fs.readFileSync(path.join(root, "segments", segments[0])));
     assert.equal(restored.audit().detectedOrphans.length, 1);
+    assert.equal(restored.audit().ok, false);
+    assert.equal(restored.audit().integrityOk, true);
     assert.equal(restored.readEvidence(prediction().recordId), null);
   } finally { restored.close(); }
+});
+
+test("quarantine preservation needs explicit recovery intent and cannot bypass indexed corruption", t => {
+  const { root, store } = fixture(t, { fault: "after-segment" });
+  assert.throws(() => store.admitPrediction(prediction()), /FAULT_AFTER_SEGMENT/);
+  assert.throws(() => store.exportArchive(path.join(root, "strict")), /UNINDEXED_EVIDENCE/);
+  const exported = store.exportArchive(path.join(root, "recovery"), { preserveQuarantinedEvidence: true });
+  assert.throws(() => restoreDurableEvidenceArchive({ source: exported, root: path.join(root, "strict-restore") }), /UNINDEXED_EVIDENCE/);
+  const healthyRoot = path.join(root, "healthy");
+  const healthy = openDurableEvidenceArchive({ root: healthyRoot });
+  try {
+    const admitted = healthy.admitPrediction(prediction());
+    fs.writeFileSync(path.join(healthyRoot, "segments", admitted.contentHash + ".gz"), "corrupt indexed bytes");
+    assert.throws(() => healthy.exportArchive(path.join(root, "corrupt-export"), { preserveQuarantinedEvidence: true }), /SEGMENT_CORRUPT/);
+  } finally { healthy.close(); }
 });
 
 test("restore cannot overwrite pre-existing raw archive files", (t) => {
@@ -231,7 +248,7 @@ test("an outbox entry of the wrong kind cannot be acknowledged", (t) => {
 test("orphan bytes changing between validation and copying cannot pass restore", (t) => {
   const { root, store } = fixture(t, { fault: "after-segment" });
   assert.throws(() => store.admitPrediction(prediction()), /FAULT_AFTER_SEGMENT/);
-  const file = store.exportArchive(path.join(root, "export"));
+  const file = store.exportArchive(path.join(root, "export"), { preserveQuarantinedEvidence: true });
   const segment = path.join(root, "export", "segments", fs.readdirSync(path.join(root, "segments"))[0]);
   const read = fs.readFileSync; let reads = 0;
   t.mock.method(fs, "readFileSync", function(name, ...args) {
@@ -239,7 +256,7 @@ test("orphan bytes changing between validation and copying cannot pass restore",
     return read.call(this, name, ...args);
   });
   const destination = path.join(root, "restored");
-  assert.throws(() => restoreDurableEvidenceArchive({ source: file, root: destination }), /EXPORT_FILE_CORRUPT/);
+  assert.throws(() => restoreDurableEvidenceArchive({ source: file, root: destination, preserveQuarantinedEvidence: true }), /EXPORT_FILE_CORRUPT/);
   assert.equal(fs.existsSync(destination), false);
 });
 
