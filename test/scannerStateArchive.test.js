@@ -100,6 +100,12 @@ test("oversized hot state fails without replacing an already verified bundle", t
   assert.deepEqual(fs.readFileSync(file), previous);
 });
 
+test("caller options cannot raise either the hard limit or archive restart target", t => {
+  const f = fixture(t);
+  assert.throws(() => packScannerState({ root: f.root, maxUncompressedBytes: 1024 * 1024 * 1024, writeReport: false }), /768 MiB hard limit/);
+  assert.throws(() => packScannerState({ root: f.root, archiveRoot: f.archiveRoot, maxRestartBytes: 129 * 1024 * 1024, writeReport: false }), /cannot exceed 128 MiB/);
+});
+
 test("archive references cannot fall back to an empty or missing archive", t => {
   const f = fixture(t);
   packScannerState({ root: f.root, archiveRoot: f.archiveRoot, writeReport: false });

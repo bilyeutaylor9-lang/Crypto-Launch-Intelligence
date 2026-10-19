@@ -497,6 +497,7 @@ export function packScannerState(options = {}) {
   if (!Number.isSafeInteger(maximumUncompressedBytes) || maximumUncompressedBytes <= 0) {
     throw new Error("SCANNER_STATE_MAX_UNCOMPRESSED_BYTES must be a positive integer.");
   }
+  if (maximumUncompressedBytes > DEFAULT_MAX_UNCOMPRESSED_BYTES) throw new Error("SCANNER_STATE_MAX_UNCOMPRESSED_BYTES cannot exceed the 768 MiB hard limit.");
   if (useArchive) {
     const target = options.maxRestartBytes ?? DEFAULT_RESTART_TARGET_BYTES;
     if (!Number.isSafeInteger(target) || target <= 0 || target > DEFAULT_RESTART_TARGET_BYTES) throw new Error("Restart target must be positive and cannot exceed 128 MiB.");
