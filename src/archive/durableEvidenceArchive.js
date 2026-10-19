@@ -306,7 +306,7 @@ export function openDurableEvidenceArchive(options = {}) {
 
   function acknowledgeOutbox({ outboxId, recordId, contentHash, manifestHash, readBack, receipt } = {}) {
     const row = db.prepare("SELECT * FROM outbox WHERE outbox_id=?").get(outboxId);
-    if (!row || row.record_id !== recordId || row.content_hash !== contentHash || row.manifest_hash !== manifestHash ||
+    if (!row || row.kind !== "admission" || row.record_id !== recordId || row.content_hash !== contentHash || row.manifest_hash !== manifestHash ||
       readBack?.recordId !== recordId || readBack?.contentHash !== contentHash || readBack?.manifestHash !== manifestHash) return false;
     const record = findRecord.get(recordId);
     if (!record || record.content_hash !== contentHash || record.manifest_hash !== manifestHash) return false;
@@ -337,6 +337,13 @@ export function openDurableEvidenceArchive(options = {}) {
     for (const row of records) {
       const entries = db.prepare("SELECT * FROM outbox WHERE record_id=?").all(row.record_id);
       const entry = entries[0];
+      let receiptValid = false;
+      try {
+        const receipt = JSON.parse(entry?.receipt_json ?? "null");
+        receiptValid = entry?.state === "pending" ? entry.receipt_json === null :
+          receipt?.readBack?.recordId === row.record_id && receipt?.readBack?.contentHash === row.content_hash && receipt?.readBack?.manifestHash === row.manifest_hash;
+      } catch {}
+      if (entry?.kind !== "admission" || !receiptValid) errors.push("ARCHIVE_OUTBOX_RECEIPT_CORRUPT:" + row.record_id);
       const expectedPayload = canonical({ recordId: row.record_id, contentHash: row.content_hash, manifestHash: row.manifest_hash, admissionHash: row.admission_hash });
       if (entries.length !== 1 || entry.content_hash !== row.content_hash || entry.manifest_hash !== row.manifest_hash || entry.payload_json !== expectedPayload ||
         entry.outbox_id !== digest(`admit\u0000${row.record_id}\u0000${row.admission_hash}`) || !["pending", "acknowledged"].includes(entry.state)) errors.push(`ARCHIVE_OUTBOX_CORRUPT:${row.record_id}`);
@@ -350,6 +357,8 @@ export function openDurableEvidenceArchive(options = {}) {
     if (fs.existsSync(target) && fs.readdirSync(target).length) throw new Error("EXPORT_TARGET_NOT_EMPTY");
     fs.mkdirSync(target, { recursive: true });
     const snapshot = db.transaction(() => {
+      const checked = audit();
+      if (!checked.integrityOk) throw new Error("ARCHIVE_EXPORT_INTEGRITY_FAILED:" + checked.errors.join(","));
       const tables = Object.fromEntries(TABLES.map((table) => [table, db.prepare(`SELECT * FROM ${table}`).all()]));
       for (const row of tables.evidence_records) assertRow(row);
       return { format: "durable-evidence-archive/v2", createdAt: now(), tables, files: [] };
@@ -389,7 +398,11 @@ export function openDurableEvidenceArchive(options = {}) {
       if (!HASH.test(row.content_hash) || row.segment_name !== `${row.content_hash}.gz` || row.manifest_name !== `${digest(identifier(row.record_id, "recordId"))}.json` ||
         !seen.has(`segments/${row.segment_name}`) || !seen.has(`manifests/${row.manifest_name}`)) throw new Error("ARCHIVE_EXPORT_RECORD_INVALID");
     }
-    for (const item of snapshot.files) persistImmutable(path.join(root, item.path), readRegular(path.join(path.dirname(sourceFile), item.path)));
+    for (const item of snapshot.files) {
+      const original = readRegular(path.join(path.dirname(sourceFile), item.path));
+      if (original.length !== item.bytes || digest(original) !== item.sha256) throw new Error("ARCHIVE_EXPORT_FILE_CORRUPT:" + item.path);
+      persistImmutable(path.join(root, item.path), original);
+    }
     db.transaction(() => {
       for (const row of snapshot.tables.evidence_records) insertRecord.run(row);
       for (const row of snapshot.tables.obligations) insertTask.run(row);
@@ -436,7 +449,25 @@ export function openDurableEvidenceArchive(options = {}) {
 
 export function restoreDurableEvidenceArchive({ source, root }) {
   const destination = path.resolve(root);
-  if (fs.existsSync(destination) && fs.readdirSync(destination).length) throw new Error("RESTORE_TARGET_NOT_EMPTY");
-  const store = openDurableEvidenceArchive({ root: destination });
-  try { store.importArchive(source); return store; } catch (error) { store.close(); throw error; }
+  const assertDestination = () => {
+    if (fs.existsSync(destination) && (!fs.lstatSync(destination).isDirectory() || fs.readdirSync(destination).length)) throw new Error("RESTORE_TARGET_NOT_EMPTY");
+  };
+  assertDestination();
+  const parent = path.dirname(destination);
+  fs.mkdirSync(parent, { recursive: true });
+  const staging = fs.mkdtempSync(path.join(parent, ".archive-restore-"));
+  const store = openDurableEvidenceArchive({ root: staging });
+  try {
+    store.importArchive(source);
+    store.close();
+    syncDirectory(staging);
+    assertDestination();
+    fs.renameSync(staging, destination);
+    syncDirectory(parent);
+    return openDurableEvidenceArchive({ root: destination });
+  } catch (error) {
+    store.close();
+    error.recoveryDirectory = fs.existsSync(staging) ? staging : destination;
+    throw error;
+  }
 }

@@ -185,9 +185,16 @@ test("restore rejects inconsistent mutable state and rolls back its SQL admissio
   const file = store.exportArchive(path.join(root, "export"));
   editExport(file, (snapshot) => { snapshot.tables.leases = []; });
   const target = path.join(root, "restored");
-  assert.throws(() => restoreDurableEvidenceArchive({ source: file, root: target }), /LEASE_STATE_INCONSISTENT/);
-  const db = new Database(path.join(target, "archive.sqlite"));
+  let failure;
+  assert.throws(() => restoreDurableEvidenceArchive({ source: file, root: target }), (error) => {
+    failure = error; return /LEASE_STATE_INCONSISTENT/.test(error.message);
+  });
+  assert.equal(fs.existsSync(target), false);
+  const db = new Database(path.join(failure.recoveryDirectory, "archive.sqlite"));
   try { assert.equal(db.prepare("SELECT COUNT(*) AS n FROM evidence_records").get().n, 0); } finally { db.close(); }
+  const valid = store.exportArchive(path.join(root, "valid-export"));
+  const restored = restoreDurableEvidenceArchive({ source: valid, root: target });
+  try { assert.equal(restored.audit().ok, true); } finally { restored.close(); }
 });
 
 test("queue scheduling columns cannot diverge from the immutable contract", (t) => {
@@ -203,6 +210,37 @@ test("outbox hashes remain bound to the archived immutable manifest", (t) => {
   const db = new Database(store.dbPath);
   try { db.prepare("UPDATE outbox SET manifest_hash=?").run("0".repeat(64)); } finally { db.close(); }
   assert.equal(store.audit().ok, false);
+});
+
+test("forged or malformed persisted acknowledgments cannot pass the final audit", (t) => {
+  const { root, store } = fixture(t); store.admitPrediction(prediction());
+  const db = new Database(store.dbPath);
+  try { db.prepare("UPDATE outbox SET state='acknowledged',kind='not-admission',receipt_json=?").run("{malformed"); } finally { db.close(); }
+  assert.equal(store.audit().ok, false);
+  assert.throws(() => store.exportArchive(path.join(root, "export")), /OUTBOX_RECEIPT_CORRUPT/);
+});
+
+test("an outbox entry of the wrong kind cannot be acknowledged", (t) => {
+  const { store } = fixture(t); store.admitPrediction(prediction());
+  const [row] = store.listOutbox(); const db = new Database(store.dbPath);
+  try { db.prepare("UPDATE outbox SET kind='not-admission'").run(); } finally { db.close(); }
+  const readBack = { recordId: row.record_id, contentHash: row.content_hash, manifestHash: row.manifest_hash };
+  assert.equal(store.acknowledgeOutbox({ outboxId: row.outbox_id, ...readBack, readBack }), false);
+});
+
+test("orphan bytes changing between validation and copying cannot pass restore", (t) => {
+  const { root, store } = fixture(t, { fault: "after-segment" });
+  assert.throws(() => store.admitPrediction(prediction()), /FAULT_AFTER_SEGMENT/);
+  const file = store.exportArchive(path.join(root, "export"));
+  const segment = path.join(root, "export", "segments", fs.readdirSync(path.join(root, "segments"))[0]);
+  const read = fs.readFileSync; let reads = 0;
+  t.mock.method(fs, "readFileSync", function(name, ...args) {
+    if (name === segment && ++reads === 2) return Buffer.from("changed in transport");
+    return read.call(this, name, ...args);
+  });
+  const destination = path.join(root, "restored");
+  assert.throws(() => restoreDurableEvidenceArchive({ source: file, root: destination }), /EXPORT_FILE_CORRUPT/);
+  assert.equal(fs.existsSync(destination), false);
 });
 
 test("missing previously recorded orphan evidence cannot yield a healthy audit", (t) => {
@@ -265,3 +303,20 @@ test("atomic completion retains exact observation bytes and rejects unknown time
   assert.deepEqual(store.readEvidence(evidence.recordId).rawBytes, evidence.rawBytes);
   assert.deepEqual(store.dueDenominators(request.nowAt), [{ state: "completed", count: 1 }]);
 });
+
+for (const scenario of ["future-provider-time", "case-changed-identity"]) {
+  test("atomic completion rejects " + scenario, (t) => {
+    const { store } = fixture(t); const parent = store.admitPrediction(prediction());
+    const [task] = store.leaseDue({ owner: "worker", nowAt: "2026-01-01T06:01:00.000Z" });
+    const evidence = { recordId: "observation:" + scenario, rawBytes: Buffer.from("original provider payload"), frozenObligations: [],
+      immutableContract: { tokenAddress: scenario === "case-changed-identity" ? "casesensitive" : "CaseSensitive",
+        observationOf: { recordId: parent.recordId, taskId: task.taskId, horizonHours: 6,
+          requestedAt: "2026-01-01T06:01:00.000Z",
+          receivedAt: scenario === "future-provider-time" ? "2026-01-01T06:01:30.000Z" : "2026-01-01T06:01:01.000Z",
+          marketObservedAt: "2026-01-01T06:01:00.000Z" } } };
+    assert.throws(() => store.completeWithEvidence({ obligationId: task.obligationId, owner: "worker", leaseToken: task.leaseToken,
+      nowAt: "2026-01-01T06:01:01.000Z", evidence }), /OBSERVATION_CONTRACT_MISMATCH/);
+    assert.equal(store.readEvidence(evidence.recordId), null);
+    assert.deepEqual(store.dueDenominators("2026-01-01T06:01:01.000Z"), [{ state: "leased", count: 1 }]);
+  });
+}
