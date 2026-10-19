@@ -123,6 +123,12 @@ test("exact market ledger persists only point-in-time market context", () => {
   assert.equal(rejectedContext.btcReturnPct, null);
 });
 
+test("a later receipt cannot legitimize a source timestamp after the declared capture", () => {
+  const row = { chain: "base", tokenAddress: TOKEN, poolAddress: POOL, priceUsd: 1,
+    observedAt: "2026-08-23T12:00:00Z", receiptObservedAt: "2026-08-23T12:01:00Z", sourceObservedAt: "2026-08-23T12:00:30Z" };
+  assert.equal(buildExactMarketObservation(row, { asOf: "2026-08-23T12:02:00Z" }), null);
+});
+
 test("shadow outcome truth cannot link two symbol-only rows", () => {
   const prediction = { chain: "base", symbol: "SAME", decisionAt: "2026-08-23T00:00:00Z", priceUsd: 1 };
   const outcome = { chain: "base", symbol: "SAME", observedAt: "2026-08-24T00:10:00Z", priceUsd: 2 };

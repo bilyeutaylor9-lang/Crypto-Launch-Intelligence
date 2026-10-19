@@ -50,7 +50,7 @@ export function buildExactMarketObservation(row = {}, options = {}) {
   if (!identity || observedMs === null || asOfMs === null || priceUsd === null || priceUsd <= 0) return null;
   if (observedMs > asOfMs + maximumFutureSkewMs) return null;
   if (hasReceiptClock && (receiptMs === null || receiptMs > asOfMs)) return null;
-  if (hasSourceClock && (sourceMs === null || sourceMs > (receiptMs ?? observedMs))) return null;
+  if (hasSourceClock && (sourceMs === null || sourceMs > Math.min(receiptMs ?? observedMs, observedMs))) return null;
   if (
     maximumObservationAgeMinutes !== null &&
     maximumObservationAgeMinutes >= 0 &&

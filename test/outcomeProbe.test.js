@@ -520,6 +520,78 @@ test("a provider source clock after the actual receipt is degraded rather than c
   assert.equal(saves, 0);
 });
 
+test("an invalid primary source clock can recover through an independent budgeted fallback", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], maxRequests: 2, geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [{ ...providerPair(), sourceTimestamp: "2070-01-01T00:00:00Z" }] }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => ({ data: {
+        id: `base_${POOL_A}`, attributes: { address: POOL_A, base_token_price_usd: "1.3", reserve_in_usd: "100000" },
+        relationships: { base_token: { data: { id: `base_${TOKEN_A}` } } },
+      } }),
+    },
+    saveSnapshots: rows => ({ saved: rows.length }),
+    saveExactObservations: rows => { saved = rows; return { saved: rows.length, rejected: 0 }; }, writeReport: false,
+  });
+  assert.equal(report.status, "PASS"); assert.equal(report.providerRequestsUsed, 2);
+  assert.deepEqual(saved[0].outcomeObservationProvenance.providerAttempts.map(row => row.status), ["REJECTED_CLOCK", "RECEIVED"]);
+  assert.equal(saved[0].outcomeObservationProvenance.source, "geckoterminal");
+  assert.equal(saved[0].outcomeObservationProvenance.sourceTimestamp, null);
+});
+
+for (const receipt of [{ saved: 0, rejected: 1 }, { saved: 0, rejected: 0 }, {}]) {
+  test("unconfirmed exact-ledger admission cannot report capture success: " + JSON.stringify(receipt), async () => {
+    const report = await runOutcomeProbe({
+      now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+      providers: { getPairByAddress: async () => ({ pairs: [providerPair()] }), getTokenPairs: async () => [] },
+      saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: () => receipt, writeReport: false,
+    });
+    assert.equal(report.status, "CAPTURE_STORAGE_DEGRADED"); assert.equal(report.captureStorageHealthy, false);
+    assert.equal(report.observedDuePredictions, 1); assert.equal(report.resolvedDuePredictions, 0);
+    assert.equal(report.unresolvedDuePredictions, 1); assert.equal(report.unresolvedCandidates, 1);
+    assert.equal(report.results[0].status, "OBSERVED_STORAGE_UNCONFIRMED");
+  });
+}
+
+test("confirmed existing exact observations can acknowledge capture without a duplicate write", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+    providers: { getPairByAddress: async () => ({ pairs: [providerPair()] }), getTokenPairs: async () => [] },
+    saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: () => ({ saved: 0, duplicates: 1, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.status, "PASS"); assert.equal(report.captureStorageHealthy, true); assert.equal(report.resolvedDuePredictions, 1);
+});
+
+for (const limits of [{ maxRequests: 0 }, { maxCandidates: 0 }]) {
+  test("an explicit zero limit never falls back to a nonzero default: " + JSON.stringify(limits), async () => {
+    const report = await runOutcomeProbe({
+      ...limits, now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+      providers: { getPairByAddress: () => assert.fail("zero budget must not dispatch"), getTokenPairs: () => assert.fail("zero budget must not dispatch") },
+      writeReport: false,
+    });
+    assert.equal(report.providerRequestsUsed, 0); assert.equal(report.duePredictions, 1);
+    assert.equal(report.selectedDueCandidates, 0); assert.equal(report.capDeferredDueCandidates, 1);
+    assert.equal(report.unresolvedDuePredictions, 1); assert.notEqual(report.status, "NO_OUTCOMES_DUE");
+    assert.notEqual(report.status, "PASS");
+  });
+}
+
+test("candidate caps apply after the complete due denominator is counted", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], maxCandidates: 1, maxRequests: 5,
+    memory: [memoryRecord(), memoryRecord(TOKEN_B, POOL_B)], snapshots: [],
+    providers: { getPairByAddress: async (_chain, pool) => ({ pairs: [providerPair(pool === POOL_A ? TOKEN_A : TOKEN_B, pool)] }), getTokenPairs: async () => [] },
+    saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: rows => ({ saved: rows.length, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.dueCandidates, 2); assert.equal(report.duePredictions, 2);
+  assert.equal(report.selectedDueCandidates, 1); assert.equal(report.capDeferredDueCandidates, 1);
+  assert.equal(report.capDeferredDuePredictions, 1); assert.equal(report.unresolvedDuePredictions, 1);
+  assert.equal(report.status, "PARTIAL"); assert.equal(report.providerRequestsUsed, 1);
+});
+
 test("a late receipt is retained as evidence but cannot make the due capture pass", async () => {
   const originalNow = Date.now;
   let clock = Date.parse("2026-01-01T01:30:00.000Z");

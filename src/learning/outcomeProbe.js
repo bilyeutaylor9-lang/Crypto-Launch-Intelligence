@@ -73,6 +73,12 @@ function parseHorizons(value = DEFAULT_HORIZONS) {
   return [...new Set(values.map(Number).filter((horizon) => horizon > 0))];
 }
 
+function countLimit(value, name, minimum = 0) {
+  const limit = Number(value);
+  if (!Number.isSafeInteger(limit) || limit < minimum) throw new TypeError(`Invalid ${name}`);
+  return limit;
+}
+
 function frozenHorizonContract(value) {
   if (!Array.isArray(value) || !value.length) {
     return { valid: false, horizons: [], reason: "MISSING_OR_EMPTY_FROZEN_HORIZONS" };
@@ -245,8 +251,8 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
   const horizons = parseHorizons(
     options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS
   );
-  const maxCandidates = Number(
-    options.maxCandidates || process.env.OUTCOME_PROBE_MAX_CANDIDATES || DEFAULT_MAX_REQUESTS
+  const maxCandidates = countLimit(
+    options.maxCandidates ?? process.env.OUTCOME_PROBE_MAX_CANDIDATES ?? DEFAULT_MAX_REQUESTS, "outcome candidate limit"
   );
   const snapshotsByKey = new Map();
   const latestSnapshotByKey = new Map();
@@ -346,7 +352,7 @@ export function selectOutcomeProbeCandidates(memory = [], snapshots = [], option
         b.opportunityScore - a.opportunityScore ||
         a.routeKey.localeCompare(b.routeKey)
     )
-    .slice(0, maxCandidates);
+    .slice(0, options.includeAllDue === true ? undefined : maxCandidates);
 }
 
 function rawPairs(payload) {
@@ -392,6 +398,18 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
   const timeoutMs = Number(options.timeoutMs || DEFAULT_TIMEOUT_MS);
   const providerAttempts = [];
 
+  function acceptPairClock(pair) {
+    if (!pair) return null;
+    const attempt = providerAttempts.at(-1);
+    if (pair.sourceTimestampProvided && (!pair.sourceTimestamp || Date.parse(pair.sourceTimestamp) > Date.parse(attempt.receiptObservedAt))) {
+      attempt.status = "REJECTED_CLOCK";
+      const error = new Error("Provider source timestamp is invalid or after collection receipt");
+      error.code = "PROVIDER_CLOCK_INVALID";
+      throw error;
+    }
+    return pair;
+  }
+
   async function requestProvider(source, request) {
     const controller = new AbortController();
     const requestedAt = collectionTime(options);
@@ -424,7 +442,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       const dexPayload = await requestProvider("dexscreener", (signal) => candidate.poolAddress
         ? providers.getPairByAddress(candidate.chain, candidate.poolAddress, { signal })
         : providers.getTokenPairs(candidate.chain, candidate.tokenAddress, { signal }));
-      pair = exactPair(candidate, rawPairs(dexPayload));
+      pair = acceptPairClock(exactPair(candidate, rawPairs(dexPayload)));
     } catch (error) {
       dexError = error;
     }
@@ -437,7 +455,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
           candidate.poolAddress,
           { maxAttempts: 1, timeoutMs, signal }
         ));
-        pair = exactPair(candidate, geckoPairs(geckoPayload));
+        pair = acceptPairClock(exactPair(candidate, geckoPairs(geckoPayload)));
         source = "geckoterminal";
       } catch (error) {
         geckoError = error;
@@ -448,26 +466,14 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       const error = geckoError || dexError;
       return {
         candidate,
-        status: error ? (error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_FAILURE") : "NO_EXACT_PROVIDER_MATCH",
+        status: error?.code === "PROVIDER_CLOCK_INVALID" ? error.code : error ? (error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_FAILURE") : "NO_EXACT_PROVIDER_MATCH",
         error: error?.message || null,
         providerAttempts,
         observation: null,
       };
     }
 
-    const observedAt = collectionTime(options);
-    if (
-      pair.sourceTimestampProvided &&
-      (!pair.sourceTimestamp || Date.parse(pair.sourceTimestamp) > Date.parse(observedAt))
-    ) {
-      return {
-        candidate,
-        status: "PROVIDER_CLOCK_INVALID",
-        error: "Provider source timestamp is invalid or after collection receipt",
-        providerAttempts,
-        observation: null,
-      };
-    }
+    const observedAt = providerAttempts.at(-1).receiptObservedAt;
     return {
       candidate,
       status: "OBSERVED",
@@ -585,17 +591,15 @@ async function runOutcomeProbeUnlocked(options = {}) {
     ...loadOutcomeSnapshots(),
     ...existingExactObservations,
   ];
-  const maxRequests = Number(
-    options.maxRequests || process.env.OUTCOME_PROBE_MAX_REQUESTS || DEFAULT_MAX_REQUESTS
-  );
-  const concurrency = Number(
-    options.concurrency || process.env.OUTCOME_PROBE_CONCURRENCY || DEFAULT_CONCURRENCY
-  );
+  const maxRequests = countLimit(options.maxRequests ?? process.env.OUTCOME_PROBE_MAX_REQUESTS ?? DEFAULT_MAX_REQUESTS, "outcome request limit");
+  const maxCandidates = countLimit(options.maxCandidates ?? process.env.OUTCOME_PROBE_MAX_CANDIDATES ?? DEFAULT_MAX_REQUESTS, "outcome candidate limit");
+  const concurrency = countLimit(options.concurrency ?? process.env.OUTCOME_PROBE_CONCURRENCY ?? DEFAULT_CONCURRENCY, "outcome concurrency", 1);
   const candidates = selectOutcomeProbeCandidates(memory, snapshots, {
     ...options,
     now,
+    includeAllDue: true,
   });
-  const selected = candidates.slice(0, maxRequests);
+  const selected = candidates.slice(0, Math.min(maxRequests, maxCandidates));
   const geckoProvider = options.providers
     ? options.providers.getGeckoPoolByAddress || null
     : getGeckoPoolByAddress;
@@ -644,7 +648,6 @@ async function runOutcomeProbeUnlocked(options = {}) {
     return observation && captureSatisfiesPrediction(observation, prediction);
   }));
   const totalDuePredictions = candidates.reduce((sum, candidate) => sum + candidate.duePredictions.length, 0);
-  const unresolvedDuePredictions = Math.max(0, totalDuePredictions - resolvedDuePredictions.length);
   let marketContext = null;
   let marketContextSaveResult = { saved: 0, rejected: 0 };
   const shouldCollectMarketContext =
@@ -691,11 +694,18 @@ async function runOutcomeProbeUnlocked(options = {}) {
         source: "outcome-probe",
       })
     : { saved: 0, rejected: 0 };
+  const captureStorageHealthy = !observations.length || (
+    num(exactSaveResult.rejected) === 0 && num(exactSaveResult.saved) + num(exactSaveResult.duplicates) === observations.length
+  );
+  const persistedDuePredictions = captureStorageHealthy ? resolvedDuePredictions : [];
+  const unresolvedDuePredictions = Math.max(0, totalDuePredictions - persistedDuePredictions.length);
   const report = {
     generatedAt: collectionTime(options),
     runId,
     status: invalidFrozenOutcomeContracts > 0
       ? "INVALID_FROZEN_OUTCOME_CONTRACT"
+      : !captureStorageHealthy
+      ? "CAPTURE_STORAGE_DEGRADED"
       : !candidates.length
       ? "NO_OUTCOMES_DUE"
       : resolvedDuePredictions.length
@@ -709,11 +719,15 @@ async function runOutcomeProbeUnlocked(options = {}) {
     automaticPromotion: false,
     identityPolicy: "EXACT_CHAIN_TOKEN_WITH_OPTIONAL_EXACT_POOL",
     dueCandidates: candidates.length,
+    selectedDueCandidates: selected.length,
+    capDeferredDueCandidates: Math.max(0, candidates.length - selected.length),
     duePredictions: totalDuePredictions,
     selectedDuePredictions: selectedDuePredictions.length,
     capDeferredDuePredictions: Math.max(0, totalDuePredictions - selectedDuePredictions.length),
-    resolvedDuePredictions: resolvedDuePredictions.length,
+    observedDuePredictions: resolvedDuePredictions.length,
+    resolvedDuePredictions: persistedDuePredictions.length,
     unresolvedDuePredictions,
+    captureStorageHealthy,
     providerRequestsUsed,
     providerRequestBudget: maxRequests,
     observationsSaved: num(saveResult.saved),
@@ -757,7 +771,7 @@ async function runOutcomeProbeUnlocked(options = {}) {
       0
     ),
     prospectiveEntryEdgePolicy: "Only immutable, post-declaration, exact chain-token-pool treatment/control episodes at their registry-declared horizon are probed; the probe cannot influence ranking, promotion, or trading.",
-    unresolvedCandidates: Math.max(0, candidates.length - resolvedCandidates.length),
+    unresolvedCandidates: Math.max(0, candidates.length - (captureStorageHealthy ? resolvedCandidates.length : 0)),
     outcomesByHorizon: Object.fromEntries(
       [...new Set([
         ...parseHorizons(options.horizons || process.env.OUTCOME_PROBE_HORIZONS || DEFAULT_HORIZONS),
@@ -776,12 +790,14 @@ async function runOutcomeProbeUnlocked(options = {}) {
     resolvedOutcomesByHorizon: Object.fromEntries(
       [...new Set(selectedDuePredictions.map(({ prediction }) => prediction.horizonHours))].map((horizon) => [
         `${horizon}h`,
-        resolvedDuePredictions.filter(({ prediction }) => prediction.horizonHours === horizon).length,
+        persistedDuePredictions.filter(({ prediction }) => prediction.horizonHours === horizon).length,
       ])
     ),
     results: results.map((result) => ({
       key: result.candidate.key,
-      status: result.observation && !captureIsOnTime(result.observation, result.candidate)
+      status: result.observation && !captureStorageHealthy
+        ? "OBSERVED_STORAGE_UNCONFIRMED"
+        : result.observation && !captureIsOnTime(result.observation, result.candidate)
         ? "OBSERVED_LATE"
         : result.status,
       duePredictions: result.candidate.duePredictions.length,
