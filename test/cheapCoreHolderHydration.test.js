@@ -36,7 +36,8 @@ test("core holder gaps get a cheap Wave1 metadata attempt without expanding deep
     assert.equal(entry.field, "holderAddresses");
     assert.equal(entry.item.cheapHolderMetadataOnly, true);
     assert.equal(entry.item.recoveryDisposition, "RAW_RECOVERABLE");
-    assert.deepEqual(entry.item.targetSources.map(row => row.source), ["GoPlus"]);
+    assert.deepEqual(entry.item.targetSources.map(row => row.source), ["GoPlus", "block explorers"]);
+    assert.equal(entry.item.targetSources.find(row => row.source === "block explorers").metadataOnly, true);
   }
 });
 

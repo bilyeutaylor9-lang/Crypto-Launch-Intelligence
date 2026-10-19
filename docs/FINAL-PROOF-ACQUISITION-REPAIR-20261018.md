@@ -203,3 +203,72 @@ separately. The in-flight 500-deep scanner validation remains pinned to
 Official references:
 - https://supabase.com/docs/guides/platform/manage-your-usage/egress#optimize-usage
 - https://supabase.com/docs/guides/platform/billing-faq#how-can-i-remove-restrictions-applied-from-the-fair-use-policy
+
+## Measured Raw-Wave Follow-Up, 2026-10-19
+
+The completed clean-source `2533c592` live run evaluated 500 of 2,482 standard
+candidates and deferred 1,982. Core/advisory input coverage was 89%/89%, but
+296 deep candidates remained core-starved: 284 lacked wallet/holder evidence
+and 282 lacked creator/lifecycle evidence. Recovery consumed only 478 of 2,000
+request units while 1,902 attempts missed the raw phase deadline. The cheap
+GoPlus cohort monopolized that window, including thirteen rate-limit responses.
+Creator alternatives and selected deeper wallet work were therefore skipped.
+
+Unlike the prior run, 45 live quote HTTP requests actually ran: 40 LI.FI and
+five Raydium. One exact paired Raydium quote was recovered, but its 30-second
+expiry preceded the final publication cutoff. Zero routes were verified at that
+cutoff; zero candidates qualified. Missing pool attestations and missing safety
+proof were not promoted. Readiness and scanner smoke correctly failed with
+`DATA_DEGRADED`. These measurements are not a profitable-edge claim.
+
+All 3,973 reported recovered fields joined exact serialized candidates and had
+provenance. No deferred candidate was counted as starved. The fixture engine
+audit, report contracts and frozen artifact consistency checks passed, but those
+checks do not override the failed live acceptance. The complete source-pinned
+runtime, diagnostic receipts and failed readiness reports were archived before
+further code changes. The SHA-256 of that archive is
+`3ce0b5842ff27f5c9e0749c9e40325900cbc58a15820a0152e35da0a21b5b716`.
+
+The next scheduling layer partitions the existing raw allowance instead of
+extending it. `ACTIVE_EVIDENCE_WAVE2_RESERVE_MS` defaults to 240,000 ms and is
+capped at one third of remaining raw time when both waves have work.
+`ACTIVE_EVIDENCE_CHEAP_METADATA_TIME_BUDGET_MS` defaults to 600,000 ms and is
+capped at half of Wave 1 time when creator/security fallback also needs time.
+Unused cohorts reserve nothing. Absolute deadlines, request admission, provider
+circuits, cooldowns, exact identity, UNKNOWN semantics and quote expiry remain
+unchanged. A new live validation is required after implementation and tests.
+
+The implementation also removes already-satisfied raw demands before field and
+candidate caps, rechecks contract-generated required-any alternatives, and
+retains independent transaction/history requests and explicit fresh-proof
+requirements. Derived work waiting for its producer remains visible without a
+premature FINAL audit. Existing nested observations are promoted locally with
+their original provenance and changed families, using no external wave slots
+or request budget. Quote-only resumption does not replay old wallet inputs or
+traverse raw recovery plans.
+Dependency reruns use the actual current-phase changed families, not the
+presence of an external wave marker. Local-only recoveries therefore rerun their
+consumers, while cleared historical markers and deferred candidates do not.
+
+Cheap wallet acquisition now reuses validated project/cache payloads first,
+then queries the existing Blockscout holder and token-metadata endpoints, then
+uses GoPlus for unresolved observations. The new tier cannot request transfers,
+RPC history, buyer classification or smart-wallet alpha. A Blockscout pair costs
+two request units; a sufficient cached sample costs zero. A shared 440 ms
+admission interval for production metadata pairs keeps this new path below the
+documented anonymous default of 300 requests/minute. The interval does not
+alter GoPlus quotas or any evidence freshness rule. See
+[Blockscout requests and limits](https://github.com/blockscout/docs/blob/4eeb59ce584cb67706868b5eb7e11ec4726aa967/devs/apis/requests-and-limits.mdx).
+
+Default creator acquisition likewise reuses exact local/cache evidence before
+independent Sourcify/Blockscout metadata and GoPlus network fallback. Creator and
+selected deeper-wallet cohorts can skip an active GoPlus cooldown to use their
+independent alternatives; explicit caller waiting and single injected security
+providers retain their waiting behavior. UNKNOWN responses still produce no
+creator, no wallet label, no verified safety and no final qualification.
+
+The original 236 saved data/report/doc files remained byte-for-byte unchanged
+through the first full-suite, syntax, load and isolated smoke passes. Fresh
+complete validation and another source-pinned live run are required for this
+final scheduling revision. Results belong in the PR's current validation record;
+the failed live metrics above remain the retained before-repair measurement.

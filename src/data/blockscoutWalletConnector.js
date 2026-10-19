@@ -4,7 +4,7 @@ import {
   fetchJson as defaultFetchJson,
   isEvmAddress,
 } from "./security/securityEvidenceUtils.js";
-import { chainKind } from "../identity/strictIdentityValidators.js";
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
 import { createEvmWalletParticipantFilter } from "./walletParticipantPolicy.js";
 
 const ZERO_ADDRESS = `0x${"0".repeat(40)}`;
@@ -245,15 +245,38 @@ export function normalizeBlockscoutWalletEvidence(
   };
 }
 
-export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
-  const requestedChain = project.chain || project.network || project.chainId || "";
-  const chain = exactEvmChain(requestedChain) ? chainKey(requestedChain) : null;
-  const requestedToken = project.tokenAddress || project.contractAddress || project.address;
+export function resolveBlockscoutWalletRequest(project = {}, options = {}) {
+  const cheap = options.cheapHolderMetadataOnly === true;
+  const requestedChain = project.chain || project.network || project.chainId ||
+    (cheap && (project.canonicalChain || project.rawCandidate?.chain || project.marketData?.chain)) || "";
+  const chain = exactEvmChain(requestedChain)
+    ? (cheap ? normalizeChainId(requestedChain) : chainKey(requestedChain)) : null;
+  const requestedToken = project.tokenAddress || project.contractAddress || project.address ||
+    (cheap && (project.canonicalAddress || project.baseToken?.address || project.rawCandidate?.tokenAddress ||
+      project.rawCandidate?.contractAddress || project.rawCandidate?.address || project.marketData?.tokenAddress));
   const tokenAddress = typeof requestedToken === "string" ? addressOf(requestedToken) : null;
   const requestedPool = project.poolAddress || project.pairAddress;
   const poolAddress = typeof requestedPool === "string" ? addressOf(requestedPool) : null;
+  if (!chain || !tokenAddress || tokenAddress === ZERO_ADDRESS) return null;
+  if (cheap) {
+    const known = [project, project.rawCandidate, project.marketData, project.executionProof,
+      project.canonicalExecutionRoute, project.executionProofRecoveryRoute].filter(record);
+    const present = (value) => value !== null && value !== undefined && value !== "";
+    const chains = known.flatMap((item) => [item.chain, item.chainId, item.network, item.canonicalChain,
+      item.canonicalChainId, item.finalChain, item.finalChainId, item.normalizedChain, item.baseToken?.chain]).filter(present);
+    const tokens = known.flatMap((item) => [item.tokenAddress, item.contractAddress, item.address, item.canonicalAddress,
+      item.finalContractAddress, item.verifiedContractAddress, item.baseTokenAddress, item.baseToken?.address]).filter(present);
+    if (project.identityConflict === true ||
+        !chains.every((value) => exactEvmChain(value) && normalizeChainId(value) === chain) ||
+        !tokens.every((value) => typeof value === "string" && addressOf(value) === tokenAddress)) return null;
+  }
   const baseUrl = options.blockscoutBaseUrl || baseUrlForChain(chain, options.env || process.env);
-  if (!chain || !baseUrl || !tokenAddress || tokenAddress === ZERO_ADDRESS) {
+  return { chain, tokenAddress, poolAddress, baseUrl };
+}
+
+export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
+  const request = resolveBlockscoutWalletRequest(project, options);
+  if (!request?.baseUrl) {
     return {
       provider: "blockscout-wallets",
       status: "UNKNOWN",
@@ -262,44 +285,35 @@ export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
     };
   }
 
+  const { chain, tokenAddress, poolAddress, baseUrl } = request;
   const fetchJson = options.fetchJson || defaultFetchJson;
   const root = String(baseUrl).replace(/\/+$/, "");
-  const [transfers, holders, token] = await Promise.allSettled([
-    fetchJson(`${root}/api/v2/tokens/${tokenAddress}/transfers?type=ERC-20`, {
+  const cheap = options.cheapHolderMetadataOnly === true;
+  const endpoints = [
+    ...(!cheap ? [["transfers", "/transfers?type=ERC-20"]] : []),
+    ["holders", "/holders"],
+    ["token", ""],
+  ];
+  const responses = await Promise.allSettled(endpoints.map(([, suffix]) =>
+    fetchJson(`${root}/api/v2/tokens/${tokenAddress}${suffix}`, {
       timeoutMs: options.timeoutMs,
-    }),
-    fetchJson(`${root}/api/v2/tokens/${tokenAddress}/holders`, {
-      timeoutMs: options.timeoutMs,
-    }),
-    fetchJson(`${root}/api/v2/tokens/${tokenAddress}`, {
-      timeoutMs: options.timeoutMs,
-    }),
-  ]);
-  const payload = {
-    transfers: transfers.status === "fulfilled" ? transfers.value : {},
-    holders: holders.status === "fulfilled" ? holders.value : {},
-    token: token.status === "fulfilled" ? token.value : {},
-  };
+    })));
+  const payload = Object.fromEntries(endpoints.map(([name], index) =>
+    [name, responses[index].status === "fulfilled" ? responses[index].value : {}]));
+  const now = new Date(options.now?.() ?? Date.now());
   const result = normalizeBlockscoutWalletEvidence(payload, project, {
     chain,
     tokenAddress,
     poolAddress: isEvmAddress(poolAddress) ? poolAddress : null,
-    observedAt: new Date().toISOString(),
-    now: options.now?.() || new Date(),
+    observedAt: cheap ? now.toISOString() : new Date().toISOString(),
+    now,
   });
   return {
     ...result,
-    providerFailure: [transfers, holders, token].every((item) => item.status === "rejected"),
+    providerFailure: responses.every((item) => item.status === "rejected"),
     warnings: [
-      ...(transfers.status === "rejected"
-        ? [`Blockscout transfer request failed: ${transfers.reason?.message || "unknown"}`]
-        : []),
-      ...(holders.status === "rejected"
-        ? [`Blockscout holder request failed: ${holders.reason?.message || "unknown"}`]
-        : []),
-      ...(token.status === "rejected"
-        ? [`Blockscout token request failed: ${token.reason?.message || "unknown"}`]
-        : []),
+      ...responses.flatMap((response, index) => response.status === "rejected"
+        ? [`Blockscout ${endpoints[index][0].replace(/s$/, "")} request failed: ${response.reason?.message || "unknown"}`] : []),
       ...(result.warnings || []),
     ],
   };

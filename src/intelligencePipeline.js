@@ -281,6 +281,13 @@ export function shouldRerunEngineForEvidenceFamilies(name = "", families = []) {
   const changed = new Set(Array.isArray(families) ? families : []);
   return dependencies.some((family) => changed.has(family));
 }
+
+export function shouldRerunEngineForRecoveredProject(name = "", project = {}) {
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return false;
+  const families = project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
+    project.activeEvidenceRecovery?.changedEvidenceFamilies ?? [];
+  return Array.isArray(families) && families.length > 0 && shouldRerunEngineForEvidenceFamilies(name, families);
+}
 const PIPELINE_STAGE_ORDER = [
   "standard",
   "advanced",
@@ -2578,13 +2585,10 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     const positions = [];
     currentProjects.forEach((project, index) => {
       if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return;
-      const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
-        project.activeEvidenceRecovery?.changedEvidenceFamilies ?? [];
       const refreshQuotes = recoveryOptions.refreshQuotes === true &&
         (project.executionProof?.buyQuoteVerified === true || project.executionProof?.sellQuoteVerified === true);
       if (
-        (project.activeEvidenceRecovery?.waves?.length &&
-          shouldRerunEngineForEvidenceFamilies(name, changedFamilies)) || refreshQuotes
+        shouldRerunEngineForRecoveredProject(name, project) || refreshQuotes
       ) {
         selected.push(project);
         positions.push(index);

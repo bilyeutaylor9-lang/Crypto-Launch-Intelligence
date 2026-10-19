@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { canonicalValue } from "../data/canonicalAliasResolver.js";
+import { isDeepStrictEqual } from "node:util";
+import { applyCanonicalAliases, canonicalValue } from "../data/canonicalAliasResolver.js";
+import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
+import { getEngineContracts } from "../kernel/engineContractManifest.js";
+import { evaluateEngineDataReadiness } from "./engineDataReadinessEngine.js";
+import { analyzeValueOfInformation } from "./valueOfInformationEngine.js";
+import { createEvidenceHydrationSchedule } from "../data/evidenceHydrationSchedule.js";
 import { decisionProofAssessment } from "../kernel/evidenceFunnelSummary.js";
 import { hasKnownTransferRestriction } from "../execution/routeTruthV2.js";
 import { BLOCKSCOUT_DEFAULTS, evmChainId } from "../data/security/securityEvidenceUtils.js";
@@ -24,6 +30,11 @@ import {
 } from "../data/enrichmentSourceRegistry.js";
 
 const GOPLUS_SECURITY_CHAINS = new Set(getSourceById("goplus").chains);
+const RECOVERY_PRIORITY = getEngineContracts().find(contract => contract.id === "activeEvidenceRecovery").priority;
+const RECOVERY_CONTRACTS = new Map(getEngineContracts().filter(contract =>
+  contract.priority < RECOVERY_PRIORITY &&
+  !["dataStarvationRootCause", "valueOfInformation", "starvationRescue"].includes(contract.id)
+).map(contract => [contract.id, contract]));
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -416,31 +427,235 @@ function cheapCoreHolderRecoveryItems(project, items, options) {
     item.finalContractAddress, item.verifiedContractAddress, item.baseTokenAddress, item.baseToken?.address]).filter(supplied);
   if (!chains.every(value => normalizeChainId(value) === chain) ||
       !tokens.every(value => normalizeTokenAddress(value, chain) === token)) return [];
+  const env = options.env || process.env;
+  const explorerUrl = options.blockscoutBaseUrl || env[`${chain.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_BLOCKSCOUT_URL`] ||
+    env.BLOCKSCOUT_BASE_URL || BLOCKSCOUT_DEFAULTS[chain];
+  const cheapExplorer = (options.useCheapBlockscoutHolderMetadata ?? !(customWallet || customGoPlus)) && Boolean(explorerUrl);
   return buildTargetedEnrichmentPlan([{
     canonicalField: "holderAddresses", rootCause: "CORE_HOLDER_METADATA_MISSING", evidenceClass: "CORE",
     blockingResearch: true, requiresFreshObservation: true,
     valueOfInformationScore: Math.max(...needs.map(item => num(item.valueOfInformationScore || item.estimatedRecoveryValue))),
   }], { chain, routeType: recoveryRouteType(project), freeOnly: true }).items.map(item => ({
     ...item, cheapHolderMetadataOnly: true,
-    targetSources: item.targetSources.filter(source => source.source === "GoPlus"), estimatedRequests: 1,
+    targetSources: item.targetSources.filter(source => source.source === "GoPlus" ||
+      (cheapExplorer && source.source === "block explorers"))
+      .map(source => source.source === "block explorers" ? { ...source, cost: 2, metadataOnly: true } : source),
+    estimatedRequests: cheapExplorer ? 3 : 1,
   })).filter(item => item.targetSources.length);
 }
 
-function planItems(project = {}, options = {}) {
-  const items = [
+function requestedPlanItems(project = {}) {
+  return [
     ...(Array.isArray(project.targetedEnrichmentPlan?.items) ? project.targetedEnrichmentPlan.items : []),
     ...(Array.isArray(project.starvationRecoveryPlan?.items) ? project.starvationRecoveryPlan.items : []),
     ...(Array.isArray(project.valueOfInformationItems) ? project.valueOfInformationItems : []),
-    ...executionProofRecoveryItems(project, options),
-    ...poolIdentityRecoveryItems(project, options),
-    ...authorityProofRecoveryItems(project, options),
-    ...securityProofRecoveryItems(project, options),
   ];
-  items.push(...cheapCoreHolderRecoveryItems(project, items, options));
+}
+
+function requiresRecoveryObservation(item = {}) {
+  return item.requiresFreshObservation === true || item.requiresAuthorityPair === true ||
+    item.requiresMintAccountEvidence === true || ["STALE_DATA", "CONFLICTED_DATA"].includes(item.rootCause);
+}
+
+function hasRecoveryValue(value) {
+  if (value === null || value === undefined || value === "") return false;
+  if (Array.isArray(value)) return value.length > 0;
+  return typeof value !== "number" || Number.isFinite(value);
+}
+
+function coreRecoveryItem(item = {}, project = {}) {
+  if (item.evidenceClass) return item.evidenceClass === "CORE";
+  return item.blockingResearch === true || item.blockingExecution === true || project.coreDataStarved === true ||
+    num(project.dataStarvationBlockingResearchCount) > 0 || project.coreMissingEvidence?.length > 0;
+}
+
+function proofRecoveryItems(project, options) {
+  if (rawRecoveryDisabled(options)) return executionProofRecoveryItems(project, options);
+  return [...executionProofRecoveryItems(project, options), ...poolIdentityRecoveryItems(project, options),
+    ...authorityProofRecoveryItems(project, options), ...securityProofRecoveryItems(project, options)];
+}
+
+function recoveryWaveLimits(options = {}) {
+  return {
+    WAVE1: Math.max(0, Number(options.wave1Max ?? process.env.ACTIVE_EVIDENCE_WAVE1_MAX ?? 500)),
+    WAVE2: Math.max(0, Number(options.wave2Max ?? process.env.ACTIVE_EVIDENCE_WAVE2_MAX ?? 150)),
+    WAVE3: Math.max(0, Number(options.wave3Max ?? process.env.ACTIVE_EVIDENCE_WAVE3_MAX ?? 50)),
+  };
+}
+
+function rawRecoveryDisabled(options) {
+  const limits = recoveryWaveLimits(options);
+  return limits.WAVE1 === 0 && limits.WAVE2 === 0;
+}
+
+function refreshRecoveryAliases(project, fields, observed = false) {
+  if (!fields.length) return project;
+  const aliased = applyCanonicalAliases(project, { fields, disableSemanticScan: true });
+  const next = { ...project,
+    canonicalAliases: { ...project.canonicalAliases },
+    canonicalAliasProvenance: { ...project.canonicalAliasProvenance },
+    canonicalAliasConflicts: { ...project.canonicalAliasConflicts },
+  };
+  for (const field of fields) {
+    if (!observed && Object.hasOwn(next.canonicalAliases, field) &&
+        isDeepStrictEqual(next.canonicalAliases[field], aliased.canonicalAliases[field])) continue;
+    next.canonicalAliases[field] = aliased.canonicalAliases[field];
+    if (aliased.canonicalAliasProvenance[field]) next.canonicalAliasProvenance[field] = aliased.canonicalAliasProvenance[field];
+    if (aliased.canonicalAliasConflicts[field]) next.canonicalAliasConflicts[field] = aliased.canonicalAliasConflicts[field];
+  }
+  return next;
+}
+
+function promoteLocalRecoveryInputs(project, options) {
+  if (!isDeepCandidate(project)) return { project, recoveredFields: [], attempts: [] };
+  const items = [...requestedPlanItems(project), ...proofRecoveryItems(project, options)];
+  const fieldOf = item => canonicalFieldForAlias(item.canonicalField || item.field) || item.canonicalField || item.field;
+  const freshFields = new Set(items.filter(requiresRecoveryObservation).map(fieldOf));
+  const limits = recoveryWaveLimits(options);
+  const localItems = items.filter(item => {
+    const field = fieldOf(item);
+    return item.recoverable !== false && !freshFields.has(field) &&
+      limits[recoveryWaveForField(field, item)] > 0 && recoveryDispositionForField(field, {
+        applicability: item.rootCause === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : null,
+        chain: chainOf(project), routeType: recoveryRouteType(project),
+      }) === "RAW_RECOVERABLE";
+  });
+  const fields = [...new Set(localItems.map(fieldOf))];
+  let next = refreshRecoveryAliases(project, fields);
+  const recoveredFields = [];
+  const attempts = [];
+  for (const field of fields) {
+    const value = recoveredValueFor(next, field);
+    if (!hasRecoveryValue(value)) continue;
+    const promoted = applyRecoveredField(next, field, value);
+    const rootChanged = Object.keys(promoted).some(key => !isDeepStrictEqual(next[key], promoted[key]));
+    const aliasChanged = !isDeepStrictEqual(project.canonicalAliases?.[field], next.canonicalAliases?.[field]);
+    if (!rootChanged && !aliasChanged) continue;
+    const provenance = localRecoveryProvenance(project, field);
+    next = attachFieldProvenance(promoted, field, { ...provenance, value });
+    recoveredFields.push(field);
+    attempts.push({ field, family: sourceFamilyForField(field), wave: "LOCAL",
+      status: "RECOVERED_EXISTING_OBSERVATION", source: provenance.source });
+  }
+  return { project: refreshRecoveryAliases(next, fields), recoveredFields, attempts };
+}
+
+function pendingRecoveryPlanning(project = {}, options = {}) {
+  if (rawRecoveryDisabled(options)) return project;
+  const items = requestedPlanItems(project);
+  if (!items.length || !isDeepCandidate(project)) return project;
+  const missing = project.dataStarvationMissingEvidence || [];
+  const fieldOf = item => canonicalFieldForAlias(item.canonicalField || item.field) || item.canonicalField || item.field;
+  const waitingForProducer = item => item.rootCause === "PIPELINE_STAGE_NOT_RUN" &&
+    (item.recomputeAfterRecovery === true || item.recoveryDisposition === "DERIVED_RECOMPUTE" ||
+      sourceFamilyForField(fieldOf(item)) === "DERIVED");
+  const chain = chainOf(project), routeType = recoveryRouteType(project);
+  const rawFields = new Set(items.filter(item => recoveryDispositionForField(fieldOf(item), { chain, routeType }) === "RAW_RECOVERABLE").map(fieldOf));
+  const freshFields = new Set([...items, ...proofRecoveryItems(project, options)]
+    .filter(requiresRecoveryObservation).map(fieldOf));
+  const demandKey = item => `${item.producingEngine}|${fieldOf(item)}|${item.evidenceClass || ""}`;
+  const generatedDemands = new Set(missing.filter(item => {
+    const contract = RECOVERY_CONTRACTS.get(item.producingEngine);
+    return contract && item.evidenceClass === (contract.affectsFinalDecision || contract.canBlockCandidate ? "CORE" : "ADVISORY");
+  }).map(demandKey));
+  const contracts = [...new Set(missing.filter(item => rawFields.has(fieldOf(item)))
+    .map(item => RECOVERY_CONTRACTS.get(item.producingEngine)).filter(Boolean))];
+  const fields = [...new Set([
+    ...rawFields,
+    ...contracts.flatMap(contract => (contract.inputContract?.requiredAny || []).flat())
+      .map(field => canonicalFieldForAlias(field) || field),
+  ].filter(Boolean))];
+  // Planning refreshes aliases, never the raw identity or risk fields used by admission gates.
+  const next = { ...refreshRecoveryAliases(project, fields) };
+  const requiredFields = new Map();
+  const unresolvedFields = new Map();
+  for (const contract of contracts) {
+    requiredFields.set(contract.id, new Set((contract.inputContract?.requiredAny || []).flat()
+      .map(field => canonicalFieldForAlias(field) || field)));
+    if (![...requiredFields.get(contract.id)].some(field => hasRecoveryValue(recoveredValueFor(next, field)))) continue;
+    const readiness = evaluateEngineDataReadiness(next, contract);
+    unresolvedFields.set(contract.id, new Set(readiness.missingRequiredGroups.flatMap(group => group.canonicalFields)));
+  }
+  const pending = item => {
+    if (requiresRecoveryObservation(item) || item.rootCause === "NOT_APPLICABLE") return true;
+    const field = fieldOf(item);
+    if (freshFields.has(field)) return true;
+    // Only contract-generated alternatives retire with their required-any group.
+    if (generatedDemands.has(demandKey(item)) && requiredFields.get(item.producingEngine)?.has(field) &&
+        unresolvedFields.has(item.producingEngine) && !unresolvedFields.get(item.producingEngine).has(field)) return false;
+    if (!rawFields.has(field)) return true;
+    return !hasRecoveryValue(recoveredValueFor(next, field));
+  };
+  const planningRecord = item => waitingForProducer(item)
+    ? { ...item, blockingResearch: false, blockingExecution: false, recoverable: false,
+      recoveryDisposition: "DERIVED_RECOMPUTE", recomputeAfterRecovery: true } : item;
+  for (const key of ["targetedEnrichmentPlan", "starvationRecoveryPlan"]) {
+    if (Array.isArray(project[key]?.items)) next[key] = { ...project[key], items: project[key].items.filter(pending).map(planningRecord) };
+  }
+  if (Array.isArray(project.valueOfInformationItems)) next.valueOfInformationItems = project.valueOfInformationItems.filter(pending).map(planningRecord);
+  for (const key of ["dataStarvationMissingEvidence", "coreMissingEvidence", "advisoryMissingEvidence"]) {
+    if (Array.isArray(project[key])) next[key] = project[key].filter(pending).map(planningRecord);
+  }
+  // Recovery is before late producers: retain recompute work, not a premature FINAL core audit.
+  if (Array.isArray(next.coreMissingEvidence)) next.coreMissingEvidence = next.coreMissingEvidence.filter(item => !waitingForProducer(item));
+  const remaining = requestedPlanItems(next);
+  if (remaining.length !== items.length || (Array.isArray(project.dataStarvationMissingEvidence) &&
+      (next.dataStarvationMissingEvidence.length !== missing.length || missing.some(waitingForProducer)))) {
+    const unique = [...new Map(remaining.filter(item => rawFields.has(fieldOf(item)))
+      .map(item => [demandKey(item), item])).values()];
+    const voi = analyzeValueOfInformation({ ...next, dataStarvationMissingEvidence: unique }, options);
+    next.valueOfInformationScore = voi.valueOfInformationScore;
+    if (Array.isArray(project.dataStarvationMissingEvidence)) {
+      const core = next.dataStarvationMissingEvidence.filter(item => item.rootCause !== "NOT_APPLICABLE" &&
+        item.evidenceClass === "CORE" && !waitingForProducer(item));
+      next.coreDataStarved = project.coreDataStarved === true && core.length > 0;
+      next.dataStarvationBlockingResearchCount = core.filter(item => item.blockingResearch === true).length;
+      next.dataStarvationBlockingExecutionCount = core.filter(item => item.blockingExecution === true).length;
+      next.advisoryDataGaps = next.dataStarvationMissingEvidence.some(item => item.rootCause !== "NOT_APPLICABLE" &&
+        item.evidenceClass === "ADVISORY");
+    }
+  }
+  return next;
+}
+
+function commitRecoveryPlanning(project, options, observedFields) {
+  const planned = pendingRecoveryPlanning(project, options);
+  // A private planning view may inspect disabled waves; only actual input changes persist their aliases.
+  return refreshRecoveryAliases({ ...planned,
+    canonicalAliases: project.canonicalAliases,
+    canonicalAliasProvenance: project.canonicalAliasProvenance,
+    canonicalAliasConflicts: project.canonicalAliasConflicts,
+  }, observedFields, true);
+}
+
+function mergeRecoveryReports(previous = {}, report = {}) {
+  const merged = { ...report };
+  for (const key of ["waves", "recoveredFields", "attemptedFields", "unrecoveredFields",
+    "changedEvidenceFamilies", "changedEvidenceFamiliesThisPhase"]) {
+    merged[key] = [...new Set([...(previous[key] || []), ...(report[key] || [])])];
+  }
+  for (const key of ["attempts", "providerAttempts", "executionAdapterResults"]) {
+    merged[key] = [...(previous[key] || []), ...(report[key] || [])];
+  }
+  merged.plannedRequestCost = num(previous.plannedRequestCost) + num(report.plannedRequestCost);
+  merged.unrecoveredFields = merged.unrecoveredFields.filter(field => !merged.recoveredFields.includes(field));
+  merged.status = merged.recoveredFields.length
+    ? merged.unrecoveredFields.length ? "PARTIAL_RECOVERY" : "RECOVERED" : "NO_RECOVERY";
+  return merged;
+}
+
+function planItems(project = {}, options = {}, cheapHolderItems = null) {
+  const executionOnly = rawRecoveryDisabled(options);
+  const items = [
+    ...requestedPlanItems(project),
+    ...proofRecoveryItems(project, options),
+  ];
+  if (!executionOnly) items.push(...(cheapHolderItems ?? cheapCoreHolderRecoveryItems(project, items, options)));
   const bestByField = new Map();
   for (const item of items) {
     const field = item?.canonicalField || item?.field;
     if (!field || item.recoverable === false) continue;
+    if (executionOnly && recoveryWaveForField(field, item) !== "WAVE3") continue;
     if (sourceFamilyForField(field) === "EXECUTION" && recoveryRouteType(project) === "CEX" &&
         text(project.executionProof?.routeType).toUpperCase() !== "CEX") continue;
     const recoveryDisposition = recoveryDispositionForField(field, {
@@ -452,17 +667,22 @@ function planItems(project = {}, options = {}) {
     const key = item.cheapHolderMetadataOnly === true ? `cheap-holder:${field}` : field;
     const current = bestByField.get(key);
     const value = num(item.valueOfInformationScore || item.estimatedRecoveryValue);
+    const evidenceClass = item.evidenceClass === "CORE" || current?.evidenceClass === "CORE"
+      ? "CORE" : item.evidenceClass || current?.evidenceClass;
     if (!current || value > num(current.valueOfInformationScore || current.estimatedRecoveryValue)) {
-      bestByField.set(key, { ...item, recoveryDisposition,
-        requiresFreshObservation: item.requiresFreshObservation === true || current?.requiresFreshObservation === true,
-        requiresAuthorityPair: item.requiresAuthorityPair === true || current?.requiresAuthorityPair === true });
-    } else if (item.requiresFreshObservation === true || item.requiresAuthorityPair === true) {
-      bestByField.set(key, { ...current,
-        requiresFreshObservation: item.requiresFreshObservation === true || current.requiresFreshObservation === true,
-        requiresAuthorityPair: item.requiresAuthorityPair === true || current.requiresAuthorityPair === true });
+      bestByField.set(key, { ...item, recoveryDisposition, evidenceClass,
+        requiresFreshObservation: requiresRecoveryObservation(item) || requiresRecoveryObservation(current || {}),
+        requiresAuthorityPair: item.requiresAuthorityPair === true || current?.requiresAuthorityPair === true,
+        requiresMintAccountEvidence: item.requiresMintAccountEvidence === true || current?.requiresMintAccountEvidence === true });
+    } else {
+      bestByField.set(key, { ...current, evidenceClass,
+        requiresFreshObservation: requiresRecoveryObservation(item) || requiresRecoveryObservation(current),
+        requiresAuthorityPair: item.requiresAuthorityPair === true || current.requiresAuthorityPair === true,
+        requiresMintAccountEvidence: item.requiresMintAccountEvidence === true || current.requiresMintAccountEvidence === true });
     }
   }
-  return [...bestByField.values()];
+  return [...bestByField.values()].filter(item => requiresRecoveryObservation(item) ||
+    !hasRecoveryValue(recoveredValueFor(project, item.canonicalField || item.field)));
 }
 
 function executionPriority(project = {}, index = 0) {
@@ -476,18 +696,17 @@ function executionPriority(project = {}, index = 0) {
 
 export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
   const input = Array.isArray(projects) ? projects : [];
-  const waveLimits = {
-    WAVE1: Math.max(0, Number(options.wave1Max ?? process.env.ACTIVE_EVIDENCE_WAVE1_MAX ?? 500)),
-    WAVE2: Math.max(0, Number(options.wave2Max ?? process.env.ACTIVE_EVIDENCE_WAVE2_MAX ?? 150)),
-    WAVE3: Math.max(0, Number(options.wave3Max ?? process.env.ACTIVE_EVIDENCE_WAVE3_MAX ?? 50)),
-  };
+  const waveLimits = recoveryWaveLimits(options);
+  const executionOnly = rawRecoveryDisabled(options);
   const maxFieldsPerCandidate = Math.max(
     1,
     Number(options.maxFieldsPerCandidate || process.env.ACTIVE_EVIDENCE_RECOVERY_FIELDS_PER_CANDIDATE || 8)
   );
   const eligible = input
     .map((project, projectIndex) => {
-      const items = planItems(project, options);
+      const cheapHolderItems = executionOnly ? [] : cheapCoreHolderRecoveryItems(project, requestedPlanItems(project), options);
+      project = pendingRecoveryPlanning(project, options);
+      const items = planItems(project, options, cheapHolderItems);
       const valueOfInformationPriority = Math.max(
         0,
         ...items.map((item) => num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100)
@@ -497,12 +716,6 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
         projectIndex,
         priority: candidatePriority(project, projectIndex) + valueOfInformationPriority,
         executionPriority: executionPriority(project, projectIndex) + valueOfInformationPriority,
-        coreRecoveryPriority:
-          num(project.dataStarvationBlockingResearchCount) > 0 ||
-          project.coreDataStarved === true ||
-          (Array.isArray(project.coreMissingEvidence) && project.coreMissingEvidence.length > 0)
-            ? 1
-            : 0,
         items,
       };
     })
@@ -514,9 +727,8 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
     waves[wave] = eligible
       .filter((candidate) => wave !== "WAVE3" ||
         (hasExactExecutionRecoveryIdentity(candidate.project) && !hasKnownTransferRestriction(candidate.project)))
-      .map((candidate) => ({
-        ...candidate,
-        entries: candidate.items
+      .map((candidate) => {
+        const entries = candidate.items
           .filter((item) => recoveryWaveForField(item.canonicalField || item.field, item) === wave)
           .map((item) => {
             const field = item.canonicalField || item.field;
@@ -526,7 +738,7 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
               family: sourceFamilyForField(field),
               wave,
               item,
-              coreEvidence: item.evidenceClass === "CORE" || item.blockingResearch === true || item.blockingExecution === true,
+              coreEvidence: coreRecoveryItem(item, candidate.project),
               requestCost: Math.max(1, item.estimatedRequests || item.targetSources?.length || 1),
               score:
                 num(item.valueOfInformationScore || item.estimatedRecoveryValue) * 100 +
@@ -534,8 +746,9 @@ export function buildActiveEvidenceRecoveryWaves(projects = [], options = {}) {
             };
           })
           .sort((a, b) => Number(b.coreEvidence) - Number(a.coreEvidence) || b.score - a.score)
-          .slice(0, maxFieldsPerCandidate),
-      }))
+          .slice(0, maxFieldsPerCandidate);
+        return { ...candidate, entries, coreRecoveryPriority: Number(entries.some(entry => entry.coreEvidence)) };
+      })
       .filter((candidate) => candidate.entries.length)
       .sort((a, b) => {
         if (wave !== "WAVE3" && b.coreRecoveryPriority !== a.coreRecoveryPriority) {
@@ -574,7 +787,6 @@ export function reserveExecutionRecoveryWindow(state, options = {}) {
 
 export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const hydration = buildActiveEvidenceRecoveryWaves(safeProjects, options);
   const executionState = options.executionState || createActiveEvidenceRecoveryState(options);
   executionState.recoverySessionId ||= randomUUID();
   const concurrency = Math.max(
@@ -595,10 +807,34 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
   const recoveryByProject = new Map();
   if (resume) currentProjects.forEach((project, index) => {
     if (isDeepCandidate(project) && project.activeEvidenceRecovery?.recoverySessionId === executionState.recoverySessionId &&
-        project.activeEvidenceRecovery?.waves?.length) recoveryByProject.set(index, project);
+        (project.activeEvidenceRecovery?.waves?.length || project.activeEvidenceRecovery?.recoveredFields?.length)) recoveryByProject.set(index, project);
   });
+  currentProjects.forEach((project, index) => {
+    const local = promoteLocalRecoveryInputs(project, options);
+    currentProjects[index] = local.project;
+    if (!local.recoveredFields.length) return;
+    const families = [...new Set(local.recoveredFields.map(sourceFamilyForField))];
+    const report = mergeRecoveryReports(recoveryByProject.get(index)?.activeEvidenceRecovery, {
+      recoverySessionId: executionState.recoverySessionId, waves: [], recoveredFields: local.recoveredFields,
+      attemptedFields: local.recoveredFields, unrecoveredFields: [], changedEvidenceFamilies: families,
+      changedEvidenceFamiliesThisPhase: families, attempts: local.attempts,
+      providerAttempts: [], executionAdapterResults: [], plannedRequestCost: 0,
+      policy: "Existing observations are normalized locally without provider requests or external wave slots.",
+    });
+    const recovered = { ...local.project, activeEvidenceRecoveryStatus: report.status,
+      activeEvidenceRecoveryRecoveredFields: report.recoveredFields,
+      activeEvidenceRecoveryAttemptedFields: report.attemptedFields, activeEvidenceRecovery: report };
+    currentProjects[index] = recovered;
+    recoveryByProject.set(index, recovered);
+  });
+  const hydration = buildActiveEvidenceRecoveryWaves(currentProjects, options);
+  for (const [index, project] of recoveryByProject) {
+    const planned = commitRecoveryPlanning(project, options, []);
+    currentProjects[index] = planned;
+    recoveryByProject.set(index, planned);
+  }
 
-  async function recoverCandidate({ projectIndex, entries }, wave) {
+  async function recoverCandidate({ projectIndex, entries }, wave, phaseOptions = options) {
       const project = currentProjects[projectIndex];
       // Attach safety only after Wave3 selection, and recheck raw proof at dispatch.
       if (wave === "WAVE3" && recoveryRouteType(project) !== "CEX") {
@@ -614,7 +850,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       const unresolvedEntries = [];
 
       for (const entry of entries) {
-        const value = entry.item.requiresFreshObservation === true ? null : recoveredValueFor(next, entry.field);
+        const value = requiresRecoveryObservation(entry.item) ? null : recoveredValueFor(next, entry.field);
         const planAttempt = {
           field: entry.field,
           family: entry.family,
@@ -653,7 +889,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
         const providerResult = await executeActiveEvidenceProviderRequests(
           next,
           unresolvedEntries,
-          { ...options, waitForGoPlusCooldown: options.waitForGoPlusCooldown ?? true },
+          { ...phaseOptions, waitForGoPlusCooldown: phaseOptions.waitForGoPlusCooldown ?? true },
           executionState
         );
         for (const family of providerResult.changedEvidenceFamilies || []) {
@@ -710,16 +946,25 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       };
   }
 
+  const isCheapMetadata = entry => entry.item.cheapHolderMetadataOnly === true || ["IDENTITY", "MARKET"].includes(entry.family);
+  const schedule = createEvidenceHydrationSchedule(executionState, options, {
+    wave1: hydration.waves.WAVE1.length > 0,
+    wave2: hydration.waves.WAVE2.length > 0,
+    cheapMetadata: hydration.waves.WAVE1.some(candidate => candidate.entries.some(entry => entry.item.cheapHolderMetadataOnly === true)),
+    otherWave1: hydration.waves.WAVE1.some(candidate => candidate.entries.some(entry => !isCheapMetadata(entry))),
+  });
+  let refreshBeforeWave = false;
   for (const wave of ["WAVE1", "WAVE2", "WAVE3"]) {
-    if (wave !== "WAVE1") {
+    if (hydration.waveLimits[wave] === 0) continue;
+    if (refreshBeforeWave) {
       const refreshed = buildActiveEvidenceRecoveryWaves(currentProjects, options);
       hydration.waves[wave] = refreshed.waves[wave];
       hydration.executionIdentityDeferredCandidates = refreshed.executionIdentityDeferredCandidates;
     }
+    refreshBeforeWave = true;
     // Keep the priority-selected set, but acquire short-lived Raydium proof last.
     const selected = hydration.waves[wave];
     const cheapWave1 = wave === "WAVE1" && selected.some(candidate => candidate.entries.some(entry => entry.item.cheapHolderMetadataOnly === true));
-    const isCheapMetadata = entry => entry.item.cheapHolderMetadataOnly === true || ["IDENTITY", "MARKET"].includes(entry.family);
     const cohorts = cheapWave1
       ? [selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(isCheapMetadata) })),
         selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(entry => !isCheapMetadata(entry)) }))]
@@ -727,34 +972,19 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       ? [selected.filter((candidate) => chainOf(candidate.project) !== "solana"),
         selected.filter((candidate) => chainOf(candidate.project) === "solana")]
       : [selected];
-    for (const cohort of cohorts) {
+    for (const [cohortIndex, cohort] of cohorts.entries()) {
+      const independentFallbacks = !Array.isArray(options.securityEvidence?.providers) &&
+        (wave === "WAVE2" || (wave === "WAVE1" && (!cheapWave1 || cohortIndex > 0)));
+      const phaseOptions = { ...options, waitForGoPlusCooldown: options.waitForGoPlusCooldown ?? !independentFallbacks,
+        ...(wave === "WAVE1" ? { phaseDeadlineAt:
+          cheapWave1 && cohortIndex === 0 ? schedule.cheapMetadataDeadlineAt : schedule.wave1DeadlineAt } : {}) };
       const recoveredWave = await mapWithBoundedConcurrency(cohort.filter(candidate => candidate.entries.length), concurrency,
-        (candidate) => recoverCandidate(candidate, wave));
+        (candidate) => recoverCandidate(candidate, wave, phaseOptions));
       for (const recovered of recoveredWave) {
         const previous = recoveryByProject.get(recovered.projectIndex);
         const previousReport = previous?.activeEvidenceRecovery || {};
         const report = recovered.project.activeEvidenceRecovery || {};
-        const mergedReport = {
-          ...report,
-          waves: [...new Set([...(previousReport.waves || []), ...(report.waves || [])])],
-          recoveredFields: [...new Set([...(previousReport.recoveredFields || []), ...(report.recoveredFields || [])])],
-          attemptedFields: [...new Set([...(previousReport.attemptedFields || []), ...(report.attemptedFields || [])])],
-          unrecoveredFields: [...new Set([...(previousReport.unrecoveredFields || []), ...(report.unrecoveredFields || [])])],
-          changedEvidenceFamilies: [...new Set([...(previousReport.changedEvidenceFamilies || []), ...(report.changedEvidenceFamilies || [])])],
-          changedEvidenceFamiliesThisPhase: [...new Set([...(previousReport.changedEvidenceFamiliesThisPhase || []), ...(report.changedEvidenceFamiliesThisPhase || [])])],
-          attempts: [...(previousReport.attempts || []), ...(report.attempts || [])],
-          providerAttempts: [...(previousReport.providerAttempts || []), ...(report.providerAttempts || [])],
-          executionAdapterResults: [...(previousReport.executionAdapterResults || []), ...(report.executionAdapterResults || [])],
-          plannedRequestCost: num(previousReport.plannedRequestCost) + num(report.plannedRequestCost),
-        };
-        mergedReport.unrecoveredFields = mergedReport.unrecoveredFields.filter(
-          (field) => !mergedReport.recoveredFields.includes(field)
-        );
-        mergedReport.status = mergedReport.recoveredFields.length
-          ? mergedReport.unrecoveredFields.length
-            ? "PARTIAL_RECOVERY"
-            : "RECOVERED"
-          : "NO_RECOVERY";
+        const mergedReport = mergeRecoveryReports(previousReport, report);
         const merged = {
           ...recovered.project,
           activeEvidenceRecoveryStatus: mergedReport.status,
@@ -762,14 +992,16 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
           activeEvidenceRecoveryAttemptedFields: mergedReport.attemptedFields,
           activeEvidenceRecovery: mergedReport,
         };
-        currentProjects[recovered.projectIndex] = merged;
-        recoveryByProject.set(recovered.projectIndex, merged);
+        const planned = commitRecoveryPlanning(merged, options, report.recoveredFields);
+        currentProjects[recovered.projectIndex] = planned;
+        recoveryByProject.set(recovered.projectIndex, planned);
       }
     }
   }
 
   const providerExecution = summarizeActiveEvidenceExecutionState(executionState);
-  const selectedIndexes = new Set(recoveryByProject.keys());
+  const selectedIndexes = new Set([...recoveryByProject.keys()].filter(index =>
+    recoveryByProject.get(index).activeEvidenceRecovery?.waves?.length));
   const selectedWaveCounts = Object.fromEntries(["WAVE1", "WAVE2", "WAVE3"].map(wave =>
     [wave, [...recoveryByProject.values()].filter(project => project.activeEvidenceRecovery?.waves?.includes(wave)).length]));
   const recoveredFieldsByFamily = {};
@@ -800,7 +1032,7 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     unresolvedFieldsByFamily,
   };
 
-  return safeProjects.map((project, projectIndex) => {
+  return currentProjects.map((project, projectIndex) => {
     const recovered = recoveryByProject.get(projectIndex);
     if (recovered) {
       return {

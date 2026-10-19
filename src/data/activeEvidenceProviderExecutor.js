@@ -29,10 +29,10 @@ import {
   getEtherscanV2SecurityEvidence,
 } from "./security/etherscanV2Connector.js";
 import { getGoPlusSecurityEvidence } from "./security/goplusSecurityConnector.js";
-import { waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
+import { createGoPlusRequestLimiter, waitForGoPlusRequestSlot } from "./security/goplusRequestLimiter.js";
 import { getCachedSecurityEvidence, goPlusTaxPct, nonnegativeSafeInteger, summarizeSecurityEvidence } from "./security/securityEvidenceUtils.js";
 import { getSourcifySecurityEvidence } from "./security/sourcifyV2Connector.js";
-import { getBlockscoutWalletEvidence } from "./blockscoutWalletConnector.js";
+import { getBlockscoutWalletEvidence, resolveBlockscoutWalletRequest } from "./blockscoutWalletConnector.js";
 import { GOPLUS_WALLET_CHAINS } from "./enrichmentSourceRegistry.js";
 import { getRpcWalletEvidence, walletRpcEndpointId } from "./rpcWalletEvidenceConnector.js";
 import { getSolanaRpcWalletEvidence } from "./solanaRpcWalletEvidenceConnector.js";
@@ -168,6 +168,10 @@ const EXECUTION_ROUTE_FIELDS = [
   "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "buyQuote", "sellQuote",
   "quoteCostIncludesNetworkFees", "quoteCostScope",
 ];
+
+// The cheap path issues two reads per admission. Keep its aggregate pace below
+// Blockscout's documented anonymous default of 300 requests per minute.
+const waitForBlockscoutMetadataPair = createGoPlusRequestLimiter({ intervalMs: 440 });
 
 function text(value = "") {
   return String(value ?? "").trim();
@@ -318,6 +322,8 @@ function providerFunctions(options = {}) {
           options.getGoPlusDeployerEvidence
       ) || !customDeployerProvider,
     preferGoPlusDeployer: !customDeployerProvider && !customSourcifyProvider,
+    independentDeployerMetadataFirst: !customDeployerProvider && !customSourcifyProvider &&
+      !injected.getGoPlusDeployerEvidence && !injected.getGoPlusSecurityEvidence && !options.getGoPlusDeployerEvidence,
     defaultGoPlusDeployerProvider:
       !injected.getGoPlusDeployerEvidence && !injected.getGoPlusSecurityEvidence && !options.getGoPlusDeployerEvidence,
     getBlockscoutSecurityEvidence:
@@ -337,6 +343,8 @@ function providerFunctions(options = {}) {
     getRpcWalletEvidence: injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence,
     getGoPlusWalletEvidence: goPlusWalletProvider,
     defaultGoPlusWalletProvider: goPlusWalletProvider === getGoPlusSecurityEvidence,
+    useCheapBlockscoutHolderMetadata: options.useCheapBlockscoutHolderMetadata ??
+      !(customWalletProvider || injected.getGoPlusWalletEvidence || options.getGoPlusWalletEvidence || injected.getGoPlusSecurityEvidence),
     useGoPlusWalletFallback: options.useGoPlusWalletFallback ??
       (Boolean(injected.getGoPlusWalletEvidence || options.getGoPlusWalletEvidence || injected.getGoPlusSecurityEvidence) || !customWalletProvider),
     defaultRpcWalletProvider: (injected.getRpcWalletEvidence || options.getRpcWalletEvidence || getRpcWalletEvidence) === getRpcWalletEvidence,
@@ -805,7 +813,8 @@ export async function recoverDeployerEvidence(
       "goplusDeployerEvidence",
       providers.defaultGoPlusDeployerProvider ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({ deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true }) : null
     );
-    if (providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
+    const independentMetadataFirst = providers.independentDeployerMetadataFirst && options.deployerMetadataSourcesAllowed !== false;
+    if (providers.preferGoPlusDeployer && !independentMetadataFirst && needs(DEPLOYER_CREATOR_FIELDS)) {
       await acquireGoPlus();
     }
 
@@ -834,7 +843,8 @@ export async function recoverDeployerEvidence(
       );
     }
 
-    if (providers.useGoPlusDeployerFallback && !providers.preferGoPlusDeployer && needs(DEPLOYER_CREATOR_FIELDS)) {
+    if (providers.useGoPlusDeployerFallback && (!providers.preferGoPlusDeployer || independentMetadataFirst) &&
+        needs(DEPLOYER_CREATOR_FIELDS)) {
       await acquireGoPlus();
     }
 
@@ -1024,9 +1034,18 @@ export async function recoverWalletEvidence(
   }
   const observations = [];
   const attempts = [];
+  const cheap = options.cheapHolderMetadataOnly === true;
+  const cheapRequest = cheap && providers.useCheapBlockscoutHolderMetadata
+    ? resolveBlockscoutWalletRequest(project, options) : null;
+  if (cheap && providers.useCheapBlockscoutHolderMetadata && !cheapRequest) return {
+    observations, attempts: [{ provider: "blockscout-wallets", status: "NOT_APPLICABLE", durationMs: 0,
+      requestCost: 0, reason: "Cheap holder metadata requires a nonconflicting exact EVM chain and token identity." }], projectPatch: {},
+  };
+  let cheapWalletPatch = {};
   let goPlusWalletPatch = {};
   const goPlusHolderFields = ["wallets", "holderAddresses"];
   const holderSeeds = [];
+  const cheapGoPlusCompanions = [];
   const addGoPlusSample = (sample, acquisitionMode) => {
     const holderSample = securityHolderObservations(project, [sample], options);
     const current = holderSample.filter((item) => currentHolderObservation(item, options)).map((item) => ({ ...item,
@@ -1046,10 +1065,12 @@ export async function recoverWalletEvidence(
       typeof sample.confidence === "number" && Number.isFinite(sample.confidence) && confidenceFraction(sample.confidence) >= 0.5;
     // Empty holder samples must not discard genuine creator or adverse security metadata.
     if (current.length || (options.cheapHolderMetadataOnly === true && exactCurrentMetadata)) {
-      observations.push(...current, ...securityObservations([sample], [...SECURITY_FIELDS], evm));
+      observations.push(...current, ...(!cheap ? securityObservations([sample], [...SECURITY_FIELDS], evm) : []));
+      if (cheap) cheapGoPlusCompanions.push(sample);
       const existing = knownSecurityItems({ evidence: [
         ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
         ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
+        ...(cheap ? goPlusWalletPatch.securityEvidence || [] : []),
       ] }).filter((item) => securityIdentityMatches(item, evm));
       goPlusWalletPatch = { goplusWalletEvidence: sample, ...securityEvidencePatch([...existing, sample]) };
     }
@@ -1057,13 +1078,62 @@ export async function recoverWalletEvidence(
   };
   const needsGoPlusHolders = () => fields.some((field) => goPlusHolderFields.includes(field) &&
     !observations.some((item) => item.field === field));
+  if (cheap) {
+    const local = [...new Set([
+      ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
+      ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
+      project.goplusDeployerEvidence, project.goplusWalletEvidence,
+    ].filter(Boolean))];
+    const recovered = local.reduce((count, sample) => count + addGoPlusSample(sample, "EXISTING_SECURITY_PAYLOAD"), 0);
+    if (recovered || cheapGoPlusCompanions.length) attempts.push({ provider: "goplus-wallets", family: "WALLETS",
+      status: "LOCAL_EVIDENCE_AVAILABLE", durationMs: 0, requestCost: 0, holderSampleFieldsRecovered: recovered });
+  }
   if (providers.useGoPlusWalletFallback && GOPLUS_WALLET_CHAINS.includes(evm.chain) && needsGoPlusHolders()) {
     if (providers.defaultGoPlusWalletProvider && options.useCache !== false) {
       const cached = (options.readCachedSecurityEvidence || getCachedSecurityEvidence)("goplus", evm.chain, evm.tokenAddress, options.cacheTtlMs);
+      const previousCompanions = cheapGoPlusCompanions.length;
       const recovered = addGoPlusSample(cached, "EXISTING_SECURITY_PAYLOAD");
-      if (recovered || holderSeeds.length) attempts.push({ provider: "goplus-wallets", family: "WALLETS",
-        status: recovered ? "LOCAL_EVIDENCE_AVAILABLE" : "HOLDER_QUERY_SEEDS_AVAILABLE",
+      const metadataRecovered = cheapGoPlusCompanions.length > previousCompanions;
+      if (recovered || holderSeeds.length || metadataRecovered) attempts.push({ provider: "goplus-wallets", family: "WALLETS",
+        status: recovered || metadataRecovered ? "LOCAL_EVIDENCE_AVAILABLE" : "HOLDER_QUERY_SEEDS_AVAILABLE",
         durationMs: 0, requestCost: 0, holderSampleFieldsRecovered: recovered });
+    }
+  }
+  const localCheapFields = new Set([...observations,
+    ...securityObservations(cheapGoPlusCompanions, [...SECURITY_FIELDS], evm)].map((item) => item.field));
+  if (cheap && providers.useCheapBlockscoutHolderMetadata && cheapRequest.baseUrl &&
+      fields.some((field) => ["wallets", "holderAddresses", "holderCount"].includes(field) && !localCheapFields.has(field))) {
+    let requestCost = 0;
+    const attempt = await executeProviderCall("blockscout-wallets", () => {
+      requestCost = 2;
+      const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
+      return providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
+        poolAddress: poolAddressOf(project, evm.chain) }, { ...options, walletHistory: false,
+        timeoutMs: Math.max(1, Math.min(Number(options.timeoutMs || options.providerTimeoutMs || 8000), remaining)) });
+    }, options, state, 2, evm.chain,
+    options.blockscoutMetadataRateLimiter ||
+      (providers.getBlockscoutWalletEvidence === getBlockscoutWalletEvidence && !options.fetchJson
+        ? () => waitForBlockscoutMetadataPair({ deadlineAt: recoveryDeadlineAt(state, options) }) : null));
+    attempts.push({ ...attempt, value: undefined, family: "WALLETS", requestCost });
+    const result = attempt.value;
+    if (result) cheapWalletPatch = { blockscoutWalletEvidence: result };
+    const resultIdentity = result ? resolveBlockscoutWalletRequest(result, options) : null;
+    const stamp = typeof result?.observedAt === "string" ? Date.parse(result.observedAt) : NaN;
+    const now = new Date(typeof options.now === "function" ? options.now() : options.now ?? Date.now()).getTime();
+    if (attempt.status === "SUCCESS" && result?.status === "EVIDENCE_AVAILABLE" && result.exactTokenIdentity === true &&
+        resultIdentity?.chain === evm.chain && resultIdentity.tokenAddress === evm.tokenAddress &&
+        Number.isFinite(stamp) && stamp > 0 && Number.isFinite(now) && stamp <= now) {
+      for (const field of [...new Set([...fields, "wallets", "holderAddresses"])]) {
+        if (!["wallets", "holderAddresses", "holderCount"].includes(field) || !valueKnown(result[field]) || localCheapFields.has(field)) continue;
+        const item = observation(field, result[field], "blockscout-wallets", result.observedAt, 0.82, {
+          chain: evm.chain, tokenAddress: evm.tokenAddress, exactPoolIdentity: false,
+          holderSampleOnly: field !== "holderCount", completeHolderCoverage: false, buyerClassificationAvailable: false,
+          ...(field === "holderCount" ? { holderCountSemantics: "PROVIDER_REPORTED_COUNT_NOT_SAMPLE_COUNT" } : {}),
+          acquisitionMode: "WALLET_PROVIDER_RECOVERY", identityVerifiedOnChain: false, snapshotTimestampVerified: false,
+          sourceTimestampMeaning: "PROVIDER_RECEIPT_TIME_NOT_CHAIN_SNAPSHOT_TIME",
+        });
+        if (currentHolderObservation(item, options)) observations.push(item);
+      }
     }
   }
   if (providers.useGoPlusWalletFallback && GOPLUS_WALLET_CHAINS.includes(evm.chain) && needsGoPlusHolders()) {
@@ -1080,7 +1150,8 @@ export async function recoverWalletEvidence(
   }
   if (options.cheapHolderMetadataOnly === true ||
       (fields.length && fields.every((field) => observations.some((item) => item.field === field)))) {
-    return { observations, attempts, projectPatch: goPlusWalletPatch };
+    return { observations: [...observations, ...securityObservations(cheapGoPlusCompanions, [...SECURITY_FIELDS], evm)],
+      attempts, projectPatch: { ...cheapWalletPatch, ...goPlusWalletPatch } };
   }
   const attempt = await executeProviderCall("blockscout-wallets",
     () => providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
@@ -1171,7 +1242,7 @@ export async function recoverWalletEvidence(
 
 async function recoverWalletEvidenceWithHistory(project, fields, providers, options, state) {
   // The persistent transfer ledger is EVM-specific; do not discard fresh Solana history through it.
-  if (options.walletHistory === false || chainOf(project) === "solana") return recoverWalletEvidence(project, fields, providers, options, state);
+  if (options.cheapHolderMetadataOnly === true || options.walletHistory === false || chainOf(project) === "solana") return recoverWalletEvidence(project, fields, providers, options, state);
   const historyOptions = options.walletHistory || {};
   const identity = { ...project, chain: chainOf(project), tokenAddress: tokenAddressOf(project) };
   const attempts = [];
@@ -2214,11 +2285,15 @@ export async function executeActiveEvidenceProviderRequests(
   const sources = targetSourceNames(requests);
   const attempts = [];
   let executionAdapterResults = [];
-  const observations = securityHolderObservations(project, [
+  const requestedWalletFields = fields.filter((field) => WALLET_RAW_FIELDS.has(field));
+  const cheapHolderMetadataOnly = requestedWalletFields.length > 0 && requestedWalletFields.every(field => field === "holderAddresses") &&
+    requests.some(request => fieldOf(request) === "holderAddresses" && request?.item?.cheapHolderMetadataOnly === true);
+  // Cheap recovery owns local holder reuse so its adverse companions are retained as well.
+  const observations = (cheapHolderMetadataOnly || options.cheapHolderMetadataOnly === true ? [] : securityHolderObservations(project, [
     ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
     ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : []),
     project.goplusDeployerEvidence,
-  ], options).filter((item) =>
+  ], options)).filter((item) =>
     (fields.includes(item.field) || !Array.isArray(project[item.field]) || !project[item.field].length) &&
     (item.source !== "goplus" || currentHolderObservation(item, options)));
   let projectPatch = {};
@@ -2270,8 +2345,6 @@ export async function executeActiveEvidenceProviderRequests(
   const walletFields = fields.filter(
     (field) => WALLET_RAW_FIELDS.has(field) && !recoveredFields.has(field)
   );
-  const cheapHolderMetadataOnly = walletFields.length > 0 && walletFields.every(field => field === "holderAddresses") &&
-    requests.some(request => fieldOf(request) === "holderAddresses" && request?.item?.cheapHolderMetadataOnly === true);
   let securityFields = fields.filter(
     (field) => SECURITY_FIELDS.has(field) && !recoveredFields.has(field)
   );
@@ -2330,7 +2403,9 @@ export async function executeActiveEvidenceProviderRequests(
     deployerFields.length &&
     sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer", "native rpc", "security providers"])
   ) {
-    const result = await recoverDeployerEvidence(project, deployerFields, providers, options, executionState);
+    const result = await recoverDeployerEvidence(project, deployerFields, providers, { ...options,
+      deployerMetadataSourcesAllowed: sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer"]),
+    }, executionState);
     observations.push(...result.observations);
     attempts.push(...result.attempts);
     if (executionState.nativeDeploymentMemoryFailure) attempts.push({ provider: "native-contract-deployment",
