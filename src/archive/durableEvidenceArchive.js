@@ -99,7 +99,9 @@ export function openDurableEvidenceArchive(options = {}) {
   const manifestDir = path.join(root, "manifests");
   const dbPath = path.join(root, "archive.sqlite");
   fs.mkdirSync(segmentDir, { recursive: true, mode: 0o700 }); fs.mkdirSync(manifestDir, { recursive: true, mode: 0o700 });
+  const newIndex = !fs.existsSync(dbPath);
   const db = new Database(dbPath);
+  if (newIndex) fs.chmodSync(dbPath, 0o600);
   const existing = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='evidence_records'").get();
   if (existing && !db.pragma("table_info(evidence_records)").some((column) => column.name === "manifest_hash")) {
     db.close(); throw new Error("ARCHIVE_SCHEMA_UNSUPPORTED_PRESERVE_ORIGINAL");
@@ -451,8 +453,9 @@ export function restoreDurableEvidenceArchive({ source, root, preserveQuarantine
   const destination = path.resolve(root);
   const assertDestination = () => {
     if (fs.existsSync(destination) && (!fs.lstatSync(destination).isDirectory() || fs.readdirSync(destination).length)) throw new Error("RESTORE_TARGET_NOT_EMPTY");
+    return fs.existsSync(destination) ? fs.lstatSync(destination, { bigint: true }) : null;
   };
-  assertDestination();
+  const originalDestination = assertDestination();
   const parent = path.dirname(destination);
   fs.mkdirSync(parent, { recursive: true });
   const staging = fs.mkdtempSync(path.join(parent, ".archive-restore-"));
@@ -461,13 +464,45 @@ export function restoreDurableEvidenceArchive({ source, root, preserveQuarantine
     store.importArchive(source, { preserveQuarantinedEvidence });
     store.close();
     syncDirectory(staging);
-    assertDestination();
-    fs.renameSync(staging, destination);
+    publishRestoredArchive(staging, destination, originalDestination);
     syncDirectory(parent);
+    fs.rmSync(staging, { recursive: true });
     return openDurableEvidenceArchive({ root: destination });
   } catch (error) {
     store.close();
     error.recoveryDirectory = fs.existsSync(staging) ? staging : destination;
     throw error;
   }
+}
+
+function publishRestoredArchive(staging, destination, originalDestination) {
+  if (!originalDestination) {
+    try { fs.mkdirSync(destination, { mode: 0o700 }); } catch (error) {
+      if (error.code === "EEXIST") throw new Error("ARCHIVE_RESTORE_TARGET_CHANGED");
+      throw error;
+    }
+  }
+  const claimed = fs.lstatSync(destination, { bigint: true });
+  if (!claimed.isDirectory() || (originalDestination && (claimed.ino !== originalDestination.ino || claimed.dev !== originalDestination.dev)) ||
+    fs.readdirSync(destination).length) throw new Error("ARCHIVE_RESTORE_TARGET_CHANGED");
+  const assertClaim = () => {
+    const current = fs.lstatSync(destination, { bigint: true });
+    if (!current.isDirectory() || current.ino !== claimed.ino || current.dev !== claimed.dev) throw new Error("ARCHIVE_RESTORE_TARGET_CHANGED");
+  };
+  const publish = (from, to) => {
+    const entries = fs.readdirSync(from, { withFileTypes: true }).sort((a, b) =>
+      Number(a.name === "archive.sqlite") - Number(b.name === "archive.sqlite") || Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name));
+    for (const entry of entries) {
+      assertClaim();
+      const source = path.join(from, entry.name), target = path.join(to, entry.name);
+      if (entry.isDirectory()) {
+        fs.mkdirSync(target, { mode: 0o700 });
+        publish(source, target);
+      } else if (entry.isFile()) fs.linkSync(source, target);
+      else throw new Error("ARCHIVE_RESTORE_STAGING_NOT_REGULAR");
+    }
+    syncDirectory(to);
+  };
+  // Publish the closed index last; no existing file or directory is replaced.
+  publish(staging, destination);
 }

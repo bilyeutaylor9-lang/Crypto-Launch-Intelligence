@@ -119,6 +119,40 @@ test("restore cannot overwrite pre-existing raw archive files", (t) => {
   assert.equal(fs.readFileSync(existing, "utf8"), "original quarantined bytes");
 });
 
+test("a raced empty destination is not replaced during archive publication", (t) => {
+  const { root, store } = fixture(t); store.admitPrediction(prediction());
+  const source = store.exportArchive(path.join(root, "export"));
+  const destination = path.join(root, "raced-destination");
+  const mkdir = fs.mkdirSync, rename = fs.renameSync; let raced = false, inode;
+  const inject = () => {
+    if (raced) return;
+    raced = true; mkdir(destination, { mode: 0o711 }); inode = fs.statSync(destination).ino;
+  };
+  t.mock.method(fs, "mkdirSync", function(name, ...args) { if (name === destination) inject(); return mkdir.call(this, name, ...args); });
+  t.mock.method(fs, "renameSync", function(from, to) { if (to === destination) inject(); return rename.call(this, from, to); });
+  let failure;
+  assert.throws(() => restoreDurableEvidenceArchive({ source, root: destination }), error => { failure = error; return /EEXIST|TARGET_CHANGED/.test(error.message); });
+  assert.equal(raced, true);
+  assert.equal(fs.statSync(destination).ino, inode);
+  assert.equal(fs.statSync(destination).mode & 0o777, 0o711);
+  assert.deepEqual(fs.readdirSync(destination), []);
+  assert.ok(fs.existsSync(path.join(failure.recoveryDirectory, "archive.sqlite")));
+});
+
+test("successful archive restore preserves an existing empty destination directory", (t) => {
+  const { root, store } = fixture(t); store.admitPrediction(prediction());
+  const source = store.exportArchive(path.join(root, "export"));
+  const destination = path.join(root, "empty-destination"); fs.mkdirSync(destination, { mode: 0o711 });
+  const before = fs.statSync(destination);
+  const restored = restoreDurableEvidenceArchive({ source, root: destination });
+  try {
+    assert.equal(fs.statSync(destination).ino, before.ino);
+    assert.equal(fs.statSync(destination).mode & 0o777, before.mode & 0o777);
+    assert.equal(fs.statSync(path.join(destination, "archive.sqlite")).mode & 0o077, 0);
+    assert.equal(restored.audit().ok, true);
+  } finally { restored.close(); }
+});
+
 test("distinct episodes can share unchanged provider bytes and horizon labels", (t) => {
   const { root, store } = fixture(t);
   const first = prediction(); first.frozenObligations[0].obligationId = "six-hour";
