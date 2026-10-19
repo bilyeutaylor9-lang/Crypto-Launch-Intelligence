@@ -340,7 +340,6 @@ const EVIDENCE_FIELDS = [
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
-  ...RECOVERED_OBSERVATION_FIELDS,
   ...REPORT_DECISION_SCALAR_FIELDS,
   "signalProfile",
   // Derived snapshots can share these objects; retain the authoritative roots first.
@@ -348,6 +347,7 @@ const REPORT_PRIORITY_FIELDS = [...new Set([
   "canonicalExecutionRoute",
   "solanaMintAccountEvidence",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
+  ...RECOVERED_OBSERVATION_FIELDS,
   ...IDENTITY_FIELDS,
   ...DECISION_FIELDS,
   ...EVIDENCE_FIELDS,

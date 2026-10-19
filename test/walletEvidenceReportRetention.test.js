@@ -519,3 +519,36 @@ test("bounded final serialization retains observed Base B20 recovery receipts an
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("large recovered samples cannot displace final identity, risk or negative decision scalars", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "receipt-decision-priority-"));
+  const project = solanaProject();
+  Object.assign(project, {
+    name: "Bounded evidence fixture",
+    symbol: "TEST",
+    riskScore: 91,
+    finalSelectionState: "FINAL_BLOCKED",
+    finalSelectionQualified: false,
+    liveExecutionReady: false,
+    finalIntegrityVerdict: "REJECT",
+    walletTransactions: Array.from({ length: 12 }, (_, index) => ({
+      ...project.walletTransactions[0],
+      transactionHash: `0x${index.toString(16).padStart(64, "0")}`,
+      source: "s".repeat(1400),
+    })),
+  });
+  try {
+    const file = writeJsonReport([
+      compactProjectForReportWriters(project),
+      ...Array.from({ length: 2286 }, (_, index) => ({ symbol: `other-${index}` })),
+    ], { reportsDir: directory, scanRunId: "receipt-decision-priority-fixture" });
+    const saved = JSON.parse(fs.readFileSync(file, "utf8")).projects[0];
+    for (const field of ["name", "symbol", "chain", "tokenAddress", "riskScore", "finalSelectionState",
+      "finalSelectionQualified", "liveExecutionReady", "finalIntegrityVerdict"]) {
+      assert.deepEqual(saved[field], project[field], field);
+    }
+    assert.ok(saved.walletTransactions.length > 0);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

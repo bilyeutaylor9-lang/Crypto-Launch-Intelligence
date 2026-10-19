@@ -19,12 +19,12 @@ const RECOVERED_OBSERVATION_FIELDS = Object.freeze([
 ]);
 
 const REPORT_PRIORITY_FIELDS = [
-  ...RECOVERED_OBSERVATION_FIELDS,
   ...REPORT_DECISION_SCALAR_FIELDS,
   "signalProfile",
   "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   "legacyFinalBlockingReasons", "legacyFinalWarningReasons", "legacyFinalSelectionReasons", "finalSelectionReasons",
+  ...RECOVERED_OBSERVATION_FIELDS,
   "name",
   "symbol",
   "chain",
@@ -276,6 +276,10 @@ function prioritizedKeys(value, maxKeys, topLevel = false, parentKey = "") {
 function compactValue(value, state, depth = 0, topLevel = false, parentKey = "") {
   if (value === null || value === undefined) return value ?? null;
   if (typeof value === "string") {
+    // Retain loss accounting from the earlier bounded project projection.
+    if (state.sourceCompacted && (value === "[nested data omitted from report]" ||
+        value === "[repeated data omitted from report]" || value.endsWith("[truncated for report]") ||
+        /^\[\d+ additional items omitted from report\]$/.test(value))) state.truncated = true;
     const available = Math.max(0, state.remainingChars);
     if (value.length <= available) {
       state.remainingChars -= value.length;
@@ -331,6 +335,7 @@ function compactValue(value, state, depth = 0, topLevel = false, parentKey = "")
 
 function compactProject(project, budgetChars) {
   const state = {
+    sourceCompacted: project?.reportCompaction?.mode === "bounded-project",
     remainingChars: budgetChars,
     remainingNodes: Math.max(80, Math.floor(budgetChars / 50)),
     maxDepth: 5,

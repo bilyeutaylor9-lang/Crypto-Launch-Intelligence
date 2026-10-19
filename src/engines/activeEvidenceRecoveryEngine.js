@@ -780,9 +780,23 @@ export function reserveExecutionRecoveryWindow(state, options = {}) {
   const reserve = enabled && Number.isFinite(remaining) && Number.isFinite(requested) && requested > 0
     ? Math.min(requested, Math.max(0, remaining) / 4) : 0;
   state.executionTimeReserveMs = reserve;
+  const wave3Max = Number(options.wave3Max ?? process.env.ACTIVE_EVIDENCE_WAVE3_MAX ?? 50);
+  const defaultRequests = Number.isSafeInteger(wave3Max) && wave3Max > 0 ? Math.min(200, wave3Max * 4) : 0;
+  const configuredRequests = Number(options.executionReserveRequests ?? process.env.ACTIVE_EVIDENCE_EXECUTION_RESERVE_REQUESTS ?? defaultRequests);
+  const requestedRequests = Number.isSafeInteger(configuredRequests) && configuredRequests >= 0 ? configuredRequests : defaultRequests;
+  const remainingRequests = Math.max(0, state.maxRequests - state.requestsUsed);
+  const reservedRequests = enabled && remaining > 0 ? Math.min(requestedRequests, Math.floor(remainingRequests / 4)) : 0;
+  state.executionRequestsReserved = reservedRequests;
+  const callerRequestLimit = options.phaseRequestLimit === undefined ? undefined
+    : typeof options.phaseRequestLimit === "number" && Number.isSafeInteger(options.phaseRequestLimit) && options.phaseRequestLimit >= 0
+      ? options.phaseRequestLimit : 0;
+  const phaseRequestLimit = reservedRequests > 0
+    ? Math.min(state.maxRequests - reservedRequests, callerRequestLimit ?? Infinity) : callerRequestLimit;
+  state.rawProviderRequestLimit = phaseRequestLimit ?? null;
   const phaseDeadlineAt = reserve > 0 ? Math.min(options.phaseDeadlineAt ?? Infinity, state.deadlineAt - reserve)
     : options.phaseDeadlineAt;
-  return phaseDeadlineAt === undefined ? {} : { phaseDeadlineAt };
+  return { ...(phaseDeadlineAt === undefined ? {} : { phaseDeadlineAt }),
+    ...(phaseRequestLimit === undefined ? {} : { phaseRequestLimit }) };
 }
 
 export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options = {}) {
@@ -1027,7 +1041,11 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     timeBudgetSkippedCalls: providerExecution.timeBudgetSkippedCalls,
     phaseTimeBudgetExceeded: providerExecution.phaseTimeBudgetExceeded,
     phaseTimeBudgetSkippedCalls: providerExecution.phaseTimeBudgetSkippedCalls,
+    phaseRequestBudgetExceeded: providerExecution.phaseRequestBudgetExceeded,
+    phaseRequestBudgetSkippedCalls: providerExecution.phaseRequestBudgetSkippedCalls,
     executionTimeReserveMs: executionState.executionTimeReserveMs || 0,
+    executionRequestsReserved: executionState.executionRequestsReserved || 0,
+    rawProviderRequestLimit: executionState.rawProviderRequestLimit ?? null,
     recoveredFieldsByFamily,
     unresolvedFieldsByFamily,
   };

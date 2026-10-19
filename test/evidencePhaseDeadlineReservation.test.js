@@ -32,15 +32,17 @@ test("normal pipeline reservation uses existing time only, honors disablement an
   const state = createActiveEvidenceRecoveryState({ now: () => NOW, timeBudgetMs: 23 * 60000, maxRequests: 20 });
   const deadline = state.deadlineAt;
   assert.deepEqual(reserveExecutionRecoveryWindow(state, { wave3Max: 50, executionReserveMs: 180000 }),
-    { phaseDeadlineAt: NOW + 20 * 60000 });
+    { phaseDeadlineAt: NOW + 20 * 60000, phaseRequestLimit: 15 });
   assert.equal(state.executionTimeReserveMs, 180000);
   assert.equal(state.deadlineAt, deadline);
   assert.equal(state.maxRequests, 20);
   assert.deepEqual(reserveExecutionRecoveryWindow(state, { wave3Max: 0 }), {});
-  assert.deepEqual(reserveExecutionRecoveryWindow(state, { executionReserveMs: 0 }), {});
-  assert.deepEqual(reserveExecutionRecoveryWindow(state, { phaseDeadlineAt: NOW + 1000 }), { phaseDeadlineAt: NOW + 1000 });
+  assert.deepEqual(reserveExecutionRecoveryWindow(state, { executionReserveMs: 0 }), { phaseRequestLimit: 15 });
+  assert.deepEqual(reserveExecutionRecoveryWindow(state, { phaseDeadlineAt: NOW + 1000 }),
+    { phaseDeadlineAt: NOW + 1000, phaseRequestLimit: 15 });
   const short = createActiveEvidenceRecoveryState({ now: () => NOW, timeBudgetMs: 1000 });
-  assert.deepEqual(reserveExecutionRecoveryWindow(short, { executionReserveMs: 180000 }), { phaseDeadlineAt: NOW + 750 });
+  assert.deepEqual(reserveExecutionRecoveryWindow(short, { executionReserveMs: 180000 }),
+    { phaseDeadlineAt: NOW + 750, phaseRequestLimit: 1800 });
   assert.equal(short.deadlineAt, NOW + 1000);
   const expired = createActiveEvidenceRecoveryState({ now: () => NOW, timeBudgetMs: 0 });
   assert.deepEqual(reserveExecutionRecoveryWindow(expired), {});

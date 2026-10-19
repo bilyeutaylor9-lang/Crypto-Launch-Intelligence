@@ -449,6 +449,12 @@ function recoveryDeadlineStatus(state, options, expiredByTimer = false) {
   return null;
 }
 
+function recoveryRequestLimit(state, options) {
+  if (options.phaseRequestLimit === undefined) return state.maxRequests;
+  const limit = options.phaseRequestLimit;
+  return typeof limit === "number" && Number.isSafeInteger(limit) && limit >= 0 ? Math.min(state.maxRequests, limit) : 0;
+}
+
 async function executeProviderCall(
   provider,
   operation,
@@ -485,13 +491,20 @@ async function executeProviderCall(
       durationMs: 0,
     };
   }
-  if (state.requestsUsed + cost > state.maxRequests) {
+  const requestLimit = recoveryRequestLimit(state, options);
+  if (state.requestsUsed + cost > requestLimit) {
     health.skipped += 1;
+    const phase = requestLimit < state.maxRequests;
+    if (phase) {
+      state.phaseRequestBudgetExceeded = true;
+      state.phaseRequestBudgetSkippedCalls = (state.phaseRequestBudgetSkippedCalls || 0) + 1;
+    }
     return {
-      status: "REQUEST_BUDGET_EXHAUSTED",
+      status: phase ? "PHASE_REQUEST_BUDGET_EXHAUSTED" : "REQUEST_BUDGET_EXHAUSTED",
       provider,
       value: null,
-      reason: "Active evidence provider request budget exhausted.",
+      reason: phase ? "Raw recovery request allowance exhausted; remaining units are reserved for selected live proof."
+        : "Active evidence provider request budget exhausted.",
       durationMs: 0,
     };
   }
@@ -499,7 +512,7 @@ async function executeProviderCall(
   if (beforeOperation) {
     const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (recoveryDeadlineStatus(state, options) || health.circuitOpen || state.requestsUsed + cost > state.maxRequests) {
+    if (recoveryDeadlineStatus(state, options) || health.circuitOpen || state.requestsUsed + cost > recoveryRequestLimit(state, options)) {
       return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout);
     }
     if (slotReserved === false) {
@@ -2508,6 +2521,8 @@ export function summarizeActiveEvidenceExecutionState(state = {}) {
     timeBudgetSkippedCalls: state.timeBudgetSkippedCalls || 0,
     phaseTimeBudgetExceeded: state.phaseTimeBudgetExceeded === true,
     phaseTimeBudgetSkippedCalls: state.phaseTimeBudgetSkippedCalls || 0,
+    phaseRequestBudgetExceeded: state.phaseRequestBudgetExceeded === true,
+    phaseRequestBudgetSkippedCalls: state.phaseRequestBudgetSkippedCalls || 0,
     providers: [...(state.providers?.values?.() || [])].map((provider) => ({ ...provider })),
   };
 }
