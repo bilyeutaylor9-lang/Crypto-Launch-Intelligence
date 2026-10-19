@@ -360,11 +360,15 @@ function geckoPairs(payload = {}) {
 
 function normalizedPair(pair = {}) {
   const normalized = pair.chain && pair.tokenAddress ? pair : normalizeDexPair(pair);
-  const sourceTimestamp = isoTimestamp(
-    pair.sourceTimestamp || pair.sourceObservedAt || pair.observedAt || pair.updatedAt ||
-    pair.updated_at || pair.timestamp || pair.attributes?.updated_at || pair.attributes?.updatedAt
-  );
-  return { ...normalized, sourceTimestamp };
+  const sourceTimestampRaw = [
+    pair.sourceTimestamp, pair.sourceObservedAt, pair.observedAt, pair.updatedAt,
+    pair.updated_at, pair.timestamp, pair.attributes?.updated_at, pair.attributes?.updatedAt,
+  ].find((value) => value !== null && value !== undefined && value !== "");
+  return {
+    ...normalized,
+    sourceTimestamp: isoTimestamp(sourceTimestampRaw),
+    sourceTimestampProvided: sourceTimestampRaw !== undefined,
+  };
 }
 
 function exactPair(candidate = {}, pairs = []) {
@@ -452,6 +456,18 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
     }
 
     const observedAt = collectionTime(options);
+    if (
+      pair.sourceTimestampProvided &&
+      (!pair.sourceTimestamp || Date.parse(pair.sourceTimestamp) > Date.parse(observedAt))
+    ) {
+      return {
+        candidate,
+        status: "PROVIDER_CLOCK_INVALID",
+        error: "Provider source timestamp is invalid or after collection receipt",
+        providerAttempts,
+        observation: null,
+      };
+    }
     return {
       candidate,
       status: "OBSERVED",
