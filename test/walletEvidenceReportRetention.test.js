@@ -453,3 +453,69 @@ test("wide 1420-project serialization retains raw proof before verbose derived s
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("bounded final serialization retains observed Base B20 recovery receipts and provenance", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "base-b20-receipt-report-"));
+  const token = "0xb2000000000000000000004c27f6523082f41d01";
+  const lifecycle = {
+    protocol: "BASE_B20",
+    chain: "base",
+    tokenAddress: token,
+    factoryAddress: "0x000000000000000000000000000000000000b200",
+    initialized: true,
+    observedBlockNumber: 256,
+    verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
+  };
+  const wallet = "0xfba22a6b7629a2fec052cc2a6eddd2c9d6da5ea5";
+  const transaction = {
+    transactionHash: `0x${"a".repeat(64)}`,
+    blockNumber: 256,
+    timestamp: null,
+    tokenAddress: token,
+    from: `0x${"2".repeat(40)}`,
+    to: wallet,
+    tokenAmountRaw: "5",
+  };
+  const recovered = {
+    nativeLifecycle: lifecycle,
+    wallets: [wallet],
+    walletTransactions: [transaction],
+    walletParticipationHistory: [transaction],
+  };
+  const source = {
+    ...filler(180),
+    name: "Basecat",
+    symbol: "BASECAT",
+    chain: "base",
+    tokenAddress: token,
+    ...recovered,
+    fieldProvenance: Object.fromEntries(Object.entries(recovered).map(([field, value]) => [field, {
+      field,
+      value,
+      source: "base-b20-native",
+      sourceTimestamp: SOURCE_TIMESTAMP,
+      confidence: 0.85,
+      verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
+    }])),
+  };
+  try {
+    const firstPass = compactProjectForReportWriters(source);
+    const file = writeJsonReport([
+      firstPass,
+      ...Array.from({ length: 2286 }, (_, index) => ({ symbol: `other-${index}` })),
+    ], { reportsDir: directory, scanRunId: "base-b20-receipt-fixture" });
+    const saved = JSON.parse(fs.readFileSync(file, "utf8")).projects[0];
+    assert.deepEqual(saved.nativeLifecycle, lifecycle);
+    for (const field of ["wallets", "walletTransactions", "walletParticipationHistory"]) {
+      assert.deepEqual(saved[field], recovered[field]);
+    }
+    for (const field of Object.keys(recovered)) {
+      assert.equal(saved.fieldProvenance[field].source, "base-b20-native");
+      assert.equal(saved.fieldProvenance[field].sourceTimestamp, SOURCE_TIMESTAMP);
+      assert.equal(saved.fieldProvenance[field].verificationStatus, "VERIFIED_PROVIDER_OBSERVATION");
+    }
+    assert.equal(saved.walletTransactions[0].timestamp, null);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

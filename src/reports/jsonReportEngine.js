@@ -8,7 +8,18 @@ const DEFAULT_MAX_PROJECT_PAYLOAD_CHARS = 64_000;
 const DEFAULT_MIN_PROJECT_PAYLOAD_CHARS = 2_048;
 const STREAM_COPY_BUFFER_BYTES = 64 * 1024;
 
+// Recovery receipts must survive the final bounded serialization pass. They
+// remain subject to its existing node, depth, array, string, and byte limits.
+const RECOVERED_OBSERVATION_FIELDS = Object.freeze([
+  "nativeLifecycle",
+  "wallets",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "fieldProvenance",
+]);
+
 const REPORT_PRIORITY_FIELDS = [
+  ...RECOVERED_OBSERVATION_FIELDS,
   ...REPORT_DECISION_SCALAR_FIELDS,
   "signalProfile",
   "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
@@ -244,6 +255,11 @@ function boundedNumber(value) {
 function prioritizedKeys(value, maxKeys, topLevel = false, parentKey = "") {
   const keys = Object.keys(value);
   if (!topLevel) {
+    if (parentKey === "fieldProvenance") {
+      const priority = RECOVERED_OBSERVATION_FIELDS
+        .filter((key) => Object.hasOwn(value, key));
+      return [...priority, ...keys.filter((key) => !priority.includes(key))].slice(0, maxKeys);
+    }
     if (parentKey === "signalProfile" && Object.hasOwn(value, "risk")) {
       return ["risk", ...keys.filter((key) => key !== "risk")].slice(0, maxKeys);
     }

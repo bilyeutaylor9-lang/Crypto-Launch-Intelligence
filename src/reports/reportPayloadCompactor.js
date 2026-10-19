@@ -4,6 +4,16 @@ const DEFAULT_REPORT_OBJECT_KEY_LIMIT = 80;
 const DEFAULT_REPORT_STRING_LIMIT = 1_500;
 const DEFAULT_REPORT_DEPTH_LIMIT = 4;
 const DISCOVERY_SAMPLE_LIMIT = 50;
+// These records are the observed recovery receipt, not a derived score. Keep
+// them ahead of the broad derived-field catalog while retaining the existing
+// finite object, array, string, and depth bounds below.
+const RECOVERED_OBSERVATION_FIELDS = Object.freeze([
+  "nativeLifecycle",
+  "wallets",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "fieldProvenance",
+]);
 
 export const REPORT_FINAL_RISK_SCALAR_FIELDS = Object.freeze([
   "riskScore", "smallCapRiskScore", "economicIntegrityRiskScore", "activityAuthenticityRiskScore",
@@ -330,6 +340,7 @@ const EVIDENCE_FIELDS = [
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
+  ...RECOVERED_OBSERVATION_FIELDS,
   ...REPORT_DECISION_SCALAR_FIELDS,
   "signalProfile",
   // Derived snapshots can share these objects; retain the authoritative roots first.
@@ -418,7 +429,10 @@ function compactWalletProvenanceForReport(value, options, state, depth, key) {
     return compactValueForReport(value, options, state, depth, key);
   }
   const keys = Object.keys(value);
-  const priority = WALLET_SAMPLE_FIELDS.filter((field) => Object.hasOwn(value, field));
+  const priority = [
+    "nativeLifecycle",
+    ...WALLET_SAMPLE_FIELDS,
+  ].filter((field) => Object.hasOwn(value, field));
   if (!priority.length) return compactValueForReport(value, options, state, depth, key);
   state.seen.add(value);
   const selected = [...priority, ...keys.filter((field) => !priority.includes(field))].slice(0, state.limits.objectKeyLimit);
