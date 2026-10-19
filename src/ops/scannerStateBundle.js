@@ -12,6 +12,7 @@ const COPY_CHUNK_BYTES = 1024 * 1024;
 // leaving a bounded guard against an accidentally unbounded cache artifact.
 const DEFAULT_MAX_UNCOMPRESSED_BYTES = 768 * 1024 * 1024;
 export const SCANNER_STATE_PATTERNS = Object.freeze([
+  "data/forward-evidence-remote-circuit.json",
   "data/*memory*.json*",
   "data/scan-history.json*",
   "data/wallet-participation-history.jsonl",

@@ -83,6 +83,23 @@ test("scanner state bundle restores exact bytes from one canonical cache artifac
   }
 });
 
+test("scanner state bundle retains the forward-evidence egress circuit across a restart", () => {
+  const root = tempRoot();
+  try {
+    const universe = path.join(root, "data", "edge-candidate-universe.json");
+    const circuit = path.join(root, "data", "forward-evidence-remote-circuit.json");
+    fs.mkdirSync(path.dirname(universe), { recursive: true });
+    fs.writeFileSync(universe, "{}\n");
+    fs.writeFileSync(circuit, "{\"schemaVersion\":1,\"state\":\"REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE\"}\n");
+    packScannerState({ root, writeReport: false, requireExactUniverse: true });
+    fs.unlinkSync(circuit);
+    restoreScannerState({ root, writeReport: false });
+    assert.match(fs.readFileSync(circuit, "utf8"), /REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("scanner state restores legacy V1 JSON bundles while new bundles stream content", () => {
   const root = tempRoot();
   try {

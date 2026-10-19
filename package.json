@@ -392,6 +392,7 @@
     "state:inspect": "node src/ops/scannerStateBundle.js inspect",
     "forward:evidence:restore": "node src/ops/runForwardEvidenceRemote.js restore",
     "forward:evidence:sync": "node src/ops/runForwardEvidenceRemote.js sync",
+    "forward:evidence:verify": "node src/ops/runForwardEvidenceRemote.js verify",
     "operations:truth": "node src/ops/runOperationalTruthGate.js",
     "production:shadow": "node src/ops/runProductionShadowCycle.js",
     "production:readiness": "node src/ops/runProductionReadiness.js",
