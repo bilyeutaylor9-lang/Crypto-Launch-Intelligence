@@ -86,3 +86,22 @@ test("competing wrappers fail before moving an active checkout's artifacts", () 
     fs.unlinkSync(lock);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
+
+test("tampered backup and replaced generated directory both preserve recovery material", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "scanner-test-isolation-tamper-"));
+  try {
+    for (const directory of ["data", "reports", "test"]) fs.mkdirSync(path.join(root, directory));
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
+    for (const directory of ["data", "reports"]) fs.writeFileSync(path.join(root, directory, "live.json"), "original\n");
+    fs.writeFileSync(path.join(root, "test", "worker.test.js"), `import test from "node:test"; import fs from "node:fs";
+      test("tamper", () => { fs.writeFileSync(process.env.TEST_ARTIFACT_BACKUP_ROOT + "/data/live.json", "tampered");
+        fs.rmSync("reports", { recursive: true }); fs.mkdirSync("reports"); fs.writeFileSync("reports/generated.json", "generated"); });`);
+    const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
+    const result = spawnSync(process.execPath, [runner], { cwd: root, env, encoding: "utf8", timeout: 15000 });
+    assert.equal(result.status, 1); assert.match(result.stderr, /Manual recovery/);
+    assert.equal(fs.readFileSync(path.join(root, "reports", "generated.json"), "utf8"), "generated");
+    const lock = lockFor(root), metadata = JSON.parse(fs.readFileSync(lock, "utf8"));
+    assert.equal(fs.existsSync(metadata.backupRoot), true);
+    fs.rmSync(metadata.backupRoot, { recursive: true, force: true }); fs.unlinkSync(lock);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
