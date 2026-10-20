@@ -360,7 +360,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   }
 
   const unresolvedEvidence = [...missing, ...notApplicable].map((item) => {
-    const plan = buildTargetedEnrichmentPlan([item]);
+    const plan = buildTargetedEnrichmentPlan([item], { chain: aliased.chain || aliased.canonicalChain || aliased.network });
     const target = plan.items[0] || {};
     return {
       ...item,
@@ -416,7 +416,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
     dataStarvationBlockingExecutionCount: blockingExecution.length,
     dataStarvationNotApplicableCount: notApplicable.length,
     dataStarvationSatisfiedGroups: satisfied.length,
-    starvationRecoveryPlan: buildTargetedEnrichmentPlan(recoveryItems),
+    starvationRecoveryPlan: buildTargetedEnrichmentPlan(recoveryItems, { chain: aliased.chain || aliased.canonicalChain || aliased.network }),
     dataStarvationPolicy:
       "Core and advisory gaps are reported separately. Derived fields are recomputed, deferred projects are excluded, and missing data remains unknown and cannot qualify a project.",
   };

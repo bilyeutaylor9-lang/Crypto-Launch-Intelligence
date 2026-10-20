@@ -6,6 +6,7 @@ import {
 } from "../identity/strictIdentityValidators.js";
 import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+import { resolveCanonicalIdentity, SOLANA_MINT_SCOPE } from "../identity/canonicalIdentityResolver.js";
 
 export const FINAL_SELECTION_STATES = {
   QUALIFIED: "QUALIFIED",
@@ -526,7 +527,12 @@ function buildCollisionContext(projects = []) {
 }
 
 export function resolveFinalIdentity(project = {}, collisionContext = new Map()) {
-  const canonical = project.canonicalIdentity || {};
+  const scopedMintIdentity = project.identityVerificationScope === SOLANA_MINT_SCOPE ||
+    project.canonicalIdentity?.verificationScope === SOLANA_MINT_SCOPE;
+  const canonical = scopedMintIdentity ? resolveCanonicalIdentity(project) : project.canonicalIdentity || {};
+  // A cached positive flag cannot extend a short-lived account attestation.
+  const currentIdentity = scopedMintIdentity ? { ...project, canonicalIdentity: canonical,
+    contractVerified: canonical.identityStatus === "VERIFIED", chainVerified: canonical.identityStatus === "VERIFIED" } : project;
   const canonicalStatus = canonical.identityStatus || project.identityStatus || "";
   const symbol = symbolOf(project);
   const chain = canonical.canonicalChain || chainOf(project);
@@ -537,12 +543,12 @@ export function resolveFinalIdentity(project = {}, collisionContext = new Map())
   const domain = officialDomain(project);
   const hasContract = Boolean(contractAddress);
   const hasChain = Boolean(chain && chain !== "unknown" && chain !== "research");
-  const isContractVerified = contractVerified(project);
-  const isChainVerified = chainVerified(project);
+  const isContractVerified = contractVerified(currentIdentity);
+  const isChainVerified = chainVerified(currentIdentity);
   const isListingVerified = listingVerified(project);
   const collision = collisionContext.get(symbol);
   const collisionProne = COLLISION_PRONE_SYMBOLS.has(symbol) || (collision?.keys?.size || 0) > 1;
-  const explicitConflict = hasExplicitIdentityConflict(project);
+  const explicitConflict = hasExplicitIdentityConflict(currentIdentity);
 
   let state = FINAL_IDENTITY_STATES.UNRESOLVED_IDENTITY;
   const warnings = [];
@@ -893,6 +899,8 @@ export function analyzeFinalSelectionIntegrity(project = {}, options = {}, colli
     hasBlockingVerdict: verdicts.hasBlockingVerdict,
     blockingVerdictMatches: verdicts.blockingVerdictMatches,
     finalIdentityState: identity.finalIdentityState,
+    ...(identity.canonicalIdentity?.verificationScope === SOLANA_MINT_SCOPE
+      ? { canonicalIdentity: identity.canonicalIdentity } : {}),
     permanentProjectKey: identity.permanentProjectKey,
     identityVerified: identity.identityVerified,
     contractVerified: identity.contractVerified,

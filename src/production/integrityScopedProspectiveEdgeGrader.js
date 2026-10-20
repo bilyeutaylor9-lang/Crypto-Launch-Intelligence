@@ -4,7 +4,7 @@ import {
 } from "./prospectiveEdgeCohortGrader.js";
 import { timestamp } from "./productionMath.js";
 
-export const INTEGRITY_SCOPE_POLICY = "CURRENT_STRATEGY_PARTITION_FAIL_CLOSED_V2";
+export const INTEGRITY_SCOPE_POLICY = "CURRENT_STRATEGY_PARTITION_FAIL_CLOSED_V3";
 
 const LEGACY_ORDER_SENSITIVE_FAILURES = new Set([
   "STRATEGY_FINGERPRINT_MISMATCH",
@@ -87,7 +87,8 @@ function scopeAudit(base = {}, currentPartition = {}, allEpisodeAudit = []) {
     entry.row?.strategyFingerprint !== currentPartition.fingerprint && entry.failures.length,
   );
   const legacyHashQuarantine = historicalInvalid.filter(legacyHashOnly);
-  const nonLegacyInvalid = historicalInvalid.filter((entry) => !legacyHashOnly(entry));
+  const nonLegacyInvalid = allEpisodeAudit.filter((entry) => entry.failures.length &&
+    !(entry.row?.strategyFingerprint !== currentPartition.fingerprint && legacyHashOnly(entry)));
   const observationIntegrityRowsQuarantined = Number(
     base.inputAudit?.rejectionReasons?.integrityFailure || 0,
   );
@@ -112,7 +113,10 @@ export function gradeIntegrityScopedProspectiveEdgeCohorts(episodes = [], observ
   const asOfMs = timestamp(asOf);
   if (asOfMs === null) throw new Error("A valid as-of timestamp is required to grade integrity-scoped cohorts");
 
-  const base = gradeProspectiveEdgeCohorts(episodes, observations, options);
+  const base = gradeProspectiveEdgeCohorts(episodes, observations, {
+    ...options,
+    requireObservationLedgerIntegrity: options.requireObservationLedgerIntegrity !== false,
+  });
   const currentPartition = currentPartitionIntegrity(episodes, asOfMs, options);
   const allEpisodeAudit = (Array.isArray(episodes) ? episodes : []).map((row) => ({
     row,
@@ -123,10 +127,22 @@ export function gradeIntegrityScopedProspectiveEdgeCohorts(episodes = [], observ
   const currentStrategyPartitionIntegrityPass = hasCurrentStrategy
     ? currentPartition.fingerprint === base.latestStrategyFingerprint && currentPartition.pass
     : null;
+  const legacyExceptionEligible = audit.legacyHashQuarantine.length > 0 &&
+    audit.nonLegacyInvalid.length === 0 && base.inputAudit.episodeInputValid === true &&
+    base.inputAudit.duplicateEpisodeIds.length === 0 && base.inputAudit.topologyFailureEpisodeIds.length === 0;
+  const scopedProspectiveLedgerIntegrityPass = base.inputAudit.prospectiveCohortLedgerIntegrityPass === true ||
+    (legacyExceptionEligible && currentStrategyPartitionIntegrityPass === true);
+  const observationIntegrityRequired = base.inputAudit.exactMarketObservationLedgerIntegrityRequired === true;
+  const observationIntegrityPass = observationIntegrityRequired &&
+    base.inputAudit.exactMarketObservationLedgerIntegrityPass === true;
+  const currentStrategyLedgerIntegrityPass = scopedProspectiveLedgerIntegrityPass && observationIntegrityPass &&
+    (!hasCurrentStrategy || currentStrategyPartitionIntegrityPass === true);
   const integrityScope = {
     policy: INTEGRITY_SCOPE_POLICY,
     rationale: "Historical rows with only legacy order-sensitive hash failures stay excluded and quarantined. Current-strategy defects, non-hash corruption, and invalid observations remain fail-closed.",
     currentStrategyPartitionIntegrityPass,
+    scopedProspectiveLedgerIntegrityPass,
+    observationIntegrityRequired,
     currentStrategyFingerprint: currentPartition.fingerprint,
     currentStrategyEpisodes: currentPartition.rows.length,
     currentDuplicateEpisodeIds: [...currentPartition.duplicateEpisodeIds],
@@ -144,35 +160,38 @@ export function gradeIntegrityScopedProspectiveEdgeCohorts(episodes = [], observ
     // An empty ledger is an honest collection state, not an integrity defect.
     // Once a strategy exists, every defect in that partition is fail-closed.
     currentStrategyLedgerIntegrityPass: hasCurrentStrategy
-      ? currentStrategyPartitionIntegrityPass
-      : base.inputAudit?.currentStrategyLedgerIntegrityPass === true,
+      ? currentStrategyLedgerIntegrityPass
+      : base.inputAudit.currentStrategyLedgerIntegrityPass === true,
     currentStrategyPartitionIntegrityPass,
+    scopedProspectiveLedgerIntegrityPass,
     globalHistoricalProspectiveLedgerIntegrityPass: audit.globalHistoricalProspectiveLedgerIntegrityPass,
     historicalObservationLedgerIntegrityPass: audit.historicalObservationLedgerIntegrityPass,
     legacyHashOrderRowsQuarantined: audit.legacyHashQuarantine.length,
     nonLegacyInvalidRowsObserved: audit.nonLegacyInvalid.length,
     observationIntegrityRowsQuarantined: audit.observationIntegrityRowsQuarantined,
   };
-  if (hasCurrentStrategy && !currentStrategyPartitionIntegrityPass) {
-    return {
-      ...base,
-      inputAudit,
-      integrityScope,
-      certificateEligible: false,
-      automaticTrading: false,
-      automaticPromotion: false,
-    };
-  }
-
-  const current = {
+  const integrityBlockers = [
+    ...(!scopedProspectiveLedgerIntegrityPass || (hasCurrentStrategy && !currentStrategyPartitionIntegrityPass)
+      ? ["PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"] : []),
+    ...(!observationIntegrityRequired ? ["EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_NOT_REQUIRED"] : []),
+    ...(observationIntegrityRequired && !observationIntegrityPass
+      ? ["EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE"] : []),
+  ];
+  const current = currentStrategyLedgerIntegrityPass ? {
     ...base.current,
     edgeState: recomputeEdgeState(base.current),
     blockers: (base.current?.blockers || []).filter((blocker) =>
-      blocker !== "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE" &&
-      blocker !== "EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE",
+      blocker !== "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE" || !legacyExceptionEligible,
     ),
+  } : {
+    ...base.current,
+    edgeState: !hasCurrentStrategy && base.current?.edgeState === "UNVERIFIED_NO_FROZEN_COHORTS"
+      ? "UNVERIFIED_NO_FROZEN_COHORTS"
+      : integrityBlockers.includes("PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE")
+      ? "UNVERIFIED_PROSPECTIVE_LEDGER_INTEGRITY" : "UNVERIFIED_MARKET_OBSERVATION_LEDGER_INTEGRITY",
+    blockers: [...new Set([...(base.current?.blockers || []), ...integrityBlockers])],
   };
-  const certificateEligible = current.edgeState === "VERIFIED_FORWARD_EDGE";
+  const certificateEligible = currentStrategyLedgerIntegrityPass && current.edgeState === "VERIFIED_FORWARD_EDGE";
   return {
     ...base,
     edgeState: current.edgeState,

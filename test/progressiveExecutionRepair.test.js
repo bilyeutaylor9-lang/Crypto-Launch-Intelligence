@@ -187,7 +187,7 @@ function liveExecutionOverrides() {
   };
 }
 
-test("canonical identity resolver treats symbol collisions as review unless contracts conflict", () => {
+test("canonical identity keeps verified instruments distinct across symbol collisions and blocks contract conflicts", () => {
   const [base, solana, conflict] = attachCanonicalIdentityBatch([
     strongProject({
       symbol: "RAIN",
@@ -211,8 +211,13 @@ test("canonical identity resolver treats symbol collisions as review unless cont
     }),
   ]);
 
-  assert.equal(base.identityStatus, "MULTICHAIN_VARIANT");
-  assert.equal(solana.identityStatus, "MULTICHAIN_VARIANT");
+  assert.equal(base.identityStatus, "VERIFIED");
+  assert.equal(solana.identityStatus, "VERIFIED");
+  assert.notEqual(base.canonicalId, solana.canonicalId);
+  for (const project of [base, solana]) {
+    assert.equal(project.canonicalIdentity.symbolCollisionDetected, true);
+    assert.ok(project.canonicalIdentity.conflictReasons.some((reason) => reason.includes("no cross-chain or issuer relationship")));
+  }
   assert.equal(base.canonicalIdentityHardBlock, false);
   assert.equal(conflict.identityStatus, "CONTRACT_CONFLICT");
   assert.equal(conflict.canonicalIdentityHardBlock, true);

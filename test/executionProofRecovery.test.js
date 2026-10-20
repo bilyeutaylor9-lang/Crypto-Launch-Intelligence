@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   analyzeExecutionProofRecoveryBatch,
@@ -7,7 +10,6 @@ import {
 import { analyzeExecutionProofBatch } from "../src/engines/executionProofEngine.js";
 import { analyzeRouteAccessibilityBatch, summarizeRouteAccessibility } from "../src/engines/routeAccessibilityEngine.js";
 import { summarizeExecutionProofRecovery } from "../src/reports/executionProofRecoveryReportEngine.js";
-import { writeRouteAccessibilityReports } from "../src/reports/routeAccessibilityReportEngine.js";
 import { summarizeDailySourceGaps } from "../src/reports/dailySourceGapReportEngine.js";
 
 const NOW = new Date("2026-07-26T12:00:00.000Z");
@@ -59,17 +61,20 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   return async (url) => {
     const parsed = new URL(url);
     const inputMint = parsed.searchParams.get("inputMint");
+    const identity = { inputMint, outputMint: parsed.searchParams.get("outputMint"), inAmount: parsed.searchParams.get("amount") };
     if (inputMint === SOL_TOKEN && !sellSucceeds) {
       return { outAmount: "0", routePlan: [] };
     }
     if (inputMint === SOL_TOKEN) {
       return {
+        ...identity,
         outAmount: "24900000",
         priceImpactPct: "0.21",
         routePlan: [{ swapInfo: { ammKey: SOL_POOL, label: "Raydium" } }],
       };
     }
     return {
+      ...identity,
       outAmount: "1000000000",
       priceImpactPct: "0.19",
       routePlan: [{ swapInfo: { ammKey: SOL_POOL, label: "Raydium" } }],
@@ -77,11 +82,18 @@ function jupiterMock({ sellSucceeds = true } = {}) {
   };
 }
 
-test("Solana routes require authority proof but not EVM transfer-tax evidence", async () => {
+test("Solana routes require authority proof but not EVM transfer-tax evidence", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject({
     securityEvidence: [{
       provider: "solana-rpc-rugcheck",
       status: "EVIDENCE_AVAILABLE",
+      chain: "solana",
+      address: SOL_TOKEN,
+      responseIdentityVerified: true,
+      identityVerifiedOnChain: true,
+      snapshotTimestampVerified: true,
+      sourceTimestamp: NOW.toISOString(),
       testedChecks: ["mint authority", "freeze authority"],
       mintRisk: false,
       freezeRisk: false,
@@ -276,7 +288,8 @@ test("missing optional 0x key creates an optional source gap, not a fatal candid
   assert.equal(sourceGaps.status, "SOURCE_HEALTH_OK");
 });
 
-test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async () => {
+test("keyless LI.FI buy and sell quotes recover exact EVM execution proof", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const quoteToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
   const [recovered] = await analyzeExecutionProofRecoveryBatch([evmProject({
     source: "dexscreener",
@@ -345,7 +358,8 @@ test("symbol-only candidates never probe CEX books or impersonate listed assets"
   assert.equal(requests, 0);
 });
 
-test("provider-verified CEX markets can recover book depth without proving token contract identity", async () => {
+test("provider-verified CEX markets can recover book depth without proving token contract identity", async (t) => {
+  t.mock.method(Date, "now", () => NOW.getTime());
   const [recovered] = await analyzeExecutionProofRecoveryBatch([{
     symbol: "BOOK",
     name: "Book Only",
@@ -454,7 +468,16 @@ test("recovery timeout produces a safe no-route result", async () => {
   assert.ok(recovered.executionProofRecovery.executionRecoveryFailures.some((failure) => /timeout|aborted/i.test(failure)));
 });
 
-test("route-universe report re-analyzes recovered routes when canonicalRoutes are absent", async () => {
+test("route-universe report re-analyzes recovered routes when canonicalRoutes are absent", async (t) => {
+  const originalCwd = process.cwd();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "execution-recovery-report-test-"));
+  t.after(() => {
+    process.chdir(originalCwd);
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+  process.chdir(root);
+  // This writer binds its report directory when the module is imported.
+  const { writeRouteAccessibilityReports } = await import("../src/reports/routeAccessibilityReportEngine.js");
   const [recovered] = await analyzeExecutionProofRecoveryBatch([solProject()], {
     jupiterApiKey: "test-key",
     fetchJson: jupiterMock(),

@@ -1,3 +1,7 @@
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
+
+export const GOPLUS_WALLET_CHAINS = Object.freeze(["ethereum", "optimism", "bsc", "polygon", "arbitrum", "avalanche", "base"]);
+
 export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
   IDENTITY: [
     { source: "DexScreener", authority: 82, cost: 1, latencyMs: 1200, fields: ["tokenAddress", "poolAddress", "chain"] },
@@ -7,10 +11,10 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "official project links", authority: 64, cost: 2, latencyMs: 3000, fields: ["website", "githubRepo"] },
   ],
   MARKET: [
-    { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
+    { source: "DexScreener", authority: 80, cost: 1, latencyMs: 1200, fields: ["priceUsd", "liquidityUsd", "volume24hUsd", "circulatingMarketCapUsd", "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "buyTransactions24h", "sellTransactions24h"] },
     { source: "GeckoTerminal", authority: 80, cost: 1, latencyMs: 1600, fields: ["priceUsd", "liquidityUsd", "volume24hUsd"] },
     { source: "DeFiLlama Exact Price", authority: 78, cost: 1, latencyMs: 1400, fields: ["priceUsd"] },
-    { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "priceUsd"] },
+    { source: "CoinGecko", authority: 74, cost: 2, latencyMs: 3500, fields: ["circulatingMarketCapUsd", "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "volume24hUsd", "priceUsd"] },
     { source: "CoinPaprika", authority: 72, cost: 1, latencyMs: 1800, fields: ["circulatingMarketCapUsd", "priceUsd"] },
     { source: "CoinLore", authority: 65, cost: 1, latencyMs: 1500, fields: ["circulatingMarketCapUsd", "volume24hUsd", "priceUsd"] },
     { source: "CEX public tickers", authority: 68, cost: 1, latencyMs: 1700, fields: ["volume24hUsd", "marketPair"] },
@@ -24,9 +28,12 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "Etherscan-compatible explorers", authority: 78, cost: 1, latencyMs: 1800, fields: ["contractVerified", "ownerRenounced", "buyTaxPct", "sellTaxPct"] },
   ],
   WALLETS: [
-    { source: "chain RPC", authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "walletParticipationHistory", "uniqueBuyers24h", "buyTransactions24h", "sellTransactions24h", "buyVolumeUsd", "sellVolumeUsd", "smartWalletBuys24h", "smartWalletSells24h", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "block explorers", authority: 78, cost: 2, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "buyerAddresses", "sellerAddresses", "walletTransactions", "smartWallets", "trackedWallets", "smartWalletBuyCount", "smartWalletSellCount"] },
-    { source: "wallet-history database", authority: 76, cost: 0.25, latencyMs: 200, fields: ["walletParticipationHistory", "smartWallets", "trackedWallets"] },
+    { source: "RugCheck", chains: ["solana"], authority: 78, cost: 1, latencyMs: 2500, fields: ["wallets", "holderAddresses", "holderCount"] },
+    { source: "chain RPC", chains: ["solana"], authority: 85, cost: 5, latencyMs: 5000, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "GoPlus", chains: GOPLUS_WALLET_CHAINS, authority: 80, cost: 1, latencyMs: 2000, fields: ["wallets", "holderAddresses"] },
+    { source: "chain RPC", chainKinds: ["evm"], authority: 84, cost: 3, latencyMs: 3500, fields: ["wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "block explorers", chainKinds: ["evm"], authority: 78, cost: 3, latencyMs: 2500, fields: ["holderCount", "holderAddresses", "wallets", "walletTransactions", "walletParticipationHistory"] },
+    { source: "wallet-history database", chainKinds: ["evm"], authority: 76, cost: 0, latencyMs: 200, fields: ["walletParticipationHistory"] },
   ],
   DEPLOYER: [
     { source: "native RPC", authority: 88, cost: 2, latencyMs: 2500, fields: ["deployer", "creator", "deployerAddress", "creatorAddress", "nativeLifecycle", "priorDeployments"] },
@@ -45,16 +52,11 @@ export const ENRICHMENT_SOURCE_REGISTRY = Object.freeze({
     { source: "reputable news sources", authority: 58, cost: 2, latencyMs: 3200, fields: ["liveCatalystEvents"] },
   ],
   EXECUTION: [
-    { source: "LI.FI keyless quote", authority: 84, cost: 1, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Jupiter (API key required)", authority: 84, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "0x Swap API", authority: 82, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "1inch quote API", authority: 80, cost: 1, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Uniswap quote adapters", authority: 82, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "Aerodrome", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "PancakeSwap", authority: 78, cost: 1, latencyMs: 1400, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "DEX aggregators", authority: 80, cost: 1, latencyMs: 1500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp"] },
-    { source: "CEX public order books", authority: 74, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "quoteTimestamp"] },
-    { source: "bridge quote adapters", authority: 68, cost: 2, latencyMs: 2500, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "bridgeRequired", "bridgeRisk", "quoteTimestamp"] },
+    { source: "Raydium Trade API", chains: ["solana"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1400, free: true, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp", "quoteExpiresAt", "executableDepthUsd", "verifiedTradeSizeUsd"] },
+    { source: "LI.FI keyless quote", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1800, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp", "executableDepthUsd", "verifiedTradeSizeUsd"] },
+    { source: "Jupiter (API key required)", chains: ["solana"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 84, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp", "executableDepthUsd", "verifiedTradeSizeUsd"] },
+    { source: "0x Swap API", chainKinds: ["evm"], routeTypes: ["DEX", "DEX_AGGREGATOR", "AGGREGATOR"], authority: 82, cost: 2, latencyMs: 1400, free: false, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "priceImpactPct", "slippagePct", "quoteTimestamp", "executableDepthUsd", "verifiedTradeSizeUsd"] },
+    { source: "CEX public order books", routeTypes: ["CEX"], authority: 74, cost: 1, latencyMs: 1600, fields: ["purchaseRouteConfirmed", "sellRouteAvailable", "orderBookDepthUsd", "bidDepthUsd", "askDepthUsd", "spreadPct", "quoteTimestamp", "slippagePct", "executableDepthUsd", "verifiedTradeSizeUsd"] },
   ],
   DERIVED: [],
   UNKNOWN: [],
@@ -73,8 +75,8 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   stableExitLiquidityUsd: "MARKET",
   volume24hUsd: "MARKET",
   uniqueBuyers24h: "WALLETS",
-  buyTransactions24h: "WALLETS",
-  sellTransactions24h: "WALLETS",
+  buyTransactions24h: "MARKET",
+  sellTransactions24h: "MARKET",
   holderCount: "WALLETS",
   holderAddresses: "WALLETS",
   wallets: "WALLETS",
@@ -112,11 +114,11 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   reusedBytecodeRisk: "DEPLOYER",
   fundingSourceRisk: "DEPLOYER",
   githubRepo: "DEVELOPMENT",
-  developerActivityScore: "DEVELOPMENT",
+  developerActivityScore: "DERIVED",
   commits30d: "DEVELOPMENT",
   contributors30d: "DEVELOPMENT",
   roadmap: "CATALYSTS",
-  catalystScore: "CATALYSTS",
+  catalystScore: "DERIVED",
   liveCatalystEvents: "CATALYSTS",
   honeypotDetected: "SECURITY",
   sellRestricted: "SECURITY",
@@ -133,6 +135,9 @@ export const FIELD_TO_EVIDENCE_FAMILY = Object.freeze({
   priceImpactPct: "EXECUTION",
   slippagePct: "EXECUTION",
   quoteTimestamp: "EXECUTION",
+  quoteExpiresAt: "EXECUTION",
+  executableDepthUsd: "EXECUTION",
+  verifiedTradeSizeUsd: "EXECUTION",
   orderBookDepthUsd: "EXECUTION",
   bidDepthUsd: "EXECUTION",
   askDepthUsd: "EXECUTION",
@@ -172,16 +177,21 @@ export function sourceFamilyForField(field = "") {
   return "UNKNOWN";
 }
 
-export function sourcesForField(field = "") {
+export function sourcesForField(field = "", options = {}) {
   const family = sourceFamilyForField(field);
-  return ENRICHMENT_SOURCE_REGISTRY[family] || [];
+  const chain = normalizeChainId(options.chain);
+  const routeType = String(options.routeType || "DEX").toUpperCase();
+  return (ENRICHMENT_SOURCE_REGISTRY[family] || []).filter((source) => source.fields.includes(field) &&
+    (!options.chain || ((!source.chains || source.chains.includes(chain)) &&
+      (!source.chainKinds || source.chainKinds.includes(chainKind(chain))))) &&
+    (!(options.chain || options.routeType) || !source.routeTypes || source.routeTypes.includes(routeType)));
 }
 
 export function recoveryDispositionForField(field = "", options = {}) {
   if (options.applicability === "NOT_APPLICABLE") return "NOT_APPLICABLE";
   const family = sourceFamilyForField(field);
   if (family === "DERIVED") return "DERIVED_RECOMPUTE";
-  return sourcesForField(field).length
+  return sourcesForField(field, options).length
     ? "RAW_RECOVERABLE"
     : "UNAVAILABLE_WITH_CURRENT_PROVIDERS";
 }

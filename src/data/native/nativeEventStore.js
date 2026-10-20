@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { normalizeNativeEvent } from "./NativePoolAdapter.js";
+import { writeAtomicJson } from "../../production/atomicArtifactStore.js";
 
 const DATA_DIR = path.resolve("data", "native-discovery");
 const RAW_EVENTS_FILE = path.join(DATA_DIR, "raw-events.json");
@@ -18,15 +19,20 @@ function readJson(filePath, fallback) {
   if (!fs.existsSync(filePath)) return fallback;
 
   try {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch {
-    return fallback;
+    const value = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    if (Array.isArray(fallback) ? !Array.isArray(value) : !value || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error("Unexpected JSON shape");
+    }
+    return value;
+  } catch (error) {
+    if (error.code === "ENOENT") return fallback;
+    throw new Error(`Cannot read native evidence store ${path.basename(filePath)}: ${error.message}`, { cause: error });
   }
 }
 
 function writeJson(filePath, value) {
   ensureDir();
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+  writeAtomicJson(filePath, value);
 }
 
 function upsertEvents(existing = [], incoming = []) {

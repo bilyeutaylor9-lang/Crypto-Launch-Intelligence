@@ -102,6 +102,54 @@ test("outcome probe does not treat a legacy unverified snapshot as resolved", ()
   assert.equal(due.length, 1);
 });
 
+test("frozen explicit horizons govern selection without being intersected with global defaults", () => {
+  const frozen = {
+    ...memoryRecord(),
+    exactIdentityFrozen: true,
+    outcomeHorizonsHours: [1, 6, 24, 168, 720],
+  };
+  const due = selectOutcomeProbeCandidates([frozen], [], {
+    now: "2026-01-01T06:30:00.000Z",
+    horizons: [1, 24, 168, 720],
+  });
+  assert.equal(due.length, 1);
+  assert.deepEqual(due[0].duePredictions.map((item) => item.horizonHours), [6]);
+
+  const malformed = selectOutcomeProbeCandidates([{
+    ...frozen,
+    outcomeHorizonsHours: ["not-a-horizon"],
+  }], [], { now: "2026-01-01T01:30:00.000Z", horizons: [1] });
+  assert.deepEqual(malformed, []);
+});
+
+test("prospective frozen cohorts without a valid horizon contract are not assigned invented work", () => {
+  const episode = {
+    cohortId: "cohort-invalid", episodeId: "episode-invalid", role: "TREATMENT",
+    decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+  };
+  assert.deepEqual(prospectiveCohortsToProbeMemory([episode]), []);
+  assert.deepEqual(prospectiveCohortsToProbeMemory([{
+    ...episode, outcomeHorizonsHours: [6, "invalid", 24],
+  }]), []);
+});
+
+test("frozen evaluation policy controls the primary-horizon tolerance only", () => {
+  const memory = prospectiveCohortsToProbeMemory([{
+    cohortId: "cohort-policy", episodeId: "episode-policy", role: "TREATMENT",
+    decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+    outcomeHorizonsHours: [24, 168],
+    strategyDefinition: { evaluationPolicy: {
+      version: "PROSPECTIVE_EDGE_CERTIFICATE_V1", primaryHorizonHours: 24, outcomeToleranceHours: 8,
+    } },
+  }]);
+  const due = selectOutcomeProbeCandidates(memory, [], {
+    now: "2026-01-02T07:00:00.000Z", horizons: [1],
+  });
+  assert.equal(due.length, 1);
+  assert.equal(due[0].duePredictions[0].maximumLatenessHours, 8);
+  assert.equal(due[0].duePredictions[0].toleranceBasis, "FROZEN_EVALUATION_POLICY_PRIMARY_HORIZON");
+});
+
 test("dedicated exact-ledger observations prevent redundant outcome requests", () => {
   const exactLedgerObservation = {
     chain: "base",
@@ -346,6 +394,260 @@ test("an exact observation from another known pool does not resolve a frozen poo
   });
   assert.equal(due.length, 1);
   assert.equal(due[0].poolAddress, POOL_A);
+});
+
+test("a verified snapshot with no pool cannot resolve a frozen pool route", () => {
+  const missingPool = [{
+    key: `base:${TOKEN_A}`,
+    chain: "base",
+    tokenAddress: TOKEN_A,
+    timestamp: "2026-01-01T01:10:00.000Z",
+    priceUsd: 1.1,
+    exactIdentityVerified: true,
+  }];
+  const due = selectOutcomeProbeCandidates([memoryRecord()], missingPool, {
+    now: "2026-01-01T01:30:00.000Z", horizons: [1],
+  });
+  assert.equal(due.length, 1);
+});
+
+test("a primary provider failure still permits the budgeted exact Gecko fallback", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z",
+    horizons: [1], maxRequests: 2, geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async () => { throw new Error("dex unavailable"); },
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => ({ data: {
+        id: `base_${POOL_A}`,
+        attributes: { address: POOL_A, name: "Edge / WETH", base_token_price_usd: "1.3", reserve_in_usd: "100000" },
+        relationships: { base_token: { data: { id: `base_${TOKEN_A}` } } },
+      } }),
+    },
+    saveSnapshots: (observations) => { saved = observations; return { saved: observations.length }; },
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }),
+    writeReport: false,
+  });
+  assert.equal(report.status, "PASS");
+  assert.equal(report.providerRequestsUsed, 2);
+  assert.equal(saved[0].outcomeObservationProvenance.source, "geckoterminal");
+});
+
+test("a timed-out DEX request does not abort the independently timed Gecko fallback", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", timeoutMs: 5, horizons: [1], maxRequests: 2, geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async (_chain, _pool, { signal }) => new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(Object.assign(new Error("timed out"), { name: "AbortError" })));
+      }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async (_chain, _pool, { signal }) => {
+        assert.equal(signal.aborted, false);
+        return { data: {
+          id: `base_${POOL_A}`,
+          attributes: { address: POOL_A, name: "Edge / WETH", base_token_price_usd: "1.3", reserve_in_usd: "100000" },
+          relationships: { base_token: { data: { id: `base_${TOKEN_A}` } } },
+        } };
+      },
+    },
+    saveSnapshots: (observations) => { saved = observations; return { saved: observations.length }; },
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.status, "PASS");
+  assert.deepEqual(saved[0].outcomeObservationProvenance.providerAttempts.map((item) => item.status), ["TIMEOUT", "RECEIVED"]);
+  assert.ok(saved[0].outcomeObservationProvenance.providerAttempts.every((item) => item.requestedAt));
+  assert.equal(saved[0].outcomeObservationProvenance.receiptObservedAt, "2026-01-01T01:30:00.000Z");
+});
+
+test("an invalid frozen cohort contract cannot be reported as no outcomes due", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", memory: [], prospectiveEpisodes: [{
+      cohortId: "cohort-invalid", episodeId: "episode-invalid", role: "TREATMENT",
+      decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+    }], snapshots: [], providers: { getPairByAddress: async () => ({ pairs: [] }), getTokenPairs: async () => [] },
+    writeReport: false,
+  });
+  assert.equal(report.status, "INVALID_FROZEN_OUTCOME_CONTRACT");
+  assert.equal(report.invalidFrozenOutcomeContracts, 1);
+  assert.equal(report.invalidFrozenOutcomeContractDiagnostics[0].reason, "MISSING_OR_EMPTY_FROZEN_HORIZONS");
+});
+
+test("a mixed malformed frozen horizon list is reported as an invalid contract", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", memory: [], prospectiveEpisodes: [{
+      cohortId: "cohort-mixed", episodeId: "episode-mixed", role: "TREATMENT",
+      decisionAt: "2026-01-01T00:00:00.000Z", chain: "base", tokenAddress: TOKEN_A, poolAddress: POOL_A,
+      outcomeHorizonsHours: [6, "invalid", 24],
+    }], snapshots: [], providers: { getPairByAddress: async () => ({ pairs: [] }), getTokenPairs: async () => [] },
+    writeReport: false,
+  });
+  assert.equal(report.status, "INVALID_FROZEN_OUTCOME_CONTRACT");
+  assert.equal(report.invalidFrozenOutcomeContracts, 1);
+  assert.equal(report.invalidFrozenOutcomeContractDiagnostics[0].reason, "FROZEN_HORIZONS_MUST_BE_FINITE_POSITIVE_NUMBERS");
+});
+
+test("outcome observations retain receipt time and do not invent a missing provider source time", async () => {
+  let saved = [];
+  await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+    providers: { getPairByAddress: async () => ({ pairs: [providerPair()] }), getTokenPairs: async () => [] },
+    saveSnapshots: (observations) => { saved = observations; return { saved: observations.length }; },
+    saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(saved[0].observedAt, "2026-01-01T01:30:00.000Z");
+  assert.equal(saved[0].outcomeObservationProvenance.receiptObservedAt, "2026-01-01T01:30:00.000Z");
+  assert.equal(saved[0].outcomeObservationProvenance.sourceTimestamp, null);
+  assert.equal(saved[0].outcomeObservationProvenance.observationTimeBasis, "COLLECTION_RECEIPT_ONLY");
+});
+
+test("a provider source clock after the actual receipt is degraded rather than captured", async () => {
+  let saves = 0;
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [{ ...providerPair(), sourceTimestamp: "2026-01-01T01:31:00.000Z" }] }),
+      getTokenPairs: async () => [],
+    },
+    saveSnapshots: () => { saves += 1; return { saved: 0 }; },
+    saveExactObservations: () => assert.fail("contradictory provider clock must not be persisted"), writeReport: false,
+  });
+  assert.equal(report.status, "PROVIDER_DEGRADED");
+  assert.equal(report.results[0].status, "PROVIDER_CLOCK_INVALID");
+  assert.equal(saves, 0);
+});
+
+test("an invalid primary source clock can recover through an independent budgeted fallback", async () => {
+  let saved = [];
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], maxRequests: 2, geckoMinimumIntervalMs: 0,
+    memory: [memoryRecord()], snapshots: [],
+    providers: {
+      getPairByAddress: async () => ({ pairs: [{ ...providerPair(), sourceTimestamp: "2070-01-01T00:00:00Z" }] }),
+      getTokenPairs: async () => [],
+      getGeckoPoolByAddress: async () => ({ data: {
+        id: `base_${POOL_A}`, attributes: { address: POOL_A, base_token_price_usd: "1.3", reserve_in_usd: "100000" },
+        relationships: { base_token: { data: { id: `base_${TOKEN_A}` } } },
+      } }),
+    },
+    saveSnapshots: rows => ({ saved: rows.length }),
+    saveExactObservations: rows => { saved = rows; return { saved: rows.length, rejected: 0 }; }, writeReport: false,
+  });
+  assert.equal(report.status, "PASS"); assert.equal(report.providerRequestsUsed, 2);
+  assert.deepEqual(saved[0].outcomeObservationProvenance.providerAttempts.map(row => row.status), ["REJECTED_CLOCK", "RECEIVED"]);
+  assert.equal(saved[0].outcomeObservationProvenance.source, "geckoterminal");
+  assert.equal(saved[0].outcomeObservationProvenance.sourceTimestamp, null);
+});
+
+for (const receipt of [{ saved: 0, rejected: 1 }, { saved: 0, rejected: 0 }, {}]) {
+  test("unconfirmed exact-ledger admission cannot report capture success: " + JSON.stringify(receipt), async () => {
+    const report = await runOutcomeProbe({
+      now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+      providers: { getPairByAddress: async () => ({ pairs: [providerPair()] }), getTokenPairs: async () => [] },
+      saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: () => receipt, writeReport: false,
+    });
+    assert.equal(report.status, "CAPTURE_STORAGE_DEGRADED"); assert.equal(report.captureStorageHealthy, false);
+    assert.equal(report.observedDuePredictions, 1); assert.equal(report.resolvedDuePredictions, 0);
+    assert.equal(report.unresolvedDuePredictions, 1); assert.equal(report.unresolvedCandidates, 1);
+    assert.equal(report.results[0].status, "OBSERVED_STORAGE_UNCONFIRMED");
+  });
+}
+
+test("confirmed existing exact observations can acknowledge capture without a duplicate write", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+    providers: { getPairByAddress: async () => ({ pairs: [providerPair()] }), getTokenPairs: async () => [] },
+    saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: () => ({ saved: 0, duplicates: 1, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.status, "PASS"); assert.equal(report.captureStorageHealthy, true); assert.equal(report.resolvedDuePredictions, 1);
+});
+
+for (const limits of [{ maxRequests: 0 }, { maxCandidates: 0 }]) {
+  test("an explicit zero limit never falls back to a nonzero default: " + JSON.stringify(limits), async () => {
+    const report = await runOutcomeProbe({
+      ...limits, now: "2026-01-01T01:30:00.000Z", horizons: [1], memory: [memoryRecord()], snapshots: [],
+      providers: { getPairByAddress: () => assert.fail("zero budget must not dispatch"), getTokenPairs: () => assert.fail("zero budget must not dispatch") },
+      writeReport: false,
+    });
+    assert.equal(report.providerRequestsUsed, 0); assert.equal(report.duePredictions, 1);
+    assert.equal(report.selectedDueCandidates, 0); assert.equal(report.capDeferredDueCandidates, 1);
+    assert.equal(report.unresolvedDuePredictions, 1); assert.notEqual(report.status, "NO_OUTCOMES_DUE");
+    assert.notEqual(report.status, "PASS");
+  });
+}
+
+test("candidate caps apply after the complete due denominator is counted", async () => {
+  const report = await runOutcomeProbe({
+    now: "2026-01-01T01:30:00.000Z", horizons: [1], maxCandidates: 1, maxRequests: 5,
+    memory: [memoryRecord(), memoryRecord(TOKEN_B, POOL_B)], snapshots: [],
+    providers: { getPairByAddress: async (_chain, pool) => ({ pairs: [providerPair(pool === POOL_A ? TOKEN_A : TOKEN_B, pool)] }), getTokenPairs: async () => [] },
+    saveSnapshots: rows => ({ saved: rows.length }), saveExactObservations: rows => ({ saved: rows.length, rejected: 0 }), writeReport: false,
+  });
+  assert.equal(report.dueCandidates, 2); assert.equal(report.duePredictions, 2);
+  assert.equal(report.selectedDueCandidates, 1); assert.equal(report.capDeferredDueCandidates, 1);
+  assert.equal(report.capDeferredDuePredictions, 1); assert.equal(report.unresolvedDuePredictions, 1);
+  assert.equal(report.status, "PARTIAL"); assert.equal(report.providerRequestsUsed, 1);
+});
+
+test("a late receipt is retained as evidence but cannot make the due capture pass", async () => {
+  const originalNow = Date.now;
+  let clock = Date.parse("2026-01-01T01:30:00.000Z");
+  let saved = [];
+  Date.now = () => clock;
+  try {
+    const report = await runOutcomeProbe({
+      acquireOutcomeProbeLock: false,
+      horizons: [1], memory: [memoryRecord()], snapshots: [],
+      providers: {
+        getPairByAddress: async () => {
+          clock = Date.parse("2026-01-01T03:01:00.000Z");
+          return { pairs: [providerPair()] };
+        },
+        getTokenPairs: async () => [],
+      },
+      saveSnapshots: (observations) => { saved = observations; return { saved: observations.length }; },
+      saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }),
+      writeReport: false,
+    });
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0].observedAt, "2026-01-01T03:01:00.000Z");
+    assert.equal(report.status, "PROVIDER_DEGRADED");
+    assert.equal(report.results[0].status, "OBSERVED_LATE");
+    assert.equal(report.unresolvedCandidates, 1);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("one receipt cannot pass a candidate while one of its due obligations expires", async () => {
+  const originalNow = Date.now;
+  let clock = Date.parse("2026-01-01T02:30:00.000Z");
+  Date.now = () => clock;
+  try {
+    const report = await runOutcomeProbe({
+      acquireOutcomeProbeLock: false,
+      memory: [{ ...memoryRecord(), outcomeHorizonsHours: [1, 2] }], snapshots: [],
+      providers: {
+        getPairByAddress: async () => {
+          clock = Date.parse("2026-01-01T03:01:00.000Z");
+          return { pairs: [providerPair()] };
+        },
+        getTokenPairs: async () => [],
+      },
+      saveSnapshots: (observations) => ({ saved: observations.length }),
+      saveExactObservations: (observations) => ({ saved: observations.length, rejected: 0 }), writeReport: false,
+    });
+    assert.equal(report.status, "PARTIAL");
+    assert.equal(report.duePredictions, 2);
+    assert.equal(report.resolvedDuePredictions, 1);
+    assert.equal(report.unresolvedDuePredictions, 1);
+    assert.equal(report.resolvedOutcomesByHorizon["2h"], 1);
+  } finally {
+    Date.now = originalNow;
+  }
 });
 
 test("prospective treatment and control outcomes receive priority over ordinary scan memory", () => {

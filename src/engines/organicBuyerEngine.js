@@ -1,3 +1,5 @@
+import { readBuyerEvidence } from "../data/buyerEvidence.js";
+
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -15,15 +17,10 @@ function statusFor(score = 0, risk = 0, hasBuyers = false) {
 }
 
 export function analyzeOrganicBuyer(project = {}) {
-  const cluster = project.walletCluster || {};
-  const classifier = project.organicBuyerClassifier || {};
-  const totalBuyers = Math.max(num(cluster.totalBuyers), num(classifier.uniqueBuyers), num(project.uniqueBuyers24h));
-  const independentBuyers = Math.max(num(cluster.independentBuyers), num(classifier.independentBuyers), num(project.independentBuyers24h));
-  const sameFunderBuyers = Math.max(num(cluster.sameFunderBuyers), num(classifier.sameFunderBuyers), num(project.sameFunderBuyers24h));
-  const suspectedBots = Math.max(num(cluster.sniperBuyers), num(classifier.sniperBuyers), num(project.sniperBuyers24h));
-  const deployerConnected = Math.max(num(cluster.deployerConnectedBuyers), num(project.deployerConnectedBuyers));
-  const unclassified = Math.max(0, totalBuyers - independentBuyers - sameFunderBuyers - suspectedBots - deployerConnected);
-  const risk = Math.round(
+  const evidence = readBuyerEvidence(project, { includeDerived: true });
+  const { totalBuyers, independentBuyers, sameFunderBuyers, sniperBuyers: suspectedBots,
+    deployerConnectedBuyers: deployerConnected, unclassifiedBuyers: unclassified } = evidence;
+  const knownRisk = Math.round(
     clamp(
       num(project.walletClusterRiskScore) * 0.35 +
         num(project.bundledLaunchRiskScore) * 0.25 +
@@ -31,17 +28,19 @@ export function analyzeOrganicBuyer(project = {}) {
         (deployerConnected > 0 ? 12 : 0)
     )
   );
-  const score = Math.round(
+  const risk = evidence.clusterEvidenceAvailable || knownRisk > 0 ? knownRisk : null;
+  const score = evidence.clusterEvidenceAvailable ? Math.round(
     clamp(
       num(project.organicBuyerScore) * 0.34 +
         num(project.walletClusterScore) * 0.22 +
         num(project.buyerRetentionScore) * 0.18 +
         num(project.smartWalletArrivalScore) * 0.16 +
         num(project.washTradingScore) * 0.1 -
-        risk * 0.3
+        knownRisk * 0.3
     )
-  );
-  const status = statusFor(score, risk, totalBuyers > 0);
+  ) : null;
+  const status = knownRisk >= 80 ? "CRITICAL" : knownRisk >= 60 ? "RESTRICTED"
+    : statusFor(score, knownRisk, evidence.clusterEvidenceAvailable && totalBuyers > 0);
 
   return {
     ...project,
@@ -49,6 +48,8 @@ export function analyzeOrganicBuyer(project = {}) {
     organicDemandFirewallRisk: risk,
     organicDemandFirewallStatus: status,
     organicBuyerEngine: {
+      dataStatus: evidence.dataStatus,
+      classificationEvidenceAvailable: evidence.clusterEvidenceAvailable,
       totalBuyers,
       independentBuyers,
       sameFunderBuyers,
@@ -59,12 +60,12 @@ export function analyzeOrganicBuyer(project = {}) {
       risk,
       status,
       explanation: [
-        `${totalBuyers} total buyers`,
-        `${independentBuyers} independently funded`,
-        `${sameFunderBuyers} same-funder cluster`,
-        `${suspectedBots} suspected bots/snipers`,
-        `${deployerConnected} deployer-connected`,
-        `${unclassified} unclassified`,
+        `${totalBuyers ?? "UNKNOWN"} total buyers`,
+        `${independentBuyers ?? "UNKNOWN"} independently funded`,
+        `${sameFunderBuyers ?? "UNKNOWN"} same-funder cluster`,
+        `${suspectedBots ?? "UNKNOWN"} suspected bots/snipers`,
+        `${deployerConnected ?? "UNKNOWN"} deployer-connected`,
+        `${unclassified ?? "UNKNOWN"} unclassified`,
       ],
     },
   };

@@ -84,6 +84,7 @@ import { writeDecisionReportCompactionAudit } from "./decisionReportCompactionAu
 import { writeScanArtifactManifest } from "./scanArtifactManifestReportEngine.js";
 import { writeGuardedLiveRankingReports } from "../ranking/guardedLiveRankingEngine.js";
 import { writeExplosionReadinessReport } from "./explosionReadinessReportEngine.js";
+import { writeQualificationFailureMicroscope } from "../diagnostics/qualificationFailureMicroscope.js";
 import { REQUIRED_REPORT_FILES } from "./reportContractValidator.js";
 import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import {
@@ -94,6 +95,7 @@ import {
 export function generateReports(projects = [], meta = {}) {
   const precomputedPipelineStageHealth = meta.pipelineStageHealth;
   const fullProjects = Array.isArray(projects) ? projects : [];
+  writeQualificationFailureMicroscope(fullProjects, meta);
   const { filePath: explosionReadinessPath } = writeExplosionReadinessReport(fullProjects, meta);
   // Canonical Three-Clock is a shadow-only longitudinal diagnostic. Its report
   // needs the actual scan objects because generic report compaction may omit
@@ -117,7 +119,7 @@ export function generateReports(projects = [], meta = {}) {
   const csvPath = writeCsvReport(projects);
   const { filePath: watchlistPath, watchlist } = writeWatchlist(projects);
   const summaryPath = writeSummaryReport(projects);
-  const htmlPath = writeHtmlReport(projects);
+  const htmlPath = writeHtmlReport(projects, meta);
   const quantumFieldPath = writeQuantumFieldReport(projects);
   const {
     healthPath: quantumSuiteHealthPath,

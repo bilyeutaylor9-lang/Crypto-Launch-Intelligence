@@ -1,5 +1,6 @@
-import { isLiveExecutionReady } from "../execution/routeTruthV2.js";
-import { deterministicCandidateBlocks } from "./candidateTruthState.js";
+import { hasFreshTokenAuthorityEvidence, hasVerifiedBuyQuote, hasVerifiedSellQuote, hasVerifiedRouteDepth, hasVerifiedRouteSlippage,
+  isLiveExecutionReady, routeQuoteFresh } from "../execution/routeTruthV2.js";
+import { buildCandidateProofState, deterministicCandidateBlocks } from "./candidateTruthState.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -46,6 +47,11 @@ export function advisoryEvidenceState(project = {}) {
 }
 
 export function hasVerifiedExecutionRoute(project = {}) {
+  const proof = project.executionProof;
+  if (proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length) {
+    // The current producer's result outranks flags retained from an earlier recovery pass.
+    return isLiveExecutionReady(project);
+  }
   const state = String(
     project.routeTruthStatus ||
       project.executionProofState ||
@@ -62,16 +68,49 @@ export function hasVerifiedExecutionRoute(project = {}) {
   );
 }
 
+export function hasConclusiveDecisionBlock(project = {}) {
+  const proof = project.executionProof || {};
+  const proofStatus = String(proof.executionStatus || proof.executionProofState || "").toUpperCase();
+  // Selection denials and prose can reflect unknown inputs, not resolved proof.
+  return deterministicCandidateBlocks(project, { includeImported: false }).length > 0 ||
+    ["CONTRACT_MISMATCH", "CHAIN_MISMATCH", "HONEYPOT_RISK"].includes(proofStatus);
+}
+
+export function decisionProofAssessment(project = {}) {
+  const proof = project.executionProof || {};
+  const conclusivelyRejected = hasConclusiveDecisionBlock(project);
+  if (conclusivelyRejected) return { conclusivelyRejected: true, missingFields: [] };
+  const snapshot = buildCandidateProofState(project);
+  const missingFields = [];
+  if (snapshot.identity.exactIdentityVerified !== true) missingFields.push("IDENTITY");
+  if (proof.safetyVerified === false ||
+    (proof.safetyVerified !== true && snapshot.safety.status !== "VERIFIED_SAFE")) missingFields.push("SAFETY");
+  if (!hasVerifiedBuyQuote(project)) missingFields.push("BUY_QUOTE");
+  if (!hasVerifiedSellQuote(project)) missingFields.push("SELL_QUOTE");
+  if (!routeQuoteFresh(project)) missingFields.push("QUOTE_FRESHNESS");
+  if (!hasVerifiedRouteDepth(project)) missingFields.push("ROUTE_DEPTH");
+  if (!hasVerifiedRouteSlippage(project)) missingFields.push("VERIFIED_SLIPPAGE");
+  if (proof.transferTaxEvidenceRequired === true && proof.transferTaxEvidenceVerified !== true) missingFields.push("TRANSFER_TAX");
+  if (proof.authorityEvidenceRequired === true &&
+    (!hasFreshTokenAuthorityEvidence(project) || proof.authoritySafetyClean !== true)) missingFields.push("TOKEN_AUTHORITY");
+  if (proof.userAccessEvidenceRequired === true && proof.userAccessVerified !== true) missingFields.push("USER_ACCESS");
+  if (!isLiveExecutionReady(project) && !missingFields.length) missingFields.push("LIVE_EXECUTION_PROOF");
+  return { conclusivelyRejected: false, missingFields };
+}
+
 export function attachCandidateEvidenceState(project = {}) {
   const coreState = coreEvidenceState(project);
   const advisoryState = advisoryEvidenceState(project);
   const finalState = String(project.finalSelectionState || "").toUpperCase();
-  const deterministicBlocked =
-    finalState === "BLOCKED" || deterministicCandidateBlocks(project).length > 0;
-  const qualified = finalState === "QUALIFIED" || project.finalSelectionQualified === true;
+  const selectionBlocked =
+    ["BLOCKED", "IDENTITY_CONFLICT"].includes(finalState) || deterministicCandidateBlocks(project).length > 0;
+  const proof = project.executionProof;
+  const hasCurrentProof = proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length > 0;
+  const qualified = (finalState === "QUALIFIED" || project.finalSelectionQualified === true) &&
+    !selectionBlocked && (!hasCurrentProof || isLiveExecutionReady(project));
   const candidateEvidenceState = qualified
     ? "QUALIFIED"
-    : deterministicBlocked
+    : selectionBlocked
       ? "FINAL_BLOCKED"
       : coreState;
 
@@ -110,14 +149,7 @@ export function summarizeEvidenceFunnel(projects = []) {
   ).length;
   const verifiedRoutes = deepProjects.filter(hasVerifiedExecutionRoute).length;
   const fullyQualified = deepProjects.filter(
-    (project) =>
-      project.finalSelectionState === "QUALIFIED" ||
-      project.finalSelectionQualified === true
-  ).length;
-  const deterministicallyBlocked = deepProjects.filter(
-    (project) =>
-      project.finalSelectionState === "BLOCKED" ||
-      deterministicCandidateBlocks(project).length > 0
+    (project) => project.candidateEvidenceState === "QUALIFIED"
   ).length;
   const coreEvidenceCoveragePct = average(
     deepProjects.map((project) =>
@@ -134,13 +166,23 @@ export function summarizeEvidenceFunnel(projects = []) {
   const coreDataStarvedPct = deepProjects.length
     ? Math.round((coreDataStarved / deepProjects.length) * 10_000) / 100
     : 0;
+  const decisions = deepProjects.map((project) => ({ project, ...decisionProofAssessment(project) }));
+  const deterministicallyBlocked = decisions.filter((item) => item.conclusivelyRejected).length;
+  const unresolvedDecisionEvidence = decisions.filter((item) => item.missingFields.length > 0).length;
+  const decisionProofMissingFields = {};
+  for (const item of decisions) for (const field of item.missingFields) {
+    decisionProofMissingFields[field] = (decisionProofMissingFields[field] || 0) + 1;
+  }
+  const insufficientEvidenceCandidates = decisions.filter((item) => item.missingFields.length > 0 ||
+    ["CORE_DATA_STARVED", "CORE_EVIDENCE_PARTIAL", "CORE_EVIDENCE_UNKNOWN"].includes(item.project.coreEvidenceState)).length;
+  const healthyDecisionEvidence = deepProjects.length > 0 && unresolvedDecisionEvidence === 0;
   const healthyCoreEvidence =
     deepProjects.length > 0 &&
     coreEvidenceCoveragePct >= 85 &&
     coreDataStarvedPct < 20;
   const selectionOutcome = fullyQualified > 0
     ? "EDGE_FOUND"
-    : healthyCoreEvidence
+    : healthyCoreEvidence && healthyDecisionEvidence
       ? "NO_EDGE_FOUND"
       : "DATA_DEGRADED";
 
@@ -160,6 +202,12 @@ export function summarizeEvidenceFunnel(projects = []) {
     advisoryEvidenceCoveragePct,
     coreDataStarvedPct,
     healthyCoreEvidence,
+    healthyDecisionEvidence,
+    decisionEvidenceComplete: decisions.filter((item) => !item.conclusivelyRejected && !item.missingFields.length).length,
+    conclusivelyRejected: decisions.filter((item) => item.conclusivelyRejected).length,
+    unresolvedDecisionEvidence,
+    decisionProofMissingFields,
+    insufficientEvidenceCandidates,
     selectionOutcome,
     emptyResultLabel:
       fullyQualified > 0

@@ -41,8 +41,16 @@ export function buildExactMarketObservation(row = {}, options = {}) {
   const priceUsd = finite(row.priceUsd ?? row.price ?? row.currentPrice ?? row.marketData?.priceUsd);
   const maximumFutureSkewMs = Math.max(0, Number(options.maximumFutureSkewMs || 0));
   const maximumObservationAgeMinutes = finite(options.maximumObservationAgeMinutes);
+  const receiptRaw = row.outcomeObservationProvenance?.receiptObservedAt ?? row.receiptObservedAt;
+  const sourceRaw = row.outcomeObservationProvenance?.sourceTimestamp ?? row.sourceObservedAt;
+  const hasReceiptClock = receiptRaw !== null && receiptRaw !== undefined && receiptRaw !== "";
+  const hasSourceClock = sourceRaw !== null && sourceRaw !== undefined && sourceRaw !== "";
+  const receiptMs = hasReceiptClock ? timestamp(receiptRaw) : null;
+  const sourceMs = hasSourceClock ? timestamp(sourceRaw) : null;
   if (!identity || observedMs === null || asOfMs === null || priceUsd === null || priceUsd <= 0) return null;
   if (observedMs > asOfMs + maximumFutureSkewMs) return null;
+  if (hasReceiptClock && (receiptMs === null || receiptMs > asOfMs)) return null;
+  if (hasSourceClock && (sourceMs === null || sourceMs > Math.min(receiptMs ?? observedMs, observedMs))) return null;
   if (
     maximumObservationAgeMinutes !== null &&
     maximumObservationAgeMinutes >= 0 &&
@@ -66,6 +74,15 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     schemaVersion: 2,
     observationKey,
     observedAt: new Date(observedMs).toISOString(),
+    // These fields are additive for newly appended rows. Existing ledger rows
+    // retain their original bytes and integrity hashes.
+    receiptObservedAt: receiptMs === null
+      ? null
+      : new Date(receiptMs).toISOString(),
+    sourceObservedAt: sourceMs === null
+      ? null
+      : new Date(sourceMs).toISOString(),
+    observationTimeBasis: row.outcomeObservationProvenance?.observationTimeBasis || row.observationTimeBasis || null,
     source,
     chain: identity.chain,
     tokenAddress: identity.tokenAddress,
@@ -124,6 +141,7 @@ export function buildExactMarketObservation(row = {}, options = {}) {
     marketContextPointInTimeVerified,
     exactIdentityVerified: true,
     scoringOrSelectionAllowed: false,
+    outcomeObservationProvenance: row.outcomeObservationProvenance || null,
   };
   return {
     ...observation,

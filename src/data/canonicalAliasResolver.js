@@ -15,6 +15,7 @@ import { normalizeUnitValue } from "./unitNormalizationRegistry.js";
 import { resolveFieldConflict } from "./fieldConflictResolver.js";
 import { buildAliasAuditRecord } from "./aliasResolutionAudit.js";
 import { normalizeBooleanVocabulary, normalizeStatusVocabulary } from "./statusVocabularyNormalizer.js";
+import { hasVerifiedHoneypotNegative, metadataOnlySecurityProvider, securityObservationIsCurrent, sourcifyResponseIdentityMatches } from "./security/securityEvidenceUtils.js";
 import {
   aliasConfidenceValue,
   fuzzyAliasMatch,
@@ -22,6 +23,7 @@ import {
   IDENTITY_CRITICAL_FIELDS,
   parseMarketPair,
   parentPath,
+  semanticAliasTermsForField,
 } from "./semanticAliasNormalizer.js";
 
 const ADDRESS_FIELDS = new Set(["tokenAddress", "poolAddress"]);
@@ -83,6 +85,11 @@ const NUMERIC_FIELDS = new Set([
 ]);
 const UNSAFE_TOKEN_LIQUIDITY_CONTEXT = /\b(protocol|staking|lending|treasury|bridge|chain|app|application|total)\b/i;
 const MARKET_PAIR_SEPARATORS = /[/:_\-\s]/;
+const UNIQUE_PARTICIPANT_FIELDS = new Set(["uniqueBuyers24h", "uniqueSellers24h"]);
+
+function transactionCountSource(sourcePath = "") {
+  return /(?:^|[._])(?:txns|transactions|trades|swaps)(?:[._]|$)|(?:^|\.)(?:buys|sells|buyTransactions24h|sellTransactions24h)$/i.test(String(sourcePath));
+}
 
 function hasOwn(object = {}, key = "") {
   return Object.prototype.hasOwnProperty.call(object, key);
@@ -115,16 +122,90 @@ function sourceTimestamp(project = {}, path = "") {
   );
 }
 
-function inferProvider(project = {}, options = {}) {
-  return canonicalProviderId(options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown");
+function inferProvider(project = {}, options = {}, sourcePath = "") {
+  const provenance = sourcePath ? fieldProvenance(project, sourcePath) : {};
+  const observedSource = [provenance.source, provenance.sourceProvider, provenance.provider]
+    .find((value) => typeof value === "string" && value.trim());
+  const source = observedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown";
+  const cache = typeof source === "string" ? options._providerIds : null;
+  if (cache?.has(source)) return cache.get(source);
+  const provider = canonicalProviderId(source);
+  cache?.set(source, provider);
+  return provider;
 }
 
-function flattenObject(object = {}, prefix = "", output = []) {
+function matchesProjectIdentity(project, chain, address, requireDeclared = false) {
+  const known = [project, project.rawCandidate, project.marketData, project.canonicalExecutionRoute,
+    project.executionProofRecoveryRoute, project.executionProof].filter(Boolean);
+  const supplied = value => value !== null && value !== undefined && value !== "";
+  const chains = known.flatMap(value => [value.chain, value.chainId, value.network, value.canonicalChain,
+    value.canonicalChainId, value.finalChain, value.finalChainId, value.normalizedChain, value.baseToken?.chain]).filter(supplied);
+  const addresses = known.flatMap(value => [value.tokenAddress, value.contractAddress, value.address,
+    value.canonicalAddress, value.finalContractAddress, value.verifiedContractAddress,
+    value.baseTokenAddress, value.baseToken?.address]).filter(supplied);
+  return (!requireDeclared || Boolean(chain && address && chains.length && addresses.length)) &&
+    chains.every(value => normalizeChainId(value) === chain) &&
+    addresses.every(value => normalizeTokenAddress(value, chain) === address);
+}
+
+function securityAliasRejection(project, sourcePath, canonicalField, rawValue, inferredProvider) {
+  const negativeHoneypot = canonicalField === "honeypotDetected" && normalizeBooleanVocabulary(rawValue).value === false;
+  if (negativeHoneypot && metadataOnlySecurityProvider(inferredProvider)) return "metadata-does-not-prove-honeypot-negative";
+  let node = project;
+  let container = "";
+  const parts = sourcePath.split(".");
+  for (let index = 0; index < parts.length; index++) {
+    const part = parts[index];
+    if (!node || typeof node !== "object") return negativeHoneypot ? "unavailable-source-for-honeypot-negative" : null;
+    const provider = node.provider || node.source;
+    if (container === "sourcifyDeployerEvidence" ||
+        (typeof provider === "string" && provider.toLowerCase().includes("sourcify"))) {
+      const boundChain = normalizeChainId(node.chain);
+      const boundAddress = normalizeTokenAddress(node.address || node.tokenAddress, boundChain);
+      if (node.status === "UNKNOWN" ||
+          !sourcifyResponseIdentityMatches(node.raw, node.chain, node.address || node.tokenAddress) ||
+          !matchesProjectIdentity(project, boundChain, boundAddress)) return "sourcify-unverified-or-contradictory-identity";
+    }
+    if (negativeHoneypot) {
+      if (metadataOnlySecurityProvider(provider) || metadataOnlySecurityProvider(container)) {
+        return "metadata-does-not-prove-honeypot-negative";
+      }
+      if (typeof provider === "string" && provider.toLowerCase().includes("goplus") &&
+          (["EVIDENCE_AVAILABLE", "UNKNOWN"].includes(node.status) || Object.hasOwn(node, "responseIdentityVerified"))) {
+        const chain = normalizeChainId(node.chain);
+        if (!hasVerifiedHoneypotNegative(node) ||
+            !matchesProjectIdentity(project, chain, normalizeTokenAddress(node.address || node.tokenAddress, chain), true)) {
+          return "unproven-honeypot-negative";
+        }
+      }
+      if (container === "securityEvidenceSummary" ||
+          (container === "summary" && Array.isArray(node.providers)) || Object.hasOwn(node, "honeypotNegativeEvidence")) {
+        const observations = Array.isArray(node.honeypotNegativeEvidence) ? node.honeypotNegativeEvidence : [];
+        if (node.honeypotNegativeVerified !== true || !observations.some(evidence => {
+          if (!evidence || typeof evidence !== "object" ||
+              !String(evidence.source || "").toLowerCase().includes("goplus")) return false;
+          if (!securityObservationIsCurrent(evidence.sourceTimestamp) || !(Number(evidence.confidence) > 0)) return false;
+          const chain = normalizeChainId(evidence.chain);
+          return matchesProjectIdentity(project, chain, normalizeTokenAddress(evidence.tokenAddress, chain), true);
+        })) return "unproven-honeypot-negative";
+      }
+    }
+    if (index < parts.length - 1) {
+      node = node[part];
+      container = part;
+    }
+  }
+  return null;
+}
+
+function flattenObject(object = {}, prefix = "", output = [], ignoredRoots = null) {
   if (!object || typeof object !== "object" || Array.isArray(object)) return output;
   for (const [key, value] of Object.entries(object)) {
+    const root = !prefix && ignoredRoots ? key.split(".")[0] : "";
+    if (/^[A-Za-z]+$/.test(root) && ignoredRoots?.has(root.toLowerCase())) continue;
     const path = prefix ? `${prefix}.${key}` : key;
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      flattenObject(value, path, output);
+      flattenObject(value, path, output, ignoredRoots);
     } else {
       output.push({ sourcePath: path, sourceField: key, rawValue: value });
     }
@@ -132,21 +213,16 @@ function flattenObject(object = {}, prefix = "", output = []) {
   return output;
 }
 
+const DEFAULT_SEMANTIC_IGNORED_ROOTS = Object.freeze([
+  "engineResults", "fieldProvenance", "canonicalAliasProvenance", "aliasResolutionAudit",
+  "aliasResolutionConflicts", "canonicalAliasConflicts", "canonicalAliases", "engineDataContractHealth",
+  "engineDataReadiness", "dataStarvation", "targetedEnrichmentPlan", "starvationRecoveryPlan",
+  "valueOfInformationItems", "baselineDeviation", "baselineDeviationVector", "modelDiagnostics",
+  "scoreBreakdown", "dataConfidenceBreakdown",
+]);
+const ignoredSemanticRoots = new Set(DEFAULT_SEMANTIC_IGNORED_ROOTS.map(root => root.toLowerCase()));
 const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
-  /^engineResults(\.|$)/i,
-  /^fieldProvenance(\.|$)/i,
-  /^canonicalAliasProvenance(\.|$)/i,
-  /^aliasResolutionAudit(\.|$)/i,
-  /^aliasResolutionConflicts(\.|$)/i,
-  /^canonicalAliasConflicts(\.|$)/i,
-  /^canonicalAliases(\.|$)/i,
-  /^engineDataContractHealth(\.|$)/i,
-  /^engineDataReadiness(\.|$)/i,
-  /^dataStarvation(\.|$)/i,
-  /^targetedEnrichmentPlan(\.|$)/i,
-  /^starvationRecoveryPlan(\.|$)/i,
-  /^valueOfInformationItems(\.|$)/i,
-  /^(?:baselineDeviation|baselineDeviationVector|modelDiagnostics|scoreBreakdown|dataConfidenceBreakdown)(\.|$)/i,
+  ...DEFAULT_SEMANTIC_IGNORED_ROOTS.map(root => new RegExp(`^${root}(\\.|$)`, "i")),
   /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
   /\.(engineName|engineVersion|criticality|warningCount)$/i,
 ]);
@@ -156,7 +232,10 @@ function semanticScanFields(project = {}, options = {}) {
   const maxFields = Number.isFinite(Number(options.semanticScanMaxFields))
     ? Math.max(0, Number(options.semanticScanMaxFields))
     : 1200;
-  const flattened = flattenObject(project).filter((item) =>
+  // Default root exclusions apply to the entire subtree, so do not enumerate
+  // thousands of audit/provenance leaves only to discard them afterward.
+  const ignoredRoots = ignores === DEFAULT_SEMANTIC_SCAN_IGNORES ? ignoredSemanticRoots : null;
+  const flattened = flattenObject(project, "", [], ignoredRoots).filter((item) =>
     !ignores.some((pattern) => pattern.test(String(item.sourcePath || "")))
   );
   return maxFields ? flattened.slice(0, maxFields) : flattened;
@@ -164,6 +243,32 @@ function semanticScanFields(project = {}, options = {}) {
 
 function comparable(value = "") {
   return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
+}
+
+function indexSemanticFields(fields = []) {
+  const index = new Map();
+  fields.forEach((candidate, position) => {
+    for (const key of new Set([comparable(candidate.sourcePath), comparable(fieldNameFromPath(candidate.sourcePath))])) {
+      if (!index.has(key)) index.set(key, []);
+      index.get(key).push(position);
+    }
+  });
+  return index;
+}
+
+function indexedSemanticCandidates(fields, index, aliases, canonicalField) {
+  const positions = new Set();
+  for (const alias of aliases) {
+    for (const position of index.get(comparable(alias)) || []) positions.add(position);
+  }
+  if (semanticAliasTermsForField(canonicalField).length) {
+    fields.forEach((candidate, position) => {
+      if (!positions.has(position) && hasRawValue(candidate.rawValue) &&
+        fuzzyAliasMatch(candidate.sourceField, canonicalField).matched) positions.add(position);
+    });
+  }
+  // Conflict resolution is order-sensitive; retain the original flattened order.
+  return [...positions].sort((left, right) => left - right).map(position => fields[position]);
 }
 
 function isExplicitAlias(sourcePath = "", sourceField = "", aliases = [], aliasIndex = null) {
@@ -297,6 +402,16 @@ function normalizeValue(value, canonicalField, project, options = {}) {
   if (NUMERIC_FIELDS.has(canonicalField)) {
     const sourcePath = String(options.sourcePath || "");
     const sourceField = String(options.sourceField || "");
+    const priorProvenance = project.canonicalAliasProvenance?.[sourcePath] || fieldProvenance(project, sourcePath);
+    if (UNIQUE_PARTICIPANT_FIELDS.has(canonicalField) &&
+      (transactionCountSource(sourcePath) || transactionCountSource(priorProvenance.sourcePath))) {
+      return {
+        value: null,
+        validationStatus: "REJECTED_ALIAS",
+        normalizationRule: "transactions-are-not-unique-participants",
+        validationReason: "Trade counts do not establish distinct buyer or seller addresses.",
+      };
+    }
     const provider = inferProvider(project, options);
     const profile = providerProfile(provider);
     if (
@@ -366,7 +481,6 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   const aliases = aliasesForCanonicalField(canonicalField);
   const aliasIndex = { exact: new Set(aliases), comparable: new Set(aliases.map(comparable)) };
   const provider = inferProvider(project, options);
-  const profile = providerProfile(provider);
   const resolvedChain = canonicalField === "chain"
     ? null
     : options.resolvedChain !== undefined
@@ -376,6 +490,8 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
         sourceProvider: provider,
         shallow: true,
         disableSemanticScan: true,
+        _providerIds: options._providerIds,
+        _providerProfiles: options._providerProfiles,
       }).resolved.chain ?? null;
 
   const explicitCandidates = aliases
@@ -389,9 +505,12 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 
   const explicitPaths = new Set(explicitCandidates.map((candidate) => candidate.sourcePath));
   const semanticFields = options._semanticFields || (options.disableSemanticScan ? [] : flattenObject(project));
+  const discoveredFields = options._semanticFieldIndex
+    ? indexedSemanticCandidates(semanticFields, options._semanticFieldIndex, aliases, canonicalField)
+    : semanticFields;
   const discoveredCandidates = options.disableSemanticScan
     ? []
-    : semanticFields
+    : discoveredFields
         .filter((candidate) => !explicitPaths.has(candidate.sourcePath) && hasRawValue(candidate.rawValue))
         .map((candidate) => {
           const direct = confidenceTypeForPath(candidate.sourcePath, aliases, provider, aliasIndex);
@@ -412,6 +531,24 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
   const records = [];
 
   for (const candidate of candidates) {
+    // Discovery attribution cannot replace the provider that observed this field.
+    const provider = inferProvider(project, options, candidate.sourcePath);
+    const prior = project.canonicalAliasProvenance?.[canonicalField];
+    const observation = fieldProvenance(project, candidate.sourcePath);
+    const trustPath = canonicalField === "honeypotDetected" && candidate.sourcePath === canonicalField && prior?.sourcePath &&
+      observation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION" ? prior.sourcePath : candidate.sourcePath;
+    const rejection = securityAliasRejection(project, trustPath, canonicalField, candidate.rawValue, provider);
+    if (rejection) {
+      records.push(rejectRecord({ canonicalField, sourcePath: candidate.sourcePath, rawValue: candidate.rawValue,
+        provider, reason: rejection, aliases,
+        sourceTimestamp: sourceTimestamp(project, candidate.sourcePath) }));
+      continue;
+    }
+    let profile = options._providerProfiles?.get(provider);
+    if (!profile) {
+      profile = providerProfile(provider);
+      options._providerProfiles?.set(provider, profile);
+    }
     if (candidate.confidenceType === "FUZZY_ALIAS" && IDENTITY_CRITICAL_FIELDS.has(canonicalField)) {
       records.push(rejectRecord({
         canonicalField,
@@ -427,6 +564,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 
       const normalized = normalizeValue(candidate.rawValue, canonicalField, project, {
         ...options,
+        sourceProvider: provider,
         sourcePath: candidate.sourcePath,
         sourceField: candidate.sourceField,
         resolvedChain,
@@ -461,13 +599,31 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
 export function resolveCanonicalAliases(project = {}, options = {}) {
   const fields = options.fields || [...new Set([...Object.keys(CANONICAL_FIELD_ALIAS_REGISTRY), ...Object.keys(EXTENDED_CANONICAL_FIELD_ALIAS_REGISTRY)])];
   const semanticFields = options.disableSemanticScan ? [] : semanticScanFields(project, options);
+  const semanticFieldIndex = options.disableSemanticScan ? null : indexSemanticFields(semanticFields);
+  // These caches live for one resolution only, never across evidence updates.
+  const providerIds = options._providerIds || new Map();
+  const providerProfiles = options._providerProfiles || new Map();
   const resolved = {};
   const provenance = {};
   const conflicts = {};
   const audits = [];
+  let resolvedChain = options.resolvedChain;
 
   for (const field of fields) {
-    const candidates = collectAliasCandidates(project, field, { ...options, _semanticFields: semanticFields });
+    if (field !== "chain" && resolvedChain === undefined) {
+      resolvedChain = resolveCanonicalAliases(project, {
+        fields: ["chain"],
+        sourceProvider: inferProvider(project, {...options, _providerIds: providerIds}),
+        shallow: true,
+        disableSemanticScan: true,
+        _providerIds: providerIds,
+        _providerProfiles: providerProfiles,
+      }).resolved.chain ?? null;
+    }
+    const candidates = collectAliasCandidates(project, field, {
+      ...options, resolvedChain, _semanticFields: semanticFields, _semanticFieldIndex: semanticFieldIndex,
+      _providerIds: providerIds, _providerProfiles: providerProfiles,
+    });
     const { winner, conflicts: fieldConflicts, status } = resolveFieldConflict(candidates);
     if (winner) {
       resolved[field] = winner.canonicalValue;
@@ -503,8 +659,24 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
 
 export function applyCanonicalAliases(project = {}, options = {}) {
   const resolution = resolveCanonicalAliases(project, options);
+  const sanitized = { ...project };
+  for (const field of UNIQUE_PARTICIPANT_FIELDS) {
+    const priorProvenance = project.canonicalAliasProvenance?.[field] || fieldProvenance(project, field);
+    if (transactionCountSource(priorProvenance.sourcePath) && Object.hasOwn(resolution.resolved, field)) {
+      sanitized[field] = resolution.resolved[field];
+    }
+  }
+  const priorHoneypot = project.canonicalAliasProvenance?.honeypotDetected;
+  const honeyObservation = fieldProvenance(project, "honeypotDetected");
+  if (project.honeypotDetected === false && Object.hasOwn(resolution.resolved, "honeypotDetected") &&
+      resolution.resolved.honeypotDetected === null &&
+      ((priorHoneypot?.sourcePath && priorHoneypot.sourcePath !== "honeypotDetected" &&
+        honeyObservation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION") ||
+        metadataOnlySecurityProvider(honeyObservation.source || honeyObservation.sourceProvider || project.source || project.provider))) {
+    sanitized.honeypotDetected = null;
+  }
   return {
-    ...project,
+    ...sanitized,
     ...Object.fromEntries(
       Object.entries(resolution.resolved).filter(([, value]) => value !== null && value !== undefined && value !== "")
     ),

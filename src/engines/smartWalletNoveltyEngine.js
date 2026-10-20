@@ -6,6 +6,28 @@ function clamp(value = 0, min = 0, max = 100) {
   return Math.max(min, Math.min(max, num(value)));
 }
 
+function measured(value, maximum = Infinity) {
+  if (value === undefined || value === null || value === "" || typeof value === "boolean") return false;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 && number <= maximum;
+}
+
+function walletEvidence(wallet) {
+  const values = {
+    walletHistoricalHitRate: wallet.walletHistoricalHitRate ?? wallet.hitRate,
+    walletResolvedSampleSize: wallet.walletResolvedSampleSize ?? wallet.sampleSize,
+    walletMedianEntryLeadTime: wallet.walletMedianEntryLeadTime ?? wallet.leadTimeHours,
+    walletRugExposureRate: wallet.walletRugExposureRate ?? wallet.rugExposureRate,
+    walletFundingCluster: wallet.walletFundingCluster ?? wallet.fundingCluster,
+  };
+  return Object.fromEntries(Object.entries(values).filter(([field, value]) =>
+    field === "walletFundingCluster"
+      ? typeof value === "string" && value.trim().length > 0
+      : measured(value, /Rate$/.test(field) ? 100 : Infinity) &&
+        (field !== "walletResolvedSampleSize" || Number.isInteger(Number(value)))
+  ).map(([field, value]) => [field, field === "walletFundingCluster" ? value.trim() : Number(value)]));
+}
+
 function smartWalletRows(project = {}) {
   if (Array.isArray(project.smartWallets)) return project.smartWallets;
   if (Array.isArray(project.smartMoneyWallets)) return project.smartMoneyWallets;
@@ -37,26 +59,37 @@ export function analyzeSmartWalletNovelty(project = {}) {
       },
     };
   }
-  const qualified = rows.filter((wallet) => {
-    const sample = num(wallet.walletResolvedSampleSize ?? wallet.sampleSize);
-    const hitRate = num(wallet.walletHistoricalHitRate ?? wallet.hitRate);
-    const rugExposure = num(wallet.walletRugExposureRate ?? wallet.rugExposureRate);
+  const expectedFields = ["walletHistoricalHitRate", "walletResolvedSampleSize", "walletMedianEntryLeadTime", "walletRugExposureRate", "walletFundingCluster"];
+  const evidence = rows.map(walletEvidence);
+  const observedCount = evidence.reduce((sum, row) => sum + Object.keys(row).length, 0);
+  const coverage = {
+    observedComponentCount: observedCount,
+    expectedComponentCount: rows.length * expectedFields.length,
+    coveragePct: Math.round(observedCount / (rows.length * expectedFields.length) * 100),
+    observedValues: { wallets: evidence },
+    missingValues: expectedFields.filter((field) => evidence.some((row) => row[field] === undefined)),
+    sourceFamilies: observedCount ? ["wallet-history", ...(evidence.some((row) => row.walletFundingCluster) ? ["funding-clusters"] : [])] : [],
+  };
+  const qualified = rows.filter((wallet, index) => {
+    const row = evidence[index];
+    const sample = row.walletResolvedSampleSize;
+    const hitRate = row.walletHistoricalHitRate;
+    const rugExposure = row.walletRugExposureRate;
     const linked = wallet.insiderLinked === true || wallet.deployerLinked === true || wallet.fundingClusterLinked === true;
-    return sample >= 8 && hitRate >= 45 && rugExposure <= 25 && !linked;
+    return sample >= 8 && hitRate >= 45 && rugExposure !== undefined && rugExposure <= 25 && row.walletFundingCluster && !linked;
   });
-  const unrelatedFundingClusters = new Set(qualified.map((wallet) => wallet.walletFundingCluster || wallet.fundingCluster || wallet.address).filter(Boolean));
-  const medianLead = qualified.length
-    ? qualified.map((wallet) => num(wallet.walletMedianEntryLeadTime ?? wallet.leadTimeHours)).sort((a, b) => a - b)[Math.floor(qualified.length / 2)]
-    : 0;
-  const independence = qualified.length ? Math.min(100, (unrelatedFundingClusters.size / qualified.length) * 100) : 0;
+  const unrelatedFundingClusters = new Set(qualified.map((wallet) => walletEvidence(wallet).walletFundingCluster));
+  const leads = qualified.map((wallet) => walletEvidence(wallet).walletMedianEntryLeadTime).filter((value) => value !== undefined).sort((a, b) => a - b);
+  const medianLead = leads.length ? leads[Math.floor(leads.length / 2)] : null;
+  const independence = qualified.length ? Math.min(100, (unrelatedFundingClusters.size / qualified.length) * 100) : null;
   const entryNovelty = clamp(project.walletEntryNovelty ?? project.smartWalletArrivalScore ?? (medianLead > 0 ? 70 : 0));
-  const noveltyScore = Math.round(clamp(
+  const noveltyScore = qualified.length ? Math.round(clamp(
     clamp(qualified.length, 0, 8) * 8 +
       clamp(independence) * 0.22 +
       clamp(entryNovelty) * 0.25 +
       clamp(medianLead, 0, 168) * 0.12 +
       clamp(project.smartMoneyAccumulationScore) * 0.13
-  ));
+  )) : null;
 
   return {
     ...project,
@@ -71,25 +104,12 @@ export function analyzeSmartWalletNovelty(project = {}) {
       walletCount: rows.length,
       qualifiedWalletCount: qualified.length,
       unrelatedFundingClusterCount: unrelatedFundingClusters.size,
-      walletMedianEntryLeadTime: medianLead || null,
-      walletIndependence: Math.round(independence),
-      walletEntryNovelty: Math.round(entryNovelty),
+      walletMedianEntryLeadTime: medianLead,
+      walletIndependence: independence === null ? null : Math.round(independence),
+      walletEntryNovelty: qualified.length ? Math.round(entryNovelty) : null,
       policy: "Large wallets are not treated as smart wallets without measured history and independence.",
     },
-    smartWalletNoveltyCoverage: {
-      observedComponentCount: 5,
-      expectedComponentCount: 5,
-      coveragePct: 100,
-      observedValues: {
-        walletCount: rows.length,
-        qualifiedWalletCount: qualified.length,
-        unrelatedFundingClusterCount: unrelatedFundingClusters.size,
-        walletMedianEntryLeadTime: medianLead || null,
-        walletIndependence: Math.round(independence),
-      },
-      missingValues: [],
-      sourceFamilies: ["wallet-history", "funding-clusters"],
-    },
+    smartWalletNoveltyCoverage: coverage,
   };
 }
 

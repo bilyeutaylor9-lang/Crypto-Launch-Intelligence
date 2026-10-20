@@ -23,6 +23,11 @@ function hasValue(value) {
   return value !== undefined && value !== null && String(value).trim() !== "";
 }
 
+function hasObservedProxyType(value) {
+  return typeof value === "string" &&
+    !["", "null", "undefined", "none", "unknown", "false", "0"].includes(lower(value));
+}
+
 function numberOrNull(value) {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
@@ -46,16 +51,23 @@ export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo =
     boolFlag(contract.is_fully_verified) === true ||
     boolFlag(addressInfo.is_verified) === true ||
     hasValue(contract.source_code);
+  const implementationAddress = [
+    contract.implementation_address,
+    addressInfo.implementation_address,
+    ...[contract, addressInfo].flatMap((item) =>
+      (Array.isArray(item.implementations) ? item.implementations : [])
+        .flatMap((implementation) => [implementation?.address, implementation?.address_hash])),
+  ].filter((value) => typeof value === "string" && isEvmAddress(value))
+    .map((value) => lower(value))
+    .find((value) => value !== "0x0000000000000000000000000000000000000000") || null;
   const proxy =
     boolFlag(contract.is_proxy) === true ||
     boolFlag(addressInfo.is_proxy) === true ||
     hasValue(contract.implementation_address) ||
-    hasValue(addressInfo.implementation_address);
-  const implementationAddress =
-    contract.implementation_address ||
-    addressInfo.implementation_address ||
-    contract.implementations?.[0]?.address ||
-    null;
+    hasValue(addressInfo.implementation_address) ||
+    hasObservedProxyType(contract.proxy_type) ||
+    hasObservedProxyType(addressInfo.proxy_type) ||
+    Boolean(implementationAddress);
   const rawCreatorAddress =
     contract.creator_address_hash ||
     contract.creator_address ||
@@ -114,11 +126,45 @@ export function normalizeBlockscoutSecurityEvidence(contract = {}, addressInfo =
     blacklistRisk: false,
     highTaxRisk: false,
     malicious: false,
-    honeypot: false,
+    honeypot: null,
     riskFindings: proxy ? ["Blockscout shows proxy or implementation indirection."] : [],
     warnings: sourceVerified ? [] : ["Blockscout did not confirm verified source code."],
     confidence: sourceVerified ? (proxy ? 78 : 84) : 48,
     raw: { contract, addressInfo },
+  };
+}
+
+function reparseCachedBlockscoutRisk(cached, provider, chain, address) {
+  if (cached.status === "UNKNOWN") return cached;
+  const unknown = () => ({
+    ...unknownSecurityEvidence(provider, "Cached Blockscout evidence lacks valid raw metadata or exact contract identity."),
+    chain,
+    address,
+    observedAt: cached.observedAt,
+    ...(Object.hasOwn(cached, "sourceTimestamp") ? { sourceTimestamp: cached.sourceTimestamp } : {}),
+  });
+  const isRecord = (value) => value && typeof value === "object" && !Array.isArray(value);
+  const { contract, addressInfo } = isRecord(cached.raw) ? cached.raw : {};
+  if (cached.status !== "EVIDENCE_AVAILABLE" || cached.provider !== provider ||
+      chainKey(cached.chain) !== chain || !isEvmAddress(cached.address) ||
+      lower(cached.address) !== lower(address) || cached.responseIdentityVerified === false ||
+      !isRecord(contract) || !isRecord(addressInfo)) return unknown();
+  const rawAddresses = [contract.hash, contract.address, contract.address_hash,
+    addressInfo.hash, addressInfo.address, addressInfo.address_hash].filter(hasValue);
+  if (!rawAddresses.length || !rawAddresses.every((value) =>
+    typeof value === "string" && isEvmAddress(value) && lower(value) === lower(address))) return unknown();
+
+  const parsed = normalizeBlockscoutSecurityEvidence(contract, addressInfo, { chain, address });
+  if (parsed.status === "UNKNOWN") return unknown();
+  // Reinterpret retained risk only; cached receipt times and clean-proof claims cannot improve.
+  return {
+    ...cached,
+    proxy: cached.proxy === true || parsed.proxy === true,
+    implementationAddress: parsed.implementationAddress,
+    riskFindings: [...new Set([
+      ...(Array.isArray(cached.riskFindings) ? cached.riskFindings : []),
+      ...parsed.riskFindings,
+    ])],
   };
 }
 
@@ -132,7 +178,7 @@ export async function getBlockscoutSecurityEvidence(project = {}, options = {}) 
   }
 
   const cached = options.useCache === false ? null : getCachedSecurityEvidence(BLOCKSCOUT_PROVIDER, chain, address, options.cacheTtlMs);
-  if (cached) return cached;
+  if (cached) return reparseCachedBlockscoutRisk(cached, BLOCKSCOUT_PROVIDER, chain, address);
 
   try {
     const root = String(baseUrl).replace(/\/+$/, "");
@@ -184,7 +230,7 @@ export async function getBlockscoutDeployerEvidence(project = {}, options = {}) 
         address,
         options.cacheTtlMs
       );
-  if (cached) return cached;
+  if (cached) return reparseCachedBlockscoutRisk(cached, BLOCKSCOUT_DEPLOYER_PROVIDER, chain, address);
 
   try {
     const root = String(baseUrl).replace(/\/+$/, "");

@@ -837,8 +837,24 @@ export function runQualificationFailureMicroscope(options = {}) {
   }
 
   const projects = extractProjects(payload);
+  const scanRunId = payload?.meta?.scanRunId || payload?.meta?.runId || null;
+  if (inputState === "OK" && scanRunId && fs.existsSync(reportFile)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(reportFile, "utf8"));
+      if (
+        existing.sourceMode === "FULL_SCAN" &&
+        existing.scanRunId === scanRunId &&
+        existing.sourceCandidates === projects.length &&
+        existing.schemaVersion === 1
+      ) return existing;
+    } catch {
+      // A damaged or stale diagnostic is rebuilt from the available input.
+    }
+  }
   const report = {
     ...buildQualificationFailureMicroscope(projects, options),
+    scanRunId,
+    sourceMode: "REPORT_PROJECTION",
     inputFile,
     inputState,
   };
@@ -851,6 +867,20 @@ export function runQualificationFailureMicroscope(options = {}) {
     report.nextAction = "Repair scanner candidate/report generation before interpreting qualification failures.";
   }
 
+  fs.mkdirSync(path.dirname(reportFile), { recursive: true });
+  fs.writeFileSync(reportFile, `${JSON.stringify(report, null, 2)}\n`);
+  return report;
+}
+
+export function writeQualificationFailureMicroscope(projects = [], meta = {}, options = {}) {
+  const reportFile = path.resolve(options.reportFile || "reports/qualification-failure-microscope.json");
+  const report = {
+    ...buildQualificationFailureMicroscope(projects, options),
+    scanRunId: meta.scanRunId || meta.runId || null,
+    sourceMode: "FULL_SCAN",
+    inputFile: null,
+    inputState: "OK",
+  };
   fs.mkdirSync(path.dirname(reportFile), { recursive: true });
   fs.writeFileSync(reportFile, `${JSON.stringify(report, null, 2)}\n`);
   return report;

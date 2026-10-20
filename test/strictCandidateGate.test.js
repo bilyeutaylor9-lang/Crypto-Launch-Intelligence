@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveStrictCandidateGate } from "../src/execution/routeResolver.js";
+import { buildStrictCanonicalId, resolveStrictCandidateGate } from "../src/execution/routeResolver.js";
+import { attachCanonicalIdentityBatch } from "../src/identity/canonicalIdentityResolver.js";
 import { summarizeHottestTenNow } from "../src/reports/hottestTenNowReportEngine.js";
 
 const BASE_USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
@@ -9,6 +10,8 @@ const TOKEN_A = "0x1111111111111111111111111111111111111111";
 const TOKEN_B = "0x3333333333333333333333333333333333333333";
 const POOL_A = "0x2222222222222222222222222222222222222222";
 const POOL_B = "0x4444444444444444444444444444444444444444";
+const MINT = "HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump";
+const CASE_MINT = `h${MINT.slice(1)}`;
 
 function verifiedCandidate(overrides = {}) {
   return {
@@ -71,6 +74,7 @@ test("SOL on Base/BSC does not merge with native SOL and is quarantined without 
     name: "Solana",
     symbol: "SOL",
     chain: "solana",
+    tokenAddress: "So11111111111111111111111111111111111111112",
   });
   const imitationSol = resolveStrictCandidateGate(verifiedCandidate({
     name: "Solana",
@@ -103,6 +107,24 @@ test("identical symbols on the same chain stay separated by canonical contract i
   assert.notEqual(first.canonicalId, second.canonicalId);
   assert.equal(first.canonicalId, `8453:${TOKEN_A}`);
   assert.equal(second.canonicalId, `8453:${TOKEN_B}`);
+});
+
+test("canonical IDs preserve syntactic Solana case variants and normalize EVM case", () => {
+  const projects = [MINT, CASE_MINT].map((tokenAddress) => ({ chain: "solana", tokenAddress, symbol: "CASE" }));
+  const attached = attachCanonicalIdentityBatch(projects);
+  for (const [index, project] of projects.entries()) {
+    const expected = `101:${project.tokenAddress}`;
+    assert.equal(buildStrictCanonicalId("SOL", project.tokenAddress), expected);
+    assert.equal(resolveStrictCandidateGate(project).canonicalId, expected);
+    assert.equal(attached[index].canonicalId, expected);
+    assert.equal(attached[index].canonicalProjectId, expected);
+  }
+  assert.notEqual(attached[0].canonicalId, attached[1].canonicalId);
+  const evm = "0xABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD";
+  assert.equal(buildStrictCanonicalId("base", evm), `8453:${evm.toLowerCase()}`);
+  assert.equal(buildStrictCanonicalId(8453, evm.toLowerCase()), buildStrictCanonicalId("base", evm));
+  assert.equal(buildStrictCanonicalId("unknown", MINT), null);
+  assert.equal(buildStrictCanonicalId("solana", "not-an-address"), null);
 });
 
 test("symbol-only projects cannot enter hottest-ten ranked opportunity lanes", () => {
@@ -201,7 +223,8 @@ test("established native assets stay in market benchmark lane", () => {
     { symbol: "SOL", chain: "solana" },
     { symbol: "BTC", chain: "bitcoin" },
   ]) {
-    const gate = resolveStrictCandidateGate(asset);
+    const gate = resolveStrictCandidateGate({ ...asset, exchangeAssetId: `kraken:${asset.symbol}`,
+      marketPair: `${asset.symbol}-USD`, source: "kraken", exchange: "Kraken", listingVerified: true });
     assert.equal(gate.strictCandidateLane, "MARKET_BENCHMARK");
     assert.equal(gate.strictRankEligible, false);
   }

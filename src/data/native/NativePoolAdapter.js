@@ -1,4 +1,5 @@
 export const NATIVE_EVENT_TYPES = {
+  CONTRACT_DEPLOYED: "CONTRACT_DEPLOYED",
   TOKEN_DEPLOYED: "TOKEN_DEPLOYED",
   POOL_CREATED: "POOL_CREATED",
   POOL_INITIALIZED: "POOL_INITIALIZED",
@@ -48,8 +49,14 @@ export function nativeEventId(event = {}) {
 
 export function normalizeNativeEvent(event = {}, defaults = {}) {
   const chain = lower(event.chain || defaults.chain || "unknown");
+  const eventType = event.eventType || defaults.eventType || NATIVE_EVENT_TYPES.POOL_CREATED;
+  const genericContract = eventType === NATIVE_EVENT_TYPES.CONTRACT_DEPLOYED;
+  const metric = genericContract ? (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    return Number.isFinite(Number(value)) ? Number(value) : null;
+  } : num;
   const normalized = {
-    eventType: event.eventType || defaults.eventType || NATIVE_EVENT_TYPES.POOL_CREATED,
+    eventType,
     chain,
     chainId: event.chainId || defaults.chainId || null,
     protocol: lower(event.protocol || defaults.protocol || "unknown"),
@@ -62,8 +69,8 @@ export function normalizeNativeEvent(event = {}, defaults = {}) {
     quoteToken: chainAddress(event.quoteToken || event.quoteTokenAddress || "", chain),
     feeTier: event.feeTier ?? defaults.feeTier ?? null,
     tickSpacing: event.tickSpacing ?? defaults.tickSpacing ?? null,
-    creator: chainAddress(event.creator || event.deployer || event.owner || "", chain),
-    deployer: chainAddress(event.deployer || event.creator || event.owner || "", chain),
+    creator: chainAddress(genericContract ? event.creator : event.creator || event.deployer || event.owner || "", chain),
+    deployer: chainAddress(genericContract ? event.deployer : event.deployer || event.creator || event.owner || "", chain),
     blockNumber: event.blockNumber ?? defaults.blockNumber ?? null,
     slot: event.slot ?? defaults.slot ?? null,
     transactionHash: chainAddress(event.transactionHash || event.txHash || "", chain),
@@ -74,22 +81,27 @@ export function normalizeNativeEvent(event = {}, defaults = {}) {
     timestamp: event.timestamp || event.blockTimestamp || event.observedAt || nowIso(),
     observedAt: event.observedAt || nowIso(),
     finalized: Boolean(event.finalized),
-    initialLiquidityUsd: num(event.initialLiquidityUsd),
-    activeLiquidityUsd: num(event.activeLiquidityUsd),
-    displayedLiquidityUsd: num(event.displayedLiquidityUsd || event.liquidityUsd),
-    stableExitLiquidityUsd: num(event.stableExitLiquidityUsd),
-    uniqueBuyers: num(event.uniqueBuyers),
-    uniqueSellers: num(event.uniqueSellers),
-    independentBuyers: num(event.independentBuyers),
-    sameFunderBuyers: num(event.sameFunderBuyers),
-    sniperBuyers: num(event.sniperBuyers),
-    buyVolumeUsd: num(event.buyVolumeUsd),
-    sellVolumeUsd: num(event.sellVolumeUsd),
-    deployerNetFlow: num(event.deployerNetFlow),
-    liquidityChange: num(event.liquidityChange),
+    initialLiquidityUsd: metric(event.initialLiquidityUsd),
+    activeLiquidityUsd: metric(event.activeLiquidityUsd),
+    displayedLiquidityUsd: metric(genericContract ? event.displayedLiquidityUsd ?? event.liquidityUsd : event.displayedLiquidityUsd || event.liquidityUsd),
+    stableExitLiquidityUsd: metric(event.stableExitLiquidityUsd),
+    uniqueBuyers: metric(event.uniqueBuyers),
+    uniqueSellers: metric(event.uniqueSellers),
+    independentBuyers: metric(event.independentBuyers),
+    sameFunderBuyers: metric(event.sameFunderBuyers),
+    sniperBuyers: metric(event.sniperBuyers),
+    buyVolumeUsd: metric(event.buyVolumeUsd),
+    sellVolumeUsd: metric(event.sellVolumeUsd),
+    deployerNetFlow: metric(event.deployerNetFlow),
+    liquidityChange: metric(event.liquidityChange),
     evidenceConfidence: num(event.evidenceConfidence || defaults.evidenceConfidence || 55),
     exactIdentityEvidence: event.exactIdentityEvidence || null,
     raw: event.raw || null,
+    ...(genericContract ? {
+      contractAddress: chainAddress(event.contractAddress, chain),
+      blockHash: lower(event.blockHash), from: chainAddress(event.from, chain),
+      to: event.to, receiptStatus: event.receiptStatus, creationKind: event.creationKind,
+    } : {}),
   };
 
   return {

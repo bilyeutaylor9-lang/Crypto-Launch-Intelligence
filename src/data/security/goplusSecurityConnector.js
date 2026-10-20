@@ -1,12 +1,13 @@
 import {
-  boolFlag,
+  goPlusBoolFlag as boolFlag,
   chainKey,
   evmChainId,
   fetchJson,
   getCachedSecurityEvidence,
+  goPlusTaxPct,
   isEvmAddress,
   lower,
-  numeric,
+  nonnegativeSafeInteger,
   setCachedSecurityEvidence,
   tokenAddress,
   unknownSecurityEvidence,
@@ -15,12 +16,6 @@ import { waitForGoPlusRequestSlot } from "./goplusRequestLimiter.js";
 
 const GOPLUS_BASE_URL = "https://api.gopluslabs.io/api/v1";
 const GOPLUS_PROVIDER = "goplus";
-
-function pct(value) {
-  const number = numeric(value);
-  if (number === null) return null;
-  return number <= 1 ? number * 100 : number;
-}
 
 function firstResult(raw = {}, address = "", chain = "") {
   const result = raw.result || raw.data || raw;
@@ -44,8 +39,8 @@ export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
     return unknownSecurityEvidence(GOPLUS_PROVIDER, "GoPlus returned no token security record.");
   }
 
-  const buyTaxPct = pct(item.buy_tax);
-  const sellTaxPct = pct(item.sell_tax);
+  const buyTaxPct = goPlusTaxPct(item.buy_tax);
+  const sellTaxPct = goPlusTaxPct(item.sell_tax);
   const highTaxRisk = (buyTaxPct ?? 0) >= 10 || (sellTaxPct ?? 0) >= 10;
   const ownerRisk =
     boolFlag(item.hidden_owner) === true ||
@@ -61,7 +56,7 @@ export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
     boolFlag(item.is_blacklisted) === true ||
     boolFlag(item.cannot_sell_all) === true ||
     boolFlag(item.slippage_modifiable) === true;
-  const honeypot = boolFlag(item.is_honeypot) === true;
+  const honeypot = boolFlag(item.is_honeypot);
   const malicious = boolFlag(item.malicious_address) === true || boolFlag(item.is_airdrop_scam) === true;
   const proxy = boolFlag(item.is_proxy) === true;
   const verifiedSource = boolFlag(item.is_open_source) === true;
@@ -97,8 +92,8 @@ export function normalizeGoPlusTokenSecurity(raw = {}, meta = {}) {
     sellTaxPct,
     ownerAddress: item.owner_address || null,
     creatorAddress: item.creator_address || null,
-    holderCount: numeric(item.holder_count),
-    lpHolderCount: numeric(item.lp_holder_count),
+    holderCount: nonnegativeSafeInteger(item.holder_count),
+    lpHolderCount: nonnegativeSafeInteger(item.lp_holder_count),
     dexListed: boolFlag(item.is_in_dex) === true,
     riskFindings,
     warnings: verifiedSource ? [] : ["GoPlus did not confirm open-source contract code."],

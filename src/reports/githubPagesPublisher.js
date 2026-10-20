@@ -9,6 +9,7 @@ import { sanitizeReportJsonFiles } from "./reportValueSanitizer.js";
 import { finalizeScanArtifactManifestPublication } from "./scanArtifactManifestReportEngine.js";
 import { isLikelyMemeIdentity } from "../identity/displayIdentityGuard.js";
 import { isEntityResearchOnlyCandidate } from "../kernel/candidateTruthState.js";
+import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
 
 const REPORTS_DIR = path.resolve("reports");
 const DOCS_DIR = path.resolve("docs");
@@ -310,7 +311,7 @@ function scoreForResearchWorthy(candidate = {}) {
 }
 
 function researchKey(candidate = {}) {
-  return [
+  const key = [
     candidate.canonicalId,
     candidate.tokenAddress,
     candidate.contractAddress,
@@ -321,8 +322,9 @@ function researchKey(candidate = {}) {
     candidate.chain,
   ]
     .filter(Boolean)
-    .join("|")
-    .toLowerCase();
+    .join("|");
+  const chain = normalizeChainId(candidate.chain) || normalizeChainId(candidate.chainId);
+  return chain && chainKind(chain) !== "evm" ? key : key.toLowerCase();
 }
 
 function shortAddress(value = "") {
@@ -419,7 +421,7 @@ function compactResearchWorthyCandidate(candidate = {}, source = "research") {
   };
 }
 
-function buildResearchWorthyBoard({
+export function buildResearchWorthyBoard({
   hottestTenNow = {},
   highUpsideScalp = {},
   scalpMicrostructure = {},
@@ -593,7 +595,7 @@ function renderDailyCapitalSlate(dailyCapital = {}, recovery = {}, funnel = {}) 
         <div class="metric compact"><div class="metric-value">${escapeHtml(dailyCapital.countsByLane?.NEEDS_PROOF || 0)}</div><div class="metric-label">Needs Proof</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(recovery.recoveryCandidateCount ?? 0)}</div><div class="metric-label">Recovery Queue</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(best?.executionTruthState || emptyExecutionLabel(funnel.verifiedRoutes, funnel.fullyQualified))}</div><div class="metric-label">Execution Truth</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(funnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(funnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes At ${funnel.evidenceBasis === "FROZEN_SCAN" ? "Scan" : "Report"}</div>${funnel.asOfTimestamp ? `<small style="overflow-wrap:anywhere">${escapeHtml(funnel.asOfTimestamp)}</small>` : ""}</div>
       </div>
       ${renderScalpCandidateTable(board, "Daily Capital Slate")}
     </section>
@@ -1623,7 +1625,7 @@ function writeLandingPage(copiedFiles = [], options = {}) {
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreEvidenceReady ?? 0)}</div><div class="metric-label">Core Evidence Ready</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreEvidencePartial ?? 0)}</div><div class="metric-label">Core Evidence Partial</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.coreDataStarved ?? 0)}</div><div class="metric-label">Core Data Starved</div></div>
-        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes</div></div>
+        <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.verifiedRoutes ?? 0)}</div><div class="metric-label">Verified Routes At ${evidenceFunnel.evidenceBasis === "FROZEN_SCAN" ? "Scan" : "Report"}</div>${evidenceFunnel.asOfTimestamp ? `<small style="overflow-wrap:anywhere">${escapeHtml(evidenceFunnel.asOfTimestamp)}</small>` : ""}</div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.fullyQualified ?? 0)}</div><div class="metric-label">Fully Qualified</div></div>
         <div class="metric compact"><div class="metric-value">${escapeHtml(evidenceFunnel.deterministicallyBlocked ?? liveCoreRanking.summary?.blocked ?? 0)}</div><div class="metric-label">Deterministically Blocked</div></div>
       </div>

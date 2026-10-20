@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { hasVerifiedExecutionRoute, summarizeEvidenceFunnel } from "../kernel/evidenceFunnelSummary.js";
+import { getFrozenEvidenceFunnel } from "./evidenceFunnelSnapshot.js";
 
 function esc(value = "") {
   return String(value ?? "")
@@ -14,6 +16,8 @@ function scoreOf(project = {}) {
 }
 
 function qualifiedForDashboard(project = {}) {
+  const proof = project.executionProof;
+  const hasCurrentProof = proof && typeof proof === "object" && !Array.isArray(proof) && Object.keys(proof).length > 0;
   return (
     project.finalSelectionQualified === true &&
     project.finalSelectionState === "QUALIFIED" &&
@@ -22,7 +26,8 @@ function qualifiedForDashboard(project = {}) {
     project.purchaseRouteConfirmed === true &&
     project.executionRouteAvailable === true &&
     project.liquidityVerified === true &&
-    project.hasBlockingVerdict !== true
+    project.hasBlockingVerdict !== true &&
+    (!hasCurrentProof || hasVerifiedExecutionRoute(project))
   );
 }
 
@@ -238,11 +243,14 @@ function causalNetworkRows(projects = [], emptyMessage = "No projects") {
     .join("");
 }
 
-export function writeHtmlReport(projects = []) {
+export function writeHtmlReport(projects = [], meta = {}) {
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const ranked = [...projects].sort((a, b) => scoreOf(b) - scoreOf(a));
+  const funnel = getFrozenEvidenceFunnel(projects, meta) || summarizeEvidenceFunnel(projects);
+  const progressive = ranked.some((project) => ["DEEP_EVALUATED", "DEFERRED_BEFORE_DEEP", "SELECTED_FOR_DEEP"].includes(project.deepEvaluationState));
+  const deepCandidates = progressive ? ranked.filter((project) => project.deepEvaluationState === "DEEP_EVALUATED") : ranked;
   const progressiveRanked = [...projects]
     .filter((project) => project.opportunityRankingTier)
     .sort(
@@ -260,15 +268,12 @@ export function writeHtmlReport(projects = []) {
   const fourLaneBestAvailable = progressiveRanked.filter((project) => project.progressiveLane === "BEST_AVAILABLE");
   const fourLaneEmergingResearch = progressiveRanked.filter((project) => project.progressiveLane === "EMERGING_RESEARCH");
   const fourLaneHardBlocked = progressiveRanked.filter((project) => project.progressiveLane === "HARD_BLOCKED");
-  const progressiveMissingEvidence = bestAvailableOpportunities.filter((project) => (project.missingEvidence || []).length);
-  const qualifiedCandidates = ranked.filter(qualifiedForDashboard);
-  const executionVerifiedCandidates = qualifiedCandidates.filter(
-    (project) => project.executionVerifiedSelected || project.proofOfAlphaExecutionTwinSelected
-  );
+  const qualifiedCandidates = deepCandidates.filter(qualifiedForDashboard);
+  const executionVerifiedCandidates = deepCandidates.filter(hasVerifiedExecutionRoute);
   const researchLeads = ranked.filter((project) => project.finalSelectionState === "RESEARCH_ONLY");
   const blockedCandidates = ranked.filter((project) => project.finalSelectionState === "BLOCKED");
   const identityConflicts = ranked.filter((project) => project.finalSelectionState === "IDENTITY_CONFLICT");
-  const insufficientData = ranked.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA");
+  const insufficientData = deepCandidates.filter((project) => project.finalSelectionState === "INSUFFICIENT_DATA");
   const preConsensusRanked = ranked
     .filter((project) => project.preConsensusBreakoutHunter)
     .sort((a, b) => Number(b.regimeAdjustedOpportunityScore || 0) - Number(a.regimeAdjustedOpportunityScore || 0));
@@ -438,7 +443,7 @@ export function writeHtmlReport(projects = []) {
           <td>${esc(p.quantumOpportunityScore ?? "")}</td>
           <td>${esc(p.quantumFieldState || "")}</td>
           <td>${esc(p.narrative || "")}</td>
-          <td>${esc(p.riskScore ?? "")}</td>
+          <td>${esc(p.finalRiskScore ?? p.riskScore ?? "")}</td>
           <td>${listText(p.topEvidence || [])}</td>
           <td>${listText(p.topRisks || [])}</td>
           <td>${scoreBreakdownText(p)}</td>
@@ -624,8 +629,23 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${progressiveMissingEvidence.length}</h2>
-      <p>Missing-Evidence Tasks</p>
+      <h2>${funnel.insufficientEvidenceCandidates}</h2>
+      <p>Needs Data Recovery</p>
+    </div>
+
+    <div class="card">
+      <h2>${funnel.deepEvaluated}</h2>
+      <p>Deep Evaluated</p>
+    </div>
+
+    <div class="card">
+      <h2>${funnel.deepDeferred}</h2>
+      <p>Deep Deferred</p>
+    </div>
+
+    <div class="card">
+      <h2>${funnel.coreDataStarved}</h2>
+      <p>Core Data Starved</p>
     </div>
 
     <div class="card">
@@ -634,8 +654,9 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${executionVerifiedCandidates.length}</h2>
-      <p>Execution-Verified Candidates</p>
+      <h2>${funnel.verifiedRoutes}</h2>
+      <p>Verified Routes At ${funnel.evidenceBasis === "FROZEN_SCAN" ? "Scan" : "Report"}</p>
+      ${funnel.asOfTimestamp ? `<small>${esc(funnel.asOfTimestamp)}</small>` : ""}
     </div>
 
     <div class="card">
@@ -669,7 +690,7 @@ export function writeHtmlReport(projects = []) {
     </div>
 
     <div class="card">
-      <h2>${insufficientData.length}</h2>
+      <h2>${funnel.insufficientEvidenceCandidates}</h2>
       <p>Insufficient-Data Candidates</p>
     </div>
 

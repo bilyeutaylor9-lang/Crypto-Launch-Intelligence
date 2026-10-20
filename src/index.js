@@ -10,6 +10,8 @@ import {
 
 import { generateReports } from "./reports/reportOrchestrator.js";
 import { buildGuardedLiveRanking } from "./ranking/guardedLiveRankingEngine.js";
+import { finalizeExecutionPublicationSnapshot } from "./execution/executionPublicationBoundary.js";
+import { createEvidenceFunnelSnapshot } from "./reports/evidenceFunnelSnapshot.js";
 import {
   compactMetaForReportWriters,
   compactProjectsForReportWriters,
@@ -38,7 +40,7 @@ import { summarizeEvidenceFunnel } from "./kernel/evidenceFunnelSummary.js";
 import { runOutcomeProbe } from "./learning/outcomeProbe.js";
 import { runProductionShadowCycle } from "./ops/runProductionShadowCycle.js";
 import { runProductionGradeCycle } from "./ops/runProductionGradeCycle.js";
-import { resolveCodeCommitSha } from "./production/productionRunManifest.js";
+import { buildScanCodeProvenance, resolveCodeCommitSha } from "./production/productionRunManifest.js";
 
 export { resolveLocalAIOptions } from "./brain/localAIOptions.js";
 
@@ -285,11 +287,9 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
   const deepEvaluatedCandidates = funnel.deepEvaluated;
   const deferredBeforeDeepCandidates = funnel.deepDeferred;
   const qualified = funnel.fullyQualified;
-  // Final selection can be insufficient for advisory reasons even when the
-  // decision-critical evidence is complete. Count only canonical core states
-  // here so advisory gaps do not masquerade as data starvation.
-  const insufficient =
-    funnel.coreDataStarved + funnel.coreEvidencePartial + funnel.coreEvidenceUnknown;
+  // Input completeness and decision proof are separate; advisory gaps alone
+  // do not contribute to this union of unresolved decision-critical evidence.
+  const insufficient = funnel.insufficientEvidenceCandidates;
   const recovered = deepUniverse.filter((project) => ["RECOVERED", "PARTIAL_RECOVERY"].includes(project.activeEvidenceRecoveryStatus)).length;
   const averageEvidenceCoverage = funnel.coreEvidenceCoveragePct;
   const insufficientRatio = deepEvaluatedCandidates ? insufficient / deepEvaluatedCandidates : 0;
@@ -329,6 +329,7 @@ export function buildScannerSemanticHealth(projects = [], context = {}) {
     ? !funnel.healthyCoreEvidence
     : false;
   const dataDegraded =
+    funnel.unresolvedDecisionEvidence > 0 ||
     (coreEvidenceUnhealthy && qualified === 0) ||
     largeInsufficientFailure ||
     deepEvaluationMissing ||
@@ -913,6 +914,7 @@ async function main() {
   try {
     const startedAt = new Date();
     const scanRunId = `scan_${startedAt.getTime()}`;
+    const codeCommitShaAtStart = currentCodeCommitSha();
 
     printBanner();
 
@@ -947,7 +949,7 @@ async function main() {
 
     let supabaseMemory = { status: "SKIPPED", reason: "Remote memory was not collected." };
     try {
-      supabaseMemory = await collectSupabaseMemory({ projects: researchQueue });
+      supabaseMemory = await collectSupabaseMemory({ projects: researchQueue, root: process.cwd() });
       const primed = primeScanMemory(scanMemoryRecordsFromSupabase(supabaseMemory), {
         source: "supabase-remote-memory",
       });
@@ -997,30 +999,42 @@ async function main() {
 
     const supabaseMemoryPath = writeSupabaseMemoryReport(supabaseMemory);
 
-    let guardedLiveRanking = buildGuardedLiveRanking(results, {
-      env: process.env,
-      scanRunId,
-      dataCutoffTimestamp: new Date().toISOString(),
-      backtestReportPath: "reports/core-model-backtest.json",
+    let publication = await finalizeExecutionPublicationSnapshot(results, currentProjects => {
+      const guardedLiveRanking = buildGuardedLiveRanking(currentProjects, {
+        env: process.env,
+        scanRunId,
+        dataCutoffTimestamp: new Date().toISOString(),
+        backtestReportPath: "reports/core-model-backtest.json",
+      });
+      const ranked = guardedLiveRanking.ranked;
+      return {
+        projects: ranked,
+        guardedLiveRankingMeta: {
+          authoritativeRanking: guardedLiveRanking.authoritativeRanking,
+          summary: guardedLiveRanking.summary,
+          policy: guardedLiveRanking.policy,
+          configuration: guardedLiveRanking.configuration,
+        },
+        summary: summarizePipelineResults(ranked),
+        scannerSemanticHealth: buildScannerSemanticHealth(ranked, {
+          discovery: discoveredProjects,
+          supabaseMemory,
+        }),
+        evidenceFunnelSummary: guardedLiveRanking.funnelSummary,
+      };
     });
-    results = guardedLiveRanking.ranked;
-    const guardedLiveRankingMeta = {
-      authoritativeRanking: guardedLiveRanking.authoritativeRanking,
-      summary: guardedLiveRanking.summary,
-      policy: guardedLiveRanking.policy,
-      configuration: guardedLiveRanking.configuration,
-    };
-    const summary = summarizePipelineResults(results);
-    const scannerSemanticHealth = buildScannerSemanticHealth(results, {
-      discovery: discoveredProjects,
-      supabaseMemory,
-    });
-
-    const completedAt = new Date().toISOString();
+    results = publication.projects;
+    const guardedLiveRankingMeta = publication.guardedLiveRankingMeta;
+    const summary = publication.summary;
+    const scannerSemanticHealth = publication.scannerSemanticHealth;
+    const completedAt = publication.completedAt;
+    const executionPublicationPasses = publication.executionPublicationPasses;
+    const evidenceFunnelSummary = publication.evidenceFunnelSummary;
+    publication = null;
     let reportMeta = {
       runId: scanRunId,
       scanRunId,
-      codeCommitSha: currentCodeCommitSha(),
+      ...buildScanCodeProvenance(codeCommitShaAtStart, currentCodeCommitSha()),
       artifactClass: "LIVE_SHADOW",
       evidenceMode: "SHADOW_RESEARCH_ONLY",
       startedAt: startedAt.toISOString(),
@@ -1035,6 +1049,7 @@ async function main() {
       engineMode: "progressive-stage-execution",
       engineProfile: engineProfileReport(process.env.PIPELINE_ENGINE_PROFILE),
       scoringMode: "guarded-live-core-authoritative",
+      executionPublicationPasses,
       authoritativeRanking: guardedLiveRankingMeta.authoritativeRanking,
       guardedLiveRanking: guardedLiveRankingMeta.summary,
       guardedLiveRankingPolicy: guardedLiveRankingMeta.policy,
@@ -1046,7 +1061,8 @@ async function main() {
       scannerSemanticHealth,
       platform: "Crypto Launch Intelligence",
     };
-    guardedLiveRanking = null;
+    reportMeta.evidenceFunnelSnapshot = createEvidenceFunnelSnapshot(results, evidenceFunnelSummary, reportMeta);
+    if (!reportMeta.evidenceFunnelSnapshot) throw new Error("Frozen evidence funnel does not match the settled scan.");
     reportMeta.pipelineStageHealth = buildPipelineStageHealth(results);
 
     // The pipeline has persisted the exact candidate universe by this point.

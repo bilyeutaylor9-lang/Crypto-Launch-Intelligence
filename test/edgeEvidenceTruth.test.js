@@ -31,6 +31,17 @@ function address(value) {
   return `0x${Number(value).toString(16).padStart(40, "0")}`;
 }
 
+function pairedCostProvenance(tokenAddress, poolAddress, observedAt, costBps = 100) {
+  if (costBps === null) return null;
+  const quote = (side) => ({ provider: "TEST_EXECUTION_QUOTE_PROVIDER", quoteId: `test-${side}-${tokenAddress}`,
+    capturedAt: observedAt, requestedNotionalUsd: 100, allInCostBps: costBps / 2,
+    priceImpactBps: 10, outputTokenAmount: side === "BUY" ? 100 : null,
+    inputTokenAmount: side === "SELL" ? 100 : null, poolAddress, routeIdentityVerified: true });
+  return { schemaVersion: 1, kind: "PAIRED_EXECUTABLE_QUOTES_V1", provider: "TEST_EXECUTION_QUOTE_PROVIDER",
+    identityKey: `base:${tokenAddress}`, routeKey: `base:${tokenAddress}:${poolAddress}`, observedAt,
+    quoteSkewMs: 0, entryQuote: quote("BUY"), exitQuote: quote("SELL") };
+}
+
 function observation(index, overrides = {}) {
   return {
     schemaVersion: 4,
@@ -64,21 +75,29 @@ function observation(index, overrides = {}) {
 
 function episode(index, overrides = {}) {
   const signalObservedAt = overrides.signalObservedAt || "2026-01-01T00:00:00.000Z";
+  const tokenAddress = overrides.tokenAddress || address(index);
+  const poolAddress = overrides.poolAddress === undefined ? address(index + 10_000) : overrides.poolAddress;
+  const cost = overrides.frozenRoundTripExecutionCostBps === undefined ? 100 : overrides.frozenRoundTripExecutionCostBps;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     experimentVersion: "EDGE_PRODUCTION_V1",
     episodeId: overrides.episodeId || `episode-${index}`,
     role: overrides.role || "TREATMENT",
     parentTreatmentEpisodeId: overrides.parentTreatmentEpisodeId || null,
     signalObservedAt,
     frozenAt: signalObservedAt,
+    freezeProvenance: { kind: "CAPTURED_AT_FREEZE_V1", capturedAt: signalObservedAt },
+    signalDefinitionVersion: "TEST_FROZEN_SIGNAL_V1",
+    codeCommitSha: "test-code-commit",
     chain: "base",
-    tokenAddress: overrides.tokenAddress || address(index),
-    poolAddress: overrides.poolAddress === undefined ? address(index + 10_000) : overrides.poolAddress,
-    identityKey: `base:${overrides.tokenAddress || address(index)}`,
-    routeKey: `base:${overrides.tokenAddress || address(index)}:${overrides.poolAddress || address(index + 10_000)}`,
+    tokenAddress,
+    poolAddress,
+    identityKey: `base:${tokenAddress}`,
+    routeKey: `base:${tokenAddress}:${poolAddress || "TOKEN_SCOPED"}`,
     signalPriceUsd: 1,
-    frozenRoundTripExecutionCostBps: overrides.frozenRoundTripExecutionCostBps === undefined ? 100 : overrides.frozenRoundTripExecutionCostBps,
+    frozenRoundTripExecutionCostBps: cost,
+    frozenExecutionReferenceSizeUsd: 100,
+    executionCostProvenance: pairedCostProvenance(tokenAddress, poolAddress, signalObservedAt, cost),
     frozenFeatures: {
       sixHourExpectedArrivalToIgnitionRatio: 1.2,
       supplyVacuumSupported: true,
@@ -266,22 +285,28 @@ test("168h no-hit remains UNKNOWN when terminal observation is missing", () => {
   const row = episode(1);
   const result = resolveTerminal168Outcome(row, [exactOutcome(row, 6, 1.05)]);
   assert.equal(result.plus25BeforeMinus15, null);
-  assert.equal(result.state, "UNKNOWN_TERMINAL_168H_OBSERVATION_MISSING");
+  assert.equal(result.state, "UNKNOWN_INTRAPERIOD_PATH_UNOBSERVED");
+  assert.equal(result.observedCheckpointState, "UNKNOWN_TERMINAL_168H_OBSERVATION_MISSING");
+  assert.equal(result.observedCheckpointPlus25BeforeMinus15, null);
 });
 
-test("terminal 168h observation can resolve an observed no-hit", () => {
+test("terminal 168h snapshot permits a checkpoint diagnostic but cannot establish actual no-hit", () => {
   const row = episode(1);
   const result = resolveTerminal168Outcome(row, [exactOutcome(row, 168, 1.05)]);
-  assert.equal(result.plus25BeforeMinus15, false);
-  assert.equal(result.state, "NO_HIT_WITH_TERMINAL_168H_OBSERVATION");
+  assert.equal(result.plus25BeforeMinus15, null);
+  assert.equal(result.state, "UNKNOWN_INTRAPERIOD_PATH_UNOBSERVED");
+  assert.equal(result.observedCheckpointState, "NO_HIT_WITH_TERMINAL_168H_OBSERVATION");
+  assert.equal(result.observedCheckpointPlus25BeforeMinus15, false);
 });
 
-test("actual downside threshold observation resolves failure without terminal imputation", () => {
+test("downside checkpoint does not establish failure order without an intraperiod path", () => {
   const row = episode(1);
   const result = resolveTerminal168Outcome(row, [exactOutcome(row, 6, 0.8)]);
-  assert.equal(result.plus25BeforeMinus15, false);
+  assert.equal(result.plus25BeforeMinus15, null);
   assert.equal(result.terminal168Observed, false);
-  assert.equal(result.state, "DOWNSIDE_HIT_FIRST");
+  assert.equal(result.state, "UNKNOWN_INTRAPERIOD_PATH_UNOBSERVED");
+  assert.equal(result.observedCheckpointState, "DOWNSIDE_HIT_FIRST");
+  assert.equal(result.observedCheckpointPlus25BeforeMinus15, false);
 });
 
 test("unknown frozen execution cost never becomes zero-cost net return", () => {
@@ -325,7 +350,7 @@ test("mature positive matched net evidence reaches verified edge state", () => {
       signalObservedAt,
     });
     episodes.push(treatment, control);
-    outcomes.push(exactOutcome(treatment, 168, 1.11), exactOutcome(control, 168, 1.0));
+    for (const hours of [6, 24, 72, 168]) outcomes.push(exactOutcome(treatment, hours, 1.11), exactOutcome(control, hours, 1.0));
   }
   const lab = buildEdgeEvidenceOutcomeLab(episodes, outcomes, { state: "AUTOPILOT_EVIDENCE_HEALTHY" }, { writeReport: false, bootstrapReplicates: 500 });
   assert.equal(lab.verification.state, "VERIFIED_MATCHED_NET_EDGE");

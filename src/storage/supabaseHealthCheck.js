@@ -123,7 +123,7 @@ export async function runSupabaseHealthCheck(options = {}) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const writeCheck = process.argv.includes("--write") || boolEnv(process.env.SUPABASE_HEALTH_WRITE, false);
-  const report = await runSupabaseHealthCheck({ writeCheck });
+  const report = await runSupabaseHealthCheck({ writeCheck, root: process.cwd() });
   console.log(JSON.stringify(report, null, 2));
   if (report.status === "FAILED") process.exitCode = 1;
 }

@@ -1,9 +1,11 @@
 import {
   hasExactRouteIdentity,
+  hasKnownTransferRestriction,
   hasVerifiedBuyQuote,
   hasVerifiedRouteDepth,
   hasVerifiedRouteSlippage,
   hasVerifiedSellQuote,
+  isLiveExecutionReady,
   routeQuoteAgeSeconds,
   routeQuoteFresh,
 } from "../execution/routeTruthV2.js";
@@ -95,8 +97,8 @@ function importedBlockers(project = {}) {
   ].filter(Boolean).map(String))];
 }
 
-export function deterministicCandidateBlocks(project = {}) {
-  const explicit = importedBlockers(project).filter((reason) =>
+export function deterministicCandidateBlocks(project = {}, options = {}) {
+  const explicit = options?.includeImported === false ? [] : importedBlockers(project).filter((reason) =>
     DETERMINISTIC_BLOCK_PATTERNS.some((pattern) => pattern.test(reason))
   );
   return [...new Set([
@@ -106,6 +108,13 @@ export function deterministicCandidateBlocks(project = {}) {
       ? ["Verified scam or honeypot evidence."]
       : []),
     ...(project.sellRestricted === true ? ["Confirmed sell restriction."] : []),
+    ...(project.sellRestricted !== true && hasKnownTransferRestriction(project)
+      ? ["Verified blacklist or transfer-control risk."] : []),
+    ...(project.executionProof?.authorityEvidenceRequired === true &&
+        project.executionProof?.authorityEvidenceVerified === true &&
+        project.executionProof?.authoritySafetyClean === false
+      ? ["Verified unsafe mint or freeze authority."]
+      : []),
     ...(project.chainMismatch === true || project.contractChainMismatch === true
       ? ["Confirmed chain mismatch."]
       : []),
@@ -293,7 +302,9 @@ export function buildCandidateProofState(project = {}) {
   const depthVerified = hasVerifiedRouteDepth(project);
   const slippageVerified = hasVerifiedRouteSlippage(project);
   const quoteFresh = routeQuoteFresh(project);
-  const exactIdentityVerified = Boolean(
+  const exactIdentityVerified = project.executionProof && Object.hasOwn(project.executionProof, "exactIdentityVerified")
+    ? project.executionProof.exactIdentityVerified === true
+    : Boolean(
     project.canonicalExecutionRoute?.exactIdentityVerified === true ||
     project.strictIdentityVerified === true ||
     hasExactRouteIdentity(project)
@@ -382,7 +393,8 @@ export function attachCandidateTruthState(project = {}) {
       ? "BLOCKED"
       : globalRouteStatus === "ROUTE_VERIFIED" &&
           candidateProofState.safety.status === "VERIFIED_SAFE" &&
-          candidateProofState.userAccess.status === "CONFIRMED_AVAILABLE"
+          candidateProofState.userAccess.status === "CONFIRMED_AVAILABLE" &&
+          isLiveExecutionReady(project)
         ? "READY"
         : globalRouteStatus === "ROUTE_VERIFIED" || globalRouteStatus === "TWO_WAY_QUOTE_VERIFIED"
           ? "EXECUTION_REVIEW"

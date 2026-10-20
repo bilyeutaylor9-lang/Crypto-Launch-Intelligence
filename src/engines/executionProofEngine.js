@@ -1,9 +1,14 @@
 import { calculateEvidenceCoverage, numericMetric } from "../kernel/evidenceCoverage.js";
+import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 import {
   hasVerifiedBuyQuote,
+  hasKnownTransferRestriction,
   hasVerifiedSellQuote,
   isLiveExecutionReady,
+  observedRouteSlippagePct,
+  routeQuoteAgeSeconds,
   routeQuoteFresh,
+  routeQuoteTiming,
 } from "../execution/routeTruthV2.js";
 
 function num(value = 0) {
@@ -122,7 +127,12 @@ function priceUsd(project = {}) {
   );
 }
 
-function quoteAgeSeconds(project = {}) {
+function quoteTimestampFor(project = {}) {
+  return first([project.quoteTimestamp, project.executionQuoteTimestamp, project.canonicalExecutionRoute?.quoteTimestamp,
+    project.executionProofRecoveryRoute?.quoteTimestamp, project.proofOfAlphaExecutionTwin?.quote?.timestamp]);
+}
+
+function quoteAgeSeconds(project = {}, timing = {}) {
   const explicit = first([
     project.quoteAgeSeconds,
     project.executionQuoteAgeSeconds,
@@ -131,19 +141,7 @@ function quoteAgeSeconds(project = {}) {
     project.proofOfAlphaExecutionTwin?.quote?.ageSeconds,
     project.proofOfAlphaExecutionTwin?.quoteAgeSeconds,
   ]);
-  if (explicit !== undefined && explicit !== null && explicit !== "") return num(explicit);
-
-  const timestamp = first([
-    project.quoteTimestamp,
-    project.executionQuoteTimestamp,
-    project.canonicalExecutionRoute?.quoteTimestamp,
-    project.proofOfAlphaExecutionTwin?.quote?.timestamp,
-    project.marketData?.updatedAt,
-    project.updatedAt,
-    project.lastUpdatedAt,
-  ]);
-  const parsed = timestamp ? Date.parse(timestamp) : NaN;
-  return Number.isFinite(parsed) ? Math.max(0, Math.round((Date.now() - parsed) / 1000)) : null;
+  return routeQuoteAgeSeconds({ quoteAgeSeconds: explicit, quoteTimestamp: quoteTimestampFor(project), ...timing });
 }
 
 function slippageFor(liquidity = 0, orderSize = 100, observed = null) {
@@ -171,6 +169,7 @@ function routeSources(project = {}) {
       quoteAsset: route.quoteAsset || route.quoteToken,
       quoteAgeSeconds: route.quoteAgeSeconds,
       quoteTimestamp: route.quoteTimestamp || route.timestamp || route.updatedAt,
+      ...routeQuoteTiming(route),
       marketPair: route.marketPair || route.market || route.symbol,
       routeType: route.routeType,
       verified: route.routeTruthStatus === "LIVE_EXECUTION_READY" || (buyQuoteVerified && sellQuoteVerified && route.verified === true),
@@ -192,6 +191,7 @@ function routeSources(project = {}) {
       quoteAsset: project.canonicalExecutionRoute.quoteAsset,
       quoteAgeSeconds: project.canonicalExecutionRoute.quoteAgeSeconds,
       quoteTimestamp: project.canonicalExecutionRoute.quoteTimestamp,
+      ...routeQuoteTiming(project.canonicalExecutionRoute),
       marketPair: project.canonicalExecutionRoute.marketPair,
       routeType: project.canonicalExecutionRoute.routeType,
       verified: project.canonicalExecutionRoute.routeTruthStatus === "LIVE_EXECUTION_READY" ||
@@ -284,6 +284,7 @@ function providerUnavailable(project = {}, routes = []) {
 }
 
 function sellRouteConfirmedUnavailable(project = {}, routes = []) {
+  if (hasKnownTransferRestriction(project)) return true;
   const text = lower([
     project.sellRouteStatus,
     project.executionSellStatus,
@@ -371,14 +372,14 @@ function moneyStatusFor(status = "") {
 }
 
 function verifiedTaxEvidence(project = {}) {
+  const observedPct = (value) => (typeof value === "number" || (typeof value === "string" && value.trim() !== "")) &&
+    Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 100;
   return Boolean(
     project.taxesVerified === true ||
       project.transferTaxVerified === true ||
-      project.transferTaxEvidence ||
-      project.taxEvidence ||
-      project.buyTaxPct !== undefined ||
-      project.sellTaxPct !== undefined ||
-      project.executionProof?.taxesVerified === true ||
+      project.transferTaxEvidence?.verified === true ||
+      project.taxEvidence?.verified === true ||
+      (observedPct(project.buyTaxPct) && observedPct(project.sellTaxPct)) ||
       project.proofOfAlphaExecutionTwin?.taxes?.verified === true
   );
 }
@@ -428,19 +429,26 @@ function solanaAuthorityProof(project = {}) {
     : Array.isArray(project.freeSecurityEvidence?.evidence)
       ? project.freeSecurityEvidence.evidence
       : [];
-  const known = evidence.filter((item) => item && item.status !== "UNKNOWN");
-  const tested = known.filter((item) => {
-    const checks = (item.testedChecks || []).join(" ").toLowerCase();
-    return checks.includes("mint authority") && checks.includes("freeze authority");
-  });
-  const provenance = project.fieldProvenance || {};
-  const explicitMint =
-    typeof project.mintAuthorityEnabled === "boolean" &&
-    Boolean(provenance.mintAuthorityEnabled?.source || provenance.mintAuthorityEnabled?.verificationStatus);
-  const explicitFreeze =
-    typeof project.freezeAuthorityEnabled === "boolean" &&
-    Boolean(provenance.freezeAuthorityEnabled?.source || provenance.freezeAuthorityEnabled?.verificationStatus);
-  const verified = tested.length > 0 || (explicitMint && explicitFreeze);
+  const chains = [chainOf(project), project.chain, project.chainId, project.canonicalChain, project.network]
+    .filter((value) => value !== undefined && value !== null && value !== "");
+  const mint = normalizeTokenAddress(addressOf(project), "solana");
+  const addresses = [addressOf(project), project.tokenAddress, project.contractAddress,
+    project.canonicalAddress, project.finalContractAddress]
+    .filter((value) => value !== undefined && value !== null && value !== "");
+  const exactIdentity = mint && chains.length && chains.every((value) => normalizeChainId(value) === "solana") &&
+    addresses.every((value) => normalizeTokenAddress(value, "solana") === mint);
+  const now = Date.now();
+  const tested = exactIdentity ? evidence.filter((item) => {
+    const checks = (Array.isArray(item?.testedChecks) ? item.testedChecks : []).filter((check) => typeof check === "string").join(" ").toLowerCase();
+    const stamp = typeof item?.sourceTimestamp === "string" ? Date.parse(item.sourceTimestamp) : NaN;
+    return ["EVIDENCE_AVAILABLE", "RISK_REVIEW"].includes(item?.status) &&
+      normalizeChainId(item.chain) === "solana" && normalizeTokenAddress(item.address || item.tokenAddress, "solana") === mint &&
+      item.responseIdentityVerified === true && item.identityVerifiedOnChain === true && item.snapshotTimestampVerified === true &&
+      typeof item.mintRisk === "boolean" && typeof item.freezeRisk === "boolean" &&
+      Number.isFinite(stamp) && stamp <= now && now - stamp <= 300_000 &&
+      checks.includes("mint authority") && checks.includes("freeze authority");
+  }) : [];
+  const verified = tested.length > 0;
   const clean = verified &&
     project.mintAuthorityEnabled !== true &&
     project.freezeAuthorityEnabled !== true &&
@@ -449,6 +457,7 @@ function solanaAuthorityProof(project = {}) {
     verified,
     clean,
     sources: tested.map((item) => item.provider).filter(Boolean),
+    sourceTimestamp: tested.map((item) => item.sourceTimestamp).sort()[0] || null,
   };
 }
 
@@ -536,27 +545,18 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const liquidity = liquidityUsd(project);
   const volume = volume24hUsd(project);
   const price = priceUsd(project);
-  const quoteAge = quoteAgeSeconds(project);
+  const rawTiming = routeQuoteTiming({ ...project, executionProof: undefined });
+  const quoteTiming = Object.hasOwn(rawTiming, "quoteExpiresAt") ? rawTiming : routeQuoteTiming(project);
+  const quoteAge = quoteAgeSeconds(project, quoteTiming);
+  const quoteTimestamp = Object.hasOwn(quoteTiming, "quoteTimestamp") ? quoteTiming.quoteTimestamp : quoteTimestampFor(project);
+  const quoteEvidence = { quoteAgeSeconds: quoteAge, ...(quoteTimestamp ? { quoteTimestamp } : {}), ...quoteTiming };
+  const quoteFresh = routeQuoteFresh(quoteEvidence, 3600);
   const outage = providerUnavailable(project, routes);
   const buyRouteAvailable = routes.some((route) => route.buy);
   const sellRouteAvailable = routes.some((route) => route.sell) && !sellRouteConfirmedUnavailable(project, routes);
-  const observedSlippage = first([
-    project.estimatedRoundTripSlippagePct,
-    project.estimatedSlippagePct,
-    project.slippagePct,
-    project.executionSlippagePct,
-    project.canonicalExecutionRoute?.estimatedRoundTripSlippagePct,
-    project.canonicalExecutionRoute?.estimatedSlippagePct,
-    project.canonicalExecutionRoute?.observedSlippagePct,
-    project.executionProofRecoveryRoute?.estimatedRoundTripSlippagePct,
-    project.executionProofRecoveryRoute?.estimatedSlippagePct,
-    project.executionProofRecoveryRoute?.slippagePct,
-    project.proofOfAlphaExecutionTwinSlippagePct,
-    project.proofOfAlphaExecutionTwin?.quote?.estimatedSlippagePct,
-    project.smallCapHunter?.execution?.slippagePct,
-  ]);
+  const observedSlippage = observedRouteSlippagePct({ ...project, executionProof: undefined });
   const estimatedSlippage100 = slippageFor(liquidity, 100, observedSlippage);
-  const observedSlippageVerified = observedSlippage !== null && observedSlippage !== undefined && Number.isFinite(Number(observedSlippage));
+  const observedSlippageVerified = observedSlippage !== null;
   const routeKind = routeKindFor(project, routes);
   const routeType = routeTypeFor(project, routes);
   const chainVerified = routeKind === "CEX"
@@ -590,7 +590,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       liquidity > 0 &&
       quoteAge !== null &&
       observedSlippageVerified &&
-      routeQuoteFresh({ quoteAgeSeconds: quoteAge }, 21_600)
+      routeQuoteFresh(quoteEvidence, 21_600)
   );
   const safetyVerified = safetyNonBlocked(project, routes);
   const taxVerified = verifiedTaxEvidence(project);
@@ -598,11 +598,13 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const accessVerified = routeKind === "CEX" ? regionAccessVerified(project) : true;
   const liveReadySubject = {
     ...project,
+    executionProof: undefined,
     executionProofState: "LIVE_EXECUTION_READY",
     routeTruthStatus: "LIVE_EXECUTION_READY",
     buyQuoteVerified: buyRouteAvailable,
     sellQuoteVerified: sellRouteAvailable,
     quoteAgeSeconds: quoteAge,
+    ...quoteTiming,
     liquidityUsd: liquidity,
     executableDepthUsd: first([
       project.executableDepthUsd,
@@ -624,6 +626,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     authorityEvidenceRequired: routeKind === "SOLANA",
     authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
     authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
+    authorityEvidenceSourceTimestamp: routeKind === "SOLANA" ? authorityProof.sourceTimestamp : null,
   };
   const liveReady = Boolean(
     safetyVerified &&
@@ -742,11 +745,14 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     authorityEvidenceVerified: routeKind !== "SOLANA" || authorityProof.verified,
     authoritySafetyClean: routeKind !== "SOLANA" || authorityProof.clean,
     authorityEvidenceSources: authorityProof.sources,
+    authorityEvidenceSourceTimestamp: routeKind === "SOLANA" ? authorityProof.sourceTimestamp : null,
     userAccessEvidenceRequired: routeKind === "CEX",
     userAccessVerified: routeKind !== "CEX" || accessVerified,
     honeypotEvidence: project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 ? "DETECTED" : null,
     transferTaxEvidence: project.transferTaxEvidence || project.taxEvidence || null,
     quoteFreshnessSeconds: quoteAge,
+    ...(quoteTimestamp ? { quoteTimestamp } : {}),
+    ...quoteTiming,
     supportingSources: [...new Set(supportingSources)],
     failureReasons: [...new Set(failureReasons)],
   };
@@ -754,7 +760,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
   const moneyMissingEvidence = [];
   if (!buyRouteAvailable) moneyMissingEvidence.push("buy route");
   if (!sellRouteAvailable) moneyMissingEvidence.push("sell route");
-  if (quoteAge === null) moneyMissingEvidence.push("fresh quote timestamp");
+  if (!quoteFresh) moneyMissingEvidence.push("fresh quote timestamp");
   if (!liquidity) moneyMissingEvidence.push("liquidity depth");
   if (!observedSlippageVerified) moneyMissingEvidence.push("live slippage quote");
   if (!safetyVerified) moneyMissingEvidence.push("verified safety evidence");
@@ -768,7 +774,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
     chain: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : chainVerified ? { value: chainOf(project), status: "VERIFIED" } : { value: chainOf(project), status: "UNKNOWN", reason: "Correct chain not verified" },
     contract: routeKind === "CEX" ? { value: null, status: "NOT_APPLICABLE" } : contractVerified ? { value: addressOf(project), status: "VERIFIED" } : { value: addressOf(project), status: "UNKNOWN", reason: "Verified token contract missing" },
     pool: !poolRequired ? { value: null, status: "NOT_APPLICABLE" } : poolVerified ? { value: pairOf(project) || routes.find((route) => route.pairAddress)?.pairAddress, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Verified liquidity pool missing" },
-    quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteAge <= 3600 ? "VERIFIED" : "STALE" },
+    quoteFreshness: quoteAge === null ? { value: null, status: "UNKNOWN", reason: "Quote timestamp unavailable" } : { value: quoteAge, status: quoteFresh ? "VERIFIED" : "STALE" },
     liquidity: liquidity ? { value: liquidity, status: liquidity >= 5_000 ? "VERIFIED" : "LOW" } : { value: null, status: "UNKNOWN", reason: "Liquidity provider unavailable or missing" },
     slippage100: !observedSlippageVerified ? { value: null, status: "UNKNOWN", reason: "Live slippage quote unavailable; heuristic estimate is not execution proof" } : { value: executionProof.estimatedSlippage100, status: executionProof.estimatedSlippage100 <= 5 ? "VERIFIED" : "HIGH" },
     safety: safetyVerified ? { value: true, status: "VERIFIED" } : { value: null, status: "UNKNOWN", reason: "Execution safety is unresolved" },
@@ -787,7 +793,7 @@ export function analyzeExecutionProof(project = {}, options = {}) {
       source: "execution-proof",
       timestamp: new Date().toISOString(),
       confidence: liquidity >= 5_000 ? 85 : liquidity > 0 ? 45 : 0,
-      freshness: quoteAge === null ? "UNKNOWN" : quoteAge <= 3600 ? "FRESH" : "STALE",
+      freshness: quoteAge === null ? "UNKNOWN" : quoteFresh ? "FRESH" : "STALE",
       provenance: "executionProof.liquidityUsd",
       status: liquidity >= 5_000 ? "VERIFIED" : liquidity > 0 ? "PARTIAL" : "UNKNOWN",
     }),

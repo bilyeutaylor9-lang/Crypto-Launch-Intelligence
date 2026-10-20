@@ -6,9 +6,13 @@ import {
 import {
   hasVerifiedBuyQuote,
   hasVerifiedSellQuote,
+  observedRouteSlippagePct,
   routeQuoteAgeSeconds,
+  routeQuoteFresh,
+  routeQuoteTiming,
 } from "../execution/routeTruthV2.js";
 import { resolveStrictCandidateGate } from "../execution/routeResolver.js";
+import { normalizeVenue } from "../data/venueVocabularyRegistry.js";
 
 const CEX_VENUES = [
   ["Coinbase", ["coinbase", "coinbase.com"]],
@@ -106,6 +110,27 @@ function findVenue(text = "", registry = []) {
   const normalized = lower(text);
   for (const [venue, aliases] of registry) {
     if (aliases.some((alias) => normalized.includes(alias))) return venue;
+  }
+  return null;
+}
+
+function findCexVenue(project, routes) {
+  const fields = [project.source, project.exchange, project.listingExchange, project.cex, project.dex,
+    project.url, project.marketUrl, project.marketData?.url, project.marketData?.marketUrl,
+    project.rawCandidate?.url, project.rawCandidate?.marketUrl, ...array(project.discoverySources),
+    ...routes.flatMap((route) => [route.source, route.provider, route.venue, route.name,
+      route.url, route.routeUrl, route.marketUrl, route.preferredRoute])].filter(Boolean);
+  for (const [venue, aliases] of CEX_VENUES) {
+    const names = new Set([venue, ...aliases].map(normalizeVenue));
+    const hosts = aliases.filter((alias) => alias.includes("."));
+    if (fields.some((value) => {
+      if (names.has(normalizeVenue(value))) return true;
+      try {
+        const url = new URL(value);
+        return ["https:", "http:"].includes(url.protocol) &&
+          hosts.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
+      } catch { return false; }
+    })) return venue;
   }
   return null;
 }
@@ -354,7 +379,7 @@ function routeTruthStatusFor(fields = {}) {
 export function analyzeCanonicalExecutionRoute(project = {}) {
   const routes = routeObjects(project);
   const text = routeText(project, routes);
-  const cexVenue = findVenue(text, CEX_VENUES);
+  const cexVenue = findCexVenue(project, routes);
   const evmDexVenue = findVenue(text, EVM_DEX_VENUES);
   const solanaVenue = findVenue(text, SOLANA_VENUES);
   const venue = venueFor({ cexVenue, evmDexVenue, solanaVenue, text });
@@ -391,11 +416,18 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     "rawCandidate.priceUsd",
     "quote.priceUsd",
   ]);
-  const quoteAgeSeconds = routeQuoteAgeSeconds({
+  const quoteTiming = routeQuoteTiming({
+    ...project,
+    executionProof: undefined,
+    canonicalExecutionRoute: routes.find((route) => Object.hasOwn(routeQuoteTiming(route), "quoteExpiresAt")) || project.canonicalExecutionRoute,
+  });
+  const quoteEvidence = {
     quoteAgeSeconds: first([project.quoteAgeSeconds, project.executionQuoteAgeSeconds, routes.find((route) => route.quoteAgeSeconds)?.quoteAgeSeconds]),
     quoteTimestamp: quoteTimestamp(project, routes),
-  });
-  const quoteFresh = quoteAgeSeconds !== null && quoteAgeSeconds <= 3600;
+    ...quoteTiming,
+  };
+  const quoteAgeSeconds = routeQuoteAgeSeconds(quoteEvidence);
+  const quoteFresh = routeQuoteFresh(quoteEvidence, 3600);
   const buyQuoteVerified = [project, ...routes].some(hasVerifiedBuyQuote);
   const sellQuoteVerified = [project, ...routes].some(hasVerifiedSellQuote);
   const explicitBuy = boolFromRoutes(routes, ["buyRouteAvailable", "purchasable", "canBuy", "buyAvailable"]);
@@ -403,6 +435,8 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   const sellBlocked = project.honeypotDetected === true || num(project.honeypotRiskScore) >= 85 || /honeypot|cannot sell|sell unavailable|transfer blocked/.test(statusText);
   const buyRouteAvailable = Boolean(buyQuoteVerified || explicitBuy);
   const sellRouteAvailable = Boolean(!sellBlocked && (sellQuoteVerified || explicitSell));
+  const observedSlippage = observedRouteSlippagePct({ ...project, executionProof: undefined }) ??
+    routes.map((route) => observedRouteSlippagePct(route)).find((value) => value !== null) ?? null;
   const unavailable = providerUnavailable(project, routes);
   const marketPair = routeMarketPair(project, routes);
   const exactIdentity = routeType === "CEX"
@@ -486,19 +520,11 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
     volume24hUsd,
     priceUsd,
     quoteTimestamp: quoteTimestamp(project, routes) || null,
+    ...quoteTiming,
     quoteAgeSeconds,
-    lastVerifiedAt: quoteTimestamp(project, routes) || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
-    estimatedRoundTripSlippagePct: first([
-      project.estimatedRoundTripSlippagePct,
-      project.executionProof?.estimatedRoundTripSlippagePct,
-      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedRoundTripSlippagePct,
-      routes.find((route) => route.estimatedRoundTripSlippagePct || route.estimatedSlippagePct)?.estimatedSlippagePct,
-    ]) || null,
-    slippageIsHeuristic: Boolean(
-      project.slippageIsHeuristic === true ||
-        project.executionProof?.slippageIsHeuristic === true ||
-        routes.some((route) => route.slippageIsHeuristic === true)
-    ),
+    lastVerifiedAt: quoteEvidence.quoteTimestamp || (quoteAgeSeconds !== null ? new Date(Date.now() - quoteAgeSeconds * 1000).toISOString() : null),
+    estimatedRoundTripSlippagePct: observedSlippage,
+    slippageIsHeuristic: observedSlippage === null,
     regionStatus: first([project.regionStatus, routes.find((route) => route.regionStatus)?.regionStatus]) || null,
     marketPair: marketPair || null,
     supportingSources: supporting,
@@ -508,10 +534,14 @@ export function analyzeCanonicalExecutionRoute(project = {}) {
   };
   const strictCandidateGate = resolveStrictCandidateGate({
     ...project,
+    ...quoteTiming,
+    ...(Object.hasOwn(quoteTiming, "quoteExpiresAt") && project.executionProof ? {
+      executionProof: { ...project.executionProof, ...quoteTiming },
+    } : {}),
     canonicalExecutionRoute,
     routeTruthStatus,
   });
-  if (strictCandidateGate.strictRouteVerified) {
+  if (quoteFresh && strictCandidateGate.strictRouteVerified) {
     canonicalExecutionRoute.routeTruthStatus = "LIVE_EXECUTION_READY";
     canonicalExecutionRoute.routeVerificationStatus = "LIVE_EXECUTION_READY";
   } else {

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
 
 import {
   adaptForCoreModels,
@@ -147,6 +148,224 @@ test("guarded ranking replaces the live score while preserving legacy score and 
   assert.equal(project.liveRankingModel, "GUARDED_CORE_BLEND_UNPROVEN_CANARY");
   assert.equal(project.liveActionStatus, "MICRO_TEST_ELIGIBLE");
   assert.equal(project.liveExecutionReady, true);
+});
+
+test("published integrity uses the guarded score and labels the earlier canonical pass", () => {
+  const canonicalReasons = ["Pipeline score 21 is below required minimum 60."];
+  const input = candidate({
+    pipelineScore: 21,
+    finalDecisionScore: 21,
+    researchOpportunityScore: 19.6692,
+    utilityQualityScore: 12,
+    realUtilityQualified: false,
+    utilityClassification: "UNKNOWN_UTILITY",
+    utilityEvidenceFamilies: [],
+    finalSelectionState: "BLOCKED",
+    finalSelectionQualified: false,
+    finalIntegrityScore: 86,
+    finalIntegrityVerdict: "Blocked By Final Integrity",
+    finalBlockingReasons: canonicalReasons,
+    finalWarningReasons: ["Canonical evidence review pending."],
+    finalSelectionReasons: [],
+    finalAuthorityEngine: "Final Selection Integrity",
+  });
+  const before = structuredClone(input);
+  const { ranked, top10 } = buildGuardedLiveRanking([input], {
+    policy: noWinnerPolicy,
+    env: { LIVE_RANKING_MODEL: "research" },
+  });
+  const [project] = ranked;
+  assert.equal(project.pipelineScore, 14.7519);
+  assert.equal(project.finalDecisionScore, project.pipelineScore);
+  assert.equal(project.finalSelectionState, "BLOCKED");
+  assert.equal(project.liveActionStatus, "BLOCKED");
+  assert.equal(project.finalIntegrityVerdict, "Blocked By Final Integrity");
+  assert.ok(project.finalBlockingReasons.includes(`Pipeline score ${project.pipelineScore} is below required minimum 60.`));
+  assert.equal(project.finalBlockingReasons.includes(canonicalReasons[0]), false);
+  assert.equal(project.finalIntegrityPipelineScore, project.pipelineScore);
+  assert.equal(project.finalAuthorityEngine, "Guarded Live Ranking");
+  assert.equal(project.legacyFinalAuthorityEngine, "Final Selection Integrity");
+  assert.equal(project.legacyFinalIntegrityVerdict, "Blocked By Final Integrity");
+  assert.equal(project.legacyFinalIntegrityScore, 86);
+  assert.equal(project.legacyFinalSelectionState, "BLOCKED");
+  assert.equal(project.legacyFinalSelectionQualified, false);
+  assert.equal(project.legacyFinalDecisionScore, 21);
+  assert.deepEqual(project.legacyFinalBlockingReasons, canonicalReasons);
+  assert.deepEqual(project.legacyFinalWarningReasons, input.finalWarningReasons);
+  assert.equal(project.legacyFinalIntegritySource, "PRE_GUARDED_CANONICAL_PASS");
+  assert.deepEqual(top10, []);
+  assert.deepEqual(input, before);
+});
+
+test("guarded diagnostics never retain a canonical qualified verdict after a utility denial", () => {
+  const [project] = buildGuardedLiveRanking([candidate({
+    finalSelectionState: "QUALIFIED",
+    finalSelectionQualified: true,
+    finalIntegrityVerdict: "Qualified Final Candidate",
+    finalSelectionReasons: ["Earlier canonical gates passed."],
+    utilityQualityScore: null,
+    realUtilityScore: null,
+    realUtilityQualified: false,
+    utilityClassification: "UNKNOWN_UTILITY",
+    utilityEvidenceFamilies: [],
+  })], { policy: noWinnerPolicy, env: { LIVE_RANKING_MODEL: "research" } }).ranked;
+  assert.equal(project.liveActionStatus, "DATA_RECOVERY_REQUIRED");
+  assert.equal(project.finalSelectionState, "INSUFFICIENT_DATA");
+  assert.equal(project.finalSelectionQualified, false);
+  assert.equal(project.finalIntegrityVerdict, "Research Only - Insufficient Data");
+  assert.deepEqual(project.finalSelectionReasons, []);
+  assert.ok(project.finalWarningReasons.some(reason => /utility/i.test(reason)));
+  assert.equal(project.legacyFinalIntegrityVerdict, "Qualified Final Candidate");
+});
+
+test("canonical hard blocks and unknown qualification remain denied in guarded publication", () => {
+  for (const finalSelectionState of ["BLOCKED", "IDENTITY_CONFLICT", "UNKNOWN", "INSUFFICIENT_DATA"]) {
+    const hard = ["BLOCKED", "IDENTITY_CONFLICT"].includes(finalSelectionState);
+    const reason = "Canonical identity conflict requires independent resolution.";
+    const { ranked, top10 } = buildGuardedLiveRanking([candidate({
+      finalSelectionState,
+      finalSelectionQualified: false,
+      finalBlockingReasons: hard ? [reason] : [],
+      utilityQualityScore: null,
+      realUtilityScore: null,
+      realUtilityQualified: false,
+      utilityClassification: "UNKNOWN_UTILITY",
+      utilityEvidenceFamilies: [],
+    })], { policy: noWinnerPolicy });
+    const [project] = ranked;
+    assert.equal(project.finalSelectionQualified, false, finalSelectionState);
+    assert.notEqual(project.finalIntegrityVerdict, "Qualified Final Candidate");
+    assert.deepEqual(top10, []);
+    if (hard) {
+      assert.equal(project.finalSelectionState, finalSelectionState);
+      assert.equal(project.liveActionStatus, "BLOCKED");
+      assert.ok(project.finalBlockingReasons.some(value => value.includes(reason)));
+      assert.deepEqual(project.legacyFinalBlockingReasons, [reason]);
+    }
+  }
+});
+
+test("deferred publication skips final-integrity diagnostics without inventing an evaluated score", () => {
+  let evaluations = 0;
+  const [project] = buildGuardedLiveRanking([candidate({
+    deepEvaluationState: "DEFERRED_BEFORE_DEEP",
+    finalIntegrityScore: 86,
+    finalIntegrityVerdict: "Canonical review pending",
+    signalProfile: { get risk() { evaluations += 1; return 18; } },
+  })], { policy: noWinnerPolicy }).ranked;
+  assert.equal(evaluations, 0);
+  assert.equal(project.liveActionStatus, "DEEP_DEFERRED");
+  assert.equal(project.finalSelectionState, "DEFERRED_BEFORE_DEEP");
+  assert.equal(project.finalSelectionQualified, false);
+  assert.equal(project.finalIntegrityScore, null);
+  assert.equal(project.finalIntegrityPipelineScore, null);
+  assert.equal(project.finalIntegrityScoreSource, "NOT_REEVALUATED_DEFERRED");
+  assert.equal(project.legacyFinalIntegrityScore, 86);
+  assert.equal(project.legacyFinalIntegrityVerdict, "Canonical review pending");
+});
+
+test("unchanged eligible diagnostics reuse only the same-score same-clock evaluation", (t) => {
+  let evaluations = 0;
+  const input = candidate({
+    signalProfile: { get risk() { evaluations += 1; return 18; } },
+  });
+  const now = Date.parse(input.quoteTimestamp) + 1000;
+  t.mock.method(Date, "now", () => now);
+  const [project] = buildGuardedLiveRanking([input], {
+    policy: noWinnerPolicy, env: { LIVE_RANKING_MODEL: "research" },
+  }).ranked;
+  assert.equal(project.pipelineScore, 82);
+  assert.equal(project.finalSelectionQualified, true);
+  assert.equal(evaluations, 1);
+});
+
+test("a quote expiring between integrity passes is reevaluated and cannot remain qualified", (t) => {
+  let now = Date.now();
+  const cutoff = now;
+  t.mock.method(Date, "now", () => now);
+  let evaluations = 0;
+  const issued = new Date(cutoff - 1000).toISOString();
+  const expires = new Date(cutoff + 1).toISOString();
+  const input = candidate({
+    quoteTimestamp: issued,
+    quoteAgeSeconds: 1,
+    quoteExpiresAt: expires,
+    signalProfile: { get risk() {
+      evaluations += 1;
+      if (evaluations === 1) now = cutoff + 2;
+      return 18;
+    } },
+  });
+  input.canonicalExecutionRoute = { ...input.canonicalExecutionRoute,
+    quoteTimestamp: issued, quoteAgeSeconds: 1, quoteExpiresAt: expires, lastVerifiedAt: issued };
+  const [project] = buildGuardedLiveRanking([input], {
+    policy: noWinnerPolicy, env: { LIVE_RANKING_MODEL: "research" },
+  }).ranked;
+  assert.ok(evaluations >= 2);
+  assert.equal(project.finalSelectionQualified, false);
+  assert.equal(project.liveExecutionReady, false);
+  assert.notEqual(project.liveActionStatus, "MICRO_TEST_ELIGIBLE");
+  assert.ok(project.finalWarningReasons.some(reason => /stale|fresh|route/i.test(reason)));
+});
+
+test("reranking preserves the canonical origin without recursively prefixing guarded reasons", () => {
+  const canonical = candidate({
+    pipelineScore: 21, finalDecisionScore: 21,
+    finalSelectionState: "BLOCKED", finalSelectionQualified: false,
+    finalIntegrityScore: 86, finalIntegrityVerdict: "Blocked By Final Integrity",
+    finalAuthorityEngine: "Final Selection Integrity",
+    finalBlockingReasons: ["Pipeline score 21 is below required minimum 60."],
+    finalWarningReasons: ["Canonical review pending."], finalSelectionReasons: [],
+    researchOpportunityScore: 19.6692,
+  });
+  const options = { policy: noWinnerPolicy, env: { LIVE_RANKING_MODEL: "research" } };
+  let [project] = buildGuardedLiveRanking([canonical], options).ranked;
+  const original = structuredClone(project);
+  for (let pass = 0; pass < 3; pass += 1) {
+    [project] = buildGuardedLiveRanking([project], options).ranked;
+    for (const key of ["legacyProductionScore", "legacyPipelineScore", "legacyFinalDecisionScore",
+      "legacyFinalSelectionState", "legacyFinalSelectionQualified", "legacyFinalIntegrityScore",
+      "legacyFinalIntegrityVerdict", "legacyFinalAuthorityEngine", "legacyFinalBlockingReasons",
+      "legacyFinalWarningReasons", "legacyFinalSelectionReasons", "legacyFinalIntegritySource"]) {
+      assert.deepEqual(project[key], original[key], `${pass}:${key}`);
+    }
+    assert.ok(project.finalBlockingReasons.every(reason => reason.split("Canonical pre-guarded pass").length <= 2));
+    assert.equal(project.finalSelectionQualified, false);
+    assert.equal(project.liveActionStatus, "BLOCKED");
+  }
+});
+
+test("guarded score-only denials retain unknown decision proof through the evidence funnel", () => {
+  const sparse = {
+    name: "Sparse Canonical Alpha", tokenName: "Sparse Canonical Alpha", symbol: "SPARSE",
+    chain: "base", tokenAddress: TOKEN, contractAddress: TOKEN, poolAddress: POOL,
+    pipelineScore: 0, finalSelectionState: "BLOCKED", finalSelectionQualified: false,
+    finalBlockingReasons: ["Pipeline score 0 is below required minimum 60."],
+    deepEvaluationState: "DEEP_EVALUATED", coreEvidenceState: "CORE_EVIDENCE_READY",
+    coreEvidenceCoveragePct: 92,
+  };
+  const { ranked } = buildGuardedLiveRanking([sparse], { policy: noWinnerPolicy });
+  const summary = summarizeEvidenceFunnel(ranked);
+  assert.equal(ranked[0].finalSelectionQualified, false);
+  assert.deepEqual(ranked[0].legacyFinalBlockingReasons, sparse.finalBlockingReasons);
+  assert.equal(summary.healthyCoreEvidence, true);
+  assert.equal(summary.healthyDecisionEvidence, false);
+  assert.equal(summary.selectionOutcome, "DATA_DEGRADED");
+  assert.equal(summary.conclusivelyRejected, 0);
+  assert.equal(summary.unresolvedDecisionEvidence, 1);
+  for (const field of ["SAFETY", "BUY_QUOTE", "SELL_QUOTE", "QUOTE_FRESHNESS", "ROUTE_DEPTH", "VERIFIED_SLIPPAGE"]) {
+    assert.equal(summary.decisionProofMissingFields[field], 1, field);
+  }
+
+  for (const negative of [{ honeypotDetected: true }, { canonicalIdentityHardBlock: true }]) {
+    const blocked = buildGuardedLiveRanking([{ ...sparse, ...negative }], { policy: noWinnerPolicy });
+    const blockedSummary = summarizeEvidenceFunnel(blocked.ranked);
+    assert.equal(blocked.ranked[0].liveActionStatus, "BLOCKED");
+    assert.equal(blocked.ranked[0].finalSelectionQualified, false);
+    assert.equal(blockedSummary.conclusivelyRejected, 1);
+    assert.equal(blockedSummary.healthyDecisionEvidence, true);
+    assert.deepEqual(blockedSummary.decisionProofMissingFields, {});
+  }
 });
 
 test("unknown safety can remain research-worthy but never micro-test eligible", () => {

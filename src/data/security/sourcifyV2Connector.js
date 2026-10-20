@@ -6,6 +6,7 @@ import {
   isEvmAddress,
   lower,
   setCachedSecurityEvidence,
+  sourcifyResponseIdentityMatches,
   tokenAddress,
   unknownSecurityEvidence,
 } from "./securityEvidenceUtils.js";
@@ -18,6 +19,11 @@ function matchValue(raw = {}) {
 }
 
 export function normalizeSourcifyContract(raw = {}, meta = {}) {
+  if (!sourcifyResponseIdentityMatches(raw, meta.chain, meta.address)) return {
+    ...unknownSecurityEvidence(SOURCIFY_PROVIDER, "Sourcify response identity conflicts with the requested chain or contract."),
+    chain: meta.chain || null, address: meta.address || null, raw: raw || null,
+    responseIdentityVerified: false,
+  };
   const match = matchValue(raw);
   const verifiedSource = Boolean(match && match !== "false" && match !== "none");
   const exactMatch = match.includes("exact") || lower(raw.creationMatch).includes("perfect") || lower(raw.runtimeMatch).includes("perfect");
@@ -57,7 +63,7 @@ export function normalizeSourcifyContract(raw = {}, meta = {}) {
     blacklistRisk: false,
     highTaxRisk: false,
     malicious: false,
-    honeypot: false,
+    honeypot: null,
     riskFindings: [],
     warnings: exactMatch ? [] : ["Sourcify source is verified but not an exact/perfect match."],
     confidence: exactMatch ? 90 : 76,

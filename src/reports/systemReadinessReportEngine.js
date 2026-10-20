@@ -34,6 +34,9 @@ function finding(item = {}, blocksReadiness = true) {
 }
 
 function scannerEvidenceIsHealthy(scannerSemanticHealth = {}, liveCoreRanking = {}) {
+  if (scannerSemanticHealth.status === "DATA_DEGRADED" ||
+    (scannerSemanticHealth.healthyDecisionEvidence ?? liveCoreRanking.summary?.healthyDecisionEvidence) === false ||
+    Number(scannerSemanticHealth.unresolvedDecisionEvidence || liveCoreRanking.summary?.unresolvedDecisionEvidence || 0) > 0) return false;
   return (
     scannerSemanticHealth.readinessClass === "HEALTHY_EVIDENCE" ||
     scannerSemanticHealth.healthyCoreEvidence === true ||
@@ -131,12 +134,20 @@ export function summarizeSystemReadiness(meta = {}, options = {}) {
     }, sourceBlocksReadiness));
   }
   if (["CRITICAL", "HIGH"].includes(sourceGaps.routePromotionBlindnessRisk)) {
+    const currentDecisionEvidenceComplete = healthyEvidence &&
+      (scannerSemanticHealth.healthyDecisionEvidence ?? liveCoreRanking.summary?.healthyDecisionEvidence) === true &&
+      scannerSemanticHealth.healthyDecisionEvidence !== false &&
+      liveCoreRanking.summary?.healthyDecisionEvidence !== false;
     failures.push(finding({
       area: "candidate-promotion",
       severity: "WARN",
-      reason: `Candidate promotion is blocked by ${sourceGaps.routePromotionBlindnessRisk.toLowerCase()} route-identity/quote source coverage.`,
-      nextAction: "Restore DexScreener/GeckoTerminal/DeFiLlama exact identity coverage first, then recover LI.FI keyless or CEX public buy-sell proof; keyed Jupiter/0x remain optional.",
-    }));
+      reason: currentDecisionEvidenceComplete
+        ? "Provider route-capacity gaps remain, but current candidate decision evidence is complete."
+        : `Candidate promotion is blocked by ${sourceGaps.routePromotionBlindnessRisk.toLowerCase()} route-identity/quote source coverage.`,
+      nextAction: currentDecisionEvidenceComplete
+        ? "Keep provider capacity gaps visible for future acquisition; current complete decision evidence does not authorize an otherwise unqualified candidate."
+        : "Restore DexScreener/GeckoTerminal/DeFiLlama exact identity coverage first, then recover LI.FI keyless or CEX public buy-sell proof; keyed Jupiter/0x remain optional.",
+    }, !currentDecisionEvidenceComplete));
   }
   if (
     Number(highUpsideScalp.quarantinedIdentityOrRouteCount || 0) > 0 &&

@@ -24,13 +24,14 @@ jobs:
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ matrix.node-version == '24.x' && '^24.22.0' || matrix.node-version }}
+        check-latest: true
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
     - run: npm run typecheck
     - run: npm run lint
     - run: npm test
-    - name: Deterministic scanner smoke
+    - name: Deterministic offline full-pipeline scanner smoke
       if: matrix.node-version == '24.x'
       run: npm run scan:smoke

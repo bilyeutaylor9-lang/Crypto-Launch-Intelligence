@@ -1,9 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   buildQualificationFailureMicroscope,
+  runQualificationFailureMicroscope,
   traceQualificationCandidate,
+  writeQualificationFailureMicroscope,
 } from "../src/diagnostics/qualificationFailureMicroscope.js";
 
 function baseProject(overrides = {}) {
@@ -65,6 +70,35 @@ test("fully proven candidate passes both lanes", () => {
   assert.equal(row.productionGates.USER_ACCESS.status, "PASS");
   assert.equal(row.mechanismGates.CAPITAL_ARRIVAL.status, "PASS");
   assert.equal(row.mechanismGates.SUPPLY_SELLER.status, "PASS");
+});
+
+test("same-scan workflow keeps the full-proof microscope when the public report omits proof", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "qualification-microscope-"));
+  try {
+    const reportFile = path.join(directory, "microscope.json");
+    const inputFile = path.join(directory, "report.json");
+    const full = baseProject({ finalSelectionState: "RESEARCH_ONLY", finalSelectionQualified: false });
+    const expected = writeQualificationFailureMicroscope([full], { scanRunId: "scan-current" }, { reportFile });
+    assert.equal(expected.productionGateCounts.IDENTITY.pass, 1);
+    fs.writeFileSync(inputFile, JSON.stringify({
+      meta: { scanRunId: "scan-current" },
+      projects: [{ symbol: full.symbol, chain: full.chain, finalSelectionState: full.finalSelectionState }],
+    }));
+    const reused = runQualificationFailureMicroscope({ inputFile, reportFile });
+    assert.equal(reused.sourceMode, "FULL_SCAN");
+    assert.equal(reused.productionGateCounts.IDENTITY.pass, 1);
+    assert.equal(reused.productionGateCounts.IDENTITY.unknown, 0);
+
+    fs.writeFileSync(inputFile, JSON.stringify({
+      meta: { scanRunId: "scan-next" },
+      projects: [{ symbol: full.symbol, chain: full.chain, finalSelectionState: full.finalSelectionState }],
+    }));
+    const next = runQualificationFailureMicroscope({ inputFile, reportFile });
+    assert.equal(next.sourceMode, "REPORT_PROJECTION");
+    assert.equal(next.productionGateCounts.IDENTITY.unknown, 1);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test("production report rows without deepEvaluationState are counted when only the deferred tail is marked", () => {

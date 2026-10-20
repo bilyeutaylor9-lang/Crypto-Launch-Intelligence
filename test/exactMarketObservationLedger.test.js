@@ -67,6 +67,35 @@ test("exact market ledger rejects observations from the future and can enforce f
   }));
 });
 
+test("exact market ledger rejects known contradictory provenance clocks without altering historical rows", () => {
+  const row = {
+    chain: "base", tokenAddress: TOKEN, poolAddress: POOL, priceUsd: 1.25,
+    observedAt: "2026-08-23T12:00:00Z",
+  };
+  const asOf = "2026-08-23T12:00:00Z";
+  assert.ok(buildExactMarketObservation(row, { asOf }));
+  assert.ok(buildExactMarketObservation({ ...row, outcomeObservationProvenance: {
+    receiptObservedAt: asOf, sourceTimestamp: null,
+  } }, { asOf }), "a genuinely absent source clock remains permitted");
+  assert.equal(buildExactMarketObservation({ ...row, outcomeObservationProvenance: {
+    receiptObservedAt: "2026-08-23T12:01:00Z", sourceTimestamp: null,
+  } }, { asOf }), null);
+  assert.equal(buildExactMarketObservation({ ...row, outcomeObservationProvenance: {
+    receiptObservedAt: asOf, sourceTimestamp: "2026-08-23T12:01:00Z",
+  } }, { asOf }), null);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "exact-ledger-clocks-"));
+  const file = path.join(dir, "observations.jsonl");
+  const historical = `${JSON.stringify({ observationKey: "historical", observationIntegrityHash: "historical-hash" })}\n`;
+  fs.writeFileSync(file, historical);
+  const result = appendExactMarketObservations([{ ...row, outcomeObservationProvenance: {
+    receiptObservedAt: "2026-08-23T12:01:00Z", sourceTimestamp: null,
+  } }], { file, asOf, source: "test" });
+  assert.equal(result.saved, 0);
+  assert.equal(fs.readFileSync(file, "utf8"), historical);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
 test("exact market ledger persists only point-in-time market context", () => {
   const row = {
     chain: "base",
@@ -92,6 +121,12 @@ test("exact market ledger persists only point-in-time market context", () => {
   }, { asOf: "2026-08-23T12:01:00Z" });
   assert.equal(rejectedContext.marketContextPointInTimeVerified, false);
   assert.equal(rejectedContext.btcReturnPct, null);
+});
+
+test("a later receipt cannot legitimize a source timestamp after the declared capture", () => {
+  const row = { chain: "base", tokenAddress: TOKEN, poolAddress: POOL, priceUsd: 1,
+    observedAt: "2026-08-23T12:00:00Z", receiptObservedAt: "2026-08-23T12:01:00Z", sourceObservedAt: "2026-08-23T12:00:30Z" };
+  assert.equal(buildExactMarketObservation(row, { asOf: "2026-08-23T12:02:00Z" }), null);
 });
 
 test("shadow outcome truth cannot link two symbol-only rows", () => {

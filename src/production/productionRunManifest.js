@@ -5,21 +5,24 @@ import { stableHash } from "./productionMath.js";
 import { writeAtomicJson } from "./atomicArtifactStore.js";
 
 export function resolveCodeCommitSha(options = {}) {
+  const env = options.env || process.env;
   const configured = String(
     options.codeCommitSha ||
-    process.env.GITHUB_SHA ||
-    process.env.EDGE_CODE_VERSION ||
+    env.GITHUB_SHA ||
+    env.EDGE_CODE_VERSION ||
     ""
   ).trim();
   if (configured) return configured;
   try {
     const worktreeStatus = execFileSync("git", ["status", "--porcelain", "--untracked-files=normal"], {
+      cwd: options.cwd || process.cwd(),
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 2_000,
     }).trim();
     if (worktreeStatus) return null;
     const resolved = execFileSync("git", ["rev-parse", "--verify", "HEAD"], {
+      cwd: options.cwd || process.cwd(),
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       timeout: 2_000,
@@ -28,6 +31,19 @@ export function resolveCodeCommitSha(options = {}) {
   } catch {
     return null;
   }
+}
+
+export function buildScanCodeProvenance(startCommit = null, endCommit = null) {
+  const start = typeof startCommit === "string" && startCommit.trim() ? startCommit.trim() : null;
+  const end = typeof endCommit === "string" && endCommit.trim() ? endCommit.trim() : null;
+  const stable = Boolean(start && end && start === end);
+  return {
+    codeCommitSha: stable ? start : null,
+    codeCommitShaAtStart: start,
+    codeCommitShaAtEnd: end,
+    codeProvenanceStatus: stable ? "SOURCE_VERSION_STABLE"
+      : start !== end ? "SOURCE_STATE_CHANGED_DURING_RUN" : "UNVERIFIED_SOURCE",
+  };
 }
 
 export function buildProductionRunManifest(options = {}) {

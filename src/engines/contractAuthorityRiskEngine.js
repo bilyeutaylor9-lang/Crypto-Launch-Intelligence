@@ -1,10 +1,12 @@
 import { getFreeSecurityEvidence } from "../data/security/freeSecurityEvidenceConnector.js";
 import {
-  chainKey,
+  BLOCKSCOUT_DEFAULTS,
   evmChainId,
   summarizeSecurityEvidence,
   tokenAddress,
 } from "../data/security/securityEvidenceUtils.js";
+import { securityWalletEvidencePatch } from "../data/security/securityWalletEvidence.js";
+import { normalizeChainId, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -26,9 +28,45 @@ function existingSummary(project = {}) {
   return null;
 }
 
-function securityRecoveryEligible(project = {}) {
-  const chain = chainKey(project.chain || project.canonicalChain || project.network);
-  return Boolean(tokenAddress(project) && (chain === "solana" || evmChainId(chain)));
+function securityRecoveryIdentity(project = {}) {
+  if (project.canonicalIdentityHardBlock === true || project.chainMismatch === true || project.contractChainMismatch === true) return null;
+  const chains = [project.chain, project.chainId, project.canonicalChain, project.network,
+    project.canonicalExecutionRoute?.chain].filter((value) => value !== undefined && value !== null && value !== "");
+  const chain = normalizeChainId(chains[0]);
+  if (!chain || !(chain === "solana" || evmChainId(chain) || BLOCKSCOUT_DEFAULTS[chain]) ||
+      !chains.every((value) => normalizeChainId(value) === chain)) return null;
+  const address = normalizeTokenAddress(tokenAddress(project), chain);
+  const addresses = [project.finalContractAddress, project.canonicalAddress, project.contractAddress,
+    project.tokenAddress, project.address, project.baseToken?.address,
+    project.canonicalExecutionRoute?.tokenAddress, project.canonicalExecutionRoute?.contractAddress]
+    .filter((value) => value !== undefined && value !== null && value !== "");
+  if (!address || !addresses.every((value) => normalizeTokenAddress(value, chain) === address)) return null;
+  return `${chain}:${address}`;
+}
+
+function summaryIsStale(summary = {}, project = {}, options = {}) {
+  const now = options.now ? new Date(typeof options.now === "function" ? options.now() : options.now).getTime() : Date.now();
+  const configuredAge = Number(options.securityEvidenceMaxAgeMs ?? options.securityEvidence?.cacheTtlMs ??
+    process.env.SECURITY_EVIDENCE_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
+  const maxAge = normalizeChainId(project.chain || project.chainId || project.canonicalChain || project.network) === "solana"
+    ? Math.min(configuredAge, 300_000) : configuredAge;
+  const timestamps = Array.isArray(summary.knownProviders) && summary.knownProviders.length
+    ? summary.knownProviders.map((provider) => summary.sourceTimestamps?.[provider])
+    : Object.values(summary.sourceTimestamps || {});
+  return !Number.isFinite(now) || !Number.isFinite(maxAge) || maxAge <= 0 || !timestamps.length ||
+    timestamps.some((value) => {
+      const observed = typeof value === "string" ? Date.parse(value) : NaN;
+      return !Number.isFinite(observed) || observed <= 0 || observed > now || now - observed > maxAge;
+    });
+}
+
+function needsSecurityRecovery(project = {}, options = {}) {
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP" || project.deepEvaluationDeferred === true ||
+      !securityRecoveryIdentity(project)) return false;
+  const summary = existingSummary(project);
+  if (summary?.malicious === true || summary?.honeypot === true) return false;
+  return !summary || summary.status === "UNKNOWN" || summary.verifiedSource !== true ||
+    summary.unknownChecks?.length > 0 || summaryIsStale(summary, project, options);
 }
 
 function securityRecoveryPriority(project = {}) {
@@ -42,16 +80,16 @@ function securityRecoveryPriority(project = {}) {
   );
 }
 
-function securityRecoverySelection(projects = [], limit = 25) {
+function securityRecoverySelection(projects = [], limit = 25, options = {}) {
   const candidates = projects
     .map((project, index) => ({ project, index }))
-    .filter(({ project }) => !existingSummary(project) && securityRecoveryEligible(project))
+    .filter(({ project }) => needsSecurityRecovery(project, options))
     .sort((left, right) => securityRecoveryPriority(right.project) - securityRecoveryPriority(left.project));
   const selected = new Set();
   const identities = new Set();
   for (const candidate of candidates) {
     const project = candidate.project;
-    const identity = `${chainKey(project.chain || project.canonicalChain || project.network)}:${tokenAddress(project).toLowerCase()}`;
+    const identity = securityRecoveryIdentity(project);
     if (identities.has(identity)) continue;
     identities.add(identity);
     selected.add(candidate.index);
@@ -109,17 +147,35 @@ function safetyProofFields(summary = null, evidence = []) {
 
 export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
   let summary = existingSummary(project);
-  let evidence = project.securityEvidence || project.freeSecurityEvidence?.evidence || [];
+  let evidence = Array.isArray(project.securityEvidence) ? project.securityEvidence
+    : Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : [];
   const shouldCollect =
     options.collectSecurityEvidence === true ||
     (options.collectSecurityEvidence !== false &&
       process.env.SECURITY_EVIDENCE_COLLECT === "true");
 
-  if (!summary && shouldCollect) {
+  if (shouldCollect && needsSecurityRecovery(project, options)) {
     const collected = await getFreeSecurityEvidence(project, options.securityEvidence || options);
-    summary = collected.summary;
-    evidence = collected.evidence;
+    const incoming = collected.summary;
+    if (incoming?.status === "UNKNOWN" && summary) {
+      evidence = [...evidence, ...(collected.evidence || [])];
+      summary = { ...summary, unknownChecks: [...new Set([
+        ...(summary.unknownChecks || []), ...(incoming.unknownChecks || []), "security.refresh_unverified",
+      ])], warnings: [...new Set([...(summary.warnings || []), ...(incoming.warnings || [])])] };
+    } else {
+      const confirmed = new Set(incoming?.testedChecks || []);
+      const unresolvedPrevious = [...(summary?.unknownChecks || []), ...(summary?.testedChecks || [])]
+        .filter((check) => !confirmed.has(check));
+      summary = incoming ? { ...incoming,
+        unknownChecks: [...new Set([...(incoming.unknownChecks || []), ...unresolvedPrevious])],
+      } : summary;
+      evidence = collected.evidence || evidence;
+    }
   }
+  if (summary && summaryIsStale(summary, project, options)) {
+    summary = { ...summary, unknownChecks: [...new Set([...(summary.unknownChecks || []), "security.evidence_stale"])] };
+  }
+  const walletPatch = securityWalletEvidencePatch(project, evidence, options.securityEvidence || options);
 
   if (!summary || summary.status === "UNKNOWN" || (summary.unknownChecks?.length && !summary.malicious && !summary.honeypot)) {
     const observedRisk = summary?.status !== "UNKNOWN" && summary
@@ -129,6 +185,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
     const safetyStatus = score >= 80 ? "SAFETY_BLOCKED" : summary && summary.status !== "UNKNOWN" ? "SAFETY_PARTIAL" : "SAFETY_UNKNOWN";
     return {
       ...project,
+      ...walletPatch,
       securityEvidence: evidence,
       securityEvidenceSummary: summary || null,
       securityEvidenceStatus: summary?.status || "UNKNOWN",
@@ -175,6 +232,7 @@ export async function analyzeContractAuthorityRisk(project = {}, options = {}) {
 
   return {
     ...project,
+    ...walletPatch,
     securityEvidence: evidence,
     securityEvidenceSummary: summary,
     securityEvidenceStatus: summary.status || "UNKNOWN",
@@ -231,7 +289,7 @@ export async function analyzeContractAuthorityRiskBatch(projects = [], options =
     30_000
   );
   const selected = collectionEnabled
-    ? securityRecoverySelection(input, maxCandidates)
+    ? securityRecoverySelection(input, maxCandidates, options)
     : new Set();
   const results = new Array(input.length);
   let cursor = 0;
@@ -242,7 +300,7 @@ export async function analyzeContractAuthorityRiskBatch(projects = [], options =
       cursor += 1;
       const project = input[index];
       const attempted = selected.has(index);
-      const eligible = securityRecoveryEligible(project);
+      const recoveryNeeded = needsSecurityRecovery(project, options);
       const result = await analyzeContractAuthorityRisk(project, {
         ...options,
         collectSecurityEvidence: attempted,
@@ -256,7 +314,7 @@ export async function analyzeContractAuthorityRiskBatch(projects = [], options =
         ...result,
         safetyRecoveryAttempted: attempted,
         safetyRecoveryDeferred:
-          collectionEnabled && eligible && !existingSummary(project) && !attempted,
+          collectionEnabled && recoveryNeeded && !attempted,
       };
     }
   }

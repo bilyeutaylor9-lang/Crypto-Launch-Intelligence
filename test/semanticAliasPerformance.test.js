@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeAliasText, compactAliasText, fieldNameFromPath } from "../src/data/semanticAliasNormalizer.js";
+import { normalizeAliasText, compactAliasText, fieldNameFromPath, fuzzyAliasMatch, semanticAliasTermsForField } from "../src/data/semanticAliasNormalizer.js";
 import { collectAliasCandidates } from "../src/data/canonicalAliasResolver.js";
 import { aliasesForCanonicalField } from "../src/data/canonicalFieldAliasRegistry.js";
 
@@ -9,6 +9,78 @@ function originalNormalization(value = "") {
     .replace(/[._/:-]+/g, " ").replace(/[$,()[\]{}]+/g, " ")
     .replace(/\s+/g, " ").trim();
 }
+
+function originalFuzzyMatch(value, field) {
+  if (["symbol", "tokenAddress", "poolAddress", "chain", "projectId", "marketPair",
+    "transactionHash", "chainId", "contractId"].includes(field)) {
+    return { matched: false, reason: "identity-critical-fuzzy-disabled" };
+  }
+  const source = compactAliasText(value);
+  const terms = semanticAliasTermsForField(field);
+  if (!source || !terms.length) return { matched: false, reason: "no-fuzzy-terms" };
+  for (const term of terms) {
+    const target = compactAliasText(term);
+    if (source === target) return { matched: true, confidenceType: "SEMANTIC_ALIAS", matchedTerm: term };
+    let distance;
+    if (!source || !target) distance = Math.max(source.length, target.length);
+    else if (Math.abs(source.length - target.length) > 3) distance = 99;
+    else {
+      let previous = Array.from({ length: target.length + 1 }, (_, i) => i);
+      for (let i = 1; i <= source.length; i++) {
+        const current = [i];
+        for (let j = 1; j <= target.length; j++) {
+          current[j] = source[i - 1] === target[j - 1] ? previous[j - 1] :
+            Math.min(previous[j - 1] + 1, previous[j] + 1, current[j - 1] + 1);
+        }
+        previous = current;
+      }
+      distance = previous[target.length];
+    }
+    if (distance > 0 && distance <= (target.length <= 5 ? 1 : 2)) {
+      return { matched: true, confidenceType: "FUZZY_ALIAS", matchedTerm: term, distance };
+    }
+  }
+  return { matched: false, reason: "no-safe-fuzzy-match" };
+}
+
+test("cached fuzzy names preserve the original matcher and protected identities", () => {
+  const fields = ["liquidityUsd", "circulatingMarketCapUsd", "volume24hUsd", "uniqueBuyers24h",
+    "buyTaxPct", "sellTaxPct", "holderCount", "symbol", "chain", "tokenAddress", "poolAddress",
+    "projectId", "marketPair", "transactionHash", "chainId", "contractId", "quoteAsset", "notAField"];
+  const names = [undefined, null, "", "pipelineScore", "engineVersion", "BUY-TAX", "x".repeat(2048)];
+  for (const field of fields) {
+    for (const term of semanticAliasTermsForField(field)) names.push(term, term.slice(1), `${term}x`);
+  }
+  for (let pass = 0; pass < 2; pass++) {
+    for (const field of fields) {
+      for (const name of names) assert.deepEqual(fuzzyAliasMatch(name, field), originalFuzzyMatch(name, field));
+    }
+  }
+});
+
+test("fuzzy metadata is caller-isolated and vocabulary changes invalidate cached matches", () => {
+  const first = fuzzyAliasMatch("liquidity", "liquidityUsd");
+  first.matched = false;
+  assert.equal(fuzzyAliasMatch("liquidity", "liquidityUsd").matched, true);
+  const terms = semanticAliasTermsForField("liquidityUsd");
+  const original = [...terms];
+  const name = "previouslyunrecognizedfieldlabel";
+  assert.equal(fuzzyAliasMatch(name, "liquidityUsd").matched, false);
+  try {
+    terms.push(name);
+    assert.deepEqual(fuzzyAliasMatch(name, "liquidityUsd"), originalFuzzyMatch(name, "liquidityUsd"));
+  } finally {
+    terms.splice(0, terms.length, ...original);
+  }
+  assert.equal(fuzzyAliasMatch(name, "liquidityUsd").matched, false);
+  let nameValue = "liquidity";
+  const dynamic = { toString: () => nameValue };
+  assert.equal(fuzzyAliasMatch(dynamic, "liquidityUsd").matched, true);
+  nameValue = name;
+  assert.equal(fuzzyAliasMatch(dynamic, "liquidityUsd").matched, false);
+  for (let i = 0; i < 4200; i++) fuzzyAliasMatch(`unrecognized_field_${i}`, "liquidityUsd");
+  assert.deepEqual(fuzzyAliasMatch("liquidity", "liquidityUsd"), originalFuzzyMatch("liquidity", "liquidityUsd"));
+});
 
 test("cached alias transforms preserve normalization and path semantics", () => {
   const values = [undefined, null, false, 0, 12, "", "...", " RAW.buy_tax ",

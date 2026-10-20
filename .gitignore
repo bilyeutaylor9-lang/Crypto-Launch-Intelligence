@@ -5,6 +5,8 @@
 /docs/*
 !/docs/DATA-SOURCE-READINESS.md
 !/docs/CLI-15-FORWARD-ALPHA-VALIDATION.md
+!/docs/EVIDENCE-RECOVERY-VALIDATION.md
+!/docs/PROVIDER-BUYER-EVIDENCE-VALIDATION.md
 /.test-artifact-backup-*/
 /.env
 /.env.local

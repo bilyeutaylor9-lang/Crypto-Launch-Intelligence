@@ -184,7 +184,7 @@ export const ENGINE_CONTRACTS = [
     exportName: "analyzeOrganicBuyerClassifierBatch",
     dependsOn: ["activeLiquidityTruth"],
     inputContract: {
-      requiredAny: [["buyers24h", "buyTransactions24h", "organicBuyerScore", "holderGrowthScore"]],
+      requiredAny: [["uniqueBuyers24h", "buyers24h", "buyTransactions24h"]],
       optional: ["walletClusters", "holderGrowthScore", "volume24h"],
     },
     outputContract: {
@@ -206,7 +206,7 @@ export const ENGINE_CONTRACTS = [
     exportName: "analyzeWalletClusterBatch",
     dependsOn: ["projectIdentity"],
     inputContract: {
-      requiredAny: [["wallets", "holders", "walletClusterRiskScore", "smartWalletScore"]],
+      requiredAny: [["wallets", "holderAddresses", "uniqueBuyers24h", "independentBuyers24h"]],
       optional: ["buyers24h", "deployer", "ownerAddress"],
     },
     outputContract: {

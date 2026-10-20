@@ -1,12 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import {
-  normalizeChainId,
-  normalizePoolAddress,
-  normalizeTokenAddress,
-} from "../identity/strictIdentityValidators.js";
-import { EDGE_PRODUCTION_HORIZONS } from "./edgeProductionEpisodeStore.js";
+import { EDGE_PRODUCTION_HORIZONS, edgeTimestampsValid, normalizeEdgeEpisode, prepareEdgeEpisodes } from "./edgeProductionEpisodeStore.js";
+import { canonicalEdgeIdentity, deduplicateEdgeRecords, edgeAsOfMs } from "./matchedControlSelector.js";
 import { edgeEvidenceToleranceHours } from "./edgeEvidenceProbe.js";
 
 const REPORT_FILE = path.resolve("reports", "edge-evidence-health.json");
@@ -20,28 +16,39 @@ function percent(numerator, denominator) {
   return denominator ? Number(((numerator / denominator) * 100).toFixed(2)) : null;
 }
 
-export function findExactEdgeOutcome(episode = {}, horizonHours, outcomes = []) {
-  const chain = normalizeChainId(episode.chain);
-  const tokenAddress = normalizeTokenAddress(episode.tokenAddress, chain);
-  const poolAddress = episode.poolAddress
-    ? normalizePoolAddress(episode.poolAddress, chain)
-    : null;
+export function findExactEdgeOutcome(episode = {}, horizonHours, outcomes = [], options = {}) {
+  const nowMs = edgeAsOfMs(options);
+  const normalized = normalizeEdgeEpisode(episode, { now: nowMs });
+  if (!normalized || !EDGE_PRODUCTION_HORIZONS.includes(Number(horizonHours))) return null;
+  const { chain, tokenAddress, poolAddress } = normalized;
   const signalMs = timestamp(episode.signalObservedAt || episode.frozenAt);
-  if (chain !== "base" || !tokenAddress || !signalMs) return null;
+  if (signalMs === null) return null;
   const targetMs = signalMs + Number(horizonHours) * 3_600_000;
   const maximumMs = targetMs + edgeEvidenceToleranceHours(horizonHours) * 3_600_000;
-  return (Array.isArray(outcomes) ? outcomes : [])
+  const frozenMs = timestamp(episode.frozenAt);
+  if (targetMs > nowMs || (frozenMs !== null && frozenMs > targetMs)) return null;
+  const related = (Array.isArray(outcomes) ? outcomes : []).filter((row) =>
+    row?.episodeId === episode.episodeId && Number(row.horizonHours) === Number(horizonHours));
+  const unique = deduplicateEdgeRecords(related, (row) => row.observationId || `${row.episodeId}:${row.horizonHours}:${row.observedAt}`);
+  const points = deduplicateEdgeRecords(unique.rows, (row) => `${row.episodeId}:${row.horizonHours}:${timestamp(row.observedAt)}`);
+  if (unique.conflicts.length || points.conflicts.length) return null;
+  return points.rows
     .filter((row) => {
       if (row.episodeId !== episode.episodeId || Number(row.horizonHours) !== Number(horizonHours)) return false;
-      const rowChain = normalizeChainId(row.chain);
-      const rowToken = normalizeTokenAddress(row.tokenAddress, rowChain);
-      const rowPool = row.poolAddress ? normalizePoolAddress(row.poolAddress, rowChain) : null;
+      const identity = canonicalEdgeIdentity(row);
       const observedMs = timestamp(row.observedAt);
-      const exactStatus = String(row.provenance?.verificationStatus || "").startsWith("EXACT_BASE_");
-      return rowChain === chain && rowToken === tokenAddress &&
-        (!poolAddress || rowPool === poolAddress) &&
+      const exactStatus = ["EXACT_BASE_TOKEN_POOL_MATCH", "EXACT_BASE_TOKEN_MATCH_POOL_CAPTURED"].includes(row.provenance?.verificationStatus);
+      return identity?.chain === chain && identity.tokenAddress === tokenAddress &&
+        (!poolAddress || identity.poolAddress === poolAddress) && edgeTimestampsValid(row, nowMs) &&
+        (!row.observationId || row.observationId === `${episode.episodeId}:${Number(horizonHours)}h`) &&
+        (row.targetAt === undefined || timestamp(row.targetAt) === targetMs) &&
+        (row.signalObservedAt === undefined || timestamp(row.signalObservedAt) === signalMs) &&
+        (row.role === undefined || row.role === episode.role) &&
+        (row.parentTreatmentEpisodeId === undefined || row.parentTreatmentEpisodeId === episode.parentTreatmentEpisodeId) &&
         observedMs >= targetMs && observedMs <= maximumMs &&
-        Number(row.priceUsd) > 0 && exactStatus;
+        (frozenMs === null || observedMs >= frozenMs) &&
+        (typeof row.priceUsd === "number" || typeof row.priceUsd === "string") &&
+        Number.isFinite(Number(row.priceUsd)) && Number(row.priceUsd) > 0 && exactStatus;
     })
     .sort((left, right) => timestamp(left.observedAt) - timestamp(right.observedAt))[0] || null;
 }
@@ -53,7 +60,7 @@ function horizonHealth(episodes = [], outcomes = [], horizonHours, nowMs) {
     if (!episode.episodeId || !signalMs) continue;
     const targetMs = signalMs + horizonHours * 3_600_000;
     const deadlineMs = targetMs + edgeEvidenceToleranceHours(horizonHours) * 3_600_000;
-    const outcome = findExactEdgeOutcome(episode, horizonHours, outcomes);
+    const outcome = findExactEdgeOutcome(episode, horizonHours, outcomes, { now: nowMs });
     let state = "NOT_DUE";
     if (outcome) state = "RESOLVED_EXACT";
     else if (nowMs >= targetMs && nowMs <= deadlineMs) state = "DUE_IN_COLLECTION_WINDOW";
@@ -79,12 +86,9 @@ function horizonHealth(episodes = [], outcomes = [], horizonHours, nowMs) {
 }
 
 export function buildEdgeEvidenceHealth(episodes = [], outcomes = [], options = {}) {
-  const now = new Date(options.now || Date.now()).toISOString();
-  const nowMs = timestamp(now);
-  const exactEpisodes = (Array.isArray(episodes) ? episodes : []).filter((episode) =>
-    episode?.episodeId && normalizeChainId(episode.chain) === "base" &&
-    normalizeTokenAddress(episode.tokenAddress, "base")
-  );
+  const nowMs = edgeAsOfMs(options), now = new Date(nowMs).toISOString();
+  const prepared = prepareEdgeEpisodes(episodes, { now: nowMs });
+  const exactEpisodes = prepared.episodes;
   const byHorizon = Object.fromEntries(EDGE_PRODUCTION_HORIZONS.map((hours) => [
     `${hours}h`,
     horizonHealth(exactEpisodes, outcomes, hours, nowMs),
@@ -100,6 +104,7 @@ export function buildEdgeEvidenceHealth(episodes = [], outcomes = [], options = 
   const minTerminalMatureOutcomes = Math.max(1, Number(options.minTerminalMatureOutcomes || 5));
   const minTerminalCoveragePct = Number(options.minTerminalCoveragePct || 75);
   const blockers = [];
+  if (prepared.integrity.conflictingEpisodeIds.length || prepared.integrity.invalidEpisodes) blockers.push("EPISODE_IDENTITY_OR_TIME_INTEGRITY_FAILURE");
   if (matureExpected >= minMatureOutcomes && overallCoveragePct < minCoveragePct) {
     blockers.push("OVERALL_EXACT_OUTCOME_COVERAGE_TOO_LOW");
   }
@@ -119,6 +124,7 @@ export function buildEdgeEvidenceHealth(episodes = [], outcomes = [], options = 
     generatedAt: now,
     state,
     exactBaseEpisodes: exactEpisodes.length,
+    integrity: prepared.integrity,
     treatments: exactEpisodes.filter((row) => row.role === "TREATMENT").length,
     controls: exactEpisodes.filter((row) => String(row.role).startsWith("CONTROL_")).length,
     matureExpected,

@@ -157,7 +157,7 @@ import { analyzeEngineDataReadinessBatch } from "./engines/engineDataReadinessEn
 import { analyzeDataStarvationRootCauseBatch } from "./engines/dataStarvationRootCauseEngine.js";
 import { analyzeValueOfInformationBatch } from "./engines/valueOfInformationEngine.js";
 import { analyzeStarvationRescueBatch } from "./engines/starvationRescueEngine.js";
-import { analyzeActiveEvidenceRecoveryBatch } from "./engines/activeEvidenceRecoveryEngine.js";
+import { analyzeActiveEvidenceRecoveryBatch, createActiveEvidenceRecoveryState, reserveExecutionRecoveryWindow } from "./engines/activeEvidenceRecoveryEngine.js";
 import { analyzeEarlyAsymmetryTriageBatch } from "./engines/earlyAsymmetryTriageEngine.js";
 import { analyzePreBreakoutSequenceBatch } from "./engines/preBreakoutSequenceEngine.js";
 import { analyzeAttentionGapV2Batch } from "./engines/attentionGapV2Engine.js";
@@ -246,19 +246,19 @@ export const FINAL_EVIDENCE_ENGINE_SEQUENCE = Object.freeze([
 ]);
 
 export const RECOVERY_ENGINE_EVIDENCE_FAMILIES = Object.freeze({
-  "Project Identity Graph": ["IDENTITY", "DEPLOYER"],
+  "Project Identity Graph": ["IDENTITY", "DEPLOYER", "WALLETS", "SECURITY"],
   "Source Truth": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Active Liquidity Truth": ["MARKET", "EXECUTION"],
-  "Organic Buyer Classifier": ["WALLETS", "MARKET"],
-  "Wallet Cluster": ["WALLETS"],
+  "Organic Buyer Classifier": ["WALLETS", "MARKET", "DEPLOYER"],
+  "Wallet Cluster": ["WALLETS", "MARKET", "DEPLOYER"],
   "Smart Wallet": ["WALLETS"],
   "Smart Wallet Performance": ["WALLETS"],
   "Smart Money Accumulation": ["WALLETS"],
   "Deployer Reputation": ["DEPLOYER"],
   "Bundled Launch": ["WALLETS", "DEPLOYER"],
-  "Wash Trading": ["WALLETS", "MARKET"],
-  "Organic Buyer Firewall": ["WALLETS", "MARKET"],
-  "Organic Demand Integrity": ["WALLETS", "MARKET"],
+  "Wash Trading": ["WALLETS", "MARKET", "DEPLOYER"],
+  "Organic Buyer Firewall": ["WALLETS", "MARKET", "DEPLOYER"],
+  "Organic Demand Integrity": ["WALLETS", "MARKET", "DEPLOYER"],
   "Instant Safety Gate": ["SECURITY", "DEPLOYER"],
   "Contract Authority Risk": ["SECURITY", "DEPLOYER"],
   "Liquidity Control Risk": ["MARKET", "SECURITY", "DEPLOYER"],
@@ -271,6 +271,8 @@ export const RECOVERY_ENGINE_EVIDENCE_FAMILIES = Object.freeze({
   "Sniper Evidence Families": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Sniper Integrity Gate": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
   "Opportunity Proof": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Research Readiness": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
+  "Utility Quality": ["IDENTITY", "MARKET", "WALLETS", "DEPLOYER", "SECURITY", "EXECUTION"],
 });
 
 export function shouldRerunEngineForEvidenceFamilies(name = "", families = []) {
@@ -278,6 +280,13 @@ export function shouldRerunEngineForEvidenceFamilies(name = "", families = []) {
   if (!dependencies) return true;
   const changed = new Set(Array.isArray(families) ? families : []);
   return dependencies.some((family) => changed.has(family));
+}
+
+export function shouldRerunEngineForRecoveredProject(name = "", project = {}) {
+  if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return false;
+  const families = project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
+    project.activeEvidenceRecovery?.changedEvidenceFamilies ?? [];
+  return Array.isArray(families) && families.length > 0 && shouldRerunEngineForEvidenceFamilies(name, families);
 }
 const PIPELINE_STAGE_ORDER = [
   "standard",
@@ -1159,6 +1168,9 @@ export async function runEngine(name, engine, projects, options = {}) {
       attachEngineDataContractAudit(normalized, preflight, postflight),
       record
     );
+    if (process.env.PIPELINE_ENGINE_TIMINGS === "true") {
+      console.log(`[Pipeline Timing] ${name}: ${Date.now() - startedAt}ms`);
+    }
     return nextProjects;
   } catch (error) {
     if (error.engineResult?.criticality === "REQUIRED") throw error;
@@ -2568,17 +2580,15 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
       stageContext
     );
   const runEngine = runPipelineEngine;
-  const runRecoveryEngine = async (name, engine, currentProjects, engineOptions = {}) => {
+  const runRecoveryEngine = async (name, engine, currentProjects, engineOptions = {}, recoveryOptions = {}) => {
     const selected = [];
     const positions = [];
     currentProjects.forEach((project, index) => {
-      const changedFamilies = project.activeEvidenceRecovery?.changedEvidenceFamilies || [];
-      const executionWaveSelected =
-        project.activeEvidenceRecovery?.waves?.includes("WAVE3") &&
-        RECOVERY_ENGINE_EVIDENCE_FAMILIES[name]?.includes("EXECUTION");
+      if (project.deepEvaluationState === "DEFERRED_BEFORE_DEEP") return;
+      const refreshQuotes = recoveryOptions.refreshQuotes === true &&
+        (project.executionProof?.buyQuoteVerified === true || project.executionProof?.sellQuoteVerified === true);
       if (
-        project.activeEvidenceRecovery?.waves?.length &&
-        (executionWaveSelected || shouldRerunEngineForEvidenceFamilies(name, changedFamilies))
+        shouldRerunEngineForRecoveredProject(name, project) || refreshQuotes
       ) {
         selected.push(project);
         positions.push(index);
@@ -2706,7 +2716,9 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Autonomous Alpha Investigator", analyzeAutonomousAlphaInvestigatorBatch, results);
 
   results = await runEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
-  results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
+  results = await runEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, {
+    ...(options.executionProofRecovery || {}), deferToActiveEvidence: true,
+  });
   results = await runEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
   results = await runEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
   results = await runEngine(
@@ -2804,8 +2816,19 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
   results = await runEngine("Value Of Information", analyzeValueOfInformationBatch, results, options.valueOfInformation || {});
   results = await runEngine("Identity Rescue", analyzeIdentityRescueBatch, results, options.identityRescue || {});
   results = await runEngine("Starvation Rescue", analyzeStarvationRescueBatch, results, options.starvationRescue || {});
-  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, options.activeEvidenceRecovery || {});
-  if (results.some((project) => project.activeEvidenceRecovery?.waves?.length)) {
+  const evidenceRecoveryOptions = {
+    ...(options.activeEvidenceRecovery || {}), executionRecovery: {
+      ...(options.executionProofRecovery || {}), ...(options.activeEvidenceRecovery?.executionRecovery || {}),
+    },
+  };
+  const evidenceExecutionState = evidenceRecoveryOptions.executionState || createActiveEvidenceRecoveryState(evidenceRecoveryOptions);
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+    ...evidenceRecoveryOptions, executionState: evidenceExecutionState, wave3Max: 0,
+    ...reserveExecutionRecoveryWindow(evidenceExecutionState, evidenceRecoveryOptions),
+  });
+  const rerunRecoveredInputs = async () => {
+    if (!results.some((project) => (project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase ??
+      project.activeEvidenceRecovery?.changedEvidenceFamilies ?? []).length)) return;
     results = await runRecoveryEngine("Project Identity Graph", analyzeProjectIdentityBatch, results);
     results = await runRecoveryEngine("Source Truth", analyzeSourceTruthBatch, results);
     results = await runRecoveryEngine("Active Liquidity Truth", analyzeActiveLiquidityTruthBatch, results);
@@ -2826,7 +2849,6 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     });
     results = await runRecoveryEngine("Liquidity Control Risk", analyzeLiquidityControlRiskBatch, results);
     results = await runRecoveryEngine("Canonical Execution Route", analyzeCanonicalExecutionRouteBatch, results, options.canonicalExecutionRoute || {});
-    results = await runRecoveryEngine("Execution Proof Recovery", analyzeExecutionProofRecoveryBatch, results, options.executionProofRecovery || {});
     results = await runRecoveryEngine("Execution Proof", analyzeExecutionProofBatch, results, options.executionProof || {});
     results = await runRecoveryEngine("Route Accessibility", analyzeRouteAccessibilityBatch, results, options.routeAccessibility || {});
     results = await runRecoveryEngine(
@@ -2839,7 +2861,8 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     results = await runRecoveryEngine("Sniper Evidence Families", analyzeSniperEvidenceFamiliesBatch, results);
     results = await runRecoveryEngine("Sniper Integrity Gate", analyzeSniperIntegrityGateBatch, results, options.sniperIntegrity || {});
     results = await runRecoveryEngine("Opportunity Proof", analyzeOpportunityProofBatch, results);
-  }
+  };
+  await rerunRecoveredInputs();
   results = await runEngine("Research Readiness", analyzeResearchReadinessBatch, results, options.researchReadiness || {});
   results = await runEngine("First Seen Opportunity", analyzeFirstSeenOpportunityBatch, results, {
     ...(options.firstSeenOpportunity || {}),
@@ -2867,6 +2890,25 @@ export async function runIntelligencePipeline(projects = [], options = {}) {
     options.candidateDecisionScoring || {}
   );
   results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  // Quotes are short-lived. Acquire them after the long research/learning pass,
+  // using the same request allowance, provider circuits and absolute deadline.
+  results = await runEngine("Active Evidence Recovery", analyzeActiveEvidenceRecoveryBatch, results, {
+    ...evidenceRecoveryOptions, executionState: evidenceExecutionState, resumeRecovery: true,
+    wave1Max: 0, wave2Max: 0,
+  });
+  await rerunRecoveredInputs();
+  if (results.some((project) => project.activeEvidenceRecovery?.changedEvidenceFamiliesThisPhase?.length)) {
+    results = await runRecoveryEngine("Research Readiness", analyzeResearchReadinessBatch, results,
+      options.researchReadiness || {}, {refreshQuotes: true});
+    results = await runRecoveryEngine("Utility Quality", analyzeUtilityQualityBatch, results, options.utilityQuality || {});
+    results = await runEngine("Progressive Opportunity Ranking", analyzeProgressiveOpportunityRankingBatch, results, options.progressiveOpportunityRanking || {});
+    results = await runEngine("Market Opportunity Rank", analyzeMarketOpportunityRankBatch, results, options.marketOpportunityRank || {});
+    results = await runEngine("7-Day Asymmetric Research", analyzeSevenDayTenXResearchBatch, results, options.sevenDayTenX || {});
+    results = await runEngine("Scalp Microstructure", analyzeScalpMicrostructureBatch, results, options.scalpMicrostructure || {});
+    results = await runEngine("High-Upside Scalp Classification", analyzeHighUpsideScalpClassificationBatch, results, options.highUpsideScalpClassification || {});
+    results = await runEngine("Candidate Decision Scoring", analyzeCandidateDecisionScoringBatch, results, options.candidateDecisionScoring || {});
+    results = await runEngine("Daily Capital Move", analyzeDailyCapitalMoveBatch, results, options.dailyCapitalMove || {});
+  }
   results = markDeepEvaluationComplete(results, stageContext);
   results = await runEngine("Engine Data Readiness", analyzeEngineDataReadinessBatch, results, {
     ...(options.engineDataReadiness || {}),

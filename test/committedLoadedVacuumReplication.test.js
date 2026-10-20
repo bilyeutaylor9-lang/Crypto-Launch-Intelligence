@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { baseMarketFixtureIdentity } from "./helpers/baseMarketFixtureIdentity.js";
 
 import { armCommittedLoadedVacuumReplicationPlan, loadCommittedLoadedVacuumReplicationPlan, replicationSpecHash, REPLICATION_SPEC } from "../src/learning/committedLoadedVacuumReplicationPlanStore.js";
 import { buildCommittedLoadedVacuumReplication, __committedLoadedVacuumReplicationHooks } from "../src/learning/committedLoadedVacuumReplicationLab.js";
@@ -12,7 +13,7 @@ function obs(id, day, overrides = {}) {
   return {
     schemaVersion: 2,
     signalDefinitionVersion: REPLICATION_SPEC.signalDefinitionVersion,
-    identityKey: `base:${id}`,
+    ...baseMarketFixtureIdentity(id),
     observedAt: at(day),
     scanRunId: `scan-${day}`,
     codeCommitSha: "abc",
@@ -104,7 +105,7 @@ test("confirmation excludes all observations at or before the frozen cutoff", ()
   const p = plan(at(5));
   const rows = [obs("before", 4), obs("same", 5), obs("after", 6)];
   const confirmation = __committedLoadedVacuumReplicationHooks.confirmationRows(p, rows);
-  assert.deepEqual(confirmation.map((r) => r.identityKey), ["base:after"]);
+  assert.deepEqual(confirmation.map((r) => r.identityKey), [baseMarketFixtureIdentity("after").identityKey]);
 });
 
 test("confirmation fails closed on a different signal-definition version", () => {

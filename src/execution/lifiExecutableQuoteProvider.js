@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { createProviderRequestAdmission, PROVIDER_REQUEST_ADMISSION } from "./providerRequestAdmission.js";
 
 import { SUPPORTED_CHAIN_REGISTRY } from "../data/chainAliasRegistry.js";
 import {
@@ -33,9 +34,20 @@ function text(value = "") {
 }
 
 function finite(value) {
-  if (value === null || value === undefined || value === "") return null;
-  const number = Number(value);
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value !== "string") return null;
+  const decimal = value.trim();
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(decimal)) return null;
+  const number = Number(decimal);
+  // A positive/negative decimal that underflows is unknown, not an observed zero.
+  if (number === 0 && /[1-9]/.test(decimal.split(/e/i)[0])) return null;
   return Number.isFinite(number) ? number : null;
+}
+
+function atomicUnits(value) {
+  if (typeof value !== "string" || !/^\d{1,78}$/.test(value)) return null;
+  const units = BigInt(value);
+  return units < 2n ** 256n ? units : null;
 }
 
 function sha256(value) {
@@ -50,9 +62,9 @@ function currentDate(options = {}) {
 
 function decimalFromAtomic(value, decimals) {
   try {
-    const units = BigInt(String(value));
-    const places = Number(decimals);
-    if (!Number.isInteger(places) || places < 0 || places > 36 || units < 0n) return null;
+    const units = atomicUnits(value);
+    const places = finite(decimals);
+    if (units === null || places === null || !Number.isInteger(places) || places < 0 || places > 36) return null;
     const scale = 10n ** BigInt(places);
     const whole = units / scale;
     const remainder = (units % scale).toString().padStart(places, "0").replace(/0+$/, "");
@@ -65,12 +77,13 @@ function decimalFromAtomic(value, decimals) {
 
 function atomicFromDecimal(value, decimals) {
   const number = finite(value);
-  const places = Number(decimals);
+  const places = finite(decimals);
   if (number === null || number <= 0 || !Number.isInteger(places) || places < 0 || places > 36) return null;
   const fixed = number.toFixed(places);
   const [whole, fraction = ""] = fixed.split(".");
   try {
-    return String(BigInt(whole) * 10n ** BigInt(places) + BigInt(fraction.padEnd(places, "0") || "0"));
+    const units = BigInt(whole) * 10n ** BigInt(places) + BigInt(fraction.padEnd(places, "0") || "0");
+    return units > 0n && units < 2n ** 256n ? units.toString() : null;
   } catch {
     return null;
   }
@@ -88,7 +101,7 @@ function nonNegativeBps(inputUsd, outputUsd, gasUsd = 0) {
   const input = finite(inputUsd);
   const output = finite(outputUsd);
   const gas = finite(gasUsd);
-  if (input === null || input <= 0 || output === null || gas === null || gas < 0) return null;
+  if (input === null || input <= 0 || output === null || output < 0 || gas === null || gas < 0) return null;
   const bps = ((input - (output - gas)) / input) * 10_000;
   return Number.isFinite(bps) && bps >= 0 ? Number(bps.toFixed(3)) : null;
 }
@@ -168,17 +181,24 @@ function consumeKeylessBudget(options = {}) {
     throw error;
   }
   budget.requests += 1;
+  const reservationWindow = budget.windowStartedAtMs;
+  return () => {
+    // An executor can explicitly reject before dispatch; an older window cannot debit the current one.
+    if (budget.windowStartedAtMs === reservationWindow && budget.requests > 0) budget.requests -= 1;
+  };
 }
 
 export async function fetchLiFiJson(url, options = {}) {
   if (options.signal?.aborted) throw new Error("LI.FI request aborted before start.");
-  consumeKeylessBudget(options);
+  const admission = createProviderRequestAdmission(consumeKeylessBudget(options));
   const controller = new AbortController();
   const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
   const timeout = setTimeout(() => controller.abort(), Math.max(500, Number(options.timeoutMs || 8_000)));
   try {
     if (options.fetchJson) return await options.fetchJson(url, { headers: options.headers || {},
-      adapter: options.adapter || "lifi-keyless-forward", timeoutMs: options.timeoutMs, signal });
+      adapter: options.adapter || "lifi-keyless-forward", timeoutMs: options.timeoutMs, signal,
+      [PROVIDER_REQUEST_ADMISSION]: admission });
+    admission.markDispatched();
     const response = await (options.fetchImpl || fetch)(url, {
       headers: options.headers || {},
       signal,
@@ -277,14 +297,16 @@ export function verifyActionIdentity(payload = {}, expected = {}) {
   } else if (fromToken.address !== expected.tokenAddress || toToken.address !== expected.quoteTokenAddress) {
     throw new Error("LI.FI SELL quote response identity does not match the requested contracts.");
   }
-  if (expected.fromAmount !== undefined && (!/^\d+$/.test(String(action.fromAmount ?? "")) ||
-    BigInt(action.fromAmount) !== BigInt(expected.fromAmount))) {
+  const requestedAmount = expected.fromAmount === undefined ? undefined : atomicUnits(expected.fromAmount);
+  const actionAmount = atomicUnits(action.fromAmount);
+  if (actionAmount === null || (requestedAmount !== undefined && (requestedAmount === null || actionAmount !== requestedAmount))) {
     throw new Error("LI.FI quote input amount does not match the requested size.");
   }
-  if (expected.fromAmount !== undefined && payload.estimate?.fromAmount !== undefined &&
-    (!/^\d+$/.test(String(payload.estimate.fromAmount)) || BigInt(payload.estimate.fromAmount) !== BigInt(expected.fromAmount))) {
+  if (payload.estimate?.fromAmount !== undefined &&
+    (atomicUnits(payload.estimate.fromAmount) === null || atomicUnits(payload.estimate.fromAmount) !== actionAmount)) {
     throw new Error("LI.FI estimate input amount contradicts the requested size.");
   }
+  if (atomicUnits(payload.estimate?.toAmount) === null) throw new Error("LI.FI output amount is not a verified atomic quantity.");
   return { fromToken, toToken };
 }
 

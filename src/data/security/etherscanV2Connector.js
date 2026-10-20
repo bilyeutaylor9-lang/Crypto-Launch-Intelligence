@@ -243,7 +243,7 @@ export function normalizeEtherscanV2SecurityEvidence(raw = {}, meta = {}) {
     blacklistRisk: false,
     highTaxRisk: false,
     malicious: false,
-    honeypot: false,
+    honeypot: null,
     riskFindings,
     warnings,
     confidence,

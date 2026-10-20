@@ -1,12 +1,30 @@
 import fs from "fs";
 import path from "path";
+import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";
+import { REPORT_DECISION_SCALAR_FIELDS } from "./reportPayloadCompactor.js";
 
 const DEFAULT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = 32_000_000;
 const DEFAULT_MAX_PROJECT_PAYLOAD_CHARS = 64_000;
 const DEFAULT_MIN_PROJECT_PAYLOAD_CHARS = 2_048;
 const STREAM_COPY_BUFFER_BYTES = 64 * 1024;
 
+// Recovery receipts must survive the final bounded serialization pass. They
+// remain subject to its existing node, depth, array, string, and byte limits.
+const RECOVERED_OBSERVATION_FIELDS = Object.freeze([
+  "nativeLifecycle",
+  "wallets",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "fieldProvenance",
+]);
+
 const REPORT_PRIORITY_FIELDS = [
+  ...REPORT_DECISION_SCALAR_FIELDS,
+  "signalProfile",
+  "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
+  ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
+  "legacyFinalBlockingReasons", "legacyFinalWarningReasons", "legacyFinalSelectionReasons", "finalSelectionReasons",
+  ...RECOVERED_OBSERVATION_FIELDS,
   "name",
   "symbol",
   "chain",
@@ -22,7 +40,34 @@ const REPORT_PRIORITY_FIELDS = [
   "finalIntegrityVerdict",
   "finalBlockingReasons",
   "finalWarningReasons",
+  "pipelineScore",
+  "guardedLiveScore",
+  "liveExecutionReady",
+  "deepEvaluationState",
+  "coreEvidenceState",
+  "coreEvidenceCoveragePct",
+  "advisoryEvidenceCoveragePct",
+  "coreDataStarved",
+  "executionProof",
+  "canonicalExecutionRoute",
+  "solanaMintAccountEvidence",
+  "executionProofRecoveryRoute",
+  "solanaRpcWalletEvidence",
+  "rpcWalletEvidence",
+  "blockscoutWalletEvidence",
+  "wallets",
+  "holderAddresses",
+  "holderBalanceEvidence",
+  "walletTransactions",
+  "walletParticipationHistory",
+  "securityEvidence",
+  "securityEvidenceSummary",
+  "fieldProvenance",
+  "canonicalAliasProvenance",
+  "activeEvidenceRecoveryStatus",
+  "activeEvidenceRecovery",
   "finalIdentityState",
+  "identityVerificationScope",
   "identityVerified",
   "contractVerified",
   "chainVerified",
@@ -207,18 +252,34 @@ function boundedNumber(value) {
   return Number.isFinite(value) ? value : String(value);
 }
 
-function prioritizedKeys(value, maxKeys, topLevel = false) {
+function prioritizedKeys(value, maxKeys, topLevel = false, parentKey = "") {
   const keys = Object.keys(value);
-  if (!topLevel) return keys.slice(0, maxKeys);
+  if (!topLevel) {
+    if (parentKey === "fieldProvenance") {
+      const priority = RECOVERED_OBSERVATION_FIELDS
+        .filter((key) => Object.hasOwn(value, key));
+      return [...priority, ...keys.filter((key) => !priority.includes(key))].slice(0, maxKeys);
+    }
+    if (parentKey === "signalProfile" && Object.hasOwn(value, "risk")) {
+      return ["risk", ...keys.filter((key) => key !== "risk")].slice(0, maxKeys);
+    }
+    return (Object.hasOwn(value, "batchSummary")
+      ? ["batchSummary", ...keys.filter((key) => key !== "batchSummary")]
+      : keys).slice(0, maxKeys);
+  }
 
-  const priority = REPORT_PRIORITY_FIELDS.filter((key) => Object.hasOwn(value, key));
+  const priority = [...new Set(REPORT_PRIORITY_FIELDS)].filter((key) => Object.hasOwn(value, key));
   const remaining = keys.filter((key) => !priority.includes(key));
   return [...priority, ...remaining].slice(0, maxKeys);
 }
 
-function compactValue(value, state, depth = 0, topLevel = false) {
+function compactValue(value, state, depth = 0, topLevel = false, parentKey = "") {
   if (value === null || value === undefined) return value ?? null;
   if (typeof value === "string") {
+    // Retain loss accounting from the earlier bounded project projection.
+    if (state.sourceCompacted && (value === "[nested data omitted from report]" ||
+        value === "[repeated data omitted from report]" || value.endsWith("[truncated for report]") ||
+        /^\[\d+ additional items omitted from report\]$/.test(value))) state.truncated = true;
     const available = Math.max(0, state.remainingChars);
     if (value.length <= available) {
       state.remainingChars -= value.length;
@@ -263,9 +324,9 @@ function compactValue(value, state, depth = 0, topLevel = false) {
 
   const output = {};
   const maxKeys = topLevel ? state.maxTopLevelKeys : state.maxObjectKeys;
-  const keys = prioritizedKeys(value, maxKeys, topLevel);
+  const keys = prioritizedKeys(value, maxKeys, topLevel, parentKey);
   for (const key of keys) {
-    output[key] = compactValue(value[key], state, depth + 1);
+    output[key] = compactValue(value[key], state, depth + 1, false, key);
     if (state.remainingChars <= 0 || state.remainingNodes <= 0) break;
   }
   if (Object.keys(value).length > keys.length) state.truncated = true;
@@ -274,6 +335,7 @@ function compactValue(value, state, depth = 0, topLevel = false) {
 
 function compactProject(project, budgetChars) {
   const state = {
+    sourceCompacted: project?.reportCompaction?.mode === "bounded-project",
     remainingChars: budgetChars,
     remainingNodes: Math.max(80, Math.floor(budgetChars / 50)),
     maxDepth: 5,

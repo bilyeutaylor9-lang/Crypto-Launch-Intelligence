@@ -5,7 +5,8 @@ on:
 
 concurrency:
   group: live-dashboard-scan-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
@@ -26,11 +27,22 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: '^24.22.0'
+          check-latest: true
           cache: npm
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Restore Remote Operational Circuit
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-
 
       - name: Run Intelligence Scanner
         run: npm run scan:free-max
@@ -166,6 +178,14 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: docs
+
+      - name: Save Remote Operational Circuit
+        if: ${{ always() && hashFiles('data/remote-operational-circuits.json') != '' }}
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: data/remote-operational-circuits.json
+          key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
   deploy-pages:
     environment:

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { baseMarketFixtureIdentity } from "./helpers/baseMarketFixtureIdentity.js";
 
 import { buildCommittedLoadedVacuumObservation, appendCommittedLoadedVacuumObservations, loadCommittedLoadedVacuumObservations } from "../src/learning/committedLoadedVacuumObservationStore.js";
 import { selectMatchedControls, __matchedControlHooks } from "../src/learning/matchedControlSelector.js";
@@ -10,7 +11,7 @@ import { buildCommittedLoadedVacuumValidation, resolveValidationOutcome, __commi
 
 function obs(id, hour, overrides = {}) {
   return {
-    identityKey: `base:${id}`,
+    ...baseMarketFixtureIdentity(id),
     observedAt: new Date(Date.UTC(2026, 0, 1, hour)).toISOString(),
     scanRunId: `scan-${hour}`,
     codeCommitSha: "abc",
@@ -33,7 +34,7 @@ function obs(id, hour, overrides = {}) {
   };
 }
 function snap(key, hour, price) {
-  return { key, timestamp: new Date(Date.UTC(2026, 0, 1, hour)).toISOString(), priceUsd: price };
+  return { key: baseMarketFixtureIdentity(key).identityKey, timestamp: new Date(Date.UTC(2026, 0, 1, hour)).toISOString(), priceUsd: price };
 }
 
 test("observation freezes v10 arrival and supply state without production influence", () => {
@@ -60,7 +61,7 @@ test("control matcher never uses a future control observation", () => {
   const future = obs("future", 6);
   const past = obs("past", 4);
   const controls = selectMatchedControls(treated, [future, past]);
-  assert.deepEqual(controls.map((x) => x.identityKey), ["base:past"]);
+  assert.deepEqual(controls.map((x) => x.identityKey), [baseMarketFixtureIdentity("past").identityKey]);
 });
 
 test("control matcher refuses cross-code-version matching by default", () => {
@@ -74,7 +75,7 @@ test("control matcher prefers supply-vacuum near misses", () => {
   const vacuum = obs("v", 4, { supplyVacuumSupported: true, productionScore: 60 });
   const noVacuum = obs("n", 4, { supplyVacuumSupported: false, productionScore: 72 });
   const controls = selectMatchedControls(treated, [noVacuum, vacuum], { maxControls: 1 });
-  assert.equal(controls[0].identityKey, "base:v");
+  assert.equal(controls[0].identityKey, baseMarketFixtureIdentity("v").identityKey);
 });
 
 test("matching distance is smaller for closer pre-signal market covariates", () => {

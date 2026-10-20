@@ -15,6 +15,7 @@ import {
 } from "../src/engines/activeEvidenceRecoveryEngine.js";
 import {
   createActiveEvidenceExecutionState,
+  resolveActiveEvidenceRequestBudget,
   executeActiveEvidenceProviderRequests,
 } from "../src/data/activeEvidenceProviderExecutor.js";
 import {
@@ -22,10 +23,12 @@ import {
 } from "../src/data/blockscoutWalletConnector.js";
 import { analyzeSmartWallets } from "../src/engines/smartWalletEngine.js";
 import { fieldApplicability } from "../src/engines/dataStarvationRootCauseEngine.js";
-import { summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
+import { hasVerifiedExecutionRoute, summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
+import { buildQualificationFailureMicroscope } from "../src/diagnostics/qualificationFailureMicroscope.js";
 import { emptyExecutionLabel } from "../src/reports/githubPagesPublisher.js";
 import { buildScannerSemanticHealth } from "../src/index.js";
 import { getBlockscoutDeployerEvidence } from "../src/data/security/blockscoutConnector.js";
+import { decisionCompleteProject } from "./fixtures/decisionCompleteProject.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -64,7 +67,7 @@ test("persistent creator cache cannot override exact identity or legacy proof re
   }
 });
 
-test("recovery deadline retains completed proof and reports unattempted evidence unknown", async () => {
+test("recovery deadline rejects late proof and reports unattempted evidence unknown", async () => {
   let now = 0;
   let calls = 0;
   const projects = [TOKEN, POOL].map((tokenAddress) => ({
@@ -80,12 +83,31 @@ test("recovery deadline retains completed proof and reports unattempted evidence
     } },
   });
   assert.equal(calls, 1);
-  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[0].creatorAddress, undefined);
+  assert.ok(result[0].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
   assert.equal(result[1].creatorAddress, undefined);
   assert.ok(result[1].activeEvidenceRecovery.providerAttempts.some((item) => item.status === "TIME_BUDGET_EXHAUSTED"));
   assert.equal(result[1].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
   assert.ok(result[1].activeEvidenceRecovery.unrecoveredFields.includes("creatorAddress"));
   assert.equal(result[1].activeEvidenceRecovery.batchSummary.deepEvaluatedCandidates, 2);
+});
+
+test("proof completed within the deadline survives when a later request exhausts the same window", async () => {
+  let now = 0, calls = 0;
+  const projects = [TOKEN, POOL, CREATOR].map(tokenAddress => ({ chain: "base", tokenAddress,
+    targetedEnrichmentPlan: { items: [{ canonicalField: "creatorAddress", recoverable: true }] } }));
+  const result = await analyzeActiveEvidenceRecoveryBatch(projects, { now: () => now, timeBudgetMs: 10,
+    concurrency: 1, providers: { getDeployerEvidence: async project => {
+      calls++;
+      now = calls === 1 ? 9 : 11;
+      return { chain: project.chain, address: project.tokenAddress, creatorAddress: CREATOR };
+    } } });
+  assert.equal(calls, 2);
+  assert.equal(result[0].creatorAddress, CREATOR);
+  assert.equal(result[1].creatorAddress, undefined);
+  assert.equal(result[2].creatorAddress, undefined);
+  assert.equal(result[2].activeEvidenceRecovery.batchSummary.timeBudgetExceeded, true);
+  assert.ok(result[2].activeEvidenceRecovery.providerAttempts.some(item => item.status === "TIME_BUDGET_EXHAUSTED"));
 });
 
 function request(field, source) {
@@ -567,18 +589,19 @@ test("active recovery invokes the wallet provider path", async () => {
   let calls = 0;
   const result = await executeActiveEvidenceProviderRequests(
     { chain: "base", tokenAddress: TOKEN, poolAddress: POOL },
-    [request("uniqueBuyers24h", "block explorers")],
+    [request("wallets", "block explorers")],
     {
+      walletHistory: false,
       providers: {
         getWalletEvidence: async () => {
           calls += 1;
-          return { status: "EVIDENCE_AVAILABLE", uniqueBuyers24h: 3, observedAt: "2026-08-12T00:00:00.000Z", exactPoolIdentity: true, poolAddress: POOL };
+          return { status: "EVIDENCE_AVAILABLE", wallets: [BUYER], observedAt: "2026-08-12T00:00:00.000Z", exactPoolIdentity: true, poolAddress: POOL };
         },
       },
     }
   );
   assert.equal(calls, 1);
-  assert.equal(result.observations[0].value, 3);
+  assert.deepEqual(result.observations.find((item) => item.field === "wallets")?.value, [BUYER]);
 });
 
 test("derived fields are never sent to external providers", async () => {
@@ -682,7 +705,7 @@ test("wave 2 only includes the configured top value-of-information candidates", 
     symbol: `W${index}`,
     valueOfInformationScore: index,
     targetedEnrichmentPlan: {
-      items: [{ canonicalField: "uniqueBuyers24h", recoverable: true, valueOfInformationScore: index, targetSources: [{ source: "block explorers" }] }],
+      items: [{ canonicalField: "wallets", recoverable: true, valueOfInformationScore: index, targetSources: [{ source: "block explorers" }] }],
     },
   }));
   const result = buildActiveEvidenceRecoveryWaves(candidates, { wave2Max: 2 });
@@ -727,6 +750,7 @@ test("candidate field limits preserve core creator recovery ahead of advisory ma
 test("wave 3 only includes the configured top execution candidates", () => {
   const candidates = Array.from({ length: 5 }, (_, index) => ({
     symbol: `E${index}`,
+    chain: "base", tokenAddress: TOKEN, poolAddress: POOL,
     preliminaryOpportunityScore: index * 10,
     targetedEnrichmentPlan: {
       items: [{ canonicalField: "purchaseRouteConfirmed", recoverable: true, valueOfInformationScore: 1, targetSources: [{ source: "Jupiter" }] }],
@@ -745,6 +769,61 @@ test("provider request budget is enforced", async () => {
   const second = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN }, [request("poolAddress", "DexScreener")], options, state);
   assert.equal(calls, 1);
   assert.equal(second.attempts[0].status, "REQUEST_BUDGET_EXHAUSTED");
+});
+
+test("zero and invalid provider budgets fail closed rather than enabling default or unlimited requests", async () => {
+  for (const budget of [0, -1, NaN, Infinity, "invalid", "", false, {}, [], Number.MAX_SAFE_INTEGER + 1]) {
+    let calls = 0;
+    const state = createActiveEvidenceExecutionState({ maxProviderRequests: budget, maxRequests: 10 });
+    assert.equal(state.maxRequests, 0);
+    const result = await executeActiveEvidenceProviderRequests({ chain: "base", tokenAddress: TOKEN },
+      [request("poolAddress", "DexScreener")],
+      { providers: { getTokenPairs: async () => { calls++; return []; } } }, state);
+    assert.equal(calls, 0);
+    assert.equal(state.requestsUsed, 0);
+    assert.equal(result.attempts[0].status, "REQUEST_BUDGET_EXHAUSTED");
+  }
+  assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: "2" }), 2);
+  assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: 1.9 }), 1);
+});
+
+test("batch recovery preserves a zero request budget and unsuccessful diagnostics", async () => {
+  let calls = 0;
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([{
+    chain: "base", tokenAddress: TOKEN, deepEvaluationState: "DEEP_EVALUATED",
+    targetedEnrichmentPlan: { items: [{ field: "poolAddress", canonicalField: "poolAddress", recoverable: true,
+      targetSources: [{ source: "DexScreener" }] }] },
+  }], { maxProviderRequests: 0, providers: { getTokenPairs: async () => { calls++; return []; } } });
+  assert.equal(calls, 0);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestBudget, 0);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 0);
+  assert.equal(result.activeEvidenceRecoveryStatus, "NO_RECOVERY");
+  assert.ok(result.activeEvidenceRecovery.providerAttempts.some((attempt) => attempt.status === "REQUEST_BUDGET_EXHAUSTED"));
+});
+
+test("provider budgets preserve legacy environment aliases and explicit option precedence", () => {
+  const names = ["ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS", "ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS",
+    "ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS"];
+  const previous = names.map((name) => process.env[name]);
+  try {
+    for (const name of names) delete process.env[name];
+    assert.equal(resolveActiveEvidenceRequestBudget({}, 2000), 2000);
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_REQUESTS = "9";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 9);
+    process.env.ACTIVE_EVIDENCE_RECOVERY_MAX_PROVIDER_REQUESTS = "3";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 3);
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS = "0";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 0);
+    assert.equal(resolveActiveEvidenceRequestBudget({ maxRequests: 2 }), 2);
+    assert.equal(resolveActiveEvidenceRequestBudget({ maxProviderRequests: 0, maxRequests: 2 }), 0);
+    process.env.ACTIVE_EVIDENCE_MAX_PROVIDER_REQUESTS = "invalid";
+    assert.equal(resolveActiveEvidenceRequestBudget(), 0);
+  } finally {
+    names.forEach((name, index) => {
+      if (previous[index] === undefined) delete process.env[name];
+      else process.env[name] = previous[index];
+    });
+  }
 });
 
 test("provider circuit breaker opens after repeated failures", async () => {
@@ -796,7 +875,8 @@ test("provider circuit breakers are isolated by chain", async () => {
 
 test("recovered evidence triggers only dependent engine reruns", () => {
   assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["WALLETS"]), true);
-  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["MARKET"]), false);
+  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["MARKET"]), true);
+  assert.equal(shouldRerunEngineForEvidenceFamilies("Wallet Cluster", ["EXECUTION"]), false);
   assert.equal(shouldRerunEngineForEvidenceFamilies("Active Liquidity Truth", ["MARKET"]), true);
 });
 
@@ -809,6 +889,23 @@ test("deferred candidates are excluded from recovery and starvation denominators
   assert.equal(summary.deepDeferred, 1);
   assert.equal(summary.deepEvaluated, 1);
   assert.equal(summary.coreDataStarved, 0);
+});
+
+test("current partial execution proof prevents stale flags from inflating verified routes", () => {
+  const project = {
+    chain: "base", tokenAddress: TOKEN, deepEvaluationState: "DEEP_EVALUATED",
+    liveExecutionReady: true, executionReady: true, executionProofVerified: true,
+    routeTruthStatus: "LIVE_EXECUTION_READY",
+    executionProof: { routeTruthStatus: "ORDER_BOOK_DEPTH_VERIFIED", liveExecutionReady: false },
+  };
+  assert.equal(hasVerifiedExecutionRoute(project), false);
+  assert.equal(summarizeEvidenceFunnel([project]).verifiedRoutes, 0);
+  assert.equal(buildQualificationFailureMicroscope([project]).verifiedRouteCandidates, 0);
+  const verified = { ...decisionCompleteProject(), liveExecutionReady: false };
+  assert.equal(hasVerifiedExecutionRoute(verified), true);
+  assert.equal(summarizeEvidenceFunnel([verified]).verifiedRoutes, 1);
+  assert.equal(buildQualificationFailureMicroscope([verified]).verifiedRouteCandidates, 1);
+  assert.equal(hasVerifiedExecutionRoute({ liveExecutionReady: true }), true);
 });
 
 test("dashboard funnel cannot double-count deferred candidates as needing recovery", () => {
@@ -878,6 +975,7 @@ test("readiness summary excludes deferred candidates from all deep counters", ()
 
 test("healthy core evidence with no qualified token returns NO_EDGE_FOUND", () => {
   const health = buildScannerSemanticHealth([{
+    ...decisionCompleteProject(),
     deepEvaluationState: "DEEP_EVALUATED",
     engineDataReadinessStatus: "CORE_READY",
     coreEvidenceCoveragePct: 92,
@@ -889,7 +987,7 @@ test("healthy core evidence with no qualified token returns NO_EDGE_FOUND", () =
   assert.equal(health.healthyCoreEvidence, true);
 });
 
-test("Blockscout wallet transfers become buys only with exact pool identity", () => {
+test("exact pool identity identifies token movement but does not prove a buy", () => {
   const transfer = {
     token: { address_hash: TOKEN, decimals: 0 },
     from: { hash: POOL },
@@ -907,8 +1005,11 @@ test("Blockscout wallet transfers become buys only with exact pool identity", ()
     { priceUsd: 2 },
     { tokenAddress: TOKEN, now: new Date("2026-08-12T01:00:00.000Z") }
   );
-  assert.equal(exact.uniqueBuyers24h, 1);
-  assert.equal(exact.buyVolumeUsd, 10);
+  assert.equal(exact.uniqueBuyers24h, null);
+  assert.equal(exact.walletTransactions[0].direction, "TRANSFER");
+  assert.equal(exact.walletTransactions[0].poolMovement, "POOL_OUTFLOW");
+  assert.equal(exact.buyVolumeUsd, null);
+  assert.equal(exact.walletTransactions[0].estimatedCurrentValueUsd, 10);
   assert.equal(unknownPool.uniqueBuyers24h, null);
   assert.equal(unknownPool.walletTransactions[0].direction, "TRANSFER");
 });

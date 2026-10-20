@@ -1,6 +1,8 @@
 import fs from "fs";
 import os from "node:os";
 import path from "path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { ENGINE_REGISTRY } from "./engines/engineRegistry.js";
 import { getEngineContracts } from "./kernel/engineContractManifest.js";
 import { writeWholeEngineAuditReports } from "./reports/wholeEngineAuditReportEngine.js";
@@ -774,7 +776,12 @@ export function buildEngineHealthReport(results = []) {
   };
 }
 
-export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
+// Low-level fixture executor; production callers use the isolated public entry below.
+export async function runEngineFixtureAudit(sampleProject = {}, options = {}) {
+  const workerRoot = process.env.ENGINE_AUDIT_WORKER_ROOT;
+  if (!workerRoot || fs.realpathSync(workerRoot) !== fs.realpathSync(process.cwd())) {
+    throw new Error("Fixture execution requires an isolated audit worker directory.");
+  }
   const files = fs.readdirSync(ENGINE_DIR).filter((file) => file.endsWith("Engine.js")).sort();
   const contractsByModule = new Map(getEngineContracts().map((contract) => [moduleFileFor(contract), contract]));
   const pipelineUsageByModule = new Map();
@@ -863,33 +870,38 @@ export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
   return results;
 }
 
-function snapshotAuditDataDirectory() {
-  const dataDir = path.resolve("data");
-  const backupRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cli-engine-audit-data-"));
-  const backupDir = path.join(backupRoot, "data");
-  const existed = fs.existsSync(dataDir);
-  if (existed) fs.cpSync(dataDir, backupDir, { recursive: true });
-  return { dataDir, backupRoot, backupDir, existed };
-}
-
-function restoreAuditDataDirectory(snapshot) {
-  if (fs.existsSync(snapshot.dataDir)) fs.rmSync(snapshot.dataDir, { recursive: true, force: true });
-  if (snapshot.existed) fs.cpSync(snapshot.backupDir, snapshot.dataDir, { recursive: true });
-  fs.rmSync(snapshot.backupRoot, { recursive: true, force: true });
+export async function runEngineHealthCheck(sampleProject = {}, options = {}) {
+  const auditRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cli-engine-audit-worker-"));
+  let payload;
+  let worker;
+  let completed = false;
+  try {
+    // A fresh process must import engines after entering isolation: many capture paths at import time.
+    fs.symlinkSync(path.dirname(fileURLToPath(import.meta.url)), path.join(auditRoot, "src"), "dir");
+    fs.writeFileSync(path.join(auditRoot, "engine-audit-input.json"), JSON.stringify({ sampleProject, options }));
+    worker = spawnSync(process.execPath, [fileURLToPath(new URL("./ops/engineAuditWorker.js", import.meta.url))], {
+      cwd: auditRoot, env: { ...process.env, ENGINE_AUDIT_MODE: "true", ENGINE_AUDIT_WORKER_ROOT: auditRoot },
+      stdio: "inherit", timeout: 120_000,
+    });
+    if (worker.error) throw worker.error;
+    const resultFile = path.join(auditRoot, "engine-audit-result.json");
+    if (!fs.existsSync(resultFile)) throw new Error(`Audit worker exited without a result (status ${worker.status}).`);
+    payload = JSON.parse(fs.readFileSync(resultFile, "utf8"));
+    if (!Array.isArray(payload.results) || payload.results.length === 0 ||
+        (worker.status !== 0 && !payload.results.some((result) => result.status === "FAIL"))) {
+      throw new Error("Audit worker returned an invalid result shape.");
+    }
+    completed = true;
+  } catch (error) {
+    throw new Error(`Engine audit isolation failed; diagnostics retained at ${auditRoot}: ${error.message}`, { cause: error });
+  } finally {
+    if (completed) fs.rmSync(auditRoot, { recursive: true, force: true });
+  }
+  return payload.results;
 }
 
 if (process.argv[1]?.includes("engineHealthCheck.js")) {
-  const auditDataSnapshot = snapshotAuditDataDirectory();
-  const previousAuditMode = process.env.ENGINE_AUDIT_MODE;
-  let results;
-  try {
-    process.env.ENGINE_AUDIT_MODE = "true";
-    results = await runEngineHealthCheck({}, { executePipelineActive: process.argv.includes("--full") });
-  } finally {
-    restoreAuditDataDirectory(auditDataSnapshot);
-    if (previousAuditMode === undefined) delete process.env.ENGINE_AUDIT_MODE;
-    else process.env.ENGINE_AUDIT_MODE = previousAuditMode;
-  }
+  const results = await runEngineHealthCheck({}, { executePipelineActive: process.argv.includes("--full") });
   const report = buildEngineHealthReport(results);
   const reportsDir = path.resolve("reports");
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -921,6 +933,6 @@ if (process.argv[1]?.includes("engineHealthCheck.js")) {
 
   if (failed.length > 0) {
     console.log(`\n${failed.length} engine checks failed.`);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }

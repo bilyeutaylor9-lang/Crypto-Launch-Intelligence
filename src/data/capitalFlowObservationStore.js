@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { normalizeCapitalFlowObservations } from "./capitalFlowNormalizer.js";
+import { normalizeCapitalFlowHistoryIdentity, normalizeCapitalFlowObservations } from "./capitalFlowNormalizer.js";
 import { createStorageAdapter } from "../db/storageAdapter.js";
 
 const DATA_DIR = path.resolve("data");
@@ -136,7 +136,7 @@ export function loadCapitalFlowObservations(options = {}) {
     .slice(-limit)
     .flatMap((line) => {
       try {
-        const parsed = JSON.parse(line);
+        const parsed = normalizeCapitalFlowHistoryIdentity(JSON.parse(line));
         if (projectId && parsed.canonicalProjectId !== projectId) return [];
         return [parsed];
       } catch {

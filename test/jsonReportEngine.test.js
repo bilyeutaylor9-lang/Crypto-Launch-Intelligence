@@ -6,7 +6,9 @@ import path from "path";
 
 import { writeJsonReport } from "../src/reports/jsonReportEngine.js";
 
-test("JSON report summarizes wide discovery without serializing raw candidate pools", () => {
+test("JSON report summarizes wide discovery without serializing raw candidate pools", (t) => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "json-report-discovery-"));
+  t.after(() => fs.rmSync(reportsDir, { recursive: true, force: true }));
   const rawCandidates = Array.from({ length: 80 }, (_, index) => ({
     symbol: `RAW${index}`,
     providerPayload: "x".repeat(8_192),
@@ -15,6 +17,7 @@ test("JSON report summarizes wide discovery without serializing raw candidate po
   const filePath = writeJsonReport(
     [{ name: "Report Candidate", symbol: "RPT", pipelineScore: 77 }],
     {
+      reportsDir,
       discovery: {
         mode: "free-max",
         rawCount: 80,
@@ -51,7 +54,9 @@ test("JSON report summarizes wide discovery without serializing raw candidate po
   assert.doesNotMatch(reportText, /providerPayload/);
 });
 
-test("JSON report bounds an oversized enriched project while preserving final decision fields", () => {
+test("JSON report bounds an oversized enriched project while preserving final decision fields", (t) => {
+  const reportsDir = fs.mkdtempSync(path.join(os.tmpdir(), "json-report-bounded-"));
+  t.after(() => fs.rmSync(reportsDir, { recursive: true, force: true }));
   const reportPath = writeJsonReport([
     {
       name: "Bounded Candidate",
@@ -73,7 +78,7 @@ test("JSON report bounds an oversized enriched project while preserving final de
         payload: "n".repeat(4_096),
       })),
     },
-  ]);
+  ], { reportsDir });
 
   const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
   const [project] = report.projects;

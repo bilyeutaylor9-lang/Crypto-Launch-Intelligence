@@ -9,6 +9,8 @@
  * Adds retry handling, pagination, safer normalization, and better pool URLs.
  */
 
+import { providerReceiptTimestamp, readProviderJson } from "./providerResponseReceipt.js";
+
 const GECKO_TERMINAL_BASE = "https://api.geckoterminal.com/api/v2";
 const GECKO_TERMINAL_NETWORK_IDS = {
   ethereum: "eth",
@@ -49,29 +51,32 @@ function parseRelationshipTokenId(tokenId = "") {
   };
 }
 
-async function fetchJson(url, retries = 3) {
+async function fetchJson(url, retries = 3, options = {}) {
   let lastError;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url, {
+      const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
+      const response = await (options.fetchImpl || fetch)(url, {
         headers: {
           accept: "application/json"
-        }
+        },
+        signal: options.signal,
       });
-
-      if (response.status === 429 && attempt < retries) {
-        await sleep(1000 * attempt * attempt);
-        continue;
+      try {
+        return await readProviderJson(response, { provider: "geckoterminal", url, requestedAt }, options);
+      } catch (error) {
+        if (error?.responseReceiptCaptureFailure) throw error;
+        if (error?.statusCode === 429 && attempt < retries) {
+          await sleep(Math.max(error.retryAfterMs || 0, 1000 * attempt * attempt));
+          continue;
+        }
+        throw error;
       }
-
-      if (!response.ok) {
-        throw new Error(`GeckoTerminal request failed: ${response.status} ${url}`);
-      }
-
-      return response.json();
     } catch (error) {
       lastError = error;
+
+      if (error?.responseReceiptCaptureFailure) throw error;
 
       if (attempt < retries) {
         await sleep(750 * attempt);
@@ -96,22 +101,24 @@ export async function getGeckoPoolByAddress(chain, poolAddress, options = {}) {
     const timeout = controller
       ? setTimeout(() => controller.abort(), Number(options.timeoutMs || 8_000))
       : null;
-    const response = await fetch(url, {
+    const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
+    const response = await (options.fetchImpl || fetch)(url, {
       signal: options.signal || controller.signal,
       headers: { accept: "application/json" },
     }).finally(() => {
       if (timeout) clearTimeout(timeout);
     });
-    if (response.status === 404) return null;
-    if (response.status === 429 && attempt < maxAttempts) {
-      const retryAfterMs = Number(response.headers.get("retry-after") || 0) * 1_000;
-      await sleep(Math.max(retryAfterMs, attempt * 1_000));
-      continue;
+    try {
+      return await readProviderJson(response, { provider: "geckoterminal", url, requestedAt }, options);
+    } catch (error) {
+      if (error?.responseReceiptCaptureFailure) throw error;
+      if (error?.statusCode === 404) return null;
+      if (error?.statusCode === 429 && attempt < maxAttempts) {
+        await sleep(Math.max(error.retryAfterMs || 0, attempt * 1_000));
+        continue;
+      }
+      throw error;
     }
-    if (!response.ok) {
-      throw new Error(`GeckoTerminal request failed: ${response.status}`);
-    }
-    return response.json();
   }
   return null;
 }

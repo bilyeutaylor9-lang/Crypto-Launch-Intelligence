@@ -10,6 +10,7 @@ import {
   markHighUpsideScalpResearchDeferred,
 } from "../engines/highUpsideScalpClassificationEngine.js";
 import { summarizeEvidenceFunnel } from "../kernel/evidenceFunnelSummary.js";
+import { getFrozenEvidenceFunnel } from "./evidenceFunnelSnapshot.js";
 
 const MAX_REPORT_ROWS = 50;
 
@@ -599,7 +600,7 @@ export function summarizeHighUpsideScalpResearch(projects = [], meta = {}) {
     invalidIdentity,
     dataStarved,
   });
-  const funnelSummary = summarizeEvidenceFunnel(scored);
+  const funnelSummary = getFrozenEvidenceFunnel(projects, meta) || summarizeEvidenceFunnel(scored);
 
   return {
     generatedAt: new Date().toISOString(),
