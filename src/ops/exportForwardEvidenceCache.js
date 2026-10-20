@@ -195,7 +195,8 @@ export function exportForwardEvidenceCache({ root = process.cwd(), outputDir, so
     syncDirectory(path.join(target, "data"));
     const manifest = {
       format: "forward-evidence-cache-export/v1",
-      provenance: { sourceCommit, workflowRun, cacheSelection },
+      provenance: { exporterCodeCommit: sourceCommit, exporterWorkflowRun: workflowRun, cacheSelection,
+        originalRecordProvenance: "PRESERVED_IN_RAW_BYTES_NOT_REWRITTEN", originalProducerCommitInferred: false },
       files: present.map(entry => ({ path: entry.relative, ...entry.copied })),
       missingFiles: sources.filter(entry => !entry.stat).map(entry => entry.relative),
       rawBytes: budget.used,

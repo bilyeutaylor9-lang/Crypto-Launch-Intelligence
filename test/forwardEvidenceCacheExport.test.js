@@ -69,8 +69,9 @@ test("system tar round trip preserves malformed/CRLF bytes and hashes with a ver
   assert.deepEqual(listed, [...FORWARD_EVIDENCE_FILES, "manifest.json"]);
   const manifest = readJson(result.manifestFile), receipt = readJson(result.receiptFile);
   assert.deepEqual(manifest.provenance.cacheSelection, validateForwardCacheSelection(fixtureData));
-  assert.equal(manifest.provenance.sourceCommit, "a".repeat(40));
-  assert.equal(manifest.provenance.workflowRun, "15");
+  assert.equal(manifest.provenance.exporterCodeCommit, "a".repeat(40));
+  assert.equal(manifest.provenance.exporterWorkflowRun, "15");
+  assert.equal(manifest.provenance.originalProducerCommitInferred, false);
   assert.deepEqual(manifest.missingFiles, []);
   for (const entry of manifest.files) {
     const original = fixtureData.bytes.get(entry.path);
