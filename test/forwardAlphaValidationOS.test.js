@@ -7,6 +7,7 @@ import {
   buildFrozenBenchmarkComparison,
   evaluateCli15PromotionGate,
   evaluateForwardHorizon,
+  __forwardAlphaValidationHooks,
 } from "../src/production/forwardAlphaValidationOS.js";
 import { buildExactMarketObservation } from "../src/production/exactMarketObservationLedger.js";
 import {
@@ -78,6 +79,25 @@ function exactObservation(row, observedAt, priceUsd) {
     source: "test-exact-market-source",
   }, { asOf: observedAt });
 }
+
+test("poolless price spikes cannot inflate a frozen-pool outcome or its excursion metrics", () => {
+  const episode = frozenCohort().episodes.find(row => row.role === "TREATMENT");
+  const targetAt = "2026-01-02T00:10:00.000Z";
+  const missingPool = exactObservation({ ...episode, poolAddress: null }, targetAt, 100);
+  const wrongPool = exactObservation({ ...episode, poolAddress: address(999_999) }, targetAt, 100);
+  const matchingPool = exactObservation(episode, targetAt, 1.1);
+  const rows = [missingPool, wrongPool];
+  assert.equal(__forwardAlphaValidationHooks.pathExcursions(episode, rows, 24, 1), null);
+  const excursion = __forwardAlphaValidationHooks.pathExcursions(episode, [...rows, matchingPool], 24, 1);
+  assert.equal(excursion.observations, 1);
+  assert.equal(excursion.maximumFavorableExcursionPct, 10);
+  const report = evaluateForwardHorizon([episode], rows, { asOf: targetAt, horizonHours: 24 });
+  assert.equal(report.sample.resolvedEpisodes, 0);
+  const mixedReport = evaluateForwardHorizon([episode], [...rows, matchingPool], { asOf: targetAt, horizonHours: 24 });
+  assert.equal(mixedReport.sample.resolvedEpisodes, 1);
+  assert.equal(mixedReport.outcomes[0].endPriceUsd, 1.1);
+  assert.equal(mixedReport.outcomes[0].path.observations, 1);
+});
 
 test("prospective freeze creates an immutable CLI 15 prediction contract", () => {
   const cohort = frozenCohort();
