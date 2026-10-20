@@ -6,6 +6,7 @@ import {
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
 import { normalizeProviderLinks } from "./providerLinkNormalizer.js";
+import { providerReceiptTimestamp, readProviderJson } from "./providerResponseReceipt.js";
 
 /**
  * DEX Screener Connector
@@ -25,13 +26,9 @@ export function resolveDexScreenerChainId(chainId = "") {
 }
 
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, { signal: options.signal });
-
-  if (!response.ok) {
-    throw new Error(`DEX Screener request failed: ${response.status}`);
-  }
-
-  return response.json();
+  const requestedAt = providerReceiptTimestamp(options);
+  const response = await (options.fetchImpl || fetch)(url, { signal: options.signal });
+  return readProviderJson(response, { provider: "dexscreener", url, requestedAt }, options);
 }
 
 function nullableNumber(value) {
