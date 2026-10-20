@@ -1,6 +1,7 @@
 
 import { jsonPost } from "../sensors/rpcJsonClient.js";
 import { createLiFiExecutableQuoteProvider } from "../execution/lifiExecutableQuoteProvider.js";
+import { normalizeAddress } from "../identity/strictIdentityValidators.js";
 
 function finite(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -8,6 +9,12 @@ function finite(value) {
   return Number.isFinite(n) ? n : null;
 }
 function lower(value) { return String(value || "").toLowerCase(); }
+function quoteAddress(value, chain) {
+  const raw = String(value ?? "").trim();
+  // Canonicalize supported addresses without case-folding Solana/TON identities.
+  // Unrecognized text stays literal; formatting is not an identity attestation.
+  return normalizeAddress(raw, chain) ?? raw;
+}
 function round(value, digits = 6) {
   const n = finite(value);
   return n === null ? null : Number(n.toFixed(digits));
@@ -18,6 +25,7 @@ function iso(value, fallback = null) {
 }
 
 export function normalizeExecutableQuote(raw = {}, context = {}) {
+  const chain = lower(context.chain || raw.chain);
   const requestedNotionalUsd = finite(raw.requestedNotionalUsd ?? context.requestedNotionalUsd);
   const inputUsd = finite(raw.inputUsd ?? raw.sellAmountUsd ?? requestedNotionalUsd);
   const outputUsd = finite(raw.outputUsd ?? raw.buyValueUsd ?? raw.executableOutputValueUsd);
@@ -50,9 +58,9 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
   return {
     status: complete ? "EXECUTABLE_QUOTE_OBSERVED" : "EXECUTABLE_QUOTE_INCOMPLETE",
     side: context.side || raw.side || "BUY",
-    chain: lower(context.chain || raw.chain),
+    chain,
     candidateKey: context.candidateKey || raw.candidateKey || null,
-    tokenAddress: lower(context.tokenAddress || raw.tokenAddress),
+    tokenAddress: quoteAddress(context.tokenAddress || raw.tokenAddress, chain),
     requestedNotionalUsd,
     inputUsd,
     inputTokenAmount,
@@ -65,7 +73,7 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
     gasUsd: round(gasUsd, 6),
     allInCostBps: round(allInCostBps, 3),
     route: raw.route || raw.routeSummary || null,
-    poolAddress: lower(raw.poolAddress || raw.route?.poolAddress),
+    poolAddress: quoteAddress(raw.poolAddress || raw.route?.poolAddress, chain),
     routeIdentityVerified: raw.routeIdentityVerified ?? null,
     sourceUrl: raw.sourceUrl || raw.route?.sourceUrl || null,
     rawEvidenceHash: raw.rawEvidenceHash || raw.route?.rawEvidenceHash || null,
@@ -133,7 +141,7 @@ export function quoteProviderFromEnvironment(options = {}) {
 
 async function requestOne(project, sizeUsd, policy, provider, options = {}) {
   const chain = lower(project.chain || project.network || project.canonicalChain);
-  const tokenAddress = lower(project.tokenAddress || project.contractAddress || project.address);
+  const tokenAddress = quoteAddress(project.tokenAddress || project.contractAddress || project.address, chain);
   const candidateKey = project.identityKey || project.candidateKey || `${chain}:${tokenAddress || String(project.symbol || "unknown").toLowerCase()}`;
   const signalObservedAt = options.signalObservedAt || project.observedAt || project.scannedAt || new Date().toISOString();
   const source = provider || preloadedQuoteProvider(project);
@@ -160,7 +168,7 @@ async function requestOne(project, sizeUsd, policy, provider, options = {}) {
       candidateKey,
       requestedNotionalUsd: sizeUsd,
       referencePriceUsd: finite(project.priceUsd ?? project.price ?? project.marketData?.priceUsd),
-      poolAddress: lower(project.poolAddress || project.pairAddress || project.primaryTradablePool),
+      poolAddress: quoteAddress(project.poolAddress || project.pairAddress || project.primaryTradablePool, chain),
       signalObservedAt,
     });
     return normalizeExecutableQuote(raw, {
