@@ -374,8 +374,16 @@ export function openDurableEvidenceArchive(options = {}) {
     const captured = contract?.kind === "CAPTURED_EXACT_OUTCOME_V1";
     const row = captured ? contract.exactObservation : JSON.parse(raw.toString("utf8"));
     if (captured) {
-      if (!validObservation(task, evidenceRecordId, reconciledAt)) throw new Error("HISTORICAL_CAPTURE_RAW_RECEIPT_INVALID");
-      return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "CAPTURED_EXACT_OUTCOME_V1" };
+      const anchor = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(contract.observationOf?.taskId);
+      if (!anchor || !validObservation(anchor, evidenceRecordId, reconciledAt)) throw new Error("HISTORICAL_CAPTURE_RAW_RECEIPT_INVALID");
+      if (task.task_id === anchor.task_id) return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "CAPTURED_EXACT_OUTCOME_V1" };
+      const parent = JSON.parse(findRecord.get(task.record_id).immutable_json), identity = strictIdentity(row);
+      const frozen = JSON.parse(task.frozen_json), receipt = timestamp(contract.observationOf.receivedAt, "shared receipt"), market = contract.observationOf.marketObservedAt == null ? null : timestamp(contract.observationOf.marketObservedAt, "shared market");
+      if (parent?.kind !== "FROZEN_EPISODE_OUTCOME_OBLIGATIONS_V1" || !identity?.poolAddress || !parent.poolAddress ||
+        identity.chain !== parent.chain || identity.tokenAddress !== parent.tokenAddress || identity.poolAddress !== parent.poolAddress ||
+        receipt < task.due_at || receipt > task.expires_at || (market === null && frozen.observationClockPolicy !== "COLLECTION_RECEIPT_V1") ||
+        (market !== null && (market < task.due_at || market > task.expires_at || market > receipt))) throw new Error("HISTORICAL_SHARED_CAPTURE_INVALID");
+      return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "SHARED_CAPTURED_EXACT_OBSERVATION_V1" };
     }
     if (contract?.kind !== "EXACT_MARKET_OBSERVATION_V2_RECORD" || !row || Array.isArray(row) || row.schemaVersion !== 2 ||
       !row.observationIntegrityHash || row.observationIntegrityHash !== exactMarketObservationIntegrityHash(row) ||
@@ -425,7 +433,7 @@ export function openDurableEvidenceArchive(options = {}) {
       let reconciled = 0, examined = 0;
       for (const task of db.prepare("SELECT * FROM obligations WHERE due_at<=? AND state!='completed' AND state!='leased' AND task_id!=?").all(at, anchor.task_id)) {
         const parent = JSON.parse(findRecord.get(task.record_id).immutable_json), expected = strictIdentity(parent);
-        if (!expected || expected.chain !== identity.chain || expected.tokenAddress !== identity.tokenAddress || !expected.poolAddress || expected.poolAddress !== identity.poolAddress) continue;
+        if (parent?.kind !== "FROZEN_EPISODE_OUTCOME_OBLIGATIONS_V1" || !expected || expected.chain !== identity.chain || expected.tokenAddress !== identity.tokenAddress || !expected.poolAddress || expected.poolAddress !== identity.poolAddress) continue;
         examined++;
         const frozen = JSON.parse(task.frozen_json), receipt = timestamp(link.receivedAt, "shared receipt"), market = link.marketObservedAt == null ? null : timestamp(link.marketObservedAt, "shared market");
         if (receipt < task.due_at || receipt > task.expires_at || (market === null && frozen.observationClockPolicy !== "COLLECTION_RECEIPT_V1") || (market !== null && (market < task.due_at || market > task.expires_at || market > receipt))) continue;
