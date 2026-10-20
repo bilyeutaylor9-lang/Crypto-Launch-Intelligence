@@ -867,6 +867,10 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
     else if (at === null) audit.invalidTimestamp += 1;
     else if (at > asOfMs) audit.futureTimestamp += 1;
     else if (price === null || price <= 0) audit.invalidPrice += 1;
+    // Every otherwise-valid copy of a duplicated key is excluded below, not
+    // just the later copy. Account for those rows without double-counting a
+    // row already rejected for its hash, identity, timestamp or price.
+    else if (requireObservationLedgerIntegrity && duplicateObservationKeys.has(row.observationKey)) audit.duplicateObservation += 1;
     else audit.accepted += 1;
     return audit;
   }, {
@@ -876,6 +880,7 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
     futureTimestamp: 0,
     invalidPrice: 0,
     integrityFailure: 0,
+    duplicateObservation: 0,
   });
   const safeObservations = attemptedObservations.filter((row) => {
     if (!row || typeof row !== "object" || Array.isArray(row)) return false;
@@ -996,6 +1001,7 @@ export function gradeProspectiveEdgeCohorts(episodes = [], observations = [], op
         futureTimestamp: observationAudit.futureTimestamp,
         invalidPrice: observationAudit.invalidPrice,
         integrityFailure: observationAudit.integrityFailure,
+        duplicateObservation: observationAudit.duplicateObservation,
       },
     },
     certificateEligible: current.edgeState === "VERIFIED_FORWARD_EDGE",
