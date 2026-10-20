@@ -184,19 +184,22 @@ jobs:
             forward-evidence-${{ runner.os }}-main-
 
       - name: Export Preserved Forward Evidence Cache
+        id: export_cache
         env:
           FORWARD_CACHE_EXPORT_DIR: ${{ runner.temp }}/forward-evidence-cache-export
+          FORWARD_CACHE_SOURCE_KEY: ${{ inputs.exact_source_cache_key }}
           FORWARD_CACHE_MATCHED_KEY: ${{ inputs.exact_source_cache_key != '' && steps.exact_forward_cache.outputs.cache-matched-key || steps.main_forward_cache.outputs.cache-matched-key }}
           FORWARD_CACHE_HIT: ${{ inputs.exact_source_cache_key != '' && steps.exact_forward_cache.outputs.cache-hit || steps.main_forward_cache.outputs.cache-hit }}
-        run: |
-          test "$FORWARD_CACHE_HIT" = "true"
-          test -n "$FORWARD_CACHE_MATCHED_KEY"
-          node src/ops/exportForwardEvidenceCache.js
+        run: node src/ops/exportForwardEvidenceCache.js
 
       - name: Upload Forward Evidence Cache Export
+        if: ${{ success() && steps.export_cache.outcome == 'success' }}
         uses: actions/upload-artifact@v7
         with:
           name: forward-evidence-cache-export-${{ github.run_id }}
-          path: ${{ runner.temp }}/forward-evidence-cache-export
+          path: |
+            ${{ runner.temp }}/forward-evidence-cache-export/forward-evidence-cache.tar.gz
+            ${{ runner.temp }}/forward-evidence-cache-export/manifest.json
+            ${{ runner.temp }}/forward-evidence-cache-export/export-receipt.json
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
