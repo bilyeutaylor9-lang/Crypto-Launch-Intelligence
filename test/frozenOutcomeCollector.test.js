@@ -12,14 +12,18 @@ function fixture() {
   const admitted = [];
   const observed = [];
   const archive = { admitPrediction: (record) => { admitted.push(record); return { status: "admitted" }; } };
-  const request = {
-    requestId: "req-1",
-    requestedAt: REQUESTED_AT,
-    observeTransport: async (receipt) => { observed.push(receipt); },
+  const reservations = [];
+  const request = async (provider, operation) => {
+    reservations.push(provider);
+    return operation({
+      requestId: `req-${provider}`,
+      requestedAt: REQUESTED_AT,
+      observeTransport: async (receipt) => { observed.push(receipt); },
+    });
   };
   const prediction = { immutableContract: { chain: "base", tokenAddress: TOKEN, poolAddress: POOL, frozenEpisode: "episode-1" } };
   const task = { recordId: "prediction-1", taskId: "task-1", frozen: { horizonHours: 24, observationClockPolicy: "COLLECTION_RECEIPT_V1" } };
-  return { admitted, observed, archive, request, prediction, task };
+  return { admitted, observed, reservations, archive, request, prediction, task };
 }
 
 function receipt(provider, body, status = 200) {
@@ -43,6 +47,7 @@ test("collector archives raw diagnostic before returning an exact receipt-timed 
   });
   const evidence = await collector.collect(context);
   assert.equal(context.observed.length, 1);
+  assert.deepEqual(context.reservations, ["dexscreener"]);
   assert.equal(context.admitted.length, 1);
   assert.equal(context.admitted[0].immutableContract.kind, "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC");
   assert.equal(context.admitted[0].rawBytes.toString(), body);
@@ -73,10 +78,25 @@ test("collector keeps invalid DEX response diagnostic and falls back to one exac
   });
   const evidence = await collector.collect(context);
   assert.equal(geckoOptions.maxAttempts, 1);
+  assert.deepEqual(context.reservations, ["dexscreener", "geckoterminal"]);
   assert.equal(context.admitted.length, 2);
   assert.equal(context.admitted[0].rawBytes.toString(), bad);
   assert.equal(evidence.immutableContract.poolAddress, POOL);
   assert.equal(evidence.immutableContract.exactObservation.priceUsd, 2.5);
+});
+
+test("future explicit source clock rejects DEX candidate before Gecko fallback", async () => {
+  const context = fixture();
+  const dexBody = JSON.stringify({ pairs: [{ ...dexRow(), sourceObservedAt: "2026-10-20T00:00:04.000Z" }] });
+  const geckoBody = JSON.stringify({ data: { id: `base_${POOL}`, attributes: { address: POOL, base_token_price_usd: "3" }, relationships: { network: { data: { id: "base" } }, base_token: { data: { id: `base_${TOKEN}` } } } } });
+  const collector = createFrozenOutcomeCollector({
+    archive: context.archive,
+    dexFetcher: async ({ onResponseBytes }) => { await onResponseBytes(receipt("dexscreener", dexBody)); return JSON.parse(dexBody); },
+    geckoFetcher: async ({ onResponseBytes }) => { await onResponseBytes(receipt("geckoterminal", geckoBody)); return JSON.parse(geckoBody); },
+  });
+  const evidence = await collector.collect(context);
+  assert.deepEqual(context.reservations, ["dexscreener", "geckoterminal"]);
+  assert.equal(evidence.immutableContract.exactObservation.priceUsd, 3);
 });
 
 test("diagnostic archive failures are fatal and prevent fallback", async () => {

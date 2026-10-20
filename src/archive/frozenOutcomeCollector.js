@@ -39,7 +39,10 @@ function identityFor(prediction = {}) {
 function sourceTimestamp(raw = {}) {
   // These are provider-supplied observation fields only. In particular, never
   // use pair/pool creation or an HTTP Date header as a market observation time.
-  const value = raw.sourceObservedAt ?? raw.sourceTimestamp ?? raw.observedAt ?? raw.updatedAt ?? raw.updated_at ?? null;
+  // Neither DEX Screener nor GeckoTerminal documents generic updatedAt fields
+  // as price clocks. Accept only an explicitly price/source-observation field;
+  // generic metadata timestamps remain in raw bytes and never become a clock.
+  const value = raw.priceObservedAt ?? raw.price_observed_at ?? raw.sourceObservedAt ?? raw.sourceTimestamp ?? null;
   if (value === null || value === undefined || value === "") return null;
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
@@ -74,61 +77,79 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
   if (!archive || typeof archive.admitPrediction !== "function") throw new TypeError("archive.admitPrediction is required.");
   if (typeof clock !== "function") throw new TypeError("clock must be a function.");
 
-  return {
-    async collect({ task = {}, prediction = {}, request = {}, signal } = {}) {
-      const cancelled = abortError(signal || request.signal);
+  async function collect({ task = {}, prediction = {}, request, signal } = {}) {
+      const cancelled = abortError(signal);
       if (cancelled) throw cancelled;
-      if (!request.requestId || typeof request.observeTransport !== "function") {
-        throw new TypeError("Outcome request must provide requestId and observeTransport(receipt).");
+      if (typeof request !== "function") {
+        throw new TypeError("Outcome collection requires a per-provider request function.");
       }
-      const requestedAt = timestamp(request.requestedAt, "Outcome request timestamp");
       const identity = identityFor(prediction);
       const frozen = task.frozen || {};
       const observationClockPolicy = frozen.observationClockPolicy || "COLLECTION_RECEIPT_V1";
       const taskId = task.taskId || null;
-      const receipts = new Map();
-
-      const onResponseBytes = async (receipt) => {
-        await request.observeTransport(receipt);
-        receipts.set(receipt.provider, receipt);
+      let lastError = null;
+      const tryProvider = async (provider, fetcher, normalize) => {
+        try {
+          return await request(provider, async (operation = {}) => {
+            const operationSignal = operation.signal || signal;
+            const cancelledNow = abortError(operationSignal);
+            if (cancelledNow) throw cancelledNow;
+            const requestedAt = timestamp(operation.requestedAt, "Outcome request timestamp");
+            if (!operation.requestId || typeof operation.observeTransport !== "function") {
+              throw new TypeError("Provider request operation must provide requestId and observeTransport(receipt).");
+            }
+            let receipt = null;
+            const onResponseBytes = async (value) => {
+              // This callback runs after the complete body is read and before
+              // JSON parsing, so the wrapper sees the actual transport receipt.
+              await operation.observeTransport(value);
+              receipt = value;
         const diagnostic = {
-          recordId: `http-provider-response:${request.requestId}:${receipt.provider}`,
-          rawBytes: receipt.rawBytes,
+          recordId: `http-provider-response:${operation.requestId}:${value.provider}`,
+          rawBytes: value.rawBytes,
           frozenObligations: [],
-          cohortMetadata: { kind: "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC", taskId, requestId: request.requestId, provider: receipt.provider },
+          cohortMetadata: { kind: "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC", taskId, requestId: operation.requestId, provider: value.provider },
           immutableContract: {
             kind: "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC",
             taskId,
-            requestId: request.requestId,
-            provider: receipt.provider,
-            url: receipt.url || null,
-            status: Number.isFinite(receipt.status) ? receipt.status : null,
-            requestedAt: receipt.requestedAt,
-            receivedAt: receipt.receivedAt,
-            headers: receipt.headers || {},
-            rawBytesHash: bytesHash(receipt.rawBytes),
+            requestId: operation.requestId,
+            provider: value.provider,
+            url: value.url || null,
+            status: Number.isFinite(value.status) ? value.status : null,
+            requestedAt: value.requestedAt,
+            receivedAt: value.receivedAt,
+            headers: value.headers || {},
+            rawBytesHash: bytesHash(value.rawBytes),
             scoringOrSelectionAllowed: false,
           },
         };
         try { archive.admitPrediction(diagnostic); }
         catch (error) { throw fatalStorageFailure(error); }
-      };
-
-      const options = { signal: signal || request.signal, requestedAt, now: clock, onResponseBytes };
-      const tryProvider = async (provider, fetcher, normalize) => {
-        const cancelledNow = abortError(signal || request.signal);
-        if (cancelledNow) throw cancelledNow;
-        try {
-          const payload = await fetcher(options);
-          const receipt = receipts.get(provider);
-          if (!receipt) return null;
+            };
+            const options = { signal: operationSignal, requestedAt, now: clock, onResponseBytes };
+            // Deliberately do not catch here: the request wrapper needs HTTP
+            // status/retry metadata to account and pace this provider attempt.
+            const payload = await fetcher(options);
+            if (!receipt) return null;
           for (const row of normalize(payload)) {
             const exact = exactCandidate(row.candidate, row.raw, identity);
-            if (exact) return { exact, receipt };
+            if (!exact) continue;
+            const exactObservation = buildExactMarketObservation({
+              ...exact,
+              observedAt: receipt.receivedAt,
+              outcomeObservationProvenance: {
+                receiptObservedAt: receipt.receivedAt,
+                sourceTimestamp: exact.marketObservedAt,
+                observationTimeBasis: exact.marketObservedAt ? "INDEPENDENT_PROVIDER_SOURCE_V1" : "COLLECTION_RECEIPT_V1",
+              },
+            }, { asOf: receipt.receivedAt, source: `frozen-outcome:${receipt.provider}` });
+            if (exactObservation) return { exact, receipt, requestedAt, requestId: operation.requestId, exactObservation };
           }
           return null;
+          });
         } catch (error) {
-          if (error?.fatalCollectionStorageFailure || error?.responseReceiptCaptureFailure || abortError(signal || request.signal)) throw error;
+          if (error?.fatalCollectionStorageFailure || error?.responseReceiptCaptureFailure || abortError(signal)) throw error;
+          lastError = error;
           return null;
         }
       };
@@ -144,30 +165,23 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
         return getGeckoPoolByAddress(identity.chain, identity.poolAddress, { ...fetchOptions, maxAttempts: 1 });
       }, geckoCandidates);
       const result = dex || gecko;
-      if (!result) return null;
+      if (!result) {
+        if (lastError) throw lastError;
+        return null;
+      }
 
       const { exact, receipt } = result;
       const observationOf = {
         recordId: task.recordId || null,
         taskId,
         horizonHours: Number(frozen.horizonHours ?? task.horizonHours) || null,
-        requestedAt,
+        requestedAt: result.requestedAt,
         receivedAt: receipt.receivedAt,
         marketObservedAt: exact.marketObservedAt,
         observationClockPolicy,
       };
-      const exactObservation = buildExactMarketObservation({
-        ...exact,
-        observedAt: exact.marketObservedAt || receipt.receivedAt,
-        outcomeObservationProvenance: {
-          receiptObservedAt: receipt.receivedAt,
-          sourceTimestamp: exact.marketObservedAt,
-          observationTimeBasis: exact.marketObservedAt ? "INDEPENDENT_PROVIDER_SOURCE_V1" : "COLLECTION_RECEIPT_V1",
-        },
-      }, { asOf: receipt.receivedAt, source: `frozen-outcome:${receipt.provider}` });
-      if (!exactObservation) return null;
       return {
-        recordId: `captured-exact-outcome:${taskId || task.recordId}:${request.requestId}:${receipt.provider}`,
+        recordId: `captured-exact-outcome:${taskId || task.recordId}:${result.requestId}:${receipt.provider}`,
         rawBytes: receipt.rawBytes,
         frozenObligations: [],
         cohortMetadata: { kind: "CAPTURED_EXACT_OUTCOME_V1", provider: receipt.provider, taskId, scoringOrSelectionAllowed: false },
@@ -178,11 +192,12 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
           poolAddress: identity.poolAddress || exact.poolAddress,
           frozenEpisode: identity.frozenEpisode,
           observationOf,
-          exactObservation,
+          exactObservation: result.exactObservation,
           rawBytesHash: bytesHash(receipt.rawBytes),
           scoringOrSelectionAllowed: false,
         },
       };
-    },
-  };
+    }
+  collect.collect = collect;
+  return collect;
 }
