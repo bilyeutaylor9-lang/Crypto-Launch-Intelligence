@@ -26,7 +26,7 @@ function routeCompatible(episode = {}, observation = {}) {
   const expected = strictIdentity(episode);
   const actual = strictIdentity(observation);
   if (!expected || !actual || expected.identityKey !== actual.identityKey) return false;
-  return !expected.poolAddress || !actual.poolAddress || expected.poolAddress === actual.poolAddress;
+  return !expected.poolAddress || expected.poolAddress === actual.poolAddress;
 }
 
 function observedAt(row = {}) {
@@ -802,6 +802,7 @@ function gradeStrategy(episodes = [], observations = [], options = {}) {
       unresolvedOutcomesEvaluatedWithMaximallyAdverseSensitivity: true,
       exactIdentityRequired: true,
       poolRequiredWhenKnownByBothSides: true,
+      poolRequiredWhenFrozen: true,
       netOfFrozenExecutionCosts: true,
       timeAndIdentityClusteredConfidenceIntervals: true,
       latestStrategyEvaluatedWithoutBestStrategySelection: true,

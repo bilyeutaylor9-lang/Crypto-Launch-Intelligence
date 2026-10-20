@@ -59,7 +59,7 @@ function routeCompatible(left = {}, right = {}) {
   const expected = strictIdentity(left);
   const actual = strictIdentity(right);
   if (!expected || !actual || expected.identityKey !== actual.identityKey) return false;
-  return !expected.poolAddress || !actual.poolAddress || expected.poolAddress === actual.poolAddress;
+  return !expected.poolAddress || expected.poolAddress === actual.poolAddress;
 }
 
 function observationAt(row = {}) {
