@@ -38,6 +38,20 @@ export const REPORT_DECISION_SCALAR_FIELDS = Object.freeze([
   "legacyFinalIntegritySource", "finalIntegrityPipelineScore", "finalIntegrityScoreSource", "finalAuthorityEngine",
 ]);
 
+// Preserve the producer's finite state projection before any bulky graphs. This
+// discloses missing evidence; it does not infer or upgrade any evidence state.
+export const REPORT_EVIDENCE_STATE_FIELDS = Object.freeze([
+  "deepEvaluationState", "finalSelectionState", "finalSelectionQualified",
+  "coreEvidenceState", "engineDataReadinessStatus", "advisoryEvidenceState", "advisoryDataGaps",
+  "coreEvidenceCoveragePct", "advisoryEvidenceCoveragePct", "coreDataStarved",
+]);
+
+export const REPORT_REQUIRED_PROJECT_FIELDS = Object.freeze([...new Set([
+  ...REPORT_EVIDENCE_STATE_FIELDS,
+  ...REPORT_DECISION_SCALAR_FIELDS,
+  "signalProfile", "executionProof", "canonicalExecutionRoute",
+])]);
+
 const HEAVY_FIELD_PATTERNS = [
   /^raw$/i,
   /rawCandidate/i,
@@ -340,11 +354,8 @@ const EVIDENCE_FIELDS = [
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
-  ...REPORT_DECISION_SCALAR_FIELDS,
-  "signalProfile",
   // Derived snapshots can share these objects; retain the authoritative roots first.
-  "executionProof",
-  "canonicalExecutionRoute",
+  ...REPORT_REQUIRED_PROJECT_FIELDS,
   "solanaMintAccountEvidence",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   ...RECOVERED_OBSERVATION_FIELDS,
