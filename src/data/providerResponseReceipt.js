@@ -42,11 +42,15 @@ export async function readProviderJson(response, metadata = {}, options = {}) {
   let rawBytes = null;
   let receivedAt = null;
   if (typeof options.onResponseBytes === "function") {
+    if (!response || typeof response.arrayBuffer !== "function") {
+      const error = new Error("Provider response receipt capture requires a raw-capable response.");
+      error.responseReceiptCaptureFailure = true;
+      throw error;
+    }
+    // Transport/body failures can use an independent fallback. Only a receipt
+    // integrity or storage failure below must stop further collection.
+    rawBytes = Buffer.from(await response.arrayBuffer());
     try {
-      if (!response || typeof response.arrayBuffer !== "function") {
-        throw new Error("Provider response receipt capture requires a raw-capable response.");
-      }
-      rawBytes = Buffer.from(await response.arrayBuffer());
       // This is deliberately after body consumption. HTTP response headers can
       // arrive before a delayed body, so their arrival is not a receipt clock.
       receivedAt = providerReceiptTimestamp(options);

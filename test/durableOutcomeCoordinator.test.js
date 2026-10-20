@@ -121,3 +121,81 @@ test("early windows cause no requests and past windows remain missing", async t 
   assert.equal(expired.status, "COLLECTION_INCOMPLETE"); assert.equal(expired.expiredMissing, 1); assert.equal(expired.attempted, 0);
   assert.deepEqual(f.archive.coordinationStatus().requests, []);
 });
+
+test("on-time transport remains admissible when the durable commit finishes after the window", async t => {
+  const f = fixture(t); f.set("2026-01-01T07:59:59.000Z");
+  const result = await runDurableOutcomeCycle({ ...f.options, collect: async ({ task, request }) => {
+    const receipt = await request("dex", async ({ requestedAt, observeTransport }) => {
+      f.set("2026-01-01T07:59:59.999Z");
+      observeTransport({ requestedAt, receivedAt: f.clock(), status: 200 });
+      f.set("2026-01-01T08:00:00.500Z");
+      return 1;
+    });
+    const evidence = observation(task, receipt);
+    evidence.immutableContract.observationOf.marketObservedAt = "2026-01-01T07:59:59.999Z";
+    return evidence;
+  } });
+  assert.equal(result.completed, 1); assert.equal(result.expiredMissing, 0);
+  assert.equal(f.archive.listTasks()[0].completed_at, "2026-01-01T08:00:00.500Z");
+  assert.deepEqual(f.archive.dueDenominators("2026-01-01T07:59:59.500Z"), [{ state: "pending", count: 1 }]);
+  const db = new Database(f.archive.dbPath, { readonly: true });
+  try { assert.equal(db.prepare("SELECT received_at FROM provider_requests").get().received_at, "2026-01-01T07:59:59.999Z"); } finally { db.close(); }
+  assert.equal(f.archive.audit().ok, true);
+});
+
+test("transport status is not confused with valid market evidence", async t => {
+  const f = fixture(t);
+  const result = await runDurableOutcomeCycle({ ...f.options, collect: async ({ request }) => {
+    await request("gecko", async ({ requestedAt, observeTransport }) => { observeTransport({ requestedAt, receivedAt: f.clock(), status: 404 }); return null; });
+    return null;
+  } });
+  assert.equal(result.completed, 0); assert.equal(result.status, "COLLECTION_INCOMPLETE");
+  assert.deepEqual(f.archive.coordinationStatus().requests, [{ state: "failed", count: 1, units: 1 }]);
+  assert.equal(f.archive.coordinationStatus().providers.find(row => row.provider === "gecko").consecutive_failures, 0);
+});
+
+test("an uncooperative provider cannot hold the entire cycle indefinitely", async t => {
+  const f = fixture(t);
+  const result = await runDurableOutcomeCycle({ ...f.options, cycleTimeoutMs: 500, providerPolicies: {
+    ...f.options.providerPolicies, dex: { ...f.options.providerPolicies.dex, timeoutMs: 20 },
+  }, collect: async ({ request }) => { await request("dex", () => new Promise(() => {})); } });
+  assert.equal(result.completed, 0);
+  assert.match(result.results[0].error, /OUTCOME_PROVIDER_TIMEOUT/);
+  assert.equal(f.archive.coordinationStatus().writer.active, false);
+  const db = new Database(f.archive.dbPath, { readonly: true });
+  try {
+    const request = db.prepare("SELECT received_at,finished_at FROM provider_requests").get();
+    assert.equal(request.received_at, null); assert.equal(request.finished_at, start);
+  } finally { db.close(); }
+});
+
+test("an operation returning after timeout cannot register a later transport receipt", async t => {
+  const f = fixture(t); let lateReceipt;
+  await runDurableOutcomeCycle({ ...f.options, providerPolicies: { ...f.options.providerPolicies,
+    dex: { ...f.options.providerPolicies.dex, timeoutMs: 20 } }, collect: async ({ request }) => request("dex", operation => {
+      lateReceipt = () => operation.observeTransport({ requestedAt: start, receivedAt: start, status: 200 });
+      return new Promise(() => {});
+    }) });
+  assert.throws(lateReceipt, /OUTCOME_PROVIDER_TIMEOUT/);
+  assert.equal(f.archive.audit().ok, true);
+});
+
+test("the absolute cycle deadline persists remaining work even if a collector ignores cancellation", async t => {
+  const f = fixture(t, 2);
+  const result = await runDurableOutcomeCycle({ ...f.options, cycleTimeoutMs: 50, collect: () => new Promise(() => {}) });
+  assert.equal(result.deadlineReached, true); assert.equal(result.completed, 0);
+  assert.equal(result.before.reduce((sum, row) => sum + row.count, 0), 2);
+  assert.equal(result.after.reduce((sum, row) => sum + row.count, 0), 2);
+  assert.equal(f.archive.coordinationStatus().writer.active, false);
+});
+
+test("raw receipt storage failures stop the cycle instead of consuming more provider traffic", async t => {
+  const f = fixture(t, 2); let calls = 0;
+  await assert.rejects(runDurableOutcomeCycle({ ...f.options, collect: async ({ request }) => request("dex", async ({ requestedAt, observeTransport }) => {
+    calls++; observeTransport({ requestedAt, receivedAt: f.clock(), status: 200 });
+    const error = new Error("DISK_WRITE_FAILED"); error.fatalCollectionStorageFailure = true; throw error;
+  }) }), /DISK_WRITE_FAILED/);
+  assert.equal(calls, 1);
+  assert.equal(f.archive.coordinationStatus().writer.active, false);
+  assert.equal(f.archive.audit().ok, true);
+});

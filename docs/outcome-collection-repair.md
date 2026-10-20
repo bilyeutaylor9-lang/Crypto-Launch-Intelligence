@@ -35,9 +35,21 @@ The opt-in archive coordinator persists writer ownership, fenced task leases, re
 
 See [durable-evidence-archive.md](durable-evidence-archive.md) for the API, backup/restore behavior and explicit clock-policy binding. A receipt-capture policy is an admitted task property, not permission to modify the original frozen experiment or retroactively remove another task's source-clock requirement.
 
+## Persistent frozen-episode collector
+
+`npm run outcomes:frozen -- --archive /absolute/persistent/archive` imports the complete original cohort and exact-observation ledgers without HTTP. Source byte indexes reproduce original whitespace, malformed records, blank lines and trailing-newline state. Every valid frozen horizon creates an immutable duty. The primary window uses the frozen evaluation policy; other windows retain explicit operational-only labels. Known late receipts and stale source clocks cannot fill an on-time duty. Genuine historical observations use separate reconciliation receipts, never backdated task completion.
+
+Add `--collect` only on the reviewed persistent host. Each bounded cycle services at most 60 duties, within a persistent shared 60-request/hour budget and a 45-second absolute deadline. First attempts and retries/fallbacks share protected capacity; capacity unused by one class can be lent to the other. Gecko additionally retains its 6.1-second pacing across restarts. Primary and fallback each require an independent request reservation. Timeout termination is not represented as an HTTP receipt.
+
+The collector awaits exact raw-body archival before parsing, including non-OK and malformed responses. Identity, provider, request, actual body receipt, independent source clock when supplied, and raw bytes remain bound. Generic metadata/creation/HTTP Date timestamps are not market clocks. Frozen duties require a deterministically replayable exact capture, not arbitrary bytes with positive-looking flags. Cancellation cannot later register a detached provider response as accepted.
+
+On restart, saved original raw responses can be replayed without another HTTP request. Only the original admissible receipt/window can reconcile a duty. Local exact-ledger projection is append-only, fsynced and independently read back by observation ID/hash. A crash between append and receipt does not duplicate rows. Malformed history is preserved and blocks projection visibly; it does not erase previously admitted duties. A local projection receipt is not a remote synchronization acknowledgment.
+
+Optional `--cohorts`, `--observations` and `--report` paths permit isolated validation. Existing collector locking is honored during migration. No daemon, launchd job, workflow migration, market discovery, new experimental selection, trading or promotion is activated by this command. Import-only and no-work results are not live collection acceptance.
+
 ## Still required
 
-The existing collector has not been retired, and no always-on service or workflow has been enabled by this repair. Finish exact frozen-episode import, historical observation reconciliation, raw provider-response integration, first-attempt/fallback capacity allocation, one reviewed persistent coordinator, independent backup, verified incremental remote synchronization, and sustained collection acceptance before migration.
+The existing collector has not been retired, and no always-on service or workflow has been enabled by this repair. The imported/replayed queue and provider integration require real-data restoration and sustained capture acceptance before migration. One reviewed persistent coordinator, independent backup and verified incremental remote synchronization remain release requirements.
 
 Keep expired historical obligations and failed experiments in accounting. A meaningful decision-code or policy change requires a separately declared experiment with prior trials retained; keeping a fixed fingerprint while changing decision code is not acceptable. Do not start a fresh experiment to erase missing or unfavorable history.
 

@@ -4,12 +4,16 @@ import path from "node:path";
 import zlib from "node:zlib";
 import Database from "better-sqlite3";
 import { COORDINATOR_TABLES, createEvidenceCoordinatorState } from "./evidenceCoordinatorState.js";
+import { exactMarketObservationIntegrityHash } from "../production/exactMarketObservationLedger.js";
+import { strictIdentity, finite } from "../production/productionMath.js";
+import { frozenOutcomeEvidenceFromReceipt } from "./frozenOutcomeCollector.js";
 
 const digest = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
 const now = () => new Date().toISOString();
 const HASH = /^[a-f0-9]{64}$/;
 const EVIDENCE_TABLES = ["evidence_records", "obligations", "leases", "outbox", "orphan_segments"];
-const TABLES = [...EVIDENCE_TABLES, ...COORDINATOR_TABLES];
+const OPERATIONAL_V1_TABLES = [...EVIDENCE_TABLES, ...COORDINATOR_TABLES];
+const TABLES = [...OPERATIONAL_V1_TABLES, "historical_reconciliations"];
 
 function canonical(value) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
@@ -137,6 +141,12 @@ export function openDurableEvidenceArchive(options = {}) {
       content_hash TEXT PRIMARY KEY, segment_name TEXT NOT NULL, reason TEXT NOT NULL, noted_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_obligations_due ON obligations(state, due_at);
+    CREATE TABLE IF NOT EXISTS historical_reconciliations (
+      task_id TEXT PRIMARY KEY REFERENCES obligations(task_id),
+      evidence_record_id TEXT NOT NULL REFERENCES evidence_records(record_id),
+      observed_at TEXT NOT NULL, reconciled_at TEXT NOT NULL,
+      observation_hash TEXT NOT NULL, source_kind TEXT NOT NULL
+    );
     PRAGMA user_version = 2;
   `);
   const coordinator = createEvidenceCoordinatorState(db, { clock: options.clock, writerToken: options.writerToken });
@@ -237,11 +247,11 @@ export function openDurableEvidenceArchive(options = {}) {
   function readEvidence(recordId) {
     const row = findRecord.get(recordId); if (!row) return null;
     return { recordId, contentHash: row.content_hash, admissionHash: row.admission_hash, rawBytes: assertRow(row).raw,
-      cohortMetadata: JSON.parse(row.cohort_json), missingness: JSON.parse(row.missingness_json), immutableContract: JSON.parse(row.immutable_json) };
+      admittedAt: row.admitted_at, cohortMetadata: JSON.parse(row.cohort_json), missingness: JSON.parse(row.missingness_json), immutableContract: JSON.parse(row.immutable_json) };
   }
 
   function expireTasks(at) {
-    db.prepare("UPDATE obligations SET state='expired',completed_at=NULL WHERE state IN ('pending','leased','retryable','budget-deferred') AND expires_at < ?").run(at);
+    db.prepare("UPDATE obligations SET state='expired',completed_at=NULL WHERE state IN ('pending','leased','retryable','budget-deferred') AND expires_at < ? AND (state!='leased' OR task_id NOT IN (SELECT task_id FROM leases WHERE lease_until>?))").run(at, at);
     db.prepare("DELETE FROM leases WHERE task_id IN (SELECT task_id FROM obligations WHERE state='expired')").run();
     db.prepare("UPDATE obligations SET state='pending' WHERE state='leased' AND task_id IN (SELECT task_id FROM leases WHERE lease_until <= ?)").run(at);
     db.prepare("DELETE FROM leases WHERE lease_until <= ?").run(at);
@@ -257,7 +267,7 @@ export function openDurableEvidenceArchive(options = {}) {
       coordinator.assertWrite(at);
       expireTasks(at);
       const excluded = excludeTaskIds.length ? ` AND o.task_id NOT IN (${excludeTaskIds.map(() => '?').join(',')})` : '';
-      const candidates = db.prepare("SELECT o.* FROM obligations o LEFT JOIN task_schedule s USING(task_id) WHERE o.state IN ('pending','retryable','budget-deferred') AND o.due_at <= ? AND (s.next_attempt_at IS NULL OR s.next_attempt_at<=?)" + excluded + " ORDER BY o.expires_at,COALESCE(s.attempt_count,0),o.due_at,o.task_id LIMIT ?").all(at, at, ...excludeTaskIds, limit);
+      const candidates = db.prepare("SELECT o.* FROM obligations o LEFT JOIN task_schedule s USING(task_id) WHERE o.state IN ('pending','retryable','budget-deferred') AND o.due_at <= ? AND (s.next_attempt_at IS NULL OR s.next_attempt_at<=?) AND NOT EXISTS (SELECT 1 FROM historical_reconciliations h WHERE h.task_id=o.task_id)" + excluded + " ORDER BY o.expires_at,COALESCE(s.attempt_count,0),o.due_at,o.task_id LIMIT ?").all(at, at, ...excludeTaskIds, limit);
       return candidates.map((task) => {
         const token = crypto.randomUUID();
         db.prepare("UPDATE obligations SET state='leased' WHERE task_id=?").run(task.task_id);
@@ -274,12 +284,13 @@ export function openDurableEvidenceArchive(options = {}) {
     return db.transaction(() => {
       coordinator.assertWrite(at);
       expireTasks(at);
-      return db.prepare("UPDATE leases SET lease_until=? WHERE token=? AND owner=? AND lease_until>?").run(new Date(Date.parse(at) + leaseMs).toISOString(), leaseToken, owner, at).changes === 1;
+      return db.prepare("UPDATE leases SET lease_until=? WHERE token=? AND owner=? AND lease_until>? AND task_id IN (SELECT task_id FROM obligations WHERE expires_at>=?)").run(new Date(Date.parse(at) + leaseMs).toISOString(), leaseToken, owner, at, at).changes === 1;
     }).immediate();
   }
 
   function validObservation(task, evidenceRecordId, completedAt) {
     if (!evidenceRecordId) return false;
+    try { if (timestamp(completedAt, "completedAt") !== completedAt) return false; } catch { return false; }
     const observation = findRecord.get(evidenceRecordId);
     if (!observation) return false;
     const manifest = assertRow(observation).manifest;
@@ -296,8 +307,19 @@ export function openDurableEvidenceArchive(options = {}) {
     if (requestedAt > receivedAt || receivedAt > completedAt || receivedAt < task.due_at || receivedAt > task.expires_at ||
       (marketAt !== null && (marketAt > receivedAt || marketAt < task.due_at || marketAt > task.expires_at))) return false;
     const parent = JSON.parse(findRecord.get(task.record_id).immutable_json);
-    for (const key of ["chain", "tokenAddress", "poolAddress"]) if (parent?.[key] !== undefined && parent[key] !== manifest.immutableContract?.[key]) return false;
+    for (const key of ["chain", "tokenAddress", "poolAddress"]) if (parent?.[key] !== undefined && !(key === "poolAddress" && parent[key] === null) && parent[key] !== manifest.immutableContract?.[key]) return false;
     if (frozen.horizonHours !== undefined && frozen.horizonHours !== link.horizonHours) return false;
+    const contract = manifest.immutableContract;
+    if (parent?.kind === "FROZEN_EPISODE_OUTCOME_OBLIGATIONS_V1" && contract?.kind !== "CAPTURED_EXACT_OUTCOME_V1") return false;
+    if (contract?.kind === "CAPTURED_EXACT_OUTCOME_V1") {
+      const diagnostic = readEvidence(contract.originalDiagnosticRecordId), header = diagnostic?.immutableContract;
+      if (!diagnostic || header?.kind !== "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC" || diagnostic.contentHash !== observation.content_hash ||
+        header.taskId !== task.task_id || header.receivedAt > diagnostic.admittedAt || header.receivedAt > completedAt) return false;
+      const rebuilt = frozenOutcomeEvidenceFromReceipt({ task: { taskId: task.task_id, recordId: task.record_id, frozen },
+        prediction: readEvidence(task.record_id), requestId: header.requestId, diagnosticRecordId: diagnostic.recordId,
+        receipt: { ...header, rawBytes: diagnostic.rawBytes } });
+      if (!rebuilt || canonical(rebuilt.immutableContract) !== canonical(contract)) return false;
+    }
     return true;
   }
 
@@ -314,9 +336,10 @@ export function openDurableEvidenceArchive(options = {}) {
       const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(lease.task_id);
       assertRow(findRecord.get(task.record_id));
       if (state === "completed" && !validObservation(task, evidenceRecordId, at)) return false;
-      const changed = db.prepare("UPDATE obligations SET state=?,completed_at=?,evidence_record_id=? WHERE task_id=? AND state='leased'").run(state, state === "completed" ? at : null, state === "completed" ? evidenceRecordId : null, lease.task_id).changes;
+      const nextState = state !== "completed" && task.expires_at < at ? "expired" : state;
+      const changed = db.prepare("UPDATE obligations SET state=?,completed_at=?,evidence_record_id=? WHERE task_id=? AND state='leased'").run(nextState, nextState === "completed" ? at : null, nextState === "completed" ? evidenceRecordId : null, lease.task_id).changes;
       if (changed) {
-        if (["retryable", "budget-deferred"].includes(state)) coordinator.scheduleTask(lease.task_id, retryAt ?? at, at);
+        if (["retryable", "budget-deferred"].includes(nextState)) coordinator.scheduleTask(lease.task_id, retryAt ?? at, at);
         db.prepare("DELETE FROM leases WHERE task_id=? AND token=?").run(lease.task_id, leaseToken);
       }
       return changed === 1;
@@ -340,7 +363,66 @@ export function openDurableEvidenceArchive(options = {}) {
 
   function dueDenominators(nowAt = archiveNow()) {
     const at = timestamp(nowAt, "nowAt");
-    return db.prepare("SELECT CASE WHEN state!='completed' AND expires_at<? THEN 'expired' WHEN state='leased' AND task_id IN (SELECT task_id FROM leases WHERE lease_until<=?) THEN 'pending' ELSE state END AS state,COUNT(*) AS count FROM obligations WHERE due_at<=? GROUP BY 1 ORDER BY 1").all(at, at, at);
+    return db.prepare("SELECT CASE WHEN task_id IN (SELECT task_id FROM historical_reconciliations WHERE reconciled_at<=?) THEN 'reconciled' WHEN state='completed' AND completed_at<=? THEN 'completed' WHEN expires_at<? THEN 'expired' WHEN state IN ('completed','expired') THEN 'pending' WHEN state='leased' AND task_id IN (SELECT task_id FROM leases WHERE lease_until<=?) THEN 'pending' ELSE state END AS state,COUNT(*) AS count FROM obligations WHERE due_at<=? GROUP BY 1 ORDER BY 1").all(at, at, at, at, at);
+  }
+
+  function historicalObservation(task, evidenceRecordId, reconciledAt) {
+    const record = findRecord.get(evidenceRecordId);
+    if (!record) throw new Error("HISTORICAL_OBSERVATION_MISSING");
+    const { raw, manifest } = assertRow(record);
+    const contract = manifest.immutableContract;
+    const captured = contract?.kind === "CAPTURED_EXACT_OUTCOME_V1";
+    const row = captured ? contract.exactObservation : JSON.parse(raw.toString("utf8"));
+    if (captured) {
+      if (!validObservation(task, evidenceRecordId, reconciledAt)) throw new Error("HISTORICAL_CAPTURE_RAW_RECEIPT_INVALID");
+      return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "CAPTURED_EXACT_OUTCOME_V1" };
+    }
+    if (contract?.kind !== "EXACT_MARKET_OBSERVATION_V2_RECORD" || !row || Array.isArray(row) || row.schemaVersion !== 2 ||
+      !row.observationIntegrityHash || row.observationIntegrityHash !== exactMarketObservationIntegrityHash(row) ||
+      contract.observationIntegrityHash !== row.observationIntegrityHash || row.exactIdentityVerified !== true || !row.observationKey) throw new Error("HISTORICAL_OBSERVATION_INTEGRITY_FAILED");
+    const identity = strictIdentity(row), parent = JSON.parse(findRecord.get(task.record_id).immutable_json);
+    if (!identity || identity.identityKey !== row.identityKey || identity.routeKey !== row.routeKey || finite(row.priceUsd) === null || finite(row.priceUsd) <= 0) throw new Error("HISTORICAL_OBSERVATION_IDENTITY_FAILED");
+    for (const key of ["chain", "tokenAddress", "poolAddress"]) if (parent?.[key] !== undefined && !(key === "poolAddress" && parent[key] === null) && parent[key] !== identity[key]) throw new Error("HISTORICAL_OBSERVATION_IDENTITY_FAILED");
+    const observedAt = timestamp(row.observedAt, "historical observedAt");
+    const firstSeenAt = timestamp(contract.firstSeenAt, "historical firstSeenAt");
+    if (observedAt < task.due_at || observedAt > task.expires_at || observedAt > reconciledAt || observedAt > firstSeenAt) throw new Error("HISTORICAL_OBSERVATION_OUTSIDE_WINDOW");
+    const receipt = row.outcomeObservationProvenance?.receiptObservedAt ?? row.receiptObservedAt;
+    const source = row.outcomeObservationProvenance?.sourceTimestamp ?? row.sourceObservedAt;
+    const receiptAt = receipt === null || receipt === undefined ? null : timestamp(receipt, "historical receipt");
+    const sourceAt = source === null || source === undefined ? null : timestamp(source, "historical source");
+    if ((receiptAt && (receiptAt > reconciledAt || receiptAt > firstSeenAt || observedAt > receiptAt || receiptAt < task.due_at || receiptAt > task.expires_at)) ||
+      (sourceAt && (sourceAt > observedAt || sourceAt < task.due_at || sourceAt > task.expires_at || (receiptAt && sourceAt > receiptAt)))) throw new Error("HISTORICAL_OBSERVATION_CLOCK_CONTRADICTION");
+    return { observedAt, observationHash: row.observationIntegrityHash, sourceKind: "EXACT_MARKET_OBSERVATION_V2" };
+  }
+
+  function reconcileHistoricalObservation({ taskId, evidenceRecordId, nowAt = archiveNow() } = {}) {
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => {
+      coordinator.assertWrite(at);
+      expireTasks(at);
+      const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(taskId);
+      if (!task) throw new Error("HISTORICAL_TASK_MISSING");
+      if (task.state === "completed") return { status: "already-completed" };
+      if (task.state === "leased") throw new Error("HISTORICAL_TASK_CURRENTLY_LEASED");
+      const observed = historicalObservation(task, evidenceRecordId, at);
+      const existing = db.prepare("SELECT * FROM historical_reconciliations WHERE task_id=?").get(taskId);
+      if (existing) return { status: existing.evidence_record_id === evidenceRecordId ? "duplicate" : "already-reconciled", observedAt: existing.observed_at, reconciledAt: existing.reconciled_at };
+      db.prepare("INSERT INTO historical_reconciliations VALUES (?,?,?,?,?,?)").run(taskId, evidenceRecordId, observed.observedAt, at, observed.observationHash, observed.sourceKind);
+      return { status: "reconciled", observedAt: observed.observedAt, reconciledAt: at };
+    }).immediate();
+  }
+
+  function listTasks({ recordId } = {}) {
+    const rows = recordId === undefined ? db.prepare("SELECT * FROM obligations ORDER BY due_at,task_id").all() : db.prepare("SELECT * FROM obligations WHERE record_id=? ORDER BY due_at,task_id").all(recordId);
+    return rows.map(row => ({ ...row, frozen: JSON.parse(row.frozen_json) }));
+  }
+
+  function listOutcomeCaptures() {
+    return db.prepare("SELECT record_id FROM evidence_records WHERE json_extract(immutable_json,'$.kind')='CAPTURED_EXACT_OUTCOME_V1' ORDER BY admitted_at,record_id").all().map(row => readEvidence(row.record_id));
+  }
+
+  function listRecoverableProviderResponses() {
+    return db.prepare("SELECT r.record_id FROM evidence_records r JOIN obligations o ON o.task_id=json_extract(r.immutable_json,'$.taskId') WHERE json_extract(r.immutable_json,'$.kind')='HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC' AND json_extract(r.immutable_json,'$.status')>=200 AND json_extract(r.immutable_json,'$.status')<300 AND o.state!='completed' AND NOT EXISTS (SELECT 1 FROM historical_reconciliations h WHERE h.task_id=o.task_id) ORDER BY json_extract(r.immutable_json,'$.receivedAt'),r.record_id").all().map(row => readEvidence(row.record_id));
   }
 
   function listOutbox() { return db.prepare("SELECT * FROM outbox ORDER BY created_at,outbox_id").all(); }
@@ -373,8 +455,15 @@ export function openDurableEvidenceArchive(options = {}) {
     for (const marker of unresolvedOrphanMarkers) if (!fs.existsSync(path.join(segmentDir, marker.segment_name))) errors.push(`ARCHIVE_ORPHAN_SEGMENT_MISSING:${marker.segment_name}`);
     const inconsistentTasks = db.prepare("SELECT obligations.task_id FROM obligations LEFT JOIN leases USING(task_id) WHERE (obligations.state='leased' AND leases.token IS NULL) OR (obligations.state!='leased' AND leases.token IS NOT NULL)").all();
     if (inconsistentTasks.length) errors.push("ARCHIVE_LEASE_STATE_INCONSISTENT");
-    const invalidStates = db.prepare("SELECT task_id FROM obligations WHERE state NOT IN ('pending','leased','retryable','budget-deferred','expired','completed') OR (state='completed' AND (completed_at IS NULL OR completed_at < due_at OR completed_at > expires_at OR evidence_record_id IS NULL)) OR (state!='completed' AND (completed_at IS NOT NULL OR evidence_record_id IS NOT NULL))").all();
+    const invalidStates = db.prepare("SELECT task_id FROM obligations WHERE state NOT IN ('pending','leased','retryable','budget-deferred','expired','completed') OR (state='completed' AND (completed_at IS NULL OR completed_at < due_at OR evidence_record_id IS NULL)) OR (state!='completed' AND (completed_at IS NOT NULL OR evidence_record_id IS NOT NULL))").all();
     if (invalidStates.length) errors.push("ARCHIVE_TASK_STATE_INVALID");
+    for (const link of db.prepare("SELECT * FROM historical_reconciliations").all()) {
+      try {
+        const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(link.task_id);
+        const observed = historicalObservation(task, link.evidence_record_id, timestamp(link.reconciled_at, "reconciledAt"));
+        if (link.source_kind !== observed.sourceKind || link.observed_at !== observed.observedAt || link.observation_hash !== observed.observationHash || task.state === "completed" || task.state === "leased") throw new Error("ARCHIVE_HISTORICAL_LINK_INVALID");
+      } catch (error) { errors.push("ARCHIVE_HISTORICAL_RECONCILIATION_INVALID:" + link.task_id + ":" + error.message); }
+    }
     for (const task of db.prepare("SELECT * FROM obligations WHERE state='completed'").all()) {
       try { if (!validObservation(task, task.evidence_record_id, task.completed_at)) errors.push(`ARCHIVE_COMPLETION_EVIDENCE_INVALID:${task.task_id}`); } catch (error) { errors.push(error.message); }
     }
@@ -410,7 +499,7 @@ export function openDurableEvidenceArchive(options = {}) {
         ...checked.detectedOrphans.map(name => "segments/" + name),
         ...checked.unindexedManifests.map(name => "manifests/" + name),
       ])].sort();
-      return { format: "durable-evidence-archive/v2", operationalStateSchemaVersion: 1, createdAt: archiveNow(), preservesQuarantinedEvidence: !checked.ok, tables, paths, files: [] };
+      return { format: "durable-evidence-archive/v2", operationalStateSchemaVersion: 2, createdAt: archiveNow(), preservesQuarantinedEvidence: !checked.ok, tables, paths, files: [] };
     })();
     for (const directory of ["segments", "manifests"]) fs.mkdirSync(path.join(target, directory));
     // Only copy the captured snapshot's names, not later concurrent admissions.
@@ -433,7 +522,7 @@ export function openDurableEvidenceArchive(options = {}) {
     const bytes = readRegular(sourceFile);
     if (readRegular(`${sourceFile}.sha256`).toString() !== digest(bytes)) throw new Error("ARCHIVE_EXPORT_HASH_MISMATCH");
     const snapshot = JSON.parse(bytes);
-    const restoredTables = snapshot.operationalStateSchemaVersion === undefined ? EVIDENCE_TABLES : snapshot.operationalStateSchemaVersion === 1 ? TABLES : [];
+    const restoredTables = snapshot.operationalStateSchemaVersion === undefined ? EVIDENCE_TABLES : snapshot.operationalStateSchemaVersion === 1 ? OPERATIONAL_V1_TABLES : snapshot.operationalStateSchemaVersion === 2 ? TABLES : [];
     if (snapshot.format !== "durable-evidence-archive/v2" || !Array.isArray(snapshot.files) || !restoredTables.length ||
       canonical(Object.keys(snapshot.tables || {}).sort()) !== canonical([...restoredTables].sort()) || restoredTables.some((table) => !Array.isArray(snapshot.tables[table]))) throw new Error("UNSUPPORTED_ARCHIVE_EXPORT");
     const seen = new Set();
@@ -461,8 +550,9 @@ export function openDurableEvidenceArchive(options = {}) {
       for (const table of COORDINATOR_TABLES.filter(table => restoredTables.includes(table))) {
         const columns = db.pragma(`table_info(${table})`).map(column => column.name);
         const insert = db.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(column => '@' + column).join(',')})`);
-        for (const row of snapshot.tables[table]) insert.run(row);
+        for (const row of snapshot.tables[table]) insert.run(table === "provider_requests" && snapshot.operationalStateSchemaVersion === 1 ? { ...row, attempt_kind: row.attempt_kind ?? "LEGACY_UNCLASSIFIED", finished_at: row.finished_at ?? row.received_at } : row);
       }
+      if (restoredTables.includes("historical_reconciliations")) for (const row of snapshot.tables.historical_reconciliations) db.prepare("INSERT INTO historical_reconciliations VALUES (@task_id,@evidence_record_id,@observed_at,@reconciled_at,@observation_hash,@source_kind)").run(row);
       for (const row of snapshot.tables.evidence_records) assertRow(row);
       const checked = audit();
       if (!checked.ok && !(importOptions.preserveQuarantinedEvidence === true && checked.integrityOk)) throw new Error("ARCHIVE_RESTORE_INTEGRITY_FAILED:" + (checked.errors.join(",") || "UNINDEXED_EVIDENCE"));
@@ -498,7 +588,7 @@ export function openDurableEvidenceArchive(options = {}) {
     return target;
   }
   function close() { if (!closed) { db.close(); closed = true; } }
-  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
+  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listTasks, listOutcomeCaptures, listRecoverableProviderResponses, reconcileHistoricalObservation, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
     claimWriter: coordinator.claimWriter, renewWriter: coordinator.renewWriter, releaseWriter: coordinator.releaseWriter,
     reserveProviderRequest: coordinator.reserveProviderRequest, markProviderDispatched: coordinator.markProviderDispatched,
     finishProviderRequest: coordinator.finishProviderRequest, coordinationStatus: coordinator.coordinationStatus };

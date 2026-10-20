@@ -45,7 +45,7 @@ function sourceTimestamp(raw = {}) {
   const value = raw.priceObservedAt ?? raw.price_observed_at ?? raw.sourceObservedAt ?? raw.sourceTimestamp ?? null;
   if (value === null || value === undefined || value === "") return null;
   const date = new Date(value);
-  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+  return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
 }
 
 function exactCandidate(candidate, raw, identity) {
@@ -56,7 +56,9 @@ function exactCandidate(candidate, raw, identity) {
   if (chain !== identity.chain || tokenAddress !== identity.tokenAddress || !Number.isFinite(priceUsd) || priceUsd <= 0) return null;
   if (identity.poolAddress && poolAddress !== identity.poolAddress) return null;
   if (!poolAddress && identity.poolAddress) return null;
-  return { ...candidate, chain, tokenAddress, poolAddress: identity.poolAddress || poolAddress || null, priceUsd, marketObservedAt: sourceTimestamp(raw) };
+  const marketObservedAt = sourceTimestamp(raw);
+  if (marketObservedAt === undefined) return null;
+  return { ...candidate, chain, tokenAddress, poolAddress: identity.poolAddress || poolAddress || null, priceUsd, marketObservedAt };
 }
 
 function dexCandidates(payload) {
@@ -73,6 +75,36 @@ function bytesHash(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
+export function frozenOutcomeEvidenceFromReceipt({ task, prediction, receipt, requestId, diagnosticRecordId } = {}) {
+  if (!receipt || receipt.status < 200 || receipt.status >= 300 || !Buffer.isBuffer(receipt.rawBytes)) return null;
+  const identity = identityFor(prediction), payload = JSON.parse(receipt.rawBytes.toString("utf8"));
+  const normalize = receipt.provider === "dexscreener" ? dexCandidates : receipt.provider === "geckoterminal" ? geckoCandidates : null;
+  if (!normalize) return null;
+  const requestedAt = timestamp(receipt.requestedAt, "request"), receivedAt = timestamp(receipt.receivedAt, "receipt");
+  const dueAt = timestamp(task.frozen.dueAt, "frozen due"), expiresAt = timestamp(task.frozen.expiresAt, "frozen expiry");
+  if (requestedAt > receivedAt || receivedAt < dueAt || receivedAt > expiresAt) return null;
+  for (const item of normalize(payload)) {
+    const exact = exactCandidate(item.candidate, item.raw, identity);
+    if (!exact) continue;
+    if (exact.marketObservedAt !== null && (exact.marketObservedAt < dueAt || exact.marketObservedAt > expiresAt)) continue;
+    const exactObservation = buildExactMarketObservation({ ...exact, observedAt: receivedAt,
+      outcomeObservationProvenance: { receiptObservedAt: receivedAt, sourceTimestamp: exact.marketObservedAt,
+        observationTimeBasis: exact.marketObservedAt ? "INDEPENDENT_PROVIDER_SOURCE_V1" : "COLLECTION_RECEIPT_V1" },
+    }, { asOf: receivedAt, source: "frozen-outcome:" + receipt.provider });
+    if (!exactObservation) continue;
+    return { recordId: `captured-exact-outcome:${task.taskId}:${requestId}:${receipt.provider}`,
+      rawBytes: receipt.rawBytes, frozenObligations: [],
+      cohortMetadata: { kind: "CAPTURED_EXACT_OUTCOME_V1", provider: receipt.provider, taskId: task.taskId, scoringOrSelectionAllowed: false },
+      immutableContract: { kind: "CAPTURED_EXACT_OUTCOME_V1", chain: identity.chain, tokenAddress: identity.tokenAddress,
+        poolAddress: identity.poolAddress || exact.poolAddress, frozenEpisode: identity.frozenEpisode,
+        originalDiagnosticRecordId: diagnosticRecordId,
+        observationOf: { recordId: task.recordId, taskId: task.taskId, horizonHours: task.frozen.horizonHours,
+          requestedAt, receivedAt, marketObservedAt: exact.marketObservedAt, observationClockPolicy: task.frozen.observationClockPolicy },
+        exactObservation, rawBytesHash: bytesHash(receipt.rawBytes), scoringOrSelectionAllowed: false } };
+  }
+  return null;
+}
+
 export function createFrozenOutcomeCollector({ archive, clock = () => new Date(), dexFetcher, geckoFetcher } = {}) {
   if (!archive || typeof archive.admitPrediction !== "function") throw new TypeError("archive.admitPrediction is required.");
   if (typeof clock !== "function") throw new TypeError("clock must be a function.");
@@ -84,13 +116,11 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
         throw new TypeError("Outcome collection requires a per-provider request function.");
       }
       const identity = identityFor(prediction);
-      const frozen = task.frozen || {};
-      const observationClockPolicy = frozen.observationClockPolicy || "COLLECTION_RECEIPT_V1";
       const taskId = task.taskId || null;
       let lastError = null;
       const tryProvider = async (provider, fetcher, normalize) => {
         try {
-          return await request(provider, async (operation = {}) => {
+          const response = await request(provider, async (operation = {}) => {
             const operationSignal = operation.signal || signal;
             const cancelledNow = abortError(operationSignal);
             if (cancelledNow) throw cancelledNow;
@@ -100,6 +130,11 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
             }
             let receipt = null;
             const onResponseBytes = async (value) => {
+              const cancelledReceipt = abortError(operationSignal);
+              if (cancelledReceipt) throw cancelledReceipt;
+              if (value.provider !== provider) {
+                const error = new Error("OUTCOME_RECEIPT_PROVIDER_MISMATCH"); error.responseReceiptCaptureFailure = true; throw error;
+              }
               // This callback runs after the complete body is read and before
               // JSON parsing, so the wrapper sees the actual transport receipt.
               await operation.observeTransport(value);
@@ -129,24 +164,12 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
             const options = { signal: operationSignal, requestedAt, now: clock, onResponseBytes };
             // Deliberately do not catch here: the request wrapper needs HTTP
             // status/retry metadata to account and pace this provider attempt.
-            const payload = await fetcher(options);
+            await fetcher(options);
             if (!receipt) return null;
-          for (const row of normalize(payload)) {
-            const exact = exactCandidate(row.candidate, row.raw, identity);
-            if (!exact) continue;
-            const exactObservation = buildExactMarketObservation({
-              ...exact,
-              observedAt: receipt.receivedAt,
-              outcomeObservationProvenance: {
-                receiptObservedAt: receipt.receivedAt,
-                sourceTimestamp: exact.marketObservedAt,
-                observationTimeBasis: exact.marketObservedAt ? "INDEPENDENT_PROVIDER_SOURCE_V1" : "COLLECTION_RECEIPT_V1",
-              },
-            }, { asOf: receipt.receivedAt, source: `frozen-outcome:${receipt.provider}` });
-            if (exactObservation) return { exact, receipt, requestedAt, requestId: operation.requestId, exactObservation };
-          }
-          return null;
+            return frozenOutcomeEvidenceFromReceipt({ task, prediction, receipt, requestId: operation.requestId,
+              diagnosticRecordId: `http-provider-response:${operation.requestId}:${receipt.provider}` });
           });
+          return response.value;
         } catch (error) {
           if (error?.fatalCollectionStorageFailure || error?.responseReceiptCaptureFailure || abortError(signal)) throw error;
           lastError = error;
@@ -170,33 +193,7 @@ export function createFrozenOutcomeCollector({ archive, clock = () => new Date()
         return null;
       }
 
-      const { exact, receipt } = result;
-      const observationOf = {
-        recordId: task.recordId || null,
-        taskId,
-        horizonHours: Number(frozen.horizonHours ?? task.horizonHours) || null,
-        requestedAt: result.requestedAt,
-        receivedAt: receipt.receivedAt,
-        marketObservedAt: exact.marketObservedAt,
-        observationClockPolicy,
-      };
-      return {
-        recordId: `captured-exact-outcome:${taskId || task.recordId}:${result.requestId}:${receipt.provider}`,
-        rawBytes: receipt.rawBytes,
-        frozenObligations: [],
-        cohortMetadata: { kind: "CAPTURED_EXACT_OUTCOME_V1", provider: receipt.provider, taskId, scoringOrSelectionAllowed: false },
-        immutableContract: {
-          kind: "CAPTURED_EXACT_OUTCOME_V1",
-          chain: identity.chain,
-          tokenAddress: identity.tokenAddress,
-          poolAddress: identity.poolAddress || exact.poolAddress,
-          frozenEpisode: identity.frozenEpisode,
-          observationOf,
-          exactObservation: result.exactObservation,
-          rawBytesHash: bytesHash(receipt.rawBytes),
-          scoringOrSelectionAllowed: false,
-        },
-      };
+      return result;
     }
   collect.collect = collect;
   return collect;

@@ -15,14 +15,15 @@ function fixture() {
   const reservations = [];
   const request = async (provider, operation) => {
     reservations.push(provider);
-    return operation({
+    const value = await operation({
       requestId: `req-${provider}`,
       requestedAt: REQUESTED_AT,
       observeTransport: async (receipt) => { observed.push(receipt); },
     });
+    return { value, requestedAt: REQUESTED_AT, receivedAt: RECEIVED_AT, requestId: `req-${provider}` };
   };
   const prediction = { immutableContract: { chain: "base", tokenAddress: TOKEN, poolAddress: POOL, frozenEpisode: "episode-1" } };
-  const task = { recordId: "prediction-1", taskId: "task-1", frozen: { horizonHours: 24, observationClockPolicy: "COLLECTION_RECEIPT_V1" } };
+  const task = { recordId: "prediction-1", taskId: "task-1", frozen: { horizonHours: 24, dueAt: REQUESTED_AT, expiresAt: "2026-10-20T01:00:00.000Z", observationClockPolicy: "COLLECTION_RECEIPT_V1" } };
   return { admitted, observed, reservations, archive, request, prediction, task };
 }
 
@@ -113,4 +114,13 @@ test("diagnostic archive failures are fatal and prevent fallback", async () => {
   });
   await assert.rejects(collector.collect(context), (error) => error.fatalCollectionStorageFailure === true && /disk unavailable/.test(error.message));
   assert.equal(geckoCalled, false);
+});
+
+test("a provider receipt cannot masquerade as an independently budgeted fallback", async () => {
+  const context = fixture();
+  const collector = createFrozenOutcomeCollector({ archive: context.archive, dexFetcher: async ({ onResponseBytes }) => {
+    await onResponseBytes(receipt("geckoterminal", JSON.stringify({ pairs: [dexRow()] })));
+  } });
+  await assert.rejects(collector(context), /OUTCOME_RECEIPT_PROVIDER_MISMATCH/);
+  assert.equal(context.admitted.length, 0); assert.equal(context.observed.length, 0);
 });

@@ -57,6 +57,14 @@ test("invalid injected receipt clock does not fall back to wall clock", async ()
   );
 });
 
+test("an interrupted response body remains a provider failure eligible for independent fallback", async () => {
+  const failure = new Error("body transport interrupted"); failure.name = "AbortError";
+  await assert.rejects(getPairByAddress("base", POOL, {
+    fetchImpl: async () => ({ ok: true, status: 200, headers: { get: () => null }, arrayBuffer: async () => { throw failure; } }),
+    onResponseBytes: () => assert.fail("an incomplete body must not be advertised as original complete bytes"),
+  }), error => error === failure && error.responseReceiptCaptureFailure !== true);
+});
+
 test("Gecko capture receives 429 bytes and exposes retry scheduling metadata", async () => {
   const body = '{"error":"slow down"}';
   let receipt = null;

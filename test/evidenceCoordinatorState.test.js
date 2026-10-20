@@ -80,6 +80,54 @@ test("fallback providers share one atomic total budget without double-counting H
   assert.equal(store.audit().ok, true);
 });
 
+test("protected first-attempt capacity cannot be consumed by repeated fallbacks", t => {
+  const f = fixture(t), store = f.open();
+  for (let n = 0; n < 4; n++) store.admitPrediction(prediction("episode-" + n));
+  store.claimWriter({ owner: "worker" });
+  const tasks = store.leaseDue({ owner: "worker", limit: 4 });
+  const globalBudget = { provider: "balanced-total-v1", windowMs: 3600000, requestLimit: 4, balanceOutcomeAttempts: true };
+  const reserve = task => store.reserveProviderRequest({ ...policy, requestLimit: 20, globalBudget, taskId: task.taskId });
+  assert.equal(reserve(tasks[0]).reserved, true);
+  assert.equal(reserve(tasks[0]).reserved, true);
+  assert.equal(reserve(tasks[0]).reserved, true);
+  assert.equal(reserve(tasks[0]).reason, "OUTCOME_ATTEMPT_CAPACITY_RESERVED");
+  assert.equal(reserve(tasks[1]).reserved, true);
+  assert.equal(reserve(tasks[3]).reason, "PROVIDER_BUDGET_EXHAUSTED");
+  assert.equal(store.coordinationStatus().providers.find(row => row.provider === globalBudget.provider).used, 4);
+  assert.equal(store.audit().ok, true);
+});
+
+test("fallback capacity remains available while pending retries share the same budget", t => {
+  const f = fixture(t), store = f.open();
+  for (let n = 0; n < 4; n++) store.admitPrediction(prediction("episode-" + n));
+  store.claimWriter({ owner: "worker" });
+  const tasks = store.leaseDue({ owner: "worker", limit: 4 });
+  const globalBudget = { provider: "balanced-total-v1", windowMs: 3600000, requestLimit: 4, balanceOutcomeAttempts: true };
+  const reserve = task => store.reserveProviderRequest({ ...policy, requestLimit: 20, globalBudget, taskId: task.taskId });
+  assert.equal(reserve(tasks[0]).reserved, true);
+  assert.equal(reserve(tasks[1]).reserved, true);
+  assert.equal(reserve(tasks[2]).reason, "OUTCOME_ATTEMPT_CAPACITY_RESERVED");
+  assert.equal(reserve(tasks[0]).reserved, true);
+  assert.equal(reserve(tasks[1]).reserved, true);
+  const db = new Database(store.dbPath, { readonly: true });
+  try { assert.deepEqual(db.prepare("SELECT attempt_kind,COUNT(*) n FROM provider_requests GROUP BY 1 ORDER BY 1").all(), [
+    { attempt_kind: "FIRST_ATTEMPT", n: 2 }, { attempt_kind: "RETRY_OR_FALLBACK", n: 2 },
+  ]); } finally { db.close(); }
+  assert.equal(store.audit().ok, true);
+});
+
+test("actual HTTP receipt and provider pacing survive delayed storage and restart", t => {
+  const f = fixture(t), store = f.open(); store.claimWriter({ owner: "worker" });
+  const reserved = store.reserveProviderRequest(policy); store.markProviderDispatched(reserved);
+  f.set("2026-01-01T06:00:01.000Z");
+  store.finishProviderRequest({ ...reserved, success: true, statusCode: 200, receivedAt: initial, minimumIntervalMs: 6100 });
+  assert.equal(store.reserveProviderRequest(policy).retryAt, "2026-01-01T06:00:06.100Z");
+  store.releaseWriter(); store.close();
+  const reopened = f.open(); reopened.claimWriter({ owner: "restart" });
+  assert.equal(reopened.reserveProviderRequest(policy).reason, "PROVIDER_COOLDOWN");
+  assert.equal(reopened.audit().ok, true);
+});
+
 test("a provider-specific cooldown does not suppress an independent fallback", t => {
   const f = fixture(t), store = f.open(); store.claimWriter({ owner: "worker" });
   const globalBudget = { provider: "total", windowMs: 3600000, requestLimit: 10 };
@@ -148,6 +196,23 @@ test("portable restoration retains ownership, budgets, dispatches, and retry sch
   } finally { restored.close(); }
 });
 
+test("version-one portable provider receipts migrate without inventing first-attempt labels", t => {
+  const f = fixture(t), store = f.open(); store.claimWriter({ owner: "legacy-worker" });
+  const reserved = store.reserveProviderRequest(policy); store.markProviderDispatched(reserved);
+  const source = store.exportArchive(path.join(f.root, "legacy-export"));
+  const snapshot = JSON.parse(fs.readFileSync(source)); snapshot.operationalStateSchemaVersion = 1;
+  delete snapshot.tables.historical_reconciliations;
+  for (const row of snapshot.tables.provider_requests) { delete row.attempt_kind; delete row.finished_at; }
+  const bytes = Buffer.from(JSON.stringify(snapshot));
+  fs.writeFileSync(source, bytes); fs.writeFileSync(source + ".sha256", crypto.createHash("sha256").update(bytes).digest("hex"));
+  const restored = restoreDurableEvidenceArchive({ source, root: path.join(f.root, "legacy-restored") });
+  try {
+    const db = new Database(restored.dbPath, { readonly: true });
+    try { assert.equal(db.prepare("SELECT attempt_kind FROM provider_requests").get().attempt_kind, "LEGACY_UNCLASSIFIED"); } finally { db.close(); }
+    assert.equal(restored.coordinationStatus(initial).providers[0].used, 1); assert.equal(restored.audit().ok, true);
+  } finally { restored.close(); }
+});
+
 test("legacy export compatibility does not permit silently dropped operational tables", t => {
   const f = fixture(t), store = f.open(); store.admitPrediction(prediction());
   const source = store.exportArchive(path.join(f.root, "export"));
@@ -160,7 +225,7 @@ test("legacy export compatibility does not permit silently dropped operational t
   write();
   assert.throws(() => restoreDurableEvidenceArchive({ source, root: path.join(f.root, "invalid") }), /UNSUPPORTED_ARCHIVE_EXPORT/);
   delete snapshot.operationalStateSchemaVersion;
-  for (const table of ["writer_coordination", "provider_windows", "task_schedule"]) delete snapshot.tables[table];
+  for (const table of ["writer_coordination", "provider_windows", "task_schedule", "historical_reconciliations"]) delete snapshot.tables[table];
   write();
   const restored = restoreDurableEvidenceArchive({ source, root: path.join(f.root, "legacy") });
   try { assert.equal(restored.audit().ok, true); assert.equal(restored.coordinationStatus().writerEnforced, false); } finally { restored.close(); }
