@@ -445,8 +445,24 @@ export function openDurableEvidenceArchive(options = {}) {
   }
 
   function listTasks({ recordId } = {}) {
-    const rows = recordId === undefined ? db.prepare("SELECT * FROM obligations ORDER BY due_at,task_id").all() : db.prepare("SELECT * FROM obligations WHERE record_id=? ORDER BY due_at,task_id").all(recordId);
-    return rows.map(row => ({ ...row, frozen: JSON.parse(row.frozen_json) }));
+    // Importers need to distinguish an unfinished obligation from one which
+    // has already been historically reconciled without opening a write
+    // transaction for every old source row.
+    const query = `SELECT o.*,h.task_id AS historical_task_id,h.evidence_record_id AS historical_evidence_record_id,
+      h.observed_at AS historical_observed_at,h.reconciled_at AS historical_reconciled_at,
+      h.observation_hash AS historical_observation_hash,h.source_kind AS historical_source_kind
+      FROM obligations o LEFT JOIN historical_reconciliations h ON h.task_id=o.task_id`;
+    const rows = recordId === undefined
+      ? db.prepare(query + " ORDER BY o.due_at,o.task_id").all()
+      : db.prepare(query + " WHERE o.record_id=? ORDER BY o.due_at,o.task_id").all(recordId);
+    return rows.map(row => {
+      const historicalReconciliation = row.historical_task_id === null ? null : {
+        evidenceRecordId: row.historical_evidence_record_id, observedAt: row.historical_observed_at,
+        reconciledAt: row.historical_reconciled_at, observationHash: row.historical_observation_hash,
+        sourceKind: row.historical_source_kind,
+      };
+      return { ...row, historicallyReconciled: historicalReconciliation !== null, historicalReconciliation, frozen: JSON.parse(row.frozen_json) };
+    });
   }
 
   function listOutcomeCaptures() {
