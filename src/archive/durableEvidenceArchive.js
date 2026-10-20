@@ -346,7 +346,7 @@ export function openDurableEvidenceArchive(options = {}) {
     }).immediate();
   }
 
-  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, nowAt = archiveNow() } = {}) {
+  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, returnReceipt = false, nowAt = archiveNow() } = {}) {
     const at = timestamp(nowAt, "nowAt");
     return db.transaction(() => {
       coordinator.assertWrite(at);
@@ -357,7 +357,9 @@ export function openDurableEvidenceArchive(options = {}) {
       if (task.obligation_id !== obligationId || !evidence?.recordId) return false;
       const admitted = admitPrediction(evidence);
       if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: at })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
-      return true;
+      const shared = evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1"
+        ? reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: at }) : { reconciled: 0 };
+      return returnReceipt ? { completed: true, sharedReconciled: shared.reconciled } : true;
     }).immediate();
   }
 
@@ -416,7 +418,9 @@ export function openDurableEvidenceArchive(options = {}) {
       const existing = db.prepare("SELECT * FROM historical_reconciliations WHERE task_id=?").get(taskId);
       if (existing) return { status: existing.evidence_record_id === evidenceRecordId ? "duplicate" : "already-reconciled", observedAt: existing.observed_at, reconciledAt: existing.reconciled_at };
       db.prepare("INSERT INTO historical_reconciliations VALUES (?,?,?,?,?,?)").run(taskId, evidenceRecordId, observed.observedAt, at, observed.observationHash, observed.sourceKind);
-      return { status: "reconciled", observedAt: observed.observedAt, reconciledAt: at };
+      const shared = observed.sourceKind === "CAPTURED_EXACT_OUTCOME_V1"
+        ? reconcileCompatibleFrozenObligations({ evidenceRecordId, nowAt: at }) : { reconciled: 0 };
+      return { status: "reconciled", observedAt: observed.observedAt, reconciledAt: at, sharedReconciled: shared.reconciled };
     }).immediate();
   }
 
@@ -428,8 +432,9 @@ export function openDurableEvidenceArchive(options = {}) {
       const link = contract?.observationOf, exact = contract?.exactObservation;
       if (contract?.kind !== "CAPTURED_EXACT_OUTCOME_V1" || !link || !exact) throw new Error("SHARED_CAPTURE_NOT_ANCHORED_EXACT_OBSERVATION");
       const anchor = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(link.taskId);
-      if (!anchor || !validObservation(anchor, evidenceRecordId, at)) return { evidenceRecordId, examined: 0, reconciled: 0, anchorValid: false };
-      const identity = strictIdentity(exact); if (!identity || !identity.poolAddress) throw new Error("SHARED_CAPTURE_EXACT_POOL_REQUIRED");
+      if (!anchor || !validObservation(anchor, evidenceRecordId, at)) throw new Error("SHARED_CAPTURE_ANCHOR_INVALID");
+      const identity = strictIdentity(exact); if (!identity) throw new Error("SHARED_CAPTURE_IDENTITY_INVALID");
+      if (!identity.poolAddress) return { evidenceRecordId, examined: 0, reconciled: 0, notApplicable: "EXACT_POOL_NOT_AVAILABLE" };
       let reconciled = 0, examined = 0;
       for (const task of db.prepare("SELECT * FROM obligations WHERE due_at<=? AND state!='completed' AND state!='leased' AND task_id!=?").all(at, anchor.task_id)) {
         const parent = JSON.parse(findRecord.get(task.record_id).immutable_json), expected = strictIdentity(parent);

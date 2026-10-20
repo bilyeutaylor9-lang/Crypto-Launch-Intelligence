@@ -102,13 +102,11 @@ export async function runDurableOutcomeCycle({ archive, owner, collect, provider
         if (!prediction) throw new Error("OUTCOME_PARENT_EVIDENCE_MISSING");
         evidence = await withAbort(() => collect({ task, prediction, request, signal: taskCancellation.signal }), taskCancellation.signal);
         if (heartbeatError) throw heartbeatError;
-        const completed = evidence ? archive.completeWithEvidence({ obligationId: task.obligationId, owner, leaseToken: task.leaseToken, evidence, nowAt: clockTime(clock) }) : false;
+        const completion = evidence ? archive.completeWithEvidence({ obligationId: task.obligationId, owner, leaseToken: task.leaseToken, evidence, returnReceipt: true, nowAt: clockTime(clock) }) : false;
+        const completed = completion === true || completion?.completed === true;
         if (evidence && !completed) archive.admitPrediction(evidence);
         if (completed) {
-          const shared = evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1"
-            ? archive.reconcileCompatibleFrozenObligations({ evidenceRecordId: evidence.recordId, nowAt: clockTime(clock) })
-            : { reconciled: 0 };
-          results.push({ taskId: task.taskId, state: "completed", evidenceRecordId: evidence.recordId, sharedReconciled: shared.reconciled });
+          results.push({ taskId: task.taskId, state: "completed", evidenceRecordId: evidence.recordId, sharedReconciled: completion.sharedReconciled || 0 });
         }
         else {
           const nowAt = clockTime(clock), retryAt = new Date(Date.parse(nowAt) + retryDelayMs).toISOString();
@@ -129,8 +127,11 @@ export async function runDurableOutcomeCycle({ archive, owner, collect, provider
     }
     const finishedAt = clockTime(clock), after = archive.dueDenominators(finishedAt);
     const count = state => after.find(row => row.state === state)?.count || 0;
+    const capturedObservations = results.filter(row => row.state === "completed").length;
+    const sharedReconciledDuties = results.reduce((sum, row) => sum + (row.sharedReconciled || 0), 0);
     return { status: before.reduce((sum, row) => sum + row.count, 0) === 0 ? "NO_OUTCOMES_DUE" : after.some(row => !["completed", "reconciled"].includes(row.state) && row.count > 0) ? "COLLECTION_INCOMPLETE" : results.length ? "CAPTURE_COMPLETE" : "NO_PENDING_OUTCOMES",
       startedAt, finishedAt, before, after, deadlineReached, attempted: results.length, completed: results.filter(row => row.state === "completed").length,
+      capturedObservations, sharedReconciledDuties, resolvedDuties: capturedObservations + sharedReconciledDuties,
       expiredMissing: count("expired"), results, providers: archive.coordinationStatus(finishedAt), edgeEstablished: false };
   } finally {
     clearInterval(heartbeat);
