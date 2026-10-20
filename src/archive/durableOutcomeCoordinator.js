@@ -104,7 +104,12 @@ export async function runDurableOutcomeCycle({ archive, owner, collect, provider
         if (heartbeatError) throw heartbeatError;
         const completed = evidence ? archive.completeWithEvidence({ obligationId: task.obligationId, owner, leaseToken: task.leaseToken, evidence, nowAt: clockTime(clock) }) : false;
         if (evidence && !completed) archive.admitPrediction(evidence);
-        if (completed) results.push({ taskId: task.taskId, state: "completed", evidenceRecordId: evidence.recordId });
+        if (completed) {
+          let shared = { reconciled: 0, error: null };
+          try { shared = archive.reconcileCompatibleFrozenObligations({ evidenceRecordId: evidence.recordId, nowAt: clockTime(clock) }); }
+          catch (error) { shared.error = error.message; }
+          results.push({ taskId: task.taskId, state: "completed", evidenceRecordId: evidence.recordId, sharedReconciled: shared.reconciled, sharedReuseError: shared.error });
+        }
         else {
           const nowAt = clockTime(clock), retryAt = new Date(Date.parse(nowAt) + retryDelayMs).toISOString();
           archive.transitionTask({ obligationId: task.obligationId, owner, leaseToken: task.leaseToken, state: "retryable", retryAt, nowAt });

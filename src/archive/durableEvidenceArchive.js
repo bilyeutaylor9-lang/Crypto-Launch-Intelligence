@@ -412,6 +412,30 @@ export function openDurableEvidenceArchive(options = {}) {
     }).immediate();
   }
 
+  function reconcileCompatibleFrozenObligations({ evidenceRecordId, nowAt = archiveNow() } = {}) {
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => {
+      coordinator.assertWrite(at); expireTasks(at);
+      const record = findRecord.get(evidenceRecordId), contract = record && assertRow(record).manifest.immutableContract;
+      const link = contract?.observationOf, exact = contract?.exactObservation;
+      if (contract?.kind !== "CAPTURED_EXACT_OUTCOME_V1" || !link || !exact) throw new Error("SHARED_CAPTURE_NOT_ANCHORED_EXACT_OBSERVATION");
+      const anchor = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(link.taskId);
+      if (!anchor || !validObservation(anchor, evidenceRecordId, at)) return { evidenceRecordId, examined: 0, reconciled: 0, anchorValid: false };
+      const identity = strictIdentity(exact); if (!identity || !identity.poolAddress) throw new Error("SHARED_CAPTURE_EXACT_POOL_REQUIRED");
+      let reconciled = 0, examined = 0;
+      for (const task of db.prepare("SELECT * FROM obligations WHERE due_at<=? AND state!='completed' AND state!='leased' AND task_id!=?").all(at, anchor.task_id)) {
+        const parent = JSON.parse(findRecord.get(task.record_id).immutable_json), expected = strictIdentity(parent);
+        if (!expected || expected.chain !== identity.chain || expected.tokenAddress !== identity.tokenAddress || !expected.poolAddress || expected.poolAddress !== identity.poolAddress) continue;
+        examined++;
+        const frozen = JSON.parse(task.frozen_json), receipt = timestamp(link.receivedAt, "shared receipt"), market = link.marketObservedAt == null ? null : timestamp(link.marketObservedAt, "shared market");
+        if (receipt < task.due_at || receipt > task.expires_at || (market === null && frozen.observationClockPolicy !== "COLLECTION_RECEIPT_V1") || (market !== null && (market < task.due_at || market > task.expires_at || market > receipt))) continue;
+        if (db.prepare("SELECT 1 FROM historical_reconciliations WHERE task_id=?").get(task.task_id)) continue;
+        db.prepare("INSERT INTO historical_reconciliations VALUES (?,?,?,?,?,?)").run(task.task_id, evidenceRecordId, exact.observedAt, at, exact.observationIntegrityHash, "SHARED_CAPTURED_EXACT_OBSERVATION_V1"); reconciled++;
+      }
+      return { evidenceRecordId, examined, reconciled };
+    }).immediate();
+  }
+
   function listTasks({ recordId } = {}) {
     const rows = recordId === undefined ? db.prepare("SELECT * FROM obligations ORDER BY due_at,task_id").all() : db.prepare("SELECT * FROM obligations WHERE record_id=? ORDER BY due_at,task_id").all(recordId);
     return rows.map(row => ({ ...row, frozen: JSON.parse(row.frozen_json) }));
@@ -588,7 +612,7 @@ export function openDurableEvidenceArchive(options = {}) {
     return target;
   }
   function close() { if (!closed) { db.close(); closed = true; } }
-  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listTasks, listOutcomeCaptures, listRecoverableProviderResponses, reconcileHistoricalObservation, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
+  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listTasks, listOutcomeCaptures, listRecoverableProviderResponses, reconcileHistoricalObservation, reconcileCompatibleFrozenObligations, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
     claimWriter: coordinator.claimWriter, renewWriter: coordinator.renewWriter, releaseWriter: coordinator.releaseWriter,
     reserveProviderRequest: coordinator.reserveProviderRequest, markProviderDispatched: coordinator.markProviderDispatched,
     finishProviderRequest: coordinator.finishProviderRequest, coordinationStatus: coordinator.coordinationStatus };

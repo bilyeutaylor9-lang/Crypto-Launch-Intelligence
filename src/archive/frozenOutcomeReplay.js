@@ -24,7 +24,8 @@ export function replayArchivedFrozenOutcomes({ archive, clock = () => new Date()
     archive.admitPrediction(evidence);
     try {
       const result = archive.reconcileHistoricalObservation({ taskId: task.task_id, evidenceRecordId: evidence.recordId, nowAt: clock() });
-      results.push({ diagnosticRecordId: diagnostic.recordId, ...result });
+      const shared = result.status === "reconciled" ? archive.reconcileCompatibleFrozenObligations({ evidenceRecordId: evidence.recordId, nowAt: clock() }) : { reconciled: 0 };
+      results.push({ diagnosticRecordId: diagnostic.recordId, ...result, sharedReconciled: shared.reconciled });
     } catch (error) {
       if (!error.message.startsWith("HISTORICAL_")) throw error;
       results.push({ diagnosticRecordId: diagnostic.recordId, status: "RAW_RESPONSE_NOT_ADMISSIBLE", reason: error.message });
