@@ -24,6 +24,39 @@ test("DexScreener opt-in receipt capture receives exact malformed response bytes
   assert.equal(receipt.rawBytes.toString("utf8"), body);
 });
 
+test("raw receipt timestamp is taken after a delayed body resolves", async () => {
+  let bodyResolved = false;
+  let receipt = null;
+  const response = {
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    arrayBuffer: async () => {
+      bodyResolved = true;
+      return Buffer.from('{"pairs":[]}');
+    },
+  };
+  await getPairByAddress("base", POOL, {
+    requestedAt: "2026-10-20T00:00:00.000Z",
+    now: () => bodyResolved ? "2026-10-20T00:00:05.000Z" : "2026-10-20T00:00:00.000Z",
+    fetchImpl: async () => response,
+    onResponseBytes: async (value) => { receipt = value; },
+  });
+  assert.equal(receipt.requestedAt, "2026-10-20T00:00:00.000Z");
+  assert.equal(receipt.receivedAt, "2026-10-20T00:00:05.000Z");
+});
+
+test("invalid injected receipt clock does not fall back to wall clock", async () => {
+  await assert.rejects(
+    getPairByAddress("base", POOL, {
+      now: "not-a-clock",
+      fetchImpl: async () => new Response('{"pairs":[]}', { status: 200 }),
+      onResponseBytes: async () => {},
+    }),
+    /valid timestamp/,
+  );
+});
+
 test("Gecko capture receives 429 bytes and exposes retry scheduling metadata", async () => {
   const body = '{"error":"slow down"}';
   let receipt = null;

@@ -1,7 +1,20 @@
 export function providerReceiptTimestamp(options = {}) {
-  const value = typeof options.now === "function" ? options.now() : options.now;
-  const date = value instanceof Date ? value : value ? new Date(value) : new Date();
-  return Number.isFinite(date.getTime()) ? date.toISOString() : new Date().toISOString();
+  const hasInjectedClock = Object.hasOwn(options, "now");
+  const value = hasInjectedClock
+    ? (typeof options.now === "function" ? options.now() : options.now)
+    : new Date();
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) {
+    throw new TypeError("Provider receipt clock must produce a valid timestamp.");
+  }
+  return date.toISOString();
+}
+
+function canonicalTimestamp(value, label) {
+  if (value === null || value === undefined || value === "") return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new TypeError(`${label} must be a valid timestamp.`);
+  return date.toISOString();
 }
 
 function safeHeaders(headers) {
@@ -24,20 +37,27 @@ export function retryAfterMs(value, receivedAt = new Date().toISOString()) {
 }
 
 export async function readProviderJson(response, metadata = {}, options = {}) {
-  const receivedAt = providerReceiptTimestamp(options);
   const headers = safeHeaders(response?.headers);
+  const requestedAt = canonicalTimestamp(metadata.requestedAt, "Provider request timestamp");
   let rawBytes = null;
+  let receivedAt = null;
   if (typeof options.onResponseBytes === "function") {
     try {
       if (!response || typeof response.arrayBuffer !== "function") {
         throw new Error("Provider response receipt capture requires a raw-capable response.");
       }
       rawBytes = Buffer.from(await response.arrayBuffer());
+      // This is deliberately after body consumption. HTTP response headers can
+      // arrive before a delayed body, so their arrival is not a receipt clock.
+      receivedAt = providerReceiptTimestamp(options);
+      if (requestedAt && Date.parse(receivedAt) < Date.parse(requestedAt)) {
+        throw new RangeError("Provider receipt timestamp precedes its request timestamp.");
+      }
       await options.onResponseBytes({
         provider: metadata.provider || "unknown",
         url: metadata.url || null,
         status: Number(response.status),
-        requestedAt: metadata.requestedAt || null,
+        requestedAt,
         receivedAt,
         headers,
         rawBytes,
@@ -48,10 +68,11 @@ export async function readProviderJson(response, metadata = {}, options = {}) {
       throw captureError;
     }
   }
+  const errorReceiptAt = receivedAt || providerReceiptTimestamp(options);
   if (!response?.ok) {
     const error = new Error(`${metadata.provider || "Provider"} request failed: ${response?.status}`);
     error.statusCode = Number(response?.status) || null;
-    error.retryAfterMs = retryAfterMs(headers.retryAfter, receivedAt);
+    error.retryAfterMs = retryAfterMs(headers.retryAfter, errorReceiptAt);
     throw error;
   }
   if (rawBytes !== null) return JSON.parse(rawBytes.toString("utf8"));

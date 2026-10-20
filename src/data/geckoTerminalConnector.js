@@ -56,7 +56,7 @@ async function fetchJson(url, retries = 3, options = {}) {
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const requestedAt = providerReceiptTimestamp(options);
+      const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
       const response = await (options.fetchImpl || fetch)(url, {
         headers: {
           accept: "application/json"
@@ -101,7 +101,7 @@ export async function getGeckoPoolByAddress(chain, poolAddress, options = {}) {
     const timeout = controller
       ? setTimeout(() => controller.abort(), Number(options.timeoutMs || 8_000))
       : null;
-    const requestedAt = providerReceiptTimestamp(options);
+    const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
     const response = await (options.fetchImpl || fetch)(url, {
       signal: options.signal || controller.signal,
       headers: { accept: "application/json" },

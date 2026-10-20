@@ -26,7 +26,7 @@ export function resolveDexScreenerChainId(chainId = "") {
 }
 
 async function fetchJson(url, options = {}) {
-  const requestedAt = providerReceiptTimestamp(options);
+  const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
   const response = await (options.fetchImpl || fetch)(url, { signal: options.signal });
   return readProviderJson(response, { provider: "dexscreener", url, requestedAt }, options);
 }
