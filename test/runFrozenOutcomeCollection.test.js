@@ -11,6 +11,12 @@ import { freezeProspectiveEdgeCohort } from "../src/production/prospectiveEdgeCo
 const decision = "2026-01-01T00:00:00.000Z", now = "2026-01-01T01:05:00.000Z";
 const address = n => "0x" + n.toString(16).padStart(40, "0");
 function fixture(t) {
+  const originalActions = process.env.GITHUB_ACTIONS;
+  process.env.GITHUB_ACTIONS = "false";
+  t.after(() => {
+    if (originalActions === undefined) delete process.env.GITHUB_ACTIONS;
+    else process.env.GITHUB_ACTIONS = originalActions;
+  });
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "frozen-outcome-cli-"));
   const rows = [1, 2].map(n => ({ chain: "base", tokenAddress: address(n), poolAddress: address(n + 10000),
     sourceObservedAt: "2025-12-31T23:55:00.000Z", priceUsd: 1, marketCapUsd: 1e7, liquidityUsd: 5e5,
@@ -131,6 +137,17 @@ test("restart replays saved original HTTP bytes after the window without fetchin
 test("persistent archive destination must be explicit and absolute", async () => {
   await assert.rejects(runFrozenOutcomeCollection({}), /absolute persistent archiveRoot/);
   await assert.rejects(runFrozenOutcomeCollection({ archiveRoot: "temporary" }), /absolute persistent archiveRoot/);
+});
+
+test("an actual ephemeral GitHub runner cannot start live provider collection", async t => {
+  const previous = process.env.GITHUB_ACTIONS;
+  process.env.GITHUB_ACTIONS = "true";
+  t.after(() => {
+    if (previous === undefined) delete process.env.GITHUB_ACTIONS;
+    else process.env.GITHUB_ACTIONS = previous;
+  });
+  await assert.rejects(runFrozenOutcomeCollection({ archiveRoot: path.join(os.tmpdir(), "must-not-open-ephemeral-archive"), collectLive: true }),
+    /PERSISTENT_HOST_REQUIRED_NO_EPHEMERAL_LIVE_COLLECTOR/);
 });
 
 test("arbitrary bytes with positive-looking clock flags cannot complete a frozen evidence obligation", async t => {
