@@ -31,6 +31,7 @@ jobs:
         run: npm ci
 
       - name: Restore Market Discovery And Alpha Memory
+        id: legacy_cache_restore
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
@@ -58,6 +59,7 @@ jobs:
             production-shadow-${{ runner.os }}-${{ github.ref_name }}-
 
       - name: Restore Canonical Scanner State Bundle
+        id: learning_cache_restore
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
@@ -67,7 +69,47 @@ jobs:
             scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-v2-${{ runner.os }}-
 
+      - name: Prepare Legacy Scanner State Isolation
+        id: legacy_state_prepare
+        timeout-minutes: 12
+        run: node src/ops/isolateLegacyScannerState.js prepare
+        env:
+          LEGACY_STATE_ISOLATION_DIR: ${{ runner.temp }}/legacy-state-isolation-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          LEGACY_STATE_WORKFLOW_KIND: MARKET_DISCOVERY
+          LEGACY_STATE_CACHE_KEY: ${{ steps.legacy_cache_restore.outputs.cache-matched-key }}
+          CANONICAL_STATE_CACHE_KEY: ${{ steps.learning_cache_restore.outputs.cache-matched-key }}
+          LEGACY_STATE_RESTORE_OUTCOME: ${{ steps.legacy_cache_restore.outcome }}
+          CANONICAL_STATE_RESTORE_OUTCOME: ${{ steps.learning_cache_restore.outcome }}
+
+      - name: Upload Temporary Legacy Scanner State Diagnostic
+        id: legacy_state_upload
+        if: ${{ success() && steps.legacy_state_prepare.outputs.needs_commit == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: temporary-legacy-scanner-state-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          path: |
+            ${{ runner.temp }}/legacy-state-isolation-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/legacy-scanner-state.tar.gz
+            ${{ runner.temp }}/legacy-state-isolation-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/manifest.json
+            ${{ runner.temp }}/legacy-state-isolation-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/preservation-receipt.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Commit Verified Legacy Scanner State Isolation
+        id: legacy_state_commit
+        if: ${{ success() && steps.legacy_state_prepare.outputs.needs_commit == 'true' && steps.legacy_state_upload.outcome == 'success' }}
+        run: node src/ops/isolateLegacyScannerState.js commit
+        env:
+          LEGACY_STATE_ISOLATION_DIR: ${{ runner.temp }}/legacy-state-isolation-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          LEGACY_STATE_WORKFLOW_KIND: MARKET_DISCOVERY
+          LEGACY_STATE_CACHE_KEY: ${{ steps.legacy_cache_restore.outputs.cache-matched-key }}
+          CANONICAL_STATE_CACHE_KEY: ${{ steps.learning_cache_restore.outputs.cache-matched-key }}
+          LEGACY_STATE_RESTORE_OUTCOME: ${{ steps.legacy_cache_restore.outcome }}
+          CANONICAL_STATE_RESTORE_OUTCOME: ${{ steps.learning_cache_restore.outcome }}
+          LEGACY_STATE_PLAN_HASH: ${{ steps.legacy_state_prepare.outputs.plan_hash }}
+          LEGACY_STATE_UPLOAD_OUTCOME: ${{ steps.legacy_state_upload.outcome }}
+
       - name: Restore Validated Scanner State
+        if: ${{ success() && steps.legacy_state_prepare.outcome == 'success' && (steps.legacy_state_prepare.outputs.needs_commit == 'false' || steps.legacy_state_commit.outcome == 'success') }}
         run: npm run state:restore
 
       - name: Restore Remote Operational Circuit
