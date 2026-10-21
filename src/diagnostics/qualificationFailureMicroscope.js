@@ -1,5 +1,44 @@
 import fs from "node:fs";
 import path from "node:path";
+import { normalizeChainId, normalizeTokenAddress, normalizePoolAddress } from "../identity/strictIdentityValidators.js";
+
+const FRESHNESS_CLOCK_POLICY = "ABSOLUTE_QUOTE_TIME_V1";
+const SCHEMA_VERSION = 2;
+
+function absoluteTime(value) {
+  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.getTime() : null;
+  if (typeof value === "number") return value >= 0 && Number.isFinite(new Date(value).getTime()) ? value : null;
+  if (typeof value !== "string") return null;
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!parts) return null;
+  const [, year, month, day, hour, minute, second, zone] = parts;
+  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate() ||
+      Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59 ||
+      (zone !== "Z" && (Number(zone.slice(1, 3)) > 23 || Number(zone.slice(4)) > 59))) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function measuredNumber(value) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function diagnosticClock(options = {}) {
+  if (Object.hasOwn(options, "clock") && typeof options.clock !== "function") throw new TypeError("Microscope clock must be a function.");
+  const suppliedNow = Object.hasOwn(options, "now") ? absoluteTime(options.now) : undefined;
+  if (suppliedNow === null) throw new TypeError("Microscope now must be a valid absolute timestamp.");
+  const now = Object.hasOwn(options, "clock") ? absoluteTime(options.clock()) : suppliedNow ?? Date.now();
+  if (now === null || (suppliedNow !== undefined && suppliedNow !== now)) throw new TypeError("Microscope clock is invalid or conflicts with now.");
+  const asOf = Object.hasOwn(options, "asOf") ? absoluteTime(options.asOf) : now;
+  if (asOf === null || asOf > now) throw new TypeError("Microscope asOf must be valid and no later than its clock.");
+  const rawMaxAge = Object.hasOwn(options, "maxQuoteAgeSeconds") ? options.maxQuoteAgeSeconds
+    : process.env.QUALIFICATION_MICROSCOPE_MAX_QUOTE_AGE_SECONDS ?? 900;
+  const maxAge = measuredNumber(rawMaxAge);
+  if (maxAge === null || maxAge <= 0) throw new TypeError("Microscope maxQuoteAgeSeconds must be a positive finite number.");
+  return { now, asOf, maxAge, asOfTimestamp: new Date(asOf).toISOString() };
+}
 
 const REPORT_FILE = path.resolve("reports", "qualification-failure-microscope.json");
 const INPUT_FILE = path.resolve(
@@ -287,11 +326,7 @@ function executionSnapshot(project = {}) {
       proof.slippageIsHeuristic === false &&
       finite(proof.observedSlippagePct ?? proof.estimatedRoundTripSlippagePct) !== null
     ),
-    quoteFresh:
-      proof.quoteFresh === true ||
-      global.quoteFresh === true ||
-      project.quoteFresh === true ||
-      project.executionQuoteFresh === true,
+    quoteFresh: firstBoolean([proof.quoteFresh, global.quoteFresh, project.quoteFresh, project.executionQuoteFresh]),
     quoteAgeSeconds,
     userAccessStatus: upper(
       project.candidateProofState?.userAccess?.status ||
@@ -341,31 +376,108 @@ function quoteGate(project, side) {
   return gate("UNKNOWN", `${side} quote is not verified.`, execution);
 }
 
-function freshnessGate(project = {}, options = {}) {
+function quoteObjects(source = {}) {
+  return [source.buyQuote, source.sellQuote, source.quote, source.quotes?.buy, source.quotes?.sell,
+    source.quote?.buy, source.quote?.sell].filter((item) => item && typeof item === "object" && !Array.isArray(item));
+}
+
+function declaredValues(source, keys) {
+  return keys.filter((key) => Object.hasOwn(source, key)).map((key) => source[key]);
+}
+
+function quoteStamps(source = {}) {
+  return [...declaredValues(source, ["quoteTimestamp", "executionQuoteTimestamp", "quoteRequestedAt", "quoteReceivedAt"]),
+    ...quoteObjects(source).flatMap((item) => declaredValues(item, ["timestamp", "requestedAt", "receivedAt"]))];
+}
+
+function quoteExpiries(source = {}) {
+  return [...declaredValues(source, ["quoteExpiresAt"]),
+    ...quoteObjects(source).flatMap((item) => declaredValues(item, ["expiresAt", "quoteExpiresAt"]))];
+}
+
+function hasQuoteTiming(source = {}) {
+  return quoteStamps(source).length || quoteExpiries(source).length ||
+    Object.hasOwn(source, "quoteFreshnessSeconds") || Object.hasOwn(source, "quoteAgeSeconds");
+}
+
+function compatibleQuoteIdentity(left, right) {
+  for (const [keys, normalize] of [
+    [["chain", "chainId"], (value) => normalizeChainId(value)],
+    [["contractAddress", "tokenAddress"], (value) => normalizeTokenAddress(value)],
+    [["pairAddress", "poolAddress"], (value) => normalizePoolAddress(value)],
+  ]) {
+    const a = keys.map((key) => left[key]).filter((value) => value !== undefined && value !== null && value !== "").map(normalize);
+    const b = keys.map((key) => right[key]).filter((value) => value !== undefined && value !== null && value !== "").map(normalize);
+    if (a.some((value) => !value) || b.some((value) => !value) || new Set(a).size > 1 || new Set(b).size > 1) return false;
+    if (a.length && b.length && a[0] !== b[0]) return false;
+  }
+  return true;
+}
+
+function quoteClockSources(project) {
+  const sources = [project.executionProof, project.candidateProofState?.globalRoute, project,
+    project.canonicalExecutionRoute, project.executionProofRecoveryRoute, project.purchaseRoute, project.executionRoute,
+    ...array(project.executionRoutes), ...array(project.executionProofRecoveryRoutes)]
+    .filter((source) => source && typeof source === "object" && !Array.isArray(source));
+  const owner = sources.find(hasQuoteTiming);
+  if (!owner) return { owner: null, sources: [] };
+  const stamp = quoteStamps(owner)[0];
+  const ownerTime = absoluteTime(stamp);
+  return { owner, sources: [owner, ...sources.filter((source) => {
+    if (source === owner || !quoteExpiries(source).length || !compatibleQuoteIdentity(owner, source)) return false;
+    const otherStamps = quoteStamps(source);
+    // A same-identity copy without a stamp can only tighten a known quote's
+    // deadline. A different stamped quote cannot replace or extend its clock.
+    return ownerTime !== null && (!otherStamps.length || absoluteTime(otherStamps[0]) === ownerTime);
+  })] };
+}
+
+function negativeQuoteProof(source) {
+  return source && (source.quoteFresh === false ||
+    [source.status, source.executionStatus, source.executionProofState].some((value) => /(?:^|_)(?:STALE|EXPIRED|INVALID|FAILED|REJECTED|UNVERIFIED|NOT_VERIFIED)(?:_|$)/.test(upper(value))) ||
+    quoteObjects(source).some((quote) => quote.verified === false || quote.quoteVerified === false ||
+      [quote.status, quote.verificationStatus].some((value) => /(?:STALE|EXPIRED|INVALID|FAILED|REJECTED|UNVERIFIED|NOT_VERIFIED)/.test(upper(value)))));
+}
+
+function freshnessGate(project = {}, context) {
   const execution = executionSnapshot(project);
-  const maxAge = Number(
-    options.maxQuoteAgeSeconds ||
-      process.env.QUALIFICATION_MICROSCOPE_MAX_QUOTE_AGE_SECONDS ||
-      900
-  );
-  if (execution.quoteFresh) {
-    return gate("PASS", "Quote is explicitly fresh.", { ...execution, maxAgeSeconds: maxAge });
+  const { owner, sources } = quoteClockSources(project);
+  const rawStamps = sources.flatMap(quoteStamps), rawExpiries = sources.flatMap(quoteExpiries);
+  const stamps = rawStamps.map(absoluteTime), expiries = rawExpiries.map(absoluteTime);
+  const ageValue = owner && first([owner.quoteFreshnessSeconds, owner.quoteAgeSeconds]);
+  const cachedAge = ageValue === null ? null : measuredNumber(ageValue);
+  const absoluteAge = stamps.length && stamps.every((stamp) => stamp !== null)
+    ? (context.asOf - Math.min(...stamps)) / 1000 : null;
+  const evidence = { ...execution, quoteAgeSeconds: absoluteAge === null ? null : Math.max(absoluteAge, cachedAge ?? 0),
+    cachedQuoteAgeSeconds: cachedAge, maxAgeSeconds: context.maxAge, asOfTimestamp: context.asOfTimestamp,
+    freshnessClockPolicy: FRESHNESS_CLOCK_POLICY,
+    quoteTimestamp: stamps.length && stamps.every((stamp) => stamp !== null) ? new Date(Math.min(...stamps)).toISOString() : null,
+    ...(rawExpiries.length ? { quoteExpiresAt: expiries.every((expiry) => expiry !== null) ? new Date(Math.min(...expiries)).toISOString() : null } : {}),
+  };
+  const proofOwnsTiming = project.executionProof && hasQuoteTiming(project.executionProof);
+  const explicitFresh = (proofOwnsTiming ? [project.executionProof.quoteFresh] :
+    [project.executionProof?.quoteFresh, project.candidateProofState?.globalRoute?.quoteFresh,
+      project.quoteFresh, project.executionQuoteFresh]).find((value) => typeof value === "boolean");
+  if (explicitFresh === false || negativeQuoteProof(project.executionProof) ||
+      (!proofOwnsTiming && negativeQuoteProof(project.candidateProofState?.globalRoute)) || negativeQuoteProof(owner)) {
+    return gate("FAIL", "Authoritative quote proof explicitly rejects freshness or validity.", evidence);
   }
-  if (execution.quoteAgeSeconds !== null) {
-    return execution.quoteAgeSeconds <= maxAge
-      ? gate("PASS", "Quote age is inside the diagnostic freshness window.", {
-          ...execution,
-          maxAgeSeconds: maxAge,
-        })
-      : gate("FAIL", "Quote is stale.", { ...execution, maxAgeSeconds: maxAge });
+  if (stamps.some((stamp) => stamp === null || stamp > context.asOf) || expiries.some((expiry) => expiry === null) ||
+      (ageValue !== null && (cachedAge === null || cachedAge < 0))) return gate("FAIL", "Quote clock or declared expiry is invalid or future-dated.", evidence);
+  if (sources.some((source) => (Object.hasOwn(source, "quoteReceivedAt") &&
+      declaredValues(source, ["quoteTimestamp", "executionQuoteTimestamp", "quoteRequestedAt"]).some((stamp) => absoluteTime(stamp) > absoluteTime(source.quoteReceivedAt))) ||
+      quoteObjects(source).some((quote) => Object.hasOwn(quote, "receivedAt") &&
+      declaredValues(quote, ["timestamp", "requestedAt"]).some((stamp) => absoluteTime(stamp) > absoluteTime(quote.receivedAt))))) {
+    return gate("FAIL", "Quote request/receipt clocks are contradictory.", evidence);
   }
-  if (textMatches(project, [/stale quote/i, /quote.*expired/i])) {
-    return gate("FAIL", "Quote is explicitly stale.", { ...execution, maxAgeSeconds: maxAge });
+  if (expiries.some((expiry) => expiry <= context.asOf || stamps.some((stamp) => stamp >= expiry))) {
+    return gate("FAIL", "Quote has reached its declared expiry.", evidence);
   }
-  return gate("UNKNOWN", "Quote freshness is not proven.", {
-    ...execution,
-    maxAgeSeconds: maxAge,
-  });
+  if (cachedAge !== null && cachedAge > context.maxAge) return gate("FAIL", "Quote is stale.", evidence);
+  if (!stamps.length) return gate(textMatches(project, [/stale quote/i, /quote.*expired/i]) ? "FAIL" : "UNKNOWN", "Absolute quote observation time is not proven.", evidence);
+  return evidence.quoteAgeSeconds <= context.maxAge
+    ? gate("PASS", "Absolute quote time is inside the freshness window and declared expiry.", evidence)
+    : gate("FAIL", "Quote is stale.", evidence);
 }
 
 function depthGate(project = {}) {
@@ -567,7 +679,7 @@ function priceExtensionGate(project = {}) {
   return gate("UNKNOWN", "Price-extension state is not proven.", { priceMateriallyExtended: null });
 }
 
-export function traceQualificationCandidate(project = {}, options = {}) {
+function traceCandidateAt(project, options, context) {
   const productionGates = {
     IDENTITY: identityGate(project),
     CORE_EVIDENCE: coreEvidenceGate(project),
@@ -575,7 +687,7 @@ export function traceQualificationCandidate(project = {}, options = {}) {
     ROUTE_IDENTITY: routeIdentityGate(project),
     BUY_QUOTE: quoteGate(project, "BUY"),
     SELL_QUOTE: quoteGate(project, "SELL"),
-    QUOTE_FRESHNESS: freshnessGate(project, options),
+    QUOTE_FRESHNESS: freshnessGate(project, context),
     ROUTE_DEPTH: depthGate(project),
     VERIFIED_SLIPPAGE: slippageGate(project),
     USER_ACCESS: userAccessGate(project),
@@ -645,6 +757,10 @@ export function traceQualificationCandidate(project = {}, options = {}) {
     finalBlockingReasons: array(project.finalBlockingReasons).map(String),
     finalWarningReasons: array(project.finalWarningReasons).map(String),
   };
+}
+
+export function traceQualificationCandidate(project = {}, options = {}) {
+  return traceCandidateAt(project, options, diagnosticClock(options));
 }
 
 function countBy(rows = [], keyFn) {
@@ -720,10 +836,10 @@ function topEntry(counts = {}) {
   return Object.entries(counts)[0] || [null, 0];
 }
 
-export function buildQualificationFailureMicroscope(projects = [], options = {}) {
+function buildMicroscopeAt(projects, options, context) {
   const sourceProjects = Array.isArray(projects) ? projects : [];
   const deep = deepEvaluatedProjects(sourceProjects);
-  const traces = deep.map((project) => traceQualificationCandidate(project, options));
+  const traces = deep.map((project) => traceCandidateAt(project, options, context));
   const qualified = traces.filter((row) => row.finalSelectionQualified);
   const routeVerified = traces.filter((row) => row.routeVerified);
   const routeDeaths = countBy(
@@ -784,8 +900,12 @@ export function buildQualificationFailureMicroscope(projects = [], options = {})
   }
 
   return {
-    schemaVersion: 1,
-    generatedAt: new Date(options.now || Date.now()).toISOString(),
+    schemaVersion: SCHEMA_VERSION,
+    generatedAt: new Date(context.now).toISOString(),
+    asOfTimestamp: context.asOfTimestamp,
+    freshnessClockPolicy: FRESHNESS_CLOCK_POLICY,
+    freshnessMaxQuoteAgeSeconds: context.maxAge,
+    freshnessTemporalScope: context.asOf === context.now ? "AS_OF_GENERATION" : "EXPLICIT_HISTORICAL_AS_OF",
     diagnostic,
     nextAction,
     sourceCandidates: sourceProjects.length,
@@ -816,7 +936,26 @@ export function buildQualificationFailureMicroscope(projects = [], options = {})
   };
 }
 
+export function buildQualificationFailureMicroscope(projects = [], options = {}) {
+  return buildMicroscopeAt(projects, options, diagnosticClock(options));
+}
+
+function reusableFullScan(existing, scanRunId, projects, context, options) {
+  if (!existing || typeof existing !== "object") return false;
+  if (existing.sourceMode !== "FULL_SCAN" || existing.scanRunId !== scanRunId || existing.sourceCandidates !== projects.length ||
+      existing.schemaVersion !== SCHEMA_VERSION || existing.freshnessClockPolicy !== FRESHNESS_CLOCK_POLICY ||
+      existing.freshnessMaxQuoteAgeSeconds !== context.maxAge || !Array.isArray(existing.candidates) ||
+      existing.deepEvaluated !== existing.candidates.length) return false;
+  const asOf = absoluteTime(existing.asOfTimestamp), generatedAt = absoluteTime(existing.generatedAt);
+  if (asOf === null || generatedAt === null || asOf > generatedAt || generatedAt > context.now || asOf > context.asOf) return false;
+  if (Object.hasOwn(options, "asOf") && asOf !== context.asOf) return false;
+  return existing.candidates.every((candidate) => candidate?.productionGates?.QUOTE_FRESHNESS?.evidence?.asOfTimestamp === existing.asOfTimestamp &&
+    candidate.productionGates.QUOTE_FRESHNESS.evidence.freshnessClockPolicy === FRESHNESS_CLOCK_POLICY &&
+    candidate.productionGates.QUOTE_FRESHNESS.evidence.maxAgeSeconds === context.maxAge);
+}
+
 export function runQualificationFailureMicroscope(options = {}) {
+  const context = diagnosticClock(options);
   const inputFile = path.resolve(options.inputFile || INPUT_FILE);
   const reportFile = path.resolve(options.reportFile || REPORT_FILE);
   let payload = options.payload || null;
@@ -829,8 +968,9 @@ export function runQualificationFailureMicroscope(options = {}) {
     } else {
       try {
         payload = JSON.parse(fs.readFileSync(inputFile, "utf8"));
-      } catch {
-        inputState = "INPUT_INVALID_JSON";
+      } catch (error) {
+        if (!(error instanceof SyntaxError) && error.code !== "ENOENT") throw error;
+        inputState = error.code === "ENOENT" ? "INPUT_MISSING" : "INPUT_INVALID_JSON";
         payload = {};
       }
     }
@@ -841,18 +981,21 @@ export function runQualificationFailureMicroscope(options = {}) {
   if (inputState === "OK" && scanRunId && fs.existsSync(reportFile)) {
     try {
       const existing = JSON.parse(fs.readFileSync(reportFile, "utf8"));
-      if (
-        existing.sourceMode === "FULL_SCAN" &&
-        existing.scanRunId === scanRunId &&
-        existing.sourceCandidates === projects.length &&
-        existing.schemaVersion === 1
-      ) return existing;
-    } catch {
-      // A damaged or stale diagnostic is rebuilt from the available input.
+      if (reusableFullScan(existing, scanRunId, projects, context, options)) {
+        // Preserve proof omitted from the public projection, not a claim of
+        // current execution freshness. Original generation/as-of stay unchanged.
+        const frozen = { ...existing, freshnessTemporalScope: "FROZEN_FULL_SCAN_AS_OF",
+          cacheReusedAt: new Date(context.now).toISOString() };
+        return frozen;
+      }
+    } catch (error) {
+      // Malformed JSON can be rebuilt. A storage failure does not prove the
+      // full-proof cache is damaged, and must not replace it with a projection.
+      if (!(error instanceof SyntaxError) && error.code !== "ENOENT") throw error;
     }
   }
   const report = {
-    ...buildQualificationFailureMicroscope(projects, options),
+    ...buildMicroscopeAt(projects, options, context),
     scanRunId,
     sourceMode: "REPORT_PROJECTION",
     inputFile,

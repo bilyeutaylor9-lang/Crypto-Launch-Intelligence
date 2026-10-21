@@ -15,6 +15,7 @@ const token = (n) => `0x${String(n).padStart(40, "0")}`;
 const pool = (n) => `0x${String(1000 + n).padStart(40, "0")}`;
 
 function project(i = 1, overrides = {}) {
+  const quoteAt = Date.now() - 30_000;
   return {
     symbol: `P${i}`,
     chain: "base",
@@ -39,6 +40,8 @@ function project(i = 1, overrides = {}) {
         slippageVerified: true,
         quoteFresh: true,
         quoteAgeSeconds: 30,
+        quoteTimestamp: new Date(quoteAt).toISOString(),
+        quoteExpiresAt: new Date(quoteAt + 90_000).toISOString(),
       },
       userAccess: { status: "UNKNOWN" },
     },
