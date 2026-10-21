@@ -385,6 +385,12 @@ function routePlanPools(quote = {}, chain = "solana") {
     .filter(Boolean))];
 }
 
+function unattestedBuyResult(adapter) {
+  return { adapter, status: "IDENTITY_OR_POOL_UNATTESTED",
+    reason: "Both quotes must independently attest the requested exact pool.",
+    buyQuoteVerified: false, sellQuoteVerified: false, failures: [] };
+}
+
 function atomicQuantity(value) {
   if (typeof value !== "string" || !/^\d{1,78}$/.test(value)) return null;
   const quantity = BigInt(value);
@@ -475,6 +481,9 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     if (!validJupiterQuote(buy)) return { status: "NO_BUY_QUOTE", buy };
     verifyDirectQuoteIdentity(buy, { source: "jupiter", chain, fromToken: quoteMint,
       toToken: tokenAddress, fromAmount: String(amount) });
+    if (signal?.aborted) throw new Error("Jupiter request aborted before start.");
+    const expectedPool = poolAddressOf(project);
+    if (!expectedPool || !routePlanPools(buy).includes(expectedPool)) return unattestedBuyResult("jupiter");
     const sellAmount = String(BigInt(String(buy.outAmount || "0")) * 95n / 100n);
     const sell = await fetchJupiterQuote({
       inputMint: tokenAddress,
@@ -511,6 +520,7 @@ export async function recoverSolanaJupiterRoute(project = {}, options = {}, sign
     return {
       adapter: "jupiter",
       status: recovered?.status || "PROVIDER_FAILED",
+      reason: recovered?.reason || null,
       buyQuoteVerified: recovered?.buy ? validJupiterQuote(recovered.buy) : false,
       sellQuoteVerified: false,
       failures,
@@ -621,6 +631,10 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
     });
     verifyDirectQuoteIdentity(buy, { source: "0x", chain, fromToken: quoteToken.address,
       toToken: tokenAddress, fromAmount: buyInputAmount });
+    if (signal?.aborted) throw new Error("0x request aborted before start.");
+    const expectedPool = poolAddressOf(project);
+    const buyPools = zeroXPoolAddresses(buy, chain);
+    if (!expectedPool || !buyPools.includes(expectedPool)) return unattestedBuyResult("0x");
     const buyAmount = buy.buyAmount;
     const sellAmount = String(BigInt(String(buyAmount)) * 95n / 100n);
     const sell = await fetchZeroXPrice({
@@ -637,8 +651,6 @@ export async function recoverZeroXRoute(project = {}, options = {}, signal = nul
     const slippage = priceImpactPct(...[buy, sell].map((quote) => ({
       priceImpactPct: quote.estimatedPriceImpact ?? quote.priceImpactPct,
     })));
-    const expectedPool = poolAddressOf(project);
-    const buyPools = zeroXPoolAddresses(buy, chain);
     const sellPools = zeroXPoolAddresses(sell, chain);
     const exactPoolObserved = Boolean(expectedPool && buyPools.includes(expectedPool) && sellPools.includes(expectedPool));
     const route = {
@@ -808,6 +820,10 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
     }
     verifyActionIdentity(buy, { chain, side: "BUY", tokenAddress,
       quoteTokenAddress: normalizeTokenAddress(quoteToken.address, chain), fromAmount: buyInputAmount });
+    if (signal?.aborted) throw new Error("LI.FI request aborted before start.");
+    const expectedPool = poolAddressOf(project);
+    const buyPools = extractLiFiRoutePoolAddresses(buy, chain);
+    if (!expectedPool || !buyPools.includes(expectedPool)) return unattestedBuyResult("lifi");
     const sellAmount = String(lifiOutAmount(buy));
     const sell = await fetchLiFiQuote({
       chainId: quoteToken.chainId,
@@ -833,8 +849,6 @@ export async function recoverLiFiRoute(project = {}, options = {}, signal = null
       buy.tool,
       "LI.FI",
     ]));
-    const expectedPool = poolAddressOf(project);
-    const buyPools = extractLiFiRoutePoolAddresses(buy, chain);
     const sellPools = extractLiFiRoutePoolAddresses(sell, chain);
     const exactPoolObserved = Boolean(
       expectedPool && buyPools.includes(expectedPool) && sellPools.includes(expectedPool)

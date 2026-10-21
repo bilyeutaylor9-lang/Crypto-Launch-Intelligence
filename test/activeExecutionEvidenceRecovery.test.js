@@ -504,19 +504,24 @@ test("Jupiter requires exact returned mints and known pools, not adapter-synthes
 
 test("0x must return independently attested token and pool metadata on both HTTP responses", async () => {
   for (const attestPool of [false, true]) {
-    let calls = 0;
+    const legs = [];
     const opts = options(async (url, init) => {
-      calls++;
       assert.equal(init.adapter, "0x");
       const params = new URL(url).searchParams;
+      legs.push(params.get("buyToken").toLowerCase() === TOKEN ? "BUY" : "SELL");
       return { sellToken: params.get("sellToken"), buyToken: params.get("buyToken"),
         sellAmount: params.get("sellAmount"), buyAmount: "25000000", priceImpactPct: "0.2",
         ...(attestPool ? { route: { fills: [{ poolAddress: POOL }] } } : {}) };
     }, { executionRecovery: { lifiEnabled: false, zeroxApiKey: "fixture-key" } });
     const result = await execute(project(), opts, undefined, FIELDS, "0x Swap API");
-    assert.equal(calls, 2);
-    assert.equal(result.state.requestsUsed, 2);
-    if (!attestPool) unresolved(result);
+    assert.deepEqual(legs, attestPool ? ["BUY", "SELL"] : ["BUY"]);
+    assert.equal(result.state.requestsUsed, legs.length);
+    assert.equal(result.attempts.filter(attempt => attempt.status === "SUCCESS").length, legs.length);
+    if (!attestPool) {
+      unresolved(result);
+      assert.ok(result.executionAdapterResults.some(attempt => attempt.adapter === "0x" &&
+        attempt.status === "IDENTITY_OR_POOL_UNATTESTED"));
+    }
     else assert.equal(result.projectPatch.executionProofRecoveryRoute.exactIdentityVerified, true);
   }
 });
