@@ -8,8 +8,8 @@ import {
 import {
   getGeckoPoolByAddress,
   normalizeGeckoPool,
-  resolveGeckoTerminalNetworkId,
 } from "./geckoTerminalConnector.js";
+import { geckoPoolRequestIdentity, getGeckoTokenPools, selectExactGeckoTokenPool } from "./geckoTokenPoolDiscovery.js";
 import {
   getCoinGeckoMarketsByIds,
   normalizeCoinGeckoMarket,
@@ -292,6 +292,7 @@ function providerFunctions(options = {}) {
       injected.getGeckoPoolByAddress ||
       options.getGeckoPoolByAddress ||
       getGeckoPoolByAddress,
+    getGeckoTokenPools: injected.getGeckoTokenPools || options.getGeckoTokenPools || getGeckoTokenPools,
     getFreeSecurityEvidence:
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
@@ -1451,7 +1452,7 @@ function geckoValue(pool = {}, field = "") {
   }
 }
 
-function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOString()) {
+function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOString(), mode = "exact-pool") {
   return fields
     .map((field) => observation(
       field,
@@ -1460,10 +1461,14 @@ function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOS
       timestamp,
       0.9,
       {
-        identityMatchMode: "exact-pool",
+        identityMatchMode: mode,
         marketEvidenceOnly: true,
         geckoTerminalPoolId: pool.geckoTerminalPoolId || null,
-        endpoint: "exact-pool",
+        endpoint: mode,
+        chain: pool.chain,
+        tokenAddress: pool.tokenAddress,
+        poolAddress: pool.poolAddress,
+        tokenSide: "base",
       }
     ))
     .filter((item) => valueKnown(item.value));
@@ -1536,20 +1541,19 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
 }
 
 async function recoverGeckoPool(project = {}, fields = [], providers = {}, options = {}, state = {}) {
-  const chain = chainOf(project);
-  const tokenAddress = tokenAddressOf(project, chain);
-  const poolAddress = poolAddressOf(project, chain);
-  if (!chain || !tokenAddress || !poolAddress || !resolveGeckoTerminalNetworkId(chain)) {
+  const identity = geckoPoolRequestIdentity(project);
+  if (!identity) {
     return {
       observations: [],
       attempts: [{
         status: "NOT_APPLICABLE",
         provider: "geckoterminal",
-        reason: "GeckoTerminal fallback requires an exact supported chain, token, and pool identity.",
+        reason: "GeckoTerminal fallback requires nonconflicting exact supported chain/token identity and valid supplied pool claims.",
         durationMs: 0,
       }],
     };
   }
+  const { chain, tokenAddress, poolAddress } = identity;
 
   const timeoutMs = Math.max(
     250,
@@ -1561,23 +1565,33 @@ async function recoverGeckoPool(project = {}, fields = [], providers = {}, optio
       8_000
     )
   );
+  const controller = new AbortController();
+  const providerOptions = { maxAttempts: 1,
+    timeoutMs: Math.max(1, Math.min(timeoutMs, recoveryDeadlineAt(state, options) - (state.now || Date.now)())),
+    signal: controller.signal, now: state.now || options.now || Date.now,
+    fetchImpl: options.fetchImpl, onResponseBytes: options.onResponseBytes };
   const attempt = await executeProviderCall(
     "geckoterminal",
-    () => providers.getGeckoPoolByAddress(chain, poolAddress, { maxAttempts: 1, timeoutMs }),
+    () => poolAddress
+      ? providers.getGeckoPoolByAddress(chain, poolAddress, providerOptions)
+      : providers.getGeckoTokenPools(chain, tokenAddress, providerOptions),
     options,
     state,
     1,
-    chain
+    chain,
+    null,
+    () => controller.abort()
   );
   if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
-  const pool = strictGeckoPool(attempt.value, project, { chain, tokenAddress, poolAddress });
+  const discovery = poolAddress ? null : selectExactGeckoTokenPool(attempt.value, identity);
+  const pool = poolAddress ? strictGeckoPool(attempt.value, project, identity) : discovery.pool;
   if (!pool) {
     return {
       observations: [],
       attempts: [{
         ...attempt,
-        status: "NO_EXACT_POOL_MATCH",
-        reason: "GeckoTerminal did not return the exact requested chain, base token, and pool identity.",
+        status: discovery?.status || "NO_EXACT_POOL_MATCH",
+        reason: discovery?.reason || "GeckoTerminal did not return the exact requested chain, base token, and pool identity.",
         value: undefined,
       }],
     };
@@ -1587,7 +1601,8 @@ async function recoverGeckoPool(project = {}, fields = [], providers = {}, optio
     observations: geckoObservations(
       pool,
       [...new Set([...fields, ...GECKO_COMPANION_FIELDS])],
-      options.now?.().toISOString?.() || new Date().toISOString(),
+      new Date((state.now || options.now || Date.now)()).toISOString(),
+      poolAddress ? "exact-pool" : "exact-token-pools",
     ),
     attempts: [{
       ...attempt,
