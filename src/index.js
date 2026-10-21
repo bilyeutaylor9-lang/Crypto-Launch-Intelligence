@@ -1098,7 +1098,7 @@ async function main() {
       meta: reportMeta,
       reportPaths,
       alphaTruth: alphaTruth.report,
-    });
+    }, { root: process.cwd() });
 
     printSummary(summary);
     printTopProjects(results);

@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   buildSupabaseRestHeaders,
@@ -9,6 +12,9 @@ import {
   syncScanToSupabase,
 } from "../src/storage/supabaseSync.js";
 import { createScannerSupabaseClient } from "../src/storage/supabaseClient.js";
+import { collectSupabaseMemory } from "../src/storage/supabaseMemory.js";
+import { loadRemoteOperationalCircuit, openRemoteOperationalCircuit, supabaseCircuitScope,
+  REMOTE_OPERATIONAL_CIRCUIT_FILE } from "../src/production/remoteOperationalCircuit.js";
 
 const ENV = {
   SUPABASE_ENABLED: "true",
@@ -16,6 +22,38 @@ const ENV = {
   SUPABASE_SERVICE_ROLE_KEY: "service-secret",
   SUPABASE_SYNC_PROJECT_LIMIT: "2",
 };
+const DATABASE_SIZE_MESSAGE = "Service for this project is restricted due to the following violations: exceed_db_size_quota. " +
+  "The project owner must upgrade their plan or remove spend caps to restore service.";
+
+function temporaryRoot(t) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "supabase-sync-circuit-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  return root;
+}
+
+function pendingFixtures(root) {
+  fs.mkdirSync(path.join(root, "data"), { recursive: true });
+  const fixtures = new Map([
+    ["production-market-observations.jsonl", '{"observationKey":"pending-observation"}\n'],
+    ["prospective-edge-cohorts.jsonl", '{"episodeId":"pending-cohort"}\n'],
+    ["outbox-fixture.jsonl", '{"state":"PENDING","receipt":null}\n'],
+  ].map(([name, bytes]) => [path.join(root, "data", name), Buffer.from(bytes)]));
+  for (const [file, bytes] of fixtures) fs.writeFileSync(file, bytes);
+  return fixtures;
+}
+
+function assertPendingUnchanged(fixtures) {
+  for (const [file, bytes] of fixtures) assert.deepEqual(fs.readFileSync(file), bytes);
+}
+
+function scanFixture() {
+  return {
+    projects: ["alpha", "beta", "gamma", "delta"].map((symbol, index) => ({ name: symbol, symbol, chain: "base", pipelineScore: 80 - index })),
+    meta: { runId: "pending-scan", completedAt: "2026-10-21T18:44:54.161Z" },
+    reportPaths: { jsonPath: "reports/report.json", htmlPath: "reports/report.html" },
+    alphaTruth: { receipts: [{ receiptId: "pending-receipt", runId: "pending-scan", projectKey: "base:alpha" }] },
+  };
+}
 
 test("Supabase config stays disabled unless credentials or explicit enablement are present", () => {
   const config = resolveSupabaseConfig({});
@@ -291,4 +329,213 @@ test("Supabase sync compacts oversized indexed project fields before upload", as
   assert.ok(receiptRows[0].receipt_id.length <= 220);
   assert.ok(receiptRows[0].project_key.length <= 220);
   assert.ok(receiptRows[0].symbol.length <= 80);
+});
+
+test("production legacy sync opts into the same workspace circuit as production memory", () => {
+  const source = fs.readFileSync(new URL("../src/index.js", import.meta.url), "utf8");
+  assert.match(source, /collectSupabaseMemory\(\{ projects: researchQueue, root: process\.cwd\(\) \}\)/);
+  assert.match(source, /const supabaseSync = await syncScanToSupabase\(\{[\s\S]*?\}, \{ root: process\.cwd\(\) \}\);/);
+});
+
+for (const required of [false, true]) {
+  test(`production memory restriction suppresses every legacy POST, required=${required}`, async t => {
+    const root = temporaryRoot(t), pending = pendingFixtures(root), input = scanFixture();
+    const beforeInput = structuredClone(input);
+    const env = { ...ENV, SUPABASE_SYNC_REQUIRED: String(required) };
+    let reads = 0, posts = 0;
+    const memory = await collectSupabaseMemory({ root, env, writeReport: false, maxRetries: 0,
+      fetchImpl: async () => {
+        reads++;
+        return { ok: false, status: 402, text: async () => JSON.stringify({ message: DATABASE_SIZE_MESSAGE }) };
+      },
+    });
+    assert.equal(reads, 3);
+    assert.equal(memory.remoteCircuit.providerCode, "exceed_db_size_quota");
+    const file = path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE), snapshot = fs.readFileSync(file);
+    const operation = syncScanToSupabase(input, { root, env, fetchImpl: async () => { posts++; assert.fail("No POST after memory confirms restriction"); } });
+    if (required) {
+      await assert.rejects(operation, error => {
+        assert.equal(error.providerCode, "exceed_db_size_quota");
+        assert.equal(error.remoteCircuit.state, "REMOTE_DATABASE_SIZE_OUTAGE");
+        assert.equal(error.skipped, true);
+        return true;
+      });
+    } else {
+      const result = await operation;
+      assert.equal(result.status, "FAILED");
+      assert.equal(result.providerCode, "exceed_db_size_quota");
+      assert.equal(result.remoteCircuit.state, "REMOTE_DATABASE_SIZE_OUTAGE");
+      assert.equal(result.skipped, true);
+      assert.equal(result.operations, undefined);
+    }
+    assert.equal(posts, 0);
+    assert.deepEqual(fs.readFileSync(file), snapshot);
+    assert.deepEqual(input, beforeInput);
+    assertPendingUnchanged(pending);
+  });
+}
+
+for (const providerCode of ["exceed_db_size_quota", "exceed_egress_quota"]) {
+  for (const required of [false, true]) {
+    test(`legacy chunk failure persists ${providerCode} and prevents remaining POSTs, required=${required}`, async t => {
+      const root = temporaryRoot(t), pending = pendingFixtures(root);
+      const env = { ...ENV, SUPABASE_SYNC_PROJECT_LIMIT: "10", SUPABASE_SYNC_REQUIRED: String(required) };
+      const options = { root, env, chunkSize: 1, now: "2026-10-21T18:44:54.161Z", fetchImpl: async (_url, init) => {
+        assert.equal(init.method, "POST");
+        calls++;
+        assert.ok(calls <= 3, "No remaining chunk, report or receipt POST after the failure");
+        return calls === 3 ? { ok: false, status: 403, text: async () => JSON.stringify(providerCode === "exceed_db_size_quota"
+          ? { message: DATABASE_SIZE_MESSAGE } : { code: providerCode, message: "quota" }) } : { ok: true, status: 201 };
+      } };
+      let calls = 0;
+      const operation = syncScanToSupabase(scanFixture(), options);
+      if (required) {
+        await assert.rejects(operation, error => {
+          assert.equal(error.providerCode, providerCode);
+          assert.equal(error.remoteCircuit.providerCode, providerCode);
+          assert.deepEqual(loadRemoteOperationalCircuit(supabaseCircuitScope({ url: env.SUPABASE_URL }), { root }), error.remoteCircuit);
+          return true;
+        });
+      } else {
+        const result = await operation;
+        assert.equal(result.status, "FAILED");
+        assert.equal(result.providerCode, providerCode);
+        assert.equal(result.remoteCircuit.providerCode, providerCode);
+        assert.equal(result.syncedProjects, undefined);
+        assert.equal(result.operations, undefined);
+      }
+      assert.equal(calls, 3);
+      const incident = loadRemoteOperationalCircuit(supabaseCircuitScope({ url: env.SUPABASE_URL }), { root });
+      assert.equal(incident.state, providerCode === "exceed_db_size_quota" ? "REMOTE_DATABASE_SIZE_OUTAGE" : "REMOTE_EGRESS_OUTAGE");
+      assert.equal(incident.detectedAt, options.now);
+      const next = await syncScanToSupabase(scanFixture(), { ...options, env: { ...env, SUPABASE_SYNC_REQUIRED: "false" } });
+      assert.equal(next.status, "FAILED");
+      assert.equal(next.skipped, true);
+      assert.equal(calls, 3);
+      assertPendingUnchanged(pending);
+    });
+  }
+}
+
+for (const restrictedAfterPost of [1, 2]) {
+  test(`legacy sync checks admission between tables and chunks after POST ${restrictedAfterPost}`, async t => {
+    const root = temporaryRoot(t), pending = pendingFixtures(root);
+    const scope = supabaseCircuitScope({ url: ENV.SUPABASE_URL });
+    let calls = 0, snapshot;
+    const result = await syncScanToSupabase(scanFixture(), { root, env: { ...ENV, SUPABASE_SYNC_PROJECT_LIMIT: "10" }, chunkSize: 1,
+      fetchImpl: async () => {
+        calls++;
+        if (calls === restrictedAfterPost) {
+          openRemoteOperationalCircuit(scope, "exceed_db_size_quota", { root });
+          snapshot = fs.readFileSync(path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE));
+        }
+        return { ok: true, status: 201 };
+      },
+    });
+    assert.equal(result.status, "FAILED");
+    assert.equal(result.skipped, true);
+    assert.equal(result.remoteCircuit.state, "REMOTE_DATABASE_SIZE_OUTAGE");
+    assert.equal(calls, restrictedAfterPost);
+    assert.deepEqual(fs.readFileSync(path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE)), snapshot);
+    assertPendingUnchanged(pending);
+  });
+}
+
+test("legacy sync never persists generic 403, HTML, malformed JSON or non-exact quota envelopes", async t => {
+  for (const body of [
+    JSON.stringify({ code: "403", message: "Forbidden" }), `<html>${DATABASE_SIZE_MESSAGE}</html>`,
+    `{"message":${JSON.stringify(DATABASE_SIZE_MESSAGE)}`, JSON.stringify({ message: "exceed_db_size_quota" }),
+    JSON.stringify({ message: `${DATABASE_SIZE_MESSAGE} suffix` }),
+    JSON.stringify({ code: "EXCEED_DB_SIZE_QUOTA" }), JSON.stringify({ code: "exceed_db_size_quota_extra" }),
+  ]) {
+    const root = temporaryRoot(t), pending = pendingFixtures(root);
+    let calls = 0;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const result = await syncScanToSupabase(scanFixture(), { root, env: ENV, fetchImpl: async () => {
+        calls++;
+        return { ok: false, status: 403, text: async () => body };
+      } });
+      assert.equal(result.status, "FAILED");
+      assert.equal(result.providerCode, undefined);
+      assert.equal(result.remoteCircuit, undefined);
+    }
+    assert.equal(calls, 2);
+    assert.equal(fs.existsSync(path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE)), false);
+    assertPendingUnchanged(pending);
+  }
+});
+
+test("legacy sync does not block another project or clear the original project's incident on HTTP success", async t => {
+  const root = temporaryRoot(t), scope = supabaseCircuitScope({ url: ENV.SUPABASE_URL });
+  openRemoteOperationalCircuit(scope, "exceed_db_size_quota", { root });
+  const file = path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE), before = fs.readFileSync(file);
+  let calls = 0;
+  const result = await syncScanToSupabase(scanFixture(), { root, env: { ...ENV, SUPABASE_URL: "https://other-project.supabase.co" },
+    fetchImpl: async url => {
+      assert.equal(new URL(url).origin, "https://other-project.supabase.co");
+      calls++;
+      return { ok: true, status: 201 };
+    },
+  });
+  assert.equal(result.status, "OK");
+  assert.equal(calls, 4);
+  assert.deepEqual(fs.readFileSync(file), before);
+});
+
+test("legacy library callers without a root never consult or persist a circuit", async t => {
+  const root = temporaryRoot(t), scope = supabaseCircuitScope({ url: ENV.SUPABASE_URL });
+  openRemoteOperationalCircuit(scope, "exceed_db_size_quota", { root });
+  const file = path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE), before = fs.readFileSync(file);
+  const exists = fs.existsSync;
+  t.mock.method(fs, "existsSync", value => {
+    assert.ok(!String(value).endsWith(REMOTE_OPERATIONAL_CIRCUIT_FILE), "No circuit I/O without explicit root");
+    return exists(value);
+  });
+  let calls = 0;
+  const failed = await syncScanToSupabase({}, { env: ENV, fetchImpl: async () => {
+    calls++;
+    return { ok: false, status: 403, text: async () => JSON.stringify({ message: DATABASE_SIZE_MESSAGE }) };
+  } });
+  assert.equal(failed.status, "FAILED");
+  assert.equal(failed.providerCode, "exceed_db_size_quota");
+  assert.equal(failed.remoteCircuit, undefined);
+  assert.equal(failed.circuitPersistenceError, undefined);
+  const healthy = await syncScanToSupabase({}, { env: ENV, fetchImpl: async () => { calls++; return { ok: true, status: 201 }; } });
+  assert.equal(healthy.status, "OK");
+  assert.equal(calls, 2);
+  assert.deepEqual(fs.readFileSync(file), before);
+});
+
+test("legacy sync fails closed on corrupt circuit state without dispatch or changing pending bytes", async t => {
+  const root = temporaryRoot(t), pending = pendingFixtures(root);
+  const file = path.join(root, REMOTE_OPERATIONAL_CIRCUIT_FILE);
+  fs.writeFileSync(file, "not-json");
+  let calls = 0;
+  const result = await syncScanToSupabase(scanFixture(), { root, env: ENV, fetchImpl: async () => { calls++; assert.fail("No POST with corrupt state"); } });
+  assert.equal(result.status, "FAILED");
+  assert.match(result.reason, /circuit state is malformed/);
+  assert.equal(calls, 0);
+  assert.equal(fs.readFileSync(file, "utf8"), "not-json");
+  assertPendingUnchanged(pending);
+});
+
+test("legacy sync reports quota persistence failure explicitly without acknowledging writes", async t => {
+  const root = temporaryRoot(t), pending = pendingFixtures(root);
+  const rename = fs.renameSync;
+  t.mock.method(fs, "renameSync", (source, target) => {
+    if (String(target).endsWith(REMOTE_OPERATIONAL_CIRCUIT_FILE)) throw new Error("fixture persistence denied");
+    return rename(source, target);
+  });
+  let calls = 0;
+  const result = await syncScanToSupabase(scanFixture(), { root, env: ENV, fetchImpl: async () => {
+    calls++;
+    return { ok: false, status: 403, text: async () => JSON.stringify({ code: "exceed_db_size_quota" }) };
+  } });
+  assert.equal(result.status, "FAILED");
+  assert.equal(result.providerCode, "exceed_db_size_quota");
+  assert.match(result.circuitPersistenceError, /fixture persistence denied/);
+  assert.equal(result.remoteCircuit, undefined);
+  assert.equal(result.operations, undefined);
+  assert.equal(calls, 1);
+  assertPendingUnchanged(pending);
 });

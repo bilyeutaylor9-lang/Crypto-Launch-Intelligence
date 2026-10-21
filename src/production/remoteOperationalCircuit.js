@@ -67,6 +67,8 @@ export function openRemoteOperationalCircuit(scope, providerCode, options = {}) 
   if (!scope) return null;
   if (typeof providerCode !== "string" || !Object.hasOwn(QUOTA_STATES, providerCode)) throw new Error("Unknown remote quota provider code.");
   const state = loadAll(options);
+  // A later read/egress failure cannot discharge the outstanding write proof.
+  if (state.incidents[scope]?.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE) return { ...state.incidents[scope] };
   const incident = { state: QUOTA_STATES[providerCode], providerCode,
     detectedAt: options.now || new Date().toISOString() };
   state.incidents[scope] = incident;
@@ -113,7 +115,11 @@ export function openRemoteEgressCircuit(scope, options = {}) {
 }
 
 export function clearRemoteEgressCircuit(scope, options = {}) {
-  if (loadRemoteEgressCircuit(scope, options)) clearRemoteOperationalCircuit(scope, options);
+  if (!scope) return;
+  const state = loadAll(options);
+  if (state.incidents[scope]?.providerCode !== EGRESS_QUOTA_PROVIDER_CODE) return;
+  delete state.incidents[scope];
+  saveAll(state, options);
 }
 
 export function isTrustedEgressQuota(error) {

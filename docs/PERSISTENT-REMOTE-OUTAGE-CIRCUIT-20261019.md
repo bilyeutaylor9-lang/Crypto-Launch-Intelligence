@@ -14,6 +14,12 @@ failed both restore and sync with the same full platform restriction envelope,
 but with `exceed_db_size_quota`. Database-size restriction is a separate confirmed
 provider condition, not evidence that egress quota was exceeded.
 
+The 2026-10-21 dashboard build log also showed the production memory read fail
+with this restriction and the final legacy scan sync still POST afterward. The
+legacy writer was outside the shared circuit and the production call omitted
+its root opt-in. The follow-up gates that writer as well; this is mocked
+regression evidence, not a claim of live provider recovery.
+
 Storing an incident only in the scanner-state bundle was insufficient: that
 bundle can fail to pack, and some workflows pack it before the later sync can
 discover an outage. No archive, ledger, or learning-state limit is increased.
@@ -30,15 +36,28 @@ discover an outage. No archive, ledger, or learning-state limit is increased.
 - Version-one egress snapshots and the existing egress APIs remain compatible.
   Database-size incidents use `REMOTE_DATABASE_SIZE_OUTAGE` with provider code
   `exceed_db_size_quota`, never `REMOTE_EGRESS_OUTAGE`.
-- The forward-evidence SDK command and legacy REST history bootstrap share the
-  circuit. Scanner and operator CLI entrypoints supply their workspace root.
+- The forward-evidence SDK command, legacy REST history bootstrap, and legacy
+  scan POST writer share the circuit. Scanner and operator CLI entrypoints supply
+  their workspace root; production `src/index.js` passes `process.cwd()` to both
+  memory and final scan sync.
   Library consumers must explicitly supply a root to persist operational state.
 - A known incident skips later remote restore/sync/history work without deleting
   or acknowledging local observations. An unconfirmed quota hint still stops
   legacy egress credential retries without becoming a persisted declaration.
   REST persists confirmed restrictions immediately and checks the shared circuit
   before subsequent retry/key dispatches; the three already-dispatched table
-  reads may finish. Both caller paths consult the same endpoint-scoped file.
+  reads may finish. All three caller paths consult the same endpoint-scoped file.
+- Legacy sync checks admission before every actual POST, including each chunk
+  and table transition. A confirmed structured quota response persists the
+  precise incident before failure; all remaining chunks/reports/receipts stop.
+  Optional sync returns `FAILED`, with `skipped: true` when admission was denied;
+  required sync still throws. Failures carry the exact `providerCode` and the
+  active `remoteCircuit`, or an explicit `circuitPersistenceError` if saving fails.
+  No partial operation counts acknowledge local pending/outbox evidence. Library
+  callers that omit `root` neither read nor write circuit state.
+- An active database-size incident and its original detection time cannot be
+  replaced by a later egress response. The outstanding write recovery proof is
+  retained even if a different quota subsequently fails.
 - All 12 affected scan/state workflows restore a tiny operational cache before
   remote work and save it after the latest remote operation, independently of
   `state_pack` success or the presence of local evidence ledgers. Rerun attempts
@@ -57,6 +76,9 @@ the expected ledger, a usable bounded record ID, and a string SHA-256 hash.
 Empty/malformed/coerced metadata cannot clear an incident. Verification against
 another endpoint cannot clear the original endpoint's incident. Existing egress
 recovery behavior is unchanged: this explicit scoped read can clear egress.
+Verification reloads the current incident after the awaited read and uses an
+egress-only clear, so a concurrent REST database-size response cannot be erased
+by an older verification attempt.
 Neither quota type expires automatically. A later date, presumed billing-period
 reset, changed credential, or ordinary restore/sync command is not recovery proof.
 
@@ -72,6 +94,7 @@ retains the circuit and reports `REMOTE_FORWARD_EVIDENCE_FAILED`,
 until the affected write operation succeeds with its exact ID/hash acknowledgment.
 This change does not implement such a write probe, create fake evidence, or enable
 full-history retries to obtain proof. The incident remains active in the meantime.
+Neither read nor write HTTP success alone clears a database-size incident.
 
 Existing egress report states are unchanged. Database-size command reports retain
 `state: REMOTE_FORWARD_EVIDENCE_FAILED` for existing CLI failure handling and add
@@ -80,6 +103,11 @@ original `detectedAt`; suppressed commands also carry `skipped: true`. Read-only
 database-size verification is never reported as recovery or restore/sync success.
 REST reports carry the precise incident in `remoteCircuit` and use database-size
 wording rather than egress wording.
+If verification encounters an egress failure while database-size restriction is
+already active, SDK failure `providerCode` identifies the actual latest egress
+response, `circuitProviderCode` identifies the retained database-size incident,
+and `circuitState` remains `REMOTE_DATABASE_SIZE_OUTAGE`. It is not reported as
+an egress-only outage or as recovered service.
 
 Known egress restore outages allow existing local collection to continue. Sync
 outages and database-size command reports remain unsuccessful operational
@@ -92,7 +120,7 @@ freshness requirement changes.
 
 This code is verified with temporary fixtures and mocked clients, including the
 real SDK with an offline fetch implementation. Dispatch counts prove zero later
-requests across SDK/REST caller paths after a confirmed scoped restriction, and
+requests across SDK/REST read and legacy POST paths after a confirmed scoped restriction, and
 byte comparisons retain local ledgers and opaque pending/outbox fixtures. No live Supabase query
 is needed to retest a confirmed restriction. Real Supabase service recovery,
 independent server backup, and full local coordinator/archive migration remain
@@ -104,6 +132,12 @@ reduced retroactively. No plan upgrade, spend-cap change, credential change,
 schema change, export bypass, subscription, or quota increase is performed here.
 No database data is changed or removed, and no evidence, learning-state, or
 operational-cache size/count limit is added or increased.
+
+The focused circuit, forward-store, and legacy-sync tests additionally cover
+DB-size -> egress -> successful SELECT and a deferred egress verification whose
+pending SELECT races a real mocked REST database-size response. Both retain the
+database-size circuit without recovery acknowledgment. Other projects remain
+unblocked; generic 403/HTML/malformed responses never create an incident.
 
 ## Live Acceptance Context
 
