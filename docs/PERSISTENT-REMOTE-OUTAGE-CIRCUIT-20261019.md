@@ -97,7 +97,7 @@ full-history retries to obtain proof. The incident remains active in the meantim
 Neither read nor write HTTP success alone clears a database-size incident.
 
 Existing egress report states are unchanged. Database-size command reports retain
-`state: REMOTE_FORWARD_EVIDENCE_FAILED` for existing CLI failure handling and add
+`state: REMOTE_FORWARD_EVIDENCE_FAILED` to keep remote failure visible and add
 `circuitState: REMOTE_DATABASE_SIZE_OUTAGE`, the exact `providerCode`, and the
 original `detectedAt`; suppressed commands also carry `skipped: true`. Read-only
 database-size verification is never reported as recovery or restore/sync success.
@@ -109,9 +109,19 @@ response, `circuitProviderCode` identifies the retained database-size incident,
 and `circuitState` remains `REMOTE_DATABASE_SIZE_OUTAGE`. It is not reported as
 an egress-only outage or as recovered service.
 
-Known egress restore outages allow existing local collection to continue. Sync
-outages and database-size command reports remain unsuccessful operational
-results. Invalid/conflicting evidence is not made healthy, ignored, deleted, or
+CLI restore allows local collection to continue for a confirmed persisted
+database-size incident, just as it already did for known egress outages. This is
+only an exit-policy exception: the database-size report stays `FAILED`/outage and
+does not acknowledge remote health, restoration, or synchronization. The exact
+DB-size circuit code, state, and valid detection time must be present, without a
+`circuitPersistenceError`. Generic `FAILED`, malformed state, uncertain quota
+hints, and persistence failures still exit 2 and stop the next local step.
+Both `sync` and failed `verify` exit 2 for either known quota outage, including
+egress verification failure. Existing `NOT_CONFIGURED`/not-write-capable exit
+behavior and all remote recovery gates remain unchanged. No workflow, schedule,
+quota, provider, or backend probe change is needed for this CLI policy.
+
+Invalid/conflicting evidence is not made healthy, ignored, deleted, or
 rehashed. Report paths respect the selected
 workspace root. No statistical, identity, safety, liquidity, execution or quote
 freshness requirement changes.
@@ -138,6 +148,13 @@ DB-size -> egress -> successful SELECT and a deferred egress verification whose
 pending SELECT races a real mocked REST database-size response. Both retain the
 database-size circuit without recovery acknowledgment. Other projects remain
 unblocked; generic 403/HTML/malformed responses never create an incident.
+
+Temporary child-process tests run the actual forward-evidence CLI with an
+offline fetch preload. A workflow-style shell executes restore and then a local
+collector marker step: a persisted DB-size outage reaches that local step on
+both runs, with no HTTP dispatch on the second restore. Sync/verification still
+fail, the incident remains, and local pending/outbox fixture bytes are unchanged.
+Generic/malformed/persistence-failed restores never reach the local step.
 
 ## Live Acceptance Context
 

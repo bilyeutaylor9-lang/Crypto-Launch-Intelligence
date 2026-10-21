@@ -31,12 +31,22 @@ function remoteError(prefix, error) {
 
 function circuitReportFields(incident) {
   return {
-    // FAILED keeps database-size outages unsuccessful in existing CLI callers.
+    // Keep remote failure visible even when restore may continue local work.
     state: incident.providerCode === EGRESS_QUOTA_PROVIDER_CODE ? "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" : "REMOTE_FORWARD_EVIDENCE_FAILED",
     ...(incident.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE ? { circuitState: incident.state } : {}),
     providerCode: incident.providerCode,
     detectedAt: incident.detectedAt,
   };
+}
+
+export function forwardEvidenceRemoteExitCode(command, report = {}) {
+  if (Object.hasOwn(report, "circuitPersistenceError")) return 2;
+  if (report.state === "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE") return command === "restore" ? 0 : 2;
+  if (report.state !== "REMOTE_FORWARD_EVIDENCE_FAILED") return 0;
+  const persistedDatabaseOutage = report.circuitState === "REMOTE_DATABASE_SIZE_OUTAGE" &&
+    (report.circuitProviderCode ?? report.providerCode) === DATABASE_SIZE_QUOTA_PROVIDER_CODE &&
+    typeof report.detectedAt === "string" && Number.isFinite(Date.parse(report.detectedAt));
+  return command === "restore" && persistedDatabaseOutage ? 0 : 2;
 }
 
 function isConfirmedEgressQuotaError(error) {
