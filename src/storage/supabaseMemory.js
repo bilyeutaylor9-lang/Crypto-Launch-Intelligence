@@ -11,7 +11,8 @@ import {
   buildPersistentProjectKey,
   normalizePersistentProjectKey,
 } from "../identity/persistentProjectKey.js";
-import { isTrustedEgressQuota, loadRemoteEgressCircuit, openRemoteEgressCircuit, supabaseCircuitScope } from "../production/remoteOperationalCircuit.js";
+import { EGRESS_QUOTA_PROVIDER_CODE, trustedRemoteQuotaProviderCode, loadRemoteOperationalCircuit,
+  openRemoteOperationalCircuit, supabaseCircuitScope } from "../production/remoteOperationalCircuit.js";
 
 const DEFAULT_REPORT_PATH = "reports/supabase-memory.json";
 
@@ -67,6 +68,8 @@ function ensureReportDir(filePath = DEFAULT_REPORT_PATH) {
 
 async function fetchTableRows(config = {}, table = "", params = {}, options = {}) {
   const fetchImpl = options.fetchImpl || fetch;
+  const circuitOptions = options.root === undefined ? null : options;
+  const scope = supabaseCircuitScope(config);
   const timeoutMs = Math.max(1000, Number(options.timeoutMs || config.timeoutMs || 15000));
   const maxRetries = Math.max(0, Number(options.maxRetries ?? 2));
   const retryDelayMs = Math.max(0, Number(options.retryDelayMs ?? 250));
@@ -87,6 +90,12 @@ async function fetchTableRows(config = {}, table = "", params = {}, options = {}
 
   credentialAttempts: for (const keyConfig of keyConfigs) {
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      const incident = circuitOptions && loadRemoteOperationalCircuit(scope, circuitOptions);
+      if (incident) {
+        const error = new Error(`Supabase ${table} read skipped: scoped ${incident.providerCode} restriction is active.`);
+        error.providerCode = incident.providerCode;
+        throw error;
+      }
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
@@ -104,14 +113,17 @@ async function fetchTableRows(config = {}, table = "", params = {}, options = {}
         const error = new Error(`Supabase ${table} read failed: ${response.status} ${String(detail).slice(0, 400)}`);
         try {
           const payload = JSON.parse(detail);
-          if (isTrustedEgressQuota(payload)) {
-            error.providerCode = "exceed_egress_quota";
-          }
+          const providerCode = trustedRemoteQuotaProviderCode(payload);
+          if (providerCode) error.providerCode = providerCode;
         } catch { /* Provider codes are trusted only when structured. */ }
         const normalized = String(detail).toLowerCase();
         lastError = error;
+        if (error.providerCode && circuitOptions) {
+          try { openRemoteOperationalCircuit(scope, error.providerCode, circuitOptions); }
+          catch (persistenceError) { error.circuitPersistenceError = persistenceError.message; }
+        }
         // Organization restrictions cannot be recovered with retries or another key.
-        if (response.status === 402 || isTrustedEgressQuota(error) || normalized.includes("exceed_egress_quota")) break credentialAttempts;
+        if (response.status === 402 || trustedRemoteQuotaProviderCode(error) || normalized.includes("exceed_egress_quota")) break credentialAttempts;
         const retryable =
           response.status === 429 ||
           response.status >= 500 ||
@@ -273,13 +285,14 @@ export async function collectSupabaseMemory(options = {}) {
   // library consumers side-effect free (and testable) unless they opt in.
   const circuitOptions = options.root === undefined ? null : options;
   const scope = supabaseCircuitScope(config);
-  const incident = circuitOptions && loadRemoteEgressCircuit(scope, circuitOptions);
+  const incident = circuitOptions && loadRemoteOperationalCircuit(scope, circuitOptions);
   if (incident) {
+    const quota = incident.providerCode === EGRESS_QUOTA_PROVIDER_CODE ? "egress" : "database-size";
     return {
-      status: "FAILED", reason: "Remote memory skipped because a scoped egress outage is active.",
+      status: "FAILED", reason: `Remote memory skipped because a scoped ${quota} outage is active.`,
       failureStage: "pre-pipeline-memory-load", remoteCircuit: incident,
       tableHealth: Object.fromEntries(["runs", "projects", "alphaReceipts"].map((name) => [name, {
-        status: "SKIPPED", rowCount: 0, reason: "Scoped remote egress outage is active.",
+        status: "SKIPPED", rowCount: 0, reason: `Scoped remote ${quota} outage is active.`,
       }])),
       counts: { runs: 0, projectRows: 0, receiptRows: 0, rememberedProjects: 0, failedTables: 3 },
       byProject: {}, bySymbolChain: {},
@@ -334,14 +347,17 @@ export async function collectSupabaseMemory(options = {}) {
     ),
   ]);
   const reads = [runRead, projectRead, receiptRead];
-  const quotaFailure = reads.find((read) => isTrustedEgressQuota(read.error));
-  if (quotaFailure && circuitOptions) openRemoteEgressCircuit(scope, circuitOptions);
+  const quotaFailure = reads.find((read) => trustedRemoteQuotaProviderCode(read.error));
+  const quotaIncident = quotaFailure && circuitOptions
+    ? loadRemoteOperationalCircuit(scope, circuitOptions) || openRemoteOperationalCircuit(scope, trustedRemoteQuotaProviderCode(quotaFailure.error), circuitOptions)
+    : null;
   const projectsUsable = projectRead.status === "OK";
   const failedReads = reads.filter((read) => read.status === "FAILED");
   const indexed = aggregateProjectMemory(projectRead.rows, receiptRead.rows);
 
   return {
     status: projectsUsable ? (failedReads.length ? "DEGRADED" : "OK") : "FAILED",
+    ...(quotaIncident ? { remoteCircuit: quotaIncident } : {}),
     reason: failedReads.length
       ? failedReads.map((read) => `${read.name}: ${read.reason}`).join("; ")
       : null,
