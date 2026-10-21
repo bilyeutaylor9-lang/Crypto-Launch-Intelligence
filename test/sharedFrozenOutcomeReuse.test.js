@@ -128,3 +128,25 @@ test("failed shared linkage rolls back anchor completion and saved raw bytes rep
   assert.equal(archive.listTasks().filter(row => row.historicallyReconciled).length, 2);
   assert.equal(archive.audit().ok, true, JSON.stringify(archive.audit()));
 });
+
+test("actual cycle stops provider traffic on shared linkage storage failure", async t => {
+  const { archive } = fixture(t);
+  add(archive, "first"); add(archive, "second");
+  const db = new Database(archive.dbPath);
+  try { db.exec("CREATE TRIGGER reject_shared BEFORE INSERT ON historical_reconciliations BEGIN SELECT RAISE(ABORT,'SHARED_STORAGE_FAILED'); END;"); } finally { db.close(); }
+  let requests = 0;
+  const collect = createFrozenOutcomeCollector({ archive, clock: () => now, dexFetcher: async options => {
+    requests++;
+    const rawBytes = Buffer.from(JSON.stringify({ pairs: [{ chainId: options.chain, pairAddress: options.poolAddress,
+      baseToken: { address: options.tokenAddress }, priceUsd: "1.25" }] }));
+    await options.onResponseBytes({ provider: "dexscreener", requestedAt: now, receivedAt: now, status: 200, headers: {}, rawBytes });
+  } });
+  await assert.rejects(runDurableOutcomeCycle({ archive, owner: "collector", collect, clock: () => now, limit: 2,
+    globalBudget: { provider: "all", requestLimit: 2, windowMs: 3600000 },
+    providerPolicies: { dexscreener: { requestLimit: 2, windowMs: 3600000, timeoutMs: 8000 } } }), /SHARED_STORAGE_FAILED/);
+  assert.equal(requests, 1);
+  assert.ok(archive.listTasks().every(task => task.completed_at === null && !task.historicallyReconciled));
+  assert.equal(archive.coordinationStatus(now).writer.active, false);
+  assert.equal(archive.listOutcomeCaptures().length, 1, "original captured evidence is retained for recovery");
+  assert.equal(archive.audit().ok, true);
+});

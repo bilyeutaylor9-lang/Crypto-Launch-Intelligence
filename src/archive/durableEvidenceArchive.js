@@ -357,8 +357,15 @@ export function openDurableEvidenceArchive(options = {}) {
       if (task.obligation_id !== obligationId || !evidence?.recordId) return false;
       const admitted = admitPrediction(evidence);
       if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: at })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
-      const shared = evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1"
-        ? reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: at }) : { reconciled: 0 };
+      let shared = { reconciled: 0 };
+      try {
+        if (evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1") shared = reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: at });
+      } catch (error) {
+        // Roll back the whole completion and stop further provider traffic.
+        // A durable linkage failure cannot be treated as a collection retry.
+        error.fatalCollectionStorageFailure = true;
+        throw error;
+      }
       return returnReceipt ? { completed: true, sharedReconciled: shared.reconciled } : true;
     }).immediate();
   }
