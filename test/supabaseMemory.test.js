@@ -106,7 +106,7 @@ function createFetchStub(calls = []) {
   };
 }
 
-test("Supabase remote memory loads prior scan rows and ignores health-check rows", async () => {
+test("Supabase remote memory retains legacy rows diagnostically without attributing symbol-only history", async () => {
   const calls = [];
   const memory = await collectSupabaseMemory({
     env: ENV,
@@ -123,11 +123,13 @@ test("Supabase remote memory loads prior scan rows and ignores health-check rows
 
   assert.equal(memory.status, "OK");
   assert.equal(memory.counts.rememberedProjects, 1);
-  assert.equal(projects[0].supabaseMemory.status, "MATCHED");
-  assert.equal(projects[0].supabaseMemory.previousRunCount, 1);
-  assert.equal(projects[0].supabaseMemory.scoreDeltaFromLatest, 12);
+  assert.equal(memory.byProject["base:alpha"].previousRunCount, 1);
+  assert.equal(memory.byProject["base:alpha"].latestScore, 70);
+  assert.equal(projects[0].supabaseMemory.status, "NEW_OR_NOT_SEEN");
+  assert.equal(projects[0].supabaseMemory.previousRunCount, undefined);
+  assert.equal(projects[0].supabaseMemory.scoreDeltaFromLatest, undefined);
   assert.equal(projects[1].supabaseMemory.status, "NEW_OR_NOT_SEEN");
-  assert.equal(summary.matchedProjects, 1);
+  assert.equal(summary.matchedProjects, 0);
   assert.equal(calls[0].headers.authorization, "Bearer server-secret");
 });
 

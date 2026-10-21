@@ -222,17 +222,15 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
 }
 
 function matchProjectMemory(project = {}, memory = {}) {
+  if (!["OK", "DEGRADED"].includes(memory.status)) return null;
   const byProject = memory.byProject || {};
-  const bySymbolChain = memory.bySymbolChain || {};
   const key = projectKeyFor(project);
-  const direct =
-    byProject[key] ||
-    byProject[normalizePersistentProjectKey(key)] ||
-    byProject[String(key || "").toLowerCase()];
-  if (direct) return direct;
-
-  const alternateProjectKey = bySymbolChain[symbolChainKey(project)];
-  return alternateProjectKey ? byProject[alternateProjectKey] : null;
+  // Tickers and whole-key lowercasing cannot establish historical identity.
+  // Keep legacy symbol indexes diagnostic, never attribute their qualifications.
+  if (!key || /^temporary:/i.test(key)) return null;
+  const canonicalKey = normalizePersistentProjectKey(key);
+  const direct = byProject[key] || byProject[canonicalKey];
+  return direct && normalizePersistentProjectKey(direct.projectKey) === canonicalKey ? direct : null;
 }
 
 export async function collectSupabaseMemory(options = {}) {
