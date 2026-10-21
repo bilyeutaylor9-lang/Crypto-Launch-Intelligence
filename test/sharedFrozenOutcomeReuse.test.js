@@ -25,10 +25,10 @@ function add(archive, id, overrides = {}) {
     immutableContract: { kind, chain: "base", tokenAddress: address(1), poolAddress: address(100), outcomeHorizonsHours: [24], ...identity },
     frozenObligations: [{ obligationId: id + ":24h", horizonHours: 24, dueAt, expiresAt, observationClockPolicy: policy }] });
 }
-function saveReceipt(archive, task, prediction) {
+function saveReceipt(archive, task, prediction, sourceTimestamp = null) {
   const identity = prediction.immutableContract;
   const rawBytes = Buffer.from(JSON.stringify({ pairs: [{ chainId: identity.chain, pairAddress: identity.poolAddress,
-    baseToken: { address: identity.tokenAddress }, priceUsd: "1.25" }] }));
+    baseToken: { address: identity.tokenAddress }, priceUsd: "1.25", sourceTimestamp }] }));
   const header = { kind: "HTTP_PROVIDER_RESPONSE_V1_DIAGNOSTIC", taskId: task.taskId, requestId: "original-request",
     provider: "dexscreener", requestedAt: now, receivedAt: now, status: 200, url: "https://fixture.invalid/exact", headers: {} };
   const diagnosticRecordId = "http-provider-response:original-request:dexscreener";
@@ -95,6 +95,29 @@ test("shared capture enforces every target identity, window and admitted clock p
   assert.deepEqual(result, { completed: true, sharedReconciled: 1 });
   assert.deepEqual(archive.listTasks().filter(row => row.historicallyReconciled).map(row => row.record_id), ["compatible"]);
   assert.equal(archive.audit().ok, true);
+});
+
+test("shared target requires its own source window even when the original anchor and receipt are valid", t => {
+  const { archive } = fixture(t);
+  add(archive, "anchor"); archive.claimWriter({ owner: "writer", nowAt: now });
+  const [task] = archive.leaseDue({ owner: "writer", nowAt: now });
+  add(archive, "independent-compatible", { policy: "INDEPENDENT_MARKET_CLOCK_V1" });
+  add(archive, "receipt-policy-stale-source", { dueAt: "2026-01-02T00:00:30.000Z" });
+  add(archive, "independent-stale-source", { dueAt: "2026-01-02T00:00:30.000Z", policy: "INDEPENDENT_MARKET_CLOCK_V1" });
+  const evidence = saveReceipt(archive, task, archive.readEvidence(task.recordId), due);
+  const originalLink = structuredClone(evidence.immutableContract.observationOf);
+  const result = archive.completeWithEvidence({ obligationId: task.obligationId, owner: "writer", leaseToken: task.leaseToken,
+    evidence, returnReceipt: true, nowAt: now });
+  assert.deepEqual(result, { completed: true, sharedReconciled: 1 });
+  assert.deepEqual(archive.listTasks().filter(row => row.historicallyReconciled).map(row => row.record_id), ["independent-compatible"]);
+  assert.deepEqual(archive.readEvidence(evidence.recordId).immutableContract.observationOf, originalLink);
+  assert.equal(archive.audit().ok, true);
+  const stale = archive.listTasks().find(row => row.record_id === "receipt-policy-stale-source");
+  const db = new Database(archive.dbPath);
+  try { db.prepare("UPDATE historical_reconciliations SET task_id=?").run(stale.task_id); } finally { db.close(); }
+  const audit = archive.audit();
+  assert.equal(audit.ok, false, "changing a shared target must revalidate that target's original source window");
+  assert.ok(audit.errors.some(error => error.includes("HISTORICAL_SHARED_CAPTURE_INVALID")));
 });
 
 test("Solana case variants do not become the same shared token or pool", t => {
