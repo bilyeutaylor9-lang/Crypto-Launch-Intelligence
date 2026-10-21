@@ -7,7 +7,7 @@ import { writeAtomicJson } from "./atomicArtifactStore.js";
 import {
   DATABASE_SIZE_QUOTA_PROVIDER_CODE,
   EGRESS_QUOTA_PROVIDER_CODE,
-  clearRemoteOperationalCircuit,
+  clearRemoteEgressCircuit,
   isTrustedEgressQuota,
   loadRemoteEgressCircuit,
   loadRemoteOperationalCircuit,
@@ -402,15 +402,16 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
           typeof row.content_hash !== "string" || !/^[0-9a-f]{64}$/.test(row.content_hash))) {
           throw new Error("Remote forward-evidence verification requires indexed ledger metadata.");
         }
-        const databaseSize = incident?.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE;
+        const currentIncident = loadRemoteOperationalCircuit(scope, options);
+        const databaseSize = currentIncident?.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE;
         if (databaseSize) {
-          result = { schemaVersion: 1, ...circuitReportFields(incident),
+          result = { schemaVersion: 1, ...circuitReportFields(currentIncident),
             verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", readAdmissionVerified: true,
             verificationIncomplete: true, circuitRetained: true, writeProofRequired: true,
             remoteDataRestored: false, remoteSyncAcknowledged: false,
             error: "Database-size recovery requires a successful write with ID/hash acknowledgment; indexed reads alone cannot clear the circuit." };
         } else {
-          clearRemoteOperationalCircuit(scope, options);
+          clearRemoteEgressCircuit(scope, options);
           result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED",
             verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", remoteDataRestored: false, remoteSyncAcknowledged: false };
         }
@@ -433,8 +434,9 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
       generatedAt: now,
       state: "REMOTE_FORWARD_EVIDENCE_FAILED",
       error: error?.message || String(error),
-      ...(providerCode ? { providerCode } : {}),
       ...(incident ? circuitReportFields(incident) : {}),
+      ...(providerCode ? { providerCode } : {}),
+      ...(incident && providerCode !== incident.providerCode ? { circuitProviderCode: incident.providerCode } : {}),
       ...(circuitPersistenceError ? { circuitPersistenceError } : {}),
     };
     if (options.writeReport !== false) writeAtomicJson(reportFile, report);

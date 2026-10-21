@@ -3,6 +3,8 @@ import crypto from "node:crypto";
 
 import "../config/loadEnv.js";
 import { buildPersistentProjectKey } from "../identity/persistentProjectKey.js";
+import { loadRemoteOperationalCircuit, openRemoteOperationalCircuit, supabaseCircuitScope,
+  trustedRemoteQuotaProviderCode } from "../production/remoteOperationalCircuit.js";
 
 const DEFAULT_SCAN_RUNS_TABLE = "scan_runs";
 const DEFAULT_SCAN_PROJECTS_TABLE = "scan_projects";
@@ -334,6 +336,8 @@ async function postRows(config = {}, table = "", rows = [], options = {}) {
   if (!rows.length) return { table, rows: 0, chunks: 0 };
 
   const fetchImpl = options.fetchImpl || fetch;
+  const circuitOptions = options.root === undefined ? null : options;
+  const scope = supabaseCircuitScope(config);
   const chunkSize = Math.max(1, Number(options.chunkSize || 500));
   const chunks = [];
 
@@ -342,6 +346,14 @@ async function postRows(config = {}, table = "", rows = [], options = {}) {
   }
 
   for (const chunk of chunks) {
+    const incident = circuitOptions && loadRemoteOperationalCircuit(scope, circuitOptions);
+    if (incident) {
+      const error = new Error(`Supabase ${table} sync skipped: scoped ${incident.providerCode} restriction is active.`);
+      error.providerCode = incident.providerCode;
+      error.remoteCircuit = incident;
+      error.skipped = true;
+      throw error;
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), config.timeoutMs);
     const onConflict = options.onConflict ? `?on_conflict=${encodeURIComponent(options.onConflict)}` : "";
@@ -359,7 +371,16 @@ async function postRows(config = {}, table = "", rows = [], options = {}) {
 
     if (!response.ok) {
       const detail = typeof response.text === "function" ? await response.text() : "";
-      throw new Error(`Supabase ${table} sync failed: ${response.status} ${compactText(detail, 500)}`);
+      const error = new Error(`Supabase ${table} sync failed: ${response.status} ${compactText(detail, 500)}`);
+      try {
+        const providerCode = trustedRemoteQuotaProviderCode(JSON.parse(detail));
+        if (providerCode) error.providerCode = providerCode;
+      } catch { /* Only structured, exact provider restrictions are trusted. */ }
+      if (error.providerCode && circuitOptions) {
+        try { error.remoteCircuit = openRemoteOperationalCircuit(scope, error.providerCode, circuitOptions); }
+        catch (persistenceError) { error.circuitPersistenceError = persistenceError.message; }
+      }
+      throw error;
     }
   }
 
@@ -459,6 +480,10 @@ export async function syncScanToSupabase(input = {}, options = {}) {
       status: "FAILED",
       reason: error.message,
       tables: config.tables,
+      ...(error.providerCode ? { providerCode: error.providerCode } : {}),
+      ...(error.remoteCircuit ? { remoteCircuit: error.remoteCircuit } : {}),
+      ...(error.skipped ? { skipped: true } : {}),
+      ...(error.circuitPersistenceError ? { circuitPersistenceError: error.circuitPersistenceError } : {}),
     };
   }
 }

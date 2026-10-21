@@ -123,6 +123,17 @@ test("unknown or mismatched quota state/code pairs fail closed without changing 
   }
 });
 
+test("a later egress restriction cannot downgrade or refresh an active database-size incident", t => {
+  const root = temporaryRoot(t), scope = supabaseCircuitScope({ url: ENV.SUPABASE_URL });
+  const incident = openRemoteOperationalCircuit(scope, DATABASE_SIZE_QUOTA_PROVIDER_CODE,
+    { root, now: "2026-10-21T18:44:54.161Z" });
+  const file = path.join(root, "data", "remote-operational-circuits.json"), before = fs.readFileSync(file);
+  assert.deepEqual(openRemoteEgressCircuit(scope, { root, now: "2026-10-22T00:00:00.000Z" }), incident);
+  clearRemoteEgressCircuit(scope, { root });
+  assert.deepEqual(loadRemoteOperationalCircuit(scope, { root }), incident);
+  assert.deepEqual(fs.readFileSync(file), before);
+});
+
 test("legacy history bootstrap carries a trusted outage to the next run without touching evidence", async t => {
   const root = temporaryRoot(t), scope = supabaseCircuitScope({ url: ENV.SUPABASE_URL });
   fs.mkdirSync(path.join(root, "data"));
