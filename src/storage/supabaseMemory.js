@@ -23,13 +23,19 @@ function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function measuredScore(value) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
 function boolEnv(value, fallback = false) {
   if (value === undefined || value === null || value === "") return fallback;
   return /^(true|1|yes|on)$/i.test(String(value).trim());
 }
 
 function scoreOf(project = {}) {
-  return num(project.pipelineScore ?? project.opportunityScore ?? project.score);
+  return measuredScore(project.pipelineScore ?? project.opportunityScore ?? project.score);
 }
 
 function projectKeyFor(project = {}) {
@@ -47,7 +53,7 @@ function compactRows(rows = [], limit = 8) {
     runId: row.run_id || null,
     observedAt: row.created_at || row.decision_at || null,
     rank: row.rank ?? null,
-    score: num(row.score),
+    score: measuredScore(row.score),
     finalState: row.final_state || null,
     confidence: row.confidence || null,
   }));
@@ -163,8 +169,8 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
         previousRunCount: 0,
         qualifiedCount: 0,
         blockedCount: 0,
-        bestHistoricalScore: 0,
-        latestScore: 0,
+        bestHistoricalScore: null,
+        latestScore: null,
         latestRank: null,
         latestFinalState: null,
         latestConfidence: null,
@@ -178,11 +184,12 @@ function aggregateProjectMemory(projectRows = [], receiptRows = []) {
     current.previousRunCount += 1;
     current.qualifiedCount += row.final_qualified ? 1 : 0;
     current.blockedCount += ["BLOCKED", "IDENTITY_CONFLICT", "REJECTED"].includes(row.final_state || "") ? 1 : 0;
-    current.bestHistoricalScore = Math.max(current.bestHistoricalScore, num(row.score));
+    const measured = measuredScore(row.score);
+    if (measured !== null) current.bestHistoricalScore = Math.max(current.bestHistoricalScore ?? 0, measured);
 
     if (!current.lastSeenAt || String(row.created_at || "") >= String(current.lastSeenAt || "")) {
       current.lastSeenAt = row.created_at || current.lastSeenAt;
-      current.latestScore = num(row.score);
+      current.latestScore = measured;
       current.latestRank = row.rank ?? null;
       current.latestFinalState = row.final_state || null;
       current.latestConfidence = row.confidence || null;
@@ -392,7 +399,8 @@ export function applySupabaseMemory(projects = [], memory = {}) {
         lastSeenAt: match.lastSeenAt,
         latestScore: match.latestScore,
         bestHistoricalScore: match.bestHistoricalScore,
-        scoreDeltaFromLatest: Math.round((currentScore - num(match.latestScore)) * 100) / 100,
+        scoreDeltaFromLatest: currentScore === null || measuredScore(match.latestScore) === null
+          ? null : Math.round((currentScore - measuredScore(match.latestScore)) * 100) / 100,
         latestRank: match.latestRank,
         latestFinalState: match.latestFinalState,
         latestConfidence: match.latestConfidence,
@@ -429,14 +437,16 @@ export function scanMemoryRecordsFromSupabase(memory = {}) {
       id: project.projectKey,
       identityKey: project.projectKey,
       scanRunId: observation.runId || null,
-      scannedAt: observation.observedAt || project.lastSeenAt || project.firstSeenAt || null,
+      // A project's aggregate last/first seen time is not the receipt of an
+      // undated observation. Preserve unknown time for strict history readers.
+      scannedAt: observation.observedAt || null,
       name: project.name || "Unknown",
       symbol: project.symbol || "UNKNOWN",
       chain: project.chain || "unknown",
       source: "supabase-remote-memory",
       scores: {
-        pipeline: num(observation.score),
-        opportunity: num(observation.score),
+        pipeline: measuredScore(observation.score),
+        opportunity: measuredScore(observation.score),
       },
       signals: {
         finalSelectionState: observation.finalState || null,
