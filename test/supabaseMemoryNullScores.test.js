@@ -19,8 +19,8 @@ const clock = () => "2026-10-20T12:00:00.000Z";
 const current = { chain: "base", tokenAddress: address, pipelineScore: 50, riskScore: 40 };
 const env = { SUPABASE_ENABLED: "true", SUPABASE_URL: "https://example.supabase.co", SUPABASE_SECRET_KEY: "sb_secret_fixture_only" };
 
-async function load(score) {
-  const row = { run_id: "prior", project_key: key, chain: "base", score, created_at: prior };
+async function load(score, createdAt = prior) {
+  const row = { run_id: "prior", project_key: key, chain: "base", score, created_at: createdAt };
   const original = structuredClone(row), calls = [];
   const memory = await collectSupabaseMemory({ env, maxRetries: 0, fetchImpl: async (url, init) => {
     calls.push({ pathname: new URL(url).pathname, method: init.method });
@@ -69,4 +69,47 @@ test("an observation without its own timestamp cannot borrow another observation
   const actual = analyzeProjectChangeBatch([current], { clock })[0];
   assert.equal(actual.projectChangeScore, 50);
   assert.equal(actual.projectChange.historyEligibility, "NO_ELIGIBLE_PRIOR");
+});
+
+test("diagnostic score delta rejects undated, invalid, equal-time and future own observation clocks without altering raw diagnostics", async () => {
+  for (const createdAt of [null, "", false, "invalid", "2026-02-30T10:00:00.000Z", "2026-10-20T10:00:00", clock(), "2026-10-20T13:00:00.000Z"]) {
+    const memory = await load(10, createdAt);
+    const original = structuredClone(memory);
+    const applied = applySupabaseMemory([current], memory, { clock })[0].supabaseMemory;
+    assert.equal(applied.scoreDeltaFromLatest, null, String(createdAt));
+    assert.equal(applied.latestScore, 10);
+    assert.equal(applied.lastSeenAt, memory.byProject[key].lastSeenAt);
+    assert.deepEqual(memory, original);
+  }
+});
+
+test("diagnostic score delta uses the current validated cutoff and preserves the finite complete-input formula", async () => {
+  const memory = await load(10);
+  assert.equal(applySupabaseMemory([current], memory, { clock })[0].supabaseMemory.scoreDeltaFromLatest, 40);
+  for (const projectClock of [prior, "2026-10-20T09:00:00.000Z", "invalid", "2026-10-20T13:00:00.000Z"]) {
+    assert.equal(applySupabaseMemory([{ ...current, scannedAt: projectClock }], memory, { clock })[0].supabaseMemory.scoreDeltaFromLatest, null, projectClock);
+  }
+  assert.equal(applySupabaseMemory([current], memory, { clock, asOf: prior })[0].supabaseMemory.scoreDeltaFromLatest, null);
+  assert.equal(applySupabaseMemory([{ ...current, updatedAt: "2099-01-01T00:00:00.000Z" }], memory, { clock })[0].supabaseMemory.scoreDeltaFromLatest, 40, "metadata updatedAt does not become a market clock");
+});
+
+test("diagnostic score delta cannot borrow aggregate lastSeenAt for an undated latest score", () => {
+  const memory = { status: "OK", byProject: { [key]: {
+    projectKey: key, chain: "base", latestScore: 10, lastSeenAt: prior,
+    observations: [{ score: 10, observedAt: null }],
+  } } };
+  const applied = applySupabaseMemory([current], memory, { clock })[0].supabaseMemory;
+  assert.equal(applied.scoreDeltaFromLatest, null);
+  assert.equal(applied.lastSeenAt, prior);
+  assert.equal(applied.latestScore, 10);
+});
+
+test("diagnostic score delta rejects malformed explicit clock and asOf rather than substituting live time", async () => {
+  const memory = await load(10);
+  for (const value of [null, undefined, false, NaN, Infinity, "invalid", "", "2026-02-30T10:00:00.000Z", "2026-10-20T10:00:00"]) {
+    assert.throws(() => applySupabaseMemory([current], memory, { clock: () => value }), /clock/i);
+    assert.throws(() => applySupabaseMemory([current], memory, { clock, asOf: value }), /asOf/i);
+  }
+  assert.throws(() => applySupabaseMemory([], memory, { clock: null }), /clock/i);
+  assert.throws(() => applySupabaseMemory([current], memory, { clock, asOf: "2026-10-20T13:00:00.000Z" }), /asOf/i);
 });

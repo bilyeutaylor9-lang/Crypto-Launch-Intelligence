@@ -59,3 +59,47 @@ export function exactScanHistoryIdentity(value = {}) {
   if (pools.some((pool) => !pool) || new Set(pools).size > 1) return null;
   return { chain, tokenAddress, key: `${chain}:${tokenAddress}`, poolAddress: pools[0] || null };
 }
+
+// Pure receipt/cutoff validation is shared by historical queries and remote
+// annotations. No storage/learning imports or live clock substitution is needed.
+export function historyTimestamp(value) {
+  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value.getTime() : null;
+  if (typeof value === "number") return value >= 0 && Number.isFinite(new Date(value).getTime()) ? value : null;
+  if (typeof value !== "string") return null;
+  const fields = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/);
+  if (!fields) return null;
+  const [, year, month, day, hour, minute, second, zone] = fields;
+  const monthDays = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > monthDays || Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) return null;
+  if (zone !== "Z" && (Number(zone.slice(1, 3)) > 23 || Number(zone.slice(4)) > 59)) return null;
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? time : null;
+}
+
+export function resolveScanHistoryAsOf(options = {}) {
+  if (Object.hasOwn(options, "clock") && typeof options.clock !== "function") throw new TypeError("History clock must be a function.");
+  const now = historyTimestamp(Object.hasOwn(options, "clock") ? options.clock() : Date.now());
+  if (now === null) throw new TypeError("History clock returned an invalid timestamp.");
+  const asOf = Object.hasOwn(options, "asOf") ? historyTimestamp(options.asOf) : now;
+  if (asOf === null || asOf > now) throw new TypeError("History asOf must be a valid timestamp no later than the clock.");
+  return asOf;
+}
+
+export function sourceClocksValid(record, receivedAt) {
+  const clocks = [
+    record.marketObservedAt, record.observedAt, record.sourceTimestamp, record.dataTimestamp,
+    record.pointInTime?.sourceTimestamp, record.pointInTime?.market?.observedAt,
+  ];
+  return clocks.every((value) => value === undefined || value === null ||
+    (historyTimestamp(value) !== null && historyTimestamp(value) <= receivedAt));
+}
+
+export function scanHistoryProjectCutoff(project = {}, asOf) {
+  if (project.historyClockStatus === "INVALID_CAPTURE_V1") return null;
+  const clocks = [project.scanTimestamp, project.scannedAt, project.receivedAt, project.pointInTime?.capturedAt]
+    .filter((value) => value !== undefined && value !== null);
+  const times = clocks.map(historyTimestamp);
+  if (times.some((time) => time === null || time > asOf)) return null;
+  const cutoff = Math.min(asOf, ...times);
+  return sourceClocksValid(project, cutoff) ? cutoff : null;
+}
