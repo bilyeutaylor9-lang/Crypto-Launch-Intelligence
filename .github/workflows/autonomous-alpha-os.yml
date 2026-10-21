@@ -105,7 +105,8 @@ jobs:
         run: npm run forward:evidence:restore
 
       - name: Enforce Fresh Exact Shadow Universe
-        run: npm run operations:truth -- --scope shadow-universe
+        timeout-minutes: 13
+        run: node src/ops/ensureFreshShadowUniverse.js
 
       - name: Run Production Shadow
         run: npm run production:shadow
