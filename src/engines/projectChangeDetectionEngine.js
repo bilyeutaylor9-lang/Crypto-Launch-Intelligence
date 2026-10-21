@@ -1,31 +1,39 @@
 // src/engines/projectChangeDetectionEngine.js
 
-import { getProjectHistories } from "../learning/scanMemoryStore.js";
+import {
+  getProjectHistories,
+  resolveScanHistoryAsOf,
+  scanHistoryProjectCutoff,
+} from "../learning/scanMemoryStore.js";
+import { exactScanHistoryIdentity } from "../identity/exactScanHistoryIdentity.js";
 
-function num(value = 0) {
-  return Number.isFinite(Number(value)) ? Number(value) : 0;
+function measured(value) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return null;
+  const result = Number(value);
+  return Number.isFinite(result) ? result : null;
 }
 
-function pctChange(oldValue = 0, newValue = 0) {
-  const oldNum = num(oldValue);
-  const newNum = num(newValue);
-
-  if (oldNum <= 0 || newNum <= 0) return 0;
-  return ((newNum - oldNum) / oldNum) * 100;
+function difference(before, after) {
+  const oldValue = measured(before);
+  const newValue = measured(after);
+  const delta = oldValue === null || newValue === null ? null : newValue - oldValue;
+  return Number.isFinite(delta) ? delta : null;
 }
 
-function projectId(project = {}) {
-  return String(
-    project.address ||
-      project.tokenAddress ||
-      project.pairAddress ||
-      `${project.chain || "unknown"}:${project.symbol || project.name || "unknown"}`
-  ).toLowerCase();
+function pctChange(before, after) {
+  const oldValue = measured(before);
+  const newValue = measured(after);
+  if (oldValue === null || newValue === null) return null;
+  if (oldValue <= 0 || newValue <= 0) return 0; // Preserve the complete-input legacy formula.
+  const delta = ((newValue - oldValue) / oldValue) * 100;
+  return Number.isFinite(delta) ? delta : null;
 }
 
-function latestPrior(project = {}, histories = new Map()) {
-  const history = histories.get(projectId(project)) || [];
-  return history.at(-1) || null;
+function priorMeasurement(prior, key, legacy) {
+  return prior.historyMeasurements && typeof prior.historyMeasurements === "object"
+    ? prior.historyMeasurements[key]
+    : legacy;
 }
 
 function changeState(delta = 0) {
@@ -36,13 +44,38 @@ function changeState(delta = 0) {
   return "stable";
 }
 
-export function analyzeProjectChangeBatch(projects = []) {
+const rounded = (value) => value === null ? null : Number(value.toFixed(2));
+const display = (value, suffix = "") => value === null ? "unavailable" : `${value.toFixed(1)}${suffix}`;
+
+export function analyzeProjectChangeBatch(projects = [], options = {}) {
   const safeProjects = Array.isArray(projects) ? projects : [];
-  const histories = getProjectHistories(safeProjects.map(projectId), 20);
+  const asOf = resolveScanHistoryAsOf(options);
+  const requests = safeProjects.map((project) => ({
+    project,
+    identity: exactScanHistoryIdentity(project),
+    cutoff: scanHistoryProjectCutoff(project, asOf),
+    runId: options.scanRunId || project.scanRunId || project.runId || project.pipelineScanRunId || null,
+  }));
+  // Usually one group per batch. Grouping keeps different explicit current
+  // cutoffs correct without doing a full history read for every project.
+  const groups = new Map();
+  for (const request of requests) {
+    if (!request.identity || request.cutoff === null) continue;
+    const key = JSON.stringify([request.cutoff, request.runId]);
+    const group = groups.get(key) || [];
+    group.push(request);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    const histories = getProjectHistories(group.map((item) => item.project), 20, {
+      asOf: group[0].cutoff,
+      clock: () => asOf,
+      excludeScanRunId: group[0].runId,
+    });
+    for (const request of group) request.prior = histories.get(request.identity.key)?.at(-1) || null;
+  }
 
-  return safeProjects.map((project) => {
-    const prior = latestPrior(project, histories);
-
+  return requests.map(({ project, identity, cutoff, prior }) => {
     if (!prior) {
       return {
         ...project,
@@ -50,25 +83,30 @@ export function analyzeProjectChangeBatch(projects = []) {
         projectChangeState: "new",
         projectChange: {
           state: "new",
-          summary: "No prior scan record found.",
-          scoreDelta: 0,
-          liquidityChangePct: 0,
-          volumeChangePct: 0,
+          summary: "No eligible exact-identity prior scan record found.",
+          historyEligibility: !identity ? "IDENTITY_UNRESOLVED_OR_CONFLICTING" : cutoff === null ? "INVALID_CURRENT_CLOCK" : "NO_ELIGIBLE_PRIOR",
+          scoreDelta: null,
+          liquidityChangePct: null,
+          volumeChangePct: null,
+          riskDelta: null,
         },
       };
     }
 
-    const scoreDelta = num(project.pipelineScore ?? project.opportunityScore) - num(prior.scores?.pipeline);
-    const liquidityChangePct = pctChange(prior.market?.liquidityUsd, project.liquidityUsd ?? project.liquidity);
-    const volumeChangePct = pctChange(prior.market?.volume24h, project.volume24h ?? project.volume);
-    const riskDelta = num(project.riskScore) - num(prior.scores?.risk);
-    const state = changeState(scoreDelta + liquidityChangePct * 0.04 + volumeChangePct * 0.03 - riskDelta * 0.3);
-    const changeScore = Math.round(
-      Math.max(
-        0,
-        Math.min(100, 50 + scoreDelta * 2 + liquidityChangePct * 0.12 + volumeChangePct * 0.08 - riskDelta)
-      )
-    );
+    const priorIdentity = exactScanHistoryIdentity(prior);
+    // DEX-derived liquidity and volume describe a primary pool. A known pool
+    // must match; missing pool identity cannot prove another known pool. With
+    // both pools unspecified the legacy token-scoped comparison stays available.
+    const sameMarketScope = identity.poolAddress === priorIdentity.poolAddress;
+    const scoreDelta = difference(priorMeasurement(prior, "pipelineScore", prior.scores?.pipeline ?? prior.scores?.opportunity), project.pipelineScore ?? project.opportunityScore);
+    const liquidityChangePct = sameMarketScope ? pctChange(priorMeasurement(prior, "liquidityUsd", prior.market?.liquidityUsd), project.liquidityUsd ?? project.liquidity) : null;
+    const volumeChangePct = sameMarketScope ? pctChange(priorMeasurement(prior, "volume24hUsd", prior.market?.volume24h), project.volume24h ?? project.volume) : null;
+    const riskDelta = difference(priorMeasurement(prior, "riskScore", prior.scores?.risk), project.riskScore);
+    const state = changeState((scoreDelta ?? 0) + (liquidityChangePct ?? 0) * 0.04 + (volumeChangePct ?? 0) * 0.03 - (riskDelta ?? 0) * 0.3);
+    const changeScore = Math.round(Math.max(0, Math.min(100,
+      50 + (scoreDelta ?? 0) * 2 + (liquidityChangePct ?? 0) * 0.12 + (volumeChangePct ?? 0) * 0.08 - (riskDelta ?? 0)
+    )));
+    const summary = `${state}: score ${display(scoreDelta)}, liquidity ${display(liquidityChangePct, "%")}, volume ${display(volumeChangePct, "%")}.`;
 
     return {
       ...project,
@@ -77,14 +115,16 @@ export function analyzeProjectChangeBatch(projects = []) {
       projectChange: {
         state,
         priorScannedAt: prior.scannedAt,
-        scoreDelta: Number(scoreDelta.toFixed(2)),
-        liquidityChangePct: Number(liquidityChangePct.toFixed(2)),
-        volumeChangePct: Number(volumeChangePct.toFixed(2)),
-        riskDelta: Number(riskDelta.toFixed(2)),
-        summary: `${state}: score ${scoreDelta >= 0 ? "+" : ""}${scoreDelta.toFixed(1)}, liquidity ${liquidityChangePct.toFixed(1)}%, volume ${volumeChangePct.toFixed(1)}%.`,
+        historyIdentityKey: identity.key,
+        marketScopeComparable: sameMarketScope,
+        scoreDelta: rounded(scoreDelta),
+        liquidityChangePct: rounded(liquidityChangePct),
+        volumeChangePct: rounded(volumeChangePct),
+        riskDelta: rounded(riskDelta),
+        summary,
       },
       evidence: [
-        ...(project.evidence || []),
+        ...(Array.isArray(project.evidence) ? project.evidence : []),
         {
           engine: "Project Change Detector",
           signal: "scan-over-scan change",
@@ -96,8 +136,8 @@ export function analyzeProjectChangeBatch(projects = []) {
             ? "Negative"
             : "Neutral",
           reasons: [
-            `State: ${state}. Score delta: ${scoreDelta.toFixed(1)}.`,
-            `Liquidity change: ${liquidityChangePct.toFixed(1)}%. Volume change: ${volumeChangePct.toFixed(1)}%.`,
+            `State: ${state}. Score delta: ${display(scoreDelta)}.`,
+            `Liquidity change: ${display(liquidityChangePct, "%")}. Volume change: ${display(volumeChangePct, "%")}.`,
           ],
         },
       ],

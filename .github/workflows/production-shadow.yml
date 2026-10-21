@@ -42,6 +42,7 @@ jobs:
         run: npm ci
 
       - name: Restore Canonical Scanner State Bundle
+        id: learning_cache_restore
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
@@ -156,12 +157,65 @@ jobs:
         run: npm run state:pack -- --require-exact-universe
 
       - name: Save Canonical Scanner State Bundle
+        id: state_cache_save
         if: steps.state_pack.outcome == 'success'
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: .state/scanner-learning-bundle.json.gz
           key: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Preserve Failed Scanner State Diagnostic
+        id: failed_state_preserve
+        if: ${{ always() && (steps.state_pack.outcome != 'success' || steps.state_cache_save.outcome != 'success') }}
+        continue-on-error: true
+        timeout-minutes: 12
+        run: node src/ops/preserveFailedScannerState.js
+        env:
+          FAILED_SCANNER_STATE_DIR: ${{ runner.temp }}/failed-scanner-state-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          SCANNER_STATE_PACK_OUTCOME: ${{ steps.state_pack.outcome }}
+          SCANNER_STATE_CACHE_SAVE_OUTCOME: ${{ steps.state_cache_save.outcome }}
+          SCANNER_STATE_EXPECTED_CACHE_KEY: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          SCANNER_STATE_MATCHED_RESTORE_CACHE_KEY: ${{ steps.learning_cache_restore.outputs.cache-matched-key }}
+          SCANNER_STATE_RESTORE_OUTCOME: ${{ steps.learning_cache_restore.outcome }}
+
+      - name: Upload Temporary Failed Scanner State Diagnostic
+        id: failed_state_upload
+        if: ${{ always() && steps.failed_state_preserve.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: temporary-failed-scanner-state-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          path: |
+            ${{ runner.temp }}/failed-scanner-state-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/failed-scanner-state.tar.gz
+            ${{ runner.temp }}/failed-scanner-state-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/manifest.json
+            ${{ runner.temp }}/failed-scanner-state-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/preservation-receipt.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Enforce Scanner State Persistence
+        id: state_persistence
+        if: always()
+        env:
+          STATE_PACK: ${{ steps.state_pack.outcome }}
+          STATE_CACHE_SAVE: ${{ steps.state_cache_save.outcome }}
+          FAILED_STATE_PRESERVE: ${{ steps.failed_state_preserve.outcome }}
+          FAILED_STATE_UPLOAD: ${{ steps.failed_state_upload.outcome }}
+        run: |
+          failed=0
+          if [ "$STATE_PACK" != "success" ]; then
+            echo "::error::STATE_PACK finished with $STATE_PACK; a temporary diagnostic cannot replace canonical restart state."
+            failed=1
+          fi
+          if [ "$STATE_PACK" != "success" ] || [ "$STATE_CACHE_SAVE" != "success" ]; then
+            if [ "$FAILED_STATE_PRESERVE" != "success" ] || [ "$FAILED_STATE_UPLOAD" != "success" ]; then
+              echo "::error::Scanner state persistence failed: canonical cache=$STATE_CACHE_SAVE, diagnostic preservation=$FAILED_STATE_PRESERVE, diagnostic upload=$FAILED_STATE_UPLOAD."
+              failed=1
+            else
+              echo "::warning::Canonical scanner state persistence was incomplete; raw bytes were uploaded only as a temporary 1-day diagnostic, not a permanent backup or verified restart."
+            fi
+          fi
+          exit "$failed"
 
       - name: Save Production Shadow Memory
         if: always()

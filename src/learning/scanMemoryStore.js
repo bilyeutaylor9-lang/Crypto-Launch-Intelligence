@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { createHash } from "node:crypto";
 import {
   appendMemorySidecar,
   memoryFileSizeBytes,
@@ -14,6 +15,14 @@ import {
   normalizeChainId,
   normalizeTokenAddress,
 } from "../identity/strictIdentityValidators.js";
+import {
+  exactScanHistoryIdentity,
+  historyTimestamp,
+  resolveScanHistoryAsOf,
+  scanHistoryProjectCutoff,
+  sourceClocksValid,
+} from "../identity/exactScanHistoryIdentity.js";
+export { resolveScanHistoryAsOf, scanHistoryProjectCutoff } from "../identity/exactScanHistoryIdentity.js";
 import { captureProspectiveEntryEdgeCohort } from "./prospectiveEntryEdgeEpisodeStore.js";
 
 const DATA_DIR = path.resolve("data");
@@ -30,7 +39,8 @@ function num(value = 0) {
 }
 
 function numericOrNull(value) {
-  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return null;
   return Number.isFinite(Number(value)) ? Number(value) : null;
 }
 
@@ -158,6 +168,8 @@ function tokenId(project = {}) {
     chain
   );
   if (tokenAddress) return tokenAddress;
+  const exactIdentity = exactScanHistoryIdentity(project);
+  if (exactIdentity) return exactIdentity.tokenAddress;
   return String(
     project.pairAddress ||
       project.poolAddress ||
@@ -165,27 +177,20 @@ function tokenId(project = {}) {
   ).toLowerCase();
 }
 
-function canonicalIdentityKey(project = {}, tokenAddress = null) {
-  if (!tokenAddress) return null;
-  const chain = normalizeChainId(project.chain || project.network || project.chainId || "") || String(project.chain || project.network || "unknown").toLowerCase();
-  const normalizedAddress = normalizeTokenAddress(tokenAddress, chain) || String(tokenAddress);
-  return chain && chain !== "unknown" ? `${chain}:${normalizedAddress}` : null;
-}
-
 function createPointInTimeEvidence(project = {}, scannedAt) {
   const sourceTimestamp = isoTimestampOrNull(
     firstValue(
+      project.marketObservedAt,
       project.observedAt,
       project.sourceTimestamp,
-      project.dataTimestamp,
-      project.quoteTimestamp,
-      project.updatedAt
+      project.dataTimestamp
     )
   );
   const tokenAddress = firstValue(
     project.tokenAddress,
     project.contractAddress,
     project.canonicalAddress,
+    project.address,
     project.baseToken?.address,
     project.marketData?.tokenAddress
   );
@@ -373,22 +378,41 @@ function compactCatalyst(value = null) {
 }
 
 export function createScanRecord(project = {}, options = {}) {
-  const scannedAt = isoTimestampOrNull(options.scannedAt || project.scanTimestamp) || new Date().toISOString();
+  const asOfOptions = {};
+  if (Object.hasOwn(options, "clock")) asOfOptions.clock = options.clock;
+  if (Object.hasOwn(options, "scannedAt")) asOfOptions.asOf = options.scannedAt;
+  else if (Object.hasOwn(project, "scanTimestamp")) asOfOptions.asOf = project.scanTimestamp;
+  const scannedAt = new Date(resolveScanHistoryAsOf(asOfOptions)).toISOString();
+  const identity = exactScanHistoryIdentity(project);
+  // Validate original capture/receipt constraints before the snapshot replaces them.
+  const captureCutoff = scanHistoryProjectCutoff(project, Date.parse(scannedAt));
+  const receivedAt = historyTimestamp(project.receivedAt);
   const pointInTime = createPointInTimeEvidence(project, scannedAt);
   return {
     id: tokenId(project),
-    identityKey: canonicalIdentityKey(project, pointInTime.identity.tokenAddress),
+    identityKey: identity?.key || null,
+    historyIdentityStatus: identity ? "EXACT_CHAIN_TOKEN_V1" : "UNRESOLVED_OR_CONFLICTING_V1",
+    historyClockStatus: captureCutoff !== null ? "VALID_CAPTURE_V1" : "INVALID_CAPTURE_V1",
+    // Legacy display metrics below retain their old zero defaults. Attribution
+    // must use these nullable measurements rather than inventing measured zeros.
+    historyMeasurements: {
+      pipelineScore: numericOrNull(firstValue(project.pipelineScore, project.opportunityScore)),
+      riskScore: numericOrNull(project.riskScore),
+      liquidityUsd: numericOrNull(firstValue(project.liquidityUsd, project.liquidity)),
+      volume24hUsd: numericOrNull(firstValue(project.volume24h, project.volume)),
+    },
     pointInTimeSchemaVersion: 3,
     scanRunId: project.scanRunId || project.runId || null,
     codeCommitSha: project.codeCommitSha || process.env.GITHUB_SHA || null,
     name: project.name || "Unknown",
     symbol: project.symbol || "UNKNOWN",
-    chain: project.chain || "unknown",
+    chain: identity?.chain || project.chain || "unknown",
     tokenAddress: pointInTime.identity.tokenAddress,
     poolAddress: pointInTime.identity.poolAddress,
     source: project.source || "unknown",
     discoverySources: project.discoverySources || [],
     scannedAt,
+    receivedAt: receivedAt === null ? null : new Date(receivedAt).toISOString(),
     pointInTime,
 
     market: {
@@ -672,34 +696,81 @@ export function getLatestScanRecords(limit = 25) {
   return readMemory().slice(-Number(limit || 25));
 }
 
-export function getProjectHistory(projectId, limit = 100) {
-  const id = String(projectId || "").toLowerCase();
-
-  return readMemory()
-    .filter((record) => record.id === id)
-    .slice(-Number(limit || 100));
+export function scanHistoryReceiptTime(record = {}) {
+  if (record.historyClockStatus === "INVALID_CAPTURE_V1") return null;
+  const scannedAt = historyTimestamp(record.scannedAt);
+  if (scannedAt === null) return null;
+  let earliestReceipt = scannedAt;
+  for (const value of [record.receivedAt, record.pointInTime?.capturedAt]) {
+    if (value !== undefined && value !== null && (historyTimestamp(value) === null || historyTimestamp(value) > scannedAt)) return null;
+    if (value !== undefined && value !== null) earliestReceipt = Math.min(earliestReceipt, historyTimestamp(value));
+  }
+  return sourceClocksValid(record, earliestReceipt) ? scannedAt : null;
 }
 
-export function getProjectHistories(projectIds = [], limit = 100) {
-  const ids = new Set(
-    (Array.isArray(projectIds) ? projectIds : [projectIds])
-      .map((id) => String(id || "").toLowerCase())
-      .filter(Boolean)
-  );
-  const historyLimit = Number(limit || 100);
-  const histories = new Map([...ids].map((id) => [id, []]));
-
-  if (!ids.size) return histories;
-
-  for (const record of readMemory()) {
-    const id = String(record.id || "").toLowerCase();
-    if (!ids.has(id)) continue;
-
-    const history = histories.get(id);
-    history.push(record);
-    if (history.length > historyLimit) history.shift();
+function observationFingerprint(record) {
+  const seen = new Set();
+  let nodes = 0;
+  function canonical(value, depth = 0) {
+    if (++nodes > 20_000 || depth > 40) throw new Error("Unbounded history record.");
+    if (!value || typeof value !== "object") return value;
+    if (seen.has(value)) throw new Error("Cyclic history record.");
+    seen.add(value);
+    const ordered = Array.isArray(value)
+      ? value.map((item) => canonical(item, depth + 1))
+      : Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key], depth + 1)]));
+    seen.delete(value);
+    return ordered;
   }
+  try { return createHash("sha256").update(JSON.stringify(canonical(record))).digest("hex"); }
+  catch { return null; }
+}
 
+export function getProjectHistory(project, limit = 100, options = {}) {
+  const identity = exactScanHistoryIdentity(project);
+  const histories = getProjectHistories([project], limit, options);
+  return identity ? histories.get(identity.key) || [] : [];
+}
+
+export function getProjectHistories(projects = [], limit = 100, options = {}) {
+  const asOf = resolveScanHistoryAsOf(options);
+  const groups = new Map();
+  const histories = new Map();
+  for (const project of Array.isArray(projects) ? projects : [projects]) {
+    const identity = exactScanHistoryIdentity(project);
+    if (!identity) continue;
+    histories.set(identity.key, []);
+    const cutoff = typeof project === "object" ? scanHistoryProjectCutoff(project, asOf) : asOf;
+    if (cutoff === null) continue;
+    const group = groups.get(identity.key) || { before: cutoff, byTime: new Map() };
+    group.before = Math.min(group.before, cutoff);
+    groups.set(identity.key, group);
+  }
+  const historyLimit = Math.max(0, Math.min(maxLoadRecords(), Math.floor(Number(limit)) || 0));
+  if (!groups.size || !historyLimit) return histories;
+
+  // Each source is already bounded. Do not let a primed tail evict the local
+  // observations before exact identity and temporal eligibility are checked.
+  for (const record of [...readMemory(), ...runtimePrimedMemory]) {
+    const identity = exactScanHistoryIdentity(record);
+    if (!identity || !groups.has(identity.key)) continue;
+    const { before, byTime } = groups.get(identity.key);
+    const receivedAt = scanHistoryReceiptTime(record);
+    if (receivedAt === null || receivedAt >= before) continue;
+    if (options.excludeScanRunId && record.scanRunId === options.excludeScanRunId) continue;
+    const fingerprint = observationFingerprint(record);
+    if (!fingerprint) continue;
+    const observations = byTime.get(receivedAt) || new Map();
+    observations.set(fingerprint, record);
+    byTime.set(receivedAt, observations);
+  }
+  for (const [key, { byTime }] of groups) {
+    histories.set(key, [...byTime]
+      .filter(([, observations]) => observations.size === 1)
+      .sort(([left], [right]) => left - right)
+      .slice(-historyLimit)
+      .map(([, observations]) => observations.values().next().value));
+  }
   return histories;
 }
 
