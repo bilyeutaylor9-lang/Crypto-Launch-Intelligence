@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { normalizeChainId, normalizePoolAddress, normalizeTokenAddress } from "../identity/strictIdentityValidators.js";
+import { resolveCanonicalHistoryIdentity } from "../identity/canonicalHistoryIdentity.js";
 
 function finite(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -11,13 +13,22 @@ function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Number(value) || 0));
 }
 
-function identityKey(item = {}) {
-  if (item.identityKey) return String(item.identityKey).toLowerCase();
-  const chain = String(item.chain || item.canonicalChain || "unknown").toLowerCase();
-  const token = String(
-    item.tokenAddress || item.contractAddress || item.canonicalAddress || ""
-  ).trim().toLowerCase();
-  return token ? `${chain}:${token}` : `${chain}:${String(item.symbol || item.name || "unknown").toLowerCase()}`;
+function exactResearchIdentity(item = {}) {
+  const declared = String(item.identityKey || item.canonicalProjectId || "");
+  const separator = declared.indexOf(":");
+  const chain = normalizeChainId(item.chain || item.canonicalChain || item.chainId || declared.slice(0, separator));
+  const tokenAddress = normalizeTokenAddress(item.tokenAddress || item.contractAddress || item.canonicalAddress ||
+    (separator > 0 ? declared.slice(separator + 1) : ""), chain);
+  if (!chain || !tokenAddress) return null;
+  const resolved = resolveCanonicalHistoryIdentity({ ...item, chain, tokenAddress,
+    identityKey: item.identityKey || `${chain}:${tokenAddress}` });
+  if (!resolved.canonicalId) return null;
+  const rawPool = item.poolAddress || item.pairAddress || null;
+  const poolAddress = rawPool ? normalizePoolAddress(rawPool, chain) : null;
+  if (rawPool && !poolAddress) return null;
+  const identityKey = `${chain}:${tokenAddress}`;
+  return { identityKey, chain, tokenAddress, poolAddress,
+    routeKey: `${identityKey}:${poolAddress || "TOKEN_SCOPED"}` };
 }
 
 function readJson(file) {
@@ -37,14 +48,27 @@ export function synthesizeEdgeResearchQueue(
   const adaptiveRows = Array.isArray(adaptiveReport?.candidates)
     ? adaptiveReport.candidates
     : [];
-  const genomeRows = new Map(
-    (Array.isArray(genomeReport?.candidates) ? genomeReport.candidates : [])
-      .map((row) => [identityKey(row), row])
-  );
+  const genomeRows = new Map();
+  let rejectedIdentityRows = 0, duplicateAdaptiveRows = 0;
+  for (const row of (Array.isArray(genomeReport?.candidates) ? genomeReport.candidates : [])) {
+    const identity = exactResearchIdentity(row);
+    if (!identity) { rejectedIdentityRows++; continue; }
+    genomeRows.set(identity.routeKey, row);
+  }
+  const adaptiveByRoute = new Map();
+  for (const candidate of adaptiveRows) {
+    const identity = exactResearchIdentity(candidate);
+    if (!identity) { rejectedIdentityRows++; continue; }
+    const previous = adaptiveByRoute.get(identity.routeKey);
+    if (previous) duplicateAdaptiveRows++;
+    if (!previous || (finite(candidate.research?.researchPriorityScore) ?? 0) >
+      (finite(previous.candidate.research?.researchPriorityScore) ?? 0)) {
+      adaptiveByRoute.set(identity.routeKey, { candidate, identity });
+    }
+  }
 
-  const rows = adaptiveRows.map((candidate) => {
-    const key = identityKey(candidate);
-    const genomeRow = genomeRows.get(key) || null;
+  const rows = [...adaptiveByRoute.values()].map(({ candidate, identity }) => {
+    const genomeRow = genomeRows.get(identity.routeKey) || null;
     const adaptiveScore =
       finite(candidate?.research?.researchPriorityScore) ?? 0;
     const genomeScore =
@@ -82,12 +106,12 @@ export function synthesizeEdgeResearchQueue(
     }
 
     return {
-      identityKey: key,
+      identityKey: identity.identityKey,
       symbol: candidate.symbol || genomeRow?.symbol || null,
       name: candidate.name || genomeRow?.name || null,
-      chain: candidate.chain || genomeRow?.chain || null,
-      tokenAddress: candidate.tokenAddress || genomeRow?.tokenAddress || null,
-      poolAddress: candidate.poolAddress || genomeRow?.poolAddress || null,
+      chain: identity.chain,
+      tokenAddress: identity.tokenAddress,
+      poolAddress: identity.poolAddress,
       tier,
       combinedResearchScore: Number(combined.toFixed(2)),
       adaptiveResearchScore: Number(adaptiveScore.toFixed(2)),
@@ -126,6 +150,8 @@ export function synthesizeEdgeResearchQueue(
     generatedAt: options.now || new Date().toISOString(),
     adaptiveCandidates: adaptiveRows.length,
     genomeCandidates: genomeRows.size,
+    rejectedIdentityRows,
+    duplicateAdaptiveRows,
     synthesizedCandidates: rows.length,
     candidates: rows.slice(0, Math.max(1, Number(options.limit || 100))),
     policy: {

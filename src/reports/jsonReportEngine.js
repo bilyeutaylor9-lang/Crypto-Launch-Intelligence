@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";
-import { REPORT_DECISION_SCALAR_FIELDS } from "./reportPayloadCompactor.js";
+import { REPORT_REQUIRED_PROJECT_FIELDS } from "./reportPayloadCompactor.js";
 
 const DEFAULT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = 32_000_000;
 const DEFAULT_MAX_PROJECT_PAYLOAD_CHARS = 64_000;
@@ -19,8 +19,7 @@ const RECOVERED_OBSERVATION_FIELDS = Object.freeze([
 ]);
 
 const REPORT_PRIORITY_FIELDS = [
-  ...REPORT_DECISION_SCALAR_FIELDS,
-  "signalProfile",
+  ...REPORT_REQUIRED_PROJECT_FIELDS,
   "name", "symbol", "chain", "contractAddress", "tokenAddress", "pairAddress", "poolAddress",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   "legacyFinalBlockingReasons", "legacyFinalWarningReasons", "legacyFinalSelectionReasons", "finalSelectionReasons",
@@ -334,6 +333,9 @@ function compactValue(value, state, depth = 0, topLevel = false, parentKey = "")
 }
 
 function compactProject(project, budgetChars) {
+  const requiredKeyCount = project && typeof project === "object"
+    ? REPORT_REQUIRED_PROJECT_FIELDS.filter((field) => Object.hasOwn(project, field)).length
+    : 0;
   const state = {
     sourceCompacted: project?.reportCompaction?.mode === "bounded-project",
     remainingChars: budgetChars,
@@ -341,7 +343,9 @@ function compactProject(project, budgetChars) {
     maxDepth: 5,
     maxArrayItems: budgetChars < 8_000 ? 12 : 40,
     maxObjectKeys: budgetChars < 8_000 ? 20 : 80,
-    maxTopLevelKeys: Math.max(40, Math.min(600, Math.floor(budgetChars / 100))),
+    // At 4,000 candidates the 8K budget implies 80 root keys. Do not cut the
+    // finite semantic prefix at that heuristic; all other bounds still apply.
+    maxTopLevelKeys: Math.max(requiredKeyCount, 40, Math.min(600, Math.floor(budgetChars / 100))),
     seen: new WeakSet(),
     truncated: false,
   };
