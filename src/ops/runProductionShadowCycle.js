@@ -294,7 +294,12 @@ export async function runProductionShadowCycle(options = {}) {
       .map((candidate) => [strictIdentity(candidate)?.routeKey, candidate])
       .filter(([routeKey]) => Boolean(routeKey)),
   );
-  writeAtomicJson(`reports/prospective-cost-attempts/${manifest.runId}.json`, { manifest, preQuoteSelection, audit: quoteBroker.audit });
+  writeAtomicJson(`reports/prospective-cost-attempts/${manifest.runId}.json`, {
+    manifest, preQuoteSelection, audit: quoteBroker.audit,
+    // Preserve accepted raw quotes for controls too, even when another route
+    // blocks admission of the entire cohort. Never refetch to reconstruct them.
+    quotedProjects: quoteBroker.projects,
+  });
   const selectedWithQuotes = matchableSelection.selected.map((candidate) =>
     quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
   );

@@ -250,6 +250,9 @@ test("cost-complete admission retains every reserved control or blocks the entir
     assert.equal(denied.prospectiveCohort.state, "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE");
     assert.equal(denied.prospectiveCohort.persistence.saved, 0);
     assert.equal(fs.existsSync(settings.prospectiveCohortFile), false);
+    const attempt = JSON.parse(fs.readFileSync(`reports/prospective-cost-attempts/${denied.manifest.runId}.json`));
+    assert.equal(attempt.quotedProjects.length, denied.shadowReport.forwardQuoteBroker.captureAudit.attempted);
+    assert.ok(attempt.quotedProjects.some((row) => row.executionCostProvenance?.entryQuote?.rawEvidenceHash));
     const sealedRoutes = JSON.parse(fs.readFileSync("reports/prospective-pre-quote-selection.json"));
     const accepted = await runProductionShadowCycle({ ...settings,
       forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => rawQuote(request) } });
