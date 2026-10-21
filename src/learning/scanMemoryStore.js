@@ -384,12 +384,15 @@ export function createScanRecord(project = {}, options = {}) {
   else if (Object.hasOwn(project, "scanTimestamp")) asOfOptions.asOf = project.scanTimestamp;
   const scannedAt = new Date(resolveScanHistoryAsOf(asOfOptions)).toISOString();
   const identity = exactScanHistoryIdentity(project);
+  // Validate original capture/receipt constraints before the snapshot replaces them.
+  const captureCutoff = scanHistoryProjectCutoff(project, Date.parse(scannedAt));
+  const receivedAt = historyTimestamp(project.receivedAt);
   const pointInTime = createPointInTimeEvidence(project, scannedAt);
   return {
     id: tokenId(project),
     identityKey: identity?.key || null,
     historyIdentityStatus: identity ? "EXACT_CHAIN_TOKEN_V1" : "UNRESOLVED_OR_CONFLICTING_V1",
-    historyClockStatus: sourceClocksValid(project, Date.parse(scannedAt)) ? "VALID_CAPTURE_V1" : "INVALID_CAPTURE_V1",
+    historyClockStatus: captureCutoff !== null ? "VALID_CAPTURE_V1" : "INVALID_CAPTURE_V1",
     // Legacy display metrics below retain their old zero defaults. Attribution
     // must use these nullable measurements rather than inventing measured zeros.
     historyMeasurements: {
@@ -409,6 +412,7 @@ export function createScanRecord(project = {}, options = {}) {
     source: project.source || "unknown",
     discoverySources: project.discoverySources || [],
     scannedAt,
+    receivedAt: receivedAt === null ? null : new Date(receivedAt).toISOString(),
     pointInTime,
 
     market: {

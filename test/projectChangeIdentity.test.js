@@ -161,6 +161,67 @@ test("source time after the known body receipt is rejected even if scanner compl
   assert.equal(analyze().projectChangeScore, 70);
 });
 
+test("producer-to-consumer roundtrip cannot turn a contradictory receipt into a score 70 to 0 regression", () => {
+  const input = project({ pipelineScore: 90, receivedAt: "2026-10-20T10:30:00.000Z", observedAt: "2026-10-20T10:45:00.000Z" });
+  const original = structuredClone(input);
+  const produced = createScanRecord(input, { scannedAt: PRIOR, clock });
+  setHistory([record({ pipelineScore: 40 }, EARLY), produced]);
+  const bytesBefore = fs.readFileSync(historyFile);
+  const actual = analyze();
+  assert.equal(actual.projectChangeScore, 70, "the invalid newer record must not replace the valid baseline and produce 0");
+  assert.equal(actual.projectChange.scoreDelta, 10);
+  assert.equal(actual.projectChange.priorScannedAt, EARLY);
+  assert.equal(loadScanMemory().at(-1).historyClockStatus, "INVALID_CAPTURE_V1");
+  assert.equal(loadScanMemory().at(-1).receivedAt, input.receivedAt);
+  assert.deepEqual(input, original);
+  assert.deepEqual(fs.readFileSync(historyFile), bytesBefore);
+});
+
+test("producer rejects original invalid receipt and capture clocks before a supplied save time can replace them", () => {
+  const receipt = "2026-10-20T10:30:00.000Z";
+  const source = "2026-10-20T10:45:00.000Z";
+  for (const values of [
+    ...[-1, false, "", "invalid", "2026-02-30T10:00:00.000Z", FUTURE].map(receivedAt => ({ receivedAt })),
+    { scannedAt: false }, { scanTimestamp: "invalid" }, { scanTimestamp: FUTURE },
+    { pointInTime: { capturedAt: "invalid" } }, { pointInTime: { capturedAt: FUTURE } },
+    { scannedAt: receipt, observedAt: source }, { scanTimestamp: receipt, observedAt: source },
+    { pointInTime: { capturedAt: receipt }, observedAt: source },
+    { historyClockStatus: "INVALID_CAPTURE_V1" },
+  ]) {
+    const input = project({ pipelineScore: 90, ...values });
+    const original = structuredClone(input);
+    const produced = record(input);
+    const roundtripped = JSON.parse(JSON.stringify(produced));
+    assert.equal(roundtripped.historyClockStatus, "INVALID_CAPTURE_V1", JSON.stringify(values));
+    assert.equal(createScanRecord(roundtripped, { scannedAt: NOW, clock }).historyClockStatus, "INVALID_CAPTURE_V1", "resaving cannot clear invalidity");
+    setHistory([record({ pipelineScore: 40 }, EARLY), roundtripped]);
+    assert.equal(analyze().projectChangeScore, 70, JSON.stringify(values));
+    assert.deepEqual(input, original);
+  }
+});
+
+test("producer retains a valid original receipt independently of save time through the actual history consumer", () => {
+  const receivedAt = "2026-10-20T10:30:00.000Z";
+  const produced = record({ pipelineScore: 40, receivedAt, observedAt: "2026-10-20T10:15:00.000Z" });
+  setHistory([produced]);
+  const loaded = loadScanMemory()[0];
+  assert.equal(loaded.receivedAt, receivedAt);
+  assert.equal(loaded.scannedAt, PRIOR);
+  assert.equal(loaded.historyClockStatus, "VALID_CAPTURE_V1");
+  assert.equal(analyze().projectChangeScore, 70);
+});
+
+test("producer leaves absent and null receipts unknown instead of inventing the save timestamp", () => {
+  for (const values of [{}, { receivedAt: null }, { receivedAt: undefined }]) {
+    const produced = record({ pipelineScore: 40, ...values });
+    setHistory([produced]);
+    const loaded = loadScanMemory()[0];
+    assert.equal(loaded.receivedAt, null);
+    assert.equal(loaded.historyClockStatus, "VALID_CAPTURE_V1");
+    assert.equal(analyze().projectChangeScore, 70, "unknown receipt retains the existing capture eligibility policy");
+  }
+});
+
 test("producer does not erase malformed explicit source clocks into an eligible null clock", () => {
   for (const observedAt of [FUTURE, "invalid", false, ""]) {
     const malformed = record({ observedAt, pipelineScore: 0 });
