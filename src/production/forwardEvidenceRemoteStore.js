@@ -5,12 +5,15 @@ import path from "node:path";
 import { createBackendSupabaseClient } from "../db/supabaseClient.js";
 import { writeAtomicJson } from "./atomicArtifactStore.js";
 import {
+  DATABASE_SIZE_QUOTA_PROVIDER_CODE,
   EGRESS_QUOTA_PROVIDER_CODE,
-  clearRemoteEgressCircuit,
+  clearRemoteOperationalCircuit,
   isTrustedEgressQuota,
   loadRemoteEgressCircuit,
-  openRemoteEgressCircuit,
+  loadRemoteOperationalCircuit,
+  openRemoteOperationalCircuit,
   supabaseCircuitScope,
+  trustedRemoteQuotaProviderCode,
 } from "./remoteOperationalCircuit.js";
 
 export const FORWARD_EVIDENCE_LEDGERS = Object.freeze({
@@ -21,8 +24,19 @@ export const FORWARD_EVIDENCE_LEDGERS = Object.freeze({
 
 function remoteError(prefix, error) {
   const wrapped = new Error(`${prefix}: ${error?.message || String(error)}`);
-  if (isTrustedEgressQuota(error)) wrapped.providerCode = EGRESS_QUOTA_PROVIDER_CODE;
+  const providerCode = trustedRemoteQuotaProviderCode(error);
+  if (providerCode) wrapped.providerCode = providerCode;
   return wrapped;
+}
+
+function circuitReportFields(incident) {
+  return {
+    // FAILED keeps database-size outages unsuccessful in existing CLI callers.
+    state: incident.providerCode === EGRESS_QUOTA_PROVIDER_CODE ? "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" : "REMOTE_FORWARD_EVIDENCE_FAILED",
+    ...(incident.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE ? { circuitState: incident.state } : {}),
+    providerCode: incident.providerCode,
+    detectedAt: incident.detectedAt,
+  };
 }
 
 function isConfirmedEgressQuotaError(error) {
@@ -367,9 +381,9 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
   try {
     backendForCircuit = options.backend || createBackendSupabaseClient({ env: options.env || process.env });
     const scope = supabaseCircuitScope(backendForCircuit.config);
-    const incident = loadRemoteEgressCircuit(scope, options);
+    const incident = loadRemoteOperationalCircuit(scope, options);
     if (incident && command !== "verify") {
-      const report = { ...incident, schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE", generatedAt: now, skipped: true };
+      const report = { schemaVersion: 1, ...circuitReportFields(incident), generatedAt: now, skipped: true };
       if (options.writeReport !== false) writeAtomicJson(reportFile, report);
       return report;
     }
@@ -378,7 +392,7 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
       const backend = backendForCircuit;
       if (!backend.client) result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_NOT_CONFIGURED", reason: backend.reason };
       else {
-        // An explicit successful indexed read is the bounded recovery proof.
+        // Indexed reads prove admission, not recovery from a write restriction.
         const data = await readRemotePage(backend.client.from("forward_evidence_records").select("ledger_name,record_id,content_hash")
           .eq("ledger_name", "production-market-observations").order("record_id", { ascending: true }).range(0, 0), 1);
         // Empty reads establish admission only. They cannot clear an outage because
@@ -388,9 +402,18 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
           typeof row.content_hash !== "string" || !/^[0-9a-f]{64}$/.test(row.content_hash))) {
           throw new Error("Remote forward-evidence verification requires indexed ledger metadata.");
         }
-        clearRemoteEgressCircuit(scope, options);
-        result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED",
-          verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", remoteDataRestored: false, remoteSyncAcknowledged: false };
+        const databaseSize = incident?.providerCode === DATABASE_SIZE_QUOTA_PROVIDER_CODE;
+        if (databaseSize) {
+          result = { schemaVersion: 1, ...circuitReportFields(incident),
+            verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", readAdmissionVerified: true,
+            verificationIncomplete: true, circuitRetained: true, writeProofRequired: true,
+            remoteDataRestored: false, remoteSyncAcknowledged: false,
+            error: "Database-size recovery requires a successful write with ID/hash acknowledgment; indexed reads alone cannot clear the circuit." };
+        } else {
+          clearRemoteOperationalCircuit(scope, options);
+          result = { schemaVersion: 1, state: "REMOTE_FORWARD_EVIDENCE_EGRESS_VERIFIED",
+            verificationScope: "INDEXED_SERVICE_ADMISSION_ONLY", remoteDataRestored: false, remoteSyncAcknowledged: false };
+        }
       }
     } else result = command === "sync"
       ? await syncForwardEvidence({ ...options, backend: backendForCircuit })
@@ -400,16 +423,18 @@ export async function runForwardEvidenceRemoteCommand(command = "restore", optio
     return report;
   } catch (error) {
     let incident = null, circuitPersistenceError = null;
-    if (isConfirmedEgressQuotaError(error) && backendForCircuit) {
-      try { incident = openRemoteEgressCircuit(supabaseCircuitScope(backendForCircuit.config), { ...options, now }); }
+    const providerCode = trustedRemoteQuotaProviderCode(error);
+    if (providerCode && backendForCircuit) {
+      try { incident = openRemoteOperationalCircuit(supabaseCircuitScope(backendForCircuit.config), providerCode, { ...options, now }); }
       catch (persistenceError) { circuitPersistenceError = persistenceError?.message || String(persistenceError); }
     }
     const report = {
       schemaVersion: 1,
       generatedAt: now,
-      state: incident ? "REMOTE_FORWARD_EVIDENCE_EGRESS_OUTAGE" : "REMOTE_FORWARD_EVIDENCE_FAILED",
+      state: "REMOTE_FORWARD_EVIDENCE_FAILED",
       error: error?.message || String(error),
-      ...(incident ? { providerCode: incident.providerCode, detectedAt: incident.detectedAt } : {}),
+      ...(providerCode ? { providerCode } : {}),
+      ...(incident ? circuitReportFields(incident) : {}),
       ...(circuitPersistenceError ? { circuitPersistenceError } : {}),
     };
     if (options.writeReport !== false) writeAtomicJson(reportFile, report);
