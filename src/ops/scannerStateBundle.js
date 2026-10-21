@@ -11,8 +11,10 @@ const BUNDLE_V2_MAGIC = Buffer.from("CLI_SCANNER_STATE_V2\0", "utf8");
 const BUNDLE_V3_MAGIC = Buffer.from("CLI_SCANNER_STATE_V3\0", "utf8");
 const COPY_CHUNK_BYTES = 1024 * 1024;
 const DEFAULT_RESTART_TARGET_BYTES = 128 * 1024 * 1024;
-// Keep the full append-only evidence state available to the next run while
-// leaving a bounded guard against an accidentally unbounded cache artifact.
+// Packing preserves configured source bytes without trimming them. It cannot
+// recover earlier writer retention: historical bytes must be archived before
+// a sidecar is trimmed. Live SQLite files require a consistent backup/export,
+// not an allowlisted copy of an index without its transaction state.
 const DEFAULT_MAX_UNCOMPRESSED_BYTES = 768 * 1024 * 1024;
 export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/*memory*.json*",
@@ -23,6 +25,9 @@ export const SCANNER_STATE_PATTERNS = Object.freeze([
   "data/point-in-time-observations.json*",
   "data/security-evidence-cache.json",
   "data/project-observations.jsonl",
+  "data/alpha-contracts.jsonl",
+  "data/alpha-knowledge-graph.jsonl",
+  "data/capital-flow-observations.jsonl",
   "data/project-watchlist.json*",
   "data/research-coverage-ledger.json*",
   "data/source-router-memory.json*",
@@ -181,6 +186,13 @@ function safeRelativeFile(value) {
   return normalized;
 }
 
+function lstatOrNull(file) {
+  try { return fs.lstatSync(file); } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 function resolveInsideRoot(root, relative) {
   const safe = safeRelativeFile(relative);
   const absolute = path.resolve(root, safe);
@@ -188,12 +200,14 @@ function resolveInsideRoot(root, relative) {
   if (!absolute.startsWith(dataRoot)) throw new Error(`Scanner-state path escaped data/: ${relative}`);
   let cursor = path.resolve(root, "data");
   for (const segment of safe.split("/").slice(1)) {
-    if (fs.existsSync(cursor) && fs.lstatSync(cursor).isSymbolicLink()) {
+    const stat = lstatOrNull(cursor);
+    if (stat?.isSymbolicLink()) {
       throw new Error(`Scanner-state path crosses a symbolic link: ${relative}`);
     }
+    if (stat && !stat.isDirectory()) throw new Error(`Scanner-state parent is not a directory: ${relative}`);
     cursor = path.join(cursor, segment);
   }
-  if (fs.existsSync(cursor) && fs.lstatSync(cursor).isSymbolicLink()) {
+  if (lstatOrNull(cursor)?.isSymbolicLink()) {
     throw new Error(`Scanner-state path is a symbolic link: ${relative}`);
   }
   return absolute;
@@ -290,7 +304,7 @@ function validateBundle(bundle, root) {
     if (content.length !== Number(entry?.bytes) || sha256(content) !== entry?.sha256) {
       throw new Error(`Scanner-state integrity check failed: ${relative}`);
     }
-    validated.push({ relative, absolute: resolveInsideRoot(root, relative), content });
+    validated.push({ relative, absolute: resolveInsideRoot(root, relative), content, bytes: content.length, sha256: entry.sha256 });
   }
   if (bundle.fileCount !== validated.length) throw new Error("Scanner-state manifest file count mismatch.");
   return validated;
@@ -391,27 +405,39 @@ function withArchiveReferences(bundle, root, archiveRoot, callback) {
   } finally { store.close(); }
 }
 
-function restoreArchivedState(opened, hot, references, store, root) {
+function safeStateDirectory(root) {
   const stateDir = path.join(root, ".state");
+  const stateStat = lstatOrNull(stateDir);
+  if (stateStat && (!stateStat.isDirectory() || stateStat.isSymbolicLink())) throw new Error("SCANNER_STATE_UNSAFE_STAGING_DIRECTORY");
+  return stateDir;
+}
+
+function restoreValidatedState(opened, hot, references, store, root) {
+  const stateDir = safeStateDirectory(root);
   fs.mkdirSync(stateDir, { recursive: true, mode: 0o700 });
-  const staging = fs.mkdtempSync(path.join(stateDir, "archive-restore-"));
+  const staging = fs.mkdtempSync(path.join(stateDir, "state-restore-"));
   const entries = [...hot.map(entry => ({ ...entry, archived: false })), ...references.map(entry => ({ ...entry, archived: true }))];
   const sameLocalFile = (entry) => {
     const absolute = resolveInsideRoot(root, entry.relative);
-    if (!fs.existsSync(absolute)) return false;
-    if (!fs.lstatSync(absolute).isFile() || fs.statSync(absolute).size !== entry.bytes || hashFile(absolute) !== entry.sha256) throw new Error("SCANNER_STATE_LOCAL_CONFLICT:" + entry.relative);
+    const stat = lstatOrNull(absolute);
+    if (!stat) return false;
+    if (!stat.isFile() || stat.size !== entry.bytes || hashFile(absolute) !== entry.sha256) throw new Error("SCANNER_STATE_LOCAL_CONFLICT:" + entry.relative);
     return true;
   };
   try {
+    // Validate every destination before publishing any file. A later conflict
+    // must not cause an earlier history to be restored from an older bundle.
+    for (const entry of entries) sameLocalFile(entry);
     for (const entry of entries) {
       const staged = resolveInsideRoot(staging, entry.relative);
       fs.mkdirSync(path.dirname(staged), { recursive: true, mode: 0o700 });
-      if (entry.archived) {
-        const bytes = readArchiveReference(store, entry);
+      if (entry.archived || opened.format === "V1_JSON") {
+        const bytes = entry.archived ? readArchiveReference(store, entry) : entry.content;
         const fd = fs.openSync(staged, "wx", 0o600);
         try { fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
       } else copyFileRange(opened.rawFile, entry.offset, entry.bytes, staged);
       if (hashFile(staged) !== entry.sha256) throw new Error("SCANNER_STATE_STAGING_INTEGRITY_FAILED:" + entry.relative);
+      syncDirectory(path.dirname(staged));
     }
     for (const entry of entries) sameLocalFile(entry);
     let restored = 0, alreadyPresent = 0, archiveReferencesRestored = 0;
@@ -558,29 +584,22 @@ export function restoreScannerState(options = {}) {
   if (!fs.existsSync(bundleFile)) {
     return { schemaVersion: 1, state: "SCANNER_STATE_NOT_FOUND", restored: 0, bundleFile: path.relative(root, bundleFile) };
   }
+  safeStateDirectory(root);
   const opened = openBundle(bundleFile);
   try {
     const entries = opened.format !== "V1_JSON"
       ? validateStreamedBundle(opened.bundle, root, opened.rawFile, opened.contentOffset)
       : validateBundle(opened.bundle, root);
-    const archiveRestore = withArchiveReferences(opened.bundle, root, options.archiveRoot, (references, store) => {
-      if (opened.bundle.schemaVersion === 3) return restoreArchivedState(opened, entries, references, store, root);
-      for (const entry of entries) {
-        fs.mkdirSync(path.dirname(entry.absolute), { recursive: true });
-        const temp = temporaryFile(entry.absolute, "restore");
-        if (opened.format === "V2_STREAMED") copyFileRange(opened.rawFile, entry.offset, entry.bytes, temp);
-        else fs.writeFileSync(temp, entry.content);
-        fs.renameSync(temp, entry.absolute);
-      }
-      return null;
-    });
+    const restoredState = withArchiveReferences(opened.bundle, root, options.archiveRoot, (references, store) =>
+      restoreValidatedState(opened, entries, references, store, root));
     const report = {
       schemaVersion: opened.bundle.schemaVersion === 3 ? 3 : 2,
       generatedAt: new Date().toISOString(),
       state: "SCANNER_STATE_RESTORED",
       format: opened.format,
-      restored: archiveRestore?.restored ?? entries.length,
-      ...(archiveRestore || {}),
+      restored: restoredState.restored,
+      alreadyPresent: restoredState.alreadyPresent,
+      ...(opened.bundle.schemaVersion === 3 ? { archiveReferencesRestored: restoredState.archiveReferencesRestored } : {}),
       sourceGeneratedAt: opened.bundle.generatedAt || null,
       sourceCodeCommitSha: opened.bundle.codeCommitSha || null,
       exactUniverseIncluded: entries.some((entry) => entry.relative === "data/edge-candidate-universe.json"),
@@ -616,6 +635,26 @@ export function inspectScannerState(options = {}) {
   } finally {
     closeBundle(opened);
   }
+}
+
+// Used by the explicit legacy-cache migration only. Validation precedes any
+// caller displacement; this does not open/migrate a permanent archive index.
+export function inspectScannerStateFiles(options = {}) {
+  const root = path.resolve(options.root || ".");
+  const bundleFile = path.resolve(root, options.bundleFile || SCANNER_STATE_BUNDLE_FILE);
+  if (!fs.existsSync(bundleFile)) return { state: "SCANNER_STATE_NOT_FOUND", files: [] };
+  safeStateDirectory(root);
+  const beforeHash = hashFile(bundleFile), opened = openBundle(bundleFile);
+  try {
+    if (opened.bundle.schemaVersion === 3) throw new Error("SCANNER_STATE_READONLY_ARCHIVE_INSPECTION_UNSUPPORTED");
+    const entries = opened.format === "V1_JSON"
+      ? validateBundle(opened.bundle, root)
+      : validateStreamedBundle(opened.bundle, root, opened.rawFile, opened.contentOffset);
+    if (opened.bundle.archiveReferences !== undefined) throw new Error("SCANNER_STATE_UNSUPPORTED_ARCHIVE_REFERENCES");
+    if (hashFile(bundleFile) !== beforeHash) throw new Error("SCANNER_STATE_INSPECTION_SOURCE_CHANGED");
+    return { state: "SCANNER_STATE_VALID", format: opened.format, bundleSha256: beforeHash,
+      files: entries.map(entry => ({ path: entry.relative, bytes: entry.bytes, sha256: entry.sha256 })) };
+  } finally { closeBundle(opened); }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

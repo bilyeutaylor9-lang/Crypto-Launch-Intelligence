@@ -1,3 +1,5 @@
+import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";
+
 const DEFAULT_REPORT_PROJECT_LIMIT = 0;
 const DEFAULT_REPORT_ARRAY_LIMIT = 12;
 const DEFAULT_REPORT_OBJECT_KEY_LIMIT = 80;
@@ -37,6 +39,24 @@ export const REPORT_DECISION_SCALAR_FIELDS = Object.freeze([
   "legacyFinalDecisionScore", "legacyFinalIntegrityScore", "legacyFinalIntegrityVerdict", "legacyFinalAuthorityEngine",
   "legacyFinalIntegritySource", "finalIntegrityPipelineScore", "finalIntegrityScoreSource", "finalAuthorityEngine",
 ]);
+
+// Preserve the producer's finite state projection before any bulky graphs. This
+// discloses missing evidence; it does not infer or upgrade any evidence state.
+export const REPORT_EVIDENCE_STATE_FIELDS = Object.freeze([
+  "deepEvaluationState", "finalSelectionState", "finalSelectionQualified",
+  "coreEvidenceState", "engineDataReadinessStatus", "advisoryEvidenceState", "advisoryDataGaps",
+  "coreEvidenceCoveragePct", "advisoryEvidenceCoveragePct", "coreDataStarved",
+]);
+
+export const REPORT_REQUIRED_PROJECT_FIELDS = Object.freeze([...new Set([
+  ...REPORT_EVIDENCE_STATE_FIELDS,
+  ...REPORT_DECISION_SCALAR_FIELDS,
+  // The frozen summary is usable only with its exact finite evidence closure.
+  // Reserve that prefix before bulky graphs; ordinary character/node/depth limits
+  // still fail closed if the complete projection cannot fit.
+  ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
+  "signalProfile",
+])]);
 
 const HEAVY_FIELD_PATTERNS = [
   /^raw$/i,
@@ -340,11 +360,8 @@ const EVIDENCE_FIELDS = [
 ];
 
 const REPORT_PRIORITY_FIELDS = [...new Set([
-  ...REPORT_DECISION_SCALAR_FIELDS,
-  "signalProfile",
   // Derived snapshots can share these objects; retain the authoritative roots first.
-  "executionProof",
-  "canonicalExecutionRoute",
+  ...REPORT_REQUIRED_PROJECT_FIELDS,
   "solanaMintAccountEvidence",
   ...EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS,
   ...RECOVERED_OBSERVATION_FIELDS,
@@ -634,4 +651,3 @@ export function compactMetaForReportWriters(meta = {}) {
     discovery: compactDiscoveryForReports(discovery),
   };
 }
-import { EVIDENCE_FUNNEL_SNAPSHOT_PROJECT_FIELDS } from "./evidenceFunnelSnapshot.js";

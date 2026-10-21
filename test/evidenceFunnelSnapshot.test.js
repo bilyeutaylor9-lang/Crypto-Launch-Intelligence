@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createEvidenceFunnelSnapshot, getFrozenEvidenceFunnel } from "../src/reports/evidenceFunnelSnapshot.js";
-import { compactMetaForReportWriters, compactProjectsForReportWriters } from "../src/reports/reportPayloadCompactor.js";
+import { compactMetaForReportWriters, compactProjectsForReportWriters, REPORT_DECISION_SCALAR_FIELDS } from "../src/reports/reportPayloadCompactor.js";
 import { hasVerifiedExecutionRoute, summarizeEvidenceFunnel } from "../src/kernel/evidenceFunnelSummary.js";
 import { isLiveExecutionReady } from "../src/execution/routeTruthV2.js";
 import { writeJsonReport } from "../src/reports/jsonReportEngine.js";
@@ -143,6 +143,76 @@ test("dense row and JSON compaction preserve the complete snapshot cohort projec
     process.chdir(cwd);
     rmSync(directory, {recursive: true, force: true});
   }
+});
+
+for (const firstPass of [false, true]) {
+  for (const blocked of [false, true]) {
+    test(`8K production row budget retains frozen ${blocked ? "hard-blocked" : "historical positive"} closure ${firstPass ? "through both writers" : "in JSON writer"}`, (t) => {
+      const previous = process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+      process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = "8000";
+      const directory = mkdtempSync(path.join(tmpdir(), "funnel-production-budget-"));
+      t.after(() => {
+        if (previous === undefined) delete process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+        else process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = previous;
+        rmSync(directory, { recursive: true, force: true });
+      });
+      const row = {
+        ...Object.fromEntries(REPORT_DECISION_SCALAR_FIELDS.map((field) => [field, 42])),
+        ...project("production-budget"),
+        name: "Bounded scan evidence", symbol: "BOUNDED", chainId: "solana",
+        canonicalChain: "solana", finalChain: "solana", primaryTradablePool: "PoolCaseproduction-budget",
+        deepEvaluationState: "DEEP_EVALUATED", engineDataReadinessStatus: "CORE_EVIDENCE_READY",
+        advisoryEvidenceState: "ADVISORY_EVIDENCE_READY", advisoryDataGaps: false, coreDataStarved: false,
+        safetyVerified: true, exactIdentityVerified: true, buyQuoteVerified: true, sellQuoteVerified: true,
+        quoteTimestamp: ISSUED, quoteExpiresAt: EXPIRES, transferTaxEvidenceRequired: false,
+        authorityEvidenceRequired: false, userAccessEvidenceRequired: false,
+        honeypotDetected: blocked, canonicalIdentityHardBlock: false, sellRestricted: false,
+        blacklistEnabled: false, hiddenTransferRestriction: false, chainMismatch: false,
+        hardBlockers: [], finalBlockingReasons: [], opportunityHardBlockers: [],
+        signalProfile: { risk: { trapRisk: 0 }, details: Array.from({ length: 120 }, () => "x".repeat(200)) },
+      };
+      const rows = [row];
+      const original = JSON.stringify(rows);
+      const summary = blocked ? summarizeEvidenceFunnel(rows) : scanSummary();
+      const { meta } = capture(rows, summary);
+      const inputs = firstPass ? compactProjectsForReportWriters(rows) : rows;
+      const file = writeJsonReport(inputs, { ...meta, reportsDir: directory });
+      const report = JSON.parse(readFileSync(file, "utf8"));
+      assert.equal(JSON.stringify(rows), original, "writers must not change producer evidence");
+      assert.equal(report.meta.reportSerialization.projectPayloadCharacterLimit, 8_000);
+      const frozen = getFrozenEvidenceFunnel(report.projects, report.meta);
+      assert.ok(frozen, "finite identity, safety, quote and blocker closure must survive before bulky graphs");
+      assert.equal(frozen.verifiedRoutes, blocked ? 0 : 1);
+      assert.equal(frozen.conclusivelyRejected, blocked ? 1 : 0);
+      assert.equal(report.projects[0].honeypotDetected, blocked);
+      assert.equal(report.projects[0].quoteTimestamp, ISSUED);
+      assert.equal(report.projects[0].quoteExpiresAt, EXPIRES);
+      assert.equal(hasVerifiedExecutionRoute(report.projects[0]), false, "historical counts cannot revive expired current quotes");
+      assert.equal(getFrozenEvidenceFunnel([{ ...report.projects[0], honeypotDetected: !blocked }], report.meta), null,
+        "proof-affecting edits still invalidate the exact frozen cohort");
+    });
+  }
+}
+
+test("a frozen closure that exceeds the configured character budget still fails closed", (t) => {
+  const previous = process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+  process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = "2048";
+  const directory = mkdtempSync(path.join(tmpdir(), "funnel-over-budget-"));
+  t.after(() => {
+    if (previous === undefined) delete process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS;
+    else process.env.REPORT_MAX_TOTAL_PROJECT_PAYLOAD_CHARS = previous;
+    rmSync(directory, { recursive: true, force: true });
+  });
+  const row = { ...project(), honeypotDetected: true,
+    ...Object.fromEntries(["canonicalChain", "finalChain", "network", "canonicalAddress", "finalContractAddress"]
+      .map((field) => [field, "untrusted-diagnostic-text-".repeat(36)])) };
+  const original = JSON.stringify(row);
+  const { meta } = capture([row], summarizeEvidenceFunnel([row]));
+  const report = JSON.parse(readFileSync(writeJsonReport([row], { ...meta, reportsDir: directory }), "utf8"));
+  assert.equal(report.meta.reportSerialization.projectPayloadCharacterLimit, 2_048);
+  assert.equal(report.meta.reportSerialization.truncatedProjects, 1);
+  assert.equal(getFrozenEvidenceFunnel(report.projects, report.meta), null);
+  assert.equal(JSON.stringify(row), original);
 });
 
 test("identity case, authoritative proof, raw hard blocks and selection changes invalidate the cohort", () => {

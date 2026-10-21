@@ -568,6 +568,28 @@ test("outcomes require exact identity, enforce pool when known, and reject futur
   assert.equal(Number(resolved.netReturnPct.toFixed(2)), 49);
 });
 
+test("a frozen known pool cannot resolve from token-only or other-pool observations", () => {
+  const frozen = freezeProspectiveEdgeCohort([candidate(1)], [candidate(2)], freezeOptions({ maxControls: 1 }));
+  const episode = frozen.episodes.find(row => row.role === "TREATMENT");
+  const targetAt = "2026-01-02T00:10:00.000Z";
+  const row = { chain: episode.chain, tokenAddress: episode.tokenAddress, observedAt: targetAt, priceUsd: 100 };
+  for (const poolAddress of [undefined, null, "", address(999_999)]) {
+    assert.equal(resolveProspectiveEpisodeOutcome(episode, [{ ...row, poolAddress }], {
+      asOf: targetAt, horizonHours: 24, toleranceHours: 1,
+    }), null);
+  }
+  assert.equal(resolveProspectiveEpisodeOutcome(episode, [{ ...row, poolAddress: episode.poolAddress, priceUsd: 1.1 }], {
+    asOf: targetAt, horizonHours: 24, toleranceHours: 1,
+  }).endPriceUsd, 1.1);
+});
+
+test("token-scoped predictions can still use exact token observations without requiring a source clock", () => {
+  const episode = { ...candidate(1, { poolAddress: null }), decisionAt: "2026-01-01T00:10:00.000Z", signalPriceUsd: 1 };
+  const row = { chain: episode.chain, tokenAddress: episode.tokenAddress, poolAddress: address(999_999),
+    observedAt: "2026-01-02T00:10:00.000Z", sourceObservedAt: null, priceUsd: 1.1 };
+  assert.equal(resolveProspectiveEpisodeOutcome(episode, [row], { asOf: row.observedAt, horizonHours: 24 }).endPriceUsd, 1.1);
+});
+
 test("strong net prospective separation can verify only after all forward gates pass", () => {
   const evidence = pairedEvidence();
   const report = gradeProspectiveEdgeCohorts(evidence.episodes, evidence.observations, smallVerificationPolicy);
