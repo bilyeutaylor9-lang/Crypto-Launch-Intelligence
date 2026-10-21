@@ -152,6 +152,7 @@ test("treatment/control reservation occurs before read-only quote acquisition", 
     treatments: selection.selected,
     controls: [control],
     now: NOW,
+    clock: () => NOW,
     quoteProvider: async (request) => {
       calls.push({ candidateKey: request.candidateKey, side: request.side });
       return rawQuote(request);
@@ -211,7 +212,7 @@ test("production shadow can freeze scientific cohorts when synthesis is empty", 
       },
       prospectiveCohortEpisodes: [],
       prospectiveCohortFile: path.join(temporaryDirectory, "data", "prospective-edge-cohorts.jsonl"),
-      forwardQuoteBroker: { quoteProvider: async (request) => rawQuote(request) },
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => rawQuote(request) },
     });
     const report = JSON.parse(fs.readFileSync("reports/prospective-proof-acquisition.json", "utf8"));
 
@@ -225,4 +226,40 @@ test("production shadow can freeze scientific cohorts when synthesis is empty", 
     process.chdir(priorDirectory);
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
   }
+});
+
+test("cost-complete admission retains every reserved control or blocks the entire new cohort", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cost-complete-cohort-"));
+  const before = process.cwd();
+  const rows = [candidate(1), candidate(2), candidate(3), candidate(4)];
+  try {
+    process.chdir(dir);
+    const settings = { now: NOW, codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
+      requireCompleteExecutionCosts: true, observations: [], adaptive: { registry: {} }, synthesis: { candidates: [] },
+      universe: { availabilityState: "EDGE_CANDIDATE_UNIVERSE_AVAILABLE", generatedAt: NOW,
+        exactCandidates: rows.length, candidates: rows }, prospectiveCohortEpisodes: [],
+      prospectiveCohortFile: path.join(dir, "cohorts.jsonl") };
+    const denied = await runProductionShadowCycle({ ...settings,
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => {
+        const seal = JSON.parse(fs.readFileSync("reports/prospective-pre-quote-selection.json"));
+        assert.ok(seal.selectionFreezeHash);
+        const controls = seal.reservations.map((r) => r.controlRouteKey);
+        if (controls.includes(`${request.chain}:${request.tokenAddress}:${request.poolAddress}`)) throw Error("missing control quote");
+        return rawQuote(request);
+      } } });
+    assert.equal(denied.prospectiveCohort.state, "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE");
+    assert.equal(denied.prospectiveCohort.persistence.saved, 0);
+    assert.equal(fs.existsSync(settings.prospectiveCohortFile), false);
+    const sealedRoutes = JSON.parse(fs.readFileSync("reports/prospective-pre-quote-selection.json"));
+    const accepted = await runProductionShadowCycle({ ...settings,
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => rawQuote(request) } });
+    assert.ok(accepted.prospectiveCohort.audit.controlsFrozen > 0);
+    assert.ok(accepted.prospectiveCohort.audit.treatmentsFrozen > 0);
+    assert.equal(accepted.shadowReport.forwardQuoteBroker.explicitCostCoveragePct, 100);
+    assert.deepEqual(accepted.shadowReport.preQuoteSelection, sealedRoutes);
+    const bytes = fs.readFileSync(settings.prospectiveCohortFile, "utf8");
+    const episodes = bytes.trim().split("\n").map(JSON.parse);
+    assert.equal(episodes.length, accepted.prospectiveCohort.audit.controlsFrozen + accepted.prospectiveCohort.audit.treatmentsFrozen);
+    assert.ok(episodes.every((row) => row.frozenExecutionCostProvenance?.kind === "PAIRED_EXECUTABLE_QUOTES_V1"));
+  } finally { process.chdir(before); fs.rmSync(dir, { recursive: true, force: true }); }
 });

@@ -2,11 +2,45 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildEdgeCandidateDescriptor } from "../src/data/edgeCandidateUniverseStore.js";
-import { captureForwardExecutionCosts } from "../src/production/forwardExecutionCostCapture.js";
+import { captureForwardExecutionCosts as captureCosts } from "../src/production/forwardExecutionCostCapture.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
 const NOW = "2026-08-24T12:00:00.000Z";
+const captureForwardExecutionCosts = (rows, options) => captureCosts(rows, { clock: () => NOW, ...options });
+
+test("live quotes use actual post-response clocks, not the frozen pre-request decision time", async () => {
+  let ms = Date.parse(NOW);
+  const result = await captureCosts([candidate()], { now: NOW, clock: () => new Date(ms).toISOString(),
+    quoteProvider: async (request) => { ms += 1000; return observedQuote(request.side, { capturedAt: new Date(ms).toISOString() }); } });
+  assert.equal(result.audit.accepted, 1);
+  assert.equal(result.projects[0].executionCostProvenance.entryQuote.capturedAt, "2026-08-24T12:00:01.000Z");
+  assert.equal(result.projects[0].executionCostProvenance.exitQuote.capturedAt, "2026-08-24T12:00:02.000Z");
+});
+
+test("future, stale, invalid and backwards receipt clocks fail without inventing timestamps", async () => {
+  for (const config of [
+    { clock: () => NOW, capturedAt: "2026-08-24T12:00:00.001Z", reason: "QUOTE_OUTSIDE_FRESHNESS_WINDOW" },
+    { clock: () => NOW, capturedAt: "2026-08-24T11:59:29.999Z", reason: "QUOTE_OUTSIDE_FRESHNESS_WINDOW" },
+    { clock: () => "invalid", capturedAt: NOW, reason: "INVALID_QUOTE_RECEIPT_CLOCK" },
+    { clock: () => "2026-08-24T11:59:59.999Z", capturedAt: NOW, reason: "INVALID_QUOTE_RECEIPT_CLOCK" },
+  ]) {
+    let calls = 0;
+    const result = await captureCosts([candidate()], { now: NOW, clock: config.clock,
+      quoteProvider: async (request) => { calls++; return observedQuote(request.side, { capturedAt: config.capturedAt }); } });
+    assert.equal(result.audit.accepted, 0);
+    assert.equal(result.audit.rejectionReasons[config.reason], 1);
+    assert.equal(calls, 1);
+  }
+});
+
+test("a delayed sell never refreshes the original buy quote freshness", async () => {
+  let ms = Date.parse(NOW);
+  const result = await captureCosts([candidate()], { now: NOW, clock: () => new Date(ms).toISOString(),
+    quoteProvider: async (request) => { ms += request.side === "BUY" ? 1000 : 31000; return observedQuote(request.side, { capturedAt: new Date(ms).toISOString() }); } });
+  assert.equal(result.audit.accepted, 0);
+  assert.equal(result.audit.rejectionReasons.QUOTE_OUTSIDE_FRESHNESS_WINDOW, 1);
+});
 
 function candidate(overrides = {}) {
   return {

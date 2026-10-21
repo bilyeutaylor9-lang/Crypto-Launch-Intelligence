@@ -1,6 +1,8 @@
 
 import { jsonPost } from "../sensors/rpcJsonClient.js";
 import { createLiFiExecutableQuoteProvider } from "../execution/lifiExecutableQuoteProvider.js";
+import { createJupiterExecutableQuoteProvider } from "../execution/jupiterExecutableQuoteProvider.js";
+import { normalizeChainId, normalizeTokenAddress, normalizePoolAddress } from "../identity/strictIdentityValidators.js";
 
 function finite(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -18,6 +20,7 @@ function iso(value, fallback = null) {
 }
 
 export function normalizeExecutableQuote(raw = {}, context = {}) {
+  const chain = normalizeChainId(context.chain || raw.chain);
   const requestedNotionalUsd = finite(raw.requestedNotionalUsd ?? context.requestedNotionalUsd);
   const inputUsd = finite(raw.inputUsd ?? raw.sellAmountUsd ?? requestedNotionalUsd);
   const outputUsd = finite(raw.outputUsd ?? raw.buyValueUsd ?? raw.executableOutputValueUsd);
@@ -50,14 +53,15 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
   return {
     status: complete ? "EXECUTABLE_QUOTE_OBSERVED" : "EXECUTABLE_QUOTE_INCOMPLETE",
     side: context.side || raw.side || "BUY",
-    chain: lower(context.chain || raw.chain),
+    chain,
     candidateKey: context.candidateKey || raw.candidateKey || null,
-    tokenAddress: lower(context.tokenAddress || raw.tokenAddress),
+    tokenAddress: normalizeTokenAddress(context.tokenAddress || raw.tokenAddress, chain),
     requestedNotionalUsd,
     inputUsd,
     inputTokenAmount,
     outputUsd,
     outputTokenAmount,
+    outputTokenAmountAtomic: raw.outputTokenAmountAtomic || null,
     executablePriceUsd: round(executablePriceUsd, 12),
     referencePriceUsd: finite(raw.referencePriceUsd ?? context.referencePriceUsd),
     priceImpactBps: round(priceImpactBps, 3),
@@ -65,7 +69,7 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
     gasUsd: round(gasUsd, 6),
     allInCostBps: round(allInCostBps, 3),
     route: raw.route || raw.routeSummary || null,
-    poolAddress: lower(raw.poolAddress || raw.route?.poolAddress),
+    poolAddress: normalizePoolAddress(raw.poolAddress || raw.route?.poolAddress, chain),
     routeIdentityVerified: raw.routeIdentityVerified ?? null,
     sourceUrl: raw.sourceUrl || raw.route?.sourceUrl || null,
     rawEvidenceHash: raw.rawEvidenceHash || raw.route?.rawEvidenceHash || null,
@@ -128,7 +132,15 @@ export function quoteProviderFromEnvironment(options = {}) {
   const freeProviderQuotesEnabled = options.freeProviderQuotesEnabled ??
     process.env.FREE_PROVIDER_QUOTES_ENABLED !== "false";
   if (!freeProviderQuotesEnabled) return null;
-  return createLiFiExecutableQuoteProvider(options.lifi || options);
+  const evm = createLiFiExecutableQuoteProvider(options.lifi || options);
+  const solana = createJupiterExecutableQuoteProvider(options.jupiter || {});
+  const provider = (request) => normalizeChainId(request.chain) === "solana" ? solana(request) : evm(request);
+  provider.providerName = "Chain-Aware Read-Only Quotes";
+  provider.transport = "CHAIN_AWARE_READ_ONLY_QUOTES";
+  provider.forChain = (chain) => normalizeChainId(chain) === "solana" ? solana : evm;
+  provider.keyless = evm.keyless && !(options.jupiter?.apiKey ?? process.env.JUPITER_API_KEY);
+  provider.quoteOnly = true;
+  return provider;
 }
 
 async function requestOne(project, sizeUsd, policy, provider, options = {}) {

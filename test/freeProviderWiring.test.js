@@ -13,7 +13,7 @@ import {
 import {
   createLiFiExecutableQuoteProvider,
 } from "../src/execution/lifiExecutableQuoteProvider.js";
-import { captureForwardExecutionCosts } from "../src/production/forwardExecutionCostCapture.js";
+import { captureForwardExecutionCosts as captureCosts } from "../src/production/forwardExecutionCostCapture.js";
 import { getSourceById } from "../src/config/sourceManifest.js";
 import { getCryptoCompareCandidates } from "../src/data/expandedMarketDataConnector.js";
 import { analyzeExecutionProofRecoveryBatch } from "../src/engines/executionProofRecoveryEngine.js";
@@ -22,6 +22,7 @@ const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
 const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const NOW = "2026-08-27T12:00:00.000Z";
+const captureForwardExecutionCosts = (rows, options) => captureCosts(rows, { clock: () => NOW, ...options });
 
 function response(payload, status = 200) {
   return {
@@ -199,7 +200,7 @@ test("LI.FI auto-provider feeds forward shadow costs only when the response atte
   assert.equal(result.state, "PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED");
   assert.equal(result.audit.endpointConfigured, false);
   assert.equal(result.audit.keylessProvider, true);
-  assert.equal(result.audit.provider, "LI.FI Keyless");
+  assert.equal(result.audit.provider, "Chain-Aware Read-Only Quotes");
   assert.equal(result.projects[0].executionCostProvenance.transport, "LIFI_READ_ONLY_QUOTE_API");
   assert.equal(result.projects[0].executionCostCaptureAutomaticTrading, false);
 

@@ -78,6 +78,7 @@ export function mergeProductionShadowSourceCandidates(synthesisRows = [], univer
 
 export async function runProductionShadowCycle(options = {}) {
   const now = options.now || new Date().toISOString();
+  const requireCompleteExecutionCosts = options.requireCompleteExecutionCosts ?? process.env.FORWARD_REQUIRE_COMPLETE_EXECUTION_COSTS === "true";
   const manifest = buildProductionRunManifest({
     now,
     codeCommitSha: options.codeCommitSha,
@@ -88,6 +89,7 @@ export async function runProductionShadowCycle(options = {}) {
       researchBudgetUnits: Number(options.researchBudgetUnits || 100),
       matchabilityCandidateLimit: Number(options.matchabilityCandidateLimit || 250),
       shadowOnly: true,
+      ...(requireCompleteExecutionCosts ? { executionCostAdmission: "ALL_RESERVED_ROUTES_REQUIRED_V1" } : {}),
     },
   });
   writeProductionRunManifest(manifest);
@@ -269,6 +271,7 @@ export async function runProductionShadowCycle(options = {}) {
     matchableSelection.reservations,
     { now, strategyFingerprint: matchability.strategy.fingerprint },
   );
+  writeAtomicJson("reports/prospective-pre-quote-selection.json", preQuoteSelection);
   const controlByRoute = new Map(
     proofPool.eligible
       .map((candidate) => [strictIdentity(candidate)?.routeKey, candidate])
@@ -291,6 +294,7 @@ export async function runProductionShadowCycle(options = {}) {
       .map((candidate) => [strictIdentity(candidate)?.routeKey, candidate])
       .filter(([routeKey]) => Boolean(routeKey)),
   );
+  writeAtomicJson(`reports/prospective-cost-attempts/${manifest.runId}.json`, { manifest, preQuoteSelection, audit: quoteBroker.audit });
   const selectedWithQuotes = matchableSelection.selected.map((candidate) =>
     quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
   );
@@ -405,7 +409,15 @@ export async function runProductionShadowCycle(options = {}) {
     },
   };
   writeAtomicJson("reports/production-shadow-ranking.json", shadowReport);
-  const prospectiveCohort = captureProspectiveEdgeCohort(
+  const costComplete = quoteBroker.quoteTargets.length > 0 && quoteBroker.audit.pairedQuotesAccepted === quoteBroker.quoteTargets.length;
+  const prospectiveCohort = requireCompleteExecutionCosts && !costComplete ? {
+    state: "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE",
+    episodes: [], strategy: matchability.strategy,
+    audit: { treatmentsFrozen: 0, controlsFrozen: 0, preQuoteSelectionFreezeHash: preQuoteSelection.selectionFreezeHash,
+      blockers: ["ALL_RESERVED_ROUTES_REQUIRE_EXECUTION_COSTS"], quoteTargets: quoteBroker.quoteTargets.length,
+      pairedQuotesAccepted: quoteBroker.audit.pairedQuotesAccepted },
+    persistence: { file: null, attempted: 0, saved: 0, duplicates: 0, rejectedIntegrity: 0 },
+  } : captureProspectiveEdgeCohort(
     shadow,
     controlPoolWithQuotes,
     {
@@ -590,6 +602,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       })),
     }, null, 2));
     if (result.universePreflight && !result.universePreflight.pass) process.exitCode = 2;
+    if (result.prospectiveCohort.state === "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE") process.exitCode = 2;
   } catch (error) {
     console.error(error);
     process.exitCode = 1;
