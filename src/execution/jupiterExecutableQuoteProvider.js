@@ -47,9 +47,25 @@ function verifyRoute(payload, request, inputMint, outputMint, amount) {
     priorOutput = info.outAmount;
     mint = info.outputMint;
   }
+  const gross = units(plan.at(-1).swapInfo.outAmount);
+  const net = units(payload.outAmount);
+  if (gross !== net) {
+    // V2's top-level outAmount is net of the platform fee, while routePlan
+    // describes the gross AMM output. Reconcile the explicit fee exactly, with
+    // at most one atomic unit for provider rounding; never accept an arbitrary
+    // amount discrepancy as an identity match.
+    const feeBps = number(payload.feeBps);
+    if (!Number.isInteger(feeBps) || feeBps <= 0 || feeBps >= 10000 || payload.platformFee?.feeBps !== feeBps) {
+      throw new Error("JUPITER_OUTPUT_FEE_MISMATCH");
+    }
+    const numerator = gross * BigInt(10000 - feeBps);
+    const floor = numerator / 10000n;
+    const ceil = (numerator + 9999n) / 10000n;
+    if (net !== floor && net !== ceil) throw new Error("JUPITER_OUTPUT_FEE_MISMATCH");
+  }
   const targetLeg = request.side === "BUY" ? plan.at(-1).swapInfo : plan[0].swapInfo;
   if (mint !== outputMint || plan[0].swapInfo.inAmount !== amount ||
-      plan.at(-1).swapInfo.outAmount !== payload.outAmount || targetLeg.ammKey !== request.poolAddress ||
+      targetLeg.ammKey !== request.poolAddress ||
       (request.side === "BUY" ? targetLeg.outputMint : targetLeg.inputMint) !== request.tokenAddress) {
     throw new Error("JUPITER_EXACT_POOL_MISMATCH");
   }

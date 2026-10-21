@@ -81,6 +81,22 @@ test("chain-aware factory dispatches Solana to Jupiter, not the EVM adapter", as
   assert.equal(f.calls.length, 2);
 });
 
+test("V2 net output reconciles the explicit platform fee without relaxing exact pool checks", async () => {
+  const feeResponse = (p, u) => {
+    if (!u.pathname.endsWith("order")) return;
+    p.feeBps = 10;
+    p.platformFee = { feeBps: 10, feeMint: JUPITER_USDC };
+    p.routePlan[0].swapInfo.outAmount = "50050050";
+  };
+  const f = fixture(feeResponse);
+  const quote = await f.provider(request());
+  assert.equal(quote.outputTokenAmountAtomic, "50000000");
+  const wrong = fixture((p, u) => { feeResponse(p, u); if (u.pathname.endsWith("order")) p.routePlan[0].swapInfo.outAmount = "50150050"; });
+  await assert.rejects(wrong.provider(request()), /OUTPUT_FEE_MISMATCH/);
+  const pool = fixture((p, u) => { feeResponse(p, u); if (u.pathname.endsWith("order")) p.routePlan[0].swapInfo.ammKey = POOL[0].toLowerCase() + POOL.slice(1); });
+  await assert.rejects(pool.provider(request()), /EXACT_POOL_MISMATCH/);
+});
+
 test("no signing, wallet, submission intent, wrong chain or invalid identity reaches HTTP", async () => {
   for (const change of [{ operation: "SWAP" }, { side: "EXECUTE" }, { allowTransactionSubmission: true }, { allowOrderSubmission: true },
     { taker: TOKEN }, { wallet: TOKEN }, { chain: "base" }, { poolAddress: "" }, { requestedNotionalUsd: null }]) {
