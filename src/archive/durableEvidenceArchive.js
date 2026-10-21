@@ -368,10 +368,14 @@ export function openDurableEvidenceArchive(options = {}) {
       const task = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(lease.task_id);
       if (task.obligation_id !== obligationId || !evidence?.recordId) return false;
       const admitted = admitPrediction(evidence);
-      if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: at })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
+      // Admission performs fresh writer checks around durable publication.
+      // Recheck leases at the actual post-admission time, never the earlier
+      // transaction entry time. Original receipt/source clocks stay unchanged.
+      const completedAt = timestamp(archiveNow(), "completion time");
+      if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: completedAt })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
       let shared = { reconciled: 0 };
       try {
-        if (evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1") shared = reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: at });
+        if (evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1") shared = reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: completedAt });
       } catch (error) {
         // Roll back the whole completion and stop further provider traffic.
         // A durable linkage failure cannot be treated as a collection retry.

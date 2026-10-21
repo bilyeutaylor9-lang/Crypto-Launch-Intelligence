@@ -54,7 +54,7 @@ test("invalid compressed bytes are never silently repaired", () => {
   assert.throws(() => store.readEvidence(result.recordId), /ARCHIVE_SEGMENT_CORRUPT/); assert.equal(store.audit().ok, false); store.close();
 });
 test("empty-directory restore reproduces bytes and task states", () => {
-  const dir = root(); const store = openDurableEvidenceArchive({ root: dir }); const r = store.admitPrediction(admission());
+  const dir = root(); const store = openDurableEvidenceArchive({ root: dir, clock: () => "2026-01-02T00:00:00.000Z" }); const r = store.admitPrediction(admission());
   const [job] = store.leaseDue({ owner: "w", nowAt: "2026-01-02T00:00:00.000Z" });
   assert.equal(store.completeWithEvidence({ obligationId: job.obligationId, owner: "w", leaseToken: job.leaseToken, nowAt: "2026-01-02T00:00:00.000Z", evidence: {
     recordId: "observed:one-hour", rawBytes: Buffer.from("original observation bytes"), frozenObligations: [],
