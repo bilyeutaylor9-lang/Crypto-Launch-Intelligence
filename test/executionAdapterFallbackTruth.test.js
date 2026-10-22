@@ -38,11 +38,13 @@ function options(fetchJson, extra = {}) {
 test("unattested LI.FI quotes do not suppress an exactly attested fallback", async () => {
   for (const firstPool of [undefined, OTHER]) {
     const adapters = [];
-    const [result] = await analyzeExecutionProofRecoveryBatch([PROJECT], options(async (url, { adapter }) => {
+    const opts = options(async (url, { adapter }) => {
       adapters.push(adapter);
       return quote(url, adapter, adapter === "lifi" ? firstPool : POOL);
-    }));
-    assert.deepEqual(adapters, ["lifi", "lifi", "0x", "0x"]);
+    });
+    const [result] = await analyzeExecutionProofRecoveryBatch([PROJECT], opts);
+    assert.deepEqual(adapters, ["lifi", "0x", "0x"]);
+    assert.equal(opts.lifiRateBudget.requests, 1);
     assert.equal(result.executionProofRecoveryRoute.source, "0x");
     assert.equal(result.executionProofRecoveryRoute.poolAddress, POOL);
     assert.equal(result.executionProofRecoveryRoute.exactIdentityVerified, true);
@@ -74,9 +76,16 @@ test("unattested quotes do not become recovered routes in the standalone batch",
 
 test("0x requested pool is not provider attestation on either leg", async () => {
   for (const pool of [undefined, OTHER]) {
-    const result = await recoverZeroXRoute(PROJECT, options(async (url, { adapter }) => quote(url, adapter, pool)));
-    assert.equal(result.route.poolAddress, null);
-    assert.equal(result.route.exactIdentityVerified, false);
+    const calls = [];
+    const result = await recoverZeroXRoute(PROJECT, options(async (url, { adapter }) => {
+      calls.push(adapter);
+      return quote(url, adapter, pool);
+    }));
+    assert.deepEqual(calls, ["0x"]);
+    assert.equal(result.status, "IDENTITY_OR_POOL_UNATTESTED");
+    assert.equal(result.route, undefined);
+    assert.equal(result.buyQuoteVerified, false);
+    assert.equal(result.sellQuoteVerified, false);
   }
 });
 
@@ -91,9 +100,13 @@ test("fallback HTTP calls remain inside the shared active request budget", async
     const state = createActiveEvidenceExecutionState(opts);
     const result = await recoverExecutionEvidence(PROJECT,
       ["purchaseRouteConfirmed", "sellRouteAvailable", "quoteTimestamp"], {}, opts, state);
-    assert.deepEqual(adapters, ["lifi", "lifi", "0x", "0x"].slice(0, maximum));
-    assert.equal(state.requestsUsed, maximum);
-    if (maximum === 4) assert.equal(result.projectPatch.executionProofRecoveryRoute.source, "0x");
+    assert.deepEqual(adapters, ["lifi", "0x", "0x"].slice(0, maximum));
+    assert.equal(state.requestsUsed, Math.min(maximum, 3));
+    assert.equal(opts.executionRecovery.lifiRateBudget.requests, 1);
+    assert.equal(result.attempts.filter(attempt => attempt.status === "SUCCESS").length, adapters.length);
+    assert.equal(result.attempts.filter(attempt => attempt.status === "REQUEST_BUDGET_EXHAUSTED").length,
+      maximum < 3 ? 1 : 0);
+    if (maximum >= 3) assert.equal(result.projectPatch.executionProofRecoveryRoute.source, "0x");
     else assert.deepEqual(result.projectPatch, {});
   }
 });
