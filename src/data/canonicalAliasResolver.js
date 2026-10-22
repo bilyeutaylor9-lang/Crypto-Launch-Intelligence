@@ -236,7 +236,7 @@ const DEFAULT_SEMANTIC_IGNORED_ROOTS = Object.freeze([
   "aliasResolutionConflicts", "canonicalAliasConflicts", "canonicalAliases", "engineDataContractHealth",
   "engineDataReadiness", "dataStarvation", "targetedEnrichmentPlan", "starvationRecoveryPlan",
   "valueOfInformationItems", "baselineDeviation", "baselineDeviationVector", "modelDiagnostics",
-  "scoreBreakdown", "dataConfidenceBreakdown",
+  "scoreBreakdown", "dataConfidenceBreakdown", "measuredWalletFlow",
 ]);
 const ignoredSemanticRoots = new Set(DEFAULT_SEMANTIC_IGNORED_ROOTS.map(root => root.toLowerCase()));
 const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
@@ -244,8 +244,14 @@ const DEFAULT_SEMANTIC_SCAN_IGNORES = Object.freeze([
   /^engineDataReadiness\.engines\.\d+\.(score|status|warnings|engineName|engineVersion|criticality|confidence|evidenceCoverage|dataFreshness|warningCount)$/i,
   /\.(engineName|engineVersion|criticality|warningCount)$/i,
 ]);
+// Only the fixed, non-stateful defaults share a pattern; custom regexes retain their flags and lastIndex.
+const DEFAULT_SEMANTIC_SCAN_IGNORE_PATTERN = new RegExp(
+  DEFAULT_SEMANTIC_SCAN_IGNORES.map((pattern) => `(?:${pattern.source})`).join("|"),
+  "i"
+);
 
 function semanticScanFields(project = {}, options = {}) {
+  // Custom lists replace the defaults, including their diagnostic boundaries.
   const ignores = options.semanticScanIgnores || DEFAULT_SEMANTIC_SCAN_IGNORES;
   const maxFields = Number.isFinite(Number(options.semanticScanMaxFields))
     ? Math.max(0, Number(options.semanticScanMaxFields))
@@ -254,7 +260,9 @@ function semanticScanFields(project = {}, options = {}) {
   // thousands of audit/provenance leaves only to discard them afterward.
   const ignoredRoots = ignores === DEFAULT_SEMANTIC_SCAN_IGNORES ? ignoredSemanticRoots : null;
   const flattened = flattenObject(project, "", [], ignoredRoots).filter((item) =>
-    !ignores.some((pattern) => pattern.test(String(item.sourcePath || "")))
+    ignores === DEFAULT_SEMANTIC_SCAN_IGNORES
+      ? !DEFAULT_SEMANTIC_SCAN_IGNORE_PATTERN.test(String(item.sourcePath || ""))
+      : !ignores.some((pattern) => pattern.test(String(item.sourcePath || "")))
   );
   return maxFields ? flattened.slice(0, maxFields) : flattened;
 }

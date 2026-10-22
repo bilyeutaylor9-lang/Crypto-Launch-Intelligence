@@ -1,4 +1,5 @@
 // src/engines/smartWalletEngine.js
+import { measuredWalletNumber, produceMeasuredWalletFlowInputs } from "../data/measuredWalletFlow.js";
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -9,23 +10,32 @@ function clamp(value = 0, min = 0, max = 100) {
 }
 
 function measured(value) {
-  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  return measuredWalletNumber(value) !== null;
 }
 
 function ratio(a = 0, b = 0) {
+  if (!measured(a) || !measured(b)) return null;
   const x = num(a);
   const y = num(b);
   return y > 0 ? x / y : x;
 }
 
-export function calculateSmartWalletSignal(project = {}) {
-  const smartWalletBuys24h = num(project.smartWalletBuys24h);
-  const smartWalletSells24h = num(project.smartWalletSells24h);
-  const smartWalletBuyVolumeUsd = num(project.smartWalletBuyVolumeUsd);
-  const smartWalletSellVolumeUsd = num(project.smartWalletSellVolumeUsd);
+export function calculateSmartWalletSignal(project = {}, options = {}) {
+  const gated = project.smartWalletFlowProvenance !== undefined || project.smartWalletSignal?.provenance !== undefined ||
+    project.smartWalletSignal?.sampleOnly === true || project.smartWalletSignal?.scope === "OBSERVED_QUALIFIED_SWAPS_ONLY" ||
+    project.measuredWalletFlow?.observedSample != null ||
+    project.ignitionRawSensors?.eventTape !== undefined || Object.keys(project.fieldProvenance || {})
+      .some((field) => /^smartWallet(?:NetFlowUsd|BuyCount|SellCount|Buys24h|Sells24h|BuyVolumeUsd|SellVolumeUsd)$/.test(field));
+  const flow = gated ? produceMeasuredWalletFlowInputs(project, options).measuredWalletFlow : null;
+  const normalized = flow?.values;
+  const smartWalletBuys24h = measuredWalletNumber(gated ? normalized.smartWalletBuyCount : project.smartWalletBuys24h, { count: true });
+  const smartWalletSells24h = measuredWalletNumber(gated ? normalized.smartWalletSellCount : project.smartWalletSells24h, { count: true });
+  const smartWalletBuyVolumeUsd = measuredWalletNumber(gated ? normalized.smartWalletBuyVolumeUsd : project.smartWalletBuyVolumeUsd);
+  const smartWalletSellVolumeUsd = measuredWalletNumber(gated ? normalized.smartWalletSellVolumeUsd : project.smartWalletSellVolumeUsd);
 
   const smartWalletNetFlowUsd =
-    smartWalletBuyVolumeUsd - smartWalletSellVolumeUsd;
+    gated ? normalized.smartWalletNetFlowUsd : smartWalletBuyVolumeUsd !== null && smartWalletSellVolumeUsd !== null
+      ? smartWalletBuyVolumeUsd - smartWalletSellVolumeUsd : null;
 
   const smartWalletBuySellRatio = ratio(
     smartWalletBuys24h,
@@ -45,6 +55,10 @@ export function calculateSmartWalletSignal(project = {}) {
     smartWalletNetFlowUsd,
     smartWalletBuySellRatio,
     smartWalletVolumeRatio,
+    ...(flow?.sampleOnly ? { scope: "OBSERVED_QUALIFIED_SWAPS_ONLY", sampleOnly: true,
+      observedSample: flow.observedSample } : {}),
+    ...((project.smartWalletFlowProvenance || project.smartWalletSignal?.provenance)
+      ? { provenance: project.smartWalletFlowProvenance || project.smartWalletSignal.provenance } : {}),
   };
 }
 
@@ -76,8 +90,11 @@ function buildReasons(signal = {}) {
   return reasons;
 }
 
-export function scoreSmartWalletSignal(project = {}) {
-  const signal = calculateSmartWalletSignal(project);
+export function scoreSmartWalletSignal(project = {}, options = {}) {
+  const signal = calculateSmartWalletSignal(project, options);
+  if (signal.sampleOnly) return null;
+  if (![signal.smartWalletBuys24h, signal.smartWalletSells24h,
+    signal.smartWalletNetFlowUsd, signal.smartWalletBuyVolumeUsd, signal.smartWalletSellVolumeUsd].some(measured)) return null;
 
   let score = 0;
 
@@ -101,30 +118,36 @@ export function scoreSmartWalletSignal(project = {}) {
   return clamp(Math.round(score));
 }
 
-export function analyzeSmartWallets(project = {}) {
+export function analyzeSmartWallets(project = {}, options = {}) {
+  options = { ...options, now: options.now ?? Date.now() };
+  project = produceMeasuredWalletFlowInputs(project, options);
+  const smartWalletSignal = calculateSmartWalletSignal(project, options);
   const expectedFields = [
     "smartWalletBuys24h",
     "smartWalletSells24h",
     "smartWalletBuyVolumeUsd",
     "smartWalletSellVolumeUsd",
   ];
-  const observedFields = expectedFields.filter((field) => measured(project[field]));
+  const observedFields = expectedFields.filter((field) => measured(smartWalletSignal[field]));
   const smartWalletCoverage = {
     observedComponentCount: observedFields.length,
     expectedComponentCount: expectedFields.length,
     coveragePct: Math.round((observedFields.length / expectedFields.length) * 100),
-    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(project[field])])),
+    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(smartWalletSignal[field])])),
     missingValues: expectedFields.filter((field) => !observedFields.includes(field)),
     sourceFamilies: observedFields.length ? ["wallets"] : [],
   };
 
-  if (!observedFields.length) {
-    return {
+  if (smartWalletSignal.sampleOnly || (!observedFields.length &&
+      measuredWalletNumber(smartWalletSignal.smartWalletNetFlowUsd, { signed: true }) === null)) {
+    return produceMeasuredWalletFlowInputs({
       ...project,
-      smartWalletSignal: null,
+      smartWalletSignal: project.smartWalletSignal?.provenance ? project.smartWalletSignal :
+        smartWalletSignal.sampleOnly ? smartWalletSignal : null,
       smartWalletScore: null,
       smartWalletLevel: "unmeasured",
-      smartWalletReasons: ["Smart-wallet flow observations are unavailable."],
+      smartWalletReasons: [smartWalletSignal.sampleOnly ? "Qualified swap samples do not establish daily wallet totals." :
+        "Smart-wallet flow observations are unavailable."],
       smartWalletReason: "Smart-wallet flow remains unknown until wallet observations are recovered.",
       smartWalletCoverage,
       intelligenceSignals: {
@@ -137,11 +160,10 @@ export function analyzeSmartWallets(project = {}) {
           coverage: smartWalletCoverage,
         },
       },
-    };
+    }, options);
   }
 
-  const smartWalletSignal = calculateSmartWalletSignal(project);
-  const smartWalletScore = scoreSmartWalletSignal(project);
+  const smartWalletScore = scoreSmartWalletSignal(project, options);
   const reasons = buildReasons(smartWalletSignal);
 
   const smartWalletLevel =
@@ -155,10 +177,10 @@ export function analyzeSmartWallets(project = {}) {
       ? "early smart-wallet signal"
       : "weak";
 
-  return {
+  return produceMeasuredWalletFlowInputs({
     ...project,
 
-    smartWalletSignal,
+    smartWalletSignal: project.smartWalletSignal?.provenance ? project.smartWalletSignal : smartWalletSignal,
     smartWalletScore,
     smartWalletLevel,
     smartWalletReasons: reasons,
@@ -203,12 +225,12 @@ export function analyzeSmartWallets(project = {}) {
         ? ["Strong smart-wallet accumulation detected."]
         : []),
     ],
-  };
+  }, options);
 }
 
-export function analyzeSmartWalletBatch(projects = []) {
+export function analyzeSmartWalletBatch(projects = [], options = {}) {
   return projects
-    .map(analyzeSmartWallets)
+    .map((project) => analyzeSmartWallets(project, options))
     .sort(
       (a, b) => Number(b.smartWalletScore || 0) - Number(a.smartWalletScore || 0)
     );
