@@ -753,8 +753,8 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
   };
 }
 
-export function applyCanonicalAliases(project = {}, options = {}) {
-  const resolution = resolveCanonicalAliases(project, options);
+export function applyCanonicalAliases(project = {}, options = {}, resolveAliases = resolveCanonicalAliases) {
+  const resolution = resolveAliases(project, options);
   const sanitized = { ...project };
   for (const field of UNIQUE_PARTICIPANT_FIELDS) {
     const priorProvenance = project.canonicalAliasProvenance?.[field] || fieldProvenance(project, field);
@@ -774,7 +774,8 @@ export function applyCanonicalAliases(project = {}, options = {}) {
   return {
     ...sanitized,
     ...Object.fromEntries(
-      Object.entries(resolution.resolved).filter(([, value]) => value !== null && value !== undefined && value !== "")
+      Object.entries(resolution.resolved).filter(([field, value]) => value !== null && value !== undefined && value !== "" &&
+        !resolution.storedObservationFields?.includes(field))
     ),
     canonicalAliases: resolution.resolved,
     canonicalAliasProvenance: resolution.provenance,

@@ -6,6 +6,7 @@ import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js
 import { sourceFamilyForField } from "../data/enrichmentSourceRegistry.js";
 import { normalizeChainId, chainKind } from "../identity/strictIdentityValidators.js";
 import { MEASURED_WALLET_FLOW_MAX_AGE_MS } from "../data/measuredWalletFlow.js";
+import { resolveCanonicalObservationAliases } from "../data/canonicalObservationInput.js";
 
 const WALLET_RAW_PREREQUISITES = Object.freeze({
   smartWalletNetFlowUsd: [["smartWalletNetFlowUsd"], ["smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd"]],
@@ -68,10 +69,8 @@ function clean(value = "") {
 }
 
 function values(project = {}, fields = []) {
-  return fields.map((field) => {
-    const direct = String(field).split(".").reduce((value, part) => value?.[part], project);
-    return hasValue(direct) ? direct : canonicalValue(project, field);
-  });
+  // applyCanonicalAliases has already validated these fields, including null rejections.
+  return fields.map((field) => canonicalValue(project, field));
 }
 
 function providerStatus(project = {}, field = "") {
@@ -384,7 +383,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   const aliased = applyCanonicalAliases(project, {
     fields: [...new Set(contractFields.map((field) => canonicalFieldForAlias(field) || field))],
     disableSemanticScan: options.disableSemanticScan ?? false,
-  });
+  }, resolveCanonicalObservationAliases);
   const missing = [];
   const notApplicable = [];
   const satisfied = [];
