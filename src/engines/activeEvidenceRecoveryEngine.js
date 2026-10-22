@@ -960,7 +960,8 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       };
   }
 
-  const isCheapMetadata = entry => entry.item.cheapHolderMetadataOnly === true || ["IDENTITY", "MARKET"].includes(entry.family);
+  const isFastMetadata = entry => ["IDENTITY", "MARKET"].includes(entry.family);
+  const isCheapMetadata = entry => entry.item.cheapHolderMetadataOnly === true || isFastMetadata(entry);
   const schedule = createEvidenceHydrationSchedule(executionState, options, {
     wave1: hydration.waves.WAVE1.length > 0,
     wave2: hydration.waves.WAVE2.length > 0,
@@ -979,20 +980,23 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
     // Keep the priority-selected set, but acquire short-lived Raydium proof last.
     const selected = hydration.waves[wave];
     const cheapWave1 = wave === "WAVE1" && selected.some(candidate => candidate.entries.some(entry => entry.item.cheapHolderMetadataOnly === true));
+    // Holder admission can wait on a provider cooldown. Finish fast exact-identity
+    // work first, within the same cheap window, so that wait cannot block it.
     const cohorts = cheapWave1
-      ? [selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(isCheapMetadata) })),
-        selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(entry => !isCheapMetadata(entry)) }))]
+      ? [{ candidates: selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(isFastMetadata) })), cheapMetadata: true },
+        { candidates: selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(entry => entry.item.cheapHolderMetadataOnly === true) })), cheapMetadata: true },
+        { candidates: selected.map(candidate => ({ ...candidate, entries: candidate.entries.filter(entry => !isCheapMetadata(entry)) })), cheapMetadata: false }]
       : wave === "WAVE3"
-      ? [selected.filter((candidate) => chainOf(candidate.project) !== "solana"),
-        selected.filter((candidate) => chainOf(candidate.project) === "solana")]
-      : [selected];
-    for (const [cohortIndex, cohort] of cohorts.entries()) {
+      ? [{ candidates: selected.filter((candidate) => chainOf(candidate.project) !== "solana") },
+        { candidates: selected.filter((candidate) => chainOf(candidate.project) === "solana") }]
+      : [{ candidates: selected }];
+    for (const cohort of cohorts) {
       const independentFallbacks = !Array.isArray(options.securityEvidence?.providers) &&
-        (wave === "WAVE2" || (wave === "WAVE1" && (!cheapWave1 || cohortIndex > 0)));
+        (wave === "WAVE2" || (wave === "WAVE1" && !cohort.cheapMetadata));
       const phaseOptions = { ...options, waitForGoPlusCooldown: options.waitForGoPlusCooldown ?? !independentFallbacks,
         ...(wave === "WAVE1" ? { phaseDeadlineAt:
-          cheapWave1 && cohortIndex === 0 ? schedule.cheapMetadataDeadlineAt : schedule.wave1DeadlineAt } : {}) };
-      const recoveredWave = await mapWithBoundedConcurrency(cohort.filter(candidate => candidate.entries.length), concurrency,
+          cohort.cheapMetadata ? schedule.cheapMetadataDeadlineAt : schedule.wave1DeadlineAt } : {}) };
+      const recoveredWave = await mapWithBoundedConcurrency(cohort.candidates.filter(candidate => candidate.entries.length), concurrency,
         (candidate) => recoverCandidate(candidate, wave, phaseOptions));
       for (const recovered of recoveredWave) {
         const previous = recoveryByProject.get(recovered.projectIndex);
