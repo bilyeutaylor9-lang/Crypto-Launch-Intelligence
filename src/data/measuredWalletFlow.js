@@ -66,6 +66,17 @@ function windowKey(flow) {
   return JSON.stringify([cohortKey(flow), flow.start, flow.end]);
 }
 
+function derivedProvenance(anchor, receipts, inputs, now) {
+  return {
+    derivation: DERIVATION, source: DERIVATION,
+    chain: anchor.provenance.chain, tokenAddress: anchor.provenance.tokenAddress,
+    sourceTimestamp: new Date(anchor.end).toISOString(),
+    observedAt: anchor.provenance.observedAt, computedAt: new Date(now).toISOString(),
+    observationType: "DERIVED", verificationStatus: "VERIFIED_DERIVED_OBSERVATION",
+    receipts, inputs,
+  };
+}
+
 function normalizeFlow(raw, values, project, now, path, diagnostics, historical = false, generated = {}) {
   const checked = receipt(raw, project, now, historical);
   if (!checked.provenance) {
@@ -367,9 +378,8 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
       continue;
     }
     values[field] = available[0].values[field];
-    provenance[field] = { derivation: DERIVATION, observationType: "DERIVED",
-      verificationStatus: "VERIFIED_DERIVED_OBSERVATION", receipts: available.map((flow) => flow.provenance),
-      inputs: available.flatMap((flow) => flow.inputs[field]) };
+    provenance[field] = derivedProvenance(available[0], available.map((flow) => flow.provenance),
+      available.flatMap((flow) => flow.inputs[field]), now);
   }
   for (const [field, aliases] of Object.entries(ALIASES)) {
     if (values[field] === null) continue;
@@ -396,9 +406,8 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
   if (!anchor && tape) history.reason = "COMPLETE_DAILY_SWAP_COVERAGE_REQUIRED";
   if (history.value !== null) {
     values.accumulationDays = history.value;
-    provenance.accumulationDays = { derivation: DERIVATION, observationType: "DERIVED",
-      verificationStatus: "VERIFIED_DERIVED_OBSERVATION", receipts: history.receipts,
-      inputs: [anchor.path, "smartWalletFlowHistory"] };
+    provenance.accumulationDays = derivedProvenance(anchor, history.receipts,
+      [anchor.path, "smartWalletFlowHistory"], now);
   } else diagnostics.push({ field: "accumulationDays", reason: history.reason });
 
   const promoted = {};

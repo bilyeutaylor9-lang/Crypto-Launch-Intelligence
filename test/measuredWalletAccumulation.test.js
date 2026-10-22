@@ -10,6 +10,7 @@ import { encodeSignedWord, encodeAddressWord } from "../src/sensors/evmAbi.js";
 import { normalizeBlockscoutWalletEvidence } from "../src/data/blockscoutWalletConnector.js";
 import { analyzeCapitalFlow } from "../src/engines/capitalFlowEngine.js";
 import { analyzeSmartMoneyRotation } from "../src/engines/smartMoneyRotationEngine.js";
+import { resolveCanonicalAliases } from "../src/data/canonicalAliasResolver.js";
 
 const DAY = 86_400_000;
 const NOW = Date.parse("2026-10-21T12:00:00Z");
@@ -555,6 +556,52 @@ function history(end, net = 900) {
     values: { smartWalletBuyVolumeUsd: 1000, smartWalletSellVolumeUsd: 1000 - net },
   };
 }
+
+test("derived wallet provenance carries the original window clock, identity and separate computation time", () => {
+  const end = NOW - 60_000;
+  const observedAt = new Date(NOW - 45_000).toISOString();
+  const input = project({
+    sourceTimestamp: "2099-01-01T00:00:00Z",
+    smartWalletFlowProvenance: provenance(end, { observedAt }),
+    smartWalletFlowHistory: [history(end - DAY, 0)],
+  });
+  const original = structuredClone(input);
+  const result = produceMeasuredWalletFlowInputs(input, options);
+  const fields = ["smartWalletNetFlowUsd", "smartWalletBuyCount", "smartWalletSellCount", "accumulationDays"];
+  for (const field of fields) {
+    const meta = result.fieldProvenance[field];
+    assert.equal(meta.sourceTimestamp, new Date(end).toISOString(), field);
+    assert.equal(meta.observedAt, observedAt, field);
+    assert.equal(meta.computedAt, new Date(NOW).toISOString(), field);
+    assert.equal(meta.source, "measured-wallet-flow-v1", field);
+    assert.equal(meta.chain, "base", field);
+    assert.equal(meta.tokenAddress, TOKEN, field);
+    assert.equal(Object.hasOwn(meta, "confidence"), false, field);
+    assert.equal(meta.receipts[0].observedAt, observedAt, field);
+  }
+  const aliases = resolveCanonicalAliases(result, { fields, disableSemanticScan: true });
+  for (const field of fields) assert.equal(aliases.provenance[field].sourceTimestamp, new Date(end).toISOString(), field);
+  assert.deepEqual(input, original);
+  const refreshed = produceMeasuredWalletFlowInputs(result, { now: NOW + 30_000 });
+  assert.equal(refreshed.fieldProvenance.smartWalletNetFlowUsd.sourceTimestamp, new Date(end).toISOString());
+  assert.equal(refreshed.fieldProvenance.smartWalletNetFlowUsd.computedAt, new Date(NOW + 30_000).toISOString());
+  const expired = produceMeasuredWalletFlowInputs(refreshed, { now: NOW + 3_600_000 });
+  assert.equal(expired.smartWalletNetFlowUsd, null);
+  assert.equal(expired.fieldProvenance.smartWalletNetFlowUsd.verificationStatus, "UNKNOWN");
+  assert.equal(expired.fieldProvenance.smartWalletNetFlowUsd.sourceTimestamp, new Date(end).toISOString());
+});
+
+test("explicit provider contract clocks survive derivation without recertifying raw observations", () => {
+  const input = qualifiedProviderProject({ sourceTimestamp: "2099-01-01T00:00:00Z" });
+  const original = structuredClone(input);
+  const result = produceMeasuredWalletFlowInputs(input, options);
+  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd.sourceTimestamp, new Date(NOW).toISOString());
+  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd.chain, "base");
+  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd.tokenAddress, TOKEN);
+  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd.confidence, undefined);
+  assert.deepEqual(result.fieldProvenance.smartWalletBuys24h, original.fieldProvenance.smartWalletBuys24h);
+  assert.deepEqual(input, original);
+});
 
 test("regression: measured smart-wallet output produces root inputs before accumulation recompute", () => {
   const input = project({ smartWalletFlowHistory: [history(NOW - DAY, 0)] });

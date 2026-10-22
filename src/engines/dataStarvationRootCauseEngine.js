@@ -5,6 +5,16 @@ import { evaluateEvidenceFreshness } from "../data/evidenceFreshnessPolicy.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { sourceFamilyForField } from "../data/enrichmentSourceRegistry.js";
 import { normalizeChainId, chainKind } from "../identity/strictIdentityValidators.js";
+import { MEASURED_WALLET_FLOW_MAX_AGE_MS } from "../data/measuredWalletFlow.js";
+
+const WALLET_RAW_PREREQUISITES = Object.freeze({
+  smartWalletNetFlowUsd: [["smartWalletNetFlowUsd"], ["smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd"]],
+  smartWalletBuyCount: [["smartWalletBuyCount", "smartWalletBuys24h"]],
+  smartWalletSellCount: [["smartWalletSellCount", "smartWalletSells24h"]],
+  accumulationDays: [["smartWalletFlowHistory", "qualified daily net flow with nonpositive boundary"]],
+});
+const WALLET_RECEIPT_PATHS = ["fieldProvenance", "ignitionRawSensors.eventTape",
+  "smartWalletFlowProvenance", "smartWalletSignal.provenance"];
 
 const INTERNAL_FIELD_PRODUCERS = Object.freeze({
   marketOpportunityRank: "marketOpportunityRank",
@@ -104,6 +114,27 @@ function engineRecord(project = {}, producer = "") {
     .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
     .replace(/^[A-Z]/, (chr) => chr.toLowerCase());
   return project.engineResults?.[key] || null;
+}
+
+function walletRawPrerequisites(project, field, contract, now) {
+  const nowMs = now.getTime();
+  if (contract.id !== "smartMoneyAccumulation" || !Object.hasOwn(WALLET_RAW_PREREQUISITES, field) ||
+      !Number.isFinite(nowMs) ||
+      engineRecord(project, contract.id)?.status !== "SUCCESS") return null;
+  const flow = project.measuredWalletFlow;
+  const evaluatedAt = typeof flow?.evaluatedAt === "string" ? Date.parse(flow.evaluatedAt) : NaN;
+  const prerequisite = flow?.rawPrerequisites?.[field];
+  if (flow?.schemaVersion !== 1 || !["UNKNOWN", "PARTIAL"].includes(flow.status) ||
+      !Number.isFinite(evaluatedAt) || evaluatedAt > nowMs ||
+      nowMs - evaluatedAt > MEASURED_WALLET_FLOW_MAX_AGE_MS ||
+      flow.values?.[field] !== null || flow.effectiveValues?.[field] !== null ||
+      prerequisite?.rootCause !== "RAW_SOURCE_MISSING" ||
+      prerequisite.recoveryDisposition !== "UNAVAILABLE_WITH_CURRENT_PROVIDERS" ||
+      typeof prerequisite.reason !== "string" || !prerequisite.reason.trim() ||
+      JSON.stringify(prerequisite.requiredAny) !== JSON.stringify(WALLET_RAW_PREREQUISITES[field]) ||
+      JSON.stringify(prerequisite.receiptPaths) !== JSON.stringify(WALLET_RECEIPT_PATHS)) return null;
+  return { ...prerequisite, requiredAny: prerequisite.requiredAny.map((group) => [...group]),
+    receiptPaths: [...prerequisite.receiptPaths] };
 }
 
 function lifecycle(project = {}) {
@@ -252,9 +283,14 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
   const applicability = fieldApplicability(project, canonicalField, contract);
   const provenance = project.canonicalAliasProvenance?.[canonicalField] || null;
   const freshness = provenance ? evaluateEvidenceFreshness(provenance.sourceTimestamp || provenance.observedAt, canonicalField, now) : null;
-  const rootCause = freshness?.status === "STALE_DATA"
+  let rootCause = freshness?.status === "STALE_DATA"
     ? "STALE_DATA"
     : rootCauseForMissing(project, canonicalField, contract, applicability, producers);
+  // A successful producer can correctly withhold a derived value when its raw
+  // measurements are unavailable. Preserve pipeline failures and stale/conflicted data.
+  const rawPrerequisites = ["PIPELINE_OUTPUT_MISSING", "RAW_SOURCE_MISSING"].includes(rootCause)
+    ? walletRawPrerequisites(project, canonicalField, contract, now) : null;
+  if (rawPrerequisites) rootCause = "RAW_SOURCE_MISSING";
   const evidenceFamily = sourceFamilyForField(canonicalField);
   const producer = producers.get(canonicalField) || INTERNAL_FIELD_PRODUCERS[canonicalField] || null;
   const derivedOutput =
@@ -263,6 +299,7 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
   const fieldProviderStatus = derivedOutput ? "UNKNOWN" : providerStatus(project, canonicalField);
   const recoverable =
     !derivedOutput &&
+    !rawPrerequisites &&
     !["NOT_APPLICABLE", "UNSUPPORTED_CHAIN"].includes(rootCause);
   const evidenceClass =
     contract.affectsFinalDecision || contract.canBlockCandidate
@@ -273,6 +310,7 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
     field,
     canonicalField,
     rootCause,
+    ...(rawPrerequisites ? { rawPrerequisites } : {}),
     producingEngine: producer || contract.id || null,
     expectedSource: derivedOutput ? `internal:${producer || contract.id}` : null,
     sourceAttempted: fieldProviderStatus !== "UNKNOWN",

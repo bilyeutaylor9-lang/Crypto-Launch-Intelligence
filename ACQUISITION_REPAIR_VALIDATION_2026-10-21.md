@@ -59,19 +59,54 @@ measured; a newly usable fallback can consume previously unused allowed units.
   scheduling tests now pass with the existing phase/reserve/holder suites.
 - Four focused follow-up cases failed before fixing alias conflicts, absent market
   measurements and unused transaction counts. They now pass.
-- Current focused integration: 126 tests pass, including the existing starvation
+- Acquisition integration at c45b9fdf: 126 tests pass, including the existing starvation
   contract, shared budget/deadline/circuit and selected-wave tests.
 - The first broad local run was intentionally interrupted and is NOT a pass. Its
   generated files were preserved outside the checkout and all 1,168 source / 20
   pre-test runtime-file hashes were verified before further edits.
-- Complete post-integration checks and source-pinned live acceptance are pending.
-  No improved production coverage, qualifying pick, or profitable edge is claimed.
+- At c45b9fdf, the completed local suite and both Node 22/24 CI jobs each passed
+  2,847 tests. Typecheck, syntax checks across 1,026 JavaScript files, 21 load tests,
+  scanner smoke and isolated report health/readiness checks passed. The offline
+  report was explicitly TEST/OFFLINE_FIXTURE, not production acceptance.
+- PRs #65 and #67 were normally merged at their approved exact heads. Live
+  acceptance remains pending; no improved production coverage, qualifying pick,
+  or profitable edge is claimed from deterministic fixtures.
+
+## Measured wallet follow-up (2026-10-22)
+
+The follow-up retains a strict boundary between complete, qualified daily swap
+evidence and bounded observed swap samples. Transfers and generic transport
+metadata do not establish smart-wallet qualification. No existing acquisition
+adapter is claimed to produce qualified daily aggregates or complete multi-day
+history. Supplied positive receipt fixtures test an input contract, not a live
+provider. Daily totals and accumulation days remain unknown without their proof.
+
+Rejected declared receipts and bounded samples are retained under diagnostic
+namespaces rather than left as numeric fallbacks for capital-flow/rotation
+consumers. Default canonical scanning excludes the entire measuredWalletFlow
+diagnostic subtree. Custom ignore lists still replace the defaults and must
+retain that boundary themselves.
+
+Derived field metadata carries the exact token identity, the original source
+window clock and a separate computation time. It does not invent confidence.
+Recomputation cannot refresh an expired source observation. A successful wallet
+producer can report its unavailable raw prerequisites instead of a false
+PIPELINE_OUTPUT_MISSING diagnosis; failed/skipped/missing producer stages and
+manifest core/advisory semantics remain unchanged. Derived fields still consume
+no external recovery request budget.
+
+Ninety focused integration tests passed before the final broad validation. Two
+new provenance regressions failed before the clock propagation repair. A compiled
+default semantic-ignore matcher also passed equivalence checks, including 500
+deep and 3,500 deferred rows. These are local correctness/performance observations,
+not a guarantee that production quotes will remain fresh. Full follow-up check
+results are recorded with the final published PR head.
 
 ## Remaining evidence work
 
-Measured accumulation inputs still need an actual provenance-compatible producer;
-repeatedly rerunning a consumer cannot create missing wallet history. Unknown
-history must not become accumulation days or a bullish score.
+Production acquisition still needs proven qualified daily swaps and complete
+history; repeatedly rerunning a consumer cannot create them. Unknown history
+must not become accumulation days or a bullish score.
 
 The one paired production quote expired 15.491 seconds before cutoff. Actual job
 timestamps show about 15.3 seconds in final readiness/root-cause auditing after
