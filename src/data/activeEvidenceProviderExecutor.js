@@ -678,6 +678,16 @@ function confidenceFraction(value, fallback = 0.8) {
 function exactDeployerResult(result = {}, identity = {}, source = null) {
   if ([source, result.provider, result.source].some(value => lower(value).includes("sourcify")) &&
       !sourcifyResponseIdentityMatches(result.raw, identity.chain, identity.tokenAddress)) return false;
+  if ([source, result.provider, result.source].some(value => lower(value).includes("blockscout"))) {
+    if (result.responseIdentityVerified === false) return false;
+    // Request-bound envelopes cannot override contradictory explorer metadata.
+    const rawAddresses = [result.address, result.tokenAddress,
+      ...[result.raw?.contract, result.raw?.addressInfo].flatMap(item =>
+        [item?.hash, item?.address, item?.address_hash])]
+      .filter(value => value !== null && value !== undefined && value !== "");
+    if (rawAddresses.some(value => typeof value !== "string" ||
+        normalizeTokenAddress(value, identity.chain) !== identity.tokenAddress)) return false;
+  }
   const resultChain = result.chain ? normalizeChainId(result.chain) : null;
   const resultAddress = lower(result.address || result.tokenAddress);
   if (resultChain && resultChain !== identity.chain) return false;
@@ -775,7 +785,7 @@ export async function recoverDeployerEvidence(
     if (needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"]) && providers.preferGoPlusDeployer &&
         providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
       const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
-      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2", "base-b20-native"]) {
+      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "blockscout", "etherscan-v2", "base-b20-native"]) {
         const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
         for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm)) local(existing);
         if (!needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"])) break;
