@@ -698,7 +698,7 @@ function exactDeployerResult(result = {}, identity = {}, source = null) {
       .some((field) => valueKnown(deployerValue(result, field)));
 }
 
-function existingDeployerEvidence(project = {}, identity = {}, asOfMs = Date.now()) {
+function existingDeployerEvidence(project = {}, identity = {}, now = Date.now) {
   const candidates = [
     ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
     ...(Array.isArray(project.freeSecurityEvidence?.evidence)
@@ -715,6 +715,7 @@ function existingDeployerEvidence(project = {}, identity = {}, asOfMs = Date.now
   return candidates.filter((item) => {
     const timestamp = item.observedAt || item.sourceTimestamp;
     const observedAtMs = typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
+    const asOfMs = Number(now());
     // Retained facts keep their original clock; age policy remains downstream.
     return Number.isFinite(asOfMs) && Number.isFinite(observedAtMs) && observedAtMs <= asOfMs &&
       item.status !== "UNKNOWN" &&
@@ -762,7 +763,6 @@ export async function recoverDeployerEvidence(
 ) {
   const evm = evmIdentity(project);
   if (evm.exact) {
-    const asOfMs = Number((state.now || Date.now)());
     const observations = new Map();
     const attempts = [];
     const projectPatch = {};
@@ -785,13 +785,13 @@ export async function recoverDeployerEvidence(
     // Known partial envelopes must not hide the same provider's unresolved raw fields.
     const providerOptions = (source) => ({ ...options,
       useCache: localSources.has(source) ? false : options.useCache });
-    for (const existing of existingDeployerEvidence(project, evm, asOfMs)) local(existing);
+    for (const existing of existingDeployerEvidence(project, evm, state.now || Date.now)) local(existing);
     if (needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"]) && providers.preferGoPlusDeployer &&
         providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
       const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
       for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "blockscout", "etherscan-v2", "base-b20-native"]) {
         const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
-        for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm, asOfMs)) local(existing);
+        for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm, state.now || Date.now)) local(existing);
         if (!needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"])) break;
       }
     }
