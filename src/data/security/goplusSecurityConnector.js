@@ -141,7 +141,7 @@ export async function getGoPlusSecurityEvidence(project = {}, options = {}) {
     if (!options.goPlusRequestSlotReserved) await waitForGoPlusRequestSlot();
     const headers = {};
     if (process.env.GOPLUS_API_KEY) headers.authorization = `Bearer ${process.env.GOPLUS_API_KEY}`;
-    const raw = await fetchJson(endpoint.url, {
+    const raw = await (options.securityFetchJson || fetchJson)(endpoint.url, {
       timeoutMs: options.timeoutMs,
       headers,
     });
@@ -154,7 +154,8 @@ export async function getGoPlusSecurityEvidence(project = {}, options = {}) {
     return options.useCache === false ? evidence : setCachedSecurityEvidence(GOPLUS_PROVIDER, endpoint.chain, address, evidence);
   } catch (error) {
     const rateLimited = error.status === 429;
-    if (rateLimited) (options.goPlusRateLimiter || waitForGoPlusRequestSlot).defer();
+    if (rateLimited) (options.goPlusRateLimiter || waitForGoPlusRequestSlot)
+      .defer(Math.max(61000, Number(error.retryAfterMs) || 0));
     return {
       ...unknownSecurityEvidence(GOPLUS_PROVIDER, `GoPlus request failed: ${error.message}`, error),
       ...(rateLimited ? { rateLimited: true } : {}),

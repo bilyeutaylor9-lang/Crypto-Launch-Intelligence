@@ -495,6 +495,12 @@ async function executeProviderCall(
       durationMs: 0,
     };
   }
+  if (health.cooldownUntil > (state.now || Date.now)()) {
+    health.skipped += 1;
+    return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
+      retryAt: new Date(health.cooldownUntil).toISOString(),
+      reason: "Provider Retry-After cooldown active; independent recovery fallbacks remain available." };
+  }
   const requestLimit = recoveryRequestLimit(state, options);
   if (state.requestsUsed + cost > requestLimit) {
     health.skipped += 1;
@@ -523,7 +529,8 @@ async function executeProviderCall(
       health.skipped += 1;
       const retryAtMs = (options.goPlusRateLimiter || waitForGoPlusRequestSlot).cooldownUntil?.();
       return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
-        retryAt: Number.isFinite(retryAtMs) ? new Date(retryAtMs).toISOString() : null,
+        retryAt: Number.isFinite(retryAtMs) && Math.abs(retryAtMs) <= 8_640_000_000_000_000
+          ? new Date(retryAtMs).toISOString() : null,
         reason: "Provider cooldown active; independent recovery fallbacks remain available." };
     }
   }
@@ -570,6 +577,10 @@ async function executeProviderCall(
     }
     if (value?.providerFailure === true && value.rateLimited === true) {
       health.rateLimitResponses = (health.rateLimitResponses || 0) + 1;
+      if (Number.isFinite(value.retryAfterMs) && value.retryAfterMs > 0) {
+        health.cooldownUntil = Math.min(8_640_000_000_000_000,
+          Math.max(health.cooldownUntil || 0, Number((state.now || Date.now)()) + value.retryAfterMs));
+      }
       return {
         status: "RATE_LIMITED",
         provider,
@@ -1820,47 +1831,99 @@ function freshAuthorityPair(item, options) {
     Number.isFinite(stamp) && Number.isFinite(now) && stamp <= now && now - stamp <= 300000;
 }
 
-async function collectBudgetedSolanaSecurity(project, providers, options, state) {
+async function collectBudgetedSecurity(project, providers, options, state) {
   const attempts = [];
-  const transport = options.securityEvidence?.fetchJson || options.providers?.fetchJson || (async (url, init) => {
-    const response = await (options.providers?.fetch || fetch)(url, init);
-    if (!response.ok) throw new Error(`Security provider HTTP ${response.status}`);
+  const pending = [];
+  const solana = chainOf(project) === "solana";
+  const transport = options.securityEvidence?.fetchJson || (solana && options.providers?.fetchJson) || (async (url, init) => {
+    const response = await (options.providers?.fetch || fetch)(url, {
+      ...init, headers: { accept: "application/json", ...init.headers },
+    });
+    if (!response.ok) {
+      const error = new Error(`Security provider HTTP ${response.status}`);
+      error.status = response.status;
+      const retryAfter = response.headers?.get?.("retry-after");
+      const seconds = typeof retryAfter === "string" && /^\d+(?:\.\d+)?$/.test(retryAfter.trim())
+        ? Number(retryAfter) : null;
+      const milliseconds = seconds !== null ? seconds * 1000 : Date.parse(retryAfter || "") - Number((state.now || Date.now)());
+      if (Number.isFinite(milliseconds) && milliseconds > 0) error.retryAfterMs = milliseconds;
+      throw error;
+    }
     return response.json();
   });
-  const fetchJson = async (url, init = {}) => {
-    const rpc = init.method === "POST";
-    const provider = rpc ? "solana-security-rpc" : "rugcheck";
+  const request = async (provider, url, init = {}) => {
+    const rpc = solana && init.method === "POST";
     const method = rpc ? JSON.parse(init.body).method : null;
     let controller;
+    let transportError;
+    let admitted = false;
+    let dispatched = false;
     const attempt = await executeProviderCall(provider, async () => {
+      admitted = true;
       const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
       if (recoveryDeadlineStatus(state, options) || init.signal?.aborted) {
         throw new Error("Security request deadline expired before HTTP start.");
       }
-      const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000), remaining)));
+      const connectorTimeout = Number(init.timeoutMs);
+      const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000),
+        Number.isFinite(connectorTimeout) && connectorTimeout > 0 ? connectorTimeout : Infinity, remaining)));
       controller = new AbortController();
       const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(timeout)]);
-      const value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
+      let value;
+      try {
+        dispatched = true;
+        value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
+      } catch (error) {
+        transportError = error;
+        if (error.status === 404 && ["goplus-security", "sourcify-security", "blockscout-security"].includes(provider)) {
+          return { candidateEvidenceUnavailable: true, reason: "Security provider returned no contract metadata." };
+        }
+        if (error.status === 429) return { providerFailure: true, rateLimited: true,
+          retryAfterMs: Math.max(61000, Number(error.retryAfterMs) || 0), warnings: ["Security provider HTTP 429"] };
+        throw error;
+      }
       if (signal.aborted || init.signal?.aborted || recoveryDeadlineStatus(state, options)) {
         throw new Error("Security response arrived after its deadline.");
       }
       if (rpc && value?.error) throw new Error("Solana security RPC returned a JSON-RPC error.");
       return value;
-    }, options, state, 1, rpc ? walletRpcEndpointId(url) : "solana", null, () => controller?.abort());
-    attempts.push({ ...attempt, value: undefined, family: "SECURITY", ...(method ? { rpcMethod: method } : {}) });
+    }, options, state, 1, solana ? (rpc ? walletRpcEndpointId(url) : "solana") : walletRpcEndpointId(new URL(url).origin),
+    provider === "goplus-security" ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({
+      deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true,
+    }) : null, () => controller?.abort());
+    attempts.push({ ...attempt, value: undefined, family: "SECURITY", requestCost: admitted ? 1 : 0,
+      httpRequests: dispatched ? 1 : 0, ...(method ? { rpcMethod: method } : {}) });
     if (attempt.status !== "SUCCESS") {
-      const error = new Error(attempt.reason);
+      const error = ["FAILED", "RATE_LIMITED", "NO_CANDIDATE_EVIDENCE"].includes(attempt.status) && transportError
+        ? transportError : new Error(attempt.reason);
       error.code = attempt.status;
       throw error;
     }
     return attempt.value;
   };
+  const trackedRequest = (...args) => {
+    const promise = request(...args);
+    pending.push(promise);
+    return promise;
+  };
   const { providers: providerOverrides, ...securityOptions } = options.securityEvidence || options;
-  const value = await providers.getFreeSecurityEvidence(project, {
-    ...securityOptions, ...(Array.isArray(providerOverrides) ? { providers: providerOverrides } : {}),
-    now: state.now || options.now, fetchJson,
-  });
-  return { attempt: { status: "SUCCESS", value }, attempts };
+  let value;
+  try {
+    value = await providers.getFreeSecurityEvidence(project, {
+      ...securityOptions, ...(Array.isArray(providerOverrides) ? { providers: providerOverrides } : {}),
+      now: state.now || options.now,
+      fetchJson: (url, init = {}) => trackedRequest(init.method === "POST" ? "solana-security-rpc" : "rugcheck", url, init),
+      ...(!solana ? { fetchJsonForProvider: provider => (url, init) => trackedRequest(provider, url, init),
+        goPlusRequestSlotReserved: true, goPlusRateLimiter: options.goPlusRateLimiter || waitForGoPlusRequestSlot } : {}),
+    });
+  } finally {
+    // A connector's Promise.all may reject while already-admitted siblings are still running.
+    await Promise.allSettled(pending);
+  }
+  return { attempt: { status: "SUCCESS", value }, attempts: attempts.length ? attempts : [{
+    provider: "free-security", status: "NO_TRANSPORT_REQUIRED", requestCost: 0, httpRequests: 0,
+    durationMs: 0, reason: "Native security connectors required no HTTP requests (cache or unavailable configuration).",
+  }] };
 }
 
 async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
@@ -1902,8 +1965,9 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     };
   }
   let goPlusCooldownSkipped = false;
-  const budgeted = providers.defaultFreeSecurityProvider && chain === "solana"
-    ? await collectBudgetedSolanaSecurity({ ...project, chain, tokenAddress }, providers, options, state) : null;
+  const customSecurityProviders = (options.securityEvidence || options).providers;
+  const budgeted = providers.defaultFreeSecurityProvider && !Array.isArray(customSecurityProviders)
+    ? await collectBudgetedSecurity({ ...project, chain, tokenAddress }, providers, options, state) : null;
   const attempt = budgeted?.attempt || await executeProviderCall(
     "free-security",
     () => providers.getFreeSecurityEvidence(
@@ -1926,6 +1990,9 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
 
   const result = attempt.value || {};
   const items = knownSecurityItems(result).filter((item) => securityIdentityMatches(item, identity));
+  if (budgeted && !items.length && budgeted.attempts.every(item => item.httpRequests === 0)) {
+    return { observations: localObservations, attempts: budgeted.attempts, projectPatch: {} };
+  }
   const observations = [
     ...securityObservations(eligible([...existing, ...items]), fields, identity, result),
     ...securityHolderObservations(project, [...existing, ...items], options.securityEvidence || options),
