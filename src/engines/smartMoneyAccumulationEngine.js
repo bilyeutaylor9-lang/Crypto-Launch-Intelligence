@@ -1,4 +1,5 @@
 // src/engines/smartMoneyAccumulationEngine.js
+import { measuredWalletNumber, produceMeasuredWalletFlowInputs } from "../data/measuredWalletFlow.js";
 
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Number(value) || 0));
@@ -10,27 +11,31 @@ function num(value, fallback = 0) {
 }
 
 function measured(value) {
-  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  return measuredWalletNumber(value, { signed: true }) !== null;
 }
 
-export function analyzeSmartMoneyAccumulation(project = {}) {
+export function analyzeSmartMoneyAccumulation(project = {}, options = {}) {
+  project = produceMeasuredWalletFlowInputs(project, options);
+  const inputs = project.measuredWalletFlow.effectiveValues;
   const expectedFields = [
     "smartWalletNetFlowUsd",
     "smartWalletBuyCount",
     "smartWalletSellCount",
     "accumulationDays",
   ];
-  const observedFields = expectedFields.filter((field) => measured(project[field]));
+  const observedFields = expectedFields.filter((field) => measured(inputs[field]));
   const smartMoneyAccumulationCoverage = {
     observedComponentCount: observedFields.length,
     expectedComponentCount: expectedFields.length,
     coveragePct: Math.round((observedFields.length / expectedFields.length) * 100),
-    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(project[field])])),
+    observedValues: Object.fromEntries(observedFields.map((field) => [field, Number(inputs[field])])),
     missingValues: expectedFields.filter((field) => !observedFields.includes(field)),
     sourceFamilies: observedFields.length ? ["wallet-flow"] : [],
   };
 
-  if (!observedFields.length) {
+  const measuredCounts = measured(inputs.smartWalletBuyCount) && measured(inputs.smartWalletSellCount);
+  if (project.measuredWalletFlow.sampleOnly || !observedFields.length || (!measured(inputs.smartWalletNetFlowUsd) &&
+      !measured(inputs.accumulationDays) && !measuredCounts)) {
     return {
       ...project,
       smartMoneyAccumulationScore: null,
@@ -39,10 +44,10 @@ export function analyzeSmartMoneyAccumulation(project = {}) {
     };
   }
 
-  const smartWalletNetFlow = num(project.smartWalletNetFlowUsd);
-  const smartWalletBuys = num(project.smartWalletBuyCount);
-  const smartWalletSells = num(project.smartWalletSellCount);
-  const accumulationDays = num(project.accumulationDays);
+  const smartWalletNetFlow = num(inputs.smartWalletNetFlowUsd);
+  const smartWalletBuys = num(inputs.smartWalletBuyCount);
+  const smartWalletSells = num(inputs.smartWalletSellCount);
+  const accumulationDays = num(inputs.accumulationDays);
   const holderGrowth = num(project.holderGrowthScore);
   const whaleRisk = num(project.whaleRiskScore);
   const volume24h = num(project.volume24h);
@@ -52,7 +57,7 @@ export function analyzeSmartMoneyAccumulation(project = {}) {
     smartWalletSells > 0 ? smartWalletBuys / smartWalletSells : smartWalletBuys;
 
   const components = [
-    measured(project.smartWalletNetFlowUsd)
+    measured(inputs.smartWalletNetFlowUsd)
       ? {
           score:
             marketCap > 0
@@ -61,10 +66,10 @@ export function analyzeSmartMoneyAccumulation(project = {}) {
           weight: 0.3,
         }
       : null,
-    measured(project.smartWalletBuyCount) || measured(project.smartWalletSellCount)
+    measuredCounts
       ? { score: clamp(buySellRatio * 20), weight: 0.25 }
       : null,
-    measured(project.accumulationDays)
+    measured(inputs.accumulationDays)
       ? { score: clamp(accumulationDays * 10), weight: 0.2 }
       : null,
     measured(project.holderGrowthScore)
@@ -109,6 +114,6 @@ export function analyzeSmartMoneyAccumulation(project = {}) {
   };
 }
 
-export function analyzeSmartMoneyAccumulationBatch(projects = []) {
-  return projects.map(analyzeSmartMoneyAccumulation);
+export function analyzeSmartMoneyAccumulationBatch(projects = [], options = {}) {
+  return projects.map((project) => analyzeSmartMoneyAccumulation(project, options));
 }
