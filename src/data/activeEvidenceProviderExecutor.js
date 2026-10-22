@@ -2314,6 +2314,9 @@ export async function executeActiveEvidenceProviderRequests(
     .some((request) => request?.item?.requiresMintAccountEvidence === true);
   const sources = targetSourceNames(requests);
   const attempts = [];
+  const scopedAttempts = (rows, requestedFields) => (rows || []).map(attempt => ({ ...attempt,
+    requestedFields: [...requestedFields],
+  }));
   let executionAdapterResults = [];
   const requestedWalletFields = fields.filter((field) => WALLET_RAW_FIELDS.has(field));
   const cheapHolderMetadataOnly = requestedWalletFields.length > 0 && requestedWalletFields.every(field => field === "holderAddresses") &&
@@ -2334,7 +2337,7 @@ export async function executeActiveEvidenceProviderRequests(
   if (dexFields.length && dexRequested) {
     const result = await recoverDex(project, dexFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, dexFields));
   }
 
   // GeckoTerminal is a strict market-data fallback. It is only attempted for
@@ -2346,7 +2349,7 @@ export async function executeActiveEvidenceProviderRequests(
   if (geckoFields.length && geckoRequested) {
     const result = await recoverGeckoPool(project, geckoFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, geckoFields));
   }
 
   const recoveredMarketFields = new Set(observations.map((item) => item.field));
@@ -2365,7 +2368,7 @@ export async function executeActiveEvidenceProviderRequests(
       executionState,
     );
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, defiLlamaExactFields));
   }
 
   const recoveredFields = new Set(observations.map((item) => item.field));
@@ -2410,7 +2413,7 @@ export async function executeActiveEvidenceProviderRequests(
         ...options, now: executionState.now || options.now, requiresAuthorityPair: true, requiresMintAccountEvidence: true,
       }, executionState);
       observations.push(...result.observations);
-      attempts.push(...result.attempts);
+      attempts.push(...scopedAttempts(result.attempts, ["mintAuthorityEnabled"]));
       projectPatch = { ...projectPatch, ...result.projectPatch };
       executionProject = { ...project, ...projectPatch };
       safetyReady = !adverse(executionProject) && resolveCanonicalIdentity({
@@ -2419,13 +2422,13 @@ export async function executeActiveEvidenceProviderRequests(
     }
     securityFields = securityFields.filter((field) => field !== "mintAuthorityEnabled");
     if (!safetyReady) attempts.push({ provider: "solana-safety-hydration", family: "SECURITY",
-      status: "SAFETY_UNRESOLVED_OR_BLOCKED", durationMs: 0,
+      status: "SAFETY_UNRESOLVED_OR_BLOCKED", durationMs: 0, requestedFields: ["mintAuthorityEnabled"],
       reason: "Fresh exact paired mint-account safety is required before quote acquisition." });
   }
   if (safetyReady && executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "raydium", "0x", "cex", "order book", "dex aggregators"])) {
     const result = await recoverExecutionEvidence(executionProject, executionFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, executionFields));
     executionAdapterResults = result.executionAdapterResults || [];
     projectPatch = { ...projectPatch, ...result.projectPatch };
   }
@@ -2437,9 +2440,9 @@ export async function executeActiveEvidenceProviderRequests(
       deployerMetadataSourcesAllowed: sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer"]),
     }, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, deployerFields));
     if (executionState.nativeDeploymentMemoryFailure) attempts.push({ provider: "native-contract-deployment",
-      status: "MEMORY_READ_FAILED", durationMs: 0, requestCost: 0, reason: executionState.nativeDeploymentMemoryFailure });
+      status: "MEMORY_READ_FAILED", durationMs: 0, requestCost: 0, requestedFields: [...deployerFields], reason: executionState.nativeDeploymentMemoryFailure });
     projectPatch = { ...projectPatch, ...result.projectPatch };
     const companion = projectPatch.goplusDeployerEvidence;
     if (companion?.responseIdentityVerified === true && companion.status !== "UNKNOWN") {
@@ -2459,11 +2462,12 @@ export async function executeActiveEvidenceProviderRequests(
     sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase", "rugcheck", "goplus"])
   ) {
     // Newly acquired holder payloads may also carry safety evidence needed by the next pass.
+    const remainingWalletFields = walletFields.filter((field) => !observations.some((item) => item.field === field));
     const result = await recoverWalletEvidenceWithHistory({ ...project, ...projectPatch },
-      walletFields.filter((field) => !observations.some((item) => item.field === field)), providers,
+      remainingWalletFields, providers,
       cheapHolderMetadataOnly ? { ...options, cheapHolderMetadataOnly: true, walletHistory: false } : options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, remainingWalletFields));
     projectPatch = { ...projectPatch, ...result.projectPatch };
   }
   if (
@@ -2474,6 +2478,7 @@ export async function executeActiveEvidenceProviderRequests(
       recoverSecurity({ ...project, ...projectPatch }, securityFields, providers,
         { ...options, requiresAuthorityPair }, executionState).then((result) => ({
         kind: "security",
+        requestedFields: securityFields,
         result,
       }))
     );
@@ -2485,6 +2490,7 @@ export async function executeActiveEvidenceProviderRequests(
     parallel.push(
       recoverCoinGecko(project, aggregateFields, providers, options, executionState).then((result) => ({
         kind: "coingecko",
+        requestedFields: aggregateFields,
         result,
       }))
     );
@@ -2496,14 +2502,15 @@ export async function executeActiveEvidenceProviderRequests(
     parallel.push(
       recoverCoinPaprika(project, aggregateFields, providers, options, executionState).then((result) => ({
         kind: "coinpaprika",
+        requestedFields: aggregateFields,
         result,
       }))
     );
   }
 
-  for (const { result } of await Promise.all(parallel)) {
+  for (const { result, requestedFields } of await Promise.all(parallel)) {
     observations.push(...(result.observations || []));
-    attempts.push(...(result.attempts || []));
+    attempts.push(...scopedAttempts(result.attempts, requestedFields));
     projectPatch = { ...projectPatch, ...(result.projectPatch || {}) };
   }
 

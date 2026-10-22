@@ -77,8 +77,19 @@ function values(project = {}, fields = []) {
 function providerStatus(project = {}, field = "") {
   const providerHealth = project.providerHealth || project.sourceHealth || project.discoverySourceHealth || {};
   const recovery = project.activeEvidenceRecovery || {};
-  const recoveryAttempted = (recovery.attemptedFields || []).includes(field);
-  const recoveryStatuses = (recovery.providerAttempts || [])
+  const canonical = value => typeof value === "string" ? clean(canonicalFieldForAlias(value) || value) : null;
+  const fieldKey = canonical(field);
+  const recoveryAttempted = Array.isArray(recovery.attemptedFields) && recovery.attemptedFields.some(value => canonical(value) === fieldKey);
+  const family = sourceFamilyForField(field);
+  const recoveryStatuses = (Array.isArray(recovery.providerAttempts) ? recovery.providerAttempts : [])
+    .filter(attempt => {
+      if (!attempt || typeof attempt !== "object") return false;
+      // Exact dispatch scope wins over a broader legacy family. An absent or
+      // malformed legacy scope must not blame another field's provider outage.
+      if (Object.hasOwn(attempt, "requestedFields")) return Array.isArray(attempt.requestedFields) &&
+        attempt.requestedFields.some(value => canonical(value) === fieldKey);
+      return !["UNKNOWN", "DERIVED"].includes(family) && clean(attempt.family) === family.toLowerCase();
+    })
     .map((attempt) => clean(attempt?.status))
     .filter(Boolean);
   const statusText = [
