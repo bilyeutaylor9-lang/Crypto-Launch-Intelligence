@@ -4,8 +4,9 @@
 
 This focused follow-up starts from reviewed security-transport head
 `4c65bf0c0f3a57eb9f67ff3648cbf70ec90fb704` (PR #69), whose main ancestor is
-`c2884004f8fdc14083f94fb38796f6ba272c4318`. It preserves those commits and the
-separate wallet-evidence work in PR #68. Neither an offline replay nor green
+`c2884004f8fdc14083f94fb38796f6ba272c4318`. It preserves those commits. The
+feature branch also normally merges PR #68 for combined validation; neither
+dependency's published commits are rewritten. Neither an offline replay nor green
 code CI establishes live acquisition health or a profitable trading edge.
 
 ## Repairs
@@ -87,7 +88,7 @@ masked. Input hashes stayed unchanged; no application IO or failure-report
 writes occurred. Source hashes for all 77 evaluated module variants and exact
 pipeline source sections remain in the local replay receipt.
 
-## Validation
+## Focused Validation At fe464966
 
 - Node 24.22.0; clean `npm ci`: 132 packages installed, 133 audited, zero
   vulnerabilities. Existing native dependency install-script warnings were
@@ -116,6 +117,78 @@ SHA-256 `2e93e9ba6548fd54fd5ef0c826f0dfc7bd6e1a81b2d7cabad87bf30afdef29c5`.
 report files and both proposed module hashes after the replay. These are
 retained local operator artifacts, not an independent backup or a newly
 installed scanner command.
+
+## Combined Validation
+
+Feature merge `e6779e0019497b9d44bc47e9341177a1a7930b00` adds PR #68 at its
+unchanged `61fc106815910bccb8a7ba3a6a5153705933d245` head. This allows the
+measured-wallet, semantic-ignore, recovery-diagnostic and transport repairs
+to be tested together before landing. The focused results above remain
+historical evidence for `fe464966`, not acceptance of this newly combined tree.
+The combined resolver/venue metadata overlay was replayed against the same
+pinned `4c65bf0c` wrappers and bodies, with the same 500 deep / 3,500 deferred
+projection fixture and exclusions. Deliberate wallet and diagnostic behavior
+changes remain outside this isolated performance comparison.
+
+| Combined Round | Baseline Seconds | Combined Metadata Seconds |
+| --- | ---: | ---: |
+| 1 | 36.716 | 26.716 |
+| 2 | 36.025 | 25.739 |
+| 3 | 35.583 | 25.307 |
+| Median | 36.025 | 25.739 |
+
+All pairs improved; the median saving is 10.286 seconds (28.6%). All three
+normalized output hashes equal the value above, with only the same two bounded
+age-counter differences per pair. Deferred identities and original inputs
+remain intact; application IO and expired-route promotions remain zero.
+This is not a reconstruction of the full production heap or a live proof of
+quote survival. The earlier 18.8% result is a separate local comparison and
+must not be added to this saving.
+
+Combined focused validation passed 177 tests, with one opt-in timing benchmark
+skipped. The complete combined canonical suite at `e6779e0` passed 3,087 tests,
+with zero failures and one opt-in timing benchmark skipped. Independent source
+and runtime preservation checks passed for 1,188 source and 20 runtime files.
+Main is unchanged; these results are not live acquisition acceptance.
+
+## Newest Local Holder Evidence
+
+Follow-up `c9371ec094a12c34cad6edf31dbe62525c1e12f7` repairs a separate acquisition
+defect: the first eligible security holder sample could be stale under the
+downstream field policy even when a newer valid sample was already present.
+EVM GoPlus and Solana RugCheck now choose the newest eligible sample in a
+linear scan, keeping first-input precedence for equal observation times.
+Solana ordering uses the validated inner holder report's timestamp, not its
+wrapper receipt. No snapshots are combined or input records mutated.
+
+All existing identity, confidence, positive-balance, participant, original
+timestamp and freshness checks remain. Empty, unknown, malformed, future and
+foreign samples cannot replace eligible evidence. Results remain sampled
+holders/owners, not complete holder coverage, buyers or smart-wallet labels.
+All adverse security observations remain available to safety gates.
+
+Six ordering failures were reproduced before the fix. Afterward 73 targeted
+tests passed, including 41 new cases. The mocked raw WALLETS route changed from
+two provider calls to zero, with zero request units and the original deadline
+unchanged; adverse honeypot evidence was retained. This is deterministic cost
+evidence, not a measured production savings claim.
+
+Final complete validation including this follow-up passed 3,128 tests, with
+zero failures and one opt-in timing benchmark skipped (3,129 total). Typecheck,
+syntax checks across 1,042 JavaScript files, all 21 load tests and the offline
+full-pipeline scanner smoke passed. The dependency lockfiles remain identical
+to the audited `4c65bf0c` security-transport base. Independent verification
+preserved 1,189 source and 20 original runtime file hashes before this final
+documentation-only update. A separate static review found no new issue in the
+holder selection change; it did not substitute for the executed tests.
+
+The combined metadata replay and its post-run input/source verification remain
+at `../cli-postquote-wrapper-cost-integrated-v4-20261022.ndjson` (SHA-256
+`aeb2f0ec0974536c50fb852d71b5eaedd91d069fd3a7805a547271f1c3fa3361`)
+and `../cli-postquote-wrapper-cost-integrated-preservation-20261022.json`.
+The holder selector is not part of that isolated timing claim. Live acquisition,
+production quote survival, remote restoration and a profitable edge remain
+unverified; no safety or trading gate is relaxed.
 
 ## Safety And Remaining Acceptance
 
