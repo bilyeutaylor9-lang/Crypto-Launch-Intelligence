@@ -34,7 +34,8 @@ function receipt(raw, project, now, historical = false) {
       project.canonicalIdentityHardBlock === true) return { reason: "EXACT_TOKEN_IDENTITY_REQUIRED" };
   if (raw?.schemaVersion !== 1 || !identifier(raw.source) || !identifier(raw.evidenceId) ||
       raw.observationType !== "MEASURED" || raw.exactTokenIdentity !== true ||
-      raw.tradeClassification !== "VERIFIED_SWAPS") return { reason: "MEASURED_QUALIFIED_SWAPS_REQUIRED" };
+      raw.tradeClassification !== "VERIFIED_SWAPS" || raw.complete24h === false ||
+      raw.scope === "OBSERVED_QUALIFIED_SWAPS_ONLY") return { reason: "MEASURED_QUALIFIED_SWAPS_REQUIRED" };
   const start = historyTimestamp(raw.window?.startAt);
   const end = historyTimestamp(raw.window?.endAt);
   const observed = historyTimestamp(raw.observedAt);
@@ -44,7 +45,7 @@ function receipt(raw, project, now, historical = false) {
       (!historical && now - end > MEASURED_WALLET_FLOW_MAX_AGE_MS)) {
     return { reason: "FRESH_COMPLETE_PINNED_24H_WINDOW_REQUIRED" };
   }
-  if (raw.qualification?.status !== "VERIFIED" || !identifier(raw.qualification.cohortId) ||
+  if (raw.qualification?.status !== "VERIFIED" || raw.qualification.available === false || !identifier(raw.qualification.cohortId) ||
       !identifier(raw.qualification.policyId) || qualified === null || qualified > start) {
     return { reason: "PREWINDOW_WALLET_QUALIFICATION_REQUIRED" };
   }
@@ -122,9 +123,9 @@ function providerObservation(meta, project, now) {
     ? { identity: actual, observed } : null;
 }
 
-// attachFieldProvenance in activeEvidenceRecoveryEngine already retains these
-// exact provider observations. Qualified daily field names carry the provider's
-// aggregate semantics; holder/transfer adapters explicitly cannot supply them.
+// Recovery's generic observation wrapper proves neither wallet qualification
+// nor daily swap coverage. This accepts explicitly attested input contracts;
+// no current holder/transfer adapter produces such qualified daily aggregates.
 function providerFieldFlow(project, now, diagnostics) {
   const raw = {};
   const entries = [];
@@ -135,17 +136,21 @@ function providerFieldFlow(project, now, diagnostics) {
       const meta = project.fieldProvenance?.[alias];
       if (!meta || meta.derivation === DERIVATION || !present(project[alias])) continue;
       const checked = providerObservation(meta, project, now);
+      const start = historyTimestamp(meta.window?.startAt);
+      const end = historyTimestamp(meta.window?.endAt);
+      const qualifiedAt = historyTimestamp(meta.qualification?.qualifiedAt);
       if (!checked || transferSources.has(String(meta.source).toLowerCase()) ||
           meta.holderSampleOnly === true || meta.buyerClassificationAvailable === false ||
           meta.complete24h === false || meta.coverageComplete === false ||
-          (meta.window && (meta.window.complete !== true ||
-            historyTimestamp(meta.window.endAt) !== checked.observed ||
-            checked.observed - historyTimestamp(meta.window.startAt) !== DAY_MS)) ||
-          (meta.tradeClassification && meta.tradeClassification !== "VERIFIED_SWAPS") ||
+          meta.window?.complete !== true || start === null || end === null || end - start !== DAY_MS ||
+          end !== checked.observed || meta.tradeClassification !== "VERIFIED_SWAPS" ||
+          meta.exactTokenIdentity === false || meta.qualification?.status !== "VERIFIED" ||
+          meta.qualification.available === false || !identifier(meta.qualification.cohortId) ||
+          !identifier(meta.qualification.policyId) || qualifiedAt === null || qualifiedAt > start ||
           (meta.field && meta.field !== alias) ||
           (present(meta.value) && !sameNumber(measuredWalletNumber(meta.value, { signed: true }),
             measuredWalletNumber(project[alias], { signed: true })))) {
-        diagnostics.push({ path: `fieldProvenance.${alias}`, reason: "EXACT_FRESH_QUALIFIED_PROVIDER_FIELD_REQUIRED" });
+        diagnostics.push({ path: `fieldProvenance.${alias}`, reason: "EXPLICIT_QUALIFIED_COMPLETE_DAILY_SWAP_EVIDENCE_REQUIRED" });
         invalid = true;
         continue;
       }
@@ -155,29 +160,28 @@ function providerFieldFlow(project, now, diagnostics) {
   }
   if (!entries.length || invalid) return null;
   const first = entries[0];
-  if (!entries.every(({ meta, checked }) => meta.source === first.meta.source && checked.observed === first.checked.observed)) {
+  if (!entries.every(({ meta, checked }) => meta.source === first.meta.source && checked.observed === first.checked.observed &&
+      meta.qualification.cohortId === first.meta.qualification.cohortId &&
+      meta.qualification.policyId === first.meta.qualification.policyId &&
+      historyTimestamp(meta.qualification.qualifiedAt) === historyTimestamp(first.meta.qualification.qualifiedAt))) {
     diagnostics.push({ reason: "INCOMPATIBLE_PROVIDER_FIELD_CLOCKS_OR_SOURCES" });
     return null;
   }
-  // A standalone canonical net/count has no implicit daily window. At least
-  // one existing 24h primitive must attest the common aggregate timestamp.
-  if (!entries.some(({ alias }) => /24h$|VolumeUsd$/.test(alias))) return null;
   const end = first.checked.observed;
   const meta = { chain: first.checked.identity.chain,
     tokenAddress: first.checked.identity.tokenAddress, source: first.meta.source,
     observedAt: new Date(end).toISOString(), scope: "PROVIDER_QUALIFIED_24H_FIELDS",
-    windowBasis: "PROVIDER_DAILY_FIELD_SEMANTICS",
+    window: first.meta.window, qualification: first.meta.qualification,
     providerObservations: entries.map(({ alias, meta }) => ({ field: alias, ...meta })) };
-  // Aggregate field provenance has no stable cross-day wallet cohort. It may
-  // bridge today's flow, but never certify a multi-day streak by itself.
-  return { start: end - DAY_MS, end, provenance: meta,
+  // No cumulative history is supplied by a single daily aggregate.
+  return { start: historyTimestamp(first.meta.window.startAt), end, provenance: meta,
     ...normalizeMeasurements(raw, "root", diagnostics), path: "fieldProvenance",
     dailyComplete: true, historyCompatible: false };
 }
 
-// The real producer is ignitionRawSensors.eventTape after
-// resolveEvmTransactionActors. No transfer, holder balance, current price or
-// raw pool sender/recipient is promoted to a qualified wallet swap here.
+// The raw swap shape comes from eventTape + resolveEvmTransactionActors.
+// Qualified wallet histories are separate supplied inputs, not acquired here.
+// Transfers, balances, current prices and unresolved pool actors are excluded.
 function eventTapeFlow(project, now, diagnostics) {
   const tape = project.ignitionRawSensors?.eventTape;
   if (!tape) return null;
@@ -198,7 +202,10 @@ function eventTapeFlow(project, now, diagnostics) {
   const walletField = Array.isArray(project.smartWallets) ? "smartWallets" : "trackedWallets";
   const walletMeta = project.fieldProvenance?.[walletField];
   const walletReceipt = providerObservation(walletMeta, project, now);
-  if (!walletReceipt || !Array.isArray(project[walletField])) return fail("PROVENANCED_TRACKED_WALLET_HISTORY_REQUIRED");
+  if (!walletReceipt || !Array.isArray(project[walletField]) || (walletMeta.qualification !== undefined &&
+      (walletMeta.qualification?.status !== "VERIFIED" || walletMeta.qualification.available === false))) {
+    return fail("PROVENANCED_TRACKED_WALLET_HISTORY_REQUIRED");
+  }
   const wallets = new Map();
   for (const row of project[walletField] || []) {
     const address = normalizeTokenAddress(row?.address || row?.wallet, expected.chain);
@@ -319,11 +326,24 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
   const existingProvenance = project.fieldProvenance || {};
   const root = normalizeFlow(project.smartWalletFlowProvenance, project, project, now,
     "root", diagnostics, false, existingProvenance);
-  const nested = normalizeFlow(project.smartWalletSignal?.provenance, project.smartWalletSignal, project, now,
+  const sampleSignal = project.smartWalletSignal?.sampleOnly === true ||
+    project.smartWalletSignal?.scope === "OBSERVED_QUALIFIED_SWAPS_ONLY";
+  const nested = sampleSignal ? null : normalizeFlow(project.smartWalletSignal?.provenance, project.smartWalletSignal, project, now,
     "smartWalletSignal", diagnostics);
   const provider = providerFieldFlow(project, now, diagnostics);
   const tape = eventTapeFlow(project, now, diagnostics);
-  const flows = [root, nested, provider, tape].filter(Boolean);
+  // Samples have a separate namespace. Canonical fields are read by consumers
+  // that do not inspect scope, so a scope flag alone cannot isolate samples.
+  const flows = [root, nested, provider].filter(Boolean);
+  const previousSample = project.measuredWalletFlow?.observedSample;
+  const observedSample = tape ? {
+    status: tape.values.smartWalletNetFlowUsd === null ? "PARTIAL" : "OBSERVED",
+    scope: "OBSERVED_QUALIFIED_SWAPS_ONLY", complete24h: false,
+    netFlowUsd: tape.values.smartWalletNetFlowUsd,
+    buyVolumeUsd: tape.values.smartWalletBuyVolumeUsd, sellVolumeUsd: tape.values.smartWalletSellVolumeUsd,
+    provenance: tape.provenance, inputs: tape.inputs.smartWalletNetFlowUsd,
+  } : previousSample ? { ...previousSample, status: "UNKNOWN" } : null;
+  const sampleOnly = !flows.length && Boolean(tape || sampleSignal || observedSample);
   const compatible = flows.every((flow) => windowKey(flow) === windowKey(flows[0]));
   if (!compatible) diagnostics.push({ reason: "INCOMPATIBLE_FLOW_WINDOWS_OR_COHORTS" });
   const values = Object.fromEntries([...Object.keys(ALIASES), "accumulationDays"].map((field) => [field, null]));
@@ -354,6 +374,7 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
   const anchor = compatible && values.smartWalletNetFlowUsd !== null
     ? flows.find((flow) => flow.values.smartWalletNetFlowUsd === values.smartWalletNetFlowUsd) : null;
   const history = accumulationHistory(anchor, project.smartWalletFlowHistory, project, now, diagnostics);
+  if (!anchor && tape) history.reason = "COMPLETE_DAILY_SWAP_COVERAGE_REQUIRED";
   if (history.value !== null) {
     values.accumulationDays = history.value;
     provenance.accumulationDays = { derivation: DERIVATION, observationType: "DERIVED",
@@ -364,7 +385,35 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
   const promoted = {};
   const effectiveValues = {};
   const fieldProvenance = { ...existingProvenance };
-  const guarded = present(project.smartWalletFlowProvenance) || present(project.smartWalletSignal?.provenance) ||
+  const rawSampleTotals = { ...(project.measuredWalletFlow?.rawSampleTotals || {}) };
+  for (const field of FIELDS) {
+    const meta = existingProvenance[field];
+    if (present(project[field]) && meta?.derivation === DERIVATION &&
+        Array.isArray(meta.receipts) && meta.receipts.some((item) => item?.scope === "OBSERVED_QUALIFIED_SWAPS_ONLY")) {
+      rawSampleTotals[field] = { value: project[field], provenance: meta };
+    }
+  }
+  const aliases = Object.values(ALIASES).flat();
+  if (sampleOnly) {
+    for (const field of new Set([...aliases, ...FIELDS])) {
+      if (!present(project[field])) continue;
+      rawSampleTotals[field] = { value: project[field], provenance: existingProvenance[field] || null };
+      promoted[field] = null;
+    }
+  }
+  const providerRejected = !flows.length && aliases.some((alias) => present(project[alias]) &&
+    existingProvenance[alias] && existingProvenance[alias].derivation !== DERIVATION);
+  const unverifiedProviderFields = { ...(project.measuredWalletFlow?.unverifiedProviderFields || {}) };
+  if (providerRejected) {
+    for (const alias of aliases) {
+      if (!present(project[alias])) continue;
+      // Preserve rejected measurements and their original provenance without
+      // leaving a numeric fallback for scope-unaware downstream consumers.
+      unverifiedProviderFields[alias] = { value: project[alias], provenance: existingProvenance[alias] || null };
+      promoted[alias] = null;
+    }
+  }
+  const guarded = sampleOnly || present(project.smartWalletFlowProvenance) || present(project.smartWalletSignal?.provenance) ||
     present(project.ignitionRawSensors?.eventTape) || Object.values(ALIASES).flat()
       .some((alias) => existingProvenance[alias] && existingProvenance[alias].derivation !== DERIVATION);
   for (const field of FIELDS) {
@@ -385,14 +434,27 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
       promoted[field] = values[field];
     }
   }
-  return { ...project, ...promoted, fieldProvenance,
+  const rawSampleSignal = sampleSignal && aliases.some((alias) => present(project.smartWalletSignal?.[alias]))
+    ? project.smartWalletSignal : project.measuredWalletFlow?.rawSampleSignal;
+  const unverifiedProviderSignal = providerRejected && project.smartWalletSignal &&
+    aliases.some((alias) => present(project.smartWalletSignal[alias]))
+    ? project.smartWalletSignal : project.measuredWalletFlow?.unverifiedProviderSignal;
+  const signalPatch = project.smartWalletSignal && (sampleSignal || providerRejected) ? {
+    smartWalletSignal: { ...project.smartWalletSignal,
+      ...Object.fromEntries([...aliases, "smartWalletBuySellRatio", "smartWalletVolumeRatio"].map((field) => [field, null])),
+      ...(sampleSignal ? { observedSample } : {}),
+    },
+  } : {};
+  return { ...project, ...promoted, ...signalPatch, fieldProvenance,
     measuredWalletFlow: {
       schemaVersion: 1, evaluatedAt: new Date(now).toISOString(),
       status: FIELDS.every((field) => values[field] !== null) ? "MEASURED" :
         FIELDS.some((field) => values[field] !== null) ? "PARTIAL" : "UNKNOWN",
       values, effectiveValues, fieldProvenance: provenance, diagnostics,
       dailyTotals: flows.length > 0 && compatible && flows.every((flow) => flow.dailyComplete),
-      sampleOnly: Boolean(tape),
+      sampleOnly,
+      observedSample, ...(rawSampleSignal ? { rawSampleSignal } : {}), rawSampleTotals, unverifiedProviderFields,
+      ...(unverifiedProviderSignal ? { unverifiedProviderSignal } : {}),
       history: { observedPositiveDays: history.observedPositiveDays, exact: history.value !== null },
       rawPrerequisites: Object.fromEntries(FIELDS.filter((field) => values[field] === null).map((field) => [field, {
         recoveryDisposition: "UNAVAILABLE_WITH_CURRENT_PROVIDERS",

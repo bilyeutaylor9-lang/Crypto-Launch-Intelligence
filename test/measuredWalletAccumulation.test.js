@@ -8,6 +8,8 @@ import { UNISWAP_V3_EVENT_TOPICS, __uniswapV3EventTapeSensorTestHooks } from "..
 import { __evmTransactionActorResolverTestHooks } from "../src/sensors/evmTransactionActorResolver.js";
 import { encodeSignedWord, encodeAddressWord } from "../src/sensors/evmAbi.js";
 import { normalizeBlockscoutWalletEvidence } from "../src/data/blockscoutWalletConnector.js";
+import { analyzeCapitalFlow } from "../src/engines/capitalFlowEngine.js";
+import { analyzeSmartMoneyRotation } from "../src/engines/smartMoneyRotationEngine.js";
 
 const DAY = 86_400_000;
 const NOW = Date.parse("2026-10-21T12:00:00Z");
@@ -17,10 +19,10 @@ const POOL = `0x${"b".repeat(40)}`;
 const WALLET = `0x${"c".repeat(40)}`;
 const QUOTE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 
-// Existing executor observation + recovery attachFieldProvenance shape, not the
-// new optional daily receipt schema. Provider fixtures never perform HTTP.
+// The actual recovery transport wrapper does not certify qualification or a
+// complete daily window. This synthetic source is not an implemented provider.
 function providerMeta(field, value, extra = {}) {
-  return { field, value, source: "qualified-wallet-provider", sourceTimestamp: new Date(NOW).toISOString(),
+  return { field, value, source: "transport-only-fixture", sourceTimestamp: new Date(NOW).toISOString(),
     confidence: 0.9, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION", chain: "base", tokenAddress: TOKEN, ...extra };
 }
 
@@ -30,6 +32,17 @@ function providerProject(extra = {}) {
   return { chain: "base", tokenAddress: TOKEN, ...values,
     fieldProvenance: Object.fromEntries(Object.entries(values).map(([field, value]) => [field, providerMeta(field, value)])),
     ...extra };
+}
+
+// Positive contract test only: no existing acquisition adapter supplies these
+// qualification + complete-window attestations. Do not treat this as live wiring.
+function qualifiedProviderProject(extra = {}) {
+  const input = providerProject(extra);
+  for (const meta of Object.values(input.fieldProvenance)) {
+    Object.assign(meta, { source: "synthetic-qualified-daily-contract", tradeClassification: "VERIFIED_SWAPS",
+      qualification: provenance().qualification, window: provenance().window });
+  }
+  return input;
 }
 
 // Replay the actual pool-log decoder and actor producer. These fields are the
@@ -63,8 +76,161 @@ function eventTapeProject() {
       timestampMode: "RPC_BLOCK_TIMESTAMP_WITH_FALLBACK", events } } };
 }
 
-test("regression: existing verified provider fields bridge without a new receipt prerequisite", () => {
-  const input = providerProject();
+test("regression: bounded swap samples cannot feed capital flow or smart-money rotation totals", () => {
+  const input = eventTapeProject();
+  assert.equal(input.previousSmartWalletNetFlowUsd, undefined);
+  assert.equal(input.previousSmartWalletBuys24h, undefined);
+  const wallet = analyzeSmartWallets(input, options);
+  const capital = analyzeCapitalFlow(wallet);
+  const rotation = analyzeSmartMoneyRotation(capital);
+  assert.deepEqual({ capitalScore: capital.capitalFlowScore, capitalTotal: capital.capitalFlow.totalNetFlow,
+    rotationScore: rotation.smartMoneyRotationScore, rotationDelta: rotation.smartMoneyRotation.netFlowDelta },
+  { capitalScore: 0, capitalTotal: 0, rotationScore: 0, rotationDelta: 0 });
+  assert.equal(wallet.smartWalletNetFlowUsd ?? null, null);
+  assert.equal(wallet.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+  assert.equal(wallet.measuredWalletFlow.observedSample.netFlowUsd, 900);
+  assert.deepEqual(wallet.ignitionRawSensors.eventTape, input.ignitionRawSensors.eventTape);
+});
+
+test("regression: transport metadata and a qualified-looking field name do not certify wallet qualification", () => {
+  for (const qualification of [undefined, null, {}, { status: "UNKNOWN" }, { status: "DENIED" },
+    { status: "VERIFIED" }, { status: "VERIFIED", cohortId: "missing-history-policy" }]) {
+    const input = providerProject();
+    for (const meta of Object.values(input.fieldProvenance)) meta.qualification = qualification;
+    const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
+    assert.equal(result.smartWalletNetFlowUsd ?? null, null, JSON.stringify(qualification));
+    assert.equal(result.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+    assert.equal(result.smartMoneyAccumulationScore, null);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+    for (const [field, meta] of Object.entries(input.fieldProvenance)) {
+      assert.equal(result.measuredWalletFlow.unverifiedProviderFields[field].value, input[field]);
+      assert.deepEqual(result.measuredWalletFlow.unverifiedProviderFields[field].provenance, meta);
+    }
+  }
+});
+
+test("sample isolation survives both engine orders, signed/large values, and repeated downstream consumers", () => {
+  for (const [buy, sell] of [[1000, 100], [0, 0], [0, 1000], [1_000_000, 100]]) {
+    const input = eventTapeProject();
+    const events = input.ignitionRawSensors.eventTape.events;
+    events[0].usdNotional = buy;
+    events[1].usdNotional = sell;
+    const raw = structuredClone(input);
+    for (let result of [produceMeasuredWalletFlowInputs(input, options),
+      analyzeSmartWallets(input, options), analyzeSmartMoneyAccumulation(input, options)]) {
+      for (let i = 0; i < 3; i++) {
+        result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(result, options), options);
+        const capital = analyzeCapitalFlow(result);
+        const rotation = analyzeSmartMoneyRotation(capital);
+        assert.equal(capital.capitalFlowScore, 0);
+        assert.equal(capital.capitalFlow.totalNetFlow, 0);
+        assert.equal(rotation.smartMoneyRotationScore, 0);
+        assert.equal(rotation.smartMoneyRotation.netFlowDelta, 0);
+        assert.equal(result.smartWalletNetFlowUsd ?? null, null);
+        assert.equal(result.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+        assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, buy - sell);
+        assert.equal(result.measuredWalletFlow.effectiveValues.smartWalletNetFlowUsd, null);
+        assert.equal(result.accumulationDays, undefined);
+        assert.deepEqual(result.ignitionRawSensors.eventTape, raw.ignitionRawSensors.eventTape);
+      }
+    }
+    assert.deepEqual(input, raw);
+  }
+});
+
+test("cached e444 sample aliases are retired without dropping their value or provenance", () => {
+  const input = eventTapeProject();
+  const prior = { ...input, smartWalletNetFlowUsd: 900,
+    smartWalletSignal: { sampleOnly: true, scope: "OBSERVED_QUALIFIED_SWAPS_ONLY",
+      smartWalletNetFlowUsd: 900, smartWalletBuyVolumeUsd: 1000, smartWalletSellVolumeUsd: 100 },
+    fieldProvenance: { ...input.fieldProvenance, smartWalletNetFlowUsd: {
+      derivation: "measured-wallet-flow-v1", observationType: "DERIVED", verificationStatus: "VERIFIED_DERIVED_OBSERVATION",
+      receipts: [{ scope: "OBSERVED_QUALIFIED_SWAPS_ONLY", source: "UNISWAP_V3_POOL_EVENTS" }],
+    } } };
+  const raw = structuredClone(prior);
+  for (const result of [produceMeasuredWalletFlowInputs(prior, options), analyzeSmartWallets(prior, options),
+    analyzeSmartMoneyAccumulation(prior, options)]) {
+    assert.equal(result.smartWalletNetFlowUsd, null);
+    assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, null);
+    assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, 900);
+    assert.equal(result.measuredWalletFlow.rawSampleTotals.smartWalletNetFlowUsd.value, 900);
+    assert.deepEqual(result.measuredWalletFlow.rawSampleSignal, raw.smartWalletSignal);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+  }
+  const retired = analyzeSmartMoneyAccumulation({ ...prior, ignitionRawSensors: undefined, smartWalletSignal: null }, options);
+  assert.equal(retired.smartWalletNetFlowUsd, null);
+  assert.equal(retired.measuredWalletFlow.rawSampleTotals.smartWalletNetFlowUsd.value, 900);
+  assert.equal(analyzeCapitalFlow(retired).capitalFlowScore, 0);
+  for (const input of [{ ...prior, fieldProvenance: { smartWallets: raw.fieldProvenance.smartWallets } },
+  { ...prior, fieldProvenance: {}, ignitionRawSensors: undefined }]) {
+    const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
+    assert.equal(result.smartWalletNetFlowUsd, null);
+    assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, null);
+    assert.equal(result.measuredWalletFlow.rawSampleTotals.smartWalletNetFlowUsd.value, 900);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+  }
+  assert.deepEqual(prior, raw);
+});
+
+test("a stale or removed tape preserves its observed metric as unknown, never as daily flow", () => {
+  const first = analyzeSmartWallets(eventTapeProject(), options);
+  for (const input of [first, { ...first, ignitionRawSensors: undefined }]) {
+    const result = analyzeSmartWallets(input, { now: NOW + 3_600_001 });
+    assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, 900);
+    assert.equal(result.measuredWalletFlow.observedSample.status, "UNKNOWN");
+    assert.deepEqual(result.measuredWalletFlow.observedSample.provenance, first.measuredWalletFlow.observedSample.provenance);
+    assert.equal(result.smartWalletNetFlowUsd ?? null, null);
+    assert.equal(result.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+  }
+});
+
+test("sample isolation does not suppress independently measured daily or retail flow", () => {
+  const tape = eventTapeProject();
+  tape.ignitionRawSensors.eventTape.events[0].usdNotional = 1_000_000;
+  const daily = project();
+  const input = { ...tape, ...daily, buyVolume24h: 2000, sellVolume24h: 500 };
+  const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
+  assert.equal(result.smartWalletNetFlowUsd, 900);
+  assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, 900);
+  assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, 999_900);
+  assert.equal(analyzeCapitalFlow(result).capitalFlow.totalNetFlow, 2400);
+  const retailOnly = analyzeCapitalFlow(analyzeSmartWallets({ ...tape, buyVolume24h: 2000, sellVolume24h: 500 }, options));
+  assert.equal(retailOnly.capitalFlow.totalNetFlow, 1500);
+  assert.equal(retailOnly.capitalFlowScore, analyzeCapitalFlow({ buyVolume24h: 2000, sellVolume24h: 500 }).capitalFlowScore);
+});
+
+test("one denied or incomplete provider attestation cannot borrow qualification from the other fields", () => {
+  for (const patch of [
+    { qualification: undefined }, { qualification: null }, { qualification: {} },
+    { qualification: { ...provenance().qualification, status: "DENIED" } },
+    { qualification: { ...provenance().qualification, available: false } },
+    { qualification: { ...provenance().qualification, policyId: "" } },
+    { qualification: { ...provenance().qualification, qualifiedAt: new Date(NOW).toISOString() } },
+    { tradeClassification: undefined }, { tradeClassification: "UNKNOWN" }, { window: undefined },
+    { window: { ...provenance().window, complete: false } },
+    { window: { ...provenance().window, startAt: new Date(NOW - DAY / 2).toISOString() } },
+  ]) {
+    const input = qualifiedProviderProject();
+    Object.assign(input.fieldProvenance.smartWalletBuyVolumeUsd, patch);
+    const raw = structuredClone(input);
+    const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
+    assert.equal(result.smartWalletNetFlowUsd ?? null, null, JSON.stringify(patch));
+    assert.equal(result.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+    assert.equal(result.smartMoneyAccumulationScore, null);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+    assert.equal(result.measuredWalletFlow.unverifiedProviderFields.smartWalletBuyVolumeUsd.value, 1000);
+    assert.deepEqual(input, raw);
+  }
+});
+
+test("explicit qualified complete per-field input contract bridges without a root receipt", () => {
+  const input = qualifiedProviderProject();
   const before = structuredClone(input);
   let wallet = analyzeSmartWallets(input, options);
   assert.equal(wallet.smartWalletSignal.smartWalletNetFlowUsd, 900);
@@ -92,9 +258,10 @@ test("actual raw pool logs -> decoded/resolved swaps -> smart wallet -> scoped a
   const wallet = analyzeSmartWallets(input, options);
   assert.equal(input.ignitionRawSensors.eventTape.events[0].transactionInitiatorType, "EOA_OR_UNDEPLOYED_AT_BLOCK");
   assert.ok(wallet.smartWalletSignal, JSON.stringify({ flow: wallet.measuredWalletFlow, events: input.ignitionRawSensors.eventTape.events }));
-  assert.equal(wallet.smartWalletSignal.smartWalletNetFlowUsd, 900);
+  assert.equal(wallet.smartWalletSignal.smartWalletNetFlowUsd, null);
+  assert.equal(wallet.smartWalletSignal.observedSample.netFlowUsd, 900);
   const result = analyzeSmartMoneyAccumulation(wallet, options);
-  assert.equal(result.smartWalletNetFlowUsd, 900);
+  assert.equal(result.smartWalletNetFlowUsd, undefined);
   assert.equal(result.smartWalletBuyCount, undefined);
   assert.equal(result.smartWalletBuys24h, undefined);
   assert.equal(result.accumulationDays, undefined);
@@ -103,13 +270,17 @@ test("actual raw pool logs -> decoded/resolved swaps -> smart wallet -> scoped a
   assert.equal(result.smartMoneyAccumulationScore, null);
   assert.equal(result.smartWalletScore, null);
   assert.equal(result.alerts?.length ?? 0, 0);
-  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd.receipts[0].scope, "OBSERVED_QUALIFIED_SWAPS_ONLY");
+  assert.equal(result.measuredWalletFlow.observedSample.provenance.scope, "OBSERVED_QUALIFIED_SWAPS_ONLY");
+  assert.equal(result.measuredWalletFlow.values.smartWalletNetFlowUsd, null);
+  assert.equal(result.measuredWalletFlow.effectiveValues.smartWalletNetFlowUsd, null);
+  assert.equal(result.fieldProvenance.smartWalletNetFlowUsd, undefined);
+  assert.equal(result.smartMoneyAccumulationCoverage.coveragePct, 0);
   assert.deepEqual(input, before);
-  assert.equal(analyzeSmartMoneyAccumulation(analyzeSmartWallets(result, options), options).smartWalletNetFlowUsd, 900);
+  assert.equal(analyzeSmartMoneyAccumulation(analyzeSmartWallets(result, options), options).measuredWalletFlow.observedSample.netFlowUsd, 900);
 });
 
 test("existing provider aggregate zeros and partial sides preserve measured versus missing", () => {
-  const zero = providerProject();
+  const zero = qualifiedProviderProject();
   for (const field of Object.keys(zero.fieldProvenance)) {
     zero[field] = 0;
     zero.fieldProvenance[field].value = 0;
@@ -118,7 +289,7 @@ test("existing provider aggregate zeros and partial sides preserve measured vers
   assert.equal(result.smartWalletNetFlowUsd, 0);
   assert.equal(result.accumulationDays, 0);
   assert.equal(result.smartMoneyAccumulationCoverage.coveragePct, 100);
-  const partial = providerProject();
+  const partial = qualifiedProviderProject();
   delete partial.smartWalletSells24h;
   delete partial.smartWalletSellVolumeUsd;
   const missing = analyzeSmartMoneyAccumulation(analyzeSmartWallets(partial, options), options);
@@ -137,16 +308,16 @@ test("existing provider provenance fails closed for stale, mismatched, conflicti
     { confidence: 0 }, { confidence: null }, { observationType: {} },
     { verificationStatus: "RECOVERED_EXISTING_OBSERVATION" }, { observationType: "INFERRED" },
   ]) {
-    const input = providerProject();
+    const input = qualifiedProviderProject();
     Object.assign(input.fieldProvenance.smartWalletBuyVolumeUsd, patch);
     const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
     assert.equal(result.smartWalletNetFlowUsd, undefined, JSON.stringify(patch));
     assert.equal(result.smartMoneyAccumulationScore, null);
   }
-  const incompatible = providerProject();
+  const incompatible = qualifiedProviderProject();
   incompatible.fieldProvenance.smartWalletSellVolumeUsd.sourceTimestamp = new Date(NOW - 1).toISOString();
   assert.equal(analyzeSmartMoneyAccumulation(incompatible, options).smartWalletNetFlowUsd, undefined);
-  const conflict = providerProject({ smartWalletNetFlowUsd: 100_000, smartWalletBuyCount: 400 });
+  const conflict = qualifiedProviderProject({ smartWalletNetFlowUsd: 100_000, smartWalletBuyCount: 400 });
   const blocked = analyzeSmartMoneyAccumulation(analyzeSmartWallets(conflict, options), options);
   assert.equal(blocked.smartWalletNetFlowUsd, 100_000);
   assert.equal(blocked.measuredWalletFlow.values.smartWalletNetFlowUsd, null);
@@ -166,8 +337,9 @@ test("actual event samples cannot manufacture absent sells, unpriced flow, daily
     assert.equal(result.accumulationDays, undefined);
     assert.equal(result.smartMoneyAccumulationScore, null);
     assert.equal(result.smartWalletBuyCount, undefined);
-    if (input.ignitionRawSensors.eventTape.events[0].usdNotional === 0) assert.equal(result.smartWalletNetFlowUsd, 0);
-    else assert.equal(result.smartWalletNetFlowUsd, undefined);
+    assert.equal(result.smartWalletNetFlowUsd, undefined);
+    if (input.ignitionRawSensors.eventTape.events[0].usdNotional === 0) assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, 0);
+    else assert.equal(result.measuredWalletFlow.observedSample.netFlowUsd, null);
   }
 });
 
@@ -190,6 +362,8 @@ test("actual event/qualification provenance rejects foreign, stale, unresolved, 
     (input) => { input.smartWallets[0].sampleSize = 7; },
     (input) => { input.smartWallets[0].insiderLinked = true; },
     (input) => { input.smartWallets[0].rugExposureRate = 26; },
+    (input) => { input.fieldProvenance.smartWallets.qualification = { status: "DENIED" }; },
+    (input) => { input.fieldProvenance.smartWallets.qualification = { status: "VERIFIED", available: false }; },
     (input) => { const tape = input.ignitionRawSensors.eventTape; tape.events.push({ ...tape.events[0], usdNotional: 2000 }); },
   ]) {
     const input = eventTapeProject();
@@ -200,7 +374,7 @@ test("actual event/qualification provenance rejects foreign, stale, unresolved, 
   }
   const duplicate = eventTapeProject();
   duplicate.ignitionRawSensors.eventTape.events.push({ ...duplicate.ignitionRawSensors.eventTape.events[0] });
-  assert.equal(analyzeSmartMoneyAccumulation(duplicate, options).smartWalletNetFlowUsd, 900);
+  assert.equal(analyzeSmartMoneyAccumulation(duplicate, options).measuredWalletFlow.observedSample.netFlowUsd, 900);
 });
 
 test("actual Blockscout transfer producer stays unknown even with tracked wallets and current price", () => {
