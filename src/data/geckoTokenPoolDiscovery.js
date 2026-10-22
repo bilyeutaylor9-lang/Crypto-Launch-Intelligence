@@ -31,7 +31,7 @@ function consistent(values, normalize) {
 export function geckoPoolRequestIdentity(project = {}) {
   if (project.identityConflict === true || project.canonicalIdentityHardBlock === true ||
       project.chainMismatch === true || project.contractChainMismatch === true) return null;
-  const records = [project, project.rawCandidate, project.marketData, project.canonicalExecutionRoute,
+  const records = [project, project.rawCandidate, project.marketData, project.canonicalAliases, project.canonicalExecutionRoute,
     project.executionProofRecoveryRoute, project.executionProof].filter(record => record && typeof record === "object");
   const chain = consistent(records.flatMap(record => [record.chain, record.chainId, record.network,
     record.canonicalChain, record.canonicalChainId, record.finalChain, record.finalChainId,
@@ -52,14 +52,15 @@ function resourceAddress(id, network, chain, normalize) {
   return exactAddress(id.slice(network.length + 1), chain, normalize);
 }
 
-function measured(value) {
-  if ((typeof value !== "number" && typeof value !== "string") || String(value).trim() === "") return null;
+function measured(value, count = false) {
+  if (typeof value !== "number" && (typeof value !== "string" ||
+      !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()))) return null;
   const number = Number(value);
-  return Number.isFinite(number) && number >= 0 ? number : null;
+  return Number.isFinite(number) && number >= 0 && (!count || Number.isSafeInteger(number)) ? number : null;
 }
 
-function exactPool(raw, identity) {
-  if (!raw || raw.type !== "pool" || !raw.attributes) return null;
+export function normalizeExactGeckoPool(raw, identity, { requireResourceTypes = true } = {}) {
+  if (!raw || (raw.type !== "pool" && (requireResourceTypes || supplied(raw.type))) || !raw.attributes) return null;
   const { chain, tokenAddress } = identity;
   const network = resolveGeckoTerminalNetworkId(chain);
   const poolAddress = resourceAddress(raw.id, network, chain, normalizePoolAddress);
@@ -68,14 +69,17 @@ function exactPool(raw, identity) {
   const baseAddress = resourceAddress(base?.id, network, chain, normalizeTokenAddress);
   const quoteAddress = resourceAddress(quote?.id, network, chain, normalizeTokenAddress);
   const networkClaim = raw.relationships?.network?.data?.id;
+  const tokenResource = value => value?.type === "token" || (!requireResourceTypes && !supplied(value?.type));
   if (!poolAddress || exactAddress(raw.attributes.address, chain, normalizePoolAddress) !== poolAddress ||
-      (supplied(networkClaim) && networkClaim !== network) || base?.type !== "token" || quote?.type !== "token" ||
+      (supplied(networkClaim) && networkClaim !== network) || !tokenResource(base) || !tokenResource(quote) ||
       baseAddress !== tokenAddress || !quoteAddress || quoteAddress === baseAddress ||
       (identity.poolAddress && identity.poolAddress !== poolAddress)) return null;
   // The existing normalizer's price/volume semantics are base-token oriented.
   return { ...normalizeGeckoPool(raw), chain, tokenAddress, poolAddress, quoteTokenAddress: quoteAddress,
     priceUsd: measured(raw.attributes.base_token_price_usd),
-    liquidityUsd: measured(raw.attributes.reserve_in_usd), volume24h: measured(raw.attributes.volume_usd?.h24) };
+    liquidityUsd: measured(raw.attributes.reserve_in_usd), volume24h: measured(raw.attributes.volume_usd?.h24),
+    buyTransactions24h: measured(raw.attributes.transactions?.h24?.buys, true),
+    sellTransactions24h: measured(raw.attributes.transactions?.h24?.sells, true) };
 }
 
 export function selectExactGeckoTokenPool(payload, identity) {
@@ -87,7 +91,7 @@ export function selectExactGeckoTokenPool(payload, identity) {
     return { status: "POOL_DISCOVERY_INCOMPLETE", pool: null,
       reason: "A full or continued token-pools page cannot establish a unique pool within the bounded lookup." };
   }
-  const pools = payload.data.map(raw => exactPool(raw, identity));
+  const pools = payload.data.map(raw => normalizeExactGeckoPool(raw, identity));
   if (pools.some(pool => !pool)) return noMatch;
   if (pools.length !== 1) return { status: "AMBIGUOUS_POOL_MATCH", pool: null,
     reason: "Multiple token pools were returned; no first-result or liquidity-ranked adoption is permitted." };

@@ -187,6 +187,9 @@ test("conflicting or malformed supplied identity is not treated as missing ident
     { poolAddress: POOL, pairAddress: QUOTE }, { poolAddress: POOL, finalPairAddress: QUOTE },
     { poolAddress: POOL, canonicalExecutionRoute: { poolAddress: QUOTE } },
     { poolAddress: POOL, rawCandidate: { pairAddress: "invalid" } },
+    { canonicalAliases: { tokenAddress: QUOTE } },
+    { canonicalAliases: { chain: "ethereum" } },
+    { poolAddress: POOL, canonicalAliases: { poolAddress: QUOTE } },
     { identityConflict: true }, { canonicalIdentityHardBlock: true },
     { tokenAddress: undefined, symbol: "EXACT" },
   ]) {
@@ -355,6 +358,71 @@ test("missing market measurements are not fabricated from normalizer zero defaul
   });
   assert.equal(result.observations.find(row => row.field === "poolAddress")?.value, POOL);
   assert.equal(result.observations.some(row => ["priceUsd", "liquidityUsd", "volume24hUsd"].includes(row.field)), false);
+});
+
+test("known-pool refresh never promotes absent or malformed market data as observed zero", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No live HTTP allowed"));
+  for (const missing of [undefined, null, "", " ", false, [], {}, "UNKNOWN", "0x10", -1]) {
+    const raw = pool();
+    raw.attributes.base_token_price_usd = missing;
+    raw.attributes.reserve_in_usd = missing;
+    raw.attributes.volume_usd.h24 = missing;
+    raw.attributes.transactions = { h24: { buys: missing, sells: missing } };
+    const result = await executeActiveEvidenceProviderRequests(candidate({ poolAddress: POOL }), [request()], {
+      maxProviderRequests: 1, providers: { getGeckoPoolByAddress: async () => ({ data: raw }) },
+    });
+    assert.equal(result.observations.find(row => row.field === "poolAddress")?.value, POOL);
+    assert.equal(result.observations.some(row => ["priceUsd", "liquidityUsd", "volume24hUsd",
+      "buyTransactions24h", "sellTransactions24h"].includes(row.field)), false);
+  }
+});
+
+test("known-pool resource IDs and token-side chain claims cannot contradict the supplied pool", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No live HTTP allowed"));
+  const wrongPool = pool(); wrongPool.id = `base_${QUOTE}`;
+  const wrongBaseChain = pool(); wrongBaseChain.relationships.base_token.data.id = `eth_${TOKEN}`;
+  const wrongQuoteChain = pool(); wrongQuoteChain.relationships.quote_token.data.id = `eth_${QUOTE}`;
+  const wrongType = pool(); wrongType.type = "token";
+  for (const raw of [wrongPool, wrongBaseChain, wrongQuoteChain, wrongType]) {
+    const result = await executeActiveEvidenceProviderRequests(candidate({ poolAddress: POOL }), [request()], {
+      maxProviderRequests: 1, providers: { getGeckoPoolByAddress: async () => ({ data: raw }) },
+    });
+    assert.deepEqual(result.observations, []);
+    assert.equal(result.attempts[0].status, "NO_EXACT_POOL_MATCH");
+  }
+});
+
+test("Gecko response transaction counts are measured companions, never unique or smart buyers", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No live HTTP allowed"));
+  for (const knownPool of [false, true]) {
+    const raw = pool();
+    raw.attributes.transactions = { h24: { buys: 123, sells: "0" } };
+    let calls = 0;
+    const getPayload = async () => { calls++; return { data: knownPool ? raw : [raw] }; };
+    const state = createActiveEvidenceExecutionState({ now: () => NOW, maxProviderRequests: 1 });
+    const result = await executeActiveEvidenceProviderRequests(candidate(knownPool ? { poolAddress: POOL } : {}), [request()], {
+      providers: { getGeckoPoolByAddress: getPayload, getGeckoTokenPools: getPayload },
+    }, state);
+    assert.equal(calls, 1);
+    assert.equal(state.requestsUsed, 1);
+    assert.equal(result.observations.find(row => row.field === "buyTransactions24h")?.value, 123);
+    assert.equal(result.observations.find(row => row.field === "sellTransactions24h")?.value, 0);
+    assert.equal(result.observations.find(row => row.field === "sellTransactions24h")?.sourceTimestamp, new Date(NOW).toISOString());
+    assert.equal(result.observations.some(row => /unique|smart|wallet|independent/i.test(row.field)), false);
+  }
+});
+
+test("Gecko transaction counts require nonnegative safe integers and preserve explicit zero", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No live HTTP allowed"));
+  for (const invalid of [undefined, null, "", " ", false, "UNKNOWN", "0x10", -1, 0.5, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    const raw = pool();
+    raw.attributes.transactions = { h24: { buys: invalid, sells: 0 } };
+    const result = await executeActiveEvidenceProviderRequests(candidate(), [request()], {
+      maxProviderRequests: 1, providers: { getGeckoTokenPools: async () => ({ data: [raw] }) },
+    });
+    assert.equal(result.observations.some(row => row.field === "buyTransactions24h"), false);
+    assert.equal(result.observations.find(row => row.field === "sellTransactions24h")?.value, 0);
+  }
 });
 
 test("empty and malformed responses preserve raw bytes and never retry", async t => {

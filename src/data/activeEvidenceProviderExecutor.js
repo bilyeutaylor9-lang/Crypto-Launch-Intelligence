@@ -7,9 +7,8 @@ import {
 } from "./dexScreenerConnector.js";
 import {
   getGeckoPoolByAddress,
-  normalizeGeckoPool,
 } from "./geckoTerminalConnector.js";
-import { geckoPoolRequestIdentity, getGeckoTokenPools, selectExactGeckoTokenPool } from "./geckoTokenPoolDiscovery.js";
+import { geckoPoolRequestIdentity, getGeckoTokenPools, normalizeExactGeckoPool, selectExactGeckoTokenPool } from "./geckoTokenPoolDiscovery.js";
 import {
   getCoinGeckoMarketsByIds,
   normalizeCoinGeckoMarket,
@@ -92,6 +91,8 @@ const GECKO_FIELDS = new Set([
   "priceUsd",
   "liquidityUsd",
   "volume24hUsd",
+  "buyTransactions24h",
+  "sellTransactions24h",
 ]);
 
 const GECKO_COMPANION_FIELDS = [
@@ -101,6 +102,8 @@ const GECKO_COMPANION_FIELDS = [
   "priceUsd",
   "liquidityUsd",
   "volume24hUsd",
+  "buyTransactions24h",
+  "sellTransactions24h",
 ];
 
 // DeFiLlama's free contract-price endpoint is an exact token-price fallback.
@@ -1420,17 +1423,8 @@ function strictGeckoPool(payload, project = {}, lookup = {}) {
 
   const raw = payload?.data || payload?.pool || payload;
   if (!raw || Array.isArray(raw) || typeof raw !== "object") return null;
-  const normalized = normalizeGeckoPool(raw);
-  const chain = normalizeChainId(normalized.chain);
-  const tokenAddress = normalizeTokenAddress(normalized.tokenAddress, chain);
-  const poolAddress = normalizePoolAddress(normalized.poolAddress, chain);
-  if (
-    chain !== expectedChain ||
-    tokenAddress !== expectedToken ||
-    poolAddress !== expectedPool
-  ) return null;
-
-  return { ...normalized, chain, tokenAddress, poolAddress };
+  return normalizeExactGeckoPool(raw, { chain: expectedChain, tokenAddress: expectedToken,
+    poolAddress: expectedPool }, { requireResourceTypes: false });
 }
 
 function geckoValue(pool = {}, field = "") {
@@ -1447,6 +1441,9 @@ function geckoValue(pool = {}, field = "") {
       return numberOrNull(pool.liquidityUsd);
     case "volume24hUsd":
       return numberOrNull(pool.volume24hUsd ?? pool.volume24h);
+    case "buyTransactions24h":
+    case "sellTransactions24h":
+      return numberOrNull(pool[field]);
     default:
       return null;
   }
