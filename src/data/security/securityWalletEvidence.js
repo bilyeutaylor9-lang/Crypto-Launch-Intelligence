@@ -16,6 +16,8 @@ function solanaHolderObservations(project, items, options, tokenAddress) {
   const now = options.now ? new Date(typeof options.now === "function" ? options.now() : options.now).getTime() : Date.now();
   const maxAgeMs = Number(options.cacheTtlMs ?? process.env.SECURITY_EVIDENCE_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
   if (!Number.isFinite(now) || !Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return [];
+  let newestTimestamp = Number.NEGATIVE_INFINITY;
+  let newestObservations = [];
   for (const item of Array.isArray(items) ? items : []) {
     if (item?.chain !== "solana" || item.address !== tokenAddress) continue;
     const report = item.provider === "solana-rpc-rugcheck" ? item.raw?.rugCheck?.holderEvidence : item;
@@ -30,14 +32,17 @@ function solanaHolderObservations(project, items, options, tokenAddress) {
       .filter((holder) => holder?.positiveBalanceReported === true && normalizeTokenAddress(holder.accountAddress, "solana") && holder.ownerAddress !== holder.accountAddress)
       .map((holder) => normalizeWalletAddress(holder.ownerAddress, "solana")).filter((owner) => owner && !excluded.has(owner)))];
     if (!owners.length) continue;
+    // The validated inner report owns the observation clock, not its wrapper.
+    if (timestamp <= newestTimestamp) continue;
+    newestTimestamp = timestamp;
     const common = { source: report.provider, sourceTimestamp: report.observedAt, timestamp: report.observedAt,
       confidence: report.confidence, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION", chain: "solana", tokenAddress,
       holderSampleOnly: true, completeHolderCoverage: false, holderAddressSemantics: "TOKEN_ACCOUNT_OWNER",
       identityVerifiedOnChain: false, snapshotTimestampVerified: false, providerReportDetectedAt: report.providerReportDetectedAt,
       sourceTimestampMeaning: "PROVIDER_RECEIPT_TIME_NOT_CHAIN_SNAPSHOT_TIME", acquisitionMode: "EXISTING_SECURITY_PAYLOAD", buyerClassificationAvailable: false };
-    return ["holderAddresses", "wallets"].map((field) => ({ ...common, field, value: owners }));
+    newestObservations = ["holderAddresses", "wallets"].map((field) => ({ ...common, field, value: owners }));
   }
-  return [];
+  return newestObservations;
 }
 
 export function securityHolderObservations(project = {}, items = [], options = {}) {
@@ -53,6 +58,8 @@ export function securityHolderObservations(project = {}, items = [], options = {
   const now = options.now ? new Date(typeof options.now === "function" ? options.now() : options.now).getTime() : Date.now();
   const maxAgeMs = Number(options.cacheTtlMs ?? process.env.SECURITY_EVIDENCE_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
   if (!Number.isFinite(now) || !Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return [];
+  let newestTimestamp = Number.NEGATIVE_INFINITY;
+  let newestObservations = [];
   for (const item of Array.isArray(items) ? items : []) {
     if (item?.provider !== "goplus" || item.status !== "EVIDENCE_AVAILABLE" || item.responseIdentityVerified !== true ||
       normalizeChainId(item.chain) !== chain || normalizeTokenAddress(item.address, chain) !== tokenAddress) continue;
@@ -66,13 +73,16 @@ export function securityHolderObservations(project = {}, items = [], options = {
       ? Math.max(0, Math.min(1, item.confidence > 1 ? item.confidence / 100 : item.confidence)) : 0;
     if (confidence < 0.5) continue;
     const wallets = addresses.filter(createEvmWalletParticipantFilter(tokenAddress, project.poolAddress, project.pairAddress));
-    return [{ field: "holderAddresses", value: addresses }, ...(wallets.length ? [{ field: "wallets", value: wallets }] : [])]
+    // Compare only eligible samples; equal timestamps retain the original input order.
+    if (timestamp <= newestTimestamp) continue;
+    newestTimestamp = timestamp;
+    newestObservations = [{ field: "holderAddresses", value: addresses }, ...(wallets.length ? [{ field: "wallets", value: wallets }] : [])]
       .map((observation) => ({ ...observation, source: "goplus", sourceTimestamp: item.observedAt,
         timestamp: item.observedAt, confidence, verificationStatus: "VERIFIED_PROVIDER_OBSERVATION",
         chain, tokenAddress, holderSampleOnly: true, completeHolderCoverage: false,
         acquisitionMode: "EXISTING_SECURITY_PAYLOAD", buyerClassificationAvailable: false }));
   }
-  return [];
+  return newestObservations;
 }
 
 export function securityWalletEvidencePatch(project = {}, items = [], options = {}) {
