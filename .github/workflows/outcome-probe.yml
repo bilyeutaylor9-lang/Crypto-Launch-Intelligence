@@ -2,6 +2,17 @@ name: Exact Outcome Probe
 
 on:
   workflow_dispatch:
+    inputs:
+      export_forward_cache:
+        description: Export a selected preserved forward-evidence cache without probing
+        type: boolean
+        required: false
+        default: false
+      exact_source_cache_key:
+        description: Optional exact forward-evidence cache key; otherwise restore only the main prefix
+        type: string
+        required: false
+        default: ""
   schedule:
     - cron: "20 * * * *"
 
@@ -15,6 +26,7 @@ concurrency:
 
 jobs:
   probe:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.export_forward_cache != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -185,3 +197,62 @@ jobs:
         with:
           path: data/remote-operational-circuits.json
           key: remote-operational-circuit-v1-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  export-forward-cache:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.export_forward_cache == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '^24.22.0'
+          check-latest: true
+
+      - name: Restore Exact Selected Forward Evidence Cache
+        id: exact_forward_cache
+        if: ${{ inputs.exact_source_cache_key != '' }}
+        uses: actions/cache/restore@v5
+        with:
+          path: |-
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: ${{ inputs.exact_source_cache_key }}
+
+      - name: Restore Main Forward Evidence Cache Prefix
+        id: main_forward_cache
+        if: ${{ inputs.exact_source_cache_key == '' }}
+        uses: actions/cache/restore@v5
+        with:
+          path: |-
+            data/production-market-observations.jsonl
+            data/market-context-observations.jsonl
+            data/prospective-edge-cohorts.jsonl
+          key: forward-evidence-${{ runner.os }}-main-export-only
+          restore-keys: |
+            forward-evidence-${{ runner.os }}-main-
+
+      - name: Export Preserved Forward Evidence Cache
+        id: export_cache
+        env:
+          FORWARD_CACHE_EXPORT_DIR: ${{ runner.temp }}/forward-evidence-cache-export
+          FORWARD_CACHE_SOURCE_KEY: ${{ inputs.exact_source_cache_key }}
+          FORWARD_CACHE_MATCHED_KEY: ${{ inputs.exact_source_cache_key != '' && steps.exact_forward_cache.outputs.cache-matched-key || steps.main_forward_cache.outputs.cache-matched-key }}
+          FORWARD_CACHE_HIT: ${{ inputs.exact_source_cache_key != '' && steps.exact_forward_cache.outputs.cache-hit || steps.main_forward_cache.outputs.cache-hit }}
+        run: node src/ops/exportForwardEvidenceCache.js
+
+      - name: Upload Forward Evidence Cache Export
+        if: ${{ success() && steps.export_cache.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: forward-evidence-cache-export-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/forward-evidence-cache-export/forward-evidence-cache.tar.gz
+            ${{ runner.temp }}/forward-evidence-cache-export/manifest.json
+            ${{ runner.temp }}/forward-evidence-cache-export/export-receipt.json
+          if-no-files-found: error
+          retention-days: 1

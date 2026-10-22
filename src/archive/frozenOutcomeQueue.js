@@ -190,6 +190,10 @@ export function importFrozenOutcomeLedgers({ archive, cohortBytes, observationBy
     const candidates = (parent.poolAddress ? byRoute.get(identity.routeKey) : byIdentity.get(identity.identityKey)) || [];
     for (const task of archive.listTasks({ recordId })) {
       taskCount++; primaryTasks += Number(task.frozen.certificateHorizon);
+      // The source is still fully registered and counted, but historical
+      // reconciliation is immutable. Avoid a writer renewal/fsync merely to
+      // rediscover an existing historical link on every unchanged poll.
+      if (task.state === "completed" || task.historicallyReconciled) continue;
       const inWindow = value => value >= time(task.due_at) && value <= time(task.expires_at);
       const match = candidates.find(item => inWindow(item.at) && (item.receiptAt === null || inWindow(time(item.receiptAt))) && (item.sourceAt === null || inWindow(time(item.sourceAt))));
       if (!match) continue;

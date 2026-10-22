@@ -14,8 +14,14 @@ const WORKFLOWS = ["edge-evidence-truth", "edge-fast-evidence", "edge-lab", "edg
   "outcome-probe", "pages-dashboard", "production-shadow", "shadow-universe-refresh"];
 const hash = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
-function workflowSteps(file) {
-  return fs.readFileSync(`.github/workflows/${file}.yml`, "utf8").split(/\n(?=      - name:)/);
+function workflowSteps(file, jobId = null) {
+  let workflow = fs.readFileSync(`.github/workflows/${file}.yml`, "utf8");
+  if (jobId) {
+    const start = workflow.indexOf(`\n  ${jobId}:\n`);
+    assert.ok(start >= 0, `${file} must contain job ${jobId}`);
+    workflow = workflow.slice(start + 1).split(/\n(?=  [A-Za-z0-9_-]+:)/)[0];
+  }
+  return workflow.split(/\n(?=      - name:)/);
 }
 
 function shellScript(step) {
@@ -271,7 +277,7 @@ test("every persistence guard rejects lost diagnostics without allowing temporar
     { name: "cancelled diagnostics", pack: "success", save: "cancelled", preserve: "cancelled", upload: "cancelled", status: 1 },
   ];
   for (const file of WORKFLOWS) {
-    const steps = workflowSteps(file);
+    const steps = workflowSteps(file, file === "outcome-probe" ? "probe" : null);
     const upload = steps.find(step => step.includes("name: Upload Temporary Failed Scanner State Diagnostic"));
     const guard = steps.find(step => step.includes("name: Enforce Scanner State Persistence"));
     assert.ok(steps.indexOf(guard) > steps.indexOf(upload), `${file} must evaluate the actual upload outcome`);
@@ -294,6 +300,29 @@ test("every persistence guard rejects lost diagnostics without allowing temporar
       if (sample.pack !== "success") assert.match(result.stdout, /temporary diagnostic cannot replace canonical restart state/);
     }
   }
+});
+
+test("probe report persistence stays strict without including the success-only cache export job", () => {
+  const steps = workflowSteps("outcome-probe", "probe");
+  const diagnostic = steps.find(step => step.includes("name: Upload Temporary Failed Scanner State Diagnostic"));
+  const guard = steps.find(step => step.includes("name: Enforce Scanner State Persistence"));
+  const reports = steps.filter(step => step.includes("uses: actions/upload-artifact@") && step !== diagnostic);
+  assert.equal(reports.length, 1, "only the normal probe report belongs to this job");
+  assert.match(reports[0], /name: Upload Probe Report/);
+  assert.match(reports[0], /if: always\(\)/, "probe reports must remain reachable after persistence failure");
+  assert.match(guard, /id: state_persistence/);
+  assert.match(guard, /if: always\(\)/);
+  assert.doesNotMatch(guard, /continue-on-error:/);
+  assert.ok(steps.indexOf(guard) > steps.indexOf(diagnostic));
+  assert.ok(steps.indexOf(reports[0]) > steps.indexOf(guard));
+  assert.doesNotMatch(steps.join("\n"), /export-forward-cache:|Upload Forward Evidence Cache Export/);
+
+  const exporter = workflowSteps("outcome-probe", "export-forward-cache");
+  const uploads = exporter.filter(step => step.includes("uses: actions/upload-artifact@"));
+  assert.equal(uploads.length, 1);
+  assert.match(uploads[0], /name: Upload Forward Evidence Cache Export/);
+  assert.match(uploads[0], /if: \$\{\{ success\(\) && steps\.export_cache\.outcome == 'success' \}\}/);
+  assert.doesNotMatch(uploads[0], /always\(\)/, "failed or partial exports must not be uploaded");
 });
 
 test("dashboard persistence failure reaches post-deployment final health instead of terminating the build early", () => {

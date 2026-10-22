@@ -64,6 +64,56 @@ test("imports real sealed treatment/control cohorts byte-exactly with all declar
   assert.equal(again.episodes, 2); assert.equal(archive.audit().ok, true);
 });
 
+test("unchanged historical source rows stay counted but never reopen reconciliation writer transactions", t => {
+  const { archive } = fixture(t), episodes = frozen();
+  const cohortBytes = Buffer.from(`${JSON.stringify(episodes[0])}\r\n${JSON.stringify(episodes[1])}`);
+  const observationBytes = Buffer.from(episodes.map(episode => JSON.stringify(observation(episode))).join("\n"));
+  const reconcile = archive.reconcileHistoricalObservation;
+  let calls = 0;
+  archive.reconcileHistoricalObservation = args => { calls++; return reconcile(args); };
+  const initial = importFrozenOutcomeLedgers({ archive, cohortBytes, observationBytes, clock: () => later });
+  assert.equal(initial.historicalReconciled, 2);
+  assert.equal(calls, 2, "both new, valid 24h historical observations reconcile once");
+  const snapshot = () => archive.listTasks().map(task => ({ taskId: task.task_id, state: task.state, completedAt: task.completed_at,
+    frozen: task.frozen, historicallyReconciled: task.historicallyReconciled, historicalReconciliation: task.historicalReconciliation }));
+  const before = snapshot();
+  calls = 0;
+  const unchanged = importFrozenOutcomeLedgers({ archive, cohortBytes, observationBytes, clock: () => later });
+  assert.equal(unchanged.tasks, 10); assert.equal(unchanged.primaryTasks, 2); assert.equal(unchanged.historicalReconciled, 0);
+  assert.equal(calls, 0, "already reconciled rows must not renew the writer or enter reconciliation");
+  assert.deepEqual(snapshot(), before);
+  assert.deepEqual(restoreOriginalLedgerBytes(archive, unchanged.sourceIndexes.cohorts), cohortBytes);
+  assert.deepEqual(restoreOriginalLedgerBytes(archive, unchanged.sourceIndexes.observations), observationBytes);
+
+  const cohortVariant = Buffer.from(cohortBytes.toString().replace(/\r\n/g, "\n") + "\n");
+  const observationVariant = Buffer.from(observationBytes.toString().replace(/\n/g, "\r\n") + "\r\n");
+  calls = 0;
+  const reformatted = importFrozenOutcomeLedgers({ archive, cohortBytes: cohortVariant, observationBytes: observationVariant, clock: () => later });
+  assert.equal(reformatted.tasks, 10); assert.equal(reformatted.primaryTasks, 2); assert.equal(reformatted.historicalReconciled, 0);
+  assert.equal(calls, 0, "byte formatting variants preserve immutable reconciliation state without writes");
+  assert.deepEqual(snapshot(), before);
+  assert.deepEqual(restoreOriginalLedgerBytes(archive, reformatted.sourceIndexes.cohorts), cohortVariant);
+  assert.deepEqual(restoreOriginalLedgerBytes(archive, reformatted.sourceIndexes.observations), observationVariant);
+  assert.equal(archive.audit().ok, true);
+
+  const canonicalBefore = episodes.map(episode => archive.readEvidence("exact-observation:" + observation(episode).observationIntegrityHash));
+  const expanded = Buffer.from([...episodes.map(episode => observation(episode)), ...episodes.map(episode => observation(episode, 6))].map(JSON.stringify).join("\n"));
+  calls = 0;
+  const added = importFrozenOutcomeLedgers({ archive, cohortBytes, observationBytes: expanded, clock: () => later });
+  assert.equal(added.tasks, 10);
+  assert.equal(added.historicalReconciled, 2);
+  assert.equal(calls, 2, "new raw observations still resolve unfinished duties while old matches are skipped");
+  assert.equal(archive.listTasks().filter(task => task.historicallyReconciled).length, 4);
+  for (const previous of before) {
+    const current = snapshot().find(task => task.taskId === previous.taskId);
+    assert.deepEqual(current.frozen, previous.frozen);
+    if (previous.historicallyReconciled) assert.deepEqual(current, previous);
+  }
+  for (const previous of canonicalBefore) assert.deepEqual(archive.readEvidence(previous.recordId), previous, "original bytes and firstSeen remain immutable");
+  assert.deepEqual(restoreOriginalLedgerBytes(archive, added.sourceIndexes.observations), expanded);
+  assert.equal(archive.audit().ok, true);
+});
+
 test("valid frozen cohorts remain admitted while a valid-hash future observation stays non-reconcilable forever", t => {
   const { root, archive, set } = fixture(t), episodes = frozen();
   const future = observation(episodes[0]); future.observedAt = "2027-01-01T00:00:00.000Z"; future.observationIntegrityHash = exactMarketObservationIntegrityHash(future);

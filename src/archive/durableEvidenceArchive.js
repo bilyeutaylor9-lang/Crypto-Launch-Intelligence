@@ -100,6 +100,18 @@ function validateManifest(manifest) {
   return manifest;
 }
 
+function sharedCaptureMatches(task, parent, contract) {
+  if (parent?.kind !== "FROZEN_EPISODE_OUTCOME_OBLIGATIONS_V1" || contract?.kind !== "CAPTURED_EXACT_OUTCOME_V1" ||
+    !contract.observationOf || !contract.exactObservation || task.task_id === contract.observationOf.taskId) return false;
+  const expected = strictIdentity(parent), identity = strictIdentity(contract.exactObservation);
+  if (!expected?.poolAddress || !identity?.poolAddress || expected.routeKey !== identity.routeKey) return false;
+  const frozen = JSON.parse(task.frozen_json), link = contract.observationOf;
+  const receipt = timestamp(link.receivedAt, "shared receipt"), market = link.marketObservedAt == null ? null : timestamp(link.marketObservedAt, "shared market");
+  return receipt >= task.due_at && receipt <= task.expires_at &&
+    (market === null ? frozen.observationClockPolicy === "COLLECTION_RECEIPT_V1"
+      : market >= task.due_at && market <= task.expires_at && market <= receipt);
+}
+
 export function openDurableEvidenceArchive(options = {}) {
   const root = path.resolve(options.root || "durable-evidence-archive");
   const segmentDir = path.join(root, "segments");
@@ -346,7 +358,7 @@ export function openDurableEvidenceArchive(options = {}) {
     }).immediate();
   }
 
-  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, nowAt = archiveNow() } = {}) {
+  function completeWithEvidence({ obligationId, owner, leaseToken, evidence, returnReceipt = false, nowAt = archiveNow() } = {}) {
     const at = timestamp(nowAt, "nowAt");
     return db.transaction(() => {
       coordinator.assertWrite(at);
@@ -357,7 +369,16 @@ export function openDurableEvidenceArchive(options = {}) {
       if (task.obligation_id !== obligationId || !evidence?.recordId) return false;
       const admitted = admitPrediction(evidence);
       if (!transitionTask({ obligationId, owner, leaseToken, state: "completed", evidenceRecordId: admitted.recordId, nowAt: at })) throw new Error("OBSERVATION_CONTRACT_MISMATCH");
-      return true;
+      let shared = { reconciled: 0 };
+      try {
+        if (evidence.immutableContract?.kind === "CAPTURED_EXACT_OUTCOME_V1") shared = reconcileCompatibleFrozenObligations({ evidenceRecordId: admitted.recordId, nowAt: at });
+      } catch (error) {
+        // Roll back the whole completion and stop further provider traffic.
+        // A durable linkage failure cannot be treated as a collection retry.
+        error.fatalCollectionStorageFailure = true;
+        throw error;
+      }
+      return returnReceipt ? { completed: true, sharedReconciled: shared.reconciled } : true;
     }).immediate();
   }
 
@@ -374,8 +395,12 @@ export function openDurableEvidenceArchive(options = {}) {
     const captured = contract?.kind === "CAPTURED_EXACT_OUTCOME_V1";
     const row = captured ? contract.exactObservation : JSON.parse(raw.toString("utf8"));
     if (captured) {
-      if (!validObservation(task, evidenceRecordId, reconciledAt)) throw new Error("HISTORICAL_CAPTURE_RAW_RECEIPT_INVALID");
-      return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "CAPTURED_EXACT_OUTCOME_V1" };
+      const anchor = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(contract.observationOf?.taskId);
+      if (!anchor || !validObservation(anchor, evidenceRecordId, reconciledAt)) throw new Error("HISTORICAL_CAPTURE_RAW_RECEIPT_INVALID");
+      if (task.task_id === anchor.task_id) return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "CAPTURED_EXACT_OUTCOME_V1" };
+      const parent = assertRow(findRecord.get(task.record_id)).manifest.immutableContract;
+      if (!sharedCaptureMatches(task, parent, contract)) throw new Error("HISTORICAL_SHARED_CAPTURE_INVALID");
+      return { observedAt: row.observedAt, observationHash: row.observationIntegrityHash, sourceKind: "SHARED_CAPTURED_EXACT_OBSERVATION_V1" };
     }
     if (contract?.kind !== "EXACT_MARKET_OBSERVATION_V2_RECORD" || !row || Array.isArray(row) || row.schemaVersion !== 2 ||
       !row.observationIntegrityHash || row.observationIntegrityHash !== exactMarketObservationIntegrityHash(row) ||
@@ -408,17 +433,82 @@ export function openDurableEvidenceArchive(options = {}) {
       const existing = db.prepare("SELECT * FROM historical_reconciliations WHERE task_id=?").get(taskId);
       if (existing) return { status: existing.evidence_record_id === evidenceRecordId ? "duplicate" : "already-reconciled", observedAt: existing.observed_at, reconciledAt: existing.reconciled_at };
       db.prepare("INSERT INTO historical_reconciliations VALUES (?,?,?,?,?,?)").run(taskId, evidenceRecordId, observed.observedAt, at, observed.observationHash, observed.sourceKind);
-      return { status: "reconciled", observedAt: observed.observedAt, reconciledAt: at };
+      const shared = observed.sourceKind === "CAPTURED_EXACT_OUTCOME_V1"
+        ? reconcileCompatibleFrozenObligations({ evidenceRecordId, nowAt: at }) : { reconciled: 0 };
+      return { status: "reconciled", observedAt: observed.observedAt, reconciledAt: at, sharedReconciled: shared.reconciled };
+    }).immediate();
+  }
+
+  function reconcileCompatibleFrozenObligations({ evidenceRecordId, nowAt = archiveNow() } = {}) {
+    const at = timestamp(nowAt, "nowAt");
+    return db.transaction(() => {
+      coordinator.assertWrite(at); expireTasks(at);
+      const record = findRecord.get(evidenceRecordId), contract = record && assertRow(record).manifest.immutableContract;
+      const link = contract?.observationOf, exact = contract?.exactObservation;
+      if (contract?.kind !== "CAPTURED_EXACT_OUTCOME_V1" || !link || !exact) throw new Error("SHARED_CAPTURE_NOT_ANCHORED_EXACT_OBSERVATION");
+      const anchor = db.prepare("SELECT * FROM obligations WHERE task_id=?").get(link.taskId);
+      if (!anchor || !validObservation(anchor, evidenceRecordId, at)) throw new Error("SHARED_CAPTURE_ANCHOR_INVALID");
+      const identity = strictIdentity(exact); if (!identity) throw new Error("SHARED_CAPTURE_IDENTITY_INVALID");
+      if (!identity.poolAddress) return { evidenceRecordId, examined: 0, reconciled: 0, notApplicable: "EXACT_POOL_NOT_AVAILABLE" };
+      let reconciled = 0, examined = 0;
+      const verifiedParents = new Map();
+      for (const task of db.prepare("SELECT * FROM obligations o WHERE due_at<=? AND state!='completed' AND state!='leased' AND task_id!=? AND NOT EXISTS (SELECT 1 FROM historical_reconciliations h WHERE h.task_id=o.task_id)").all(at, anchor.task_id)) {
+        const parentRecord = findRecord.get(task.record_id), parent = JSON.parse(parentRecord.immutable_json), expected = strictIdentity(parent);
+        if (parent?.kind !== "FROZEN_EPISODE_OUTCOME_OBLIGATIONS_V1" || !expected || expected.chain !== identity.chain || expected.tokenAddress !== identity.tokenAddress || !expected.poolAddress || expected.poolAddress !== identity.poolAddress) continue;
+        examined++;
+        // Validate every matching parent's complete immutable task set before
+        // trusting indexed windows or policies, within the completion transaction.
+        if (!verifiedParents.has(task.record_id)) verifiedParents.set(task.record_id, assertRow(parentRecord).manifest.immutableContract);
+        if (!sharedCaptureMatches(task, verifiedParents.get(task.record_id), contract)) continue;
+        db.prepare("INSERT INTO historical_reconciliations VALUES (?,?,?,?,?,?)").run(task.task_id, evidenceRecordId, exact.observedAt, at, exact.observationIntegrityHash, "SHARED_CAPTURED_EXACT_OBSERVATION_V1"); reconciled++;
+      }
+      return { evidenceRecordId, examined, reconciled };
     }).immediate();
   }
 
   function listTasks({ recordId } = {}) {
-    const rows = recordId === undefined ? db.prepare("SELECT * FROM obligations ORDER BY due_at,task_id").all() : db.prepare("SELECT * FROM obligations WHERE record_id=? ORDER BY due_at,task_id").all(recordId);
-    return rows.map(row => ({ ...row, frozen: JSON.parse(row.frozen_json) }));
+    // Importers need to distinguish an unfinished obligation from one which
+    // has already been historically reconciled without opening a write
+    // transaction for every old source row.
+    const query = `SELECT o.*,h.task_id AS historical_task_id,h.evidence_record_id AS historical_evidence_record_id,
+      h.observed_at AS historical_observed_at,h.reconciled_at AS historical_reconciled_at,
+      h.observation_hash AS historical_observation_hash,h.source_kind AS historical_source_kind
+      FROM obligations o LEFT JOIN historical_reconciliations h ON h.task_id=o.task_id`;
+    const rows = recordId === undefined
+      ? db.prepare(query + " ORDER BY o.due_at,o.task_id").all()
+      : db.prepare(query + " WHERE o.record_id=? ORDER BY o.due_at,o.task_id").all(recordId);
+    return rows.map(row => {
+      const historicalReconciliation = row.historical_task_id === null ? null : {
+        evidenceRecordId: row.historical_evidence_record_id, observedAt: row.historical_observed_at,
+        reconciledAt: row.historical_reconciled_at, observationHash: row.historical_observation_hash,
+        sourceKind: row.historical_source_kind,
+      };
+      return { ...row, historicallyReconciled: historicalReconciliation !== null, historicalReconciliation, frozen: JSON.parse(row.frozen_json) };
+    });
   }
 
-  function listOutcomeCaptures() {
-    return db.prepare("SELECT record_id FROM evidence_records WHERE json_extract(immutable_json,'$.kind')='CAPTURED_EXACT_OUTCOME_V1' ORDER BY admitted_at,record_id").all().map(row => readEvidence(row.record_id));
+  function listOutcomeCaptures({ reusableOnly = false, nowAt = archiveNow() } = {}) {
+    let candidates = null;
+    if (reusableOnly) {
+      const at = timestamp(nowAt, "nowAt"), parents = new Map();
+      const tasks = db.prepare(`SELECT o.* FROM obligations o LEFT JOIN leases l USING(task_id)
+        WHERE o.due_at<=? AND o.state!='completed' AND (o.state!='leased' OR l.lease_until<=?)
+          AND NOT EXISTS (SELECT 1 FROM historical_reconciliations h WHERE h.task_id=o.task_id)`).all(at, at);
+      if (!tasks.length) return [];
+      candidates = tasks.map(task => {
+        if (!parents.has(task.record_id)) parents.set(task.record_id, JSON.parse(findRecord.get(task.record_id).immutable_json));
+        return { task, parent: parents.get(task.record_id) };
+      });
+    }
+    const records = db.prepare("SELECT record_id,immutable_json FROM evidence_records WHERE json_extract(immutable_json,'$.kind')='CAPTURED_EXACT_OUTCOME_V1' ORDER BY admitted_at,record_id").all();
+    // Read-only work selection avoids writer renewals/fsyncs on unchanged polls.
+    // Full archive audits remain unchanged; sharing revalidates selected targets.
+    return records.filter(record => {
+      if (!candidates) return true;
+      const contract = JSON.parse(record.immutable_json);
+      return candidates.some(({ task, parent }) => sharedCaptureMatches(task, parent, contract));
+    })
+      .map(row => readEvidence(row.record_id));
   }
 
   function listRecoverableProviderResponses() {
@@ -588,7 +678,7 @@ export function openDurableEvidenceArchive(options = {}) {
     return target;
   }
   function close() { if (!closed) { db.close(); closed = true; } }
-  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listTasks, listOutcomeCaptures, listRecoverableProviderResponses, reconcileHistoricalObservation, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
+  return { root, dbPath, admitPrediction, readEvidence, leaseDue, renewTaskLease, transitionTask, completeWithEvidence, dueDenominators, listTasks, listOutcomeCaptures, listRecoverableProviderResponses, reconcileHistoricalObservation, reconcileCompatibleFrozenObligations, listOutbox, acknowledgeOutbox, audit, exportArchive, importArchive, rebuildIndex, backup, close,
     claimWriter: coordinator.claimWriter, renewWriter: coordinator.renewWriter, releaseWriter: coordinator.releaseWriter,
     reserveProviderRequest: coordinator.reserveProviderRequest, markProviderDispatched: coordinator.markProviderDispatched,
     finishProviderRequest: coordinator.finishProviderRequest, coordinationStatus: coordinator.coordinationStatus };

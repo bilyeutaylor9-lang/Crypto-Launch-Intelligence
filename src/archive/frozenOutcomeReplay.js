@@ -30,5 +30,13 @@ export function replayArchivedFrozenOutcomes({ archive, clock = () => new Date()
       results.push({ diagnosticRecordId: diagnostic.recordId, status: "RAW_RESPONSE_NOT_ADMISSIBLE", reason: error.message });
     }
   }
-  return { providerRequests: 0, reconciled: results.filter(row => row.status === "reconciled").length, results };
+  // Completed/reconciled anchors can predate newly imported duties or a crashed
+  // ledger projection. Reuse the saved capture without creating another row.
+  for (const evidence of archive.listOutcomeCaptures({ reusableOnly: true, nowAt: clock() })) {
+    archive.renewWriter({ nowAt: clock() });
+    const shared = archive.reconcileCompatibleFrozenObligations({ evidenceRecordId: evidence.recordId, nowAt: clock() });
+    if (shared.reconciled) results.push({ evidenceRecordId: evidence.recordId, status: "SHARED_RECONCILED", sharedReconciled: shared.reconciled });
+  }
+  return { providerRequests: 0, reconciled: results.filter(row => row.status === "reconciled").length,
+    sharedReconciledDuties: results.reduce((sum, row) => sum + (row.sharedReconciled || 0), 0), results };
 }

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
+import { collectSupabaseMemory } from "../src/storage/supabaseMemory.js";
 
 import {
   __forwardEvidenceRemoteHooks,
@@ -14,6 +15,10 @@ import {
   runForwardEvidenceRemoteCommand,
   syncForwardEvidence,
 } from "../src/production/forwardEvidenceRemoteStore.js";
+
+// Captured by Exact Outcome Probe run 39655424278 on 2026-10-21.
+const DATABASE_SIZE_MESSAGE = "Service for this project is restricted due to the following violations: exceed_db_size_quota. " +
+  "The project owner must upgrade their plan or remove spend caps to restore service.";
 
 function tempRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "forward-evidence-test-"));
@@ -352,6 +357,300 @@ test("the captured platform restriction message opens the SDK circuit even witho
   assert.equal(backend.writes.length, 0);
 });
 
+for (const phase of ["index", "body", "write", "write verification"]) {
+  test(`database-size restriction during ${phase} persists and skips future history work without changing evidence`, async t => {
+    const root = isolatedRoot(t);
+    const local = [
+      remoteRow("production-market-observations", { observationKey: "pending" }),
+      remoteRow("market-context-observations", { observationKey: "context" }),
+      remoteRow("prospective-edge-cohorts", { episodeId: "cohort" }),
+    ];
+    mergeForwardEvidenceRows(local, { root });
+    const outbox = path.join(root, "data", "outbox-fixture.jsonl");
+    fs.writeFileSync(outbox, '{"state":"PENDING","receipt":null}\n');
+    const files = [outbox, ...["production-market-observations", "market-context-observations", "prospective-edge-cohorts"]
+      .map(name => path.join(root, "data", `${name}.jsonl`))];
+    const before = files.map(file => fs.readFileSync(file));
+    const error = { message: DATABASE_SIZE_MESSAGE };
+    const remote = phase === "body" ? [remoteRow("production-market-observations", { observationKey: "remote-only" })] : [];
+    const backend = fakeBackend(remote, {
+      onRead: call => (phase === "index" || (phase === "body" && call.ids) || (phase === "write verification" && call.ids))
+        ? { data: null, error } : undefined,
+      onWrite: () => phase === "write" ? { error } : undefined,
+    });
+    const first = await runForwardEvidenceRemoteCommand(phase === "index" || phase === "body" ? "restore" : "sync", {
+      root, backend, now: "2026-10-21T18:44:54.161Z",
+    });
+    assert.equal(first.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.equal(first.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+    assert.equal(first.providerCode, "exceed_db_size_quota");
+    assert.equal(first.detectedAt, "2026-10-21T18:44:54.161Z");
+    assert.equal(first.uploaded, undefined);
+    assert.match(first.error, /exceed_db_size_quota/);
+    const circuitFile = path.join(root, "data", "remote-operational-circuits.json");
+    assert.deepEqual(JSON.parse(fs.readFileSync(circuitFile, "utf8")), {
+      schemaVersion: 1, incidents: { "supabase:https://example-project.supabase.co": {
+        state: "REMOTE_DATABASE_SIZE_OUTAGE", providerCode: "exceed_db_size_quota", detectedAt: first.detectedAt,
+      } },
+    });
+    const circuitBytes = fs.readFileSync(circuitFile);
+    const nextBackend = fakeBackend([], {
+      onRead: () => assert.fail("An open database-size circuit must not read history"),
+      onWrite: () => assert.fail("An open database-size circuit must not acknowledge pending evidence"),
+    });
+    for (const command of ["restore", "sync"]) {
+      const next = await runForwardEvidenceRemoteCommand(command, {
+        root, backend: nextBackend, now: "2028-01-01T00:00:00.000Z",
+      });
+      assert.equal(next.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+      assert.equal(next.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+      assert.equal(next.providerCode, "exceed_db_size_quota");
+      assert.equal(next.detectedAt, first.detectedAt);
+      assert.equal(next.skipped, true);
+      assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, "reports", "forward-evidence-remote-sync.json"), "utf8")), next);
+    }
+    assert.equal(nextBackend.reads.length, 0);
+    assert.equal(nextBackend.writes.length, 0);
+    assert.deepEqual(fs.readFileSync(circuitFile), circuitBytes);
+    assert.deepEqual(files.map(file => fs.readFileSync(file)), before);
+  });
+}
+
+test("a restored database-size operational snapshot suppresses requests independently of evidence caches", async t => {
+  const root = isolatedRoot(t);
+  const outage = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_db_size_quota" } }) });
+  await runForwardEvidenceRemoteCommand("restore", { root, backend: outage, writeReport: false });
+  const restoredRoot = isolatedRoot(t);
+  fs.mkdirSync(path.join(restoredRoot, "data"));
+  fs.copyFileSync(path.join(root, "data", "remote-operational-circuits.json"),
+    path.join(restoredRoot, "data", "remote-operational-circuits.json"));
+  const backend = fakeBackend();
+  const report = await runForwardEvidenceRemoteCommand("sync", { root: restoredRoot, backend, writeReport: false });
+  assert.equal(report.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(report.skipped, true);
+  assert.equal(backend.reads.length, 0);
+  assert.equal(backend.writes.length, 0);
+  assert.deepEqual(loadLocalForwardEvidence({ root: restoredRoot }), []);
+});
+
+test("one confirmed REST database-size error suppresses retries and both caller paths even after read admission", async t => {
+  const root = isolatedRoot(t);
+  let calls = 0;
+  const env = { SUPABASE_ENABLED: "true", SUPABASE_URL: "https://example-project.supabase.co",
+    SUPABASE_SECRET_KEY: "fixture-secret", SUPABASE_SERVICE_ROLE_KEY: "fixture-fallback" };
+  const options = { root, env, writeReport: false, maxRetries: 2, retryDelayMs: 0,
+    fetchImpl: async () => {
+      const call = ++calls;
+      return { ok: false, status: call === 1 ? 403 : 500,
+        text: async () => JSON.stringify({ message: call === 1 ? DATABASE_SIZE_MESSAGE : "Temporary server failure" }) };
+    },
+  };
+  const first = await collectSupabaseMemory(options);
+  assert.equal(calls, 3); // Only the three already-dispatched table reads, no retry or fallback key.
+  assert.equal(first.remoteCircuit.state, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(first.remoteCircuit.providerCode, "exceed_db_size_quota");
+  const skippedMemory = await collectSupabaseMemory(options);
+  assert.equal(skippedMemory.status, "FAILED");
+  assert.match(skippedMemory.reason, /database-size/);
+  assert.doesNotMatch(skippedMemory.reason, /egress/);
+  assert.equal(skippedMemory.tableHealth.projects.status, "SKIPPED");
+  assert.equal(calls, 3);
+  const backend = fakeBackend();
+  for (const command of ["restore", "sync"]) {
+    const skipped = await runForwardEvidenceRemoteCommand(command, { root, backend, writeReport: false });
+    assert.equal(skipped.skipped, true);
+    assert.equal(skipped.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+    assert.equal(skipped.providerCode, "exceed_db_size_quota");
+  }
+  assert.equal(backend.reads.length, 0);
+  assert.equal(backend.writes.length, 0);
+  let otherCalls = 0;
+  const healthyFetch = async () => { otherCalls++; return { ok: true, json: async () => [] }; };
+  await collectSupabaseMemory({ ...options, env: { ...env, SUPABASE_URL: "https://other-project.supabase.co" }, fetchImpl: healthyFetch });
+  assert.equal(otherCalls, 3);
+  const proof = fakeBackend([remoteRow("production-market-observations", { observationKey: "proof" })]);
+  const verified = await runForwardEvidenceRemoteCommand("verify", { root, backend: proof, writeReport: false });
+  assert.equal(verified.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(verified.readAdmissionVerified, true);
+  assert.equal(verified.circuitRetained, true);
+  assert.equal(proof.reads.length, 1);
+  assert.equal((await collectSupabaseMemory({ ...options, fetchImpl: healthyFetch })).status, "FAILED");
+  assert.equal(otherCalls, 3);
+});
+
+test("SDK database-size detection suppresses same-project REST history without calling fetch", async t => {
+  const root = isolatedRoot(t);
+  const backend = fakeBackend([], { onRead: () => ({ data: null, error: { message: DATABASE_SIZE_MESSAGE } }) });
+  await runForwardEvidenceRemoteCommand("restore", { root, backend, writeReport: false });
+  let calls = 0;
+  const memory = await collectSupabaseMemory({ root, writeReport: false,
+    env: { SUPABASE_ENABLED: "true", SUPABASE_URL: backend.config.url, SUPABASE_SECRET_KEY: "different-fixture-key" },
+    fetchImpl: async () => { calls++; assert.fail("No REST history request during the scoped outage"); },
+  });
+  assert.equal(calls, 0);
+  assert.equal(memory.remoteCircuit.state, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(memory.remoteCircuit.providerCode, "exceed_db_size_quota");
+  assert.ok(Object.values(memory.tableHealth).every(table => table.status === "SKIPPED"));
+});
+
+test("database-size verification cannot clear an incident when reads work but writes remain blocked", async t => {
+  const root = isolatedRoot(t);
+  const outage = fakeBackend([], { onRead: () => ({ data: null, error: { providerCode: "exceed_db_size_quota" } }) });
+  const opened = await runForwardEvidenceRemoteCommand("restore", { root, backend: outage, writeReport: false });
+  assert.equal(opened.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+  const file = path.join(root, "data", "remote-operational-circuits.json");
+  const before = fs.readFileSync(file);
+  const proof = remoteRow("production-market-observations", { observationKey: "proof" });
+  for (const data of [[], null, {}, [null], [{ ...proof, ledger_name: "other" }],
+    [{ ...proof, content_hash: [proof.content_hash] }], [{ ...proof, content_hash: "bad" }],
+    [{ ...proof, record_id: " " }], [{ ...proof, record_id: "x".repeat(7000) }]]) {
+    const invalid = fakeBackend([], { onRead: () => ({ data, error: null }) });
+    const result = await runForwardEvidenceRemoteCommand("verify", { root, backend: invalid, writeReport: false });
+    assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.equal(invalid.reads.length, 1);
+    assert.deepEqual(fs.readFileSync(file), before);
+    assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: invalid, writeReport: false })).skipped, true);
+    assert.equal(invalid.reads.length, 1);
+  }
+  const unavailable = { client: null, config: outage.config, reason: "No client" };
+  assert.equal((await runForwardEvidenceRemoteCommand("verify", { root, backend: unavailable, writeReport: false })).state,
+    "REMOTE_FORWARD_EVIDENCE_NOT_CONFIGURED");
+  const other = fakeBackend([proof], { url: "https://other-project.supabase.co" });
+  await runForwardEvidenceRemoteCommand("verify", { root, backend: other, writeReport: false });
+  assert.deepEqual(fs.readFileSync(file), before);
+  const failed = fakeBackend([], { onRead: () => ({ data: null, error: { code: "403", message: "Forbidden" } }) });
+  assert.equal((await runForwardEvidenceRemoteCommand("verify", { root, backend: failed, writeReport: false })).state,
+    "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.deepEqual(fs.readFileSync(file), before);
+  const readOnly = fakeBackend([proof], { onWrite: () => ({ error: { message: DATABASE_SIZE_MESSAGE } }) });
+  const result = await runForwardEvidenceRemoteCommand("verify", { root, backend: readOnly, writeReport: false });
+  assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(result.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(result.providerCode, "exceed_db_size_quota");
+  assert.equal(result.verificationScope, "INDEXED_SERVICE_ADMISSION_ONLY");
+  assert.equal(result.readAdmissionVerified, true);
+  assert.equal(result.verificationIncomplete, true);
+  assert.equal(result.circuitRetained, true);
+  assert.equal(result.writeProofRequired, true);
+  assert.match(result.error, /write with ID\/hash acknowledgment/);
+  assert.equal(result.remoteDataRestored, false);
+  assert.equal(result.remoteSyncAcknowledged, false);
+  assert.equal(readOnly.reads.length, 1);
+  assert.equal(readOnly.writes.length, 0);
+  assert.deepEqual(readOnly.reads[0].range, [0, 0]);
+  assert.deepEqual(fs.readFileSync(file), before);
+  assert.deepEqual(loadLocalForwardEvidence({ root }), []);
+  for (const command of ["restore", "sync"]) {
+    const skipped = await runForwardEvidenceRemoteCommand(command, { root, backend: readOnly, writeReport: false });
+    assert.equal(skipped.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.equal(skipped.skipped, true);
+  }
+  assert.equal(readOnly.reads.length, 1);
+  assert.equal(readOnly.writes.length, 0);
+});
+
+test("database-size then egress then successful SELECT never forgets the write restriction", async t => {
+  const root = isolatedRoot(t);
+  const databaseOutage = fakeBackend([], { onRead: () => ({ data: null, error: { message: DATABASE_SIZE_MESSAGE } }) });
+  const opened = await runForwardEvidenceRemoteCommand("restore", { root, backend: databaseOutage, writeReport: false });
+  const file = path.join(root, "data", "remote-operational-circuits.json"), before = fs.readFileSync(file);
+  const egress = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "egress restricted" } }) });
+  const failed = await runForwardEvidenceRemoteCommand("verify", { root, backend: egress, writeReport: false });
+  assert.equal(failed.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(failed.providerCode, "exceed_egress_quota");
+  assert.equal(failed.circuitProviderCode, "exceed_db_size_quota");
+  assert.equal(failed.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(failed.detectedAt, opened.detectedAt);
+  assert.match(failed.error, /egress restricted/);
+  assert.deepEqual(fs.readFileSync(file), before);
+  const readOnly = fakeBackend([remoteRow("production-market-observations", { observationKey: "read-proof" })]);
+  const admitted = await runForwardEvidenceRemoteCommand("verify", { root, backend: readOnly, writeReport: false });
+  assert.equal(admitted.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(admitted.readAdmissionVerified, true);
+  assert.equal(admitted.circuitRetained, true);
+  assert.deepEqual(fs.readFileSync(file), before);
+  assert.equal((await runForwardEvidenceRemoteCommand("sync", { root, backend: readOnly, writeReport: false })).skipped, true);
+  assert.equal(readOnly.reads.length, 1);
+  assert.equal(readOnly.writes.length, 0);
+});
+
+test("an egress verification awaiting SELECT cannot clear a concurrent REST database-size incident", async t => {
+  const root = isolatedRoot(t);
+  let releaseRest, restDispatched, calls = 0;
+  const restGate = new Promise(resolve => { releaseRest = resolve; });
+  const restStarted = new Promise(resolve => { restDispatched = resolve; });
+  const memoryRead = collectSupabaseMemory({ root, writeReport: false, maxRetries: 0,
+    env: { SUPABASE_ENABLED: "true", SUPABASE_URL: "https://example-project.supabase.co", SUPABASE_SECRET_KEY: "fixture-secret" },
+    fetchImpl: async () => {
+      if (++calls === 3) restDispatched();
+      await restGate;
+      return { ok: false, status: 403, text: async () => JSON.stringify({ message: DATABASE_SIZE_MESSAGE }) };
+    },
+  });
+  await restStarted;
+  const egress = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota" } }) });
+  await runForwardEvidenceRemoteCommand("restore", { root, backend: egress, writeReport: false });
+  let started, finish;
+  const readStarted = new Promise(resolve => { started = resolve; });
+  const readFinished = new Promise(resolve => { finish = resolve; });
+  const backend = fakeBackend([remoteRow("production-market-observations", { observationKey: "read-proof" })], {
+    onRead: (_call, data) => { started(); return readFinished.then(() => ({ data, error: null })); },
+  });
+  const verifying = runForwardEvidenceRemoteCommand("verify", { root, backend, writeReport: false });
+  await readStarted;
+  const file = path.join(root, "data", "remote-operational-circuits.json");
+  let snapshot;
+  try {
+    releaseRest();
+    const memory = await memoryRead;
+    assert.equal(memory.remoteCircuit.providerCode, "exceed_db_size_quota");
+    snapshot = fs.readFileSync(file);
+  } finally { finish(); }
+  const result = await verifying;
+  assert.equal(calls, 3);
+  assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(result.circuitState, "REMOTE_DATABASE_SIZE_OUTAGE");
+  assert.equal(result.providerCode, "exceed_db_size_quota");
+  assert.equal(result.readAdmissionVerified, true);
+  assert.equal(result.circuitRetained, true);
+  assert.deepEqual(fs.readFileSync(file), snapshot);
+  assert.equal(backend.reads.length, 1);
+  assert.equal(backend.writes.length, 0);
+});
+
+test("the real SDK only persists exact structured quota errors or the captured full envelope (offline fetch)", async t => {
+  t.mock.method(globalThis, "fetch", async () => assert.fail("No network calls"));
+  for (const [status, body, trusted] of [
+    [402, JSON.stringify({ message: DATABASE_SIZE_MESSAGE }), true],
+    [403, JSON.stringify({ code: "exceed_db_size_quota", message: "quota" }), true],
+    [403, JSON.stringify({ message: "Forbidden" }), false],
+    [403, JSON.stringify({ message: "exceed_db_size_quota" }), false],
+    [403, JSON.stringify({ message: `${DATABASE_SIZE_MESSAGE} extra` }), false],
+    [403, JSON.stringify({ message: DATABASE_SIZE_MESSAGE.split(". ")[0] + "." }), false],
+    [403, JSON.stringify({ message: DATABASE_SIZE_MESSAGE.replace("exceed_db_size_quota", "exceed_db_size_quota_extra") }), false],
+    [403, `<html>${DATABASE_SIZE_MESSAGE}</html>`, false],
+    [403, `{"message":${JSON.stringify(DATABASE_SIZE_MESSAGE)}`, false],
+    [403, JSON.stringify([{ message: DATABASE_SIZE_MESSAGE }]), false],
+    [403, JSON.stringify({ message: [DATABASE_SIZE_MESSAGE] }), false],
+  ]) {
+    const root = isolatedRoot(t);
+    let calls = 0;
+    const client = createClient("https://forward-evidence.invalid", "offline-test-placeholder", {
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      global: { fetch: async () => { calls++; return new Response(body, { status }); } },
+    });
+    const backend = { client, config: { url: "https://forward-evidence.invalid", serverWriteCapable: true } };
+    const first = await runForwardEvidenceRemoteCommand("restore", { root, backend, writeReport: false });
+    assert.equal(first.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+    assert.equal(first.circuitState, trusted ? "REMOTE_DATABASE_SIZE_OUTAGE" : undefined, body);
+    assert.equal(first.providerCode, trusted ? "exceed_db_size_quota" : undefined, body);
+    assert.equal(fs.existsSync(path.join(root, "data", "remote-operational-circuits.json")), trusted, body);
+    const next = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
+    assert.equal(next.skipped, trusted ? true : undefined, body);
+    assert.equal(calls, trusted ? 1 : 2, body);
+  }
+});
+
 test("invalid backend configuration is reported without recreating the failed client", async (t) => {
   const root = isolatedRoot(t);
   t.mock.method(globalThis, "fetch", async () => assert.fail("No network calls"));
@@ -362,9 +661,10 @@ test("invalid backend configuration is reported without recreating the failed cl
   assert.match(result.error, /URL/i);
 });
 
-test("an incident persistence failure remains explicit without acknowledging remote synchronization", async (t) => {
+for (const providerCode of ["exceed_egress_quota", "exceed_db_size_quota"]) {
+test(`${providerCode} persistence failure remains explicit without acknowledging remote synchronization`, async (t) => {
   const root = isolatedRoot(t);
-  const backend = fakeBackend([], { onRead: () => ({ data: null, error: { code: "exceed_egress_quota", message: "quota" } }) });
+  const backend = fakeBackend([], { onRead: () => ({ data: null, error: { code: providerCode, message: "quota" } }) });
   const rename = fs.renameSync;
   t.mock.method(fs, "renameSync", (source, target) => {
     if (String(target).endsWith("remote-operational-circuits.json")) throw new Error("fixture persistence denied");
@@ -372,12 +672,15 @@ test("an incident persistence failure remains explicit without acknowledging rem
   });
   const result = await runForwardEvidenceRemoteCommand("sync", { root, backend, writeReport: false });
   assert.equal(result.state, "REMOTE_FORWARD_EVIDENCE_FAILED");
+  assert.equal(result.providerCode, providerCode);
+  assert.equal(result.circuitState, undefined);
   assert.match(result.error, /quota/);
   assert.match(result.circuitPersistenceError, /fixture persistence denied/);
   assert.equal(result.uploaded, undefined);
   assert.equal(backend.reads.length, 1);
   assert.equal(backend.writes.length, 0);
 });
+}
 
 test("operational reports stay inside the explicitly supplied workspace root", async t => {
   const root = isolatedRoot(t), backend = fakeBackend();
