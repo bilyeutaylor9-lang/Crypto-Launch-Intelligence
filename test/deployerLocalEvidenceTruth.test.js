@@ -122,6 +122,48 @@ test("existing deployer-cache precedence is unchanged when SECURITY also has a c
   assert.equal(observation.source, "blockscout-deployer");
 });
 
+for (const clockField of ["observedAt", "sourceTimestamp"]) {
+  for (const futureMs of [0, 1]) {
+    test(`cached creator ${clockField} is ${futureMs ? "rejected when future" : "accepted when current"} at validation after cache read`, async () => {
+      let now = NOW;
+      let reads = 0;
+      let cached;
+      let original;
+      const state = createActiveEvidenceExecutionState({ maxProviderRequests: 0,
+        timeBudgetMs: 1000, now: () => now });
+      const deadline = state.deadlineAt;
+      const result = await executeActiveEvidenceProviderRequests(PROJECT, [{ field: "creatorAddress" }], {
+        now: () => now, nativeDeploymentHistory: false, env: {},
+        readCachedSecurityEvidence: source => {
+          if (source !== "goplus") return null;
+          reads++;
+          now += 20;
+          cached = { provider: "goplus", status: "EVIDENCE_AVAILABLE", responseIdentityVerified: true,
+            chain: "base", address: TOKEN, creatorAddress: CREATOR, confidence: 80,
+            [clockField]: new Date(now + futureMs).toISOString() };
+          original = structuredClone(cached);
+          return cached;
+        },
+      }, state);
+      assert.equal(reads, 1);
+      assert.equal(now, NOW + 20);
+      assert.equal(state.requestsUsed, 0);
+      assert.equal(state.deadlineAt, deadline);
+      assert.deepEqual(cached, original);
+      if (futureMs) {
+        assert.deepEqual(result.observations, []);
+        assert.equal(result.attempts.some(row => row.status === "LOCAL_EVIDENCE_AVAILABLE"), false);
+      } else {
+        const observed = result.observations.find(row => row.field === "creatorAddress");
+        assert.equal(observed?.value, CREATOR);
+        assert.equal(observed.sourceTimestamp, cached[clockField]);
+        assert.equal(observed.source, "goplus");
+        assert.equal(result.attempts[0].status, "LOCAL_EVIDENCE_AVAILABLE");
+      }
+    });
+  }
+}
+
 for (const [label, patch] of [
   ["contract address hash", { contract: { address_hash: OTHER } }],
   ["address response hash", { addressInfo: { hash: OTHER } }],
