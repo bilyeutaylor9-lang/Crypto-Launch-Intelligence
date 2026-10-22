@@ -229,6 +229,120 @@ test("one denied or incomplete provider attestation cannot borrow qualification 
   }
 });
 
+test("regression: declared-but-rejected receipts cannot leak root or nested daily totals downstream", () => {
+  const invalid = [
+    provenance(NOW, { qualification: { ...provenance().qualification, status: "UNKNOWN" } }),
+    provenance(NOW, { qualification: { ...provenance().qualification, status: "DENIED" } }),
+    provenance(NOW, { qualification: { ...provenance().qualification, available: false } }),
+    provenance(NOW + 1), provenance(NOW - 3_600_001),
+    provenance(NOW, { tokenAddress: WALLET }), provenance(NOW, { chain: "ethereum" }),
+    provenance(NOW, { observedAt: new Date(NOW + 1).toISOString() }),
+    provenance(NOW, { window: { ...provenance().window, complete: false } }),
+  ];
+  for (const meta of invalid) {
+    for (const scope of ["root", "nested", "both"]) {
+      const input = { chain: "base", tokenAddress: TOKEN,
+        smartWalletNetFlowUsd: "100000.00", smartWalletBuyCount: 20, smartWalletSellCount: 1,
+        smartWalletBuys24h: 20, smartWalletSells24h: 1,
+        smartWalletBuyVolumeUsd: 110_000, smartWalletSellVolumeUsd: 10_000, accumulationDays: 100,
+        smartWalletSignal: { smartWalletNetFlowUsd: "100000.00", smartWalletBuys24h: 20,
+          smartWalletSells24h: 1, smartWalletBuyVolumeUsd: 110_000, smartWalletSellVolumeUsd: 10_000,
+          smartWalletBuySellRatio: 20, smartWalletVolumeRatio: 11,
+          ...(scope !== "root" ? { provenance: meta } : {}) },
+        ...(scope !== "nested" ? { smartWalletFlowProvenance: meta } : {}) };
+      const raw = structuredClone(input);
+      for (const result of [produceMeasuredWalletFlowInputs(input, options), analyzeSmartWallets(input, options),
+        analyzeSmartMoneyAccumulation(input, options)]) {
+        const capital = analyzeCapitalFlow(result);
+        const rotation = analyzeSmartMoneyRotation(capital);
+        assert.deepEqual({ capitalScore: capital.capitalFlowScore, total: capital.capitalFlow.totalNetFlow,
+          rotationScore: rotation.smartMoneyRotationScore, delta: rotation.smartMoneyRotation.netFlowDelta },
+        { capitalScore: 0, total: 0, rotationScore: 0, delta: 0 }, `${scope}: ${JSON.stringify(meta)}`);
+        assert.equal(result.smartWalletNetFlowUsd, null);
+        assert.equal(result.smartWalletSignal?.smartWalletNetFlowUsd ?? null, null);
+        assert.equal(result.measuredWalletFlow.effectiveValues.smartWalletNetFlowUsd, null);
+        assert.equal(result.accumulationDays, null);
+        assert.equal(result.measuredWalletFlow.rejectedReceiptInputs.root.values.smartWalletNetFlowUsd, "100000.00");
+        assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.smartWalletSignal.value, raw.smartWalletSignal);
+        if (scope !== "nested") assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.root.provenance, meta);
+        let current = result;
+        for (let i = 0; i < 3; i++) {
+          current = analyzeSmartMoneyAccumulation(analyzeSmartWallets(current, options), options);
+          assert.equal(analyzeCapitalFlow(current).capitalFlowScore, 0);
+          assert.equal(analyzeSmartMoneyRotation(current).smartMoneyRotationScore, 0);
+          assert.deepEqual(current.measuredWalletFlow.rejectedReceiptInputs, result.measuredWalletFlow.rejectedReceiptInputs);
+        }
+      }
+      assert.deepEqual(input, raw);
+    }
+  }
+});
+
+test("regression: malformed explicit receipt is not an unguarded legacy caller", () => {
+  for (const rawReceipt of [null, {}, "invalid"]) {
+    for (const scope of ["root", "nested"]) {
+      const input = { chain: "base", tokenAddress: TOKEN, smartWalletNetFlowUsd: 100_000,
+        smartWalletSignal: { smartWalletNetFlowUsd: 100_000,
+          ...(scope === "nested" ? { provenance: rawReceipt } : {}) },
+        ...(scope === "root" ? { smartWalletFlowProvenance: rawReceipt } : {}) };
+      const result = analyzeSmartMoneyAccumulation(analyzeSmartWallets(input, options), options);
+      assert.equal(result.smartMoneyAccumulationScore, null);
+      assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+      assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+    }
+  }
+});
+
+test("one rejected declaration cannot fall back to another receipt or scope-unaware scalar", () => {
+  const denied = provenance(NOW, { qualification: { ...provenance().qualification, status: "DENIED" } });
+  for (const [rootReceipt, nestedReceipt] of [[denied, provenance()], [provenance(), denied]]) {
+    const input = project({ smartWalletFlowProvenance: rootReceipt, smartWalletNetFlowUsd: 900,
+      smartWalletSignal: { provenance: nestedReceipt, smartWalletNetFlowUsd: 900, smartWalletBuys24h: 3, smartWalletSells24h: 1 } });
+    let result = produceMeasuredWalletFlowInputs(input, options);
+    const snapshot = structuredClone(result.measuredWalletFlow.rejectedReceiptInputs);
+    for (let i = 0; i < 3; i++) {
+      result = produceMeasuredWalletFlowInputs(result, options);
+      assert.equal(result.smartWalletNetFlowUsd, null);
+      assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, null);
+      assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+      assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+      assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs, snapshot);
+    }
+  }
+});
+
+test("declared receipt rejection masks coercible invalid values but preserves their exact representations", () => {
+  const meta = provenance(NOW, { qualification: { ...provenance().qualification, status: "UNKNOWN" } });
+  for (const value of [true, [100_000], " 100000.00 ", "1e5"]) {
+    const input = { chain: "base", tokenAddress: TOKEN, smartWalletFlowProvenance: meta,
+      smartWalletNetFlowUsd: value, smartWalletSignal: { provenance: meta, smartWalletNetFlowUsd: value } };
+    const result = produceMeasuredWalletFlowInputs(input, options);
+    assert.equal(result.smartWalletNetFlowUsd, null);
+    assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, null);
+    assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.root.values.smartWalletNetFlowUsd, value);
+    assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.smartWalletSignal.value, input.smartWalletSignal);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+  }
+});
+
+test("unguarded legacy root and nested callers retain their preexisting downstream behavior", () => {
+  const input = { chain: "base", tokenAddress: TOKEN, smartWalletNetFlowUsd: "100000.00",
+    smartWalletBuys24h: 20, smartWalletSells24h: 1, smartWalletBuyCount: 20, smartWalletSellCount: 1,
+    smartWalletBuyVolumeUsd: 110_000, smartWalletSellVolumeUsd: 10_000, accumulationDays: 100,
+    smartWalletSignal: { smartWalletNetFlowUsd: "100000.00", smartWalletBuys24h: 20, smartWalletSells24h: 1 } };
+  for (const candidate of [input, { ...input, smartWalletFlowProvenance: undefined,
+    smartWalletSignal: { ...input.smartWalletSignal, provenance: undefined } }]) {
+    for (const result of [produceMeasuredWalletFlowInputs(candidate, options), analyzeSmartWallets(candidate, options),
+      analyzeSmartMoneyAccumulation(candidate, options)]) {
+      assert.equal(result.smartWalletNetFlowUsd, "100000.00");
+      assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 50);
+      assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 90);
+      assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs, {});
+    }
+  }
+});
+
 test("explicit qualified complete per-field input contract bridges without a root receipt", () => {
   const input = qualifiedProviderProject();
   const before = structuredClone(input);
@@ -546,7 +660,10 @@ test("stale receipts cannot be refreshed by a new observedAt or repeated recompu
     assert.equal(result.smartWalletScore, null);
     assert.equal(result.smartMoneyAccumulationScore, null);
     assert.equal(result.smartMoneyAccumulationCoverage.coveragePct, 0);
-    assert.equal(result.smartWalletNetFlowUsd, 1e9); // Supplied raw bytes are not overwritten.
+    assert.equal(result.smartWalletNetFlowUsd, null);
+    assert.equal(result.measuredWalletFlow.rejectedReceiptInputs.root.values.smartWalletNetFlowUsd, 1e9);
+    assert.equal(result.measuredWalletFlow.rejectedReceiptInputs.root.values.accumulationDays, 100);
+    assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.root.provenance, meta);
     assert.equal(result.measuredWalletFlow.status, "UNKNOWN");
   }
   const first = analyzeSmartMoneyAccumulation(project({ smartWalletFlowHistory: [history(NOW - DAY, 0)] }), options);
@@ -555,6 +672,12 @@ test("stale receipts cannot be refreshed by a new observedAt or repeated recompu
   assert.equal(stale.accumulationDays, null);
   assert.equal(stale.smartMoneyAccumulationScore, null);
   assert.equal(stale.fieldProvenance.smartWalletNetFlowUsd.verificationStatus, "UNKNOWN");
+  const snapshot = structuredClone(stale.measuredWalletFlow.rejectedReceiptInputs);
+  const repeated = analyzeSmartMoneyAccumulation(analyzeSmartWallets(stale, { now: NOW + 3_600_001 }), { now: NOW + 3_600_001 });
+  assert.deepEqual(repeated.measuredWalletFlow.rejectedReceiptInputs, snapshot);
+  assert.equal(snapshot.root.fieldProvenance.smartWalletNetFlowUsd.verificationStatus, "VERIFIED_DERIVED_OBSERVATION");
+  assert.equal(analyzeCapitalFlow(repeated).capitalFlowScore, 0);
+  assert.equal(analyzeSmartMoneyRotation(repeated).smartMoneyRotationScore, 0);
 });
 
 test("wrong or conflicting identities, absent qualification and unpinned windows stay unknown", () => {
@@ -645,8 +768,16 @@ test("incompatible root/nested windows and contradictory qualified measurements 
     const result = analyzeSmartMoneyAccumulation(wallet, options);
     assert.equal(result.smartWalletNetFlowUsd, undefined);
     assert.equal(result.accumulationDays, undefined);
-    assert.equal(result.smartWalletSignal, nested);
-    assert.ok(result.measuredWalletFlow.diagnostics.some((row) => /CONFLICT|INCOMPATIBLE/.test(row.reason)));
+    assert.equal(result.smartWalletSignal.smartWalletNetFlowUsd, null);
+    assert.deepEqual(result.measuredWalletFlow.rejectedReceiptInputs.smartWalletSignal.value, nested);
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+    assert.ok(result.measuredWalletFlow.rejectedReceiptInputs.smartWalletSignal.reasons
+      .some((row) => /CONFLICT|INCOMPATIBLE/.test(row.reason)));
+    const repeated = analyzeSmartMoneyAccumulation(analyzeSmartWallets(result, options), options);
+    assert.equal(analyzeCapitalFlow(repeated).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(repeated).smartMoneyRotationScore, 0);
+    assert.deepEqual(repeated.measuredWalletFlow.rejectedReceiptInputs, result.measuredWalletFlow.rejectedReceiptInputs);
   }
 });
 
@@ -727,15 +858,21 @@ test("a cached derived result cannot replace raw receipts on the next recomputat
   assert.equal(result.smartMoneyAccumulationScore, null);
 });
 
-test("conflicting aliases or explicit net flow are diagnosed, never overwritten", () => {
+test("conflicting declared aliases or net flow are isolated with originals retained in diagnostics", () => {
   const input = project({ smartWalletBuyCount: 400, smartWalletNetFlowUsd: 100_000 });
   for (const candidate of [input, analyzeSmartWallets(input, options)]) {
     const result = analyzeSmartMoneyAccumulation(candidate, options);
-    assert.equal(result.smartWalletBuyCount, 400);
-    assert.equal(result.smartWalletNetFlowUsd, 100_000);
+    assert.equal(result.smartWalletBuyCount, null);
+    assert.equal(result.smartWalletNetFlowUsd, null);
+    assert.equal(result.measuredWalletFlow.rejectedReceiptInputs.root.values.smartWalletBuyCount, 400);
+    assert.equal(result.measuredWalletFlow.rejectedReceiptInputs.root.values.smartWalletNetFlowUsd, 100_000);
     assert.equal(result.smartMoneyAccumulationScore, null);
     assert.equal(result.measuredWalletFlow.values.smartWalletBuyCount, null);
     assert.equal(result.measuredWalletFlow.values.smartWalletNetFlowUsd, null);
-    assert.ok(result.measuredWalletFlow.diagnostics.some((entry) => entry.reason === "NET_FLOW_CONFLICT"));
+    assert.equal(analyzeCapitalFlow(result).capitalFlowScore, 0);
+    assert.equal(analyzeSmartMoneyRotation(result).smartMoneyRotationScore, 0);
+    const repeated = analyzeSmartMoneyAccumulation(analyzeSmartWallets(result, options), options);
+    assert.equal(repeated.smartWalletNetFlowUsd, null);
+    assert.deepEqual(repeated.measuredWalletFlow.rejectedReceiptInputs, result.measuredWalletFlow.rejectedReceiptInputs);
   }
 });
