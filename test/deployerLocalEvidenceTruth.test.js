@@ -5,6 +5,8 @@ import path from "node:path";
 import { createActiveEvidenceExecutionState, executeActiveEvidenceProviderRequests } from "../src/data/activeEvidenceProviderExecutor.js";
 import { normalizeBlockscoutSecurityEvidence } from "../src/data/security/blockscoutConnector.js";
 import { sourcesForField } from "../src/data/enrichmentSourceRegistry.js";
+import { analyzeActiveEvidenceRecoveryBatch } from "../src/engines/activeEvidenceRecoveryEngine.js";
+import { evaluateEvidenceFreshness } from "../src/data/evidenceFreshnessPolicy.js";
 
 const NOW = Date.parse("2026-10-22T22:00:00Z");
 const TOKEN = `0x${"1".repeat(40)}`;
@@ -159,4 +161,104 @@ test("case-insensitive exact EVM raw identity remains usable", async () => {
   item.raw.contract.address_hash = TOKEN.toUpperCase().replace("0X", "0x");
   const result = await recover({ ...PROJECT, securityEvidence: [item] }, { useCache: false });
   assert.equal(result.observations.find(row => row.field === "creatorAddress")?.value, CREATOR);
+});
+
+async function activeAttached(item) {
+  const project = { ...PROJECT, blockscoutDeployerEvidence: item, targetedEnrichmentPlan: { items: [{
+    canonicalField: "creatorAddress", recoverable: true, evidenceClass: "CORE", requiresFreshObservation: true,
+    targetSources: [{ source: "block explorers" }],
+  }] } };
+  const original = structuredClone(project);
+  const [result] = await analyzeActiveEvidenceRecoveryBatch([project], { now: () => NOW,
+    useCache: false, nativeDeploymentHistory: false, env: {}, maxProviderRequests: 0,
+    wave1Max: 1, wave2Max: 0, wave3Max: 0, concurrency: 1 });
+  assert.deepEqual(project, original);
+  assert.equal(result.activeEvidenceRecovery.batchSummary.providerRequestsUsed, 0);
+  return result;
+}
+
+for (const [label, clock] of [
+  ["missing", undefined], ["null", null], ["blank", ""], ["whitespace", " "],
+  ["invalid", "invalid"], ["future", new Date(NOW + 60000).toISOString()],
+]) {
+  test(`attached ${label} clock cannot be replaced with a current provider receipt`, async () => {
+    const item = evidence({ observedAt: clock });
+    const result = await recover({ ...PROJECT, blockscoutDeployerEvidence: item }, { useCache: false });
+    assert.deepEqual(result.observations, []);
+    const active = await activeAttached(item);
+    assert.equal(active.creatorAddress, undefined);
+    assert.equal(active.fieldProvenance?.creatorAddress, undefined);
+    assert.equal(active.activeEvidenceRecovery.recoveredFields.includes("creatorAddress"), false);
+    assert.deepEqual(active.blockscoutDeployerEvidence, item);
+  });
+}
+
+for (const field of ["observedAt", "sourceTimestamp"]) {
+  test(`an attached original ${field} clock is retained through raw and active promotion`, async () => {
+    const timestamp = new Date(NOW - 60000).toISOString();
+    const item = evidence({ observedAt: undefined, [field]: timestamp });
+    const result = await recover({ ...PROJECT, blockscoutDeployerEvidence: item }, { useCache: false });
+    assert.equal(result.observations.find(row => row.field === "creatorAddress").sourceTimestamp, timestamp);
+    const active = await activeAttached(item);
+    assert.equal(active.creatorAddress, CREATOR);
+    assert.equal(active.fieldProvenance.creatorAddress.sourceTimestamp, timestamp);
+    assert.equal(evaluateEvidenceFreshness(timestamp, "creatorAddress", new Date(NOW)).status, "CURRENT");
+  });
+}
+
+test("immutable attached creator facts retain their stale clock without a new six-hour cap", async () => {
+  const timestamp = new Date(NOW - 2 * 86400000).toISOString();
+  const item = evidence({ observedAt: timestamp });
+  const result = await recover({ ...PROJECT, blockscoutDeployerEvidence: item }, { useCache: false });
+  assert.equal(result.observations.find(row => row.field === "creatorAddress").sourceTimestamp, timestamp);
+  const active = await activeAttached(item);
+  assert.equal(active.creatorAddress, CREATOR);
+  const provenance = active.fieldProvenance.creatorAddress;
+  assert.equal(provenance.sourceTimestamp, timestamp);
+  assert.equal(evaluateEvidenceFreshness(provenance.sourceTimestamp, "creatorAddress", new Date(NOW)).status, "STALE_DATA");
+});
+
+test("freshly acquired custom provider responses keep their existing source-clock semantics", async () => {
+  for (const clock of [{ observedAt: new Date(NOW - 60000).toISOString() },
+    { observedAt: undefined, sourceTimestamp: new Date(NOW - 120000).toISOString() },
+    { observedAt: undefined }]) {
+    let calls = 0;
+    const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1, now: () => NOW });
+    const before = Date.now();
+    const result = await executeActiveEvidenceProviderRequests(PROJECT, [{ field: "creatorAddress" }], {
+      useCache: false, nativeDeploymentHistory: false, env: {}, now: () => NOW,
+      providers: { getBlockscoutDeployerEvidence: async () => { calls++; return evidence(clock); } },
+    }, state);
+    const timestamp = result.observations.find(row => row.field === "creatorAddress").sourceTimestamp;
+    if (clock.observedAt || clock.sourceTimestamp) assert.equal(timestamp, clock.observedAt || clock.sourceTimestamp);
+    else assert.ok(Date.parse(timestamp) >= before && Date.parse(timestamp) <= Date.now());
+    assert.equal(calls, 1);
+    assert.equal(state.requestsUsed, 1);
+  }
+});
+
+test("rejected attached clocks cannot prevent an independent newly acquired creator response", async () => {
+  const attached = evidence({ observedAt: undefined });
+  const before = structuredClone(attached);
+  const acquired = evidence();
+  let calls = 0;
+  const state = createActiveEvidenceExecutionState({ maxProviderRequests: 1, now: () => NOW });
+  const result = await executeActiveEvidenceProviderRequests({ ...PROJECT, blockscoutDeployerEvidence: attached },
+    [{ field: "creatorAddress" }], { now: () => NOW, useCache: false, nativeDeploymentHistory: false, env: {},
+      providers: { getBlockscoutDeployerEvidence: async () => { calls++; return acquired; } },
+    }, state);
+  assert.equal(calls, 1);
+  assert.equal(state.requestsUsed, 1);
+  assert.equal(result.observations.find(row => row.field === "creatorAddress").sourceTimestamp, acquired.observedAt);
+  assert.deepEqual(attached, before);
+});
+
+test("attached clock validation applies to both security containers without borrowing an invalid preferred clock", async () => {
+  for (const patch of [item => ({ securityEvidence: [item] }), item => ({ freeSecurityEvidence: { evidence: [item] } })]) {
+    const invalid = evidence({ observedAt: "invalid", sourceTimestamp: new Date(NOW - 60000).toISOString() });
+    assert.deepEqual((await recover({ ...PROJECT, ...patch(invalid) }, { useCache: false })).observations, []);
+    const valid = evidence({ observedAt: undefined, sourceTimestamp: new Date(NOW - 60000).toISOString() });
+    const result = await recover({ ...PROJECT, ...patch(valid) }, { useCache: false });
+    assert.equal(result.observations.find(row => row.field === "creatorAddress").sourceTimestamp, valid.sourceTimestamp);
+  }
 });
