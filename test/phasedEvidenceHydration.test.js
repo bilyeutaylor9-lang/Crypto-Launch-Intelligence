@@ -35,7 +35,8 @@ function quote(url) {
 function options(clock, events, overrides = {}) {
   return {now: clock, maxProviderRequests: 3, concurrency: 1, useCache: false, walletHistory: false,
     wave1Max: 1, wave2Max: 0, wave3Max: 0, providerTimeoutMs: 500,
-    providers: {fetch: async () => assert.fail("External HTTP is forbidden"), getTokenPairs: async (_chain, token) => {
+    providers: {fetch: async () => assert.fail("External HTTP is forbidden"),
+      getFreeSecurityEvidence: async () => ({ evidence: [] }), getTokenPairs: async (_chain, token) => {
       events.push("MARKET");
       return [{chainId: "base", pairAddress: token === OTHER_TOKEN ? OTHER_POOL : POOL, baseToken: {address: token}, quoteToken: {address: USDC},
         priceUsd: "1.1", liquidity: {usd: 200000}, volume: {h24: 100000}}];

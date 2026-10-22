@@ -89,7 +89,7 @@ export async function getSourcifySecurityEvidence(project = {}, options = {}) {
 
   try {
     const url = `${SOURCIFY_BASE_URL}/v2/contract/${chainId}/${address}?fields=deployment`;
-    const raw = await fetchJson(url, { timeoutMs: options.timeoutMs });
+    const raw = await (options.securityFetchJson || fetchJson)(url, { timeoutMs: options.timeoutMs });
     const evidence = normalizeSourcifyContract(raw, { chain, address });
     return options.useCache === false ? evidence : setCachedSecurityEvidence(SOURCIFY_PROVIDER, chain, address, evidence);
   } catch (error) {
