@@ -324,6 +324,9 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
   if (now === null) throw new TypeError("Measured wallet flow requires a valid evaluation clock.");
   const diagnostics = [];
   const existingProvenance = project.fieldProvenance || {};
+  const rootDeclared = project.smartWalletFlowProvenance !== undefined;
+  const nestedDeclared = project.smartWalletSignal?.provenance !== undefined;
+  const declaredReceipt = rootDeclared || nestedDeclared;
   const root = normalizeFlow(project.smartWalletFlowProvenance, project, project, now,
     "root", diagnostics, false, existingProvenance);
   const sampleSignal = project.smartWalletSignal?.sampleOnly === true ||
@@ -332,9 +335,16 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
     "smartWalletSignal", diagnostics);
   const provider = providerFieldFlow(project, now, diagnostics);
   const tape = eventTapeFlow(project, now, diagnostics);
+  const declaredRejected = (rootDeclared && (!root || root.invalidFields.size > 0)) ||
+    (nestedDeclared && !sampleSignal && (!nested || nested.invalidFields.size > 0));
+  for (const [declared, flow, path] of [[rootDeclared, root, "root"], [nestedDeclared && !sampleSignal, nested, "smartWalletSignal"]]) {
+    if (declared && !flow && !diagnostics.some((row) => row.path === path)) {
+      diagnostics.push({ path, reason: "DECLARED_RECEIPT_REJECTED" });
+    }
+  }
   // Samples have a separate namespace. Canonical fields are read by consumers
   // that do not inspect scope, so a scope flag alone cannot isolate samples.
-  const flows = [root, nested, provider].filter(Boolean);
+  const flows = declaredRejected ? [] : [root, nested, provider].filter(Boolean);
   const previousSample = project.measuredWalletFlow?.observedSample;
   const observedSample = tape ? {
     status: tape.values.smartWalletNetFlowUsd === null ? "PARTIAL" : "OBSERVED",
@@ -369,6 +379,15 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
       values[field] = null;
       delete provenance[field];
       diagnostics.push({ field, reason: "CONFLICTING_SUPPLIED_FLOW_VALUE" });
+    }
+  }
+  if (declaredReceipt && diagnostics.some(({ reason }) =>
+    ["CONFLICTING_QUALIFIED_FLOW", "CONFLICTING_SUPPLIED_FLOW_VALUE"].includes(reason))) {
+    // Do not let a second pass resolve a conflict merely because the first
+    // pass removed one of its numeric aliases. The whole declared flow closes.
+    for (const field of Object.keys(ALIASES)) {
+      values[field] = null;
+      delete provenance[field];
     }
   }
   const anchor = compatible && values.smartWalletNetFlowUsd !== null
@@ -413,7 +432,7 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
       promoted[alias] = null;
     }
   }
-  const guarded = sampleOnly || present(project.smartWalletFlowProvenance) || present(project.smartWalletSignal?.provenance) ||
+  const guarded = sampleOnly || declaredReceipt ||
     present(project.ignitionRawSensors?.eventTape) || Object.values(ALIASES).flat()
       .some((alias) => existingProvenance[alias] && existingProvenance[alias].derivation !== DERIVATION);
   for (const field of FIELDS) {
@@ -445,16 +464,60 @@ export function produceMeasuredWalletFlowInputs(project = {}, options = {}) {
       ...(sampleSignal ? { observedSample } : {}),
     },
   } : {};
+  const rejectedReceiptInputs = { ...(project.measuredWalletFlow?.rejectedReceiptInputs || {}) };
+  if (declaredReceipt) {
+    // Rejected declared values must not remain numeric consumer fallbacks.
+    // Archive original representations before replacing only those aliases.
+    const rejectedRootValues = {};
+    const rejectedSignalValues = {};
+    const dailyFields = { ...ALIASES, accumulationDays: ["accumulationDays"] };
+    for (const [field, fieldAliases] of Object.entries(dailyFields)) {
+      for (const alias of fieldAliases) {
+        if (present(project[alias]) && (values[field] === null || !sameNumber(values[field], measuredWalletNumber(project[alias], {
+          signed: field === "smartWalletNetFlowUsd", count: field.endsWith("Count") || field === "accumulationDays",
+        })))) {
+          rejectedRootValues[alias] = project[alias];
+          promoted[alias] = values[field];
+        }
+        if (present(project.smartWalletSignal?.[alias]) &&
+            (values[field] === null || !sameNumber(values[field], measuredWalletNumber(project.smartWalletSignal[alias], {
+              signed: field === "smartWalletNetFlowUsd", count: field.endsWith("Count") || field === "accumulationDays",
+            })))) rejectedSignalValues[alias] = values[field];
+      }
+    }
+    for (const [ratio, numerator, denominator] of [
+      ["smartWalletBuySellRatio", "smartWalletBuyCount", "smartWalletSellCount"],
+      ["smartWalletVolumeRatio", "smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd"],
+    ]) {
+      if (present(project.smartWalletSignal?.[ratio]) && (values[numerator] === null || values[denominator] === null)) {
+        rejectedSignalValues[ratio] = null;
+      }
+    }
+    if ((rootDeclared && !root && !rejectedReceiptInputs.root) || Object.keys(rejectedRootValues).length) {
+      const prior = rejectedReceiptInputs.root;
+      rejectedReceiptInputs.root = { provenance: project.smartWalletFlowProvenance,
+        values: { ...(prior?.values || {}), ...rejectedRootValues }, fieldProvenance: prior?.fieldProvenance || existingProvenance,
+        reasons: prior?.reasons || diagnostics };
+    }
+    if ((nestedDeclared && !nested && !rejectedReceiptInputs.smartWalletSignal) || Object.keys(rejectedSignalValues).length) {
+      rejectedReceiptInputs.smartWalletSignal = { value: project.smartWalletSignal, reasons: diagnostics };
+    }
+    if (Object.keys(rejectedSignalValues).length) signalPatch.smartWalletSignal = {
+      ...(signalPatch.smartWalletSignal || project.smartWalletSignal), ...rejectedSignalValues,
+    };
+  }
   return { ...project, ...promoted, ...signalPatch, fieldProvenance,
     measuredWalletFlow: {
       schemaVersion: 1, evaluatedAt: new Date(now).toISOString(),
       status: FIELDS.every((field) => values[field] !== null) ? "MEASURED" :
         FIELDS.some((field) => values[field] !== null) ? "PARTIAL" : "UNKNOWN",
       values, effectiveValues, fieldProvenance: provenance, diagnostics,
-      dailyTotals: flows.length > 0 && compatible && flows.every((flow) => flow.dailyComplete),
+      dailyTotals: flows.length > 0 && compatible && flows.every((flow) => flow.dailyComplete) &&
+        Object.keys(ALIASES).some((field) => values[field] !== null),
       sampleOnly,
       observedSample, ...(rawSampleSignal ? { rawSampleSignal } : {}), rawSampleTotals, unverifiedProviderFields,
       ...(unverifiedProviderSignal ? { unverifiedProviderSignal } : {}),
+      rejectedReceiptInputs,
       history: { observedPositiveDays: history.observedPositiveDays, exact: history.value !== null },
       rawPrerequisites: Object.fromEntries(FIELDS.filter((field) => values[field] === null).map((field) => [field, {
         recoveryDisposition: "UNAVAILABLE_WITH_CURRENT_PROVIDERS",
