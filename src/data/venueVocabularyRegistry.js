@@ -51,14 +51,30 @@ export const VENUE_REGISTRY = Object.freeze({
   paraswap: ["paraswap", "para swap", "paraswap aggregator"],
 });
 
+// The frozen outer registry fixes entry order and array identities, not their contents.
+const venueEntries = Object.entries(VENUE_REGISTRY);
+const normalizedVenueStrings = new Map();
+const MAX_NORMALIZED_VENUE_STRINGS = 1024;
+const MAX_CACHED_VENUE_STRING_LENGTH = 256;
+
 function norm(value = "") {
-  return String(value ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-");
+  // Coerce every time; only immutable string transforms are cached, never venue matches.
+  const text = String(value ?? "");
+  const cacheable = text.length <= MAX_CACHED_VENUE_STRING_LENGTH;
+  const cached = cacheable ? normalizedVenueStrings.get(text) : undefined;
+  if (cached !== undefined) return cached;
+  const normalized = text.trim().toLowerCase().replace(/[_\s]+/g, "-");
+  if (cacheable) {
+    if (normalizedVenueStrings.size >= MAX_NORMALIZED_VENUE_STRINGS) normalizedVenueStrings.clear();
+    normalizedVenueStrings.set(text, normalized);
+  }
+  return normalized;
 }
 
 export function normalizeVenue(value = "") {
   const key = norm(value);
   if (!key) return null;
-  for (const [venue, aliases] of Object.entries(VENUE_REGISTRY)) {
+  for (const [venue, aliases] of venueEntries) {
     if (norm(venue) === key || aliases.some((alias) => norm(alias) === key)) return venue;
   }
   return key;

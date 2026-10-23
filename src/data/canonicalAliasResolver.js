@@ -95,11 +95,29 @@ function hasOwn(object = {}, key = "") {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
+function memoizeAliasStringTransform(transform) {
+  const cache = new Map();
+  return (text) => {
+    if (cache.has(text)) return cache.get(text);
+    const result = transform(text);
+    if (text.length <= 1024) {
+      if (cache.size >= 4096) cache.delete(cache.keys().next().value);
+      cache.set(text, result);
+    }
+    return result;
+  };
+}
+
+const pathParts = memoizeAliasStringTransform(text => text.split(".").filter(Boolean));
+const comparableAliasString = memoizeAliasStringTransform(text => text.replace(/[_\-\s]+/g, "").toLowerCase());
+
 export function getPath(object = {}, path = "") {
-  return String(path || "")
-    .split(".")
-    .filter(Boolean)
-    .reduce((value, part) => (value && hasOwn(value, part) ? value[part] : undefined), object);
+  let value = object;
+  for (const part of pathParts(String(path || ""))) {
+    if (!value || !hasOwn(value, part)) return undefined;
+    value = value[part];
+  }
+  return value;
 }
 
 function hasRawValue(value) {
@@ -250,7 +268,7 @@ function semanticScanFields(project = {}, options = {}) {
 }
 
 function comparable(value = "") {
-  return String(value || "").replace(/[_\-\s]+/g, "").toLowerCase();
+  return comparableAliasString(String(value || ""));
 }
 
 function indexSemanticFields(fields = []) {

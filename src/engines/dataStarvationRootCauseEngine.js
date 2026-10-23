@@ -109,12 +109,17 @@ function providerStatus(project = {}, field = "") {
     return "PROVIDER_UNAVAILABLE";
   }
   if (recoveryAttempted) {
-    if (recoveryStatuses.includes("request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
+    if (recoveryStatuses.includes("request_budget_exhausted") ||
+      recoveryStatuses.includes("phase_request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
     if (recoveryStatuses.includes("circuit_open")) return "PROVIDER_CIRCUIT_OPEN";
     if (
       recoveryStatuses.includes("failed") ||
       recoveryStatuses.includes("provider_unavailable")
     ) return "PROVIDER_UNAVAILABLE";
+    if (recoveryStatuses.includes("rate_limited") ||
+      recoveryStatuses.includes("provider_cooldown")) return "PROVIDER_RATE_LIMITED";
+    if (recoveryStatuses.includes("phase_time_budget_exhausted") ||
+      recoveryStatuses.includes("time_budget_exhausted")) return "ENRICHMENT_DEFERRED";
     return "PROVIDER_RETURNED_UNKNOWN";
   }
   return "UNKNOWN";
