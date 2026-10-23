@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { applyCanonicalAliases, canonicalValue } from "../data/canonicalAliasResolver.js";
+import { resolveCanonicalObservationAliases } from "../data/canonicalObservationInput.js";
 import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
@@ -35,6 +36,10 @@ const RECOVERY_CONTRACTS = new Map(getEngineContracts().filter(contract =>
   contract.priority < RECOVERY_PRIORITY &&
   !["dataStarvationRootCause", "valueOfInformation", "starvationRescue"].includes(contract.id)
 ).map(contract => [contract.id, contract]));
+const POSITIVE_LOCAL_RECOVERY_FIELDS = new Set([
+  "priceUsd", "liquidityUsd", "stableExitLiquidityUsd", "volume24hUsd", "circulatingMarketCapUsd",
+  "fullyDilutedValuationUsd", "estimatedMarketCapUsd", "uniqueBuyers24h", "holderCount",
+]);
 
 function num(value = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -130,6 +135,16 @@ function stringEvidence(values = []) {
 }
 
 function recoveredValueFor(project = {}, field = "") {
+  const canonicalField = canonicalFieldForAlias(field) || field;
+  if (Object.hasOwn(project.canonicalAliases || {}, canonicalField)) {
+    const value = project.canonicalAliases[canonicalField];
+    // A rejected observation cannot be revived by a raw compatibility path.
+    if (value === null || value === undefined) return null;
+    // Preserve raw identity claims so contradictions remain visible to admission.
+    if (!["chain", "tokenAddress", "poolAddress"].includes(canonicalField)) {
+      return POSITIVE_LOCAL_RECOVERY_FIELDS.has(canonicalField) ? positiveNumber([value]) : value;
+    }
+  }
   const chain = chainOf(project);
 
   switch (field) {
@@ -220,6 +235,11 @@ function localRecoveryProvenance(project = {}, field = "") {
     project.fieldProvenance?.[field] ||
     project.canonicalAliasProvenance?.[field] ||
     {};
+  const rawConfidence = existing.confidence ?? project.sourceReliabilityScore ?? 65;
+  const measuredConfidence = typeof rawConfidence === "number" ||
+    (typeof rawConfidence === "string" && rawConfidence.trim() !== "") ? Number(rawConfidence) : NaN;
+  const confidence = Number.isFinite(measuredConfidence) && measuredConfidence >= 0 && measuredConfidence <= 100
+    ? measuredConfidence > 1 ? measuredConfidence / 100 : measuredConfidence : 0;
   return {
     value: recoveredValueFor(project, field),
     source: existing.source || existing.sourceProvider || project.source || "existing-provider-observation",
@@ -231,9 +251,7 @@ function localRecoveryProvenance(project = {}, field = "") {
       project.lastUpdatedAt ||
       project.discoveredAt ||
       null,
-    confidence: Number(existing.confidence || project.sourceReliabilityScore || 65) > 1
-      ? Number(existing.confidence || project.sourceReliabilityScore || 65) / 100
-      : Number(existing.confidence || 0.65),
+    confidence,
     verificationStatus:
       existing.verificationStatus ||
       existing.validationStatus ||
@@ -488,9 +506,14 @@ function rawRecoveryDisabled(options) {
   return limits.WAVE1 === 0 && limits.WAVE2 === 0;
 }
 
-function refreshRecoveryAliases(project, fields, observed = false) {
+function refreshRecoveryAliases(project, fields, observed = false, context = null) {
   if (!fields.length) return project;
-  const aliased = applyCanonicalAliases(project, { fields, disableSemanticScan: true });
+  const resolver = context ? (candidate, aliasOptions) => {
+    const resolution = resolveCanonicalObservationAliases(candidate, aliasOptions);
+    context.storedObservationFields = resolution.storedObservationFields || [];
+    return resolution;
+  } : resolveCanonicalObservationAliases;
+  const aliased = applyCanonicalAliases(project, { fields, disableSemanticScan: true }, resolver);
   const next = { ...project,
     canonicalAliases: { ...project.canonicalAliases },
     canonicalAliasProvenance: { ...project.canonicalAliasProvenance },
@@ -521,12 +544,19 @@ function promoteLocalRecoveryInputs(project, options) {
       }) === "RAW_RECOVERABLE";
   });
   const fields = [...new Set(localItems.map(fieldOf))];
-  let next = refreshRecoveryAliases(project, fields);
+  const context = {};
+  let next = refreshRecoveryAliases(project, fields, false, context);
   const recoveredFields = [];
   const attempts = [];
+  let storedSatisfied = false;
   for (const field of fields) {
     const value = recoveredValueFor(next, field);
     if (!hasRecoveryValue(value)) continue;
+    // Stored observations keep their original path semantics, not a synthetic root.
+    if (context.storedObservationFields?.includes(field)) {
+      storedSatisfied = true;
+      continue;
+    }
     const promoted = applyRecoveredField(next, field, value);
     const rootChanged = Object.keys(promoted).some(key => !isDeepStrictEqual(next[key], promoted[key]));
     const aliasChanged = !isDeepStrictEqual(project.canonicalAliases?.[field], next.canonicalAliases?.[field]);
@@ -537,7 +567,9 @@ function promoteLocalRecoveryInputs(project, options) {
     attempts.push({ field, family: sourceFamilyForField(field), wave: "LOCAL",
       status: "RECOVERED_EXISTING_OBSERVATION", source: provenance.source });
   }
-  return { project: refreshRecoveryAliases(next, fields), recoveredFields, attempts };
+  const normalized = refreshRecoveryAliases(next, fields);
+  return { project: storedSatisfied ? commitRecoveryPlanning(normalized, options, []) : normalized,
+    recoveredFields, attempts };
 }
 
 function pendingRecoveryPlanning(project = {}, options = {}) {

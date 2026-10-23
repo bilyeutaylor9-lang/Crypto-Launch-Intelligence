@@ -1,13 +1,10 @@
 import { getEngineContracts } from "../kernel/engineContractManifest.js";
-import { canonicalValue, resolveCanonicalAliases } from "../data/canonicalAliasResolver.js";
-import {
-  aliasesForCanonicalField,
-  canonicalFieldForAlias,
-} from "../data/canonicalFieldAliasRegistry.js";
+import { canonicalValue } from "../data/canonicalAliasResolver.js";
+import { canonicalFieldForAlias } from "../data/canonicalFieldAliasRegistry.js";
+import { resolveCanonicalObservationAliases } from "../data/canonicalObservationInput.js";
 import { fieldApplicability } from "./dataStarvationRootCauseEngine.js";
 
 let cachedEngineContracts = null;
-const contractFieldCache = new WeakMap();
 
 function engineContracts(options = {}) {
   if (options.contracts) return filterContractsForAudit(options.contracts, options.auditPhase);
@@ -86,8 +83,6 @@ function sourceHintsForField(field = "") {
 }
 
 function canonicalFieldsForContracts(contracts = []) {
-  if (contractFieldCache.has(contracts)) return contractFieldCache.get(contracts);
-
   const fields = new Set();
   for (const contract of contracts) {
     for (const group of contract.inputContract?.requiredAny || []) {
@@ -100,41 +95,14 @@ function canonicalFieldsForContracts(contracts = []) {
     }
   }
 
-  const canonicalFields = [...fields];
-  contractFieldCache.set(contracts, canonicalFields);
-  return canonicalFields;
+  return [...fields];
 }
 
 function resolveReadinessAliases(project = {}, canonicalFields = [], options = {}) {
-  if (options.disableSemanticScan !== true) {
-    return resolveCanonicalAliases(project, {
-      fields: canonicalFields,
-      disableSemanticScan: false,
-      resolvedChain: options.resolvedChain,
-    });
-  }
-
-  const resolved = {};
-  for (const field of canonicalFields) {
-    if (hasValue(project.canonicalAliases || {}, field)) {
-      resolved[field] = project.canonicalAliases[field];
-      continue;
-    }
-    if (hasValue(project, field)) {
-      resolved[field] = project[field];
-      continue;
-    }
-    const hasExplicitAlias = aliasesForCanonicalField(field).some((sourcePath) =>
-      hasValue(project, sourcePath)
-    );
-    resolved[field] = hasExplicitAlias
-      ? canonicalValue(project, field, {
-          disableSemanticScan: true,
-          resolvedChain: options.resolvedChain,
-        })
-      : null;
-  }
-  return { resolved };
+  return resolveCanonicalObservationAliases(project, {
+    fields: canonicalFields,
+    disableSemanticScan: options.disableSemanticScan === true,
+  });
 }
 
 function evaluateRequiredGroup(project = {}, group = [], contract = {}, lookupCanonicalValue = canonicalValue) {
@@ -146,7 +114,7 @@ function evaluateRequiredGroup(project = {}, group = [], contract = {}, lookupCa
   }));
   const applicableFields = applicability.filter((item) => item.status !== "NOT_APPLICABLE").map((item) => item.field);
   const notApplicable = applicability.filter((item) => item.status === "NOT_APPLICABLE");
-  const present = applicableFields.filter((field) => hasValue(project, field) || hasValue({ value: lookupCanonicalValue(project, field) }, "value"));
+  const present = applicableFields.filter((field) => hasValue({ value: lookupCanonicalValue(project, field) }, "value"));
   const missing = applicableFields.filter((field) => !present.includes(field));
 
   return {
@@ -164,11 +132,18 @@ export function evaluateEngineDataReadiness(project = {}, contract = {}, options
   const requiredGroups = contract.inputContract?.requiredAny || [];
   const optionalFields = contract.inputContract?.optional || [];
   const aliased = project;
-  const lookupCanonicalValue = options.lookupCanonicalValue || canonicalValue;
+  const resolution = options.lookupCanonicalValue ? null : resolveReadinessAliases(
+    project,
+    canonicalFieldsForContracts([contract]),
+    { ...options, disableSemanticScan: options.disableSemanticScan ?? true }
+  );
+  const lookupCanonicalValue = options.lookupCanonicalValue || ((target, field) =>
+    resolution.resolved[canonicalFieldForAlias(field) || field]
+  );
   const groups = requiredGroups.map((group) => evaluateRequiredGroup(aliased, group, contract, lookupCanonicalValue));
   const optionalCanonicalFields = [...new Set(optionalFields.map((field) => canonicalFieldForAlias(field) || field))];
   const optionalApplicable = optionalCanonicalFields.filter((field) => fieldApplicability(aliased, field, contract).status !== "NOT_APPLICABLE");
-  const optionalPresent = optionalApplicable.filter((field) => hasValue(aliased, field) || hasValue({ value: lookupCanonicalValue(aliased, field) }, "value"));
+  const optionalPresent = optionalApplicable.filter((field) => hasValue({ value: lookupCanonicalValue(aliased, field) }, "value"));
   const optionalMissing = optionalApplicable.filter((field) => !optionalPresent.includes(field));
   const requiredSatisfied = groups.filter((group) => group.satisfied).length;
   const requiredTotal = groups.length;
@@ -325,20 +300,17 @@ export function analyzeEngineDataReadiness(project = {}, options = {}) {
     };
   }
   const contracts = engineContracts(options);
-  const resolvedChain = canonicalValue(project, "chain", { disableSemanticScan: true });
   const canonicalFields = options.canonicalFields || canonicalFieldsForContracts(contracts);
   const aliasResolution = resolveReadinessAliases(project, canonicalFields, {
     disableSemanticScan: options.disableSemanticScan ?? false,
-    resolvedChain,
   });
   const lookupCache = new Map(Object.entries(aliasResolution.resolved || {}));
   const lookupCanonicalValue = (target = project, field = "") => {
     const canonicalField = canonicalFieldForAlias(field) || field;
     if (target === project && lookupCache.has(canonicalField)) return lookupCache.get(canonicalField);
-    const value = canonicalValue(target, canonicalField, {
+    const value = resolveReadinessAliases(target, [canonicalField], {
       disableSemanticScan: options.disableSemanticScan ?? false,
-      resolvedChain,
-    });
+    }).resolved[canonicalField];
     if (target === project) lookupCache.set(canonicalField, value);
     return value;
   };

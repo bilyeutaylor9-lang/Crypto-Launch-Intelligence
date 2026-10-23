@@ -127,6 +127,24 @@ function hasRawValue(value) {
   return true;
 }
 
+function sourceContainers(project, path) {
+  const containers = [{ node: project, depth: 0 }];
+  let node = project;
+  const parts = pathParts(String(path || ""));
+  for (let depth = 1; depth < parts.length; depth++) {
+    if (!node || !hasOwn(node, parts[depth - 1])) break;
+    node = node[parts[depth - 1]];
+    if (!node || typeof node !== "object") break;
+    containers.push({ node, depth });
+  }
+  return containers;
+}
+
+function declaredProvider(node = {}) {
+  return [node.provider, node.source, node.sourceProvider]
+    .find(value => typeof value === "string" && value.trim());
+}
+
 function sourceTimestamp(project = {}, path = "") {
   return (
     getPath(project, `${path}Timestamp`) ||
@@ -144,7 +162,9 @@ function inferProvider(project = {}, options = {}, sourcePath = "") {
   const provenance = sourcePath ? fieldProvenance(project, sourcePath) : {};
   const observedSource = [provenance.source, provenance.sourceProvider, provenance.provider]
     .find((value) => typeof value === "string" && value.trim());
-  const source = observedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown";
+  const nestedSource = !observedSource && sourcePath.includes(".") && sourceContainers(project, sourcePath).slice(1)
+    .map(({ node }) => declaredProvider(node)).findLast(Boolean);
+  const source = observedSource || nestedSource || options.sourceProvider || project.source || project.provider || project.discoverySource || "unknown";
   const cache = typeof source === "string" ? options._providerIds : null;
   if (cache?.has(source)) return cache.get(source);
   const provider = canonicalProviderId(source);
@@ -166,7 +186,41 @@ function matchesProjectIdentity(project, chain, address, requireDeclared = false
     addresses.every(value => normalizeTokenAddress(value, chain) === address);
 }
 
-function securityAliasRejection(project, sourcePath, canonicalField, rawValue, inferredProvider) {
+function verifiedHoneypotObserver(project, sourcePath, inferredProvider) {
+  if (inferredProvider !== "goplus") return null;
+  const verified = item => {
+    if (!item || typeof item !== "object" || item.honeypot !== false || !hasVerifiedHoneypotNegative(item)) return false;
+    const chain = normalizeChainId(item.chain);
+    const address = normalizeTokenAddress(item.address || item.tokenAddress, chain);
+    return matchesProjectIdentity(item, chain, address, true) && matchesProjectIdentity(project, chain, address, true);
+  };
+  const retained = [
+    ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
+    ...(Array.isArray(project.freeSecurityEvidence?.evidence) ? project.freeSecurityEvidence.evidence : [])];
+  if (retained.some(item => {
+    if (!item || item.honeypot !== true) return false;
+    const chain = normalizeChainId(item.chain);
+    const address = normalizeTokenAddress(item.address || item.tokenAddress, chain);
+    return matchesProjectIdentity(item, chain, address, true) && matchesProjectIdentity(project, chain, address, true);
+  })) return null;
+  const nested = sourceContainers(project, sourcePath).findLast(({ node }) => verified(node));
+  if (nested) return { receipt: nested.node, depth: nested.depth };
+
+  const observation = fieldProvenance(project, sourcePath);
+  const chain = normalizeChainId(observation.chain);
+  const address = normalizeTokenAddress(observation.tokenAddress || observation.address, chain);
+  if (observation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION" || observation.value !== false ||
+      canonicalProviderId(declaredProvider(observation)) !== "goplus" ||
+      !securityObservationIsCurrent(observation.sourceTimestamp) || !(Number(observation.confidence) > 0) ||
+      !matchesProjectIdentity(observation, chain, address, true) || !matchesProjectIdentity(project, chain, address, true)) return null;
+  // Reduced executor observations must join their original probe, not just a provider label.
+  const receipts = [observation, ...retained];
+  const receipt = receipts.find(item => verified(item) && item.observedAt === observation.sourceTimestamp &&
+    normalizeChainId(item.chain) === chain && normalizeTokenAddress(item.address || item.tokenAddress, chain) === address);
+  return receipt ? { receipt, depth: pathParts(sourcePath).length } : null;
+}
+
+function securityAliasRejection(project, sourcePath, canonicalField, rawValue, inferredProvider, observer) {
   const negativeHoneypot = canonicalField === "honeypotDetected" && normalizeBooleanVocabulary(rawValue).value === false;
   if (negativeHoneypot && metadataOnlySecurityProvider(inferredProvider)) return "metadata-does-not-prove-honeypot-negative";
   let node = project;
@@ -176,8 +230,11 @@ function securityAliasRejection(project, sourcePath, canonicalField, rawValue, i
     const part = parts[index];
     if (!node || typeof node !== "object") return negativeHoneypot ? "unavailable-source-for-honeypot-negative" : null;
     const provider = node.provider || node.source;
-    if (container === "sourcifyDeployerEvidence" ||
-        (typeof provider === "string" && provider.toLowerCase().includes("sourcify"))) {
+    // Only a current, exact raw probe can distinguish an ancestor's discovery label from the observer.
+    const inheritedDiscovery = observer && index < observer.depth;
+    const independentReceipt = observer?.receipt === node;
+    if (!inheritedDiscovery && !independentReceipt && (container === "sourcifyDeployerEvidence" ||
+        (typeof provider === "string" && provider.toLowerCase().includes("sourcify")))) {
       const boundChain = normalizeChainId(node.chain);
       const boundAddress = normalizeTokenAddress(node.address || node.tokenAddress, boundChain);
       if (node.status === "UNKNOWN" ||
@@ -185,7 +242,8 @@ function securityAliasRejection(project, sourcePath, canonicalField, rawValue, i
           !matchesProjectIdentity(project, boundChain, boundAddress)) return "sourcify-unverified-or-contradictory-identity";
     }
     if (negativeHoneypot) {
-      if (metadataOnlySecurityProvider(provider) || metadataOnlySecurityProvider(container)) {
+      if ((!inheritedDiscovery && metadataOnlySecurityProvider(provider)) ||
+          (!inheritedDiscovery && !independentReceipt && metadataOnlySecurityProvider(container))) {
         return "metadata-does-not-prove-honeypot-negative";
       }
       if (typeof provider === "string" && provider.toLowerCase().includes("goplus") &&
@@ -563,11 +621,14 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
     const observation = fieldProvenance(project, candidate.sourcePath);
     const trustPath = canonicalField === "honeypotDetected" && candidate.sourcePath === canonicalField && prior?.sourcePath &&
       observation.verificationStatus !== "VERIFIED_PROVIDER_OBSERVATION" ? prior.sourcePath : candidate.sourcePath;
-    const rejection = securityAliasRejection(project, trustPath, canonicalField, candidate.rawValue, provider);
+    const observer = canonicalField === "honeypotDetected" && normalizeBooleanVocabulary(candidate.rawValue).value === false
+      ? verifiedHoneypotObserver(project, trustPath, provider) : null;
+    const timestamp = observer?.receipt.observedAt || sourceTimestamp(project, candidate.sourcePath);
+    const rejection = securityAliasRejection(project, trustPath, canonicalField, candidate.rawValue, provider, observer);
     if (rejection) {
       records.push(rejectRecord({ canonicalField, sourcePath: candidate.sourcePath, rawValue: candidate.rawValue,
         provider, reason: rejection, aliases,
-        sourceTimestamp: sourceTimestamp(project, candidate.sourcePath) }));
+        sourceTimestamp: timestamp }));
       continue;
     }
     let profile = options._providerProfiles?.get(provider);
@@ -583,7 +644,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
         provider,
         reason: "identity-critical-fuzzy-disabled",
         aliases,
-        sourceTimestamp: sourceTimestamp(project, candidate.sourcePath),
+        sourceTimestamp: timestamp,
       }));
       continue;
     }
@@ -605,7 +666,7 @@ export function collectAliasCandidates(project = {}, canonicalField = "", option
         providerFieldName: candidate.sourceField,
         detectedAlias: candidate.detectedAlias || candidate.sourceField,
         sourceProvider: provider,
-        sourceTimestamp: sourceTimestamp(project, candidate.sourcePath),
+        sourceTimestamp: timestamp,
         sourceUnit: normalized.sourceUnit || options.sourceUnit || null,
         canonicalUnit: normalized.canonicalUnit || null,
         conversionApplied: normalized.conversionApplied || "none",
@@ -650,7 +711,16 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
       ...options, resolvedChain, _semanticFields: semanticFields, _semanticFieldIndex: semanticFieldIndex,
       _providerIds: providerIds, _providerProfiles: providerProfiles,
     });
-    const { winner, conflicts: fieldConflicts, status } = resolveFieldConflict(candidates);
+    let { winner, conflicts: fieldConflicts, status } = resolveFieldConflict(candidates);
+    // Additional negative aliases cannot outvote an existing adverse observation.
+    if (field === "honeypotDetected" && winner?.canonicalValue === false) {
+      const adverse = candidates.filter(candidate => candidate.validationStatus === "VALID" && candidate.canonicalValue === true);
+      if (adverse.length) {
+        winner = resolveFieldConflict(adverse).winner;
+        fieldConflicts = candidates.filter(candidate => candidate.validationStatus === "VALID" && candidate.canonicalValue === false);
+        status = "CONFLICTED";
+      }
+    }
     if (winner) {
       resolved[field] = winner.canonicalValue;
       provenance[field] = { ...winner, conflicts: fieldConflicts, conflictStatus: status };
@@ -683,8 +753,8 @@ export function resolveCanonicalAliases(project = {}, options = {}) {
   };
 }
 
-export function applyCanonicalAliases(project = {}, options = {}) {
-  const resolution = resolveCanonicalAliases(project, options);
+export function applyCanonicalAliases(project = {}, options = {}, resolveAliases = resolveCanonicalAliases) {
+  const resolution = resolveAliases(project, options);
   const sanitized = { ...project };
   for (const field of UNIQUE_PARTICIPANT_FIELDS) {
     const priorProvenance = project.canonicalAliasProvenance?.[field] || fieldProvenance(project, field);
@@ -704,7 +774,8 @@ export function applyCanonicalAliases(project = {}, options = {}) {
   return {
     ...sanitized,
     ...Object.fromEntries(
-      Object.entries(resolution.resolved).filter(([, value]) => value !== null && value !== undefined && value !== "")
+      Object.entries(resolution.resolved).filter(([field, value]) => value !== null && value !== undefined && value !== "" &&
+        !resolution.storedObservationFields?.includes(field))
     ),
     canonicalAliases: resolution.resolved,
     canonicalAliasProvenance: resolution.provenance,
