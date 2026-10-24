@@ -265,13 +265,16 @@ test("all eight pack workflows preserve only failed persistence and upload exact
   }
 });
 
-test("every persistence guard rejects lost diagnostics without allowing temporary transport to excuse failed packing", () => {
+test("every persistence guard rejects failed canonical publication despite successful temporary transport", () => {
   const cases = [
     { name: "normal canonical success", pack: "success", save: "success", preserve: "skipped", upload: "skipped", status: 0 },
     { name: "failed cache and failed upload", pack: "success", save: "failure", preserve: "success", upload: "failure", status: 1 },
     { name: "failed preservation and skipped upload", pack: "success", save: "failure", preserve: "failure", upload: "skipped", status: 1 },
     { name: "skipped transport after preservation", pack: "success", save: "failure", preserve: "success", upload: "skipped", status: 1 },
-    { name: "failed cache with uploaded temporary bytes", pack: "success", save: "failure", preserve: "success", upload: "success", status: 0, warning: true },
+    { name: "failed cache with uploaded temporary bytes", pack: "success", save: "failure", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "skipped cache with uploaded temporary bytes", pack: "success", save: "skipped", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "cancelled cache with uploaded temporary bytes", pack: "success", save: "cancelled", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "unreported cache with uploaded temporary bytes", pack: "success", save: "", preserve: "success", upload: "success", status: 1, warning: true },
     { name: "failed pack despite uploaded temporary bytes", pack: "failure", save: "skipped", preserve: "success", upload: "success", status: 1, warning: true },
     { name: "all skipped", pack: "skipped", save: "skipped", preserve: "skipped", upload: "skipped", status: 1 },
     { name: "cancelled diagnostics", pack: "success", save: "cancelled", preserve: "cancelled", upload: "cancelled", status: 1 },
@@ -298,6 +301,7 @@ test("every persistence guard rejects lost diagnostics without allowing temporar
       assert.equal(result.status, sample.status, `${file}: ${sample.name}: ${result.stderr}`);
       if (sample.warning) assert.match(result.stdout, /temporary 1-day diagnostic, not a permanent backup or verified restart/);
       if (sample.pack !== "success") assert.match(result.stdout, /temporary diagnostic cannot replace canonical restart state/);
+      if (sample.save !== "success") assert.match(result.stdout, /::error::Canonical restart publication failed:/);
     }
   }
 });
@@ -336,12 +340,13 @@ test("dashboard persistence failure reaches post-deployment final health instead
   assert.match(health, /for check in [^\n]*\bSTATE_PERSISTENCE\b/);
   assert.match(health, /for check in [^\n]*\bSTATE_PACK\b/);
   const healthy = Object.fromEntries([...health.matchAll(/^          ([A-Z_]+):/gm)].map(match => [match[1], "success"]));
-  for (const [upload, expected] of [["failure", 1], ["success", 0]]) {
+  for (const upload of ["failure", "success", "skipped", "cancelled"]) {
     const diagnostic = runShell(guard, { STATE_PACK: "success", STATE_CACHE_SAVE: "failure",
       FAILED_STATE_PRESERVE: "success", FAILED_STATE_UPLOAD: upload });
     const result = runShell(health, { ...healthy, STATE_PERSISTENCE: diagnostic.status === 0 ? "success" : "failure" });
-    assert.equal(result.status, expected);
-    if (expected) assert.match(result.stdout, /STATE_PERSISTENCE finished with failure/);
+    assert.equal(diagnostic.status, 1, `failed cache with ${upload} diagnostic transport must fail persistence`);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /STATE_PERSISTENCE finished with failure/);
   }
   assert.equal(runShell(health, healthy).status, 0);
   assert.equal(runShell(health, { ...healthy, STATE_PACK: "failure" }).status, 1);

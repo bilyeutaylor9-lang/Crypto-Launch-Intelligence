@@ -308,9 +308,15 @@ export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
     observedAt: cheap ? now.toISOString() : new Date().toISOString(),
     now,
   });
+  // Only explicit HTTP 404s establish candidate-level absence, never error text.
+  const candidateEvidenceUnavailable = responses.every((item) => item.status === "rejected" &&
+    [404, "404"].includes(item.reason?.status ?? item.reason?.statusCode ??
+      item.reason?.httpStatus ?? item.reason?.response?.status));
   return {
     ...result,
-    providerFailure: responses.every((item) => item.status === "rejected"),
+    providerFailure: !candidateEvidenceUnavailable && responses.every((item) => item.status === "rejected"),
+    ...(candidateEvidenceUnavailable ? { candidateEvidenceUnavailable: true,
+      reason: "Blockscout returned HTTP 404 for every requested token endpoint; candidate wallet evidence is unavailable." } : {}),
     warnings: [
       ...responses.flatMap((response, index) => response.status === "rejected"
         ? [`Blockscout ${endpoints[index][0].replace(/s$/, "")} request failed: ${response.reason?.message || "unknown"}`] : []),
