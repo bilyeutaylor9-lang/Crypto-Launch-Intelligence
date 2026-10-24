@@ -10,6 +10,7 @@ import {
   __forwardAlphaValidationHooks,
 } from "../src/production/forwardAlphaValidationOS.js";
 import { buildExactMarketObservation } from "../src/production/exactMarketObservationLedger.js";
+import { gradeIntegrityScopedProspectiveEdgeCohorts } from "../src/production/integrityScopedProspectiveEdgeGrader.js";
 import {
   CLI15_PREDICTION_CONTRACT_VERSION,
   freezeProspectiveEdgeCohort,
@@ -78,6 +79,83 @@ function exactObservation(row, observedAt, priceUsd) {
     priceUsd,
     source: "test-exact-market-source",
   }, { asOf: observedAt });
+}
+
+function promotionInputs() {
+  const fingerprint = "a".repeat(64);
+  const asOf = "2026-05-01T00:00:00.000Z";
+  return {
+    contractAudit: { currentContracts: 250, pass: true, latestStrategyFingerprint: fingerprint, asOf },
+    certificate: {
+      generatedAt: asOf,
+      edgeState: "VERIFIED_FORWARD_EDGE",
+      certificateEligible: true,
+      latestStrategyFingerprint: fingerprint,
+      current: {
+        generatedAt: asOf,
+        edgeState: "VERIFIED_FORWARD_EDGE",
+        strategyFingerprint: fingerprint,
+        interimSafety: { observations: 250, pass: true },
+        missingnessSensitivity: { pass: true },
+        capture: { pass: true },
+        executionCosts: { pass: true },
+        matchQuality: { pass: true },
+        replication: { pass: true },
+        gates: {
+          enoughData: true,
+          capturePass: true,
+          executionCostPass: true,
+          matchQualityPass: true,
+          replicationPass: true,
+          returnVerified: true,
+          hitVerified: true,
+          catastropheSafe: true,
+          missingnessSensitivityPass: true,
+        },
+        blockers: [],
+      },
+      inputAudit: {
+        episodeInputValid: true,
+        observationInputValid: true,
+        currentStrategyLedgerIntegrityPass: true,
+        currentStrategyPartitionIntegrityPass: true,
+        scopedProspectiveLedgerIntegrityPass: true,
+        exactMarketObservationLedgerIntegrityRequired: true,
+        exactMarketObservationLedgerIntegrityPass: true,
+        duplicateEpisodeIds: [],
+        topologyFailureEpisodeIds: [],
+        duplicateObservationKeys: [],
+        observationsRejected: 0,
+        nonLegacyInvalidRowsObserved: 0,
+      },
+      automaticTrading: false,
+      automaticPromotion: false,
+    },
+    primaryHorizon: { calibration: { state: "CALIBRATED" } },
+    canary: { state: "PAPER_CANARY_EDGE_SUPPORTED" },
+    sourceReadiness: { liveReady: true },
+    championChallenger: { state: "CHAMPION_ELIGIBLE", rollbackRequired: false, champion: { fingerprint: "champion-v1" } },
+    edgeDecay: { state: "HEALTHY" },
+    horizons: { 24: { state: "HORIZON_EDGE_POSITIVE" } },
+  };
+}
+
+function setProof(inputs, path, value) {
+  const keys = path.split(".");
+  const parent = keys.slice(0, -1).reduce((row, key) => row[key], inputs);
+  parent[keys.at(-1)] = value;
+}
+
+function assertPromotionBlocked(inputs, blocker) {
+  const original = structuredClone(inputs);
+  const gate = evaluateCli15PromotionGate(inputs);
+  assert.equal(gate.promotion.eligibleForHumanReview, false);
+  assert.notEqual(gate.edgeVerdict, "PROVEN");
+  assert.ok(gate.blockers.includes(blocker), JSON.stringify(gate.blockers));
+  assert.equal(gate.promotion.automaticPromotion, false);
+  assert.equal(gate.promotion.realMoneyTradingAuthorized, false);
+  assert.equal(gate.rollback.realMoneyAction, false);
+  assert.deepEqual(inputs, original, "Promotion evaluation must not rewrite evidence or history");
 }
 
 test("poolless price spikes cannot inflate a frozen-pool outcome or its excursion metrics", () => {
@@ -188,41 +266,187 @@ test("promotion gate fails closed while evidence is incomplete", () => {
 });
 
 test("promotion gate exposes human review only when every proof gate passes", () => {
-  const gate = evaluateCli15PromotionGate({
-    contractAudit: { currentContracts: 250, pass: true },
-    certificate: {
-      edgeState: "VERIFIED_FORWARD_EDGE",
-      current: { interimSafety: { pass: true }, gates: { enoughData: true } },
-      inputAudit: { currentStrategyLedgerIntegrityPass: true },
-    },
-    primaryHorizon: { calibration: { state: "CALIBRATED" } },
-    canary: { state: "PAPER_CANARY_EDGE_SUPPORTED" },
-    sourceReadiness: { liveReady: true },
-    championChallenger: { state: "CHAMPION_ELIGIBLE", rollbackRequired: false, champion: { fingerprint: "champion-v1" } },
-    edgeDecay: { state: "HEALTHY" },
-    horizons: { 24: { state: "HORIZON_EDGE_POSITIVE" } },
-  });
+  const gate = evaluateCli15PromotionGate(promotionInputs());
   assert.equal(gate.state, "CLI15_HUMAN_PROMOTION_REVIEW_ELIGIBLE");
   assert.equal(gate.edgeVerdict, "PROVEN");
   assert.equal(gate.promotion.eligibleForHumanReview, true);
   assert.equal(gate.promotion.automaticPromotion, false);
+  assert.equal(gate.promotion.realMoneyTradingAuthorized, false);
+});
+
+const requiredCertificateProofs = [
+  ["certificateEligible", "FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED"],
+  ...[
+    "episodeInputValid", "observationInputValid", "currentStrategyLedgerIntegrityPass",
+    "currentStrategyPartitionIntegrityPass", "scopedProspectiveLedgerIntegrityPass",
+    "exactMarketObservationLedgerIntegrityRequired", "exactMarketObservationLedgerIntegrityPass",
+  ].map((field) => [`inputAudit.${field}`, "FORWARD_EVIDENCE_INTEGRITY_NOT_VERIFIED"]),
+  ["current.interimSafety.pass", "FORWARD_CERTIFICATE_SAFETY_NOT_VERIFIED"],
+  ["current.missingnessSensitivity.pass", "FORWARD_CERTIFICATE_SAFETY_NOT_VERIFIED"],
+  ...[
+    "enoughData", "capturePass", "executionCostPass", "matchQualityPass", "replicationPass",
+    "returnVerified", "hitVerified", "catastropheSafe", "missingnessSensitivityPass",
+  ].map((field) => [`current.gates.${field}`, "FORWARD_CERTIFICATE_PROOF_GATES_NOT_VERIFIED"]),
+  ...["capture", "executionCosts", "matchQuality", "replication"]
+    .map((field) => [`current.${field}.pass`, "FORWARD_CERTIFICATE_PROOF_GATES_NOT_VERIFIED"]),
+];
+
+for (const [path, blocker] of requiredCertificateProofs) {
+  test(`promotion requires affirmative certificate.${path}`, () => {
+    for (const value of [undefined, null, false, 0, 1, "true", "false", "UNKNOWN", {}, []]) {
+      const inputs = promotionInputs();
+      setProof(inputs, `certificate.${path}`, value);
+      assertPromotionBlocked(inputs, blocker);
+    }
+  });
+}
+
+test("promotion rejects the original verified-string-only fail-open claim", () => {
+  const inputs = promotionInputs();
+  inputs.certificate = {
+    edgeState: "VERIFIED_FORWARD_EDGE",
+    certificateEligible: false,
+    current: {},
+    inputAudit: {},
+  };
+  assertPromotionBlocked(inputs, "FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED");
+  const gate = evaluateCli15PromotionGate(inputs, { policy: { requireVerifiedForwardCertificate: false } });
+  assert.equal(gate.promotion.eligibleForHumanReview, false);
+});
+
+test("promotion rejects missing proof sections and contradictory current state", () => {
+  for (const path of ["current", "inputAudit", "current.gates", "current.interimSafety", "current.missingnessSensitivity"]) {
+    const inputs = promotionInputs();
+    setProof(inputs, `certificate.${path}`, undefined);
+    assert.equal(evaluateCli15PromotionGate(inputs).promotion.eligibleForHumanReview, false, path);
+  }
+  for (const path of ["edgeState", "current.edgeState"]) {
+    for (const value of [undefined, null, "UNKNOWN", "UNVERIFIED_EVIDENCE_QUALITY_GATES"]) {
+      const inputs = promotionInputs();
+      setProof(inputs, `certificate.${path}`, value);
+      assertPromotionBlocked(inputs, "FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED");
+    }
+  }
+  const inputs = promotionInputs();
+  inputs.certificate.verified = false;
+  assertPromotionBlocked(inputs, "FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED");
+});
+
+test("promotion binds certificate proofs to the current prediction-contract fingerprint", () => {
+  for (const path of ["certificate.latestStrategyFingerprint", "certificate.current.strategyFingerprint", "contractAudit.latestStrategyFingerprint"]) {
+    for (const value of [undefined, null, "", " ", true, "b".repeat(64)]) {
+      const inputs = promotionInputs();
+      setProof(inputs, path, value);
+      assertPromotionBlocked(inputs, "CURRENT_FORWARD_CERTIFICATE_BINDING_NOT_VERIFIED");
+    }
+  }
+});
+
+test("promotion rejects stale or unknown certificate and audit as-of times", () => {
+  for (const path of ["certificate.generatedAt", "certificate.current.generatedAt", "contractAudit.asOf"]) {
+    for (const value of [undefined, null, "invalid-time", "2026-04-30T00:00:00.000Z"]) {
+      const inputs = promotionInputs();
+      setProof(inputs, path, value);
+      assertPromotionBlocked(inputs, "CURRENT_FORWARD_CERTIFICATE_BINDING_NOT_VERIFIED");
+    }
+  }
+  const inputs = promotionInputs();
+  inputs.certificate.generatedAt = "2026-04-30T17:00:00.000-07:00";
+  assert.equal(evaluateCli15PromotionGate(inputs).promotion.eligibleForHumanReview, true);
+});
+
+test("promotion requires non-vacuous interim safety evidence", () => {
+  for (const value of [undefined, null, 0, -1, 1.5, "250", NaN, Infinity]) {
+    const inputs = promotionInputs();
+    inputs.certificate.current.interimSafety.observations = value;
+    assertPromotionBlocked(inputs, "FORWARD_CERTIFICATE_SAFETY_NOT_VERIFIED");
+  }
+});
+
+test("promotion rejects contradictory clean-integrity claims and outstanding blockers", () => {
+  for (const path of ["duplicateEpisodeIds", "topologyFailureEpisodeIds", "duplicateObservationKeys"]) {
+    for (const value of [undefined, null, "[]", ["unresolved-defect"]]) {
+      const inputs = promotionInputs();
+      inputs.certificate.inputAudit[path] = value;
+      assertPromotionBlocked(inputs, "FORWARD_EVIDENCE_INTEGRITY_NOT_VERIFIED");
+    }
+  }
+  for (const path of ["observationsRejected", "nonLegacyInvalidRowsObserved"]) {
+    for (const value of [undefined, null, -1, 1, "0"]) {
+      const inputs = promotionInputs();
+      inputs.certificate.inputAudit[path] = value;
+      assertPromotionBlocked(inputs, "FORWARD_EVIDENCE_INTEGRITY_NOT_VERIFIED");
+    }
+  }
+  for (const value of [undefined, null, "", ["INTERIM_FORWARD_SAFETY_REVOCATION"], ["UNKNOWN_BLOCKER"]]) {
+    const inputs = promotionInputs();
+    inputs.certificate.current.blockers = value;
+    assertPromotionBlocked(inputs, "FORWARD_CERTIFICATE_BLOCKERS_NOT_CLEARED");
+  }
+});
+
+test("promotion requires disabled certificate trading and automatic promotion", () => {
+  for (const field of ["automaticTrading", "automaticPromotion"]) {
+    for (const value of [undefined, null, true, 0, "false"]) {
+      const inputs = promotionInputs();
+      inputs.certificate[field] = value;
+      assertPromotionBlocked(inputs, "FORWARD_CERTIFICATE_GOVERNANCE_NOT_VERIFIED");
+    }
+  }
+});
+
+test("current promotion checks preserve revoked history and the existing legacy-quarantine scope", () => {
+  const inputs = promotionInputs();
+  inputs.certificate.strategies = {
+    "55125b7454cf": { interimSafety: { pass: false }, blockers: ["INTERIM_FORWARD_SAFETY_REVOCATION"] },
+    "bd936b721888": { interimSafety: { pass: false }, blockers: ["INTERIM_FORWARD_SAFETY_REVOCATION"] },
+  };
+  inputs.certificate.inputAudit.globalHistoricalProspectiveLedgerIntegrityPass = false;
+  inputs.certificate.inputAudit.prospectiveCohortLedgerIntegrityPass = false;
+  inputs.certificate.inputAudit.legacyHashOrderRowsQuarantined = 2;
+  const original = structuredClone(inputs);
+  assert.equal(evaluateCli15PromotionGate(inputs).promotion.eligibleForHumanReview, true);
+  assert.deepEqual(inputs, original);
+  inputs.certificate.current.interimSafety.pass = false;
+  assertPromotionBlocked(inputs, "INTERIM_FORWARD_EDGE_REVOCATION");
+});
+
+test("promotion accepts the existing grader's affirmative certificate without changing thresholds", () => {
+  const episodes = [], observations = [];
+  const asOf = "2026-05-01T00:00:00.000Z";
+  for (let cohort = 0; cohort < 36; cohort += 1) {
+    const now = new Date(Date.UTC(2026, 0, 1 + cohort * 2)).toISOString();
+    const sourceObservedAt = new Date(Date.parse(now) - 600_000).toISOString();
+    const treatments = Array.from({ length: 7 }, (_, index) => candidate(cohort * 7 + index + 1, { sourceObservedAt }));
+    const controls = treatments.map((_, index) => candidate(cohort * 7 + index + 50_001, { sourceObservedAt }));
+    const frozen = freezeProspectiveEdgeCohort(treatments, controls, {
+      now, sourceObservedAt, existingEpisodes: [], requireRowSourceObservedAt: true,
+      maxControls: 1, maximumSelections: 7,
+      codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
+      configFingerprint: "fixed-promotion-boundary-fixture",
+    });
+    assert.equal(frozen.episodes.length, 14);
+    episodes.push(...frozen.episodes);
+    for (const episode of frozen.episodes) {
+      observations.push(exactObservation(episode, new Date(Date.parse(now) + 86_400_000).toISOString(),
+        episode.role === "TREATMENT" ? 1.41 : 1.06));
+    }
+  }
+  const inputs = promotionInputs();
+  inputs.certificate = gradeIntegrityScopedProspectiveEdgeCohorts(episodes, observations, { asOf });
+  inputs.contractAudit = auditForwardPredictionContracts(episodes, { asOf });
+  assert.equal(inputs.certificate.certificateEligible, true);
+  assert.equal(inputs.certificate.current.gates.minimumResolvedPairs, 250);
+  assert.equal(inputs.certificate.current.sequentialInference.checkpointPairCount, 250);
+  const original = structuredClone(inputs);
+  assert.equal(evaluateCli15PromotionGate(inputs).promotion.eligibleForHumanReview, true);
+  assert.deepEqual(inputs, original);
 });
 
 test("decaying forward performance triggers the shadow rollback kill switch", () => {
-  const gate = evaluateCli15PromotionGate({
-    contractAudit: { currentContracts: 250, pass: true },
-    certificate: {
-      edgeState: "VERIFIED_FORWARD_EDGE",
-      current: { interimSafety: { pass: true }, gates: { enoughData: true } },
-      inputAudit: { currentStrategyLedgerIntegrityPass: true },
-    },
-    primaryHorizon: { calibration: { state: "CALIBRATED" } },
-    canary: { state: "PAPER_CANARY_EDGE_SUPPORTED" },
-    sourceReadiness: { liveReady: true },
-    championChallenger: { state: "CHAMPION_ELIGIBLE", rollbackRequired: false, champion: { fingerprint: "champion-v1" } },
-    edgeDecay: { state: "DECAYING" },
-    horizons: { 24: { state: "HORIZON_EDGE_POSITIVE" } },
-  });
+  const inputs = promotionInputs();
+  inputs.edgeDecay.state = "DECAYING";
+  const gate = evaluateCli15PromotionGate(inputs);
   assert.equal(gate.state, "CLI15_EDGE_DEGRADED");
   assert.equal(gate.killSwitch.triggered, true);
   assert.equal(gate.rollback.required, true);
