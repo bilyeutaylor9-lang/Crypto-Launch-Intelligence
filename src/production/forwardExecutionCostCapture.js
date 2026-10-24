@@ -79,6 +79,7 @@ function quoteSummary(quote = {}) {
     outputUsd: finite(quote.outputUsd),
     inputTokenAmount: finite(quote.inputTokenAmount),
     outputTokenAmount: finite(quote.outputTokenAmount),
+    outputTokenAmountAtomic: quote.outputTokenAmountAtomic || null,
     allInCostBps: finite(quote.allInCostBps),
     priceImpactBps: finite(quote.priceImpactBps),
     protocolFeeBps: finite(quote.protocolFeeBps),
@@ -177,6 +178,7 @@ function sameNotional(left, right) {
 }
 
 function observedQuote(raw = {}, quote = {}, asOfMs, maximumQuoteAgeMs) {
+  if (!Number.isFinite(asOfMs)) return { eligible: false, reason: "INVALID_QUOTE_RECEIPT_CLOCK" };
   const capturedAt = quoteCapturedAt(raw);
   const capturedMs = timestamp(capturedAt);
   if (!capturedAt || capturedMs === null) return { eligible: false, reason: "MISSING_QUOTE_CAPTURE_TIMESTAMP" };
@@ -269,9 +271,11 @@ function quoteAttempt(identity, request, side, context, raw = null, outcome = {}
     poolAddress: identity.poolAddress,
     side,
     requestedNotionalUsd: context.referenceNotionalUsd,
-    capturedAt: quoteCapturedAt(raw || {}) || context.now,
+    capturedAt: quoteCapturedAt(raw || {}),
     success: outcome.success === true,
     rejectionReason: outcome.reason || null,
+    providerErrorCode: /^JUPITER_[A-Z0-9_]+$/.test(outcome.providerErrorCode || "") ? outcome.providerErrorCode : null,
+    providerDiagnostic: outcome.providerDiagnostic || null,
     rawEvidenceHash: raw?.rawEvidenceHash || raw?.route?.rawEvidenceHash || null,
     routeIdentityVerified: raw?.routeIdentityVerified ?? null,
     operation: request.operation,
@@ -302,7 +306,8 @@ async function captureOne(project = {}, context = {}) {
     signalObservedAt,
   };
   const attempts = [];
-  const quoteProvider = context.quoteProviderForProject?.(project) || context.quoteProvider;
+  const configuredProvider = context.quoteProviderForProject?.(project) || context.quoteProvider;
+  const quoteProvider = configuredProvider?.forChain?.(identity.chain) || configuredProvider;
   if (!quoteProvider) {
     attempts.push(quoteAttempt(identity, request, "BUY", context, null, { reason: "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE" }));
     return { eligible: false, reason: "EXECUTABLE_QUOTE_PROVIDER_UNAVAILABLE", attempts };
@@ -312,7 +317,7 @@ async function captureOne(project = {}, context = {}) {
   try {
     rawBuy = await quoteProvider({ ...request, side: "BUY" });
   } catch (error) {
-    attempts.push(quoteAttempt(identity, request, "BUY", context, null, { reason: "BUY_QUOTE_REQUEST_FAILED" }));
+    attempts.push(quoteAttempt(identity, request, "BUY", context, null, { reason: "BUY_QUOTE_REQUEST_FAILED", providerErrorCode: error.message, providerDiagnostic: error.quoteDiagnostic }));
     return { eligible: false, reason: "BUY_QUOTE_REQUEST_FAILED", error: error.message, attempts };
   }
   const rawBuyIdentity = rawQuoteIdentityMatches(rawBuy || {}, identity);
@@ -325,7 +330,12 @@ async function captureOne(project = {}, context = {}) {
     side: "BUY",
     provider: providerName,
   });
-  const buyObservation = observedQuote(rawBuy || {}, buy, context.asOfMs, context.maximumQuoteAgeMs);
+  const buyReceiptMs = timestamp(context.clock());
+  if (buyReceiptMs === null || buyReceiptMs < context.asOfMs) {
+    attempts.push(quoteAttempt(identity, request, "BUY", context, rawBuy, { reason: "INVALID_QUOTE_RECEIPT_CLOCK" }));
+    return { eligible: false, reason: "INVALID_QUOTE_RECEIPT_CLOCK", attempts };
+  }
+  const buyObservation = observedQuote(rawBuy || {}, buy, buyReceiptMs, context.maximumQuoteAgeMs);
   if (!buyObservation.eligible) {
     attempts.push(quoteAttempt(identity, request, "BUY", context, rawBuy, { reason: buyObservation.reason }));
     return { ...buyObservation, attempts };
@@ -338,9 +348,10 @@ async function captureOne(project = {}, context = {}) {
       ...request,
       side: "SELL",
       inputTokenAmount: buy.outputTokenAmount,
+      inputTokenAmountAtomic: buy.outputTokenAmountAtomic,
     });
   } catch (error) {
-    attempts.push(quoteAttempt(identity, request, "SELL", context, null, { reason: "SELL_QUOTE_REQUEST_FAILED" }));
+    attempts.push(quoteAttempt(identity, request, "SELL", context, null, { reason: "SELL_QUOTE_REQUEST_FAILED", providerErrorCode: error.message, providerDiagnostic: error.quoteDiagnostic }));
     return { eligible: false, reason: "SELL_QUOTE_REQUEST_FAILED", error: error.message, attempts };
   }
   const rawSellIdentity = rawQuoteIdentityMatches(rawSell || {}, identity);
@@ -354,13 +365,21 @@ async function captureOne(project = {}, context = {}) {
     inputTokenAmount: buy.outputTokenAmount,
     provider: providerName,
   });
-  const sellObservation = observedQuote(rawSell || {}, sell, context.asOfMs, context.maximumQuoteAgeMs);
+  const sellReceiptMs = timestamp(context.clock());
+  if (sellReceiptMs === null || sellReceiptMs < buyReceiptMs) {
+    attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { reason: "INVALID_QUOTE_RECEIPT_CLOCK" }));
+    return { eligible: false, reason: "INVALID_QUOTE_RECEIPT_CLOCK", attempts };
+  }
+  // Recheck the original buy at pair completion; a slow sell cannot refresh it.
+  const pairBuyObservation = observedQuote(rawBuy || {}, buy, sellReceiptMs, context.maximumQuoteAgeMs);
+  if (!pairBuyObservation.eligible) return { ...pairBuyObservation, attempts };
+  const sellObservation = observedQuote(rawSell || {}, sell, sellReceiptMs, context.maximumQuoteAgeMs);
   if (!sellObservation.eligible) {
     attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { reason: sellObservation.reason }));
     return { ...sellObservation, attempts };
   }
   attempts.push(quoteAttempt(identity, request, "SELL", context, rawSell, { success: true }));
-  return { ...buildObservedRoundTripEvidence(identity, buy, sell, context), attempts };
+  return { ...buildObservedRoundTripEvidence(identity, buy, sell, { ...context, transport: quoteProvider.transport || context.transport }), attempts };
 }
 
 function increment(map, key) {
@@ -389,6 +408,50 @@ function researchOnlyProjects(projects = [], reason) {
     ...project,
     executionProofEligibility: executionProofEligibility(project, reason),
   }));
+}
+
+// A quote accepted earlier in a batch is not necessarily usable when the
+// cohort is committed. Preserve the original attempts separately; this view
+// can only retain current proof or demote it, never refresh its timestamps.
+export function revalidateForwardExecutionCosts(projects = [], options = {}) {
+  const cutoff = timestamp(options.now);
+  const maximumAgeMs = positive(options.maximumQuoteAgeMs, DEFAULT_MAX_QUOTE_AGE_MS);
+  return projects.map((project) => {
+    const identity = exactIdentity(project);
+    const proof = project.executionCostProvenance;
+    const times = [timestamp(proof?.entryQuote?.capturedAt), timestamp(proof?.exitQuote?.capturedAt)];
+    let reason = null;
+    if (cutoff === null) reason = "INVALID_QUOTE_DECISION_CLOCK";
+    else if (!identity || proof?.kind !== "PAIRED_EXECUTABLE_QUOTES_V1" ||
+        proof.identityKey !== identity.identityKey || proof.routeKey !== identity.routeKey ||
+        proof.entryQuote?.poolAddress !== identity.poolAddress || proof.exitQuote?.poolAddress !== identity.poolAddress) {
+      reason = "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE";
+    } else if (times.some((time) => time === null || time > cutoff || cutoff - time > maximumAgeMs)) {
+      reason = "QUOTE_OUTSIDE_DECISION_FRESHNESS_WINDOW";
+    } else if (executionProofEligibility(project).state !== "NET_PROOF_ELIGIBLE") {
+      reason = "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE";
+    }
+    const current = reason ? {
+      ...project,
+      roundTripExecutionCostBps: null,
+      frozenRoundTripExecutionCostBps: null,
+      executionReferenceSizeUsd: null,
+      executionCostProvenance: null,
+      executionCostEvidence: null,
+      executionReality: null,
+      executionCosts: null,
+      buyPriceImpactPct: null,
+      sellPriceImpactPct: null,
+      executionAwareEV: project.executionAwareEV ? {
+        ...project.executionAwareEV,
+        roundTripExecutionCostBps: null,
+        estimatedRoundTripCostBps: null,
+        buyPriceImpactPct: null,
+        sellPriceImpactPct: null,
+      } : null,
+    } : project;
+    return { ...current, executionProofEligibility: executionProofEligibility(current, reason) };
+  });
 }
 
 /**
@@ -444,6 +507,7 @@ export async function captureForwardExecutionCosts(projects = [], options = {}) 
   const context = {
     now,
     asOfMs,
+    clock: options.clock || (() => new Date().toISOString()),
     quoteProvider,
     quoteProviderForProject,
     providerName:

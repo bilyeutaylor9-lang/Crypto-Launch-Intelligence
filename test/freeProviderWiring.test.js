@@ -13,7 +13,8 @@ import {
 import {
   createLiFiExecutableQuoteProvider,
 } from "../src/execution/lifiExecutableQuoteProvider.js";
-import { captureForwardExecutionCosts } from "../src/production/forwardExecutionCostCapture.js";
+import { captureForwardExecutionCosts as captureCosts } from "../src/production/forwardExecutionCostCapture.js";
+import { quoteProviderFromEnvironment } from "../src/canary/executableQuoteTruthEngine.js";
 import { getSourceById } from "../src/config/sourceManifest.js";
 import { getCryptoCompareCandidates } from "../src/data/expandedMarketDataConnector.js";
 import { analyzeExecutionProofRecoveryBatch } from "../src/engines/executionProofRecoveryEngine.js";
@@ -22,6 +23,7 @@ const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
 const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const NOW = "2026-08-27T12:00:00.000Z";
+const captureForwardExecutionCosts = (rows, options) => captureCosts(rows, { clock: () => NOW, ...options });
 
 function response(payload, status = 200) {
   return {
@@ -198,8 +200,8 @@ test("LI.FI auto-provider feeds forward shadow costs only when the response atte
   });
   assert.equal(result.state, "PAIRED_EXECUTABLE_ROUND_TRIP_COSTS_CAPTURED");
   assert.equal(result.audit.endpointConfigured, false);
-  assert.equal(result.audit.keylessProvider, true);
-  assert.equal(result.audit.provider, "LI.FI Keyless");
+  assert.equal(result.audit.keylessProvider, false);
+  assert.equal(result.audit.provider, "Chain-Aware Read-Only Quotes");
   assert.equal(result.projects[0].executionCostProvenance.transport, "LIFI_READ_ONLY_QUOTE_API");
   assert.equal(result.projects[0].executionCostCaptureAutomaticTrading, false);
 
@@ -224,6 +226,29 @@ test("LI.FI auto-provider feeds forward shadow costs only when the response atte
   assert.equal(unattested.audit.accepted, 0);
   assert.equal(unattested.audit.rejectionReasons.RAW_QUOTE_IDENTITY_MISSING, 1);
   assert.equal(unattested.projects[0].roundTripExecutionCostBps, undefined);
+});
+
+test("chain-aware quotes retain keyless EVM support while Jupiter is unavailable without its key", async () => {
+  let evmCalls = 0;
+  const provider = quoteProviderFromEnvironment({
+    endpoint: "", freeProviderQuotesEnabled: true,
+    lifi: { apiKey: "", now: NOW, rateBudget: { windowStartedAtMs: 0, requests: 0 },
+      fetchJson: async (url) => {
+        evmCalls++;
+        const parsed = new URL(url);
+        return lifiPayload(parsed.searchParams.get("fromToken").toLowerCase() === USDC.toLowerCase() ? "BUY" : "SELL");
+      } },
+    jupiter: { apiKey: "", fetch: async () => assert.fail("missing Jupiter key must not reach HTTP") },
+  });
+  assert.equal(provider.keyless, false);
+  assert.equal(provider.forChain("base").keyless, true);
+  assert.equal(provider.forChain("solana").keyless, false);
+  assert.equal(provider.forChain("solana").availabilityState, "OPTIONAL_KEY_MISSING");
+  const result = await captureForwardExecutionCosts([{ chain: "base", tokenAddress: TOKEN, poolAddress: POOL, priceUsd: 2 }], {
+    now: NOW, quoteProvider: provider,
+  });
+  assert.equal(result.audit.accepted, 1);
+  assert.equal(evmCalls, 2);
 });
 
 test("LI.FI keyless rate budget fails closed before exceeding the configured window", async () => {

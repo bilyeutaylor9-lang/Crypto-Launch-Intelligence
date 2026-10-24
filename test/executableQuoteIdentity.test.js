@@ -81,7 +81,7 @@ test("accepted production quote pairs preserve exact pools while mismatched raw 
   const project = { ...IDENTITY, priceUsd: 2, observedAt: NOW };
   const before = structuredClone(project);
   let calls = 0;
-  const result = await captureForwardExecutionCosts([project], { now: NOW, quoteProvider: async request => {
+  const result = await captureForwardExecutionCosts([project], { now: NOW, clock: () => NOW, quoteProvider: async request => {
     calls++;
     return quote({ side: request.side });
   } });
@@ -93,7 +93,7 @@ test("accepted production quote pairs preserve exact pools while mismatched raw 
   assert.equal(provenance.exitQuote.poolAddress, POOL);
   assert.deepEqual(project, before);
   calls = 0;
-  const wrong = await captureForwardExecutionCosts([project], { now: NOW, quoteProvider: async request => {
+  const wrong = await captureForwardExecutionCosts([project], { now: NOW, clock: () => NOW, quoteProvider: async request => {
     calls++;
     return quote({ side: request.side, poolAddress: POOL.replace(/^D/, "d") });
   } });

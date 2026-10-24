@@ -1,7 +1,8 @@
 
 import { jsonPost } from "../sensors/rpcJsonClient.js";
 import { createLiFiExecutableQuoteProvider } from "../execution/lifiExecutableQuoteProvider.js";
-import { normalizeAddress } from "../identity/strictIdentityValidators.js";
+import { createJupiterExecutableQuoteProvider } from "../execution/jupiterExecutableQuoteProvider.js";
+import { normalizeAddress, normalizeChainId } from "../identity/strictIdentityValidators.js";
 
 function finite(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -66,6 +67,7 @@ export function normalizeExecutableQuote(raw = {}, context = {}) {
     inputTokenAmount,
     outputUsd,
     outputTokenAmount,
+    outputTokenAmountAtomic: raw.outputTokenAmountAtomic || null,
     executablePriceUsd: round(executablePriceUsd, 12),
     referencePriceUsd: finite(raw.referencePriceUsd ?? context.referencePriceUsd),
     priceImpactBps: round(priceImpactBps, 3),
@@ -136,7 +138,15 @@ export function quoteProviderFromEnvironment(options = {}) {
   const freeProviderQuotesEnabled = options.freeProviderQuotesEnabled ??
     process.env.FREE_PROVIDER_QUOTES_ENABLED !== "false";
   if (!freeProviderQuotesEnabled) return null;
-  return createLiFiExecutableQuoteProvider(options.lifi || options);
+  const evm = createLiFiExecutableQuoteProvider(options.lifi || options);
+  const solana = createJupiterExecutableQuoteProvider(options.jupiter || {});
+  const provider = (request) => normalizeChainId(request.chain) === "solana" ? solana(request) : evm(request);
+  provider.providerName = "Chain-Aware Read-Only Quotes";
+  provider.transport = "CHAIN_AWARE_READ_ONLY_QUOTES";
+  provider.forChain = (chain) => normalizeChainId(chain) === "solana" ? solana : evm;
+  provider.keyless = evm.keyless && solana.keyless;
+  provider.quoteOnly = true;
+  return provider;
 }
 
 async function requestOne(project, sizeUsd, policy, provider, options = {}) {
