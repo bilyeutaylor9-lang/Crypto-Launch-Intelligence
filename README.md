@@ -99,10 +99,15 @@ Automatic trading and automatic model promotion remain disabled.
 
 ## Quick Start
 
+Use a current security-patched Node 22 or Node 24 LTS release. The security
+baseline checked on 2026-10-23 is Node 22.23.4 or 24.22.1; see the
+[official releases](https://nodejs.org/dist/index.json). Updating the lockfile's
+Undici dependency does not update Node's separately bundled `fetch()` runtime.
+
 Run the full no-key demo:
 
 ```bash
-npm install
+npm ci
 npm run demo
 open reports/report.html
 ```
