@@ -82,7 +82,11 @@ function observedAt(record) {
 
 function parseJsonl(file, ledgerName) {
   if (!fs.existsSync(file)) return [];
-  return fs.readFileSync(file, "utf8").split("\n").flatMap((line, index) => {
+  return parseJsonlContents(file, ledgerName, fs.readFileSync(file, "utf8"));
+}
+
+function parseJsonlContents(file, ledgerName, contents) {
+  return contents.split("\n").flatMap((line, index) => {
     if (!line.trim()) return [];
     try {
       const record = JSON.parse(line);
@@ -135,11 +139,40 @@ function validateRows(rows = []) {
   return byId;
 }
 
-function writeJsonlAtomic(file, records) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temp = `${file}.${process.pid}.${Date.now()}.tmp`;
-  fs.writeFileSync(temp, records.length ? `${records.map((record) => JSON.stringify(record)).join("\n")}\n` : "");
-  fs.renameSync(temp, file);
+function appendJsonlDurable(file, ledgerName, rows) {
+  const directory = path.dirname(file);
+  const createdDirectory = fs.mkdirSync(directory, { recursive: true });
+  const fd = fs.openSync(file, "a+");
+  let appended;
+  try {
+    const contents = fs.readFileSync(fd, "utf8");
+    const currentById = validateRows(parseJsonlContents(file, ledgerName, contents));
+    const missing = rows.filter((row) => {
+      const current = currentById.get(`${ledgerName}:${row.record_id}`);
+      if (current && current.content_hash !== row.content_hash) {
+        throw new Error(`Immutable forward-evidence conflict: ${ledgerName}:${row.record_id}`);
+      }
+      return !current;
+    });
+    if (!missing.length) return 0;
+    const separator = contents.length && !contents.endsWith("\n") ? "\n" : "";
+    const payload = `${separator}${missing.map((row) => JSON.stringify(row.record_json)).join("\n")}\n`;
+    // O_APPEND preserves intervening appends, but this read/check/write is not
+    // atomic without a shared protocol across all ledger writers. Never roll
+    // back a failed append: that could remove another writer's evidence.
+    fs.writeFileSync(fd, payload);
+    fs.fsyncSync(fd);
+    appended = missing.length;
+  } finally {
+    fs.closeSync(fd);
+  }
+  // Persist the file entry and, when mkdir created it, the directory entry.
+  for (const dir of new Set([directory, ...(createdDirectory ? [path.dirname(createdDirectory)] : [])])) {
+    const dirFd = fs.openSync(dir, "r");
+    try { fs.fsyncSync(dirFd); }
+    finally { fs.closeSync(dirFd); }
+  }
+  return appended;
 }
 
 export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
@@ -157,17 +190,14 @@ export function mergeForwardEvidenceRows(remoteRows = [], options = {}) {
   }
 
   for (const [ledgerName, relative] of Object.entries(FORWARD_EVIDENCE_LEDGERS)) {
-    const local = localRows.filter((row) => row.ledger_name === ledgerName);
-    const localIds = new Set(local.map((row) => row.record_id));
-    const missing = remoteRows
-      .filter((row) => row.ledger_name === ledgerName && !localIds.has(row.record_id))
+    const missing = [...remoteById.values()]
+      .filter((row) => row.ledger_name === ledgerName && !localById.has(`${ledgerName}:${row.record_id}`))
       .sort((left, right) =>
         String(left.observed_at || "").localeCompare(String(right.observed_at || "")) ||
         left.record_id.localeCompare(right.record_id)
       );
     if (missing.length) {
-      writeJsonlAtomic(path.resolve(root, relative), [...local, ...missing].map((row) => row.record_json));
-      restored += missing.length;
+      restored += appendJsonlDurable(path.resolve(root, relative), ledgerName, missing);
     }
   }
   return { localRecords: localRows.length, remoteRecords: remoteRows.length, restored };
