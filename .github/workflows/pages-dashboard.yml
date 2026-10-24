@@ -297,8 +297,8 @@ jobs:
           FAILED_STATE_UPLOAD: ${{ steps.failed_state_upload.outcome }}
         run: |
           failed=0
-          if [ "$STATE_PACK" != "success" ]; then
-            echo "::error::STATE_PACK finished with $STATE_PACK; a temporary diagnostic cannot replace canonical restart state."
+          if [ "$STATE_PACK" != "success" ] || [ "$STATE_CACHE_SAVE" != "success" ]; then
+            echo "::error::Canonical restart publication failed: pack=$STATE_PACK, cache=$STATE_CACHE_SAVE; a temporary diagnostic cannot replace canonical restart state."
             failed=1
           fi
           if [ "$STATE_PACK" != "success" ] || [ "$STATE_CACHE_SAVE" != "success" ]; then
