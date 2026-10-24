@@ -75,12 +75,12 @@ function run(input = structuredClone(baseline), options = {}) {
     iterations: 1000, ...options });
 }
 
-function assertNonIntegrityGates(report) {
+function assertNonIntegrityGates(report, missingnessPass = true) {
   for (const field of ["enoughData", "capturePass", "executionCostPass", "matchQualityPass", "replicationPass", "returnVerified", "hitVerified", "catastropheSafe"]) {
     assert.equal(report.current.gates[field], true, `${field}: ${JSON.stringify(report.current.blockers)}`);
   }
   assert.equal(report.current.interimSafety.pass, true);
-  assert.equal(report.current.missingnessSensitivity.pass, true);
+  assert.equal(report.current.missingnessSensitivity.pass, missingnessPass);
   assert.equal(report.current.sequentialInference.checkpointPairCount, 250);
 }
 
@@ -101,20 +101,25 @@ const corruptions = [
   ["malformed observation", input => { input.observations.push({ __exactObservationLedgerParseFailure: true, malformedLineHash: "original-bad-line-retained" }); }, "EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE"],
   ["malformed historical episode", input => { input.episodes.push({ __prospectiveLedgerParseFailure: true, malformedLineHash: "original-bad-line-retained" }); }, "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"],
   ["duplicate episode ID", input => { input.episodes.push(structuredClone(input.episodes[0])); }, "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"],
-  ["invalid control relationship", input => { input.episodes.find(row => row.role === "CONTROL_MATCHED").parentTreatmentEpisodeId = "missing-parent"; }, "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"],
+  ["invalid control relationship", input => { input.episodes.find(row => row.role === "CONTROL_MATCHED").parentTreatmentEpisodeId = "missing-parent"; }, "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE", false],
   ["mismatched observation token", input => { input.observations[0].tokenAddress = address(999999); }, "EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE"],
   ["future observation", input => { input.observations.push(buildExactMarketObservation({ chain: "base", tokenAddress: address(999998), poolAddress: address(999997),
     observedAt: "2027-01-01T00:00:00.000Z", priceUsd: 1, source: "r1-synthetic-provider" }, { asOf: "2027-01-02T00:00:00.000Z" })); }, "EXACT_MARKET_OBSERVATION_LEDGER_INTEGRITY_FAILURE"],
   ["non-legacy historical corruption", input => { const old = structuredClone(input.episodes[0]); old.strategyFingerprint = "unrelated-historical-corruption";
     old.signalPriceUsd = 100; input.episodes.push(old); }, "PROSPECTIVE_COHORT_LEDGER_INTEGRITY_FAILURE"],
 ];
-for (const [name, corrupt, blocker] of corruptions) {
-  test(`R1 final certificate veto survives ${name} with all non-integrity gates passing`, () => {
+for (const [name, corrupt, blocker, missingnessPass = true] of corruptions) {
+  test(`R1 final certificate veto survives ${name} with all ${missingnessPass ? "non-integrity" : "unrelated"} gates passing`, () => {
     const input = structuredClone(baseline);
     corrupt(input);
     const bytes = JSON.stringify(input);
     const { report, certificate } = run(input);
-    assertNonIntegrityGates(report);
+    assertNonIntegrityGates(report, missingnessPass);
+    if (!missingnessPass) {
+      assert.equal(report.current.missingnessSensitivity.returnBoundProven, false);
+      assert.equal(report.current.missingnessSensitivity.state, "RETURN_BOUND_NOT_PROVEN");
+      assert.equal(report.current.missingnessSensitivity.unresolvedOrIncompletePairs, 1);
+    }
     assert.equal(certificate.verified, false);
     assert.equal(certificate.certificateEligible, false);
     assert.equal(report.certificateEligible, false);
