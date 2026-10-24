@@ -114,6 +114,10 @@ for (const mode of ["default", "injected"]) {
           });
           assert.equal(calls.length, cheap ? 2 : 3);
           assert.equal(result.providerFailure, true, `${status}, mixed=${mixed}`);
+          if (status === 429) {
+            assert.equal(result.rateLimited, true);
+            assert.ok(result.retryAfterMs >= 61_000);
+          }
           assert.notEqual(result.candidateEvidenceUnavailable, true, `${status}, mixed=${mixed}`);
           assertUnknown(result);
         }
@@ -138,6 +142,7 @@ for (const mode of ["default", "injected"]) {
           assert.equal(result.walletTransactions.length, successful === "transfers" ? 1 : 0);
           assert.deepEqual(result.walletParticipationHistory, result.walletTransactions);
           assert.equal(result.transferCoverage.available, successful === "transfers");
+          if (status === 429) assert.equal(result.rateLimited, true);
           assertNoTrades(result);
         }
       }
@@ -235,8 +240,8 @@ for (const cheap of [true, false]) {
     assert.equal(fixture.state.requestsUsed, fixture.state.maxRequests);
   });
 
-  test(`${label} executor: 403, rate limits, server, mixed and transport failures still open the circuit`, async () => {
-    for (const failure of [403, 429, 503, "mixed", "transport"]) {
+  test(`${label} executor: 403, server, mixed and transport failures still open the circuit`, async () => {
+    for (const failure of [403, 503, "mixed", "transport"]) {
       const fixture = executorFixture(cheap, (url) => failure === "transport" ? new Error("Connection reset")
         : failure === "mixed" ? httpError(endpoint(url) === "token" ? 503 : 404) : httpError(failure));
       for (const token of TOKENS.slice(0, 3)) {
@@ -255,6 +260,24 @@ for (const cheap of [true, false]) {
       assert.equal(health.circuitOpen, true);
       assert.equal(health.noDataResponses, undefined);
     }
+  });
+
+  test(`${label} executor: 429 responses cool down without opening the outage circuit`, async () => {
+    const fixture = executorFixture(cheap, () => httpError(429));
+    const limited = await fixture.execute();
+    assert.deepEqual(limited.attempts.map(({ status }) => status), ["RATE_LIMITED"]);
+    assert.deepEqual(limited.observations, []);
+    for (const token of TOKENS.slice(1)) {
+      const blocked = await fixture.execute(token);
+      assert.deepEqual(blocked.attempts.map(({ status }) => status), ["PROVIDER_COOLDOWN"]);
+      assert.deepEqual(blocked.observations, []);
+    }
+    const health = fixture.state.providers.get("blockscout-wallets:bsc");
+    assert.equal(health.failures, 0);
+    assert.equal(health.circuitOpen, false);
+    assert.equal(health.rateLimitResponses, 1);
+    assert.equal(fixture.calls.length, cost);
+    assert.equal(fixture.state.requestsUsed, cost);
   });
 
   test(`${label} executor: no-data batches still consume allowance and cannot bypass request or time budgets`, async () => {

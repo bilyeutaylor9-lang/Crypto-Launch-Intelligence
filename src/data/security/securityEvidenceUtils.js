@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { normalizeChainId, normalizeTokenAddress } from "../../identity/strictIdentityValidators.js";
+import { providerReceiptTimestamp, retryAfterMs } from "../providerResponseReceipt.js";
 
 const DATA_DIR = path.resolve("data");
 const CACHE_FILE = path.join(DATA_DIR, "security-evidence-cache.json");
@@ -236,6 +237,9 @@ export async function fetchJson(url = "", options = {}) {
       const error = new Error(`Request failed: ${response.status} ${url}`);
       error.status = response.status;
       error.url = url;
+      error.receivedAt = providerReceiptTimestamp(options);
+      error.retryAfter = response.headers?.get?.("retry-after") ?? null;
+      error.retryAfterMs = error.retryAfter === null ? null : retryAfterMs(error.retryAfter, error.receivedAt);
       throw error;
     }
     return response.json();

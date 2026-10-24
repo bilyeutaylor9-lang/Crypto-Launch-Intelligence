@@ -412,6 +412,7 @@ export function createActiveEvidenceExecutionState(options = {}) {
     ),
     circuitFailureThreshold,
     providers: new Map(),
+    providerCooldowns: new Map(),
   };
 }
 
@@ -429,6 +430,22 @@ function providerState(state = {}, provider = "unknown", circuitScope = null) {
   };
   state.providers.set(stateKey, current);
   return current;
+}
+
+function deferProviderCooldown(state, health, value, cooldownKey) {
+  const explicit = Date.parse(value.retryAt || "");
+  const until = Number.isFinite(explicit) ? explicit
+    : Number.isFinite(value.retryAfterMs) && value.retryAfterMs > 0
+      ? Number((state.now || Date.now)()) + value.retryAfterMs : null;
+  if (until === null) return;
+  const bounded = Math.min(8_640_000_000_000_000, until);
+  // Origin cooldowns are independent of provider/chain outage history.
+  if (cooldownKey) {
+    state.providerCooldowns ??= new Map();
+    state.providerCooldowns.set(cooldownKey, Math.max(state.providerCooldowns.get(cooldownKey) || 0, bounded));
+  } else {
+    health.cooldownUntil = Math.max(health.cooldownUntil || 0, bounded);
+  }
 }
 
 function recoveryDeadlineAt(state, options) {
@@ -467,7 +484,8 @@ async function executeProviderCall(
   cost = 1,
   circuitScope = null,
   beforeOperation = null,
-  onTimeout = null
+  onTimeout = null,
+  cooldownKey = null
 ) {
   const health = providerState(state, provider, circuitScope);
   const deadlineStatus = recoveryDeadlineStatus(state, options);
@@ -495,10 +513,11 @@ async function executeProviderCall(
       durationMs: 0,
     };
   }
-  if (health.cooldownUntil > (state.now || Date.now)()) {
+  const cooldownUntil = Math.max(health.cooldownUntil || 0, state.providerCooldowns?.get(cooldownKey) || 0);
+  if (cooldownUntil > (state.now || Date.now)()) {
     health.skipped += 1;
     return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
-      retryAt: new Date(health.cooldownUntil).toISOString(),
+      retryAt: new Date(cooldownUntil).toISOString(),
       reason: "Provider Retry-After cooldown active; independent recovery fallbacks remain available." };
   }
   const requestLimit = recoveryRequestLimit(state, options);
@@ -522,8 +541,10 @@ async function executeProviderCall(
   if (beforeOperation) {
     const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (recoveryDeadlineStatus(state, options) || health.circuitOpen || state.requestsUsed + cost > recoveryRequestLimit(state, options)) {
-      return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout);
+    if (recoveryDeadlineStatus(state, options) || health.circuitOpen ||
+        Math.max(health.cooldownUntil || 0, state.providerCooldowns?.get(cooldownKey) || 0) > (state.now || Date.now)() ||
+        state.requestsUsed + cost > recoveryRequestLimit(state, options)) {
+      return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout, cooldownKey);
     }
     if (slotReserved === false) {
       health.skipped += 1;
@@ -567,6 +588,7 @@ async function executeProviderCall(
         );
       }),
     ]);
+    if (value?.rateLimited === true) deferProviderCooldown(state, health, value, cooldownKey);
     const expired = recoveryDeadlineStatus(state, options);
     if (expired) return { provider, status: expired, value: null, durationMs: Date.now() - startedAt,
       reason: "Provider response arrived after its recovery window; evidence was not promoted." };
@@ -575,16 +597,15 @@ async function executeProviderCall(
       return { status: "NO_CANDIDATE_EVIDENCE", provider, value: null,
         reason: value.reason || "Provider returned no evidence for this candidate.", durationMs: Date.now() - startedAt };
     }
-    if (value?.providerFailure === true && value.rateLimited === true) {
+    if (value?.rateLimited === true) {
       health.rateLimitResponses = (health.rateLimitResponses || 0) + 1;
-      if (Number.isFinite(value.retryAfterMs) && value.retryAfterMs > 0) {
-        health.cooldownUntil = Math.min(8_640_000_000_000_000,
-          Math.max(health.cooldownUntil || 0, Number((state.now || Date.now)()) + value.retryAfterMs));
-      }
+    }
+    if (value?.providerFailure === true && value.rateLimited === true) {
       return {
         status: "RATE_LIMITED",
         provider,
         value: null,
+        retryAt: Number.isFinite(Date.parse(value.retryAt || "")) ? value.retryAt : null,
         reason: value.warnings?.[0] || "Provider rate limit reached; later calls wait for quota recovery.",
         durationMs: Date.now() - startedAt,
       };
@@ -1086,6 +1107,12 @@ export async function recoverWalletEvidence(
     observations, attempts: [{ provider: "blockscout-wallets", status: "NOT_APPLICABLE", durationMs: 0,
       requestCost: 0, reason: "Cheap holder metadata requires a nonconflicting exact EVM chain and token identity." }], projectPatch: {},
   };
+  const walletRequest = cheapRequest || resolveBlockscoutWalletRequest({ ...project,
+    chain: evm.chain, tokenAddress: evm.tokenAddress }, options);
+  let cooldownKey = null;
+  try { cooldownKey = walletRpcEndpointId(new URL(walletRequest?.baseUrl).origin); } catch {}
+  const walletOptions = { ...options, onBlockscoutRateLimit: (value) =>
+    deferProviderCooldown(state, providerState(state, "blockscout-wallets", evm.chain), value, cooldownKey) };
   let cheapWalletPatch = {};
   let goPlusWalletPatch = {};
   const goPlusHolderFields = ["wallets", "holderAddresses"];
@@ -1153,12 +1180,12 @@ export async function recoverWalletEvidence(
       requestCost = 2;
       const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
       return providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
-        poolAddress: poolAddressOf(project, evm.chain) }, { ...options, walletHistory: false,
+        poolAddress: poolAddressOf(project, evm.chain) }, { ...walletOptions, walletHistory: false,
         timeoutMs: Math.max(1, Math.min(Number(options.timeoutMs || options.providerTimeoutMs || 8000), remaining)) });
     }, options, state, 2, evm.chain,
     options.blockscoutMetadataRateLimiter ||
       (providers.getBlockscoutWalletEvidence === getBlockscoutWalletEvidence && !options.fetchJson
-        ? () => waitForBlockscoutMetadataPair({ deadlineAt: recoveryDeadlineAt(state, options) }) : null));
+        ? () => waitForBlockscoutMetadataPair({ deadlineAt: recoveryDeadlineAt(state, options) }) : null), null, cooldownKey);
     attempts.push({ ...attempt, value: undefined, family: "WALLETS", requestCost });
     const result = attempt.value;
     if (result) cheapWalletPatch = { blockscoutWalletEvidence: result };
@@ -1200,8 +1227,8 @@ export async function recoverWalletEvidence(
   }
   const attempt = await executeProviderCall("blockscout-wallets",
     () => providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
-      poolAddress: poolAddressOf(project, evm.chain) }, options),
-    options, state, Math.max(1, Number(options.walletProviderRequestCost || 3)), evm.chain);
+      poolAddress: poolAddressOf(project, evm.chain) }, walletOptions),
+    options, state, Math.max(1, Number(options.walletProviderRequestCost || 3)), evm.chain, null, null, cooldownKey);
   const result = attempt.value || {};
   const timestamp = result.observedAt || new Date().toISOString();
   const exactResult = (!result.chain || normalizeChainId(result.chain) === evm.chain) &&
