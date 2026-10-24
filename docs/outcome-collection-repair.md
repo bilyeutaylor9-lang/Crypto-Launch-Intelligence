@@ -47,6 +47,26 @@ On restart, saved original raw responses can be replayed without another HTTP re
 
 Optional `--cohorts`, `--observations` and `--report` paths permit isolated validation. Existing collector locking is honored during migration. No daemon, launchd job, workflow migration, market discovery, new experimental selection, trading or promotion is activated by this command. Import-only and no-work results are not live collection acceptance.
 
+## Shared exact captures and unchanged imports
+
+A single verified provider response can reconcile multiple frozen duties only when every target has the same exact chain, token and known pool, and the original receipt and independent source clock satisfy each target's own window and clock policy. The capture retains its original task, raw response and observation hash. Shared reconciliation does not create extra independent observations, alter trial accounting, fill future windows or refresh timestamps. Anchor completion and compatible reconciliation are atomic; a storage failure rolls back completion and stops further provider traffic. The preserved raw receipt remains available for crash recovery.
+
+Unchanged ledger imports still audit and count their sources and all duties, but skip immutable historical reconciliation writes already confirmed in the archive. A later valid observation can still resolve an outstanding duty. Polling cannot reset provider allowances or turn a missing historical outcome into an on-time capture.
+
+## Preserved GitHub cache export
+
+The manual `Exact Outcome Probe` workflow has a separate `export_forward_cache` mode. It restores a selected cache and exports original bytes, a manifest and a transport receipt without probing, synchronizing Supabase, saving a replacement cache or running the normal probe job. Exact-key requests require an exact cache hit. The default selection is restricted to the main cache prefix. Streaming copies, bounded size, exclusive files, source-change checks and hashes protect the export; malformed original records are not repaired or discarded.
+
+The original export at commit `b60fab2f1e64ec21e39de2005bae96b9d6ba6136`, workflow run `39353513814`, recovered cache `forward-evidence-Linux-main-39344534021`. Local extraction verified these original files:
+
+| File | Bytes | Lines | SHA-256 |
+| --- | ---: | ---: | --- |
+| `production-market-observations.jsonl` | 86,359,569 | 50,181 | `5438302f3e79a3837e17321fda86a38a9fdd18e65d1948198f10c3d36a3fb12b` |
+| `market-context-observations.jsonl` | 1,339,903 | 581 | `fe652ef1edb248198cb4bf46e5d4bec03dd34a8596584b2be5c275566e85cf6a` |
+| `prospective-edge-cohorts.jsonl` | 9,600,338 | 1,757 | `e524ed24789d0be5721eba98066cdd84c0bc6cd49fa0fa4481e5d815db7ba462` |
+
+These are raw line counts, not integrity-qualified observations or certified comparisons. Exporter commit/run provenance does not infer the original record producer or its capture time. The artifact has one-day retention and is temporary transport, not a permanent independent server backup. The retained local ZIP, archive, source files and receipts are recovery copies on this Mac; they are not evidence of remote synchronization or sustained collection.
+
 ## Still required
 
 The existing collector has not been retired, and no always-on service or workflow has been enabled by this repair. The imported/replayed queue and provider integration require real-data restoration and sustained capture acceptance before migration. One reviewed persistent coordinator, independent backup and verified incremental remote synchronization remain release requirements.

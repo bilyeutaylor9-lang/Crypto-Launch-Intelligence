@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildEdgeCandidateDescriptor } from "../src/data/edgeCandidateUniverseStore.js";
-import { captureForwardExecutionCosts as captureCosts } from "../src/production/forwardExecutionCostCapture.js";
+import { captureForwardExecutionCosts as captureCosts, revalidateForwardExecutionCosts } from "../src/production/forwardExecutionCostCapture.js";
 
 const TOKEN = "0x1111111111111111111111111111111111111111";
 const POOL = "0x2222222222222222222222222222222222222222";
@@ -40,6 +40,24 @@ test("a delayed sell never refreshes the original buy quote freshness", async ()
     quoteProvider: async (request) => { ms += request.side === "BUY" ? 1000 : 31000; return observedQuote(request.side, { capturedAt: new Date(ms).toISOString() }); } });
   assert.equal(result.audit.accepted, 0);
   assert.equal(result.audit.rejectionReasons.QUOTE_OUTSIDE_FRESHNESS_WINDOW, 1);
+});
+
+test("final cost revalidation cannot resurrect expired proof through legacy cost aliases", async () => {
+  const captured = await captureCosts([candidate()], { now: NOW, clock: () => NOW,
+    quoteProvider: async (request) => observedQuote(request.side) });
+  const row = { ...captured.projects[0], frozenRoundTripExecutionCostBps: 1,
+    executionCosts: { roundTripBps: 1, provenance: "old-positive" },
+    executionAwareEV: { roundTripExecutionCostBps: 1, estimatedRoundTripCostBps: 1,
+      buyPriceImpactPct: 0.1, sellPriceImpactPct: 0.1, unrelatedScore: 10 } };
+  const original = structuredClone(row);
+  const [expired] = revalidateForwardExecutionCosts([row], { now: "2026-08-24T12:00:31.000Z" });
+  assert.equal(expired.executionProofEligibility.state, "RESEARCH_ONLY_EXECUTION_EVIDENCE_UNAVAILABLE");
+  assert.equal(expired.executionProofEligibility.reason, "QUOTE_OUTSIDE_DECISION_FRESHNESS_WINDOW");
+  assert.equal(buildEdgeCandidateDescriptor(expired).roundTripExecutionCostBps, null);
+  assert.equal(expired.frozenRoundTripExecutionCostBps, null);
+  assert.equal(expired.executionCosts, null);
+  assert.equal(expired.executionAwareEV.unrelatedScore, 10);
+  assert.deepEqual(row, original, "Original accepted quote evidence must remain unchanged");
 });
 
 function candidate(overrides = {}) {

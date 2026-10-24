@@ -410,6 +410,50 @@ function researchOnlyProjects(projects = [], reason) {
   }));
 }
 
+// A quote accepted earlier in a batch is not necessarily usable when the
+// cohort is committed. Preserve the original attempts separately; this view
+// can only retain current proof or demote it, never refresh its timestamps.
+export function revalidateForwardExecutionCosts(projects = [], options = {}) {
+  const cutoff = timestamp(options.now);
+  const maximumAgeMs = positive(options.maximumQuoteAgeMs, DEFAULT_MAX_QUOTE_AGE_MS);
+  return projects.map((project) => {
+    const identity = exactIdentity(project);
+    const proof = project.executionCostProvenance;
+    const times = [timestamp(proof?.entryQuote?.capturedAt), timestamp(proof?.exitQuote?.capturedAt)];
+    let reason = null;
+    if (cutoff === null) reason = "INVALID_QUOTE_DECISION_CLOCK";
+    else if (!identity || proof?.kind !== "PAIRED_EXECUTABLE_QUOTES_V1" ||
+        proof.identityKey !== identity.identityKey || proof.routeKey !== identity.routeKey ||
+        proof.entryQuote?.poolAddress !== identity.poolAddress || proof.exitQuote?.poolAddress !== identity.poolAddress) {
+      reason = "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE";
+    } else if (times.some((time) => time === null || time > cutoff || cutoff - time > maximumAgeMs)) {
+      reason = "QUOTE_OUTSIDE_DECISION_FRESHNESS_WINDOW";
+    } else if (executionProofEligibility(project).state !== "NET_PROOF_ELIGIBLE") {
+      reason = "PAIRED_EXECUTABLE_ROUND_TRIP_QUOTE_UNAVAILABLE";
+    }
+    const current = reason ? {
+      ...project,
+      roundTripExecutionCostBps: null,
+      frozenRoundTripExecutionCostBps: null,
+      executionReferenceSizeUsd: null,
+      executionCostProvenance: null,
+      executionCostEvidence: null,
+      executionReality: null,
+      executionCosts: null,
+      buyPriceImpactPct: null,
+      sellPriceImpactPct: null,
+      executionAwareEV: project.executionAwareEV ? {
+        ...project.executionAwareEV,
+        roundTripExecutionCostBps: null,
+        estimatedRoundTripCostBps: null,
+        buyPriceImpactPct: null,
+        sellPriceImpactPct: null,
+      } : null,
+    } : project;
+    return { ...current, executionProofEligibility: executionProofEligibility(current, reason) };
+  });
+}
+
 /**
  * Captures read-only, paired executable BUY/SELL quotes for a bounded part of
  * the already-ranked universe. It runs after scoring and never feeds a score,

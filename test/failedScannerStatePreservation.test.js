@@ -14,8 +14,14 @@ const WORKFLOWS = ["edge-evidence-truth", "edge-fast-evidence", "edge-lab", "edg
   "outcome-probe", "pages-dashboard", "production-shadow", "shadow-universe-refresh"];
 const hash = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
-function workflowSteps(file) {
-  return fs.readFileSync(`.github/workflows/${file}.yml`, "utf8").split(/\n(?=      - name:)/);
+function workflowSteps(file, jobId = null) {
+  let workflow = fs.readFileSync(`.github/workflows/${file}.yml`, "utf8");
+  if (jobId) {
+    const start = workflow.indexOf(`\n  ${jobId}:\n`);
+    assert.ok(start >= 0, `${file} must contain job ${jobId}`);
+    workflow = workflow.slice(start + 1).split(/\n(?=  [A-Za-z0-9_-]+:)/)[0];
+  }
+  return workflow.split(/\n(?=      - name:)/);
 }
 
 function shellScript(step) {
@@ -259,19 +265,22 @@ test("all eight pack workflows preserve only failed persistence and upload exact
   }
 });
 
-test("every persistence guard rejects lost diagnostics without allowing temporary transport to excuse failed packing", () => {
+test("every persistence guard rejects failed canonical publication despite successful temporary transport", () => {
   const cases = [
     { name: "normal canonical success", pack: "success", save: "success", preserve: "skipped", upload: "skipped", status: 0 },
     { name: "failed cache and failed upload", pack: "success", save: "failure", preserve: "success", upload: "failure", status: 1 },
     { name: "failed preservation and skipped upload", pack: "success", save: "failure", preserve: "failure", upload: "skipped", status: 1 },
     { name: "skipped transport after preservation", pack: "success", save: "failure", preserve: "success", upload: "skipped", status: 1 },
-    { name: "failed cache with uploaded temporary bytes", pack: "success", save: "failure", preserve: "success", upload: "success", status: 0, warning: true },
+    { name: "failed cache with uploaded temporary bytes", pack: "success", save: "failure", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "skipped cache with uploaded temporary bytes", pack: "success", save: "skipped", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "cancelled cache with uploaded temporary bytes", pack: "success", save: "cancelled", preserve: "success", upload: "success", status: 1, warning: true },
+    { name: "unreported cache with uploaded temporary bytes", pack: "success", save: "", preserve: "success", upload: "success", status: 1, warning: true },
     { name: "failed pack despite uploaded temporary bytes", pack: "failure", save: "skipped", preserve: "success", upload: "success", status: 1, warning: true },
     { name: "all skipped", pack: "skipped", save: "skipped", preserve: "skipped", upload: "skipped", status: 1 },
     { name: "cancelled diagnostics", pack: "success", save: "cancelled", preserve: "cancelled", upload: "cancelled", status: 1 },
   ];
   for (const file of WORKFLOWS) {
-    const steps = workflowSteps(file);
+    const steps = workflowSteps(file, file === "outcome-probe" ? "probe" : null);
     const upload = steps.find(step => step.includes("name: Upload Temporary Failed Scanner State Diagnostic"));
     const guard = steps.find(step => step.includes("name: Enforce Scanner State Persistence"));
     assert.ok(steps.indexOf(guard) > steps.indexOf(upload), `${file} must evaluate the actual upload outcome`);
@@ -292,8 +301,32 @@ test("every persistence guard rejects lost diagnostics without allowing temporar
       assert.equal(result.status, sample.status, `${file}: ${sample.name}: ${result.stderr}`);
       if (sample.warning) assert.match(result.stdout, /temporary 1-day diagnostic, not a permanent backup or verified restart/);
       if (sample.pack !== "success") assert.match(result.stdout, /temporary diagnostic cannot replace canonical restart state/);
+      if (sample.save !== "success") assert.match(result.stdout, /::error::Canonical restart publication failed:/);
     }
   }
+});
+
+test("probe report persistence stays strict without including the success-only cache export job", () => {
+  const steps = workflowSteps("outcome-probe", "probe");
+  const diagnostic = steps.find(step => step.includes("name: Upload Temporary Failed Scanner State Diagnostic"));
+  const guard = steps.find(step => step.includes("name: Enforce Scanner State Persistence"));
+  const reports = steps.filter(step => step.includes("uses: actions/upload-artifact@") && step !== diagnostic);
+  assert.equal(reports.length, 1, "only the normal probe report belongs to this job");
+  assert.match(reports[0], /name: Upload Probe Report/);
+  assert.match(reports[0], /if: always\(\)/, "probe reports must remain reachable after persistence failure");
+  assert.match(guard, /id: state_persistence/);
+  assert.match(guard, /if: always\(\)/);
+  assert.doesNotMatch(guard, /continue-on-error:/);
+  assert.ok(steps.indexOf(guard) > steps.indexOf(diagnostic));
+  assert.ok(steps.indexOf(reports[0]) > steps.indexOf(guard));
+  assert.doesNotMatch(steps.join("\n"), /export-forward-cache:|Upload Forward Evidence Cache Export/);
+
+  const exporter = workflowSteps("outcome-probe", "export-forward-cache");
+  const uploads = exporter.filter(step => step.includes("uses: actions/upload-artifact@"));
+  assert.equal(uploads.length, 1);
+  assert.match(uploads[0], /name: Upload Forward Evidence Cache Export/);
+  assert.match(uploads[0], /if: \$\{\{ success\(\) && steps\.export_cache\.outcome == 'success' \}\}/);
+  assert.doesNotMatch(uploads[0], /always\(\)/, "failed or partial exports must not be uploaded");
 });
 
 test("dashboard persistence failure reaches post-deployment final health instead of terminating the build early", () => {
@@ -307,12 +340,13 @@ test("dashboard persistence failure reaches post-deployment final health instead
   assert.match(health, /for check in [^\n]*\bSTATE_PERSISTENCE\b/);
   assert.match(health, /for check in [^\n]*\bSTATE_PACK\b/);
   const healthy = Object.fromEntries([...health.matchAll(/^          ([A-Z_]+):/gm)].map(match => [match[1], "success"]));
-  for (const [upload, expected] of [["failure", 1], ["success", 0]]) {
+  for (const upload of ["failure", "success", "skipped", "cancelled"]) {
     const diagnostic = runShell(guard, { STATE_PACK: "success", STATE_CACHE_SAVE: "failure",
       FAILED_STATE_PRESERVE: "success", FAILED_STATE_UPLOAD: upload });
     const result = runShell(health, { ...healthy, STATE_PERSISTENCE: diagnostic.status === 0 ? "success" : "failure" });
-    assert.equal(result.status, expected);
-    if (expected) assert.match(result.stdout, /STATE_PERSISTENCE finished with failure/);
+    assert.equal(diagnostic.status, 1, `failed cache with ${upload} diagnostic transport must fail persistence`);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /STATE_PERSISTENCE finished with failure/);
   }
   assert.equal(runShell(health, healthy).status, 0);
   assert.equal(runShell(health, { ...healthy, STATE_PACK: "failure" }).status, 1);

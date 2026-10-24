@@ -8,6 +8,7 @@ import { normalizeExecutableQuote, quoteProviderFromEnvironment } from "../src/c
 const TOKEN = "8T2nkC9HQkgd2yjxc7Yn1LAietmXyZKbv1vR4FXDbonk";
 const POOL = "FLjduG53HF2T9WuJLsZuwJKAVm8Gs91h3NqkGb1dy6gi";
 const NOW = "2026-10-21T12:00:00.000Z";
+const FIXTURE_API_KEY = "nonsecret-jupiter-fixture-key";
 const request = (side = "BUY") => ({ operation: "QUOTE_ONLY", side, chain: "solana", tokenAddress: TOKEN, poolAddress: POOL,
   requestedNotionalUsd: 100, allowOrderSubmission: false, allowTransactionSubmission: false });
 
@@ -15,10 +16,10 @@ function fixture(mutate = () => {}, options = {}) {
   let ms = Date.parse(NOW);
   const calls = [];
   const clock = () => new Date(ms).toISOString();
-  const providerOptions = { apiKey: "", clock, budget: { requests: [], nextAt: 0 },
+  const providerOptions = { apiKey: FIXTURE_API_KEY, clock, budget: { requests: [], nextAt: 0 },
     sleep: async (delay) => { ms += delay; },
     fetch: async (url, init) => {
-      calls.push({ url: new URL(url), init });
+      calls.push({ url: new URL(url), init, at: ms });
       assert.equal(init.method, "GET");
       assert.equal(init.body, undefined);
       const u = new URL(url);
@@ -49,7 +50,7 @@ function fixture(mutate = () => {}, options = {}) {
   return { provider: createJupiterExecutableQuoteProvider(providerOptions), providerOptions, calls, clock };
 }
 
-test("GET-only keyless paired quotes bind the same exact Solana route, raw amounts and conservative costs", async () => {
+test("GET-only authenticated paired quotes bind the same exact Solana route, raw amounts and conservative costs", async () => {
   const f = fixture();
   const result = await captureForwardExecutionCosts([{ ...request(), priceUsd: 2, sourceObservedAt: NOW }], {
     now: NOW, clock: f.clock, quoteProvider: f.provider,
@@ -57,7 +58,11 @@ test("GET-only keyless paired quotes bind the same exact Solana route, raw amoun
   assert.equal(result.audit.accepted, 1);
   assert.equal(f.calls.length, 3);
   assert.equal(f.calls[2].url.searchParams.get("amount"), "50000000");
-  assert.equal(f.calls[0].init.headers["x-api-key"], undefined);
+  assert.ok(f.calls.every((call) => call.init.headers["x-api-key"] === FIXTURE_API_KEY));
+  assert.equal(f.provider.requiresKey, true);
+  assert.equal(f.provider.keyless, false);
+  assert.equal(f.provider.availabilityState, "CONFIGURED");
+  assert.equal(result.audit.keylessProvider, false);
   const row = result.projects[0];
   assert.equal(row.roundTripExecutionCostBps, 401.672);
   assert.equal(row.executionReferenceSizeUsd, 100);
@@ -75,10 +80,87 @@ test("GET-only keyless paired quotes bind the same exact Solana route, raw amoun
 test("chain-aware factory dispatches Solana to Jupiter, not the EVM adapter", async () => {
   const f = fixture();
   const provider = quoteProviderFromEnvironment({ endpoint: "", jupiter: f.providerOptions, lifi: { fetchJson: () => { throw Error("EVM MUST NOT RUN"); } } });
+  assert.equal(provider.keyless, false);
+  assert.equal(provider.forChain("solana").keyless, false);
   const quote = await provider(request());
   assert.equal(quote.provider, "Jupiter Quote Only V2");
   assert.equal(quote.tokenAddress, TOKEN);
   assert.equal(f.calls.length, 2);
+});
+
+test("missing, empty or whitespace Jupiter keys consume no requests, waits or budget", async (t) => {
+  const previous = process.env.JUPITER_API_KEY;
+  delete process.env.JUPITER_API_KEY;
+  t.after(() => {
+    if (previous === undefined) delete process.env.JUPITER_API_KEY;
+    else process.env.JUPITER_API_KEY = previous;
+  });
+  for (const apiKey of [undefined, "", " \t\n"]) {
+    const budget = { requests: [Date.parse(NOW)], nextAt: Date.parse(NOW) + 2100 };
+    const before = structuredClone(budget);
+    const f = fixture(() => {}, { apiKey, budget, sleep: async () => assert.fail("missing key must not wait") });
+    const provider = quoteProviderFromEnvironment({ endpoint: "", jupiter: f.providerOptions, lifi: { apiKey: "" } });
+    for (const source of [f.provider, provider, provider.forChain("solana")]) {
+      await assert.rejects(source(request()), {
+        message: "JUPITER_OPTIONAL_KEY_MISSING", code: "OPTIONAL_KEY_MISSING", missingKey: "JUPITER_API_KEY",
+      });
+    }
+    assert.equal(f.provider.availabilityState, "OPTIONAL_KEY_MISSING");
+    assert.equal(f.provider.missingKey, "JUPITER_API_KEY");
+    assert.equal(f.provider.keyless, false);
+    assert.equal(provider.keyless, false);
+    assert.equal(provider.forChain("base").keyless, true);
+    assert.equal(f.calls.length, 0);
+    assert.deepEqual(budget, before);
+    const result = await captureForwardExecutionCosts([{ ...request(), priceUsd: 2 }], {
+      now: NOW, clock: f.clock, quoteProvider: provider,
+    });
+    assert.equal(result.audit.accepted, 0);
+    assert.equal(result.audit.quoteAttempts[0].providerErrorCode, "JUPITER_OPTIONAL_KEY_MISSING");
+    assert.equal(f.calls.length, 0);
+    assert.deepEqual(budget, before);
+  }
+});
+
+test("50bps minimum-output bounds use exact atomic rounding, including u64-sized amounts", async () => {
+  for (const amount of ["50000000", "50000001", "18446744073709551615"]) {
+    const output = BigInt(amount);
+    const minimum = output * 9950n / 10000n;
+    const ceiling = (output * 9950n + 9999n) / 10000n;
+    const withThreshold = (threshold) => fixture((p, u) => {
+      if (!u.pathname.endsWith("order")) return;
+      p.outAmount = amount;
+      p.routePlan[0].swapInfo.outAmount = amount;
+      p.otherAmountThreshold = threshold.toString();
+    });
+    for (const threshold of new Set([minimum, ceiling, output])) {
+      const f = withThreshold(threshold);
+      assert.equal((await f.provider(request())).outputTokenAmountAtomic, amount);
+    }
+    for (const threshold of [1n, minimum - 1n]) {
+      const f = withThreshold(threshold);
+      await assert.rejects(f.provider(request()), /JUPITER_SLIPPAGE_THRESHOLD_MISMATCH/);
+    }
+    if (output < 2n ** 64n - 1n) {
+      const f = withThreshold(output + 1n);
+      await assert.rejects(f.provider(request()), /JUPITER_SLIPPAGE_THRESHOLD_MISMATCH/);
+    }
+  }
+});
+
+test("a permissive threshold on either leg cannot become paired cost evidence", async () => {
+  for (const side of ["BUY", "SELL"]) {
+    const f = fixture((p, u) => {
+      if (u.pathname.endsWith("order") && p.requestId === side.toLowerCase()) p.otherAmountThreshold = "1";
+    });
+    const result = await captureForwardExecutionCosts([{ ...request(), priceUsd: 2 }], {
+      now: NOW, clock: f.clock, quoteProvider: f.provider,
+    });
+    assert.equal(result.audit.accepted, 0);
+    assert.equal(result.projects[0].executionCostProvenance, undefined);
+    assert.equal(result.audit.quoteAttempts.at(-1).providerErrorCode, "JUPITER_SLIPPAGE_THRESHOLD_MISMATCH");
+    assert.equal(f.calls.length, side === "BUY" ? 2 : 3);
+  }
 });
 
 test("V2 net output reconciles the explicit platform fee without relaxing exact pool checks", async () => {
@@ -150,4 +232,20 @@ test("429 stops acquisition without immediate retries", async () => {
   await assert.rejects(f.provider(request()), /HTTP_429/);
   await assert.rejects(f.provider(request()), /RATE_LIMITED/);
   assert.equal(calls, 1);
+});
+
+test("authenticated requests retain the 70-request run cap and 2100ms spacing", async () => {
+  const f = fixture();
+  for (let index = 0; index < 35; index++) await f.provider(request());
+  await assert.rejects(f.provider(request()), /JUPITER_RUN_BUDGET_EXHAUSTED/);
+  assert.equal(f.calls.length, 70);
+  assert.ok(f.calls.slice(1).every((call, index) => call.at - f.calls[index].at >= 2100));
+});
+
+test("the shared 30-request minute cap rejects before HTTP", async () => {
+  const budget = { requests: Array(30).fill(Date.parse(NOW)), nextAt: 0 };
+  const f = fixture(() => {}, { budget });
+  await assert.rejects(f.provider(request()), /JUPITER_RATE_LIMITED/);
+  assert.equal(f.calls.length, 0);
+  assert.equal(budget.requests.length, 30);
 });

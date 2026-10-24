@@ -12,6 +12,7 @@ import {
 } from "../src/diagnostics/qualificationFailureMicroscope.js";
 
 function baseProject(overrides = {}) {
+  const quoteAt = Date.now() - 20_000;
   return {
     symbol: "EDGE",
     chain: "base",
@@ -39,6 +40,8 @@ function baseProject(overrides = {}) {
         slippageVerified: true,
         quoteFresh: true,
         quoteAgeSeconds: 20,
+        quoteTimestamp: new Date(quoteAt).toISOString(),
+        quoteExpiresAt: new Date(quoteAt + 80_000).toISOString(),
       },
       userAccess: {
         status: "CONFIRMED_AVAILABLE",

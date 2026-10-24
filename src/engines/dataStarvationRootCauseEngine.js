@@ -5,6 +5,17 @@ import { evaluateEvidenceFreshness } from "../data/evidenceFreshnessPolicy.js";
 import { buildTargetedEnrichmentPlan } from "../data/targetedEnrichmentRouter.js";
 import { sourceFamilyForField } from "../data/enrichmentSourceRegistry.js";
 import { normalizeChainId, chainKind } from "../identity/strictIdentityValidators.js";
+import { MEASURED_WALLET_FLOW_MAX_AGE_MS } from "../data/measuredWalletFlow.js";
+import { resolveCanonicalObservationAliases } from "../data/canonicalObservationInput.js";
+
+const WALLET_RAW_PREREQUISITES = Object.freeze({
+  smartWalletNetFlowUsd: [["smartWalletNetFlowUsd"], ["smartWalletBuyVolumeUsd", "smartWalletSellVolumeUsd"]],
+  smartWalletBuyCount: [["smartWalletBuyCount", "smartWalletBuys24h"]],
+  smartWalletSellCount: [["smartWalletSellCount", "smartWalletSells24h"]],
+  accumulationDays: [["smartWalletFlowHistory", "qualified daily net flow with nonpositive boundary"]],
+});
+const WALLET_RECEIPT_PATHS = ["fieldProvenance", "ignitionRawSensors.eventTape",
+  "smartWalletFlowProvenance", "smartWalletSignal.provenance"];
 
 const INTERNAL_FIELD_PRODUCERS = Object.freeze({
   marketOpportunityRank: "marketOpportunityRank",
@@ -58,17 +69,26 @@ function clean(value = "") {
 }
 
 function values(project = {}, fields = []) {
-  return fields.map((field) => {
-    const direct = String(field).split(".").reduce((value, part) => value?.[part], project);
-    return hasValue(direct) ? direct : canonicalValue(project, field);
-  });
+  // applyCanonicalAliases has already validated these fields, including null rejections.
+  return fields.map((field) => canonicalValue(project, field));
 }
 
 function providerStatus(project = {}, field = "") {
   const providerHealth = project.providerHealth || project.sourceHealth || project.discoverySourceHealth || {};
   const recovery = project.activeEvidenceRecovery || {};
-  const recoveryAttempted = (recovery.attemptedFields || []).includes(field);
-  const recoveryStatuses = (recovery.providerAttempts || [])
+  const canonical = value => typeof value === "string" ? clean(canonicalFieldForAlias(value) || value) : null;
+  const fieldKey = canonical(field);
+  const recoveryAttempted = Array.isArray(recovery.attemptedFields) && recovery.attemptedFields.some(value => canonical(value) === fieldKey);
+  const family = sourceFamilyForField(field);
+  const recoveryStatuses = (Array.isArray(recovery.providerAttempts) ? recovery.providerAttempts : [])
+    .filter(attempt => {
+      if (!attempt || typeof attempt !== "object") return false;
+      // Exact dispatch scope wins over a broader legacy family. An absent or
+      // malformed legacy scope must not blame another field's provider outage.
+      if (Object.hasOwn(attempt, "requestedFields")) return Array.isArray(attempt.requestedFields) &&
+        attempt.requestedFields.some(value => canonical(value) === fieldKey);
+      return !["UNKNOWN", "DERIVED"].includes(family) && clean(attempt.family) === family.toLowerCase();
+    })
     .map((attempt) => clean(attempt?.status))
     .filter(Boolean);
   const statusText = [
@@ -88,12 +108,17 @@ function providerStatus(project = {}, field = "") {
     return "PROVIDER_UNAVAILABLE";
   }
   if (recoveryAttempted) {
-    if (recoveryStatuses.includes("request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
+    if (recoveryStatuses.includes("request_budget_exhausted") ||
+      recoveryStatuses.includes("phase_request_budget_exhausted")) return "PROVIDER_BUDGET_EXHAUSTED";
     if (recoveryStatuses.includes("circuit_open")) return "PROVIDER_CIRCUIT_OPEN";
     if (
       recoveryStatuses.includes("failed") ||
       recoveryStatuses.includes("provider_unavailable")
     ) return "PROVIDER_UNAVAILABLE";
+    if (recoveryStatuses.includes("rate_limited") ||
+      recoveryStatuses.includes("provider_cooldown")) return "PROVIDER_RATE_LIMITED";
+    if (recoveryStatuses.includes("phase_time_budget_exhausted") ||
+      recoveryStatuses.includes("time_budget_exhausted")) return "ENRICHMENT_DEFERRED";
     return "PROVIDER_RETURNED_UNKNOWN";
   }
   return "UNKNOWN";
@@ -104,6 +129,27 @@ function engineRecord(project = {}, producer = "") {
     .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase())
     .replace(/^[A-Z]/, (chr) => chr.toLowerCase());
   return project.engineResults?.[key] || null;
+}
+
+function walletRawPrerequisites(project, field, contract, now) {
+  const nowMs = now.getTime();
+  if (contract.id !== "smartMoneyAccumulation" || !Object.hasOwn(WALLET_RAW_PREREQUISITES, field) ||
+      !Number.isFinite(nowMs) ||
+      engineRecord(project, contract.id)?.status !== "SUCCESS") return null;
+  const flow = project.measuredWalletFlow;
+  const evaluatedAt = typeof flow?.evaluatedAt === "string" ? Date.parse(flow.evaluatedAt) : NaN;
+  const prerequisite = flow?.rawPrerequisites?.[field];
+  if (flow?.schemaVersion !== 1 || !["UNKNOWN", "PARTIAL"].includes(flow.status) ||
+      !Number.isFinite(evaluatedAt) || evaluatedAt > nowMs ||
+      nowMs - evaluatedAt > MEASURED_WALLET_FLOW_MAX_AGE_MS ||
+      flow.values?.[field] !== null || flow.effectiveValues?.[field] !== null ||
+      prerequisite?.rootCause !== "RAW_SOURCE_MISSING" ||
+      prerequisite.recoveryDisposition !== "UNAVAILABLE_WITH_CURRENT_PROVIDERS" ||
+      typeof prerequisite.reason !== "string" || !prerequisite.reason.trim() ||
+      JSON.stringify(prerequisite.requiredAny) !== JSON.stringify(WALLET_RAW_PREREQUISITES[field]) ||
+      JSON.stringify(prerequisite.receiptPaths) !== JSON.stringify(WALLET_RECEIPT_PATHS)) return null;
+  return { ...prerequisite, requiredAny: prerequisite.requiredAny.map((group) => [...group]),
+    receiptPaths: [...prerequisite.receiptPaths] };
 }
 
 function lifecycle(project = {}) {
@@ -252,9 +298,14 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
   const applicability = fieldApplicability(project, canonicalField, contract);
   const provenance = project.canonicalAliasProvenance?.[canonicalField] || null;
   const freshness = provenance ? evaluateEvidenceFreshness(provenance.sourceTimestamp || provenance.observedAt, canonicalField, now) : null;
-  const rootCause = freshness?.status === "STALE_DATA"
+  let rootCause = freshness?.status === "STALE_DATA"
     ? "STALE_DATA"
     : rootCauseForMissing(project, canonicalField, contract, applicability, producers);
+  // A successful producer can correctly withhold a derived value when its raw
+  // measurements are unavailable. Preserve pipeline failures and stale/conflicted data.
+  const rawPrerequisites = ["PIPELINE_OUTPUT_MISSING", "RAW_SOURCE_MISSING"].includes(rootCause)
+    ? walletRawPrerequisites(project, canonicalField, contract, now) : null;
+  if (rawPrerequisites) rootCause = "RAW_SOURCE_MISSING";
   const evidenceFamily = sourceFamilyForField(canonicalField);
   const producer = producers.get(canonicalField) || INTERNAL_FIELD_PRODUCERS[canonicalField] || null;
   const derivedOutput =
@@ -263,6 +314,7 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
   const fieldProviderStatus = derivedOutput ? "UNKNOWN" : providerStatus(project, canonicalField);
   const recoverable =
     !derivedOutput &&
+    !rawPrerequisites &&
     !["NOT_APPLICABLE", "UNSUPPORTED_CHAIN"].includes(rootCause);
   const evidenceClass =
     contract.affectsFinalDecision || contract.canBlockCandidate
@@ -273,6 +325,7 @@ function missingRecord(project = {}, field = "", contract = {}, now = new Date()
     field,
     canonicalField,
     rootCause,
+    ...(rawPrerequisites ? { rawPrerequisites } : {}),
     producingEngine: producer || contract.id || null,
     expectedSource: derivedOutput ? `internal:${producer || contract.id}` : null,
     sourceAttempted: fieldProviderStatus !== "UNKNOWN",
@@ -330,7 +383,7 @@ export function analyzeDataStarvationRootCause(project = {}, options = {}) {
   const aliased = applyCanonicalAliases(project, {
     fields: [...new Set(contractFields.map((field) => canonicalFieldForAlias(field) || field))],
     disableSemanticScan: options.disableSemanticScan ?? false,
-  });
+  }, resolveCanonicalObservationAliases);
   const missing = [];
   const notApplicable = [];
   const satisfied = [];

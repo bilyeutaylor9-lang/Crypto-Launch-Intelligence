@@ -15,7 +15,7 @@ export function createGoPlusRequestLimiter(options = {}) {
         if (options.waitForCooldown === false && blockedUntil > now()) return false;
         const remaining = deadlineAt - now();
         if (remaining <= 0) return false;
-        await sleep(Math.min(delay, remaining));
+        await sleep(Math.min(delay, remaining, 2_147_483_647));
       }
       if (now() >= deadlineAt) return false;
       nextRequestAt = now() + intervalMs;
@@ -25,7 +25,8 @@ export function createGoPlusRequestLimiter(options = {}) {
     return slot;
   }
   waitForSlot.defer = (ms = 61000) => {
-    blockedUntil = Math.max(blockedUntil, now() + ms);
+    const duration = Number.isFinite(ms) && ms >= 0 ? ms : 61000;
+    blockedUntil = Math.min(8_640_000_000_000_000, Math.max(blockedUntil, Number(now()) + duration));
   };
   waitForSlot.cooldownUntil = () => blockedUntil;
   return waitForSlot;

@@ -184,9 +184,10 @@ export async function getBlockscoutSecurityEvidence(project = {}, options = {}) 
     const root = String(baseUrl).replace(/\/+$/, "");
     const contractUrl = `${root}/api/v2/smart-contracts/${address}`;
     const addressUrl = `${root}/api/v2/addresses/${address}`;
+    const fetcher = options.securityFetchJson || fetchJson;
     const [contractResult, addressResult] = await Promise.allSettled([
-      fetchJson(contractUrl, { timeoutMs: options.timeoutMs }),
-      fetchJson(addressUrl, { timeoutMs: options.timeoutMs }),
+      fetcher(contractUrl, { timeoutMs: options.timeoutMs }),
+      fetcher(addressUrl, { timeoutMs: options.timeoutMs }),
     ]);
     const contract = contractResult.status === "fulfilled" ? contractResult.value : {};
     const addressInfo = addressResult.status === "fulfilled" ? addressResult.value : {};

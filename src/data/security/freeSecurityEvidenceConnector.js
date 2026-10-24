@@ -12,6 +12,13 @@ const DEFAULT_PROVIDERS = [
   getBlockscoutSecurityEvidence,
 ];
 
+const TRANSPORT_PROVIDERS = new Map([
+  [getGoPlusSecurityEvidence, "goplus-security"],
+  [getEtherscanV2SecurityEvidence, "etherscan-security"],
+  [getSourcifySecurityEvidence, "sourcify-security"],
+  [getBlockscoutSecurityEvidence, "blockscout-security"],
+]);
+
 export async function getFreeSecurityEvidence(project = {}, options = {}) {
   const providers =
     options.providers ||
@@ -19,7 +26,11 @@ export async function getFreeSecurityEvidence(project = {}, options = {}) {
       ? [getSolanaSecurityEvidence]
       : DEFAULT_PROVIDERS);
   const settled = await Promise.allSettled(
-    providers.map((provider) => provider(project, options))
+    providers.map((provider) => {
+      const transportProvider = TRANSPORT_PROVIDERS.get(provider);
+      const fetchJson = transportProvider && options.fetchJsonForProvider?.(transportProvider);
+      return provider(project, fetchJson ? { ...options, fetchJson, securityFetchJson: fetchJson } : options);
+    })
   );
   const evidence = settled.map((result, index) =>
     result.status === "fulfilled"

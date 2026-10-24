@@ -73,6 +73,7 @@ function verifyRoute(payload, request, inputMint, outputMint, amount) {
 
 /** GET-only quotes. No wallet, signing, build, swap, or execute endpoint exists here. */
 export function createJupiterExecutableQuoteProvider(options = {}) {
+  const apiKey = String(options.apiKey ?? process.env.JUPITER_API_KEY ?? "").trim();
   const clock = options.clock || (() => new Date().toISOString());
   const transport = options.fetch || globalThis.fetch;
   const sleep = options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
@@ -99,10 +100,9 @@ export function createJupiterExecutableQuoteProvider(options = {}) {
     requests += 1;
     const url = new URL(path, BASE);
     url.search = new URLSearchParams(params);
-    const apiKey = options.apiKey ?? process.env.JUPITER_API_KEY;
     const response = await transport(url.toString(), {
       method: "GET", redirect: "error", signal: AbortSignal.timeout(8000),
-      headers: { accept: "application/json", ...(apiKey ? { "x-api-key": apiKey } : {}) },
+      headers: { accept: "application/json", "x-api-key": apiKey },
     });
     if (response.status === 429) {
       const reset = Number(response.headers.get("x-ratelimit-reset"));
@@ -124,6 +124,12 @@ export function createJupiterExecutableQuoteProvider(options = {}) {
     const notional = number(request.requestedNotionalUsd);
     if (normalizeChainId(request.chain) !== "solana" || !token || !pool || token !== request.tokenAddress || pool !== request.poolAddress ||
         !notional || notional > 1000 || token === JUPITER_USDC) throw new Error("JUPITER_EXACT_REQUEST_REQUIRED");
+    if (!apiKey) {
+      const error = new Error("JUPITER_OPTIONAL_KEY_MISSING");
+      error.code = "OPTIONAL_KEY_MISSING";
+      error.missingKey = "JUPITER_API_KEY";
+      throw error;
+    }
     const key = `${token}:${pool}:${notional}`;
     let entry;
     if (request.side === "BUY") {
@@ -157,7 +163,16 @@ export function createJupiterExecutableQuoteProvider(options = {}) {
     const feeFields = ["signatureFeeLamports", "prioritizationFeeLamports", "rentFeeLamports"];
     const fees = feeFields.map((field) => number(payload[field]));
     if (fees.some((n) => n === null || !Number.isSafeInteger(n)) || typeof payload.priceImpact !== "number" || !Number.isFinite(payload.priceImpact) ||
-        payload.slippageBps !== 50 || units(payload.otherAmountThreshold) > units(payload.outAmount)) throw new Error("JUPITER_COST_COMPONENT_MISSING");
+        payload.slippageBps !== 50) throw new Error("JUPITER_COST_COMPONENT_MISSING");
+    const outputAmount = units(payload.outAmount);
+    const minimumOutput = outputAmount * 9950n / 10000n;
+    const threshold = units(payload.otherAmountThreshold);
+    // Allow exact-in rounding down by a fractional atomic unit, or a stricter minimum.
+    if (threshold < minimumOutput || threshold > outputAmount) {
+      const error = new Error("JUPITER_SLIPPAGE_THRESHOLD_MISMATCH");
+      error.quoteDiagnostic = result;
+      throw error;
+    }
     const allowance = Object.values(SOLANA_FEE_ALLOWANCE);
     const feeLamports = fees.reduce((sum, fee, i) => sum + Math.max(fee, allowance[i]), 0);
     const gasUsd = feeLamports / 1e9 * entry.solUsd;
@@ -194,6 +209,10 @@ export function createJupiterExecutableQuoteProvider(options = {}) {
   };
   provider.providerName = "Jupiter Quote Only V2";
   provider.transport = "JUPITER_GET_ORDER_WITHOUT_TAKER";
+  provider.requiresKey = true;
+  provider.keyless = false;
+  provider.availabilityState = apiKey ? "CONFIGURED" : "OPTIONAL_KEY_MISSING";
+  provider.missingKey = apiKey ? null : "JUPITER_API_KEY";
   provider.quoteOnly = true;
   return provider;
 }

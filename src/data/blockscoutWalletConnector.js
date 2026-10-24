@@ -6,6 +6,7 @@ import {
 } from "./security/securityEvidenceUtils.js";
 import { chainKind, normalizeChainId } from "../identity/strictIdentityValidators.js";
 import { createEvmWalletParticipantFilter } from "./walletParticipantPolicy.js";
+import { providerReceiptTimestamp, retryAfterMs as parseRetryAfterMs } from "./providerResponseReceipt.js";
 
 const ZERO_ADDRESS = `0x${"0".repeat(40)}`;
 
@@ -15,6 +16,10 @@ function clean(value = "") {
 
 function lower(value = "") {
   return clean(value).toLowerCase();
+}
+
+function httpStatus(error) {
+  return error?.status ?? error?.statusCode ?? error?.httpStatus ?? error?.response?.status;
 }
 
 function numberOrNull(value) {
@@ -294,10 +299,28 @@ export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
     ["holders", "/holders"],
     ["token", ""],
   ];
-  const responses = await Promise.allSettled(endpoints.map(([, suffix]) =>
-    fetchJson(`${root}/api/v2/tokens/${tokenAddress}${suffix}`, {
-      timeoutMs: options.timeoutMs,
-    })));
+  const rateLimits = [];
+  const responses = await Promise.allSettled(endpoints.map(async ([, suffix]) => {
+    try {
+      return await fetchJson(`${root}/api/v2/tokens/${tokenAddress}${suffix}`, {
+        timeoutMs: options.timeoutMs,
+        ...(Object.hasOwn(options, "now") ? { now: options.now } : {}),
+      });
+    } catch (error) {
+      if ([429, "429"].includes(httpStatus(error))) {
+        const receivedAt = Number.isFinite(Date.parse(error?.receivedAt || ""))
+          ? error.receivedAt : providerReceiptTimestamp(options);
+        const parsed = Number.isFinite(error.retryAfterMs) && error.retryAfterMs >= 0
+          ? error.retryAfterMs : parseRetryAfterMs(error.retryAfter ?? error.response?.headers?.get?.("retry-after"), receivedAt);
+        const retryAfterMs = Math.max(61_000, Number.isFinite(parsed) ? parsed : 0);
+        const rateLimit = { retryAfterMs,
+          retryAt: new Date(Math.min(8_640_000_000_000_000, Date.parse(receivedAt) + retryAfterMs)).toISOString() };
+        rateLimits.push(rateLimit);
+        options.onBlockscoutRateLimit?.(rateLimit);
+      }
+      throw error;
+    }
+  }));
   const payload = Object.fromEntries(endpoints.map(([name], index) =>
     [name, responses[index].status === "fulfilled" ? responses[index].value : {}]));
   const now = new Date(options.now?.() ?? Date.now());
@@ -308,9 +331,21 @@ export async function getBlockscoutWalletEvidence(project = {}, options = {}) {
     observedAt: cheap ? now.toISOString() : new Date().toISOString(),
     now,
   });
+  // Only explicit HTTP 404s establish candidate-level absence, never error text.
+  const candidateEvidenceUnavailable = responses.every((item) => item.status === "rejected" &&
+    [404, "404"].includes(httpStatus(item.reason)));
+  const allRejected = responses.every((item) => item.status === "rejected");
   return {
     ...result,
-    providerFailure: responses.every((item) => item.status === "rejected"),
+    providerFailure: !candidateEvidenceUnavailable && allRejected,
+    ...(rateLimits.length ? {
+      // Genuine outages in a fully rejected batch still count against the breaker.
+      rateLimited: !allRejected || responses.every((item) => [404, "404", 429, "429"].includes(httpStatus(item.reason))),
+      retryAfterMs: Math.max(...rateLimits.map((item) => item.retryAfterMs)),
+      retryAt: new Date(Math.max(...rateLimits.map((item) => Date.parse(item.retryAt)))).toISOString(),
+    } : {}),
+    ...(candidateEvidenceUnavailable ? { candidateEvidenceUnavailable: true,
+      reason: "Blockscout returned HTTP 404 for every requested token endpoint; candidate wallet evidence is unavailable." } : {}),
     warnings: [
       ...responses.flatMap((response, index) => response.status === "rejected"
         ? [`Blockscout ${endpoints[index][0].replace(/s$/, "")} request failed: ${response.reason?.message || "unknown"}`] : []),

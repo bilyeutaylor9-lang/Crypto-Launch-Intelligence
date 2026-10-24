@@ -7,9 +7,8 @@ import {
 } from "./dexScreenerConnector.js";
 import {
   getGeckoPoolByAddress,
-  normalizeGeckoPool,
-  resolveGeckoTerminalNetworkId,
 } from "./geckoTerminalConnector.js";
+import { geckoPoolRequestIdentity, getGeckoTokenPools, normalizeExactGeckoPool, selectExactGeckoTokenPool } from "./geckoTokenPoolDiscovery.js";
 import {
   getCoinGeckoMarketsByIds,
   normalizeCoinGeckoMarket,
@@ -92,6 +91,8 @@ const GECKO_FIELDS = new Set([
   "priceUsd",
   "liquidityUsd",
   "volume24hUsd",
+  "buyTransactions24h",
+  "sellTransactions24h",
 ]);
 
 const GECKO_COMPANION_FIELDS = [
@@ -101,6 +102,8 @@ const GECKO_COMPANION_FIELDS = [
   "priceUsd",
   "liquidityUsd",
   "volume24hUsd",
+  "buyTransactions24h",
+  "sellTransactions24h",
 ];
 
 // DeFiLlama's free contract-price endpoint is an exact token-price fallback.
@@ -292,6 +295,7 @@ function providerFunctions(options = {}) {
       injected.getGeckoPoolByAddress ||
       options.getGeckoPoolByAddress ||
       getGeckoPoolByAddress,
+    getGeckoTokenPools: injected.getGeckoTokenPools || options.getGeckoTokenPools || getGeckoTokenPools,
     getFreeSecurityEvidence:
       injected.getFreeSecurityEvidence ||
       options.getFreeSecurityEvidence ||
@@ -408,6 +412,7 @@ export function createActiveEvidenceExecutionState(options = {}) {
     ),
     circuitFailureThreshold,
     providers: new Map(),
+    providerCooldowns: new Map(),
   };
 }
 
@@ -425,6 +430,22 @@ function providerState(state = {}, provider = "unknown", circuitScope = null) {
   };
   state.providers.set(stateKey, current);
   return current;
+}
+
+function deferProviderCooldown(state, health, value, cooldownKey) {
+  const explicit = Date.parse(value.retryAt || "");
+  const until = Number.isFinite(explicit) ? explicit
+    : Number.isFinite(value.retryAfterMs) && value.retryAfterMs > 0
+      ? Number((state.now || Date.now)()) + value.retryAfterMs : null;
+  if (until === null) return;
+  const bounded = Math.min(8_640_000_000_000_000, until);
+  // Origin cooldowns are independent of provider/chain outage history.
+  if (cooldownKey) {
+    state.providerCooldowns ??= new Map();
+    state.providerCooldowns.set(cooldownKey, Math.max(state.providerCooldowns.get(cooldownKey) || 0, bounded));
+  } else {
+    health.cooldownUntil = Math.max(health.cooldownUntil || 0, bounded);
+  }
 }
 
 function recoveryDeadlineAt(state, options) {
@@ -463,7 +484,8 @@ async function executeProviderCall(
   cost = 1,
   circuitScope = null,
   beforeOperation = null,
-  onTimeout = null
+  onTimeout = null,
+  cooldownKey = null
 ) {
   const health = providerState(state, provider, circuitScope);
   const deadlineStatus = recoveryDeadlineStatus(state, options);
@@ -491,6 +513,13 @@ async function executeProviderCall(
       durationMs: 0,
     };
   }
+  const cooldownUntil = Math.max(health.cooldownUntil || 0, state.providerCooldowns?.get(cooldownKey) || 0);
+  if (cooldownUntil > (state.now || Date.now)()) {
+    health.skipped += 1;
+    return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
+      retryAt: new Date(cooldownUntil).toISOString(),
+      reason: "Provider Retry-After cooldown active; independent recovery fallbacks remain available." };
+  }
   const requestLimit = recoveryRequestLimit(state, options);
   if (state.requestsUsed + cost > requestLimit) {
     health.skipped += 1;
@@ -512,14 +541,17 @@ async function executeProviderCall(
   if (beforeOperation) {
     const slotReserved = await beforeOperation();
     // Another queued operation may have exhausted the budget or opened the circuit.
-    if (recoveryDeadlineStatus(state, options) || health.circuitOpen || state.requestsUsed + cost > recoveryRequestLimit(state, options)) {
-      return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout);
+    if (recoveryDeadlineStatus(state, options) || health.circuitOpen ||
+        Math.max(health.cooldownUntil || 0, state.providerCooldowns?.get(cooldownKey) || 0) > (state.now || Date.now)() ||
+        state.requestsUsed + cost > recoveryRequestLimit(state, options)) {
+      return executeProviderCall(provider, operation, options, state, cost, circuitScope, null, onTimeout, cooldownKey);
     }
     if (slotReserved === false) {
       health.skipped += 1;
       const retryAtMs = (options.goPlusRateLimiter || waitForGoPlusRequestSlot).cooldownUntil?.();
       return { status: "PROVIDER_COOLDOWN", provider, value: null, durationMs: 0,
-        retryAt: Number.isFinite(retryAtMs) ? new Date(retryAtMs).toISOString() : null,
+        retryAt: Number.isFinite(retryAtMs) && Math.abs(retryAtMs) <= 8_640_000_000_000_000
+          ? new Date(retryAtMs).toISOString() : null,
         reason: "Provider cooldown active; independent recovery fallbacks remain available." };
     }
   }
@@ -556,6 +588,7 @@ async function executeProviderCall(
         );
       }),
     ]);
+    if (value?.rateLimited === true) deferProviderCooldown(state, health, value, cooldownKey);
     const expired = recoveryDeadlineStatus(state, options);
     if (expired) return { provider, status: expired, value: null, durationMs: Date.now() - startedAt,
       reason: "Provider response arrived after its recovery window; evidence was not promoted." };
@@ -564,12 +597,15 @@ async function executeProviderCall(
       return { status: "NO_CANDIDATE_EVIDENCE", provider, value: null,
         reason: value.reason || "Provider returned no evidence for this candidate.", durationMs: Date.now() - startedAt };
     }
-    if (value?.providerFailure === true && value.rateLimited === true) {
+    if (value?.rateLimited === true) {
       health.rateLimitResponses = (health.rateLimitResponses || 0) + 1;
+    }
+    if (value?.providerFailure === true && value.rateLimited === true) {
       return {
         status: "RATE_LIMITED",
         provider,
         value: null,
+        retryAt: Number.isFinite(Date.parse(value.retryAt || "")) ? value.retryAt : null,
         reason: value.warnings?.[0] || "Provider rate limit reached; later calls wait for quota recovery.",
         durationMs: Date.now() - startedAt,
       };
@@ -663,6 +699,16 @@ function confidenceFraction(value, fallback = 0.8) {
 function exactDeployerResult(result = {}, identity = {}, source = null) {
   if ([source, result.provider, result.source].some(value => lower(value).includes("sourcify")) &&
       !sourcifyResponseIdentityMatches(result.raw, identity.chain, identity.tokenAddress)) return false;
+  if ([source, result.provider, result.source].some(value => lower(value).includes("blockscout"))) {
+    if (result.responseIdentityVerified === false) return false;
+    // Request-bound envelopes cannot override contradictory explorer metadata.
+    const rawAddresses = [result.address, result.tokenAddress,
+      ...[result.raw?.contract, result.raw?.addressInfo].flatMap(item =>
+        [item?.hash, item?.address, item?.address_hash])]
+      .filter(value => value !== null && value !== undefined && value !== "");
+    if (rawAddresses.some(value => typeof value !== "string" ||
+        normalizeTokenAddress(value, identity.chain) !== identity.tokenAddress)) return false;
+  }
   const resultChain = result.chain ? normalizeChainId(result.chain) : null;
   const resultAddress = lower(result.address || result.tokenAddress);
   if (resultChain && resultChain !== identity.chain) return false;
@@ -673,7 +719,7 @@ function exactDeployerResult(result = {}, identity = {}, source = null) {
       .some((field) => valueKnown(deployerValue(result, field)));
 }
 
-function existingDeployerEvidence(project = {}, identity = {}) {
+function existingDeployerEvidence(project = {}, identity = {}, now = Date.now) {
   const candidates = [
     ...(Array.isArray(project.securityEvidence) ? project.securityEvidence : []),
     ...(Array.isArray(project.freeSecurityEvidence?.evidence)
@@ -687,14 +733,18 @@ function existingDeployerEvidence(project = {}, identity = {}) {
     project.baseB20LifecycleEvidence,
     project.nativeContractDeploymentEvidence,
   ].filter(Boolean);
-  return candidates.filter(
-    (item) =>
+  return candidates.filter((item) => {
+    const timestamp = item.observedAt || item.sourceTimestamp;
+    const observedAtMs = typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
+    const asOfMs = Number(now());
+    // Retained facts keep their original clock; age policy remains downstream.
+    return Number.isFinite(asOfMs) && Number.isFinite(observedAtMs) && observedAtMs <= asOfMs &&
       item.status !== "UNKNOWN" &&
       (!lower(item.provider || item.source).includes("goplus") || item.responseIdentityVerified === true) &&
       normalizeChainId(item.chain) === identity.chain &&
       lower(item.address || item.tokenAddress) === lower(identity.tokenAddress) &&
-      exactDeployerResult(item, identity)
-  );
+      exactDeployerResult(item, identity);
+  });
 }
 
 function deployerObservations(result = {}, fields = [], identity = {}, source = "blockscout") {
@@ -756,13 +806,13 @@ export async function recoverDeployerEvidence(
     // Known partial envelopes must not hide the same provider's unresolved raw fields.
     const providerOptions = (source) => ({ ...options,
       useCache: localSources.has(source) ? false : options.useCache });
-    for (const existing of existingDeployerEvidence(project, evm)) local(existing);
+    for (const existing of existingDeployerEvidence(project, evm, state.now || Date.now)) local(existing);
     if (needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"]) && providers.preferGoPlusDeployer &&
         providers.defaultGoPlusDeployerProvider && options.useCache !== false) {
       const readCached = options.readCachedSecurityEvidence || getCachedSecurityEvidence;
-      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "etherscan-v2", "base-b20-native"]) {
+      for (const source of ["goplus", "sourcify-v2", "blockscout-deployer", "blockscout", "etherscan-v2", "base-b20-native"]) {
         const cached = readCached(source, evm.chain, evm.tokenAddress, options.cacheTtlMs);
-        for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm)) local(existing);
+        for (const existing of existingDeployerEvidence({ securityEvidence: cached ? [cached] : [] }, evm, state.now || Date.now)) local(existing);
         if (!needs([...DEPLOYER_CREATION_FIELDS, "nativeLifecycle"])) break;
       }
     }
@@ -1057,6 +1107,12 @@ export async function recoverWalletEvidence(
     observations, attempts: [{ provider: "blockscout-wallets", status: "NOT_APPLICABLE", durationMs: 0,
       requestCost: 0, reason: "Cheap holder metadata requires a nonconflicting exact EVM chain and token identity." }], projectPatch: {},
   };
+  const walletRequest = cheapRequest || resolveBlockscoutWalletRequest({ ...project,
+    chain: evm.chain, tokenAddress: evm.tokenAddress }, options);
+  let cooldownKey = null;
+  try { cooldownKey = walletRpcEndpointId(new URL(walletRequest?.baseUrl).origin); } catch {}
+  const walletOptions = { ...options, onBlockscoutRateLimit: (value) =>
+    deferProviderCooldown(state, providerState(state, "blockscout-wallets", evm.chain), value, cooldownKey) };
   let cheapWalletPatch = {};
   let goPlusWalletPatch = {};
   const goPlusHolderFields = ["wallets", "holderAddresses"];
@@ -1124,12 +1180,12 @@ export async function recoverWalletEvidence(
       requestCost = 2;
       const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
       return providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
-        poolAddress: poolAddressOf(project, evm.chain) }, { ...options, walletHistory: false,
+        poolAddress: poolAddressOf(project, evm.chain) }, { ...walletOptions, walletHistory: false,
         timeoutMs: Math.max(1, Math.min(Number(options.timeoutMs || options.providerTimeoutMs || 8000), remaining)) });
     }, options, state, 2, evm.chain,
     options.blockscoutMetadataRateLimiter ||
       (providers.getBlockscoutWalletEvidence === getBlockscoutWalletEvidence && !options.fetchJson
-        ? () => waitForBlockscoutMetadataPair({ deadlineAt: recoveryDeadlineAt(state, options) }) : null));
+        ? () => waitForBlockscoutMetadataPair({ deadlineAt: recoveryDeadlineAt(state, options) }) : null), null, cooldownKey);
     attempts.push({ ...attempt, value: undefined, family: "WALLETS", requestCost });
     const result = attempt.value;
     if (result) cheapWalletPatch = { blockscoutWalletEvidence: result };
@@ -1171,8 +1227,8 @@ export async function recoverWalletEvidence(
   }
   const attempt = await executeProviderCall("blockscout-wallets",
     () => providers.getBlockscoutWalletEvidence({ ...project, chain: evm.chain, tokenAddress: evm.tokenAddress,
-      poolAddress: poolAddressOf(project, evm.chain) }, options),
-    options, state, Math.max(1, Number(options.walletProviderRequestCost || 3)), evm.chain);
+      poolAddress: poolAddressOf(project, evm.chain) }, walletOptions),
+    options, state, Math.max(1, Number(options.walletProviderRequestCost || 3)), evm.chain, null, null, cooldownKey);
   const result = attempt.value || {};
   const timestamp = result.observedAt || new Date().toISOString();
   const exactResult = (!result.chain || normalizeChainId(result.chain) === evm.chain) &&
@@ -1419,17 +1475,8 @@ function strictGeckoPool(payload, project = {}, lookup = {}) {
 
   const raw = payload?.data || payload?.pool || payload;
   if (!raw || Array.isArray(raw) || typeof raw !== "object") return null;
-  const normalized = normalizeGeckoPool(raw);
-  const chain = normalizeChainId(normalized.chain);
-  const tokenAddress = normalizeTokenAddress(normalized.tokenAddress, chain);
-  const poolAddress = normalizePoolAddress(normalized.poolAddress, chain);
-  if (
-    chain !== expectedChain ||
-    tokenAddress !== expectedToken ||
-    poolAddress !== expectedPool
-  ) return null;
-
-  return { ...normalized, chain, tokenAddress, poolAddress };
+  return normalizeExactGeckoPool(raw, { chain: expectedChain, tokenAddress: expectedToken,
+    poolAddress: expectedPool }, { requireResourceTypes: false });
 }
 
 function geckoValue(pool = {}, field = "") {
@@ -1446,12 +1493,15 @@ function geckoValue(pool = {}, field = "") {
       return numberOrNull(pool.liquidityUsd);
     case "volume24hUsd":
       return numberOrNull(pool.volume24hUsd ?? pool.volume24h);
+    case "buyTransactions24h":
+    case "sellTransactions24h":
+      return numberOrNull(pool[field]);
     default:
       return null;
   }
 }
 
-function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOString()) {
+function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOString(), mode = "exact-pool") {
   return fields
     .map((field) => observation(
       field,
@@ -1460,10 +1510,14 @@ function geckoObservations(pool = {}, fields = [], timestamp = new Date().toISOS
       timestamp,
       0.9,
       {
-        identityMatchMode: "exact-pool",
+        identityMatchMode: mode,
         marketEvidenceOnly: true,
         geckoTerminalPoolId: pool.geckoTerminalPoolId || null,
-        endpoint: "exact-pool",
+        endpoint: mode,
+        chain: pool.chain,
+        tokenAddress: pool.tokenAddress,
+        poolAddress: pool.poolAddress,
+        tokenSide: "base",
       }
     ))
     .filter((item) => valueKnown(item.value));
@@ -1536,20 +1590,19 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
 }
 
 async function recoverGeckoPool(project = {}, fields = [], providers = {}, options = {}, state = {}) {
-  const chain = chainOf(project);
-  const tokenAddress = tokenAddressOf(project, chain);
-  const poolAddress = poolAddressOf(project, chain);
-  if (!chain || !tokenAddress || !poolAddress || !resolveGeckoTerminalNetworkId(chain)) {
+  const identity = geckoPoolRequestIdentity(project);
+  if (!identity) {
     return {
       observations: [],
       attempts: [{
         status: "NOT_APPLICABLE",
         provider: "geckoterminal",
-        reason: "GeckoTerminal fallback requires an exact supported chain, token, and pool identity.",
+        reason: "GeckoTerminal fallback requires nonconflicting exact supported chain/token identity and valid supplied pool claims.",
         durationMs: 0,
       }],
     };
   }
+  const { chain, tokenAddress, poolAddress } = identity;
 
   const timeoutMs = Math.max(
     250,
@@ -1561,23 +1614,33 @@ async function recoverGeckoPool(project = {}, fields = [], providers = {}, optio
       8_000
     )
   );
+  const controller = new AbortController();
+  const providerOptions = { maxAttempts: 1,
+    timeoutMs: Math.max(1, Math.min(timeoutMs, recoveryDeadlineAt(state, options) - (state.now || Date.now)())),
+    signal: controller.signal, now: state.now || options.now || Date.now,
+    fetchImpl: options.fetchImpl, onResponseBytes: options.onResponseBytes };
   const attempt = await executeProviderCall(
     "geckoterminal",
-    () => providers.getGeckoPoolByAddress(chain, poolAddress, { maxAttempts: 1, timeoutMs }),
+    () => poolAddress
+      ? providers.getGeckoPoolByAddress(chain, poolAddress, providerOptions)
+      : providers.getGeckoTokenPools(chain, tokenAddress, providerOptions),
     options,
     state,
     1,
-    chain
+    chain,
+    null,
+    () => controller.abort()
   );
   if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
-  const pool = strictGeckoPool(attempt.value, project, { chain, tokenAddress, poolAddress });
+  const discovery = poolAddress ? null : selectExactGeckoTokenPool(attempt.value, identity);
+  const pool = poolAddress ? strictGeckoPool(attempt.value, project, identity) : discovery.pool;
   if (!pool) {
     return {
       observations: [],
       attempts: [{
         ...attempt,
-        status: "NO_EXACT_POOL_MATCH",
-        reason: "GeckoTerminal did not return the exact requested chain, base token, and pool identity.",
+        status: discovery?.status || "NO_EXACT_POOL_MATCH",
+        reason: discovery?.reason || "GeckoTerminal did not return the exact requested chain, base token, and pool identity.",
         value: undefined,
       }],
     };
@@ -1587,7 +1650,8 @@ async function recoverGeckoPool(project = {}, fields = [], providers = {}, optio
     observations: geckoObservations(
       pool,
       [...new Set([...fields, ...GECKO_COMPANION_FIELDS])],
-      options.now?.().toISOString?.() || new Date().toISOString(),
+      new Date((state.now || options.now || Date.now)()).toISOString(),
+      poolAddress ? "exact-pool" : "exact-token-pools",
     ),
     attempts: [{
       ...attempt,
@@ -1808,47 +1872,99 @@ function freshAuthorityPair(item, options) {
     Number.isFinite(stamp) && Number.isFinite(now) && stamp <= now && now - stamp <= 300000;
 }
 
-async function collectBudgetedSolanaSecurity(project, providers, options, state) {
+async function collectBudgetedSecurity(project, providers, options, state) {
   const attempts = [];
-  const transport = options.securityEvidence?.fetchJson || options.providers?.fetchJson || (async (url, init) => {
-    const response = await (options.providers?.fetch || fetch)(url, init);
-    if (!response.ok) throw new Error(`Security provider HTTP ${response.status}`);
+  const pending = [];
+  const solana = chainOf(project) === "solana";
+  const transport = options.securityEvidence?.fetchJson || (solana && options.providers?.fetchJson) || (async (url, init) => {
+    const response = await (options.providers?.fetch || fetch)(url, {
+      ...init, headers: { accept: "application/json", ...init.headers },
+    });
+    if (!response.ok) {
+      const error = new Error(`Security provider HTTP ${response.status}`);
+      error.status = response.status;
+      const retryAfter = response.headers?.get?.("retry-after");
+      const seconds = typeof retryAfter === "string" && /^\d+(?:\.\d+)?$/.test(retryAfter.trim())
+        ? Number(retryAfter) : null;
+      const milliseconds = seconds !== null ? seconds * 1000 : Date.parse(retryAfter || "") - Number((state.now || Date.now)());
+      if (Number.isFinite(milliseconds) && milliseconds > 0) error.retryAfterMs = milliseconds;
+      throw error;
+    }
     return response.json();
   });
-  const fetchJson = async (url, init = {}) => {
-    const rpc = init.method === "POST";
-    const provider = rpc ? "solana-security-rpc" : "rugcheck";
+  const request = async (provider, url, init = {}) => {
+    const rpc = solana && init.method === "POST";
     const method = rpc ? JSON.parse(init.body).method : null;
     let controller;
+    let transportError;
+    let admitted = false;
+    let dispatched = false;
     const attempt = await executeProviderCall(provider, async () => {
+      admitted = true;
       const remaining = recoveryDeadlineAt(state, options) - (state.now || Date.now)();
       if (recoveryDeadlineStatus(state, options) || init.signal?.aborted) {
         throw new Error("Security request deadline expired before HTTP start.");
       }
-      const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000), remaining)));
+      const connectorTimeout = Number(init.timeoutMs);
+      const timeout = Math.max(1, Math.floor(Math.min(Number(options.providerTimeoutMs || options.timeoutMs || 8000),
+        Number.isFinite(connectorTimeout) && connectorTimeout > 0 ? connectorTimeout : Infinity, remaining)));
       controller = new AbortController();
       const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(timeout)]);
-      const value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
+      let value;
+      try {
+        dispatched = true;
+        value = await transport(url, { ...init, signal: init.signal ? AbortSignal.any([signal, init.signal]) : signal, timeoutMs: timeout });
+      } catch (error) {
+        transportError = error;
+        if (error.status === 404 && ["goplus-security", "sourcify-security", "blockscout-security"].includes(provider)) {
+          return { candidateEvidenceUnavailable: true, reason: "Security provider returned no contract metadata." };
+        }
+        if (error.status === 429) return { providerFailure: true, rateLimited: true,
+          retryAfterMs: Math.max(61000, Number(error.retryAfterMs) || 0), warnings: ["Security provider HTTP 429"] };
+        throw error;
+      }
       if (signal.aborted || init.signal?.aborted || recoveryDeadlineStatus(state, options)) {
         throw new Error("Security response arrived after its deadline.");
       }
       if (rpc && value?.error) throw new Error("Solana security RPC returned a JSON-RPC error.");
       return value;
-    }, options, state, 1, rpc ? walletRpcEndpointId(url) : "solana", null, () => controller?.abort());
-    attempts.push({ ...attempt, value: undefined, family: "SECURITY", ...(method ? { rpcMethod: method } : {}) });
+    }, options, state, 1, solana ? (rpc ? walletRpcEndpointId(url) : "solana") : walletRpcEndpointId(new URL(url).origin),
+    provider === "goplus-security" ? () => (options.goPlusRateLimiter || waitForGoPlusRequestSlot)({
+      deadlineAt: recoveryDeadlineAt(state, options), waitForCooldown: options.waitForGoPlusCooldown === true,
+    }) : null, () => controller?.abort());
+    attempts.push({ ...attempt, value: undefined, family: "SECURITY", requestCost: admitted ? 1 : 0,
+      httpRequests: dispatched ? 1 : 0, ...(method ? { rpcMethod: method } : {}) });
     if (attempt.status !== "SUCCESS") {
-      const error = new Error(attempt.reason);
+      const error = ["FAILED", "RATE_LIMITED", "NO_CANDIDATE_EVIDENCE"].includes(attempt.status) && transportError
+        ? transportError : new Error(attempt.reason);
       error.code = attempt.status;
       throw error;
     }
     return attempt.value;
   };
+  const trackedRequest = (...args) => {
+    const promise = request(...args);
+    pending.push(promise);
+    return promise;
+  };
   const { providers: providerOverrides, ...securityOptions } = options.securityEvidence || options;
-  const value = await providers.getFreeSecurityEvidence(project, {
-    ...securityOptions, ...(Array.isArray(providerOverrides) ? { providers: providerOverrides } : {}),
-    now: state.now || options.now, fetchJson,
-  });
-  return { attempt: { status: "SUCCESS", value }, attempts };
+  let value;
+  try {
+    value = await providers.getFreeSecurityEvidence(project, {
+      ...securityOptions, ...(Array.isArray(providerOverrides) ? { providers: providerOverrides } : {}),
+      now: state.now || options.now,
+      fetchJson: (url, init = {}) => trackedRequest(init.method === "POST" ? "solana-security-rpc" : "rugcheck", url, init),
+      ...(!solana ? { fetchJsonForProvider: provider => (url, init) => trackedRequest(provider, url, init),
+        goPlusRequestSlotReserved: true, goPlusRateLimiter: options.goPlusRateLimiter || waitForGoPlusRequestSlot } : {}),
+    });
+  } finally {
+    // A connector's Promise.all may reject while already-admitted siblings are still running.
+    await Promise.allSettled(pending);
+  }
+  return { attempt: { status: "SUCCESS", value }, attempts: attempts.length ? attempts : [{
+    provider: "free-security", status: "NO_TRANSPORT_REQUIRED", requestCost: 0, httpRequests: 0,
+    durationMs: 0, reason: "Native security connectors required no HTTP requests (cache or unavailable configuration).",
+  }] };
 }
 
 async function recoverSecurity(project = {}, fields = [], providers = {}, options = {}, state = {}) {
@@ -1890,8 +2006,9 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
     };
   }
   let goPlusCooldownSkipped = false;
-  const budgeted = providers.defaultFreeSecurityProvider && chain === "solana"
-    ? await collectBudgetedSolanaSecurity({ ...project, chain, tokenAddress }, providers, options, state) : null;
+  const customSecurityProviders = (options.securityEvidence || options).providers;
+  const budgeted = providers.defaultFreeSecurityProvider && !Array.isArray(customSecurityProviders)
+    ? await collectBudgetedSecurity({ ...project, chain, tokenAddress }, providers, options, state) : null;
   const attempt = budgeted?.attempt || await executeProviderCall(
     "free-security",
     () => providers.getFreeSecurityEvidence(
@@ -1914,6 +2031,9 @@ async function recoverSecurity(project = {}, fields = [], providers = {}, option
 
   const result = attempt.value || {};
   const items = knownSecurityItems(result).filter((item) => securityIdentityMatches(item, identity));
+  if (budgeted && !items.length && budgeted.attempts.every(item => item.httpRequests === 0)) {
+    return { observations: localObservations, attempts: budgeted.attempts, projectPatch: {} };
+  }
   const observations = [
     ...securityObservations(eligible([...existing, ...items]), fields, identity, result),
     ...securityHolderObservations(project, [...existing, ...items], options.securityEvidence || options),
@@ -2302,6 +2422,9 @@ export async function executeActiveEvidenceProviderRequests(
     .some((request) => request?.item?.requiresMintAccountEvidence === true);
   const sources = targetSourceNames(requests);
   const attempts = [];
+  const scopedAttempts = (rows, requestedFields) => (rows || []).map(attempt => ({ ...attempt,
+    requestedFields: [...requestedFields],
+  }));
   let executionAdapterResults = [];
   const requestedWalletFields = fields.filter((field) => WALLET_RAW_FIELDS.has(field));
   const cheapHolderMetadataOnly = requestedWalletFields.length > 0 && requestedWalletFields.every(field => field === "holderAddresses") &&
@@ -2322,7 +2445,7 @@ export async function executeActiveEvidenceProviderRequests(
   if (dexFields.length && dexRequested) {
     const result = await recoverDex(project, dexFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, dexFields));
   }
 
   // GeckoTerminal is a strict market-data fallback. It is only attempted for
@@ -2334,7 +2457,7 @@ export async function executeActiveEvidenceProviderRequests(
   if (geckoFields.length && geckoRequested) {
     const result = await recoverGeckoPool(project, geckoFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, geckoFields));
   }
 
   const recoveredMarketFields = new Set(observations.map((item) => item.field));
@@ -2353,7 +2476,7 @@ export async function executeActiveEvidenceProviderRequests(
       executionState,
     );
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, defiLlamaExactFields));
   }
 
   const recoveredFields = new Set(observations.map((item) => item.field));
@@ -2398,7 +2521,7 @@ export async function executeActiveEvidenceProviderRequests(
         ...options, now: executionState.now || options.now, requiresAuthorityPair: true, requiresMintAccountEvidence: true,
       }, executionState);
       observations.push(...result.observations);
-      attempts.push(...result.attempts);
+      attempts.push(...scopedAttempts(result.attempts, ["mintAuthorityEnabled"]));
       projectPatch = { ...projectPatch, ...result.projectPatch };
       executionProject = { ...project, ...projectPatch };
       safetyReady = !adverse(executionProject) && resolveCanonicalIdentity({
@@ -2407,13 +2530,13 @@ export async function executeActiveEvidenceProviderRequests(
     }
     securityFields = securityFields.filter((field) => field !== "mintAuthorityEnabled");
     if (!safetyReady) attempts.push({ provider: "solana-safety-hydration", family: "SECURITY",
-      status: "SAFETY_UNRESOLVED_OR_BLOCKED", durationMs: 0,
+      status: "SAFETY_UNRESOLVED_OR_BLOCKED", durationMs: 0, requestedFields: ["mintAuthorityEnabled"],
       reason: "Fresh exact paired mint-account safety is required before quote acquisition." });
   }
   if (safetyReady && executionFields.length && sourceRequested(sources, ["li.fi", "lifi", "jupiter", "raydium", "0x", "cex", "order book", "dex aggregators"])) {
     const result = await recoverExecutionEvidence(executionProject, executionFields, providers, options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, executionFields));
     executionAdapterResults = result.executionAdapterResults || [];
     projectPatch = { ...projectPatch, ...result.projectPatch };
   }
@@ -2425,9 +2548,9 @@ export async function executeActiveEvidenceProviderRequests(
       deployerMetadataSourcesAllowed: sourceRequested(sources, ["sourcify", "blockscout", "block explorers", "explorer"]),
     }, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, deployerFields));
     if (executionState.nativeDeploymentMemoryFailure) attempts.push({ provider: "native-contract-deployment",
-      status: "MEMORY_READ_FAILED", durationMs: 0, requestCost: 0, reason: executionState.nativeDeploymentMemoryFailure });
+      status: "MEMORY_READ_FAILED", durationMs: 0, requestCost: 0, requestedFields: [...deployerFields], reason: executionState.nativeDeploymentMemoryFailure });
     projectPatch = { ...projectPatch, ...result.projectPatch };
     const companion = projectPatch.goplusDeployerEvidence;
     if (companion?.responseIdentityVerified === true && companion.status !== "UNKNOWN") {
@@ -2447,11 +2570,12 @@ export async function executeActiveEvidenceProviderRequests(
     sourceRequested(sources, ["blockscout", "block explorers", "explorer", "chain rpc", "wallet history", "wallet-history", "supabase", "rugcheck", "goplus"])
   ) {
     // Newly acquired holder payloads may also carry safety evidence needed by the next pass.
+    const remainingWalletFields = walletFields.filter((field) => !observations.some((item) => item.field === field));
     const result = await recoverWalletEvidenceWithHistory({ ...project, ...projectPatch },
-      walletFields.filter((field) => !observations.some((item) => item.field === field)), providers,
+      remainingWalletFields, providers,
       cheapHolderMetadataOnly ? { ...options, cheapHolderMetadataOnly: true, walletHistory: false } : options, executionState);
     observations.push(...result.observations);
-    attempts.push(...result.attempts);
+    attempts.push(...scopedAttempts(result.attempts, remainingWalletFields));
     projectPatch = { ...projectPatch, ...result.projectPatch };
   }
   if (
@@ -2462,6 +2586,7 @@ export async function executeActiveEvidenceProviderRequests(
       recoverSecurity({ ...project, ...projectPatch }, securityFields, providers,
         { ...options, requiresAuthorityPair }, executionState).then((result) => ({
         kind: "security",
+        requestedFields: securityFields,
         result,
       }))
     );
@@ -2473,6 +2598,7 @@ export async function executeActiveEvidenceProviderRequests(
     parallel.push(
       recoverCoinGecko(project, aggregateFields, providers, options, executionState).then((result) => ({
         kind: "coingecko",
+        requestedFields: aggregateFields,
         result,
       }))
     );
@@ -2484,14 +2610,15 @@ export async function executeActiveEvidenceProviderRequests(
     parallel.push(
       recoverCoinPaprika(project, aggregateFields, providers, options, executionState).then((result) => ({
         kind: "coinpaprika",
+        requestedFields: aggregateFields,
         result,
       }))
     );
   }
 
-  for (const { result } of await Promise.all(parallel)) {
+  for (const { result, requestedFields } of await Promise.all(parallel)) {
     observations.push(...(result.observations || []));
-    attempts.push(...(result.attempts || []));
+    attempts.push(...scopedAttempts(result.attempts, requestedFields));
     projectPatch = { ...projectPatch, ...(result.projectPatch || {}) };
   }
 

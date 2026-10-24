@@ -26,6 +26,7 @@ import {
 import { strictIdentity } from "../production/productionMath.js";
 import { buildProspectiveProofCandidatePool } from "../production/prospectiveProofCandidatePool.js";
 import { captureForwardProofQuotes } from "../production/forwardQuoteBroker.js";
+import { revalidateForwardExecutionCosts } from "../production/forwardExecutionCostCapture.js";
 import { evaluateOperationalTruth } from "./operationalTruthGate.js";
 
 function readJson(file, fallback = null) {
@@ -77,7 +78,8 @@ export function mergeProductionShadowSourceCandidates(synthesisRows = [], univer
 }
 
 export async function runProductionShadowCycle(options = {}) {
-  const now = options.now || new Date().toISOString();
+  const clock = options.clock || (() => new Date().toISOString());
+  const now = options.now || clock();
   const requireCompleteExecutionCosts = options.requireCompleteExecutionCosts ?? process.env.FORWARD_REQUIRE_COMPLETE_EXECUTION_COSTS === "true";
   const manifest = buildProductionRunManifest({
     now,
@@ -287,6 +289,7 @@ export async function runProductionShadowCycle(options = {}) {
     treatments: matchableSelection.selected,
     controls: reservedControls,
     now,
+    clock,
     ...(options.forwardQuoteBroker || {}),
   });
   const quotedByRoute = new Map(
@@ -303,10 +306,10 @@ export async function runProductionShadowCycle(options = {}) {
   const selectedWithQuotes = matchableSelection.selected.map((candidate) =>
     quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
   );
-  const controlPoolWithQuotes = proofPool.eligible.map((candidate) =>
+  const controlPoolBeforeCutoff = proofPool.eligible.map((candidate) =>
     quotedByRoute.get(strictIdentity(candidate)?.routeKey) || candidate,
   );
-  const shadow = selectedWithQuotes.map((row) => {
+  const shadowBeforeCutoff = selectedWithQuotes.map((row) => {
     const multi = row.multiscaleGenome || {};
     const convergence = row.convergence || {};
     const forwardScenario = simulateForwardDistribution(row, { paths: 2048 });
@@ -370,6 +373,23 @@ export async function runProductionShadowCycle(options = {}) {
     };
   });
 
+  const decisionAt = clock();
+  if (!Number.isFinite(Date.parse(decisionAt)) || Date.parse(decisionAt) < Date.parse(now)) {
+    throw new Error("INVALID_PROSPECTIVE_DECISION_CLOCK");
+  }
+  const cutoffOptions = { now: decisionAt, maximumQuoteAgeMs: quoteBroker.audit.captureAudit.maximumQuoteAgeMs };
+  const currentCosts = revalidateForwardExecutionCosts(quoteBroker.projects, cutoffOptions);
+  const shadow = revalidateForwardExecutionCosts(shadowBeforeCutoff, cutoffOptions).map((row) => ({
+    ...row, proofEligibility: row.executionProofEligibility.state,
+  }));
+  const controlPoolWithQuotes = revalidateForwardExecutionCosts(controlPoolBeforeCutoff, cutoffOptions);
+  const decisionCostAudit = {
+    decisionAt,
+    quotesAcceptedAtCapture: quoteBroker.audit.pairedQuotesAccepted,
+    quotesUsableAtDecision: currentCosts.filter((row) => row.executionProofEligibility.state === "NET_PROOF_ELIGIBLE").length,
+    invalidatedAtDecision: currentCosts.filter((row) => row.executionProofEligibility.state !== "NET_PROOF_ELIGIBLE")
+      .map((row) => ({ routeKey: strictIdentity(row)?.routeKey || null, reason: row.executionProofEligibility.reason })),
+  };
   const shadowReport = {
     schemaVersion: 1,
     generatedAt: now,
@@ -387,6 +407,7 @@ export async function runProductionShadowCycle(options = {}) {
     },
     preQuoteSelection,
     forwardQuoteBroker: quoteBroker.audit,
+    decisionCostAudit,
     researchOnlyUnmatchableCandidates: matchability.entries
       .filter((entry) => entry.diagnostics.treatmentState !== "ELIGIBLE" || !entry.eligibleControls.length)
       .sort((left, right) => right.score - left.score || left.routeKey.localeCompare(right.routeKey))
@@ -414,7 +435,7 @@ export async function runProductionShadowCycle(options = {}) {
     },
   };
   writeAtomicJson("reports/production-shadow-ranking.json", shadowReport);
-  const costComplete = quoteBroker.quoteTargets.length > 0 && quoteBroker.audit.pairedQuotesAccepted === quoteBroker.quoteTargets.length;
+  const costComplete = quoteBroker.quoteTargets.length > 0 && decisionCostAudit.quotesUsableAtDecision === quoteBroker.quoteTargets.length;
   const prospectiveCohort = requireCompleteExecutionCosts && !costComplete ? {
     state: "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE",
     episodes: [], strategy: matchability.strategy,
@@ -426,7 +447,7 @@ export async function runProductionShadowCycle(options = {}) {
     shadow,
     controlPoolWithQuotes,
     {
-      now,
+      now: decisionAt,
       sourceObservedAt: universe.generatedAt || null,
       runId: manifest.runId,
       codeCommitSha: manifest.codeCommitSha,
@@ -448,6 +469,7 @@ export async function runProductionShadowCycle(options = {}) {
   writeAtomicJson("reports/prospective-edge-cohort-capture.json", {
     schemaVersion: 1,
     generatedAt: now,
+    decisionCostAudit,
     state: prospectiveCohort.state,
     cohortId: prospectiveCohort.cohortId || null,
     strategy: prospectiveCohort.strategy,
@@ -523,8 +545,8 @@ export async function runProductionShadowCycle(options = {}) {
       return [{
       schemaVersion: 1,
       runId: manifest.runId,
-      generatedAt: now,
-      decisionAt: now,
+      generatedAt: episode.decisionAt,
+      decisionAt: episode.decisionAt,
       sourceObservedAt: episode.sourceObservedAt,
       sourceAgeMinutesAtDecision: episode.sourceAgeMinutesAtDecision,
       strategyVersion: episode.strategyVersion,
@@ -607,7 +629,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       })),
     }, null, 2));
     if (result.universePreflight && !result.universePreflight.pass) process.exitCode = 2;
-    if (result.prospectiveCohort.state === "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE") process.exitCode = 2;
+    if (result.prospectiveCohort.state === "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE" ||
+        result.prospectiveCohort.state.startsWith("COHORT_REJECTED_")) process.exitCode = 2;
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

@@ -144,7 +144,7 @@ export function quoteProviderFromEnvironment(options = {}) {
   provider.providerName = "Chain-Aware Read-Only Quotes";
   provider.transport = "CHAIN_AWARE_READ_ONLY_QUOTES";
   provider.forChain = (chain) => normalizeChainId(chain) === "solana" ? solana : evm;
-  provider.keyless = evm.keyless && !(options.jupiter?.apiKey ?? process.env.JUPITER_API_KEY);
+  provider.keyless = evm.keyless && solana.keyless;
   provider.quoteOnly = true;
   return provider;
 }
