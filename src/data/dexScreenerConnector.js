@@ -27,7 +27,9 @@ export function resolveDexScreenerChainId(chainId = "") {
 
 async function fetchJson(url, options = {}) {
   const requestedAt = options.requestedAt || providerReceiptTimestamp(options);
-  const response = await (options.fetchImpl || fetch)(url, { signal: options.signal });
+  const response = await (options.fetchImpl || fetch)(url, {
+    signal: options.signal, ...(options.redirect ? { redirect: options.redirect } : {}),
+  });
   return readProviderJson(response, { provider: "dexscreener", url, requestedAt }, options);
 }
 
@@ -52,6 +54,36 @@ export async function getTopBoostedTokens() {
 export async function getTokenPairs(chainId, tokenAddress, options = {}) {
   const providerChainId = resolveDexScreenerChainId(chainId);
   return fetchJson(`${BASE_URL}/token-pairs/v1/${providerChainId}/${tokenAddress}`, options);
+}
+
+export function normalizeDexBatchAddress(value, chainId) {
+  const chain = normalizeChainId(chainId);
+  const address = chain && typeof value === "string" ? normalizeTokenAddress(value, chain) : null;
+  if (!address || /^0x0{40}$/.test(address)) return null;
+  if (chain === "solana") {
+    // Solana public keys must decode to 32 bytes, not merely look like base58.
+    const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let decoded = 0n;
+    for (const char of address) decoded = decoded * 58n + BigInt(alphabet.indexOf(char));
+    const bytes = decoded === 0n ? 0 : Math.ceil(decoded.toString(16).length / 2);
+    if (address.match(/^1*/)[0].length + bytes !== 32) return null;
+  }
+  return address;
+}
+
+// Documented batch bound: https://docs.dexscreener.com/api/reference#get-tokens-v1-chainid-tokenaddresses
+export async function getTokenPairsBatch(chainId, tokenAddresses, options = {}) {
+  const chain = normalizeChainId(chainId);
+  if (!chain || !Array.isArray(tokenAddresses) || !tokenAddresses.length || tokenAddresses.length > 30) {
+    throw new TypeError("DEX token batches require a known chain and 1-30 token addresses.");
+  }
+  const addresses = tokenAddresses.map((value) => normalizeDexBatchAddress(value, chain));
+  if (addresses.some((value) => !value)) {
+    throw new TypeError("DEX token batches require valid exact token addresses.");
+  }
+  const providerChainId = resolveDexScreenerChainId(chain);
+  return fetchJson(`${BASE_URL}/tokens/v1/${providerChainId}/${[...new Set(addresses)].map(encodeURIComponent).join(",")}`,
+    { ...options, redirect: "error" });
 }
 
 export async function getPairByAddress(chainId, pairAddress, options = {}) {
