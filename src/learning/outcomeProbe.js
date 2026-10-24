@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "url";
 import {
   getPairByAddress,
@@ -415,9 +416,24 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
     const requestedAt = collectionTime(options);
     const attempt = { source, requestedAt, receiptObservedAt: null, status: "REQUESTED" };
     providerAttempts.push(attempt);
+    const deadline = performance.now() + timeoutMs;
+    let onAbort;
+    const aborted = new Promise((_resolve, reject) => {
+      onAbort = () => reject(controller.signal.reason);
+      controller.signal.addEventListener("abort", onAbort, { once: true });
+    });
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const payload = await request(controller.signal);
+      const payload = await Promise.race([
+        Promise.resolve().then(() => {
+          controller.signal.throwIfAborted();
+          return request(controller.signal);
+        }),
+        aborted,
+      ]);
+      // An event-loop stall can delay the timeout callback past provider completion.
+      if (performance.now() >= deadline) controller.abort();
+      controller.signal.throwIfAborted();
       attempt.receiptObservedAt = collectionTime(options);
       attempt.status = "RECEIVED";
       return payload;
@@ -427,6 +443,7 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
       throw error;
     } finally {
       clearTimeout(timeout);
+      controller.signal.removeEventListener("abort", onAbort);
     }
   }
 
@@ -450,11 +467,13 @@ async function probeCandidate(candidate = {}, providers = {}, options = {}) {
     if (!pair && candidate.poolAddress && providers.getGeckoPoolByAddress &&
       resolveGeckoTerminalNetworkId(candidate.chain) && options.consumeProviderRequest()) {
       try {
-        const geckoPayload = await requestProvider("geckoterminal", (signal) => providers.getGeckoPoolByAddress(
-          candidate.chain,
-          candidate.poolAddress,
-          { maxAttempts: 1, timeoutMs, signal }
-        ));
+        const geckoPayload = await providers.scheduleGeckoRequest(() =>
+          requestProvider("geckoterminal", (signal) => providers.getGeckoPoolByAddress(
+            candidate.chain,
+            candidate.poolAddress,
+            { maxAttempts: 1, timeoutMs, signal }
+          ))
+        );
         pair = acceptPairClock(exactPair(candidate, geckoPairs(geckoPayload)));
         source = "geckoterminal";
       } catch (error) {
@@ -611,7 +630,8 @@ async function runOutcomeProbeUnlocked(options = {}) {
   const providers = {
     getPairByAddress: options.providers?.getPairByAddress || getPairByAddress,
     getTokenPairs: options.providers?.getTokenPairs || getTokenPairs,
-    getGeckoPoolByAddress: paceProvider(geckoProvider, geckoMinimumIntervalMs),
+    getGeckoPoolByAddress: geckoProvider,
+    scheduleGeckoRequest: paceProvider((request) => request(), geckoMinimumIntervalMs),
   };
   let providerRequestsUsed = 0;
   const consumeProviderRequest = () => {
