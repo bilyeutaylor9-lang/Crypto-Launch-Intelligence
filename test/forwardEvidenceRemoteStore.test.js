@@ -9,6 +9,7 @@ import { collectSupabaseMemory } from "../src/storage/supabaseMemory.js";
 
 import {
   __forwardEvidenceRemoteHooks,
+  FORWARD_EVIDENCE_LEDGERS,
   loadLocalForwardEvidence,
   mergeForwardEvidenceRows,
   restoreForwardEvidence,
@@ -125,6 +126,213 @@ test("remote forward evidence restores missing immutable rows without duplicatin
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+for (const [ledgerName, relative] of Object.entries(FORWARD_EVIDENCE_LEDGERS)) {
+  for (const ending of ["\n", "\r\n", "", " \t"]) {
+    test(`restore preserves original ${ledgerName} bytes with ending ${JSON.stringify(ending)}`, (t) => {
+      const root = isolatedRoot(t);
+      const file = path.join(root, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      const original = Buffer.from(' \t{ "priceUsd":1.00, "observationKey":"z", "label":"\\u0061" }\r\n' +
+        '\t\r\n{"observationKey":"a","priceUsd":2e0}\n' +
+        '{ "observationKey" : "z", "label":"a", "priceUsd":1 }' + ending);
+      fs.writeFileSync(file, original);
+      const inode = fs.statSync(file).ino;
+      const older = remoteRow(ledgerName, { observationKey: "older", observedAt: "2026-01-01T00:00:00Z" });
+      const newer = remoteRow(ledgerName, { observationKey: "newer", observedAt: "2026-02-01T00:00:00Z" });
+
+      assert.deepEqual(mergeForwardEvidenceRows([newer, older], { root }), {
+        localRecords: 3, remoteRecords: 2, restored: 2,
+      });
+      const suffix = `${ending.endsWith("\n") ? "" : "\n"}${JSON.stringify(older.record_json)}\n${JSON.stringify(newer.record_json)}\n`;
+      assert.deepEqual(fs.readFileSync(file), Buffer.concat([original, Buffer.from(suffix)]));
+      assert.equal(fs.statSync(file).ino, inode);
+      assert.deepEqual(loadLocalForwardEvidence({ root }).map((row) => row.record_id), ["z", "a", "z", "older", "newer"]);
+    });
+  }
+}
+
+test("restore appends each validated remote ID once and repeated restores do not write", (t) => {
+  const root = isolatedRoot(t);
+  const row = remoteRow("production-market-observations", { observationKey: "duplicate", priceUsd: 1 });
+  const reordered = remoteRow(row.ledger_name, { priceUsd: 1, observationKey: "duplicate" });
+  assert.deepEqual(mergeForwardEvidenceRows([row, reordered, row], { root }), {
+    localRecords: 0, remoteRecords: 3, restored: 1,
+  });
+  const file = path.join(root, FORWARD_EVIDENCE_LEDGERS[row.ledger_name]);
+  assert.equal(loadLocalForwardEvidence({ root }).length, 1);
+  const before = fs.readFileSync(file);
+  for (const method of ["writeSync", "writeFileSync", "renameSync"]) {
+    t.mock.method(fs, method, () => assert.fail("A duplicate-only restore must not write"));
+  }
+  assert.deepEqual(mergeForwardEvidenceRows([row, row], { root }), {
+    localRecords: 1, remoteRecords: 2, restored: 0,
+  });
+  assert.deepEqual(fs.readFileSync(file), before);
+});
+
+for (const [name, change, message] of [
+  ["contradictory duplicate", (row) => remoteRow(row.ledger_name, { observationKey: "duplicate", priceUsd: 99 }), /Immutable forward-evidence conflict/],
+  ["forged duplicate hash", (row) => ({ ...row, record_json: { observationKey: "duplicate", priceUsd: 99 } }), /hash mismatch/],
+  ["duplicate ID mismatch", (row) => ({ ...row, record_id: "other" }), /record ID mismatch/],
+]) {
+  test(`restore rejects ${name} before touching any ledger`, (t) => {
+    const root = isolatedRoot(t);
+    const file = path.join(root, "data", "production-market-observations.jsonl");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const before = Buffer.from(' \t{"observationKey":"local"}\r\n\r\n');
+    fs.writeFileSync(file, before);
+    const row = remoteRow("market-context-observations", { observationKey: "duplicate", priceUsd: 1 });
+    const missing = remoteRow("production-market-observations", { observationKey: "missing" });
+    assert.throws(() => mergeForwardEvidenceRows([missing, row, change(row)], { root }), message);
+    assert.deepEqual(fs.readFileSync(file), before);
+    assert.deepEqual(fs.readdirSync(path.dirname(file)), [path.basename(file)]);
+  });
+}
+
+for (const malformed of ['{"observationKey":"truncated"', "not-json\r\n", "[]\n", "null\n"]) {
+  test(`restore leaves malformed local bytes untouched: ${JSON.stringify(malformed)}`, (t) => {
+    const root = isolatedRoot(t);
+    const file = path.join(root, "data", "prospective-edge-cohorts.jsonl");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const before = Buffer.from(` \t{"episodeId":"valid"}\r\n${malformed}`);
+    fs.writeFileSync(file, before);
+    assert.throws(() => mergeForwardEvidenceRows([
+      remoteRow("production-market-observations", { observationKey: "missing" }),
+      remoteRow("prospective-edge-cohorts", { episodeId: "missing" }),
+    ], { root }), /invalid forward-evidence JSONL/);
+    assert.deepEqual(fs.readFileSync(file), before);
+    assert.deepEqual(fs.readdirSync(path.dirname(file)), [path.basename(file)]);
+  });
+}
+
+test("restore rechecks an append made after its initial local snapshot without losing or duplicating it", (t) => {
+  const root = isolatedRoot(t);
+  const file = path.join(root, "data", "production-market-observations.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const before = ' {"observationKey":"local"}\r\n';
+  const concurrent = remoteRow("production-market-observations", { observationKey: "concurrent" });
+  const concurrentBytes = ` \t${JSON.stringify(concurrent.record_json)}\r\n`;
+  fs.writeFileSync(file, before);
+  const read = fs.readFileSync;
+  let injected = false;
+  t.mock.method(fs, "readFileSync", (target, ...args) => {
+    const result = read(target, ...args);
+    if (target === file && !injected) {
+      injected = true;
+      fs.appendFileSync(file, concurrentBytes);
+    }
+    return result;
+  });
+  const missing = remoteRow("production-market-observations", { observationKey: "missing" });
+  assert.equal(mergeForwardEvidenceRows([concurrent, missing], { root }).restored, 1);
+  assert.equal(injected, true);
+  assert.equal(read(file, "utf8"), `${before}${concurrentBytes}${JSON.stringify(missing.record_json)}\n`);
+});
+
+test("restore does not overwrite a local append immediately before its own write", (t) => {
+  const root = isolatedRoot(t);
+  const file = path.join(root, "data", "production-market-observations.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const before = ' {"observationKey":"local"}\r\n';
+  const concurrentBytes = ' \t{"observationKey":"late-local"}\r\n';
+  fs.writeFileSync(file, before);
+  const write = fs.writeFileSync;
+  let injected = false;
+  t.mock.method(fs, "writeFileSync", (target, ...args) => {
+    if (!injected) {
+      injected = true;
+      fs.appendFileSync(file, concurrentBytes);
+    }
+    return write(target, ...args);
+  });
+  const missing = remoteRow("production-market-observations", { observationKey: "missing" });
+  assert.equal(mergeForwardEvidenceRows([missing], { root }).restored, 1);
+  assert.equal(injected, true);
+  assert.equal(fs.readFileSync(file, "utf8"), `${before}${concurrentBytes}${JSON.stringify(missing.record_json)}\n`);
+});
+
+for (const [name, concurrentBytes, message] of [
+  ["conflicting", '{"observationKey":"missing","priceUsd":99}\n', /Immutable forward-evidence conflict/],
+  ["malformed", "not-json\n", /invalid forward-evidence JSONL/],
+]) {
+  test(`restore fails closed on a ${name} append visible during its recheck`, (t) => {
+    const root = isolatedRoot(t);
+    const file = path.join(root, "data", "production-market-observations.jsonl");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const before = '{"observationKey":"local"}\n';
+    fs.writeFileSync(file, before);
+    const read = fs.readFileSync;
+    let injected = false;
+    t.mock.method(fs, "readFileSync", (target, ...args) => {
+      const result = read(target, ...args);
+      if (target === file && !injected) {
+        injected = true;
+        fs.appendFileSync(file, concurrentBytes);
+      }
+      return result;
+    });
+    assert.throws(() => mergeForwardEvidenceRows([
+      remoteRow("production-market-observations", { observationKey: "missing", priceUsd: 1 }),
+    ], { root }), message);
+    assert.equal(injected, true);
+    assert.equal(read(file, "utf8"), `${before}${concurrentBytes}`);
+  });
+}
+
+test("restore flushes appended evidence and newly created directory entries before acknowledging it", (t) => {
+  const root = isolatedRoot(t);
+  const flushed = [];
+  const flush = fs.fsyncSync;
+  t.mock.method(fs, "fsyncSync", (fd) => {
+    const stat = fs.fstatSync(fd);
+    flushed.push({ inode: stat.ino, directory: stat.isDirectory() });
+    return flush(fd);
+  });
+  const row = remoteRow("production-market-observations", { observationKey: "missing" });
+  assert.equal(mergeForwardEvidenceRows([row], { root }).restored, 1);
+  const file = path.join(root, FORWARD_EVIDENCE_LEDGERS[row.ledger_name]);
+  assert.deepEqual(flushed, [file, path.dirname(file), root].map((target) => {
+    const stat = fs.statSync(target);
+    return { inode: stat.ino, directory: stat.isDirectory() };
+  }));
+});
+
+test("restore propagates a flush failure without rewriting local bytes", (t) => {
+  const root = isolatedRoot(t);
+  const file = path.join(root, "data", "production-market-observations.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const before = ' \t{"observationKey":"local"}\r\n';
+  fs.writeFileSync(file, before);
+  const missing = remoteRow("production-market-observations", { observationKey: "missing" });
+  const flush = t.mock.method(fs, "fsyncSync", () => { throw new Error("fixture flush failure"); });
+  assert.throws(() => mergeForwardEvidenceRows([missing], { root }), /fixture flush failure/);
+  assert.equal(flush.mock.callCount(), 1);
+  assert.equal(fs.readFileSync(file, "utf8"), `${before}${JSON.stringify(missing.record_json)}\n`);
+  flush.mock.restore();
+  assert.equal(mergeForwardEvidenceRows([missing], { root }).restored, 0);
+});
+
+test("restore never truncates concurrent evidence to roll back a partially failed append", (t) => {
+  const root = isolatedRoot(t);
+  const file = path.join(root, "data", "production-market-observations.jsonl");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const before = ' \t{"observationKey":"local"}\r\n';
+  fs.writeFileSync(file, before);
+  const write = fs.writeFileSync;
+  let partial;
+  t.mock.method(fs, "writeFileSync", (fd, payload) => {
+    assert.equal(typeof fd, "number");
+    partial = payload.slice(0, 10);
+    write(fd, partial);
+    write(file, '\n{"observationKey":"late-local"}\n', { flag: "a" });
+    throw new Error("fixture partial append failure");
+  });
+  assert.throws(() => mergeForwardEvidenceRows([
+    remoteRow("production-market-observations", { observationKey: "missing" }),
+  ], { root }), /fixture partial append failure/);
+  assert.equal(fs.readFileSync(file, "utf8"), `${before}${partial}\n{"observationKey":"late-local"}\n`);
 });
 
 test("remote forward evidence rejects a changed record under an existing immutable ID", () => {
