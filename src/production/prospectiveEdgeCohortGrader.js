@@ -552,6 +552,104 @@ function replicationWindows(pairs = [], options = {}) {
   };
 }
 
+function missingOutcomeSensitivity(matureTreatments = [], episodes = [], outcomes = [], options = {}) {
+  const outcomeByEpisode = new Map(outcomes.map((row) => [row.episodeId, row]));
+  const controlsByParent = new Map();
+  for (const episode of episodes) {
+    if (episode.role !== "CONTROL_MATCHED") continue;
+    const controls = controlsByParent.get(episode.parentTreatmentEpisodeId) || [];
+    controls.push(episode);
+    controlsByParent.set(episode.parentTreatmentEpisodeId, controls);
+  }
+  const rows = matureTreatments.map((treatment) => {
+    const treatmentOutcome = outcomeByEpisode.get(treatment.episodeId) || null;
+    const controls = (controlsByParent.get(treatment.episodeId) || []).map((episode) => ({
+      episodeId: episode.episodeId,
+      outcome: outcomeByEpisode.get(episode.episodeId) || null,
+    }));
+    const missingControlCount = controls.filter((row) => !row.outcome).length;
+    const controlsComplete = controls.length > 0 && missingControlCount === 0;
+    // Spot prices are nonnegative, so a missing treatment has a lower return
+    // bound of -100% less frozen costs. Missing control upside has no finite cap.
+    const treatmentReturnLowerBound = treatmentOutcome?.netReturnPct ?? (-100 - resolvedCost(treatment, options).bps / 100);
+    const returnLowerBoundPct = controlsComplete
+      ? finite(treatmentReturnLowerBound - mean(controls.map((row) => row.outcome.netReturnPct)))
+      : null;
+    const complete = Boolean(treatmentOutcome) && controlsComplete;
+    const worstCaseHitRateEdge = controls.length
+      ? (treatmentOutcome ? Number(treatmentOutcome.hit) : 0) -
+        mean(controls.map((row) => row.outcome ? Number(row.outcome.hit) : 1))
+      : null;
+    const worstCaseCatastrophicLossDelta = controls.length
+      ? (treatmentOutcome ? Number(treatmentOutcome.catastrophicLoss) : 1) -
+        mean(controls.map((row) => row.outcome ? Number(row.outcome.catastrophicLoss) : 0))
+      : null;
+    return {
+      pairId: treatment.episodeId,
+      cohortId: treatment.cohortId,
+      identityKey: treatment.identityKey,
+      treatmentOutcome,
+      controls,
+      frozenControlCount: controls.length,
+      resolvedControlCount: controls.length - missingControlCount,
+      missingControlCount,
+      complete,
+      returnLowerBoundPct,
+      worstCaseHitRateEdge,
+      worstCaseCatastrophicLossDelta,
+      // Proven bounds cannot relax the original V1 incomplete-pair penalties.
+      // An unbounded return stays unknown; -200 is not a substitute for proof.
+      appliedReturnLowerBoundPct: returnLowerBoundPct === null ? null
+        : complete ? returnLowerBoundPct : Math.min(-200, returnLowerBoundPct),
+      appliedHitRateEdge: complete ? worstCaseHitRateEdge : -1,
+      appliedCatastrophicLossDelta: complete ? worstCaseCatastrophicLossDelta : 1,
+    };
+  });
+  const aggregateBound = (field) => rows.length && rows.every((row) => finite(row[field]) !== null)
+    ? finite(mean(rows.map((row) => row[field])))
+    : null;
+  const provenAverageNetReturnEdgeLowerBoundPct = aggregateBound("returnLowerBoundPct");
+  const worstCaseAverageNetReturnEdgePct = aggregateBound("appliedReturnLowerBoundPct");
+  const returnBoundProven = provenAverageNetReturnEdgeLowerBoundPct !== null && worstCaseAverageNetReturnEdgePct !== null;
+  const missingControlPairs = rows.filter((row) => row.missingControlCount > 0).length;
+  const incompletePairs = rows.filter((row) => !row.complete);
+  const observedTreatments = rows.map((row) => row.treatmentOutcome).filter(Boolean);
+  const controls = rows.flatMap((row) => row.controls);
+  const observedControls = controls.filter((row) => row.outcome).length;
+  const reportLimit = Math.max(1, Math.floor(finite(options.reportPairLimit) || 5000));
+  const report = {
+    policy: "PROVEN_BOUNDS_WITH_V1_INCOMPLETE_PAIR_PENALTIES_V2",
+    state: !rows.length ? "NO_MATURE_TREATMENTS"
+      : missingControlPairs ? "UNBOUNDED_MISSING_CONTROL_RETURN"
+      : returnBoundProven ? "PROVEN_BOUNDED_SENSITIVITY" : "RETURN_BOUND_NOT_PROVEN",
+    returnBoundProven,
+    matureTreatments: rows.length,
+    fullyResolvedPairs: rows.length - incompletePairs.length,
+    unresolvedOrIncompletePairs: incompletePairs.length,
+    missingControlPairs,
+    treatmentOutcomes: {
+      observed: observedTreatments.length,
+      missing: rows.length - observedTreatments.length,
+      catastrophicLosses: observedTreatments.filter((row) => row.catastrophicLoss).length,
+    },
+    controlOutcomes: { frozen: controls.length, observed: observedControls, missing: controls.length - observedControls },
+    provenAverageNetReturnEdgeLowerBoundPct,
+    provenHitRateEdgeLowerBound: aggregateBound("worstCaseHitRateEdge"),
+    provenCatastrophicLossDeltaUpperBound: aggregateBound("worstCaseCatastrophicLossDelta"),
+    worstCaseAverageNetReturnEdgePct,
+    worstCaseHitRateEdge: aggregateBound("appliedHitRateEdge"),
+    worstCaseCatastrophicLossDelta: aggregateBound("appliedCatastrophicLossDelta"),
+    incompletePairs: incompletePairs.slice(-reportLimit),
+    incompletePairsOmitted: Math.max(0, incompletePairs.length - reportLimit),
+  };
+  report.pass = returnBoundProven && report.worstCaseHitRateEdge !== null &&
+    report.worstCaseCatastrophicLossDelta !== null &&
+    report.worstCaseAverageNetReturnEdgePct >= Number(options.minimumReturnEdgePct || 3) &&
+    report.worstCaseHitRateEdge >= Number(options.minimumHitRateEdge || 0.03) &&
+    report.worstCaseCatastrophicLossDelta <= Number(options.maximumCatastropheDelta || 0.02);
+  return report;
+}
+
 function gradeStrategy(episodes = [], observations = [], options = {}) {
   const asOf = options.asOf || options.now || new Date().toISOString();
   const asOfMs = timestamp(asOf);
@@ -651,36 +749,7 @@ function gradeStrategy(episodes = [], observations = [], options = {}) {
     interimSafety.hitRateEdge >= 0 &&
     interimSafety.catastrophicLossDelta <= Number(options.maximumCatastropheDelta || 0.02)
   );
-  const unresolvedOrIncompletePairs = Math.max(0, matureTreatments.length - allPairs.length);
-  const sensitivityDenominator = allPairs.length + unresolvedOrIncompletePairs;
-  const missingnessSensitivity = {
-    policy: "UNRESOLVED_TREATMENT_OR_CONTROL_PAIR_ASSUMED_MAXIMALLY_ADVERSE_V1",
-    matureTreatments: matureTreatments.length,
-    fullyResolvedPairs: allPairs.length,
-    unresolvedOrIncompletePairs,
-    worstCaseAverageNetReturnEdgePct: sensitivityDenominator
-      ? (
-          allPairs.reduce((sum, row) => sum + row.averageNetReturnEdgePct, 0) +
-          unresolvedOrIncompletePairs * -200
-        ) / sensitivityDenominator
-      : null,
-    worstCaseHitRateEdge: sensitivityDenominator
-      ? (
-          allPairs.reduce((sum, row) => sum + row.hitRateEdge, 0) +
-          unresolvedOrIncompletePairs * -1
-        ) / sensitivityDenominator
-      : null,
-    worstCaseCatastrophicLossDelta: sensitivityDenominator
-      ? (
-          allPairs.reduce((sum, row) => sum + row.catastrophicLossDelta, 0) +
-          unresolvedOrIncompletePairs
-        ) / sensitivityDenominator
-      : null,
-  };
-  missingnessSensitivity.pass = sensitivityDenominator > 0 &&
-    missingnessSensitivity.worstCaseAverageNetReturnEdgePct >= Number(options.minimumReturnEdgePct || 3) &&
-    missingnessSensitivity.worstCaseHitRateEdge >= Number(options.minimumHitRateEdge || 0.03) &&
-    missingnessSensitivity.worstCaseCatastrophicLossDelta <= Number(options.maximumCatastropheDelta || 0.02);
+  const missingnessSensitivity = missingOutcomeSensitivity(matureTreatments, episodes, outcomes, options);
 
   const blockers = [];
   if (!episodes.length) blockers.push("NO_FROZEN_PROSPECTIVE_COHORTS");
@@ -697,6 +766,7 @@ function gradeStrategy(episodes = [], observations = [], options = {}) {
   if (!hitVerified) blockers.push("HIT_RATE_EDGE_NOT_VERIFIED");
   if (!catastropheSafe) blockers.push("CATASTROPHIC_LOSS_SAFETY_NOT_VERIFIED");
   if (!interimSafety.pass) blockers.push("INTERIM_FORWARD_SAFETY_REVOCATION");
+  if (missingnessSensitivity.missingControlPairs > 0) blockers.push("MISSING_CONTROL_RETURN_SENSITIVITY_UNBOUNDED");
   if (!missingnessSensitivity.pass) blockers.push("MISSING_OUTCOME_WORST_CASE_SENSITIVITY_FAILED");
 
   let edgeState = "UNVERIFIED_INSUFFICIENT_FORWARD_EVIDENCE";
