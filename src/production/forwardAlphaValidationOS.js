@@ -533,6 +533,9 @@ export function evaluateCli15PromotionGate(inputs = {}, options = {}) {
   const policy = { ...CLI15_DEFAULT_POLICY, ...(options.policy || {}) };
   const contractAudit = inputs.contractAudit || {};
   const certificate = inputs.certificate || {};
+  const current = certificate.current || {};
+  const audit = certificate.inputAudit || {};
+  const gates = current.gates || {};
   const primary = inputs.primaryHorizon || {};
   const canary = inputs.canary || {};
   const sources = inputs.sourceReadiness || {};
@@ -557,7 +560,46 @@ export function evaluateCli15PromotionGate(inputs = {}, options = {}) {
   const blockers = [];
   if (!contractAudit.currentContracts) blockers.push("NO_CLI15_FROZEN_PREDICTIONS");
   else if (contractAudit.pass !== true) blockers.push("PREDICTION_CONTRACT_GATE_FAILED");
-  if (policy.requireVerifiedForwardCertificate && certificate.edgeState !== "VERIFIED_FORWARD_EDGE") blockers.push("FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED");
+  // Promotion requires affirmative, consistent proofs even if a caller disables
+  // the report policy's certificate requirement. Unknown evidence is not a pass.
+  if (certificate.certificateEligible !== true || certificate.edgeState !== "VERIFIED_FORWARD_EDGE" ||
+      current.edgeState !== "VERIFIED_FORWARD_EDGE" ||
+      (certificate.verified !== undefined && certificate.verified !== true)) {
+    blockers.push("FORWARD_EDGE_CERTIFICATE_NOT_VERIFIED");
+  }
+  const fingerprint = certificate.latestStrategyFingerprint;
+  const asOfMs = timestamp(contractAudit.asOf);
+  if (typeof fingerprint !== "string" || !fingerprint.trim() ||
+      current.strategyFingerprint !== fingerprint || contractAudit.latestStrategyFingerprint !== fingerprint ||
+      asOfMs === null || timestamp(certificate.generatedAt) !== asOfMs || timestamp(current.generatedAt) !== asOfMs) {
+    blockers.push("CURRENT_FORWARD_CERTIFICATE_BINDING_NOT_VERIFIED");
+  }
+  const integrityVerified = [
+    "episodeInputValid", "observationInputValid", "currentStrategyLedgerIntegrityPass",
+    "currentStrategyPartitionIntegrityPass", "scopedProspectiveLedgerIntegrityPass",
+    "exactMarketObservationLedgerIntegrityRequired", "exactMarketObservationLedgerIntegrityPass",
+  ].every((field) => audit[field] === true) && [
+    "duplicateEpisodeIds", "topologyFailureEpisodeIds", "duplicateObservationKeys",
+  ].every((field) => Array.isArray(audit[field]) && audit[field].length === 0) &&
+    audit.observationsRejected === 0 && audit.nonLegacyInvalidRowsObserved === 0;
+  if (!integrityVerified) blockers.push("FORWARD_EVIDENCE_INTEGRITY_NOT_VERIFIED");
+  if (current.interimSafety?.pass !== true || current.missingnessSensitivity?.pass !== true ||
+      !Number.isInteger(current.interimSafety?.observations) || current.interimSafety.observations <= 0) {
+    blockers.push("FORWARD_CERTIFICATE_SAFETY_NOT_VERIFIED");
+  }
+  const proofGatesVerified = [
+    "enoughData", "capturePass", "executionCostPass", "matchQualityPass", "replicationPass",
+    "returnVerified", "hitVerified", "catastropheSafe", "missingnessSensitivityPass",
+  ].every((field) => gates[field] === true) &&
+    [current.capture, current.executionCosts, current.matchQuality, current.replication]
+      .every((proof) => proof?.pass === true);
+  if (!proofGatesVerified) blockers.push("FORWARD_CERTIFICATE_PROOF_GATES_NOT_VERIFIED");
+  if (!Array.isArray(current.blockers) || current.blockers.length !== 0) {
+    blockers.push("FORWARD_CERTIFICATE_BLOCKERS_NOT_CLEARED");
+  }
+  if (certificate.automaticTrading !== false || certificate.automaticPromotion !== false) {
+    blockers.push("FORWARD_CERTIFICATE_GOVERNANCE_NOT_VERIFIED");
+  }
   if (primary.calibration?.state !== "CALIBRATED") blockers.push("PRIMARY_PROBABILITY_CALIBRATION_NOT_VERIFIED");
   if (policy.requireExecutablePaperCanary && canary.state !== "PAPER_CANARY_EDGE_SUPPORTED") blockers.push("EXECUTABLE_PAPER_CANARY_NOT_PASSED");
   if (policy.requireLiveSourceHealth && sources.liveReady !== true) blockers.push("LIVE_DATA_SOURCE_HEALTH_NOT_VERIFIED");

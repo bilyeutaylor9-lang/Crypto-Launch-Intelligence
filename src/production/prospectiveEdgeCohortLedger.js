@@ -1117,6 +1117,26 @@ export function freezeProspectiveEdgeCohort(selections = [], universeRows = [], 
 
   const treatments = episodes.filter((row) => row.role === "TREATMENT");
   const controls = episodes.filter((row) => row.role === "CONTROL_MATCHED");
+  if (options.preQuoteSelection) {
+    const expectedTreatments = options.preQuoteSelection.treatments.map((row) => row.routeKey);
+    const parentRoutes = new Map(treatments.map((row) => [row.episodeId, row.routeKey]));
+    const expectedControls = options.preQuoteSelection.reservations
+      .map((row) => `${row.treatmentRouteKey}|${row.controlRouteKey}`).sort();
+    const actualControls = controls
+      .map((row) => `${parentRoutes.get(row.parentTreatmentEpisodeId)}|${row.routeKey}`).sort();
+    // Any loss after the pre-quote seal rejects the whole new cohort. It must
+    // never improve apparent coverage by silently dropping a reserved control.
+    if (expectedTreatments.length !== treatments.length ||
+        expectedTreatments.some((route, index) => route !== treatments[index].routeKey) ||
+        expectedControls.length !== actualControls.length ||
+        expectedControls.some((route, index) => route !== actualControls[index])) {
+      return { state: "COHORT_REJECTED_PRE_QUOTE_MEMBERSHIP_CHANGED", cohortId, strategy, episodes: [],
+        audit: { ...baseAudit, treatmentsFrozen: 0, controlsFrozen: 0,
+          preQuoteSelectionFreezeHash: preQuoteSelection.selectionFreezeHash,
+          blockers: ["PRE_QUOTE_SELECTION_MEMBERSHIP_CHANGED"],
+          selectionRejectionCounts, controlUniverseRejectionCounts, matchingRejectionCounts } };
+    }
+  }
   return {
     state: treatments.length ? "PROSPECTIVE_EDGE_COHORT_FROZEN" : "NO_MATCHABLE_PROSPECTIVE_SELECTIONS",
     cohortId,

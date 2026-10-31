@@ -13,9 +13,9 @@ import { freezeProspectiveEdgeCohort } from "../src/production/prospectiveEdgeCo
 
 const now = "2026-01-02T00:01:00.000Z", due = "2026-01-02T00:00:00.000Z", expiry = "2026-01-02T01:00:00.000Z";
 const address = n => "0x" + n.toString(16).padStart(40, "0");
-function fixture(t) {
+function fixture(t, clock = () => now) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "shared-frozen-outcome-"));
-  const archive = openDurableEvidenceArchive({ root, clock: () => now });
+  const archive = openDurableEvidenceArchive({ root, clock });
   t.after(() => { archive.close(); fs.rmSync(root, { recursive: true, force: true }); });
   return { root, archive };
 }
@@ -78,6 +78,32 @@ test("one actual request resolves compatible real frozen windows without increas
   const db = new Database(archive.dbPath);
   try { db.prepare("UPDATE historical_reconciliations SET observation_hash=? WHERE task_id=?").run("0".repeat(64), shared[0].task_id); } finally { db.close(); }
   assert.equal(archive.audit().ok, false);
+});
+
+test("advancing wall clocks complete and share real frozen duties without reversing writer time", async t => {
+  let ms = Date.parse(now);
+  const clock = () => new Date(ms++).toISOString();
+  const { archive } = fixture(t, clock);
+  archive.claimWriter({ owner: "import", nowAt: clock() });
+  importFrozenOutcomeLedgers({ archive, cohortBytes: Buffer.from(realFrozenEpisodes().map(JSON.stringify).join("\n")), observationBytes: Buffer.alloc(0), clock });
+  archive.releaseWriter({ nowAt: clock() });
+  let calls = 0;
+  const collect = createFrozenOutcomeCollector({ archive, clock, dexFetcher: async options => {
+    calls++;
+    const requestedAt = clock(), receivedAt = clock();
+    const rawBytes = Buffer.from(JSON.stringify({ pairs: [{ chainId: options.chain, pairAddress: options.poolAddress,
+      baseToken: { address: options.tokenAddress }, priceUsd: "1.3" }] }));
+    await options.onResponseBytes({ provider: "dexscreener", requestedAt, receivedAt, status: 200, headers: {}, rawBytes });
+    return JSON.parse(rawBytes);
+  } });
+  const result = await runDurableOutcomeCycle({ archive, owner: "collector", collect, clock, limit: 1,
+    globalBudget: { provider: "all", requestLimit: 1, windowMs: 3600000 },
+    providerPolicies: { dexscreener: { requestLimit: 1, windowMs: 3600000, timeoutMs: 8000 } } });
+  assert.equal(calls, 1);
+  assert.equal(result.capturedObservations, 1, JSON.stringify(result.results));
+  assert.equal(result.sharedReconciledDuties, 1);
+  assert.equal(result.resolvedDuties, 2);
+  assert.equal(archive.audit().ok, true);
 });
 
 test("shared capture enforces every target identity, window and admitted clock policy", t => {

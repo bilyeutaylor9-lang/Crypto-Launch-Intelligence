@@ -361,7 +361,7 @@ test("a worker cannot silently complete or expire an obligation without its evid
 });
 
 test("atomic completion retains exact observation bytes and rejects unknown timestamps", (t) => {
-  const { store } = fixture(t); const parent = store.admitPrediction(prediction());
+  const { store } = fixture(t, { clock: () => "2026-01-01T06:01:01.000Z" }); const parent = store.admitPrediction(prediction());
   const [task] = store.leaseDue({ owner: "worker", nowAt: "2026-01-01T06:01:00.000Z" });
   const evidence = { recordId: "observation:exact", rawBytes: Buffer.from("provider response original bytes"), frozenObligations: [],
     immutableContract: { tokenAddress: "CaseSensitive", observationOf: { recordId: parent.recordId, taskId: task.taskId, horizonHours: 6,

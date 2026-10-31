@@ -152,6 +152,7 @@ test("treatment/control reservation occurs before read-only quote acquisition", 
     treatments: selection.selected,
     controls: [control],
     now: NOW,
+    clock: () => NOW,
     quoteProvider: async (request) => {
       calls.push({ candidateKey: request.candidateKey, side: request.side });
       return rawQuote(request);
@@ -197,6 +198,7 @@ test("production shadow can freeze scientific cohorts when synthesis is empty", 
     process.chdir(temporaryDirectory);
     const result = await runProductionShadowCycle({
       now: NOW,
+      clock: () => NOW,
       codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
       observations: [],
       adaptive: { registry: {} },
@@ -211,7 +213,7 @@ test("production shadow can freeze scientific cohorts when synthesis is empty", 
       },
       prospectiveCohortEpisodes: [],
       prospectiveCohortFile: path.join(temporaryDirectory, "data", "prospective-edge-cohorts.jsonl"),
-      forwardQuoteBroker: { quoteProvider: async (request) => rawQuote(request) },
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => rawQuote(request) },
     });
     const report = JSON.parse(fs.readFileSync("reports/prospective-proof-acquisition.json", "utf8"));
 
@@ -224,5 +226,157 @@ test("production shadow can freeze scientific cohorts when synthesis is empty", 
   } finally {
     process.chdir(priorDirectory);
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test("cost-complete admission retains every reserved control or blocks the entire new cohort", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cost-complete-cohort-"));
+  const before = process.cwd();
+  const rows = [candidate(1), candidate(2), candidate(3), candidate(4)];
+  try {
+    process.chdir(dir);
+    const settings = { now: NOW, clock: () => NOW, codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
+      requireCompleteExecutionCosts: true, observations: [], adaptive: { registry: {} }, synthesis: { candidates: [] },
+      universe: { availabilityState: "EDGE_CANDIDATE_UNIVERSE_AVAILABLE", generatedAt: NOW,
+        exactCandidates: rows.length, candidates: rows }, prospectiveCohortEpisodes: [],
+      prospectiveCohortFile: path.join(dir, "cohorts.jsonl") };
+    const denied = await runProductionShadowCycle({ ...settings,
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => {
+        const seal = JSON.parse(fs.readFileSync("reports/prospective-pre-quote-selection.json"));
+        assert.ok(seal.selectionFreezeHash);
+        const controls = seal.reservations.map((r) => r.controlRouteKey);
+        if (controls.includes(`${request.chain}:${request.tokenAddress}:${request.poolAddress}`)) throw Error("missing control quote");
+        return rawQuote(request);
+      } } });
+    assert.equal(denied.prospectiveCohort.state, "PROSPECTIVE_COHORT_NOT_CAPTURED_EXECUTION_COSTS_INCOMPLETE");
+    assert.equal(denied.prospectiveCohort.persistence.saved, 0);
+    assert.equal(fs.existsSync(settings.prospectiveCohortFile), false);
+    const attempt = JSON.parse(fs.readFileSync(`reports/prospective-cost-attempts/${denied.manifest.runId}.json`));
+    assert.equal(attempt.quotedProjects.length, denied.shadowReport.forwardQuoteBroker.captureAudit.attempted);
+    assert.ok(attempt.quotedProjects.some((row) => row.executionCostProvenance?.entryQuote?.rawEvidenceHash));
+    const sealedRoutes = JSON.parse(fs.readFileSync("reports/prospective-pre-quote-selection.json"));
+    const accepted = await runProductionShadowCycle({ ...settings,
+      forwardQuoteBroker: { clock: () => NOW, quoteProvider: async (request) => rawQuote(request) } });
+    assert.ok(accepted.prospectiveCohort.audit.controlsFrozen > 0);
+    assert.ok(accepted.prospectiveCohort.audit.treatmentsFrozen > 0);
+    assert.equal(accepted.shadowReport.forwardQuoteBroker.explicitCostCoveragePct, 100);
+    assert.deepEqual(accepted.shadowReport.preQuoteSelection, sealedRoutes);
+    const bytes = fs.readFileSync(settings.prospectiveCohortFile, "utf8");
+    const episodes = bytes.trim().split("\n").map(JSON.parse);
+    assert.equal(episodes.length, accepted.prospectiveCohort.audit.controlsFrozen + accepted.prospectiveCohort.audit.treatmentsFrozen);
+    assert.ok(episodes.every((row) => row.frozenExecutionCostProvenance?.kind === "PAIRED_EXECUTABLE_QUOTES_V1"));
+  } finally { process.chdir(before); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+for (const scenario of [
+  { name: "moving clocks", delay: 0, requireComplete: true, captured: true, explicit: true },
+  { name: "expired quotes", delay: 31000, requireComplete: true, captured: false, explicit: false },
+  { name: "future quotes", fixedCutoff: NOW, requireComplete: true, captured: false, explicit: false },
+  { name: "research-only expired quotes", delay: 31000, requireComplete: false, captured: true, explicit: false },
+]) {
+  test(`cohort cutoff preserves actual quote clocks: ${scenario.name}`, async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cohort-cost-cutoff-"));
+    const before = process.cwd();
+    let ms = Date.parse(NOW), requests = 0;
+    const rows = [candidate(1), candidate(2), candidate(3), candidate(4)];
+    try {
+      process.chdir(dir);
+      const result = await runProductionShadowCycle({
+        now: NOW,
+        clock: () => scenario.fixedCutoff || new Date(ms + scenario.delay).toISOString(),
+        codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
+        requireCompleteExecutionCosts: scenario.requireComplete,
+        observations: [], adaptive: { registry: {} }, synthesis: { candidates: [] },
+        universe: { availabilityState: "EDGE_CANDIDATE_UNIVERSE_AVAILABLE", generatedAt: NOW,
+          exactCandidates: rows.length, candidates: rows },
+        prospectiveCohortEpisodes: [], prospectiveCohortFile: path.join(dir, "cohorts.jsonl"),
+        forwardQuoteBroker: {
+          clock: () => new Date(ms).toISOString(),
+          quoteProvider: async (request) => {
+            requests += 1;
+            ms += 1000;
+            return { ...rawQuote(request), capturedAt: new Date(ms).toISOString() };
+          },
+        },
+      });
+      const episodes = result.prospectiveCohort.episodes;
+      assert.equal(episodes.length > 0, scenario.captured);
+      const audit = result.shadowReport.decisionCostAudit;
+      assert.ok(audit.quotesAcceptedAtCapture > 0);
+      assert.equal(audit.quotesUsableAtDecision > 0, scenario.explicit);
+      assert.equal(requests, audit.quotesAcceptedAtCapture * 2, "Revalidation must never refetch quotes");
+      for (const episode of episodes) {
+        assert.equal(episode.decisionAt, audit.decisionAt);
+        assert.ok(episode.preQuoteSelectionFreezeHash);
+        if (scenario.explicit) {
+          const proof = episode.frozenExecutionCostProvenance;
+          assert.ok(Date.parse(proof.entryQuote.capturedAt) > Date.parse(NOW));
+          assert.ok(Date.parse(proof.exitQuote.capturedAt) <= Date.parse(episode.decisionAt));
+          assert.ok(episode.frozenRoundTripExecutionCostBps > 0);
+        } else {
+          assert.equal(episode.frozenRoundTripExecutionCostBps, null);
+          assert.equal(episode.frozenExecutionCostProvenance, null);
+        }
+      }
+      const predictionFile = "data/production-shadow-predictions.jsonl";
+      if (!scenario.captured) assert.equal(fs.existsSync(predictionFile), false);
+      const predictions = fs.existsSync(predictionFile) ? fs.readFileSync(predictionFile, "utf8")
+        .split("\n").filter(Boolean).map(JSON.parse) : [];
+      assert.equal(predictions.length, episodes.filter((row) => row.role === "TREATMENT").length);
+      for (const prediction of predictions) {
+        const episode = episodes.find((row) => row.episodeId === prediction.prospectiveEdgeEpisodeId);
+        assert.ok(episode);
+        assert.equal(prediction.decisionAt, episode.decisionAt);
+        assert.equal(prediction.generatedAt, episode.decisionAt);
+        assert.equal(prediction.sourceAgeMinutesAtDecision, episode.sourceAgeMinutesAtDecision);
+      }
+      const original = JSON.parse(fs.readFileSync(`reports/prospective-cost-attempts/${result.manifest.runId}.json`));
+      assert.ok(original.quotedProjects.every((row) => row.executionCostProvenance?.entryQuote?.capturedAt));
+      assert.equal(original.preQuoteSelection.generatedAt || original.preQuoteSelection.decisionAt, NOW);
+    } finally {
+      process.chdir(before);
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+}
+
+test("a reserved control expiring during quotes rejects the whole sealed cohort", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cohort-membership-cutoff-"));
+  const before = process.cwd();
+  let ms = Date.parse(NOW);
+  const nearBoundary = new Date(ms - 89 * 60000 - 50000).toISOString();
+  const rows = [candidate(1, { sourceObservedAt: nearBoundary }),
+    candidate(2, { sourceObservedAt: nearBoundary }), candidate(3, {
+    sourceObservedAt: new Date(ms - 89 * 60000 - 59000).toISOString(),
+  })];
+  const clock = () => new Date(ms).toISOString();
+  try {
+    process.chdir(dir);
+    const result = await runProductionShadowCycle({
+      now: NOW, clock, codeCommitSha: "0123456789abcdef0123456789abcdef01234567",
+      requireCompleteExecutionCosts: true, maxProspectiveControls: 2,
+      observations: [], adaptive: { registry: {} }, synthesis: { candidates: [] },
+      universe: { availabilityState: "EDGE_CANDIDATE_UNIVERSE_AVAILABLE", generatedAt: NOW,
+        exactCandidates: rows.length, candidates: rows },
+      prospectiveCohortEpisodes: [], prospectiveCohortFile: path.join(dir, "cohorts.jsonl"),
+      forwardQuoteBroker: { clock, quoteProvider: async (request) => {
+        ms += 1000;
+        return { ...rawQuote(request), capturedAt: clock() };
+      } },
+    });
+    assert.equal(result.shadowReport.preQuoteSelection.treatments.length, 1);
+    assert.equal(result.shadowReport.preQuoteSelection.reservations.length, 2);
+    assert.equal(result.shadowReport.decisionCostAudit.quotesUsableAtDecision, 3);
+    assert.equal(result.prospectiveCohort.state, "COHORT_REJECTED_PRE_QUOTE_MEMBERSHIP_CHANGED");
+    assert.deepEqual(result.prospectiveCohort.episodes, []);
+    assert.equal(result.prospectiveCohort.persistence.saved, 0);
+    assert.equal(fs.existsSync(path.join(dir, "cohorts.jsonl")), false);
+    assert.equal(fs.existsSync("data/production-shadow-predictions.jsonl"), false);
+    const attempts = JSON.parse(fs.readFileSync(`reports/prospective-cost-attempts/${result.manifest.runId}.json`));
+    assert.equal(attempts.quotedProjects.length, 3);
+    assert.deepEqual(attempts.preQuoteSelection, result.shadowReport.preQuoteSelection);
+  } finally {
+    process.chdir(before);
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });
