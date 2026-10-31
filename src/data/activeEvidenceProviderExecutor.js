@@ -1,10 +1,14 @@
 import { isDeepStrictEqual } from "node:util";
+import { randomUUID } from "node:crypto";
 import {
   getPairByAddress,
   getTokenPairs,
+  getTokenPairsBatch,
+  normalizeDexBatchAddress,
   normalizeDexPair,
   searchDexPairs,
 } from "./dexScreenerConnector.js";
+import { providerReceiptTimestamp } from "./providerResponseReceipt.js";
 import {
   getGeckoPoolByAddress,
 } from "./geckoTerminalConnector.js";
@@ -266,6 +270,8 @@ function poolAddressOf(project = {}, chain = chainOf(project)) {
 
 function providerFunctions(options = {}) {
   const injected = options.providers || {};
+  const customDexProvider = ["getTokenPairs", "getPairByAddress", "searchDexPairs"]
+    .some((key) => injected[key] || options[key]);
   const customDeployerProvider = Boolean(
     injected.getBlockscoutDeployerEvidence ||
       injected.getDeployerEvidence ||
@@ -289,6 +295,8 @@ function providerFunctions(options = {}) {
     getBaseB20LifecycleEvidence: injected.getBaseB20LifecycleEvidence || options.getBaseB20LifecycleEvidence || getBaseB20LifecycleEvidence,
     useBaseB20Lifecycle: Boolean(injected.getBaseB20LifecycleEvidence || options.getBaseB20LifecycleEvidence) || (!customDeployerProvider && !customSourcifyProvider),
     getTokenPairs: injected.getTokenPairs || options.getTokenPairs || getTokenPairs,
+    getTokenPairsBatch: injected.getTokenPairsBatch || options.getTokenPairsBatch ||
+      (customDexProvider ? null : getTokenPairsBatch),
     getPairByAddress: injected.getPairByAddress || options.getPairByAddress || getPairByAddress,
     searchDexPairs: injected.searchDexPairs || options.searchDexPairs || searchDexPairs,
     getGeckoPoolByAddress:
@@ -1365,8 +1373,9 @@ function rawDexPairs(payload) {
   return [];
 }
 
-function sameAddress(left, right) {
-  return Boolean(left && right && lower(left) === lower(right));
+function sameAddress(left, right, chain) {
+  const normalized = left && normalizeTokenAddress(left, chain);
+  return Boolean(normalized && right && normalized === normalizeTokenAddress(right, chain));
 }
 
 function strictDexPair(payload, project = {}, lookup = {}) {
@@ -1377,17 +1386,20 @@ function strictDexPair(payload, project = {}, lookup = {}) {
   const expectedName = lower(project.name || project.projectName);
 
   let pairs = rawDexPairs(payload)
-    .map((raw) => ({ raw, normalized: normalizeDexPair(raw) }))
+    .flatMap((raw) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+      try { return [{ raw, normalized: normalizeDexPair(raw) }]; } catch { return []; }
+    })
     .filter(({ normalized }) => normalized.chain && normalized.tokenAddress);
 
   if (expectedChain) {
     pairs = pairs.filter(({ normalized }) => normalized.chain === expectedChain);
   }
   if (expectedToken) {
-    pairs = pairs.filter(({ normalized }) => sameAddress(normalized.tokenAddress, expectedToken));
+    pairs = pairs.filter(({ normalized }) => sameAddress(normalized.tokenAddress, expectedToken, expectedChain));
   }
   if (expectedPool) {
-    pairs = pairs.filter(({ normalized }) => sameAddress(normalized.poolAddress, expectedPool));
+    pairs = pairs.filter(({ normalized }) => sameAddress(normalized.poolAddress, expectedPool, expectedChain));
   }
   if (!expectedToken && !expectedPool) {
     if (!expectedSymbol) return null;
@@ -1398,7 +1410,7 @@ function strictDexPair(payload, project = {}, lookup = {}) {
   }
 
   const identityKeys = new Set(
-    pairs.map(({ normalized }) => `${normalized.chain}:${lower(normalized.tokenAddress)}`)
+    pairs.map(({ normalized }) => `${normalized.chain}:${normalized.tokenAddress}`)
   );
   if (identityKeys.size !== 1) return null;
 
@@ -1556,7 +1568,30 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
     };
   }
 
-  const attempt = await executeProviderCall(
+  const binding = options.dexRecoveryBatch;
+  const identity = binding && dexBatchIdentity(project);
+  const batch = identity && identity.chain === binding.identity.chain &&
+    identity.tokenAddress === binding.identity.tokenAddress && identity.poolAddress === binding.identity.poolAddress &&
+    binding.batch.chain === identity.chain && binding.batch.addresses.includes(identity.tokenAddress) &&
+    typeof providers.getTokenPairsBatch === "function"
+    ? binding.batch : null;
+  const owner = batch && !batch.promise;
+  if (owner) {
+    const controller = new AbortController();
+    batch.promise = executeProviderCall("dexscreener", async () => {
+      batch.dispatched = true;
+      batch.requestedAt = providerReceiptTimestamp({ now: state.now });
+      const value = await providers.getTokenPairsBatch(batch.chain, batch.addresses, {
+        signal: controller.signal, requestedAt: batch.requestedAt, now: state.now,
+      });
+      batch.receivedAt = providerReceiptTimestamp({ now: state.now });
+      return value;
+    }, options, state, 1, chain, null, () => controller.abort());
+  }
+  const attempt = batch ? { ...await batch.promise, requestCost: owner && batch.dispatched ? 1 : 0,
+    batchRequestId: batch.id, batchTokenCount: batch.addresses.length, sharedPayload: !owner,
+    requestedAt: batch.requestedAt || null, receiptObservedAt: batch.receivedAt || null,
+  } : await executeProviderCall(
     "dexscreener",
     call,
     options,
@@ -1565,8 +1600,13 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
     chain || "unresolved"
   );
   if (attempt.status !== "SUCCESS") return { observations: [], attempts: [attempt] };
-  const pair = strictDexPair(attempt.value, project, { chain, tokenAddress, poolAddress });
-  if (!pair) {
+  if (batch) {
+    const expired = recoveryDeadlineStatus(state, options);
+    if (expired) return { observations: [], attempts: [{ ...attempt, value: undefined, status: expired,
+      reason: "Shared DEX response cannot extend the recovery window." }] };
+  }
+  const pair = strictDexPair(attempt.value, project, batch ? identity : { chain, tokenAddress, poolAddress });
+  if (!pair || (batch && !normalizeDexBatchAddress(pair.poolAddress, chain))) {
     return {
       observations: [],
       attempts: [{
@@ -1578,15 +1618,71 @@ async function recoverDex(project = {}, fields = [], providers = {}, options = {
     };
   }
 
+  const observedAt = batch?.receivedAt || options.now?.().toISOString?.() || new Date().toISOString();
+  let observations = dexObservations(pair, [...new Set([...fields, ...DEX_COMPANION_FIELDS])], observedAt, mode);
+  if (batch) {
+    const now = new Date((state.now || Date.now)());
+    observations = observations.filter((item) => Date.parse(observedAt) <= now.getTime() &&
+      Date.parse(observedAt) >= Date.parse(batch.requestedAt) &&
+      evaluateEvidenceFreshness(observedAt, item.field, now).status === "CURRENT")
+      .map((item) => ({ ...item, chain: pair.chain, tokenAddress: pair.tokenAddress, poolAddress: pair.poolAddress,
+        batchRequestId: batch.id, requestedAt: batch.requestedAt, receiptObservedAt: observedAt }));
+  }
   return {
-    observations: dexObservations(
-      pair,
-      [...new Set([...fields, ...DEX_COMPANION_FIELDS])],
-      options.now?.().toISOString?.() || new Date().toISOString(),
-      mode
-    ),
+    observations,
     attempts: [{ ...attempt, value: undefined, matchedIdentity: `${pair.chain}:${pair.tokenAddress}` }],
   };
+}
+
+function dexBatchIdentity(project = {}) {
+  if (project.identityConflict === true || project.canonicalIdentityHardBlock === true ||
+      project.chainMismatch === true || project.contractChainMismatch === true) return null;
+  const records = [project, project.rawCandidate, project.marketData, project.canonicalAliases,
+    project.canonicalExecutionRoute, project.executionProofRecoveryRoute, project.executionProof]
+    .filter((row) => row && typeof row === "object");
+  const consistent = (values, normalize) => {
+    const normalized = values.filter(valueKnown).map(normalize);
+    return normalized.length && normalized[0] && normalized.every((value) => value === normalized[0]) ? normalized[0] : null;
+  };
+  const chain = consistent(records.flatMap((row) => [row.chain, row.chainId, row.network,
+    row.canonicalChain, row.canonicalChainId, row.finalChain, row.finalChainId,
+    row.normalizedChain, row.baseToken?.chain]), normalizeChainId);
+  if (!chain) return null;
+  const tokenAddress = consistent(records.flatMap((row) => [row.tokenAddress, row.contractAddress,
+    row.address, row.canonicalAddress, row.finalContractAddress, row.verifiedContractAddress,
+    row.baseTokenAddress, row.baseToken?.address]), (value) => normalizeDexBatchAddress(value, chain));
+  const pools = records.flatMap((row) => [row.poolAddress, row.pairAddress, row.primaryPool,
+    row.primaryTradablePool, row.finalPairAddress, row.verifiedPairAddress, row.pair?.address]).filter(valueKnown);
+  const poolAddress = consistent(pools, (value) => normalizeDexBatchAddress(value, chain));
+  if (!tokenAddress || chain !== chainOf(project) || tokenAddress !== tokenAddressOf(project, chain) ||
+      (pools.length && !poolAddress) || tokenAddress === poolAddress) return null;
+  return { chain, tokenAddress, poolAddress };
+}
+
+// Plans only already-selected targets. The first consumer lazily admits one
+// transport through the ordinary shared budgets, deadlines and chain circuit.
+export function prepareDexRecoveryBatches(candidates = [], options = {}) {
+  if (!providerFunctions(options).getTokenPairsBatch) return new Map();
+  const bindings = new Map(), chains = new Map();
+  for (const candidate of candidates) {
+    if (!candidate.entries.some((entry) => DEX_FIELDS.has(fieldOf(entry))) ||
+        !sourceRequested(targetSourceNames(candidate.entries), ["dexscreener", "native rpc"])) continue;
+    const identity = dexBatchIdentity(candidate.project);
+    if (!identity) continue;
+    let groups = chains.get(identity.chain);
+    if (!groups) { groups = []; chains.set(identity.chain, groups); }
+    let batch = groups.find((group) => group.addresses.includes(identity.tokenAddress));
+    if (!batch) {
+      batch = groups.at(-1);
+      if (!batch || batch.addresses.length === 30) {
+        batch = { id: randomUUID(), chain: identity.chain, addresses: [] };
+        groups.push(batch);
+      }
+      batch.addresses.push(identity.tokenAddress);
+    }
+    bindings.set(candidate.projectIndex, { identity, batch });
+  }
+  return bindings;
 }
 
 async function recoverGeckoPool(project = {}, fields = [], providers = {}, options = {}, state = {}) {

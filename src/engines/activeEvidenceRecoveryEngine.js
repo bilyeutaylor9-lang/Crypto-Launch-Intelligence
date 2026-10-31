@@ -21,6 +21,7 @@ import {
   createActiveEvidenceExecutionState,
   resolveActiveEvidenceRequestBudget,
   executeActiveEvidenceProviderRequests,
+  prepareDexRecoveryBatches,
   hasExactExecutionRecoveryIdentity,
   mapWithBoundedConcurrency,
   summarizeActiveEvidenceExecutionState,
@@ -1028,8 +1029,15 @@ export async function analyzeActiveEvidenceRecoveryBatch(projects = [], options 
       const phaseOptions = { ...options, waitForGoPlusCooldown: options.waitForGoPlusCooldown ?? !independentFallbacks,
         ...(wave === "WAVE1" ? { phaseDeadlineAt:
           cohort.cheapMetadata ? schedule.cheapMetadataDeadlineAt : schedule.wave1DeadlineAt } : {}) };
-      const recoveredWave = await mapWithBoundedConcurrency(cohort.candidates.filter(candidate => candidate.entries.length), concurrency,
-        (candidate) => recoverCandidate(candidate, wave, phaseOptions));
+      const candidates = cohort.candidates.filter(candidate => candidate.entries.length);
+      const dexBatches = prepareDexRecoveryBatches(candidates.map((candidate) => ({ ...candidate,
+        project: currentProjects[candidate.projectIndex],
+        entries: candidate.entries.filter((entry) => requiresRecoveryObservation(entry.item) ||
+          !hasRecoveryValue(recoveredValueFor(currentProjects[candidate.projectIndex], entry.field))),
+      })), phaseOptions);
+      const recoveredWave = await mapWithBoundedConcurrency(candidates, concurrency,
+        (candidate) => recoverCandidate(candidate, wave, { ...phaseOptions,
+          dexRecoveryBatch: dexBatches.get(candidate.projectIndex) }));
       for (const recovered of recoveredWave) {
         const previous = recoveryByProject.get(recovered.projectIndex);
         const previousReport = previous?.activeEvidenceRecovery || {};
