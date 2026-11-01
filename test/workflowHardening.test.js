@@ -164,7 +164,7 @@ test("live dashboard runs shadow capture from the fresh scan and defers final he
 
   assert.match(workflow, /actions\/cache\/restore@v5/);
   assert.match(workflow, /actions\/cache\/save@v5/);
-  assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
+  assert.match(workflow, /path:\s*(?:\.state\/scanner-learning-bundle\.json\.gz|\|\s*\n\s*\.state\/scanner-learning-bundle\.json\.gz)/);
   assert.match(workflow, /run: npm run state:restore/);
   assert.match(workflow, /run: npm run state:pack -- --require-exact-universe/);
   const scan = workflow.indexOf("Run Intelligence Scanner");
@@ -214,7 +214,9 @@ test("hourly outcome probe is bounded, exact-only, and never launches a full sca
   assert.match(workflow, /OUTCOME_PROBE_MAX_REQUESTS:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_MAX_CANDIDATES:\s*120/);
   assert.match(workflow, /OUTCOME_PROBE_CONCURRENCY:\s*4/);
-  assert.match(workflow, /path: \.state\/scanner-learning-bundle\.json\.gz/);
+  assert.match(workflow, /path:\s*\|\s*\n\s*\.state\/scanner-learning-bundle\.json\.gz\s*\n\s*\.state\/evidence-archive\//);
+  assert.match(workflow, /key: scanner-learning-v3-/);
+  assert.match(workflow, /scanner-learning-v2-.*\n\s+scanner-learning-v2-/);
   assert.match(workflow, /run: npm run state:restore/);
   assert.match(workflow, /run: npm run state:pack -- --require-exact-universe/);
 });
@@ -244,12 +246,36 @@ test("every scanner-learning cache uses one validated canonical artifact", () =>
       .filter((block) => /key: scanner-learning-/.test(block));
     assert.ok(scannerBlocks.length >= 1, `${workflowPath} must restore canonical scanner state`);
     for (const block of scannerBlocks) {
-      assert.match(block, /path: \.state\/scanner-learning-bundle\.json\.gz/, `${workflowPath} cache version drifted`);
-      assert.match(block, /key: scanner-learning-v2-/, `${workflowPath} must use the bounded v2 state cache`);
+      assert.match(block, /path:\s*(?:\.state\/scanner-learning-bundle\.json\.gz|\|\s*\n\s*\.state\/scanner-learning-bundle\.json\.gz)/, `${workflowPath} cache version drifted`);
+      assert.match(block, /key: scanner-learning-v[23]-/, `${workflowPath} must use a versioned bounded state cache`);
       assert.doesNotMatch(block, /key: scanner-learning-\$\{\{/, `${workflowPath} must not restore the legacy unbounded cache`);
+      if (/key: scanner-learning-v3-/.test(block)) {
+        assert.match(block, /\.state\/evidence-archive\//, `${workflowPath} v3 cache must carry the verified archive`);
+      }
     }
     assert.match(workflow, /run: npm run state:restore/);
   }
+});
+
+test("stateful evidence workflows persist archive-backed scanner state", () => {
+  const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+  assert.deepEqual(pkg.allowScripts, {
+    "better-sqlite3@12.11.1": true,
+    "sqlite3@6.0.1": true,
+  });
+
+  for (const file of ["edge-lab.yml", "edge-evidence-truth.yml", "pages-dashboard.yml", "outcome-probe.yml"]) {
+    const workflow = fs.readFileSync(`.github/workflows/${file}`, "utf8");
+    assert.match(workflow, /SCANNER_STATE_ARCHIVE_ROOT: \.state\/evidence-archive/);
+    assert.match(workflow, /key: scanner-learning-v3-/);
+    assert.match(workflow, /\.state\/evidence-archive\//);
+    assert.match(workflow, /scanner-learning-v2-.*\n\s+scanner-learning-v2-/);
+  }
+
+  const lab = fs.readFileSync(".github/workflows/edge-lab.yml", "utf8");
+  assert.ok(lab.indexOf("run: npm ci") < lab.indexOf("run: npm run state:restore"));
+  const outcomeProbe = fs.readFileSync(".github/workflows/outcome-probe.yml", "utf8");
+  assert.ok(outcomeProbe.indexOf("run: npm ci") < outcomeProbe.indexOf("run: npm run state:restore"));
 });
 
 test("fast evidence runs after a successful dashboard instead of every five minutes", () => {

@@ -4,6 +4,10 @@
   "description": "AI-powered crypto launch intelligence platform for discovering early momentum shifts, launch opportunities, smart money accumulation, and emerging crypto narratives.",
   "type": "module",
   "main": "src/index.js",
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "sqlite3@6.0.1": true
+  },
   "bin": {
     "cli": "./src/cli.js",
     "crypto-launch": "./src/cli.js"
