@@ -38,6 +38,7 @@ jobs:
       dashboard_artifact: ${{ steps.dashboard_artifact.outcome }}
     env:
       NODE_OPTIONS: --max-old-space-size=8192
+      SCANNER_STATE_ARCHIVE_ROOT: .state/evidence-archive
 
     steps:
       - name: Checkout Repository
@@ -58,9 +59,12 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@v5
         with:
-          path: .state/scanner-learning-bundle.json.gz
-          key: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          path: |
+            .state/scanner-learning-bundle.json.gz
+            .state/evidence-archive/
+          key: scanner-learning-v3-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
+            scanner-learning-v3-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-
             scanner-learning-v2-${{ runner.os }}-
 
@@ -255,8 +259,10 @@ jobs:
         continue-on-error: true
         uses: actions/cache/save@v5
         with:
-          path: .state/scanner-learning-bundle.json.gz
-          key: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          path: |
+            .state/scanner-learning-bundle.json.gz
+            .state/evidence-archive/
+          key: scanner-learning-v3-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Preserve Failed Scanner State Diagnostic
         id: failed_state_preserve
@@ -268,7 +274,7 @@ jobs:
           FAILED_SCANNER_STATE_DIR: ${{ runner.temp }}/failed-scanner-state-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
           SCANNER_STATE_PACK_OUTCOME: ${{ steps.state_pack.outcome }}
           SCANNER_STATE_CACHE_SAVE_OUTCOME: ${{ steps.state_cache_save.outcome }}
-          SCANNER_STATE_EXPECTED_CACHE_KEY: scanner-learning-v2-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          SCANNER_STATE_EXPECTED_CACHE_KEY: scanner-learning-v3-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
           SCANNER_STATE_MATCHED_RESTORE_CACHE_KEY: ${{ steps.learning_cache_restore.outputs.cache-matched-key }}
           SCANNER_STATE_RESTORE_OUTCOME: ${{ steps.learning_cache_restore.outcome }}
 
